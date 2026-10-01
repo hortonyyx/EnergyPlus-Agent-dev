@@ -1,0 +1,302 @@
+<title>还原建模进展 10-01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
+<style>
+/* Layout: one reading column set out like a drawing sheet - a title block, then sections
+   divided by dimension-line rules with slashed end ticks; tables and the chart scroll inside
+   their own frames. */
+:root {
+  --bg: #f6f8f7; --panel: #ffffff; --fg: #17201e; --muted: #56625e; --rule: #d3dbd8;
+  --accent: #0d6f7a; --dim: #2f8a3c;
+  --good: #1f7345; --good-bg: #e3f2ea; --bad: #b02a22; --bad-bg: #fbe9e7; --warn: #8f5500; --warn-bg: #fbf0dc;
+  --series-1: #2a78d6; --series-2: #eb6834; --grid: #e2e8e6;
+  --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem; --step-0: 0.9375rem; --step-1: 1.125rem; --step-2: 1.4rem; --step-3: 1.9rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111716; --panel: #172120; --fg: #e3eae7; --muted: #9ba9a4; --rule: #2c3734;
+    --accent: #46c3ce; --dim: #5cbb69;
+    --good: #62d093; --good-bg: #183327; --bad: #ff877e; --bad-bg: #3a1d1b; --warn: #eab25d; --warn-bg: #362a17;
+    --series-1: #3987e5; --series-2: #d95926; --grid: #222c2a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111716; --panel: #172120; --fg: #e3eae7; --muted: #9ba9a4; --rule: #2c3734;
+  --accent: #46c3ce; --dim: #5cbb69;
+  --good: #62d093; --good-bg: #183327; --bad: #ff877e; --bad-bg: #3a1d1b; --warn: #eab25d; --warn-bg: #362a17;
+  --series-1: #3987e5; --series-2: #d95926; --grid: #222c2a;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.7; }
+.sheet { max-width: 60rem; margin: 0 auto; padding-inline: 16px; padding-block: 2rem 4rem; display: grid; gap: 2.25rem; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.3; margin: 0; }
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+p { margin: 0; max-width: 65ch; }
+.num, td.num, .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+/* title block, like a drawing's 图签 */
+.titleblock { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem 2rem; align-items: end;
+  border: 1.5px solid var(--fg); padding: 1.25rem 1.25rem 1rem; background: var(--panel); }
+.titleblock .lede { grid-column: 1 / -1; color: var(--muted); max-width: 70ch; }
+.titleblock dl { display: grid; grid-template-columns: auto auto; gap: 0.15rem 0.9rem; margin: 0; font-size: var(--step--1); }
+.titleblock dt { color: var(--muted); letter-spacing: 0.08em; }
+.titleblock dd { margin: 0; font-family: var(--font-data); }
+@media (max-width: 640px) { .titleblock { grid-template-columns: minmax(0, 1fr); } }
+
+/* section heading with a dimension-line rule: a hairline with 45-degree end ticks */
+section { display: grid; gap: 1rem; min-width: 0; }
+.dimrule { display: flex; align-items: center; gap: 0.75rem; }
+.dimrule .tag { font-family: var(--font-data); font-size: var(--step--1); color: var(--dim); letter-spacing: 0.06em; white-space: nowrap; }
+.dimrule .line { position: relative; flex: 1; height: 1px; background: var(--dim); min-width: 2rem; }
+.dimrule .line::before, .dimrule .line::after { content: ""; position: absolute; top: -5px; width: 1.5px; height: 11px;
+  background: var(--dim); transform: rotate(45deg); }
+.dimrule .line::before { left: 0; } .dimrule .line::after { right: 0; }
+
+.findings { display: grid; gap: 0.75rem; padding: 0; margin: 0; list-style: none; }
+.findings li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 0.75rem; align-items: start; }
+.findings .k { font-family: var(--font-data); color: var(--accent); font-weight: 600; padding-top: 0.05rem; }
+
+.frame { overflow-x: auto; border: 1px solid var(--rule); background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); letter-spacing: 0.04em; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+tr.ref td { color: var(--muted); }
+td.num { white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0 0.5rem; border-radius: 3px; font-size: var(--step--1);
+  white-space: nowrap; font-weight: 500; }
+.chip::before { font-family: var(--font-data); }
+.chip.ok { color: var(--good); background: var(--good-bg); } .chip.ok::before { content: "✓"; }
+.chip.no { color: var(--bad); background: var(--bad-bg); } .chip.no::before { content: "✗"; }
+.chip.conv { color: var(--warn); background: var(--warn-bg); } .chip.conv::before { content: "≈"; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+.note { border-left: 2px solid var(--accent); padding-left: 0.9rem; display: grid; gap: 0.35rem; min-width: 0; }
+
+/* chart */
+.chart { background: var(--panel); border: 1px solid var(--rule); padding: 1rem 1rem 0.5rem; display: grid; gap: 0.5rem; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; font-size: var(--step--1); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legend i { width: 0.8rem; height: 0.8rem; border-radius: 2px; display: inline-block; }
+.svgwrap { overflow-x: auto; position: relative; }
+svg { display: block; width: 100%; min-width: 34rem; height: auto; }
+svg text { font-family: var(--font-data); font-size: 11px; fill: var(--muted); }
+svg .lab { fill: var(--fg); font-family: var(--font-body); font-size: 11.5px; }
+.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font-size: var(--step--1);
+  padding: 0.35rem 0.55rem; border-radius: 3px; white-space: nowrap; transform: translate(-50%, -110%); }
+details { font-size: var(--step--1); }
+summary { cursor: pointer; color: var(--accent); }
+summary:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+ol.decide { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.9rem; }
+ol.decide li { padding-left: 0.3rem; }
+ol.decide b { font-weight: 700; }
+.rec { color: var(--muted); }
+ul.plain { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.4rem; }
+code { font-family: var(--font-data); font-size: 0.92em; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="sheet">
+  <header class="titleblock">
+    <div>
+      <h1>还原建模进展 10-01</h1>
+    </div>
+    <dl>
+      <dt>日期</dt><dd>2026-10-01</dd>
+      <dt>编制</dt><dd>Opus 5.5</dd>
+      <dt>用途</dt><dd>明早讨论</dd>
+    </dl>
+    <p class="lede">用修复包让工作模型 Sonnet 5 跑了两栋楼（B 段），又由开发模型用同一套工具亲手做了三栋楼。工作模型两次都出了严重错误，开发模型三例全部达标。差距一半来自模型自身的变化，一半来自我们的做法和工具。</p>
+  </header>
+
+  <section aria-labelledby="s1">
+    <div class="dimrule"><h2 id="s1">结论</h2><span class="line"></span><span class="tag">4 条</span></div>
+    <ol class="findings">
+      <li><span class="k">01</span><p><b>修复包不稳定。</b>sm21 重复一次高度错了 8 处（9/17），换到 sm24 走廊被并进了东侧会议室。两次错的方向不同，说明问题不在某一条规则。</p></li>
+      <li><span class="k">02</span><p><b>变慢变贵是模型自己变了。</b>09-27 起，同样的请求、同样的 Claude Code 版本，思考量涨到约 5 倍；每次运行占 5 小时额度从 5–11% 涨到 27–33%。</p></li>
+      <li><span class="k">03</span><p><b>质量差距有一部分在我们这边。</b>好结果时期按标注尺寸落墙、首稿前读好高度、按立面记高度依据；现在按量出的墨线面落墙、高度后补或一条链套全部，平面差异检查“0 条”还被当成全部核过。</p></li>
+      <li><span class="k">04</span><p><b>开发模型三例全部达标。</b>房间、门窗位置/挂墙/连通、外墙高度全部对应，平面都是一次编译通过。做法已整理，可作为换不换模型都能用的共同基础。</p></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="s2">
+    <div class="dimrule"><h2 id="s2">工作模型 B 段回归</h2><span class="line"></span><span class="tag">run99 · run100</span></div>
+    <p class="muted">同一套冻结代码和条件，Sonnet 5 / medium，每次之间隔两小时。灰色行是同一栋楼好结果时期的参照。run101（sm25）按你的调整撤下。</p>
+    <div class="frame">
+      <table>
+        <thead><tr><th>运行</th><th>楼</th><th>房间一一对应</th><th>门窗位置/挂墙/连通</th><th>外墙高度</th><th>用时</th><th>5 小时额度</th></tr></thead>
+        <tbody>
+          <tr class="ref"><td>run57 · run58</td><td>sm21</td><td>通过（14 间）</td><td class="num">29/29/14</td><td class="num">17/17</td><td class="num">5–6 分</td><td class="num">8–9%</td></tr>
+          <tr><td><b>run99</b></td><td>sm21</td><td><span class="chip ok">通过</span></td><td class="num">28/29/14</td><td><span class="chip no">9/17</span></td><td class="num">18 分</td><td class="num">32%</td></tr>
+          <tr class="ref"><td>run55 · run56</td><td>sm24</td><td>通过（8 间）</td><td class="num">20–21/21/10</td><td class="num">14/14</td><td class="num">4–5 分</td><td class="num">5%</td></tr>
+          <tr><td><b>run100</b></td><td>sm24</td><td><span class="chip no">7 间，走廊并房</span></td><td class="num">14/21 · 18 · 7</td><td><span class="chip ok">14/14</span></td><td class="num">18 分</td><td class="num">27%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two">
+      <div class="note"><h3>run99 错在哪里</h3><p>一层所有窗都套用了东立面那条链（窗顶 2.8 m），南北窗实际 2.6 m；卫生间小窗和南门的链段序读反。它在最终回复里写“平面检查零差异，所以没逐立面核”。</p></div>
+      <div class="note"><h3>run100 错在哪里</h3><p>东半边整体读错：走廊东墙没建，东侧小间隔墙横穿走廊，两扇房门被写成横跨走廊的开口。第二稿平面差异检查报 0 条，是这道双线墙没被识别出来（漏报），模型信了就交付了。</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s3">
+    <div class="dimrule"><h2 id="s3">开发模型亲做三例</h2><span class="line"></span><span class="tag">同一套工具</span></div>
+    <p class="muted">同样的原图、任务、说明和建模工具，经工具客户端调用，每次请求和返回都存档；生成时不看参照答案和历史结果，交付后用同一套审计评价。用时含开发模型自己读图和思考。</p>
+    <div class="frame">
+      <table>
+        <thead><tr><th>楼</th><th>房间一一对应</th><th>门窗位置/挂墙/连通</th><th>外墙高度</th><th>严格分区（2 cm）</th><th>用时</th><th>平面返工</th></tr></thead>
+        <tbody>
+          <tr><td><b>sm21</b> 两层</td><td><span class="chip ok">14 间</span></td><td class="num">29/29/14</td><td class="num">17/17</td><td><span class="chip ok">通过，零偏差</span></td><td class="num">12 分</td><td class="num">0</td></tr>
+          <tr><td><b>sm24</b> 单层</td><td><span class="chip ok">8 间</span></td><td class="num">21/21/10</td><td class="num">14/14</td><td><span class="chip conv">只差地坪约定</span></td><td class="num">7 分</td><td class="num">0</td></tr>
+          <tr><td><b>sm25</b> 两层 L 形</td><td><span class="chip ok">29 间</span></td><td class="num">61/61/30</td><td class="num">34/34</td><td><span class="chip conv">地坪 + 0.12 m 墙面约定</span></td><td class="num">11 分</td><td class="num">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>严格分区里剩下的差别都是<b>表示约定</b>，不是房间画错，需要你定（见下方第 1 项）。</p>
+  </section>
+
+  <section aria-labelledby="s4">
+    <div class="dimrule"><h2 id="s4">差在哪里</h2><span class="line"></span><span class="tag">sm21 对照</span></div>
+    <div class="frame">
+      <table>
+        <thead><tr><th></th><th>好结果 run57/58</th><th>工作模型 run98/99</th><th>开发模型</th></tr></thead>
+        <tbody>
+          <tr><td>墙位来源</td><td>标注尺寸</td><td>量出的墨线面（偏 4–7 cm）</td><td>标注尺寸</td></tr>
+          <tr><td>高度何时定</td><td>首稿前读好</td><td>先填临时值后补 / 一条链套全部</td><td>首稿前逐立面读好</td></tr>
+          <tr><td>高度依据</td><td>6–10 条，按立面</td><td>3–5 条，run99 跨立面套用</td><td>10 条，按立面</td></tr>
+          <tr><td>外墙高度</td><td class="num">17/17</td><td class="num">16/17 · 9/17</td><td class="num">17/17</td></tr>
+          <tr><td>严格分区</td><td>minor</td><td>severe</td><td>pass</td></tr>
+          <tr><td>首稿 / 总用时</td><td class="num">163–180 / 311–378 秒</td><td class="num">571–777 / 1081–1125 秒</td><td class="num">467 / 732 秒</td></tr>
+          <tr><td>思考 token</td><td class="num">1.1–1.5 万</td><td class="num">6.1–6.9 万</td><td class="muted">不可比</td></tr>
+          <tr><td>5 小时额度 / 次</td><td class="num">8–9%</td><td class="num">32–33%</td><td class="muted">不可比</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="chart" style="margin:0">
+      <h3>sm21 每次原图冷启动的思考量</h3>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--series-1)"></i>好结果时期（09-26 · 09-27 早）</span>
+        <span><i style="background:var(--series-2)"></i>09-27 之后</span>
+      </div>
+      <div class="svgwrap" id="chartwrap"><svg id="thinking" viewBox="0 0 760 300" role="img" aria-label="sm21 各次运行的思考 token：好结果时期约 1.1 到 1.5 万，09-27 之后 5.2 到 8.4 万"></svg><div class="tip" id="tip" hidden></div></div>
+      <figcaption class="muted" style="font-size:var(--step--1)">只含正常结束、单次调用的原图冷启动（不含续跑、保存稿修复和额度中断）。run81 是好结果时期的旧代码、逐字节相同请求，同样涨到 5.8 万；这段时间 CLI 一直是 2.1.280，09-29 才升到 2.1.284。</figcaption>
+      <details><summary>查看数据表</summary>
+        <div class="frame" style="margin-top:0.5rem"><table id="chartdata"><thead><tr><th>运行</th><th>日期</th><th>思考 token</th><th>首稿 秒</th><th>总用时 秒</th><th>备注</th></tr></thead><tbody></tbody></table></div>
+      </details>
+    </figure>
+  </section>
+
+  <section aria-labelledby="s5">
+    <div class="dimrule"><h2 id="s5">需要你拍板</h2><span class="line"></span><span class="tag">4 项</span></div>
+    <ol class="decide">
+      <li><b>两条建模约定。</b>（一）地坪从哪算：sm24、sm25 的外门比室外地面线高 0.2 m，首层地坪放在门底，还是放在地面线、让门从 0.2 m 起（参照用后者）。（二）外墙线延伸进来的内墙：取内墙中线（参照做法，外轮廓留 12 cm 台阶），还是对齐外墙外皮（开发运行做法）。<span class="rec">只影响严格比对，不影响房间和门窗是否正确；定下来后写进说明或工具。</span></li>
+      <li><b>换不换工作模型。</b>你的意见是更早转到本地部署级模型的 API，让模型自身可控。<span class="rec">我赞成；模型、底座、推理参数都要能锁定版本。</span></li>
+      <li><b>底座怎么选。</b>工作模型现在（含 GLM 试跑）都跑在 Claude Code 上，它会自动更新、受远程配置控制。可选 pi（开源、多模型、核心极小、TypeScript，MCP 刚进核心），或扩展 09-28 已有原型的自有精简对话循环（Python，直接接现有建模工具和行为记录）。<span class="rec">我倾向后者为主、借鉴 pi；换底座和换模型分两步，免得两个变量混在一起。</span></li>
+      <li><b>先做工具改进包。</b>把开发模型做对、工作模型常错的地方做进工具（见下表）。<span class="rec">换不换模型都用得上，能力更弱的模型更需要。</span></li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="s6">
+    <div class="dimrule"><h2 id="s6">工具改进清单</h2><span class="line"></span><span class="tag">来自开发运行</span></div>
+    <div class="frame">
+      <table>
+        <thead><tr><th>改进</th><th>针对的失败</th></tr></thead>
+        <tbody>
+          <tr><td>允许声明里直接写标注尺寸（毫米），由工具换算落位</td><td>墙落在墨线面上，系统性偏 4–7 cm</td></tr>
+          <tr><td>逐立面高度覆盖报告：开口所在立面和高度依据引用的立面不一致时列为待核（只报告不拦截）</td><td>run99 一条东立面链套到南北窗</td></tr>
+          <tr><td>平面差异报告“0 条”时写明它不查外墙门窗和高度</td><td>run99 把 0 条当成全部核过</td></tr>
+          <tr><td>平面差异检查补双线墙的识别，减少漏报</td><td>run100 漏报走廊东墙</td></tr>
+          <tr><td>接口说明补全可选值（如 <code>observation_mode</code>、<code>disposition</code>）</td><td>工作模型和开发模型都踩过格式坑</td></tr>
+          <tr><td>像素剖面没结果时提示可能是颜色阈值，建议放大核对</td><td>三例都有墙线因颜色没被剖面识别</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="s7">
+    <div class="dimrule"><h2 id="s7">其他已处理</h2><span class="line"></span><span class="tag">记录 · 命名</span></div>
+    <div class="two">
+      <div class="note"><h3>完整行为记录</h3><p>每次运行都生成逐步完整记录：每次调用的参数和返回、模型说的话、每步思考量、用量和额度读数。CLI 不给思考内容，只记数量。规则已写进工作方式文档，已补齐 12 次运行。</p></div>
+      <div class="note"><h3>命名问题</h3><p>run99 的楼层叫 1F/2F 不算违规，公开名照规范生成。另查出两处要和 Astra 一起改：同一排房间编号会被浮点误差打乱；楼层公开名被部分推理改成跟随模型起的名字。</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s8">
+    <div class="dimrule"><h2 id="s8">记录在哪里</h2><span class="line"></span><span class="tag">未合入主线</span></div>
+    <ul class="plain">
+      <li>交接：主线 <code>AI_agent/logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md</code></li>
+      <li>B 段与行为记录：分支 <code>dev/opus-guidance-recovery-20260929</code>（run99、run100、<code>2026-10-01_behaviour_records/</code>）</li>
+      <li>开发模型三例：分支 <code>dev/opus-recon-dev-20261001</code>（<code>2026-10-01_opus_dev_reconstruction/README.md</code>）</li>
+      <li>今晚没有在跑的模型或待执行批次；C 段未放行；提醒：run99 开跑时 7 天额度已到 97%，15:00 UTC 才重置。</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+(function () {
+  var rows = [
+    ["57", "09-26", 11409, 163, 378, "好结果"], ["58", "09-27", 14893, 180, 311, "好结果"],
+    ["71", "09-27", 54907, 500, 1058, ""], ["72", "09-27", 62397, 771, 1201, ""], ["73", "09-27", 52463, 495, 956, ""],
+    ["74", "09-27", 55437, 485, 945, ""], ["75", "09-27", 69741, 835, 1144, ""], ["79", "09-28", 70778, 684, 1443, ""],
+    ["80", "09-28", 78147, 842, 1264, ""], ["81", "09-28", 58213, 701, 990, "旧代码、同请求"], ["83", "09-28", 60700, 667, 1097, ""],
+    ["84", "09-28", 51746, 441, 994, ""], ["86", "09-28", 72645, 620, 1190, ""], ["87", "09-28", 54267, 745, 1083, ""],
+    ["91", "09-29", 84376, 1010, 1323, ""], ["93", "09-29", 69322, 888, 1017, ""], ["94", "09-29", 76123, 852, 1199, ""],
+    ["98", "09-30", 69076, 571, 1125, "修复包"], ["99", "10-01", 61430, 777, 1081, "修复包"]
+  ];
+  var svg = document.getElementById("thinking"), NS = "http://www.w3.org/2000/svg";
+  var W = 760, H = 300, L = 46, R = 12, T = 30, B = 40, max = 90000;
+  var plotW = W - L - R, plotH = H - T - B, step = plotW / rows.length, bw = Math.max(8, step - 6);
+  function el(name, attrs, text) { var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; svg.appendChild(e); return e; }
+  function y(v) { return T + plotH - v / max * plotH; }
+  [0, 30000, 60000, 90000].forEach(function (v) {
+    el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--grid)", "stroke-width": 1 });
+    el("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end" }, v === 0 ? "0" : (v / 10000) + "万");
+  });
+  var tip = document.getElementById("tip"), wrap = document.getElementById("chartwrap");
+  rows.forEach(function (r, i) {
+    var good = r[5] === "好结果", x = L + i * step + (step - bw) / 2, top = y(r[2]);
+    var h = T + plotH - top, rad = Math.min(4, bw / 2);
+    var d = "M" + x + "," + (T + plotH) + " V" + (top + rad) + " Q" + x + "," + top + " " + (x + rad) + "," + top +
+      " H" + (x + bw - rad) + " Q" + (x + bw) + "," + top + " " + (x + bw) + "," + (top + rad) + " V" + (T + plotH) + " Z";
+    var bar = el("path", { d: d, fill: good ? "var(--series-1)" : "var(--series-2)" });
+    el("text", { x: x + bw / 2, y: H - B + 16, "text-anchor": "middle" }, r[0]);
+    var hit = el("rect", { x: L + i * step, y: T, width: step, height: plotH, fill: "transparent", tabindex: 0,
+      "aria-label": "run" + r[0] + "，" + r[1] + "，思考 " + r[2] + " token" });
+    function show() {
+      bar.setAttribute("opacity", "0.8");
+      var box = svg.getBoundingClientRect(), s = box.width / W;
+      tip.textContent = "run" + r[0] + " · " + r[1] + " · 思考 " + r[2].toLocaleString("en-US") + " · 首稿 " + r[3] + " 秒 · 总 " + r[4] + " 秒" + (r[5] ? " · " + r[5] : "");
+      tip.style.left = ((x + bw / 2) * s) + "px"; tip.style.top = (top * s) + "px"; tip.hidden = false;
+    }
+    function hide() { bar.setAttribute("opacity", "1"); tip.hidden = true; }
+    hit.addEventListener("mouseenter", show); hit.addEventListener("mouseleave", hide);
+    hit.addEventListener("focus", show); hit.addEventListener("blur", hide);
+  });
+  var split = L + 2 * step;
+  el("line", { x1: split, x2: split, y1: T - 14, y2: T + plotH, stroke: "var(--muted)", "stroke-width": 1, "stroke-dasharray": "3 3" });
+  el("text", { x: split + 5, y: T - 6, "class": "lab" }, "09-27 上午起");
+  el("text", { x: L + step, y: y(14893) - 8, "text-anchor": "middle", "class": "lab" }, "1.1–1.5万");
+  var i81 = 9, x81 = L + i81 * step + step / 2;
+  el("line", { x1: x81, x2: x81, y1: y(86000) + 4, y2: y(58213) - 4, stroke: "var(--muted)", "stroke-width": 1 });
+  el("text", { x: x81, y: y(86000), "text-anchor": "middle", "class": "lab" }, "run81 旧代码同请求");
+  el("text", { x: W - R, y: H - 6, "text-anchor": "end" }, "运行编号（sm21）");
+  var tb = document.querySelector("#chartdata tbody");
+  rows.forEach(function (r) {
+    var tr = document.createElement("tr");
+    ["run" + r[0], r[1], r[2].toLocaleString("en-US"), r[3], r[4], r[5]].forEach(function (c, j) {
+      var td = document.createElement("td"); td.textContent = c; if (j > 1 && j < 5) td.className = "num"; tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+})();
+</script>

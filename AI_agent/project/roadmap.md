@@ -1,6 +1,6 @@
 # 路线与当前任务
 
-**10-01 还原建模（Opus 5.5，用户直接安排）：B 段两次回归不稳定，开发模型亲做三例全部达标，待明早讨论是否换工作模型/底座。** run99（sm21 重复）平面保持、高度 9/17；run100（sm24）走廊并入东侧会议室、门窗位置 14/21，平面差异检查对走廊东墙漏报；run101 按用户调整撤下。变慢变贵（思考约 5 倍、5 小时额度每次 27–33%）自 09-27 起出现，CLI 版本与请求不变时同样发生，判为模型/服务端变化。Opus 用同一套工具做 sm21/sm24/sm25：房间、门窗位置/宿主/连接、外墙高度全部对应，sm21 严格分区 pass，sm24/25 只余地坪基准与墙面/中线两条待定约定。完整行为记录规则已落地，命名排序与楼层公开名两处缺口待与 Astra 协调。修复包与开发分支均未合入，无待跑批次。**当前交接：** [B 段、行为记录、三例开发与讨论要点](../logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md)。
+**10-01 还原建模已收工（Opus 5.5，用户直接安排）：B 段两次回归不稳定，开发模型亲做三例全部达标，待明早讨论是否换工作模型/底座。** run99（sm21 重复）平面保持、高度 9/17；run100（sm24）走廊并入东侧会议室、门窗位置 14/21，平面差异检查对走廊东墙漏报；run101 按用户调整撤下。变慢变贵（思考约 5 倍、5 小时额度每次 27–33%）自 09-27 起出现，CLI 版本与请求不变时同样发生，判为模型/服务端变化。Opus 用同一套工具做 sm21/sm24/sm25：房间、门窗位置/宿主/连接、外墙高度全部对应，sm21 严格分区 pass，sm24/25 只余地坪基准与墙面/中线两条待定约定。完整行为记录规则已落地，命名排序与楼层公开名两处缺口待与 Astra 协调。修复包与开发分支均未合入，无待跑批次；用户明早新开一轮查看汇总网页并讨论。**当前交接：** [B 段、行为记录、三例开发与讨论要点](../logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md)。
 
 **10-01 已收工：部分推理首版框架、6.1 Sol／6 Sol各一次开发测试与离线修复已归档。** 两组源几何通过，6.1 Sol建筑方案较好，但精细粒度仍不足，6 Sol另有大面积门居中。过程整体连贯，无人工中途纠正；6 Sol的11份候选包含定框和用途补录，不能算11次失败返工。用户决定下轮先查看两份现有输出，再讨论后续；修复版复测仅为建议范围，未获批准，无自动待跑批次。未启动工作模型或还原B/C。**当前交接：** [本轮完整收工、过程判断与下次查看入口](../logs/worklog/2026-10-01_partial_inference_session_close.md)。
 
@@ -254,7 +254,7 @@
 
 当前部分推理入口：[09-30 Astra接手与用户共同调试](../logs/worklog/2026-09-30_partial_inference_takeover.md)。以用户选定的[汇报演示版](../../showcase/2026-09-11-research-report/demos/textured-mass/index.html)继续，当前[修订02精细档已验收](../logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)，下一步按[框架起点](../design/partial_inference_framework_start.md)实施，再由开发模型验证、工作模型测试。
 
-还原建模保留入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
+还原建模当前入口：[10-01 B 段、行为记录、开发模型亲做三例与讨论要点](../logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md)（汇总网页源文件同目录 `2026-10-01_opus_reconstruction_summary.html`）。此前入口：[09-30 工具目录、GLM Flash 独立试跑与主线评价准备收工](../logs/worklog/2026-09-30_glm_flash_trial.md)。开发依据是 [09-30 Opus 与 Astra 共同复查、修复包、run98 与行为对比](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)；此前 [run94 重构第一版复查](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)及下方“最新”标签均为历史记录，不按旧状态启动已结束批次。
 
 **最新交接：[09-28 Opus独立调查、窄修复与下一验证](../logs/worklog/2026-09-28_opus_investigation_and_quality_next.md)。** 调查和局部实现已完成，暂保留当前底座；两次单Sonnet方法参考对照已准备但未获批/执行，不宣称恢复。先读该交接和冻结方案，用户批准后只跑指定B/A两次。分工/API接入继续后置。前置实现见[量测采用](../logs/worklog/2026-09-28_plan_measurement_binding.md)，对象追踪及718坐标解释更正见[原因梳理](../logs/worklog/2026-09-28_reconstruction_progress_diagnosis.md)。
 
