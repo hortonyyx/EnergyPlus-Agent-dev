@@ -1,0 +1,111 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_E",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "East_view.png ground-storey chain read upward from the ground: 1000/1800/200 = 3000; this facade's own window is 1800 tall, unlike the 1600 windows on the north and south facades.",
+    "sources": [
+      {
+        "view_id": "view_0005"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          200.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              2.8,
+              3.0
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0007",
+  "parent_proposal_sha256": "bb284ac56e5c8b8d91bf9075f66cde52fe8f651536eb3ca2ea265cbd9c741ed6",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        945,
+        741
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ],
+      "view_id": "view_0005",
+      "view_sha256": "da5f6b9e885faad32a2f5b4c8c8f280fcf254bd8f0dd97f7a3a7c6bdd67b1004"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

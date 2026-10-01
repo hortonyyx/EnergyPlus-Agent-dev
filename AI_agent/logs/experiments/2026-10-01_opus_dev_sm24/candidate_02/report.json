@@ -1,0 +1,66 @@
+{
+  "agent_assumptions": [
+    "World z = 0 at the elevations' ground line; the ground floor is 0.2 m above it, so z_floor = 0.2 (if z = 0 were taken at the floor instead, every z here would be 0.2 lower).",
+    "Interior door heights 2.1 m above the floor: no drawing dimensions them.",
+    "Corridor/SE-room step wall at y = 3.44 m is measured (not dimensioned).",
+    "Interior door jambs from measured wall gaps snapped to 10 mm.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "03d68192da1a79506f0505ca22062f8db2aa5e318367c12df87c9f9aab6665db",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "candidate_01",
+      "parent_proposal_sha256": "4caa847f576b6b422f25fb20f1c74330a6d68dfd24fd1b70968309cb5b76e6c9"
+    },
+    "generator": "external_development_agent subscription tool loop",
+    "input_manifest_sha256": "59f11f023adcbf3b2c27f1751ed2397c4ec971f48d7a792ad8b4d083f514f08d",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "4caa847f576b6b422f25fb20f1c74330a6d68dfd24fd1b70968309cb5b76e6c9"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "fadbf80623ee9413efee91a212fdbc564aa0b01f5f359bd00e3c779aa252fe0c",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}
