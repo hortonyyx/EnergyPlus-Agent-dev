@@ -181,3 +181,13 @@ def test_output_reduction_changes_wire_request_and_records_decision(tmp_path):
         assert decision["actual_output_limit"] == 40
         assert decision["degradation"]["action"] == "reduce_output"
         assert decision["degradation"]["output_token_limit"] == 40
+        assert decision["token_estimate"]["output_token_limit"] == 40
+        assert decision["token_estimate"]["input_tokens_upper_bound"] == decision[
+            "effective_estimate"]["input_token_upper_bound"]
+        assert decision["context_limits"] == {
+            "model_profile": None,
+            "configured": None,
+            "effective": None,
+        }
+        assert decision["effective_estimate"]["estimate_source"] == decision[
+            "token_estimate"]["source"]

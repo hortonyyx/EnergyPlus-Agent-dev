@@ -20,6 +20,8 @@ def make_versions(store: EventStore, *, root: Path, prompt: str,
     for relative in ("src/agent_runtime", "src/harness_contracts", *code_paths):
         path = root / relative
         files = sorted(path.rglob("*.py")) if path.is_dir() else [path]
+        if path == root / "src/agent_runtime":
+            files = sorted((*files, path / "model_profiles.json"))
         for file in files:
             sources[str(file.relative_to(root))] = hashlib.sha256(file.read_bytes()).hexdigest()
     code = store.source("code-manifest", {"commit": commit, "files": sources})

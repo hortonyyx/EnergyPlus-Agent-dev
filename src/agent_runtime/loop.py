@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal
 from pathlib import Path
 from typing import Literal
@@ -21,6 +21,7 @@ from src.harness_contracts import (
 from src.harness_contracts.base import ContractModel
 from .adapter import convert_tool_result, parse_response, prepare_request, reported_tokens
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
+from .estimation import get_model_profile
 from .store import EventStore
 
 
@@ -59,6 +60,7 @@ class Runtime:
     required_context_tags: tuple[str, ...] = ()
     required_view_ids: tuple[str, ...] = ()
     retrieve_images: tuple[tuple[str, str], ...] = ()
+    strict_model_profile: bool = False
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
@@ -165,7 +167,14 @@ class Runtime:
             return self._exception_stop(exc)
 
     def _config(self):
+        model_profile = asdict(get_model_profile(
+            self.model, strict=self.strict_model_profile))
+        # The persisted JSON decodes tuples as lists. Normalize here so resume
+        # compares the live profile with the same shape that was saved.
+        model_profile["aliases"] = list(model_profile["aliases"])
         return {"model": self.model, "parameters": self.parameters,
+            "model_profile": model_profile,
+            "strict_model_profile": self.strict_model_profile,
             "role": self.role.model_dump(mode="json"),
             "versions": self.versions.model_dump(mode="json"),
             "limits": self.limits.model_dump(mode="json"),
@@ -208,9 +217,18 @@ class Runtime:
             prepared = prepare_request(store=self.store, model=self.model,
                 messages=messages, message_sources=sources, tools=tools,
                 tool_source=self.tool_source, parameters=parameters, versions=self.versions,
-                image_originals=self.originals)
-            if self.limits.context_tokens is not None and prepared.token_reservation_estimate > self.limits.context_tokens:
-                return None, "context_budget_exhausted"
+                image_originals=self.originals,
+                strict_model_profile=self.strict_model_profile)
+            profile_limit = prepared.context_window_tokens
+            configured_limit = self.limits.context_tokens
+            available_limits = tuple(limit for limit in (profile_limit, configured_limit)
+                                     if limit is not None)
+            effective_context_limit = min(available_limits) if available_limits else None
+            if (effective_context_limit is not None
+                    and prepared.token_reservation_estimate > effective_context_limit):
+                if profile_limit is not None and profile_limit <= effective_context_limit:
+                    return None, "model_profile_context_limit_exhausted"
+                return None, "configured_context_limit_exhausted"
             self._load_budget()
             remaining = self._remaining()
             if remaining <= 0:
@@ -233,7 +251,7 @@ class Runtime:
             estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
                 input_token_upper_bound=prepared.input_token_upper_bound,
                 output_token_limit=prepared.output_token_limit, seconds=seconds,
-                estimate_source="UTF-8 wire bytes plus decoded image pixels; conservative estimate, not service tokenizer",
+                estimate_source=prepared.estimate_source,
                 pricing=self.pricing)
             reservation_id = self.store.next_reservation_id()
             task_decision = self.task_budget.reserve(reservation_id, estimate)
@@ -267,7 +285,11 @@ class Runtime:
                     **decision.model_dump(mode="json"), "original_output_limit": self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
                     "actual_output_limit": prepared.output_token_limit,
                     "near_limit_action": "reduce_output" if degradation else "allow",
-                    "degradation": degradation}),))
+                    "degradation": degradation,
+                    "token_estimate": asdict(prepared.token_estimate),
+                    "context_limits": {"model_profile": profile_limit,
+                        "configured": configured_limit,
+                        "effective": effective_context_limit}}),))
             self._fault("after_reservation")
             if self.retry_of:
                 self.store.append(RunLifecyclePayload(action="retry", reason="explicit bounded model retry",

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import io
+import json
+from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from PIL import Image
@@ -12,6 +16,13 @@ from src.agent_runtime.estimation import (
     get_model_profile,
     qwen_image_tokens,
 )
+from src.agent.runtime_entry import runtime_model_profile
+from src.agent_runtime.store import EventStore
+from src.agent_runtime.versions import make_versions
+from src.harness_contracts import BudgetAmounts
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _image_url(width: int, height: int) -> str:
@@ -41,6 +52,29 @@ def test_unknown_model_is_explicitly_unverified_and_strict_lookup_rejects():
     assert profile.profile_status == "unverified_conservative_approximation"
     with pytest.raises(ValueError, match="no reviewed estimation profile"):
         get_model_profile("scripted-model", strict=True)
+
+
+def test_real_runtime_route_requires_a_reviewed_profile():
+    assert runtime_model_profile(
+        "paratera", "Qwen3.8-Flash").profile_status == "sourced_with_deployment_uncertainty"
+    with pytest.raises(ValueError, match="no reviewed estimation profile"):
+        runtime_model_profile("paratera", "unreviewed-production-model")
+    assert runtime_model_profile("scripted", "fixture-name").context_window_tokens is None
+
+
+def test_code_manifest_hashes_model_profile_data(tmp_path):
+    store = EventStore(tmp_path / "run", run_id="versions-test", task_id="task",
+                       budget_limit=BudgetAmounts(tokens=100, seconds=Decimal("10"), calls=1))
+    with store:
+        manifest = make_versions(store, root=ROOT, prompt="test", tools=[],
+                                 parameters={"max_tokens": 1},
+                                 route={"route_id": "offline", "model": "test"})
+        evidence = manifest.code_commit.evidence
+        assert evidence is not None
+        code = json.loads(store.get_bytes(evidence.blob))
+        profile_path = ROOT / "src/agent_runtime/model_profiles.json"
+        assert code["files"]["src/agent_runtime/model_profiles.json"] == hashlib.sha256(
+            profile_path.read_bytes()).hexdigest()
 
 
 def test_qwen_image_estimate_matches_existing_paratera_elevation_usage():
