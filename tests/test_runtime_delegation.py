@@ -2,6 +2,7 @@ import asyncio
 import io
 import json
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from PIL import Image
@@ -13,10 +14,20 @@ from src.agent.contracts.refs import (
     RunQualifiedEvidenceRef,
 )
 from src.agent.runtime_coordinator import CoordinatorSession
-from src.agent.runtime_delegation import EvidenceTools, RegisteredView, hydrate_observation
+from src.agent.runtime_delegation import (
+    EvidenceTools,
+    RegisteredView,
+    hydrate_observation,
+    run_observer,
+)
 from src.agent.runtime_tools import local_observer_role
+from src.agent_runtime.adapter import ScriptedAdapter
+from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import BudgetAmounts
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _png_bytes(size, color):
@@ -180,11 +191,209 @@ def test_evidence_tools_refuse_undelivered_facade_inputs(tmp_path, image_key):
         frozen.repeatability = lambda name: "read_only"
         tools = EvidenceTools(frozen, local_observer_role(BudgetAmounts(calls=2)),
                               [_registered_view(store)])
-        with pytest.raises(ValueError, match="outside the local evidence package"):
-            asyncio.run(tools.call_tool("compare_facade_spans", {
-                "plan_image": "plan.png", "elevation_image": "plan.png",
-                image_key: "undelivered.png"}))
+        result = asyncio.run(tools.call_tool("compare_facade_spans", {
+            "plan_image": "plan.png", "elevation_image": "plan.png",
+            image_key: "undelivered.png"}))
+
+        assert result["isError"] is True
+        assert result["structuredContent"] == {
+            "status": "evidence_scope_rejected",
+            "reason": "tool image is outside the local evidence package: " + image_key,
+            "tool_image_names": ["plan.png"],
+        }
         assert frozen.calls == []
+
+
+class _ReadOnlyTools:
+    def __init__(self, run_directory):
+        self.run_directory = run_directory
+        self.calls = []
+
+    def repeatability(self, _name):
+        return "read_only"
+
+    async def call_tool(self, name, arguments):
+        self.calls.append((name, arguments))
+        return {
+            "content": [{"type": "text", "text": "profile measured"}],
+            "structuredContent": {"status": "ok"},
+            "isError": False,
+        }
+
+
+def test_evidence_tools_reject_out_of_crop_profile_and_allow_in_crop_profile(tmp_path):
+    with _store(tmp_path) as store:
+        frozen = _ReadOnlyTools(tmp_path)
+        tools = EvidenceTools(
+            frozen,
+            local_observer_role(BudgetAmounts(calls=2)),
+            [_registered_view(store)],
+        )
+
+        rejected = asyncio.run(tools.call_tool("pixel_profile", {
+            "name": "plan.png",
+            "box": [5, 30, 40, 50],
+            "axis": "x",
+            "rgb": [255, 255, 255],
+            "tolerance": 10,
+        }))
+        assert rejected["isError"] is True
+        assert rejected["structuredContent"] == {
+            "status": "evidence_scope_rejected",
+            "reason": "measurement lies outside the supplied crop",
+            "tool_image_names": ["plan.png"],
+        }
+        assert frozen.calls == []
+
+        allowed_arguments = {
+            "name": "plan.png",
+            "box": [20, 30, 40, 50],
+            "axis": "x",
+            "rgb": [255, 255, 255],
+            "tolerance": 10,
+        }
+        allowed = asyncio.run(tools.call_tool("pixel_profile", allowed_arguments))
+        assert allowed["isError"] is False
+        assert frozen.calls == [("pixel_profile", allowed_arguments)]
+
+
+def _response(*, text=None, calls=()):
+    message = {"role": "assistant", "content": text}
+    if calls:
+        message["tool_calls"] = [
+            {
+                "id": call_id,
+                "type": "function",
+                "function": {"name": name, "arguments": json.dumps(arguments)},
+            }
+            for call_id, name, arguments in calls
+        ]
+    return {
+        "id": "scripted-observer-response",
+        "model": "scripted-observer",
+        "choices": [{
+            "index": 0,
+            "message": message,
+            "finish_reason": "tool_calls" if calls else "stop",
+        }],
+        "usage": {"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30},
+    }
+
+
+class _ObserverFrozenTools:
+    def __init__(self, run_directory):
+        self.run_directory = run_directory
+        self.calls = []
+
+    async def list_tools(self):
+        return [{
+            "name": "pixel_profile",
+            "description": "Measure an existing image by original-pixel coordinates.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "box": {
+                        "type": "array",
+                        "items": {"type": "number"},
+                        "minItems": 4,
+                        "maxItems": 4,
+                    },
+                    "axis": {"type": "string"},
+                },
+                "required": ["name", "box", "axis"],
+            },
+        }]
+
+    def repeatability(self, _name):
+        return "read_only"
+
+    async def call_tool(self, name, arguments):
+        self.calls.append((name, arguments))
+        raise AssertionError("a rejected image name must not reach the frozen client")
+
+    def snapshot_state(self):
+        return {}
+
+    def image_origins(self, _raw):
+        return {}
+
+
+def test_run_observer_recovers_from_known_bad_image_name_with_budget_update(tmp_path):
+    root_limits = BudgetAmounts(tokens=200_000, calls=4, seconds=Decimal("120"))
+    child_limits = RunLimits(
+        model_calls=2,
+        tool_calls=2,
+        seconds=60.0,
+        tokens=100_000,
+    )
+    adapter = ScriptedAdapter([
+        _response(calls=((
+            "bad-image-name",
+            "pixel_profile",
+            {"name": "measurement-label", "box": [20, 30, 40, 50], "axis": "x"},
+        ),)),
+        _response(text=_answer()),
+    ])
+
+    with EventStore(
+        tmp_path / "observer-run",
+        run_id="observer-wire-test",
+        task_id="coordinator",
+        budget_limit=root_limits,
+    ) as root_store:
+        store = root_store.for_task("observer-wire", parent_task_id="coordinator")
+        view = _registered_view(store)
+        package = _package(view, task_id="observer-wire")
+        frozen = _ObserverFrozenTools(tmp_path)
+
+        outcome = asyncio.run(run_observer(
+            store=store,
+            frozen_tools=frozen,
+            adapter=adapter,
+            model="scripted-observer",
+            parameters={"max_tokens": 4096, "temperature": 0.0},
+            limits=child_limits,
+            package=package,
+            views=[view],
+            notes=["offline scripted observer test"],
+            root=ROOT,
+            route={"route_id": "offline-test", "model": "scripted-observer"},
+        ))
+
+        assert outcome["status"] == "completed"
+        assert outcome["runtime"]["status"] == "completed"
+        assert outcome["result"]["directly_seen"][0]["observation_id"] == "seen-1"
+        assert frozen.calls == []
+
+        executions = [
+            event.payload
+            for event in store.events
+            if event.payload.event_type == "tool_execution"
+        ]
+        assert len(executions) == 1
+        assert executions[0].outcome == "failed"
+        rejected = store.resolve(executions[0].raw_result)
+        assert rejected["isError"] is True
+        assert rejected["structuredContent"]["status"] == "evidence_scope_rejected"
+        assert not [event for event in store.events
+                    if event.payload.event_type == "tool_execution"
+                    and event.payload.outcome == "unknown"]
+
+    first_wire, second_wire = [json.loads(raw) for raw in adapter.requests]
+    first_payload = json.loads(first_wire["messages"][1]["content"][0]["text"])
+    assert first_payload["task_limits"] == child_limits.model_dump(mode="json")
+    assert first_payload["tool_image_names"] == ["plan.png"]
+    state_messages = [
+        message["content"]
+        for message in second_wire["messages"]
+        if message["role"] == "user" and isinstance(message.get("content"), str)
+        and message["content"].startswith("Current runtime state")
+    ]
+    assert len(state_messages) == 1
+    assert '"key":"observer-remaining-budget"' in state_messages[0]
+    assert '"model_calls":1' in state_messages[0]
+    assert '"tool_calls":1' in state_messages[0]
 
 
 class _CoordinatorTools:
