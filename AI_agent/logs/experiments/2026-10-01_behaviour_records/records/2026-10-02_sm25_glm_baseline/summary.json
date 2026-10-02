@@ -1,0 +1,78 @@
+{
+ "run": "2026-10-02_sm25_glm_baseline",
+ "invocations": 1,
+ "model": "glm-5.3-flash",
+ "cli": "2.1.284",
+ "elapsed_seconds": 3005.83,
+ "turns": 0,
+ "tool_calls": 51,
+ "tool_errors": 4,
+ "tools": {
+  "inputs": 1,
+  "view_image": 17,
+  "get_bim_reference": 1,
+  "view_pixel_profile": 7,
+  "pixel_profile": 18,
+  "view_pixel_region_overview": 2,
+  "build_plan_bim": 2,
+  "revise_plan_bim": 3
+ },
+ "references": [
+  "plan_partition"
+ ],
+ "first_build_s": 1886.1,
+ "first_assembly_s": null,
+ "finish_s": null,
+ "calls_before_first_build": 35,
+ "full_views_before_first_build": 6,
+ "crops_before_first_build": 8,
+ "pixel_tools_before_first_build": 19,
+ "crop_scales": [
+  1.5,
+  1.6,
+  1.6,
+  2.0,
+  2.2,
+  2.4,
+  2.4,
+  2.6,
+  2.6,
+  5.0
+ ],
+ "elevation_crops_by_facade": {},
+ "elevation_crops_after_first_build": 0,
+ "elevation_overlays_by_facade": {},
+ "plan_builds": 2,
+ "plan_edits": 3,
+ "candidate_revisions": 0,
+ "claims": [],
+ "cross_facade_claims": 0,
+ "errors": [
+  {
+   "t": 103.8,
+   "tool": "view_pixel_profile",
+   "text": "Error executing tool view_pixel_profile: choose an exact image name from input inventory"
+  },
+  {
+   "t": 104.7,
+   "tool": "view_pixel_profile",
+   "text": "Error executing tool view_pixel_profile: choose an exact image name from input inventory"
+  },
+  {
+   "t": 116.6,
+   "tool": "pixel_profile",
+   "text": "Error executing tool pixel_profile: choose an exact image name from input inventory"
+  },
+  {
+   "t": 2976.1,
+   "tool": "revise_plan_bim",
+   "text": "Error executing tool revise_plan_bim: operation 0 fields: missing changes, reason, source_refs; unknown points"
+  }
+ ],
+ "model_usage": {},
+ "cost_usd_cli": 0,
+ "thinking_tokens_estimated": 113435,
+ "visible_text_chars": 1649,
+ "five_hour_window": null,
+ "final_text": null
+}
