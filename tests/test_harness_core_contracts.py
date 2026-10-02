@@ -153,7 +153,7 @@ def _event(sequence: int, payload, *, event_id: str | None = None) -> EventEnvel
 
 def make_valid_role() -> RoleDefinition:
     return RoleDefinition(
-        role_id="local-observer",
+        role_id="local_observer",
         responsibilities=("inspect supplied material", "return located observations"),
         tool_whitelist=(ToolGrant(tool_name="inspect_region", access="read"),),
         input_materials=(
@@ -485,7 +485,7 @@ def test_role_whitelist_and_model_binding_do_not_turn_recommendations_into_fallb
         RoleDefinition.model_validate(
             {
                 **role.model_dump(mode="python"),
-                "tool_whitelist": [{"tool_name": "mutate", "access": "write"}],
+                "tool_whitelist": ({"tool_name": "mutate", "access": "write"},),
             }
         )
 

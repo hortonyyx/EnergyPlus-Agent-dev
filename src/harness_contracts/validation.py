@@ -17,6 +17,8 @@ from .events import (
     RunLifecyclePayload,
     StateInspectionPayload,
     ToolExecutionPayload,
+    ToolInvocationPayload,
+    ToolPresentationPayload,
 )
 from .refs import SourceRef
 
@@ -82,7 +84,48 @@ class EventLog(ContractModel):
         self._validate_context(event_by_id, missing_ids)
         self._validate_budget_events()
         self._validate_duplicate_writes()
+        self._validate_invocations(event_by_id, missing_ids)
+        self._validate_presentations(event_by_id, missing_ids)
         return self
+
+    def _validate_presentations(self, event_by_id, missing_ids) -> None:
+        for event in self.events:
+            p = event.payload
+            if not isinstance(p, ToolPresentationPayload):
+                continue
+            execution = _require_prior_event(p.tool_execution_event_id, event, event_by_id,
+                missing_ids, "presented tool result")
+            request = _require_prior_event(p.request_event_id, event, event_by_id,
+                missing_ids, "presentation request")
+            response = _require_prior_event(p.response_event_id, event, event_by_id,
+                missing_ids, "presentation acknowledgement")
+            if execution is None or not isinstance(execution.payload, ToolExecutionPayload):
+                raise ValueError("presentation must reference a tool execution")
+            if request is None or not isinstance(request.payload, AdapterRequestPayload):
+                raise ValueError("presentation must reference an adapter request")
+            if response is None or not isinstance(response.payload, ModelResponsePayload):
+                raise ValueError("presentation must reference a model response")
+            if response.payload.request_event_id != request.event_id or execution.sequence >= request.sequence:
+                raise ValueError("presentation must follow tool execution and its accepted request")
+            if p.shown_result != execution.payload.shown_result or p.shown_result.kind == "missing":
+                raise ValueError("presentation differs from prepared tool result")
+
+    def _validate_invocations(self, event_by_id, missing_ids) -> None:
+        completed: set[str] = set()
+        for event in self.events:
+            payload = event.payload
+            if not isinstance(payload, ToolExecutionPayload) or payload.invocation_event_id is None:
+                continue
+            invocation = _require_prior_event(payload.invocation_event_id, event,
+                event_by_id, missing_ids, "tool invocation")
+            if invocation is None or not isinstance(invocation.payload, ToolInvocationPayload):
+                raise ValueError("execution must reference a prior tool invocation")
+            if invocation.event_id in completed:
+                raise ValueError("tool invocation already has a result")
+            completed.add(invocation.event_id)
+            for field in ("call_id", "tool_name", "full_arguments", "repeatability", "operation_key"):
+                if getattr(payload, field) != getattr(invocation.payload, field):
+                    raise ValueError(f"execution differs from tool invocation: {field}")
 
     def _validate_inspections(
         self, event_by_id: dict[str, EventEnvelope], missing_ids: set[str]

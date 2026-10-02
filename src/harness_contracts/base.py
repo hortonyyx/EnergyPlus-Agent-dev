@@ -15,7 +15,7 @@ Sha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
 class ContractModel(BaseModel):
     """Base class for immutable wire contracts with closed fields."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
+    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False, strict=True)
 
 
 class KnownTimestamp(ContractModel):
