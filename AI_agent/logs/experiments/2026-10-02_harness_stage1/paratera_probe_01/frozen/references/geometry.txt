@@ -1,0 +1,22 @@
+Geometry adapter input is a JSON string containing:
+{"geometry":{"schema_version":"2","footprint_x":[0,6],"footprint_y":[0,4],
+"floors":[{"name":"F1","z_floor":0,"ceiling_height":3,"cells":[
+{"id":"F1_left","role":"office","x":[0,3],"y":[0,4]},
+{"id":"F1_right","role":"corridor","x":[3,6],"y":[0,4]}]}],
+"windows":[{"id":"W1","floor":"F1","facade":"West","span":[1,2],
+"z":[1,2],"room":"F1_left"}],
+"openings":[{"id":"D1","kind":"door","space_id":"F1_left",
+"other_space_id":"F1_right","p1":[3,1],"p2":[3,2],"z":[0,2.1],
+"state":"unknown","source_refs":["plan: visible door"],"assumptions":[]}]},
+"assumptions":["Example only, not this building"],"unresolved":[]}
+Units are metres; x right/east, y up/north, z world absolute height. Window
+span uses x on North/South and y on East/West. Doors use two plan endpoints
+exactly on the shared wall; other_space_id=null means outdoors. Heights are
+absolute also on upper floors. Door state is unknown unless evidenced.
+Nonrectangular rooms use polygon:[[x,y],...] (CCW, unclosed, orthogonal) and
+x/y bounding intervals. These rooms must stay intact. Rooms cover each floor
+without gaps/overlap: use an explicitly declared representative wall plane to
+abstract thickness. Do not add fake interior walls or floor void closures.
+Keep source_refs on cells/windows when available and list assumptions clearly.
+The current tool supports orthogonal floors; explicitly report unsupported
+geometry. The example numbers/counts are unrelated to the supplied drawings.

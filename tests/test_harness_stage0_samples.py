@@ -49,16 +49,16 @@ def test_six_samples_validate_and_reach_exact_saved_objects(case):
     for example in examples(case):
         parsed = bundle(example["building"])
         assert bundle(parsed.model_dump(mode="json")) == parsed
-        roles = {r["role_id"]:RoleDefinition.model_validate(r) for r in example["roles"]}
+        roles = {r["role_id"]:RoleDefinition.model_validate_json(json.dumps(r)) for r in example["roles"]}
         for binding in example["model_bindings"]:
-            assert ModelBinding.model_validate(binding).role_id in roles
+            assert ModelBinding.model_validate_json(json.dumps(binding)).role_id in roles
         for package,result in zip(parsed.evidence_packages,parsed.evidence_results):
             assert roles[package.role_id].read_only
             assert_result_applicable(package,result,"saved-v1")
             with pytest.raises(ValueError,match="stale"):
                 assert_result_applicable(package,result,"changed-v2")
         if example["events"] is not None:
-            EventLog.model_validate(example["events"])
+            EventLog.model_validate_json(json.dumps(example["events"]))
         saved = read(ROOT / example["saved_artifact"]["uri"])
         actual = {s["id"]:s for s in saved["spaces"]}
         for coverage in parsed.coverage:

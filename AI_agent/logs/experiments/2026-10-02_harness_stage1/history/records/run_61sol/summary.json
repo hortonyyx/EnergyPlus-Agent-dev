@@ -1,0 +1,195 @@
+{
+  "run": "run_61sol",
+  "source_format": "legacy_bridge_audit",
+  "model": "gpt-6.1-sol",
+  "elapsed_seconds": 3471.89,
+  "tool_calls": 100,
+  "tool_errors": 1,
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 6,
+    "inspect_mesh_directions": 2,
+    "view_mesh": 12,
+    "view_image": 4,
+    "inspect_mesh": 1,
+    "measure_mesh_pixels": 10,
+    "record_inference": 12,
+    "build_bim": 3,
+    "inspect_candidate": 3,
+    "audit_inference_candidate": 3,
+    "claim_application": 2,
+    "check_openings": 2,
+    "overlay_mesh_candidate": 26,
+    "view_elevation_candidate": 6,
+    "record_claim": 1,
+    "decide_claim": 1,
+    "revise_bim": 1,
+    "view_candidate": 3,
+    "finish_bim": 1
+  },
+  "prepared_tool_results": 0,
+  "delivered_tool_results": 100,
+  "undelivered_tool_results": 0,
+  "first_draft_s": 1695.585,
+  "calls_before_first_draft": 40,
+  "full_views_before_first_draft": 4,
+  "crops_before_first_draft": 0,
+  "pixel_tools_before_first_draft": 8,
+  "elevation_crops_by_facade": {},
+  "elevation_overlays_by_facade": {
+    "east": 2,
+    "west": 1,
+    "north": 2,
+    "south": 1
+  },
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "F2_EAST_01",
+        "F2_EAST_02",
+        "F2_EAST_03",
+        "F2_EAST_04",
+        "F2_EAST_05",
+        "F2_EAST_06",
+        "F2_EAST_07",
+        "F2_EAST_08",
+        "F2_EAST_09",
+        "F2_EAST_10",
+        "F3_EAST_01",
+        "F3_EAST_02",
+        "F3_EAST_03",
+        "F3_EAST_04",
+        "F3_EAST_05",
+        "F3_EAST_06",
+        "F3_EAST_07",
+        "F3_EAST_08",
+        "F3_EAST_09",
+        "F3_EAST_10",
+        "F4_EAST_01",
+        "F4_EAST_02",
+        "F4_EAST_03",
+        "F4_EAST_04",
+        "F4_EAST_05",
+        "F4_EAST_06",
+        "F4_EAST_07",
+        "F4_EAST_08",
+        "F4_EAST_09",
+        "F4_EAST_10",
+        "F5_EAST_01",
+        "F5_EAST_02",
+        "F5_EAST_03",
+        "F5_EAST_04",
+        "F5_EAST_05",
+        "F5_EAST_06",
+        "F5_EAST_07",
+        "F5_EAST_08",
+        "F5_EAST_09",
+        "F5_EAST_10",
+        "F6_EAST_01",
+        "F6_EAST_02",
+        "F6_EAST_03",
+        "F6_EAST_04",
+        "F6_EAST_05",
+        "F6_EAST_06",
+        "F6_EAST_07",
+        "F6_EAST_08",
+        "F6_EAST_09",
+        "F6_EAST_10",
+        "F7_EAST_01",
+        "F7_EAST_02",
+        "F7_EAST_03",
+        "F7_EAST_04",
+        "F7_EAST_05",
+        "F7_EAST_06",
+        "F7_EAST_07",
+        "F7_EAST_08",
+        "F7_EAST_09",
+        "F7_EAST_10",
+        "R_E_DORMERS_01",
+        "R_E_DORMERS_02",
+        "R_E_DORMERS_03",
+        "R_E_DORMERS_04",
+        "R_E_DORMERS_05",
+        "R_E_DORMERS_06",
+        "R_E_DORMERS_07",
+        "R_E_DORMERS_08"
+      ],
+      "sources": [],
+      "resolved": {
+        "F2_courtyard_z": [
+          7.0,
+          8.85
+        ],
+        "F3_courtyard_z": [
+          10.0,
+          11.95
+        ],
+        "F4_courtyard_z": [
+          13.15,
+          15.1
+        ],
+        "F5_courtyard_z": [
+          16.25,
+          18.2
+        ],
+        "F6_courtyard_z": [
+          19.4,
+          21.4
+        ],
+        "F7_courtyard_z": [
+          22.65,
+          24.65
+        ],
+        "roof_01_z": [
+          26.05,
+          27.45
+        ],
+        "roof_02_z": [
+          26.05,
+          27.45
+        ],
+        "roof_03_z": [
+          26.0,
+          27.6
+        ],
+        "roof_04_z": [
+          26.0,
+          27.5
+        ],
+        "roof_05_z": [
+          26.0,
+          27.5
+        ],
+        "roof_06_z": [
+          26.0,
+          27.4
+        ],
+        "roof_07_z": [
+          26.0,
+          27.5
+        ],
+        "roof_08_z": [
+          25.95,
+          27.35
+        ]
+      },
+      "source_facades": [],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "Absolute Z-up metres in the saved 15-degree mesh frame. Courtyard values regularize the original mesh_010 window-edge selections recorded by measure_mesh_pixels in 06_observe_record: F7 selected rows221/280, F6 rows318/378, F5 rows414/473, F4 rows507/565, F3 rows602/660, F2 headrow695. F2 sill remains inferred at7.0 because the annex occludes it. Each named value belongs only to that floor. Roof values individually regularize the eight selected dormer top/bottom pairs saved in12_height_review, with heads near27.32..27.62 and sills25.92..26.08. Sources is empty because this claim interface admits original image views but has no native saved-mesh observation source type; do not mistake these literal semantic interpretations of mesh pixels for drawing-dimension evidence.",
+      "t": 2805.215
+    }
+  ],
+  "height_provenance_facades": {},
+  "cross_facade_height_claims": 0,
+  "plan_builds": 3,
+  "candidate_revisions": 1,
+  "gaps": [
+    "Bridge tools.jsonl stores result-side audit rows, not complete call arguments or model-visible transport.",
+    "Final provider request/response, visible model text, thinking and per-message usage were not archived.",
+    "Requested model is retained when present; provider actual-model identity is unverified when its receipt is absent."
+  ]
+}

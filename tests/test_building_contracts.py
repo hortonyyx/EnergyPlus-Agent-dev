@@ -6,6 +6,9 @@ facts or a second object-identity system.
 """
 from __future__ import annotations
 
+import json
+from decimal import Decimal
+
 import pytest
 from pydantic import ValidationError
 
@@ -30,7 +33,6 @@ from src.agent.contracts import (
     EvidenceGroup,
     EvidenceItem,
     EvidencePackage,
-    EvidenceTaskBudget,
     EvidenceTemplate,
     ExistingEvidenceRef,
     ExistingTargetLine,
@@ -59,6 +61,7 @@ from src.agent.contracts import (
     ValueSnapshot,
     assert_result_applicable,
 )
+from src.harness_contracts import BudgetAmounts, BudgetLedger, BudgetReservation
 
 
 SHA_ORIGINAL = "1" * 64
@@ -309,12 +312,7 @@ def make_contract_bundle(
         known_evidence_ids=("ev:observed",),
         image_refs=(view,),
         source_model_version_id="model:v1",
-        budget=EvidenceTaskBudget(
-            max_input_tokens=4000,
-            max_output_tokens=1000,
-            max_tool_calls=3,
-            max_wall_seconds=120.0,
-        ),
+        budget_reservation_id="budget:local",
     )
     direct = DirectObservation(
         observation_id="seen:line",
@@ -469,6 +467,19 @@ def make_contract_bundle(
         hypotheses=(choice, relation),
         declarations=(declaration,),
         model_versions=versions,
+        budget_ledger=BudgetLedger(
+            total_limit=BudgetAmounts(tokens=5000, seconds=Decimal("120"), calls=3),
+            reservations=(
+                BudgetReservation(
+                    reservation_id="budget:local",
+                    purpose="child_task",
+                    amounts=BudgetAmounts(
+                        tokens=5000, seconds=Decimal("120"), calls=3
+                    ),
+                    task_id="task:local",
+                ),
+            ),
+        ),
         evidence_packages=(package,),
         evidence_results=(result,),
         floor_drafts=(floor_draft,),
@@ -630,6 +641,85 @@ def test_declaration_wraps_only_existing_tools_and_separates_field_ownership():
             requirement_ids=("req:x",),
             evidence_ids=("ev:x",),
             hypothesis=False,
+        )
+
+
+def test_assembly_declaration_exposes_floor_identity_and_absolute_elevation():
+    floors = [
+        {
+            "draft_id": "draft_001",
+            "expected_plan_sha256": "1" * 64,
+            "floor_id": "F1",
+            "z_floor": 0,
+            "evidence": "first-floor drawing",
+        },
+        {
+            "draft_id": "draft_002",
+            "expected_plan_sha256": "2" * 64,
+            "floor_id": "F2",
+            "z_floor": 3.6,
+            "evidence": "second-floor drawing and elevation chain",
+        },
+    ]
+    call = ExistingToolCall(
+        tool="assemble_plan_bim", payload={"floors_json": json.dumps(floors)}
+    )
+    original = make_reconstruction_bundle().declarations[0]
+    with pytest.raises(ValidationError, match="floor identity and absolute elevation"):
+        BuildingDeclaration.model_validate(
+            {
+                **original.model_dump(),
+                "tool_call": call,
+                "field_partition": FieldPartition(
+                    model_declared=("/assembly/floors/*/floor_id",),
+                    code_expanded=("/saved/spaces",),
+                ),
+            }
+        )
+    declaration = BuildingDeclaration.model_validate(
+        {
+            **original.model_dump(),
+            "tool_call": call,
+            "field_partition": FieldPartition(
+                model_declared=(
+                    "/assembly/floors/*/floor_id",
+                    "/assembly/floors/*/z_floor",
+                ),
+                code_expanded=("/saved/spaces",),
+            ),
+        }
+    )
+    assert declaration.tool_call.tool == "assemble_plan_bim"
+
+
+def test_evidence_package_budget_is_one_child_task_reservation_reference():
+    bundle = make_reconstruction_bundle()
+    package = bundle.evidence_packages[0]
+    assert package.budget_reservation_id == "budget:local"
+    with pytest.raises(ValidationError, match="unknown budget reservation"):
+        BuildingContractBundle.model_validate(
+            {
+                **bundle.model_dump(),
+                "evidence_packages": (
+                    package.model_copy(update={"budget_reservation_id": "budget:missing"}),
+                ),
+            }
+        )
+    primary = bundle.budget_ledger.reservations[0].model_copy(
+        update={"purpose": "primary_task"}
+    )
+    with pytest.raises(ValidationError, match="child_task"):
+        BuildingContractBundle.model_validate(
+            {
+                **bundle.model_dump(),
+                "budget_ledger": bundle.budget_ledger.model_copy(
+                    update={"reservations": (primary,)}
+                ),
+            }
+        )
+    with pytest.raises(ValidationError, match="authoritative harness budget ledger"):
+        BuildingContractBundle.model_validate(
+            {**bundle.model_dump(), "budget_ledger": None}
         )
 
 

@@ -60,8 +60,15 @@ class EstimatedCostUpperBound(ContractModel):
     reason: NonEmptyStr
 
 
+class CostUnavailable(ContractModel):
+    """No price or bill was reported; unknown is not a zero-dollar estimate."""
+
+    kind: Literal["unavailable"] = "unavailable"
+    reason: NonEmptyStr
+
+
 CostEvidence = Annotated[
-    ReportedCost | EstimatedCostUpperBound,
+    ReportedCost | EstimatedCostUpperBound | CostUnavailable,
     Field(discriminator="kind"),
 ]
 
@@ -90,7 +97,7 @@ class BudgetSettlement(ContractModel):
         if self.usage.kind == "missing":
             if self.actual.tokens is not None:
                 raise ValueError("missing token usage must remain None, not zero or an estimate")
-            if self.cost.kind != "estimated_upper_bound":
+            if self.cost.kind == "reported":
                 raise ValueError(
                     "when raw usage is missing, cost must be an explicit estimated upper bound"
                 )
@@ -135,6 +142,10 @@ class BudgetLedger(ContractModel):
                 reservation.amounts,
                 f"settlement exceeds reservation: {item.reservation_id}",
             )
+            if item.cost.kind == "unavailable":
+                if reservation.amounts.money_usd is not None:
+                    raise ValueError("unknown cost cannot settle a money-limited reservation")
+                continue
             if reservation.amounts.money_usd is None:
                 raise ValueError(
                     f"settlement cost has no money reservation: {item.reservation_id}"

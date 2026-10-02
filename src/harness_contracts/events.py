@@ -224,6 +224,8 @@ class ToolExecutionPayload(ContractModel):
     operation_key: NonEmptyStr | None = None
     applied_write_id: NonEmptyStr | None = None
     retry_event_id: NonEmptyStr | None = None
+    invocation_event_id: NonEmptyStr | None = None
+    presentation_status: Literal["sent", "prepared", "historical_unverified"] = "sent"
 
     @model_validator(mode="after")
     def validate_execution_result(self) -> ToolExecutionPayload:
@@ -248,6 +250,34 @@ class ToolExecutionPayload(ContractModel):
         return self
 
 
+class ToolInvocationPayload(ContractModel):
+    """Durable intent written before contacting a possibly mutating tool."""
+
+    event_type: Literal["tool_invocation"] = "tool_invocation"
+    call_id: NonEmptyStr
+    tool_name: NonEmptyStr
+    full_arguments: dict[str, JsonValue]
+    repeatability: Literal["read_only", "idempotent_write", "non_idempotent_write"]
+    operation_key: NonEmptyStr | None = None
+    state_before: HashedBlobRef | None = None
+
+    @model_validator(mode="after")
+    def writes_need_identity(self) -> ToolInvocationPayload:
+        if self.repeatability != "read_only" and self.operation_key is None:
+            raise ValueError("write invocation needs operation_key")
+        return self
+
+
+class ToolPresentationPayload(ContractModel):
+    """A service accepted a request containing this previously prepared result."""
+
+    event_type: Literal["tool_presentation"] = "tool_presentation"
+    tool_execution_event_id: NonEmptyStr
+    request_event_id: NonEmptyStr
+    response_event_id: NonEmptyStr
+    shown_result: CapturedValue
+
+
 class StateInspectionPayload(ContractModel):
     event_type: Literal["state_inspection"] = "state_inspection"
     purpose: Literal["unknown_write_recovery", "resume"]
@@ -258,7 +288,7 @@ class StateInspectionPayload(ContractModel):
 
 class RunLifecyclePayload(ContractModel):
     event_type: Literal["run_lifecycle"] = "run_lifecycle"
-    action: Literal["retry", "cancel", "timeout", "resume", "failure"]
+    action: Literal["start", "stop", "retry", "cancel", "timeout", "resume", "failure"]
     reason: NonEmptyStr
     retry_of_event_id: NonEmptyStr | None = None
     attempt: int | None = Field(default=None, ge=2)
@@ -352,6 +382,8 @@ EventPayload = Annotated[
     AdapterRequestPayload
     | ModelResponsePayload
     | ToolExecutionPayload
+    | ToolInvocationPayload
+    | ToolPresentationPayload
     | StateInspectionPayload
     | RunLifecyclePayload
     | BudgetEventPayload

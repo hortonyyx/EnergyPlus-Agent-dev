@@ -89,7 +89,7 @@ def roles(case):
              tool_whitelist=[dict(tool_name="inspect_region", access="read"), dict(tool_name="save_declaration", access="write")],
              input_materials=[dict(name="task", media_type="application/json")],
              return_requirements=[dict(name="delivery", schema_ref="building_contracts_v1")], budget=budget),
-        dict(role_id="local-observer", responsibilities=["只读回答局部问题，分别返回所见、解释和不确定项"],
+        dict(role_id="local_observer", responsibilities=["只读回答局部问题，分别返回所见、解释和不确定项"],
              tool_whitelist=[dict(tool_name="inspect_region", access="read")], read_only=True,
              input_materials=[dict(name="evidence-package", media_type="application/json")],
              return_requirements=[dict(name="observations", schema_ref="localized_evidence_result_v1")], budget=budget),
@@ -97,7 +97,7 @@ def roles(case):
     bindings = [dict(role_id=r["role_id"], default_model=dict(route_id="offline-fixture", model_alias="no-model-called"),
                      recommended_models=[dict(route_id="configurable-candidate", model_alias="not-selected")],
                      validated_scopes=[], failure_policy="stop_and_report") for r in definitions]
-    return [RoleDefinition.model_validate(r).model_dump(mode="json") for r in definitions], [ModelBinding.model_validate(b).model_dump(mode="json") for b in bindings]
+    return [RoleDefinition.model_validate_json(json.dumps(r)).model_dump(mode="json") for r in definitions], [ModelBinding.model_validate_json(json.dumps(b)).model_dump(mode="json") for b in bindings]
 
 
 def demo_events(case, image_path, state_path, result):
@@ -170,8 +170,8 @@ def demo_events(case, image_path, state_path, result):
                        request_content=missing("外层CLI完整请求未获取"), result_content=inline(result)))
     add("usage-summary", dict(event_type="run_usage_summary",usage=dict(kind="missing",reason="本例没有真实运行，用量仅在单条格式示范中出现"),
                               raw_summary=missing("没有真实账单或运行回执"),notes=["不把单条示范用量汇总成实际费用"]))
-    return EventLog.model_validate(dict(mode="complete", events=events,
-                                      budget_limit=dict(tokens=4800, money_usd="0.40", seconds="120", calls=4))).model_dump(mode="json")
+    return EventLog.model_validate_json(json.dumps(dict(mode="complete", events=events,
+                                      budget_limit=dict(tokens=4800, money_usd="0.40", seconds="120", calls=4)))).model_dump(mode="json")
 
 
 def semantics(model, ids):
@@ -223,10 +223,10 @@ def base_bundle(case, *, image_path, native_run, saved_path, selected_ids, requi
     assert all(o["host_boundary_id"] in {b["id"] for b in saved["boundaries"]} for o in selected_openings)
     checks[0].update(before=dict(value="片段多边形面积和高度为正"),after=dict(value=areas),suggested_action=dict(kind="no_action",description="已读取保存片段核对正面积与高度；未执行整案几何检查"))
     checks[1].update(before=dict(value="片段内已声明开口的宿主必须在保存边界表中"),after=dict(value=dict(opening_ids=[o["id"] for o in selected_openings],all_declared_hosts_exist=True)),suggested_action=dict(kind="no_action",description="只核已声明宿主引用；空开口片段不等于建筑连通可用"))
-    package = dict(package_id="package:local", task_id=case+"-observe", role_id="local-observer",
+    package = dict(package_id="package:local", task_id=case+"-observe", role_id="local_observer",
         question="核对指定原图区域，分开返回可见事实、建筑解释和不确定项。不得修改模型。",
         known_evidence_ids=["ev:observed"], image_refs=[view], source_model_version_id="saved-v1",
-        budget=dict(max_input_tokens=1000, max_output_tokens=200, max_tool_calls=1, max_wall_seconds=30))
+        budget_reservation_id="budget:local-observer")
     with Image.open(ROOT / image_path) as image_file:
         width, height = image_file.size
     result = dict(package_id=package["package_id"], task_id=package["task_id"], based_on_source_model_version_id="saved-v1",
@@ -245,7 +245,17 @@ def base_bundle(case, *, image_path, native_run, saved_path, selected_ids, requi
                          requirement_ids=["req:detail"], evidence_ids=["ev:inferred", "ev:simplified"])
                     for kind,typ,statement in [("choice","design_choice",requirement), ("relation","spatial_relation",inferred),
                                                ("function","functional_requirement","阶段0用途需求示范：办公空间；具体用途仍按建筑语境推断")]],
-        declarations=[declaration], model_versions=[version], evidence_packages=[package], evidence_results=[result],
+        declarations=[declaration], model_versions=[version],
+        budget_ledger=dict(
+            total_limit=dict(tokens=1200, seconds="30", calls=1),
+            reservations=[dict(
+                reservation_id="budget:local-observer",
+                purpose="child_task",
+                amounts=dict(tokens=1200, seconds="30", calls=1),
+                task_id=case+"-observe",
+            )],
+        ),
+        evidence_packages=[package], evidence_results=[result],
         floor_drafts=[dict(floor_id=draft["scope"]["ids"][0], based_on_source_model_version_id="saved-v1", proposed_declaration=draft, open_questions=["仅定接口，不调用楼层出稿者"])],
         checks=checks, normalizations=[], coverage_issues=[],
         coverage=[dict(coverage_id="coverage:detail", requirement_id="req:detail", choice_hypothesis_id="hyp:choice", saved_model_version_id="saved-v1",
@@ -314,6 +324,33 @@ def main():
     recon["declarations"][0]["scope"] = dict(kind="floor", ids=["F1"])
     recon["declarations"][0]["declared_object_refs"] = [obj("F1:O2"), obj("F1:O3")]
     recon["declarations"].append(f2); recon["model_versions"][0]["declaration_ids"].append("decl:f2")
+    recorded_assembly = read(SM25+"dev_inputs/req_assemble.json")
+    assert len(recorded_assembly) == 1 and recorded_assembly[0]["tool"] == "assemble_plan_bim"
+    assembly_rows = json.loads(recorded_assembly[0]["arguments"]["floors_json"])
+    assembly = copy.deepcopy(recon["declarations"][0])
+    assembly.update(
+        declaration_id="decl:assembly",
+        scope=dict(kind="object_group", ids=["F1-F2-assembly"]),
+        tool_call=dict(tool="assemble_plan_bim", payload=dict(
+            floors_json=json.dumps(assembly_rows, ensure_ascii=False)
+        )),
+        field_partition=dict(
+            model_declared=[
+                "/assembly/floors/*/floor_id",
+                "/assembly/floors/*/z_floor",
+                "/assembly/floors/*/evidence",
+            ],
+            code_expanded=[
+                "/saved/spaces",
+                "/saved/opening_hosts",
+                "/saved/connections",
+            ],
+        ),
+        repetition=None,
+        declared_object_refs=[obj("F1:O2"), obj("F1:O3"), obj("F2:O1")],
+    )
+    recon["declarations"].append(assembly)
+    recon["model_versions"][0]["declaration_ids"].append("decl:assembly")
     recon["declarations"][0]["repetition"] = dict(repeat_by="object_group",instances=[
         dict(instance_id="north-F1",scope=dict(kind="object_group",ids=["north-F1"]),exceptions={}),
         dict(instance_id="north-F2",scope=dict(kind="object_group",ids=["north-F2"]),exceptions={"/derived/distance_from_north_m":3.94})])

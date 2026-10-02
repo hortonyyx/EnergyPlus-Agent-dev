@@ -1,0 +1,101 @@
+build_plan_bim(image, plan_json) compiles the following JSON string.
+This synthetic example is unrelated to the supplied drawing:
+{"floor_id":"F1","z_floor":0,"ceiling_height":3,
+"x_anchors":[[1,0],[11,6]],"y_anchors":[[1,4],[7,0]],
+"basis":"synthetic example calibration and representative wall planes",
+"footprint_pixels":[[1,1],[11,1],[11,7],[1,7]],
+"partitions":[{"id":"wall-A","points":[[6,1],[6,7]],
+"source_refs":["plan.png: physical divider, continued through its door aperture"]}],
+"openings":[{"id":"D1","kind":"door","p1":[6,3],"p2":[6,4.5],
+"z":[0,2.1],"source_refs":["plan.png: observed door; height assumed"]},
+{"id":"W1","kind":"window","p1":[1,2],"p2":[1,3],
+"z":[1,2],"source_refs":["plan.png: observed exterior window; heights assumed"]}],
+"space_seeds":[{"id":"left","point":[3,4],"role":"office"}],
+"assumptions":["Synthetic dimensions/heights only"],"unresolved":[]}
+All plan points use ORIGINAL image pixels. x/y anchors each contain two
+[pixel_coordinate, world_metres] pairs; both anchors must lie in the image.
+Pixel coordinates may also reference a saved view_pixel_profile candidate:
+{"profile":"profile_001","candidate":"C02","at":"peak"} (start/end also work).
+For an explicitly chosen midplane between two measured faces, use
+{"midpoint":[{"profile":"profile_001","candidate":"C02"},
+             {"profile":"profile_001","candidate":"C03"}]}.
+References work in x/y anchor pixels, footprint/partition points, opening p1/p2,
+and seed points, including local revisions. They must match the original image
+and coordinate axis. Profile candidates are ink bands, not wall labels. Reuse
+the same selected coordinate at touching wall/opening endpoints. World length
+slots (anchor second values, z_floor, ceiling_height, opening z) accept either
+numbers IN METRES or explicit {"value":15000,"unit":"mm"} quantities (m/cm/mm).
+Units apply per value, never to pixels; code converts tagged lengths to metres.
+The submitted references/quantities, numeric compiled plan and exact
+bindings are saved separately; numeric-only declarations keep their old format.
+geometry_feedback returns effective footprint bounds/spans, metres per pixel
+and opening dimensions, including failed host drafts. Check these against the
+original annotations; there is no guessed unit correction or absolute size gate.
+drawing_differences lists where the original's ink and the declaration disagree.
+Keep calibration and geometry in the SAME coordinate frame. Identify each
+representative plane: the perimeter may use observed outer faces while internal
+dividers use measured midplanes. Document that choice; do not confuse a face
+dimension with a centreline dimension or apply an unobserved half-thickness.
+World z is absolute. basis explains observed dimensions and reference planes.
+Current scope: ONE floor, simple orthogonal outer footprint without holes,
+orthogonal partitions; footprint and rooms may be nonrectangular. Trace every
+outer turn, including recesses; never fill the bounding rectangle or add walls
+to split a continuous space into boxes. Windows on recessed exterior edges are
+supported; code derives their outward direction from the calibrated outer ring.
+Nonorthogonal rings, holes and ambiguous hosts explicitly fail.
+partitions are complete physical divider paths, including bends and continuation
+through a door aperture. Put the aperture separately in openings. Shared path
+endpoints must coincide explicitly. The compiler will not extend, snap or bridge
+paths; record any regularization you apply in basis or assumptions.
+Every enclosed face becomes one space. No room count is supplied or enforced.
+An open passage still leaves two faces and two spaces, even at full ceiling height.
+Use it for an evidenced opening in a real separating wall. A corridor bend or
+continuation without a physical separator belongs to ONE face: do not draw a
+closing line there just to host a passage. To repair an overextended partition,
+update its points to one real wall portion and add the other real portions as
+separate paths with coincident actual junctions. Remove any invented opening on
+the removed portion in the SAME revision. The compiler then derives the merged
+space and its actual opening hosts; do not manually recreate every room polygon.
+Optional space_seeds assign IDs/roles to containing faces; every unseeded face is
+retained with a stable derived ID and unknown role. Seeds are points INSIDE rooms,
+not wall points. Two seeds in one face fail rather than inventing a divider.
+The whole opening segment must belong to exactly one exterior host or two
+interior hosts. A door spanning a wall junction fails; no width is clipped.
+kind is window, door or open. Only exterior facade windows are supported here;
+doors/open passages may connect rooms or outdoors. Door state defaults unknown;
+its optional state is unknown/open/closed. For open passages state is open or
+omitted; window state is not supported. Preserve IDs, source_refs and assumptions.
+Empty openings or incomplete observed coverage is allowed ONLY as an explicit
+partial draft: record unexamined views and omissions in unresolved. A partial
+draft does not establish room completeness or drawing fidelity.
+The raw declaration and deterministic mapping are retained in plan_drafts.
+Local revision: inspect_plan_draft('draft_NNN') returns declaration and plan_sha256;
+use 'resume' for an explicitly supplied saved pixel plan. Pass that hash as
+expected_plan_sha256 to revise_plan_bim(draft_id, expected_plan_sha256,
+operations_json). operations_json is a list of 1-100 operations. Each needs
+reason and nonempty source_refs, plus:
+- update: collection, id, changes (nonempty fields, no id).
+- add: collection, value (complete new row with a new id).
+- remove: collection, id.
+- set: field, value (top-level scalar/array fields except floor_id and collections).
+Collections are partitions, openings, space_seeds; edit each row/field once per
+batch. Example operation on the synthetic declaration above:
+{"op":"update","collection":"openings","id":"D1","changes":{"z":[0,2.2]},
+"reason":"explicit revised height assumption","source_refs":["height assumed"]}
+The revision response includes geometry_changes: resolved opening endpoints,
+widths and heights before/after, including indirect changes from calibration.
+The full file is retained if the response is truncated. Untouched declarations
+remain exact; changed topology may change derived rooms
+and hosts. Every revision saves a NEW full draft and runs the same compiler and
+source/overlay feedback. Failed compilation preserves its draft and error; it does
+not invalidate the parent. Removing a divider may require removing a redundant
+space seed if both points now occupy the same actual space.
+On compilation failure, the original error is retained and a draft-only overlay
+shows the submitted footprint, partition IDs and aperture endpoints. Unrenderable
+items are listed explicitly. This is not a source BIM or a claim of room validity.
+Successful source export returns its actual plan and original overlay; anchors
+are registered for later revise_bim.
+Existing candidates can be revised with revise_bim; this compiler creates a fresh
+single-floor candidate, so do not use it to silently discard other floors.
+For several distinct plans use assemble_plan_bim (plan_assembly); it retains each
+plan and places it at an explicit base level.

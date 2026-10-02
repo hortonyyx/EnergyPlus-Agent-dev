@@ -10,15 +10,6 @@ from .declarations import BuildingDeclaration
 from .refs import BuildingObjectRef, RunQualifiedEvidenceRef
 
 
-class EvidenceTaskBudget(ContractModel):
-    """Temporary building-side budget shape; the harness remains its authority."""
-
-    max_input_tokens: int = Field(gt=0)
-    max_output_tokens: int = Field(gt=0)
-    max_tool_calls: int = Field(ge=0)
-    max_wall_seconds: float = Field(gt=0)
-
-
 class EvidencePackage(ContractModel):
     package_id: NonEmptyStr
     task_id: NonEmptyStr
@@ -28,7 +19,7 @@ class EvidencePackage(ContractModel):
     image_refs: tuple[RunQualifiedEvidenceRef, ...] = Field(min_length=1)
     source_model_version_id: NonEmptyStr
     return_schema: Literal["localized_evidence_result_v1"] = "localized_evidence_result_v1"
-    budget: EvidenceTaskBudget
+    budget_reservation_id: NonEmptyStr
 
     @model_validator(mode="after")
     def validate_package(self) -> "EvidencePackage":

@@ -1,0 +1,57 @@
+{
+  "joint_pytest": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 TMPDIR=<stage1>/.tmp python -m pytest -n 2 -s tests/test_harness_core_contracts.py tests/test_building_contracts.py tests/test_harness_stage0_samples.py tests/test_harness_stage0_history.py tests/test_harness_stage0_provenance.py tests/test_harness_stage0_boundaries.py tests/test_agent_runtime.py tests/test_runtime_snapshot.py tests/test_runtime_frozen_tools.py tests/test_stage1_behaviour.py --basetemp=<stage1>/.tmp/final_pytest_isolated",
+    "passed": 131,
+    "failed": 0,
+    "seconds": 21.94,
+    "log": "pytest_final.log",
+    "stage0": {
+      "original_cases_retained": 86,
+      "followup_cases_added": 2,
+      "total": 88
+    },
+    "new_stage1_cases": 43
+  },
+  "reused_old_test_result": {
+    "file": "tests/test_bim_agent_guidance.py",
+    "passed": 6,
+    "evidence": "tools_report.md",
+    "within_joint_pass_count": 69,
+    "rerun": false
+  },
+  "historical_initial_failures": {
+    "pytest_initial.log": "New presentation_status default missing in two checked-in main fixtures; regenerated current-contract fixtures.",
+    "pytest_fixture_race.log": "Existing extractor test rewrote shared fixtures under parallel readers; now generates and compares two independent temporary outputs."
+  },
+  "artifact_audit": "delivery_audit.json",
+  "credentials": "credential_check.json",
+  "installed_environment": "validation_environment.json",
+  "source_diff_check": {
+    "command": "git diff --check 3047caac -- src tests AI_agent/design AI_agent/logs/worklog",
+    "passed": true,
+    "raw_evidence_exception": "Frozen reference strings retain original terminal blank lines; pytest failure logs retain original trailing whitespace."
+  },
+  "api_calls": {
+    "Paratera": 2,
+    "DeepSeek": 0,
+    "GLM_subscription": 0,
+    "whole_case": 0
+  },
+  "acceptance_authority": "Opus; this is implementation evidence, not a formal acceptance decision",
+  "final_history_targeted": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 TMPDIR=<stage1>/.tmp python -m pytest -n 2 -s tests/test_stage1_behaviour.py --basetemp=<stage1>/.tmp/history_final",
+    "passed": 8,
+    "failed": 0,
+    "seconds": 5.29,
+    "log": "pytest_history_final.log",
+    "new_cases_after_joint_suite": 1,
+    "reason": "Final deterministic gzip report and archived run99 implementation replay check."
+  },
+  "effective_current_cases": {
+    "stage0_original": 86,
+    "stage0_followups": 2,
+    "stage1_new": 44,
+    "distinct_total": 132,
+    "note": "131-item joint suite plus the final 8-item targeted suite share 7 items; not 139 distinct tests."
+  }
+}

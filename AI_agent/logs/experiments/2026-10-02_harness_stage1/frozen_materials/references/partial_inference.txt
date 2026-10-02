@@ -1,0 +1,121 @@
+A method for completing a useful lightweight BIM
+when the supplied exterior or mesh evidence does not reveal the whole building.
+The model chooses the observations, architectural interpretation, level of detail
+and revisions. Deterministic tools measure, expand repeated declarations, build
+hosts, preserve IDs and report geometry; they do not choose the interpretation.
+
+NATIVE MESH EVIDENCE. When inputs contains a mesh_input, inspect_mesh, view_mesh and
+measure_mesh_pixels access the admitted ORIGINAL textured GLB. Choose cameras,
+targets, spans and bounds for the uncertainty at hand; there is no required set of
+screenshots. Query bounds before metric close-ups and measure visible surface pixels
+instead of guessing scale. Mesh local coordinates are Z-up
+[GLB.x,-GLB.z,GLB.y], optionally rotated in xy by an explicit yaw_degrees. Keep one
+declared frame for construction and evidence. Prepared mesh views instead use their
+supplied metric projection and explicit transform; local x/y need not be geographic
+east/north.
+
+inspect_mesh_directions returns area-weighted directions of selected near-vertical
+triangles. These directions are surface evidence, not the yaw to apply. Parallel
+directions retain quarter-turn and half-turn ambiguity; resolve orientation from
+the whole asymmetric footprint, wings and identifiable faces. Pixel hits include
+triangle normals and tilts. A point on a roof, slope or noisy remnant does not by
+itself establish a wall edge. Compare independent surfaces, texture, local sections
+and adjoining remnants before adopting a frame or missing volume.
+
+The saved mesh-to-BIM relation is source XYZ =
+rotate_xy(yaw)*original_Zup + translation_m. set_candidate_mesh_frame records it
+on a new candidate; direct build_bim can declare the same mesh_frame with the mesh
+hash, yaw, translation, reason and source references. A viewing camera supplies no
+implicit frame. Translation cannot repair a wrong orientation. Frame correction
+does not establish footprint, height, rooms or openings. revise_bim preserves the
+frame, and obsolete frame notes must be explicitly replaced. overlay_mesh_candidate
+projects the ACTUAL saved source edges onto a saved mesh view without fitting;
+hidden edges are X-ray lines. Use suitable whole-building, side, top and local views
+to distinguish orientation, displacement and shape errors.
+
+OBSERVATION AND INFERENCE. Separate what the source shows, what it constrains, what
+you infer, what you deliberately simplify and what remains unresolved. Missing or
+cropped mesh surfaces are missing evidence, not proof of an opening, blank wall or
+absent volume. A plausible completion may combine cut remnants, adjoining face
+directions, texture, repeated facade patterns, local sections and architectural
+context. State why the completion is preferred and retain viable uncertainty.
+When several interpretations fit the available evidence equally well, prefer the
+simpler useful one. Simplicity does not authorize dropping observed spaces, wall
+strips, openings or building parts.
+
+Use observed metric extents where they are reliable. Within noisy or incomplete
+evidence, choose reasonable architectural dimensions and regularize consistently,
+while labelling those values as inferred rather than measured. Save important
+interpretations with record_inference. Its declaration contains statement, basis
+(observed, inferred or simplified), reason and source_refs; optional object_refs
+bind spaces, boundaries, openings or floors, and missing_information names evidence
+that was unavailable. Observed records need a source reference; inferred or
+simplified records need a source reference or explicit missing information.
+inspect_inference reopens immutable records and their binding status. These records
+keep evidence and assumptions close to affected source objects; they do not turn an
+inference into an observation.
+
+ARCHITECTURAL INTERPRETATION. First understand the relationship among the main
+volume, wings, annexes, storeys, exceptional levels, roof forms and missing regions.
+Exterior evidence constrains a plausible internal organization but rarely determines
+one. Select the requested simplification directly: preserve actual physical rooms
+and circulation that the chosen interpretation needs, and keep a continuous open
+space intact when there is no proposed physical partition. Do not split rooms merely
+by orientation, thermal convenience or rectangular decomposition.
+
+Facade windows constrain room depth, bay rhythm and where partitions can meet the
+exterior. Partition ends must respect observed apertures and intervening wall strips;
+never clip, merge or swallow a window to make a room fit. For fine detail and a plausible
+repeated enclosed-office layout, start from a room per structural bay/window group
+when width and depth are usable. Larger multi-bay rooms need a use or spatial reason;
+merging plausible separate rooms to reduce object count is a simplification to declare.
+A window group is an aperture, not each pane. Visible open space, room use, circulation,
+corner conditions and explicit user information can support a different layout.
+Preserve exceptional windows rather than forcing every storey or facade into one template.
+
+Assign common room types from get_bim_reference('room_types') using building context,
+furniture or circulation where available. Prefer a plausible common type over
+unknown when evidence supports one, but keep classification secondary to physical
+spaces and connectivity. Do not label a large upper or roof volume as office merely
+because it has floor area. Distinguish plausible occupied rooms, attic, mechanical
+space, stair or lift continuations, shafts, cavities and geometry-only roof parts;
+mark uncertain roof use as inferred or unresolved.
+
+Vertical circulation and service cores may be continuous spaces through several
+storeys when that interpretation fits the evidence. Model the continuous volume and
+its actual contacts; surrounding room polygons exclude its footprint, while each
+served storey includes it through explicit spanning_space_ids membership. Do not clone
+the core per storey or insert fake intermediate slabs simply to fit a repeated-floor
+template. Conversely, do not invent a continuous void when separate rooms or real
+floors are supported.
+
+Place doors from the intended circulation and the actual separating partition.
+Choose a plausible entrance side before a position. Allow usable jamb or wall return,
+door-leaf clearance and stair or landing clearance; repeated adjacent rooms may use
+paired or consistently offset doors when appropriate. Do not mechanically select the
+longest shared wall, put every door at its midpoint or use a fixed offset for every
+building. A door connects already distinct spaces and must not substitute for a
+missing or invented partition. Door sizes, states and positions without direct
+evidence remain architectural inferences.
+
+ASSEMBLY AND REVISION. build_parametric_bim can expand explicit storey/space
+templates and aperture spans; read get_bim_reference('parametric') for its contract.
+Repetition is a declared hypothesis, not evidence, and exceptions stay explicit.
+A continuous core can be a separate tall instance referenced by the served storeys
+through spanning_space_ids. build_bim remains available for geometry that does not fit the compact
+template. Keep source references and stable IDs on observed and inferred objects.
+When feedback exposes a host, boundary or interpretation error, revise that object
+or its local declarations and preserve reliable geometry, openings and evidence.
+Never shorten or delete an observed aperture merely to clear a host failure.
+
+SOURCE REVIEW AND DELIVERY. Inspect the source that was actually saved, not only the
+proposal or compact plan. Compare its overlays and views with the original evidence
+for overall massing, levels, roof volumes, openings and preserved wall strips. Review
+the internal result for physical partitions, usable room scale, continuous cores,
+door hosts, circulation and the requested simplification. audit_inference_candidate
+reports saved-source memberships, ranges, window distribution, door host/end
+clearances and connectivity; it supplies no truth, code-compliance, threshold or
+acceptance verdict. Use exact entity diffs when revising to verify the intended
+objects changed and reliable objects did not. Geometry success, counts and a visually
+plausible render do not prove fidelity. Deliver the saved source and viewable result
+with observed, inferred, simplified and unresolved scope stated honestly.

@@ -67,7 +67,7 @@
       "read_only": false
     },
     {
-      "role_id": "local-observer",
+      "role_id": "local_observer",
       "responsibilities": [
         "只读回答局部问题，分别返回所见、解释和不确定项"
       ],
@@ -116,7 +116,7 @@
       "failure_policy": "stop_and_report"
     },
     {
-      "role_id": "local-observer",
+      "role_id": "local_observer",
       "default_model": {
         "route_id": "offline-fixture",
         "model_alias": "no-model-called"
@@ -679,11 +679,33 @@
         ]
       }
     ],
+    "budget_ledger": {
+      "total_limit": {
+        "tokens": 1200,
+        "money_usd": null,
+        "seconds": "30",
+        "calls": 1
+      },
+      "reservations": [
+        {
+          "reservation_id": "budget:local-observer",
+          "purpose": "child_task",
+          "amounts": {
+            "tokens": 1200,
+            "money_usd": null,
+            "seconds": "30",
+            "calls": 1
+          },
+          "task_id": "partial_inference-observe"
+        }
+      ],
+      "settlements": []
+    },
     "evidence_packages": [
       {
         "package_id": "package:local",
         "task_id": "partial_inference-observe",
-        "role_id": "local-observer",
+        "role_id": "local_observer",
         "question": "核对指定原图区域，分开返回可见事实、建筑解释和不确定项。不得修改模型。",
         "known_evidence_ids": [
           "ev:observed",
@@ -723,12 +745,7 @@
         ],
         "source_model_version_id": "saved-v1",
         "return_schema": "localized_evidence_result_v1",
-        "budget": {
-          "max_input_tokens": 1000,
-          "max_output_tokens": 200,
-          "max_tool_calls": 1,
-          "max_wall_seconds": 30.0
-        }
+        "budget_reservation_id": "budget:local-observer"
       }
     ],
     "evidence_results": [

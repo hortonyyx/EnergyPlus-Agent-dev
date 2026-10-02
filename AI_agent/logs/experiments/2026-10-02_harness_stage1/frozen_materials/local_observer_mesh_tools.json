@@ -1,0 +1,806 @@
+{
+  "baseline_commit": "5bb10538",
+  "server_mode": "readonly_mesh",
+  "definition_encoding": "UTF-8 canonical JSON (sorted keys, compact separators)",
+  "definitions_sha256": "532205cbd505f5bd10c51aff87183ecdfaf44e7c99130a8900827a640d718b3e",
+  "definition_sha256_by_name": {
+    "inspect_mesh": "b66ec3f83e6b7754cd9999e772498203ac75fb5bb9d9b01c29424b36f7a968ac",
+    "inspect_mesh_directions": "244a82c19c66a1a6c866271c4115d589990ab9de4f44b29a2cfd7042654fec4f",
+    "view_mesh": "5d98efcb159f4cb9cd991364110aabea9e7072c511ed376dfdbd116f0aaab656",
+    "measure_mesh_pixels": "400cb35e02d929406e804d9a73c246ff3d1af546cc6c501ad0fa17e3ff15d01e",
+    "view_mesh_observation": "759684d9f7fc795b2a09b2a140bc413df60d4486eea747b523b8522ed38b7366",
+    "get_bim_reference": "c726850bc90fcea558afb96d61c7e5aa8ec0df92564747292e103f64ae1bd2e0",
+    "inputs": "20bc6b0b639a6c8eb805e8125f11b63231ab41c184993b7aa325d9bbaa818afe",
+    "view_image": "d14596dacc576d8a8b3b9bb45ac55eaff5e92448fac4d3f4621fec1d81b87835",
+    "pixel_profile": "c0a034e786e3ee393dfbecf133193ce5a2a54f33518de8173fdd2650bc697de2",
+    "view_pixel_profile": "0f1355e37d0ddcc3137c0790ac196646c204726457afd1b853f50ded2034c6f6",
+    "view_pixel_region_overview": "17fbc307a193589894fc25fbdb0b7af764e5ea6a28b281339da41d4e4d4c0468",
+    "view_pixel_region": "d2450b42ba467ea4eb16a9a852f1271a726367da4151f56bcba291e287083145",
+    "preview_space_trace": "5ad4975fea2629ad709405d14ec1c8660d5d43f0f287c46585169a16db9a0e4e",
+    "view_space_trace": "fc1d1493aa0263f8c6326ff94cd3bc1e686d6f8bdbb50c33e18b38cd4517178c",
+    "select_space_trace": "2402ce7c6e57a47cf94edfe99a2b5bbbfb87c5aa6393dd2b9d41aa91a80a4c0b",
+    "map_dimension_chain": "7328e8b271609f85d6afb9d81302f7a627a62f21c7eaf9a66b9556de8fd0de4b",
+    "compare_facade_spans": "b2e16831435e9414d3c03a79cd8575b8f8b511149c04d78275c0c2cf080dbbf1",
+    "map_pixels": "49b4979a2ae5cec0cc4e29e8951a28bd15abf7dc3c2e723b5b6fdd41b10fdb63"
+  },
+  "tools": [
+    {
+      "name": "inspect_mesh",
+      "description": "Query original mesh bounds/counts in Z-up metres, optionally in a selected box.\n        Local coordinates = rotate_xy(yaw_degrees) of [GLB.x,-GLB.z,GLB.y].\n        No inferred walls, floors or footprint. Bounds selection can hide surfaces.\n        ",
+      "inputSchema": {
+        "properties": {
+          "yaw_degrees": {
+            "default": 0,
+            "title": "Yaw Degrees",
+            "type": "number"
+          },
+          "bounds": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Bounds"
+          }
+        },
+        "title": "inspect_meshArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "inspect_mesh_directions",
+      "description": "Query area-weighted directions of near-vertical ORIGINAL mesh triangles.\n        Bounds select triangle centres in the yawed frame; face_ids can restrict\n        to surfaces you measured. Directions are unsigned horizontal plane traces,\n        CCW from local +X modulo 180, NOT the yaw to apply. Different parallel\n        walls share a direction: these statistics do not fit or identify a wall.\n        Use texture views and independent local selections to interpret peaks;\n        roofs/slopes are excluded at the reported tilt threshold. No supplied axis.\n        ",
+      "inputSchema": {
+        "properties": {
+          "yaw_degrees": {
+            "default": 0,
+            "title": "Yaw Degrees",
+            "type": "number"
+          },
+          "bounds": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Bounds"
+          },
+          "face_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Face Ids"
+          },
+          "max_plane_tilt_degrees": {
+            "default": 15,
+            "title": "Max Plane Tilt Degrees",
+            "type": "number"
+          }
+        },
+        "title": "inspect_mesh_directionsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_mesh",
+      "description": "Render the admitted textured mesh from a camera YOU choose, with metric mapping.\n        Z-up local frame as inspect_mesh; azimuth=0 looks FROM +x, 90 FROM +y,\n        180 FROM -x, 270 FROM -y. elevation=90 is top. target is local [x,y,z].\n        Omit target/spans for an automatic overview; give smaller metric spans\n        and a local target for detail. Optional bounds selects triangles by their\n        centres before rendering; excluded/occluded areas are not blank-wall proof.\n        Returns an image with equal metres per pixel on both axes (longest side\n        1200px) and an observation ID. Read resolution_px for measurement coordinates.\n        ",
+      "inputSchema": {
+        "properties": {
+          "azimuth_degrees": {
+            "default": 45,
+            "title": "Azimuth Degrees",
+            "type": "number"
+          },
+          "elevation_degrees": {
+            "default": 25,
+            "title": "Elevation Degrees",
+            "type": "number"
+          },
+          "yaw_degrees": {
+            "default": 0,
+            "title": "Yaw Degrees",
+            "type": "number"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Target"
+          },
+          "width_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Width M"
+          },
+          "height_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Height M"
+          },
+          "bounds": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Bounds"
+          }
+        },
+        "title": "view_meshArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "measure_mesh_pixels",
+      "description": "Read visible original-mesh surface XYZ at pixels of a saved mesh view.\n        Integer pixels refer to that view's reported resolution_px, origin upper left.\n        Background has no geometry. Two surface points also return their distance;\n        texture marks still require your interpretation, and noisy mesh is not BIM truth.\n        With a candidate, also convert hits to its explicitly saved mesh_frame;\n        no implicit alignment or translation is guessed.\n        ",
+      "inputSchema": {
+        "properties": {
+          "observation": {
+            "title": "Observation",
+            "type": "string"
+          },
+          "pixels": {
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Pixels",
+            "type": "array"
+          },
+          "candidate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Candidate"
+          }
+        },
+        "required": [
+          "observation",
+          "pixels"
+        ],
+        "title": "measure_mesh_pixelsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_mesh_observation",
+      "description": "Reopen the exact saved original-mesh rendering and camera metadata.",
+      "inputSchema": {
+        "properties": {
+          "observation": {
+            "title": "Observation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "observation"
+        ],
+        "title": "view_mesh_observationArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_bim_reference",
+      "description": "Topics: plan_partition, plan_assembly, geometry, parametric (build formats);\n        edits, wall_dimensions (revise_bim operations); claims; opening_review;\n        facade_correspondence; room_types (role catalog); naming (public names);\n        reconstruction (the drawing method already in the system prompt);\n        partial_inference (mesh evidence, architectural hypotheses, assembly, source review).\n        Generic formats and interfaces, not case observations or answers.\n        ",
+      "inputSchema": {
+        "properties": {
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic"
+        ],
+        "title": "get_bim_referenceArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "inputs",
+      "description": "List admitted original images, native mesh, building declaration and scope.",
+      "inputSchema": {
+        "properties": {},
+        "title": "inputsArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_image",
+      "description": "View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.\n        Returned images are at most 1600 px on their long side; grid labels keep original\n        coordinates. display_scale enlarges up to that limit, so a box whose longest side\n        is under ~500 px can be shown 3x or more; coordinates stay original pixels.\n        Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.\n        Returned view_id can be used directly in claim sources or replace_claim_sources;\n        do not copy crop coordinates again when citing exactly this view.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "box": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Box"
+          },
+          "coordinate_grid": {
+            "default": true,
+            "title": "Coordinate Grid",
+            "type": "boolean"
+          },
+          "display_scale": {
+            "default": 1.0,
+            "title": "Display Scale",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "view_imageArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "pixel_profile",
+      "description": "Measure colored ink runs along x or y in an original-pixel crop.\n        You select RGB/tolerance; results have no wall/door semantic labels.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "box": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Box",
+            "type": "array"
+          },
+          "axis": {
+            "title": "Axis",
+            "type": "string"
+          },
+          "rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 70,
+            "title": "Tolerance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "box",
+          "axis",
+          "rgb"
+        ],
+        "title": "pixel_profileArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_pixel_profile",
+      "description": "Show a numbered, thresholded color profile in ORIGINAL pixels.\n        axis=x searches x coordinates and reports unbridged y support at each\n        peak; axis=y does the converse. min_fraction is the required matching\n        share along the other axis. Results are pixel evidence, not object labels.\n        cross_axis_profile measures the SAME mask in the other direction;\n        crop_context flags cut ink and suggests a wider original-image view.\n        Use profile_id and candidate IDs in compare_facade_spans coordinate slots\n        to adopt measured coordinates without copying numbers.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "box": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Box",
+            "type": "array"
+          },
+          "axis": {
+            "title": "Axis",
+            "type": "string"
+          },
+          "rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 70,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "min_fraction": {
+            "default": 0.1,
+            "title": "Min Fraction",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "box",
+          "axis",
+          "rgb"
+        ],
+        "title": "view_pixel_profileArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_pixel_region_overview",
+      "description": "Locate numbered colour-connected candidates in the full original image.\n        background_rgb is the target colour: either ink (e.g. a frame) or a\n        clear area's background. Compare the labelled overview to the original,\n        then pass a returned ORIGINAL-pixel seed to view_pixel_region.\n        Small ink strokes may need a lower min_pixels than clear floor regions.\n        Area/border filters and truncation are reported. Candidates can include\n        furniture, dimension marks or connected spaces; IDs are not object labels.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "background_rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Background Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 60,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "min_pixels": {
+            "default": 500,
+            "title": "Min Pixels",
+            "type": "integer"
+          },
+          "max_regions": {
+            "default": 40,
+            "title": "Max Regions",
+            "type": "integer"
+          },
+          "include_border": {
+            "default": false,
+            "title": "Include Border",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "background_rgb"
+        ],
+        "title": "view_pixel_region_overviewArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_pixel_region",
+      "description": "Display the complete 4-connected target-colour region at a selected pixel.\n        background_rgb names the target colour, including ink or clear floor.\n        Choose a seed on that colour, preferably an overview candidate's seed.\n        For clear floor choose away from furniture; for frames choose on the ink.\n        Returns a non-semantic contour and half-open bbox, NOT a room/aperture.\n        One physical frame may contain disconnected pieces; touching same-colour\n        marks may merge. simplify_pixels=0 keeps the exact pixel outline.\n        Check the original surrounding wall and jambs before interpreting it.\n        All points and seed coordinates refer to the ORIGINAL image.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "seed_pixel": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Seed Pixel",
+            "type": "array"
+          },
+          "background_rgb": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Background Rgb",
+            "type": "array"
+          },
+          "tolerance": {
+            "default": 60,
+            "title": "Tolerance",
+            "type": "number"
+          },
+          "simplify_pixels": {
+            "default": 1.5,
+            "title": "Simplify Pixels",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "seed_pixel",
+          "background_rgb"
+        ],
+        "title": "view_pixel_regionArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "preview_space_trace",
+      "description": "Draw your COMPLETE ordered room contour on its original image before building.\n        Include interior and exterior boundaries; close logically across apertures.\n        openings = [{id,p1:[x,y],p2:[x,y]}] uses the two wall jambs, not hinge-to-leaf-tip.\n        All positions are ORIGINAL pixels; each axis has two [pixel,world_metres] anchors.\n        Use a declared representative wall plane; do not trace both faces as two walls.\n        Returns clean/marked images, geometry errors and mapped points, no source mutation.\n        ",
+      "inputSchema": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "polygon_pixels": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Polygon Pixels",
+            "type": "array"
+          },
+          "openings": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Openings",
+            "type": "array"
+          },
+          "x_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "X Anchors",
+            "type": "array"
+          },
+          "y_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Y Anchors",
+            "type": "array"
+          },
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "polygon_pixels",
+          "openings",
+          "x_anchors",
+          "y_anchors",
+          "basis"
+        ],
+        "title": "preview_space_traceArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "view_space_trace",
+      "description": "View the actual saved clean/marked image and coordinates for a local trace.",
+      "inputSchema": {
+        "properties": {
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "title": "view_space_traceArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "select_space_trace",
+      "description": "Select a previewed local trace after visually checking its actual overlay.\n        This selects an observation; it is not a BIM or a drawing-fidelity pass.\n        ",
+      "inputSchema": {
+        "properties": {
+          "trace_id": {
+            "title": "Trace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trace_id"
+        ],
+        "title": "select_space_traceArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "map_dimension_chain",
+      "description": "Accumulate observed dimension labels into ordered world-metre spans.\n        lengths and expected_total use unit mm or m; origin_m is always metres.\n        direction -1 walks from a known high coordinate toward lower coordinates.\n        No OCR or semantic validation: retain evidence for labels and orientation.\n        ",
+      "inputSchema": {
+        "properties": {
+          "lengths": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Lengths",
+            "type": "array"
+          },
+          "unit": {
+            "default": "mm",
+            "title": "Unit",
+            "type": "string"
+          },
+          "origin_m": {
+            "default": 0.0,
+            "title": "Origin M",
+            "type": "number"
+          },
+          "direction": {
+            "default": 1,
+            "title": "Direction",
+            "type": "integer"
+          },
+          "expected_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Expected Total"
+          }
+        },
+        "required": [
+          "lengths"
+        ],
+        "title": "map_dimension_chainArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "compare_facade_spans",
+      "description": "Compare complete independently observed opening lists in BOTH axis directions.\n        Exact original image names and original pixel coordinates only. JSON has plan\n        and elevation, each with axis_anchors [[pixel,0],[pixel,L_metres]] and openings\n        [{\"id\":\"observed_id\",\"pixels\":[start,end]}]. Retain types/evidence as extra fields.\n        Any pixel slot may instead be {\"profile\":\"profile_001\",\"candidate\":\"C01\",\n        \"at\":\"peak\"}; at=peak/start/end, default peak. Uses saved measurement pixels\n        directly, checks image and axis, and preserves the binding. No numeric offset.\n        Read facade_correspondence for an example and limitations. No automatic OCR,\n        direction acceptance, missing-opening repair or source mutation.\n        ",
+      "inputSchema": {
+        "properties": {
+          "plan_image": {
+            "title": "Plan Image",
+            "type": "string"
+          },
+          "elevation_image": {
+            "title": "Elevation Image",
+            "type": "string"
+          },
+          "observations_json": {
+            "title": "Observations Json",
+            "type": "string"
+          },
+          "plan_axis": {
+            "default": "y",
+            "title": "Plan Axis",
+            "type": "string"
+          },
+          "elevation_axis": {
+            "default": "x",
+            "title": "Elevation Axis",
+            "type": "string"
+          },
+          "ambiguity_tolerance_m": {
+            "default": 0.05,
+            "title": "Ambiguity Tolerance M",
+            "type": "number"
+          }
+        },
+        "required": [
+          "plan_image",
+          "elevation_image",
+          "observations_json"
+        ],
+        "title": "compare_facade_spansArguments",
+        "type": "object"
+      }
+    },
+    {
+      "name": "map_pixels",
+      "description": "Convert selected original pixel points to metres with two anchors per axis.\n        Each anchor is [pixel_position, world_metres]. Y normally has negative\n        slope. Anchors must come from your observed dimensions or explicit assumption;\n        this tool does arithmetic and does not establish the drawing scale for you.\n        ",
+      "inputSchema": {
+        "properties": {
+          "points": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "x_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "X Anchors",
+            "type": "array"
+          },
+          "y_anchors": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            "title": "Y Anchors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "points",
+          "x_anchors",
+          "y_anchors"
+        ],
+        "title": "map_pixelsArguments",
+        "type": "object"
+      }
+    }
+  ],
+  "policy_by_name": {
+    "inspect_mesh": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "inspect_mesh_directions": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_mesh": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "measure_mesh_pixels": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_mesh_observation": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "get_bim_reference": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "inputs": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_image": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "pixel_profile": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_pixel_profile": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_pixel_region_overview": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_pixel_region": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "preview_space_trace": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "view_space_trace": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "select_space_trace": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "map_dimension_chain": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "compare_facade_spans": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    },
+    "map_pixels": {
+      "repeatability": "read_only",
+      "phase1_available": true
+    }
+  }
+}
