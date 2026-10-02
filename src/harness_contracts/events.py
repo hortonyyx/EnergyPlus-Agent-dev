@@ -151,6 +151,7 @@ class VersionManifest(ContractModel):
 class AdapterRequestPayload(ContractModel):
     event_type: Literal["adapter_request"] = "adapter_request"
     reservation_id: NonEmptyStr | None = None
+    logical_purpose: Literal["primary_task", "context_summary"] | None = None
     adapter: NonEmptyStr
     final_request_body: CapturedValue
     injected_content: tuple[InjectedContent, ...] = ()
@@ -277,6 +278,7 @@ class ToolPresentationPayload(ContractModel):
     request_event_id: NonEmptyStr
     response_event_id: NonEmptyStr
     shown_result: CapturedValue
+    context_event_id: NonEmptyStr | None = None
 
 
 class StateInspectionPayload(ContractModel):

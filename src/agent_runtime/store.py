@@ -39,17 +39,17 @@ class EventStore:
         self._lock = (self.directory / "writer.lock").open("a+b")
         try:
             fcntl.flock(self._lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            metadata = {"run_id": run_id, "task_id": task_id,
+                        "budget_limit": budget_limit.model_dump(mode="json")}
+            path = self.directory / "journal.json"
+            if path.exists() and json.loads(path.read_bytes()) != metadata:
+                raise ValueError("journal limits/identity cannot change on resume")
             repair = self._repair_tail() if recover_tail else None
             self.events = self.read_events(self.path)
             if self.events:
                 self.validate()
                 if any(e.run_id != run_id or e.task_id != task_id for e in self.events):
                     raise ValueError("journal identity differs from requested run/task")
-            metadata = {"run_id": run_id, "task_id": task_id,
-                        "budget_limit": budget_limit.model_dump(mode="json")}
-            path = self.directory / "journal.json"
-            if path.exists() and json.loads(path.read_bytes()) != metadata:
-                raise ValueError("journal limits/identity cannot change on resume")
             if not path.exists():
                 self.write_json("journal.json", metadata)
             if repair:
@@ -80,6 +80,8 @@ class EventStore:
         prefix, tail = raw[:boundary], raw[boundary:]
         # Verify every completed record before changing even the partial tail.
         events = [EventEnvelope.model_validate_json(line) for line in prefix.splitlines()]
+        if any(e.run_id != self.run_id or e.task_id != self.task_id for e in events):
+            raise ValueError("journal identity differs from requested run/task")
         if events:
             EventLog(mode="complete", events=tuple(events), budget_limit=self.budget_limit)
         saved = self.put_bytes(tail)
@@ -93,6 +95,8 @@ class EventStore:
         except ValueError:
             repaired, record["action"] = prefix, "archive_incomplete_tail"
         else:
+            if last.run_id != self.run_id or last.task_id != self.task_id:
+                raise ValueError("journal identity differs from requested run/task")
             repaired, record["action"] = raw + b"\n", "complete_newline"
         # The repair intent and removed bytes are durable before replacing JSONL.
         self.write_json("tail_repair.json", record)

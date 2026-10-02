@@ -187,7 +187,10 @@ def test_mapper_is_deterministic_and_matches_checked_in_history(tmp_path: Path) 
     assert {path.name for path in first.glob("*.json")} == expected_names
     for name in expected_names:
         assert (first / name).read_bytes() == (second / name).read_bytes()
-        assert (first / name).read_bytes() == (HISTORY_DIR / name).read_bytes()
+        # New optional runtime fields default to absent/None in preserved history.
+        # Compare every typed field without rewriting historical source archives.
+        assert EventLog.model_validate_json((first / name).read_bytes()) == EventLog.model_validate_json(
+            (HISTORY_DIR / name).read_bytes())
 
 
 def test_history_readme_discloses_unknown_versions_and_synthetic_identity() -> None:

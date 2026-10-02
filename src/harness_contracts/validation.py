@@ -12,6 +12,7 @@ from .events import (
     AdapterRequestPayload,
     BudgetEventPayload,
     ContextEventPayload,
+    CheckpointPayload,
     EventEnvelope,
     ModelResponsePayload,
     RunLifecyclePayload,
@@ -82,6 +83,10 @@ class EventLog(ContractModel):
         self._validate_inspections(event_by_id, missing_ids)
         self._validate_recovery(event_by_id, missing_ids)
         self._validate_context(event_by_id, missing_ids)
+        for event in self.events:
+            if isinstance(event.payload, CheckpointPayload):
+                _require_prior_event(event.payload.after_event_id, event, event_by_id,
+                                     missing_ids, "checkpoint boundary")
         self._validate_budget_events()
         self._validate_duplicate_writes()
         self._validate_invocations(event_by_id, missing_ids)
@@ -107,8 +112,14 @@ class EventLog(ContractModel):
                 raise ValueError("presentation must reference a model response")
             if response.payload.request_event_id != request.event_id or execution.sequence >= request.sequence:
                 raise ValueError("presentation must follow tool execution and its accepted request")
-            if p.shown_result != execution.payload.shown_result or p.shown_result.kind == "missing":
+            if p.shown_result.kind == "missing":
                 raise ValueError("presentation differs from prepared tool result")
+            if p.shown_result != execution.payload.shown_result:
+                context = _require_prior_event(p.context_event_id, event, event_by_id,
+                    missing_ids, "tool context projection")
+                if (context is None or not isinstance(context.payload, ContextEventPayload)
+                        or context.sequence >= request.sequence):
+                    raise ValueError("changed tool presentation requires a prior context projection")
 
     def _validate_invocations(self, event_by_id, missing_ids) -> None:
         completed: set[str] = set()
