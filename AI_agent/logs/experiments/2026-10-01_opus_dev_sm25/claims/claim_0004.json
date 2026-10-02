@@ -1,0 +1,111 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W_BN",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "North_view.png left-side upper chain 1000/2200/400, read upward from the 3600 storey line; the 8000-wide wing window.",
+    "sources": [
+      {
+        "view_id": "view_0003"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2200.0,
+          400.0
+        ],
+        "origin_m": 3.6,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 7.2,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.6,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.6,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.6,
+              4.6
+            ],
+            "start_m": 3.6
+          },
+          {
+            "end_m": 6.8,
+            "index": 1,
+            "length_m": 2.2,
+            "span_m": [
+              4.6,
+              6.8
+            ],
+            "start_m": 4.6
+          },
+          {
+            "end_m": 7.2,
+            "index": 2,
+            "length_m": 0.4,
+            "span_m": [
+              6.8,
+              7.2
+            ],
+            "start_m": 6.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0004",
+  "parent_proposal_sha256": "41e61f85a588680046e65cc099ecdf9ed124f9674608b93dbce12f5001b97fc2",
+  "resolved_values": {
+    "height": [
+      4.6,
+      6.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2690,
+        1276
+      ],
+      "image": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "size": [
+        2690,
+        1276
+      ],
+      "view_id": "view_0003",
+      "view_sha256": "faf0bcac0727e9c3795969d3634c40ed7ee2dc8f23f8b42643a7623293e4316f"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -1,0 +1,111 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W_W5",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "West_view.png right chain 1000/2400/1100, read upward from the elevation's ground line (z = 0); the 4800-wide window is 2400 tall.",
+    "sources": [
+      {
+        "view_id": "view_0005"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          2400.0,
+          1100.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 3.4,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 3.4
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0009",
+  "parent_proposal_sha256": "4caa847f576b6b422f25fb20f1c74330a6d68dfd24fd1b70968309cb5b76e6c9",
+  "resolved_values": {
+    "height": [
+      1.0,
+      3.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2580,
+        993
+      ],
+      "image": "West_view.png",
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "size": [
+        2580,
+        993
+      ],
+      "view_id": "view_0005",
+      "view_sha256": "dca10f0004f1213472582ed5cdb9f65284f1bf431562882fa1a84466ac481be1"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

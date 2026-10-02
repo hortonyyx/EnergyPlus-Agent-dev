@@ -1,0 +1,115 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_S1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S2",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "South_view.png ground-storey chain 1000/1800/800, read upward from the ground line (z 0); both 4000-wide windows.",
+    "sources": [
+      {
+        "view_id": "view_0004"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              2.8,
+              3.6
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "41e61f85a588680046e65cc099ecdf9ed124f9674608b93dbce12f5001b97fc2",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2437,
+        1263
+      ],
+      "image": "South_view.png",
+      "sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+      "size": [
+        2437,
+        1263
+      ],
+      "view_id": "view_0004",
+      "view_sha256": "a5940c56b98cb6787446e75625a47d9d3814df83a041e97e7fca7d016a3d00ec"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

@@ -1,0 +1,119 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "North_view.png ground-storey inner chain read upward from the ground line: 1000/1600/400 = 3000; the 1600 segment spans the sill and head lines shared by the three equal ground-floor windows on this facade.",
+    "sources": [
+      {
+        "view_id": "view_0003"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1600.0,
+          400.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "bb284ac56e5c8b8d91bf9075f66cde52fe8f651536eb3ca2ea265cbd9c741ed6",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1354,
+        812
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0003",
+      "view_sha256": "b99c656e72ce2f7bce84842b21ea9e20f7398b45e6478cbb3e517708284be2e7"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

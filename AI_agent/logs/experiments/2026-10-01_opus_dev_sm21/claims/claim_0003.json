@@ -1,0 +1,115 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F1:W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "South_view.png right-side ground-storey chain read upward from the ground: 1000/1600/400; it measures the two large ground-floor windows (2400 wide) whose frames span exactly that segment.",
+    "sources": [
+      {
+        "view_id": "view_0004"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1600.0,
+          400.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 3.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.6,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 3.0,
+            "index": 2,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 2.6
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "bb284ac56e5c8b8d91bf9075f66cde52fe8f651536eb3ca2ea265cbd9c741ed6",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        1423,
+        794
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0004",
+      "view_sha256": "a9180205c9fc224053eda34b5ed531e53d5a5cd99ef0ab2911f4bc511c5b8b05"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

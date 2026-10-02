@@ -1,0 +1,124 @@
+{
+ "case": "sm21",
+ "run": "2026-10-01_opus_dev_sm21",
+ "elapsed_seconds": 731.7,
+ "bridge_batches": 19,
+ "tool_calls": 63,
+ "tool_errors": 1,
+ "errors": [
+  {
+   "t": 588.6,
+   "tool": "record_claim"
+  }
+ ],
+ "tools": {
+  "inputs": 1,
+  "get_bim_reference": 4,
+  "view_image": 7,
+  "view_pixel_profile": 19,
+  "build_plan_bim": 2,
+  "assemble_plan_bim": 1,
+  "record_claim": 11,
+  "decide_claim": 10,
+  "confirm_claims": 1,
+  "revise_bim": 1,
+  "view_elevation_candidate": 4,
+  "check_openings": 1,
+  "finish_bim": 1
+ },
+ "first_build_s": 466.5,
+ "calls_before_first_build": 29,
+ "full_views_before_first_build": 6,
+ "crops_before_first_build": 1,
+ "pixel_tools_before_first_build": 17,
+ "elevation_crops": 0,
+ "elevation_overlays": {
+  "North": 1,
+  "South": 1,
+  "East": 1,
+  "West": 1
+ },
+ "claims": [
+  {
+   "objects": [
+    "F1:W_N1",
+    "F1:W_N2",
+    "F1:W_N3"
+   ],
+   "source_view": "view_0003",
+   "reason": "North_view.png ground-storey inner chain read upward from the ground line: 1000/1600/400 = 3000; the 1600 segment spans "
+  },
+  {
+   "objects": [
+    "F2:W_N1",
+    "F2:W_N2"
+   ],
+   "source_view": "view_0003",
+   "reason": "North_view.png upper-storey chain read upward from the 3000 floor line: 1000/1800/800 = 3600; the 1800 segment spans bot"
+  },
+  {
+   "objects": [
+    "F1:W_S2",
+    "F1:W_S3"
+   ],
+   "source_view": "view_0004",
+   "reason": "South_view.png right-side ground-storey chain read upward from the ground: 1000/1600/400; it measures the two large grou"
+  },
+  {
+   "objects": [
+    "F1:W_S1"
+   ],
+   "source_view": "view_0004",
+   "reason": "South_view.png left-side ground-storey chain read upward from the ground: 1500/600/900 = 3000; the 600 segment is the sm"
+  },
+  {
+   "objects": [
+    "F1:D_S"
+   ],
+   "source_view": "view_0004",
+   "reason": "South_view.png left-side chain 1500/600/900 from the ground: the entrance door's head line is level with the small windo"
+  },
+  {
+   "objects": [
+    "F2:W_S1",
+    "F2:W_S2",
+    "F2:W_S3",
+    "F2:W_S4"
+   ],
+   "source_view": "view_0004",
+   "reason": "South_view.png upper-storey chain from the 3000 floor line: 1000/1800/800; spans all four upper windows."
+  },
+  {
+   "objects": [
+    "F1:W_E"
+   ],
+   "source_view": "view_0005",
+   "reason": "East_view.png ground-storey chain read upward from the ground: 1000/1800/200 = 3000; this facade's own window is 1800 ta"
+  },
+  {
+   "objects": [
+    "F2:W_E"
+   ],
+   "source_view": "view_0005",
+   "reason": "East_view.png upper-storey chain from the 3000 floor line: 1000/1800/800."
+  },
+  {
+   "objects": [
+    "F2:W_W"
+   ],
+   "source_view": "view_0006",
+   "reason": "West_view.png upper-storey chain from the 3000 floor line: 1000/1800/800."
+  },
+  {
+   "objects": [
+    "F1:D_W"
+   ],
+   "source_view": "view_0006",
+   "reason": "West_view.png gives no height dimension for the double door. Its outer frame spans y 440-561 px against the 3000 floor l"
+  }
+ ],
+ "plan_builds": 2,
+ "plan_revisions": 0,
+ "candidate_revisions": 1,
+ "note": "Every plan built on its first attempt; heights were read per facade before drafting and entered in the first drafts."
+}

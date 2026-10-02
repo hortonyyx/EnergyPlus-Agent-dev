@@ -1,0 +1,115 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W_S1",
+        "kind": "window"
+      },
+      {
+        "id": "W_S2",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "South_view.png outer chains 1000/1800/1700 = 4500, read upward from the elevation's ground line (z = 0); both 1500-wide windows span the 1800 segment.",
+    "sources": [
+      {
+        "view_id": "view_0003"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          1700.0
+        ],
+        "origin_m": 0.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 4.5,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 0.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 1.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 0.0
+          },
+          {
+            "end_m": 2.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 1.0
+          },
+          {
+            "end_m": 4.5,
+            "index": 2,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 2.8
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "4caa847f576b6b422f25fb20f1c74330a6d68dfd24fd1b70968309cb5b76e6c9",
+  "resolved_values": {
+    "height": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2434,
+        1457
+      ],
+      "image": "South_view.png",
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "size": [
+        2434,
+        1457
+      ],
+      "view_id": "view_0003",
+      "view_sha256": "b4eadf3aea777618b0e08bf894fd8150c029b4079e8919f265add8402259e942"
+    }
+  ],
+  "verification": "not_independently_verified"
+}
