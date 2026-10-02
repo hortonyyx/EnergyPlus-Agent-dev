@@ -9,6 +9,7 @@ import gzip
 import hashlib
 import io
 import json
+import lzma
 import os
 from pathlib import Path, PurePosixPath
 import re
@@ -367,7 +368,18 @@ def _write_archive(path: Path, members: Mapping[str, bytes]) -> None:
     temporary = Path(temporary_name)
     try:
         with temporary.open("wb") as raw:
-            with gzip.GzipFile(filename="", fileobj=raw, mode="wb", mtime=0) as compressed:
+            if path.name.endswith(".tar.gz"):
+                compressed = gzip.GzipFile(filename="", fileobj=raw, mode="wb", mtime=0)
+            elif path.name.endswith(".tar.xz"):
+                # liblzma preset 6 uses an 8 MiB dictionary. It is a useful
+                # middle ground for repeated checkpoint/state JSON without
+                # changing or dropping any evidence member.
+                compressed = lzma.LZMAFile(
+                    raw, mode="wb", format=lzma.FORMAT_XZ, preset=6
+                )
+            else:
+                raise ValueError("compact archive must end in .tar.gz or .tar.xz")
+            with compressed:
                 with tarfile.open(fileobj=compressed, mode="w") as archive:
                     for name, data in sorted(members.items()):
                         info = tarfile.TarInfo(name)
@@ -511,7 +523,7 @@ def pack(source: Path, archive_path: Path) -> dict[str, Any]:
 def _archive_members(path: Path) -> dict[str, bytes]:
     members: dict[str, bytes] = {}
     try:
-        with tarfile.open(path, mode="r:gz") as archive:
+        with tarfile.open(path, mode="r:*") as archive:
             for member in archive.getmembers():
                 _safe_relative(member.name, what="archive member")
                 if not member.isfile():
@@ -522,7 +534,7 @@ def _archive_members(path: Path) -> dict[str, bytes]:
                 if stream is None:
                     raise ValueError("compact archive member cannot be read")
                 members[member.name] = stream.read()
-    except (tarfile.TarError, EOFError, OSError) as error:
+    except (tarfile.TarError, lzma.LZMAError, EOFError, OSError) as error:
         raise ValueError("invalid compact evidence archive") from error
     return members
 

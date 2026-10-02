@@ -58,17 +58,19 @@ def package_entry(source):
     return target
 
 
-def audit_archive(path, prefix):
-    with tarfile.open(path, "r:gz") as archive:
-        files = {}
-        for member in archive.getmembers():
-            name = PurePosixPath(member.name)
-            if not member.isfile() or name.is_absolute() or ".." in name.parts:
-                raise ValueError("unsafe archive member")
-            files[member.name] = archive.extractfile(member).read()
+def audit_archive(path, prefix, *, files=None):
+    if files is None:
+        with tarfile.open(path, "r:gz") as archive:
+            files = {}
+            for member in archive.getmembers():
+                name = PurePosixPath(member.name)
+                if not member.isfile() or name.is_absolute() or ".." in name.parts:
+                    raise ValueError("unsafe archive member")
+                files[member.name] = archive.extractfile(member).read()
+    base = prefix + "/" if prefix else ""
 
     def read(name):
-        return files[f"{prefix}/{name}"]
+        return files[base + name]
 
     refs = set()
 
@@ -89,7 +91,7 @@ def audit_archive(path, prefix):
     by_id = {e.event_id: e for e in events}
     blob_count = 0
     for name, data in files.items():
-        if name.startswith(prefix + "/blobs/"):
+        if name.startswith(base + "blobs/"):
             if sha(data) != PurePosixPath(name).name:
                 raise ValueError("blob filename differs from content hash")
             blob_count += 1
@@ -142,7 +144,7 @@ def audit_archive(path, prefix):
         "state_categories": {k: len(v) for k, v in manager.checklist().categories.items()},
         "context_actions": dict(Counter(e.payload.action for e in events if e.payload.event_type == "context")),
         "receipt_status": json.loads(read("receipt.json"))["status"]}
-    if prefix == "frozen-entry":
+    if prefix == "frozen-entry" or (not prefix and "frozen_replay_report.json" in files):
         first = next(e.payload for e in events if e.payload.event_type == "adapter_request")
         body = captured(first.final_request_body)
         assert body["messages"][0]["content"].encode() == read("guide.txt")
@@ -179,6 +181,23 @@ def main():
     report = {"baseline": BASELINE, "frozen_paths_unchanged": list(FROZEN),
         "cases": [audit_archive(DIRECTORY / name, prefix) for name, prefix in cases if (DIRECTORY / name).exists()],
         "missing_archives": [name for name, _ in cases if not (DIRECTORY / name).exists()]}
+    supplement = DIRECTORY / "evidence_frozen_run99.compact.tar.xz"
+    if supplement.exists():
+        from compact_evidence import read_archive
+        from audit_frozen_replay import audit_frozen_replay
+        files = read_archive(supplement)
+        case = audit_archive(supplement, "", files=files)
+        assert case["code_files_matching_current_worktree"]
+        details = audit_frozen_replay(files)
+        (DIRECTORY / "frozen_replay_audit.json").write_text(
+            json.dumps(details, ensure_ascii=False, indent=2) + "\n")
+        case.update(all_saved_views_indexed=details["all_saved_views_indexed"],
+            all_claims_indexed=details["all_claims_indexed"],
+            all_requests_within_budget=all(row["within_budget"] for row in details["requests"]),
+            maximum_request_estimated_tokens=max(row["estimated_tokens"] for row in details["requests"]))
+        report["cases"].append(case)
+    else:
+        report["missing_archives"].append(supplement.name)
     (DIRECTORY / "delivery_audit.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False))
     if report["missing_archives"]:

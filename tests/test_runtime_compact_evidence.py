@@ -151,6 +151,14 @@ def test_compact_archive_restores_duplicate_and_historical_images_exactly():
         assert encoded_new.encode("ascii") not in members[manifest["files"]["request.json"]["object"]]
         assert "writer.lock" not in restored and ".harness_tmp/transport.tmp" not in restored
 
+        xz_archive = directory / "compact.tar.xz"
+        xz_manifest = pack(source, xz_archive)
+        xz_restored = read_archive(xz_archive)
+        assert xz_archive.read_bytes().startswith(b"\xfd7zXZ\x00")
+        assert xz_manifest == manifest
+        assert set(xz_restored) == set(restored)
+        assert all(xz_restored[name] == restored[name] for name in restored)
+
 
 def test_read_archive_rejects_wrong_image_hash_and_path_traversal():
     with tempfile.TemporaryDirectory(prefix=".compact-evidence-tamper-", dir=ROOT) as temporary:
