@@ -1,0 +1,111 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W_E",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "direct",
+    "reason": "East_view.png upper-storey chain from the 3000 floor line: 1000/1800/800.",
+    "sources": [
+      {
+        "view_id": "view_0005"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 6.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 5.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 4.0
+          },
+          {
+            "end_m": 6.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 5.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0008",
+  "parent_proposal_sha256": "bb284ac56e5c8b8d91bf9075f66cde52fe8f651536eb3ca2ea265cbd9c741ed6",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        945,
+        741
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ],
+      "view_id": "view_0005",
+      "view_sha256": "da5f6b9e885faad32a2f5b4c8c8f280fcf254bd8f0dd97f7a3a7c6bdd67b1004"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

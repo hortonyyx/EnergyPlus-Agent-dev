@@ -1,0 +1,227 @@
+{
+  "parent_draft_id": "draft_002",
+  "parent_plan_sha256": "15408a0b0bdd49727924a6bb6f7f2b5452f6277867736431faed830789d43182",
+  "operations_json": "[\n {\"op\":\"remove\",\"collection\":\"openings\",\"id\":\"SW1\",\"reason\":\"Opening spanned across the office1/office2 divider junction (x=3.75m) and cannot host on a single wall segment; splitting into two per-office windows.\",\"source_refs\":[\"2f_view.png south wall; opening_host_failure.png confirms junction crossing\"]},\n {\"op\":\"remove\",\"collection\":\"openings\",\"id\":\"SW2\",\"reason\":\"Opening spanned across the office3/office4 divider junction (x=11.25m); splitting into two per-office windows.\",\"source_refs\":[\"2f_view.png south wall\"]},\n {\"op\":\"add\",\"collection\":\"openings\",\"value\":{\"id\":\"SW1a\",\"kind\":\"window\",\"p1\":[609,1071],\"p2\":[774,1071],\"z\":[4.0,5.8],\"source_refs\":[\"2f_view.png south wall office1 portion of window band, split at office1/office2 divider\"]},\"reason\":\"Split SW1 at the office1/office2 divider so each half hosts on its own wall segment.\",\"source_refs\":[\"2f_view.png south wall\"]},\n {\"op\":\"add\",\"collection\":\"openings\",\"value\":{\"id\":\"SW1b\",\"kind\":\"window\",\"p1\":[774,1071],\"p2\":[940,1071],\"z\":[4.0,5.8],\"source_refs\":[\"2f_view.png south wall office2 portion of window band, split at office1/office2 divider\"]},\"reason\":\"Split SW1 at the office1/office2 divider so each half hosts on its own wall segment.\",\"source_refs\":[\"2f_view.png south wall\"]},\n {\"op\":\"add\",\"collection\":\"openings\",\"value\":{\"id\":\"SW2a\",\"kind\":\"window\",\"p1\":[1300,1071],\"p2\":[1466,1071],\"z\":[4.0,5.8],\"source_refs\":[\"2f_view.png south wall office3 portion of window band, split at office3/office4 divider\"]},\"reason\":\"Split SW2 at the office3/office4 divider so each half hosts on its own wall segment.\",\"source_refs\":[\"2f_view.png south wall\"]},\n {\"op\":\"add\",\"collection\":\"openings\",\"value\":{\"id\":\"SW2b\",\"kind\":\"window\",\"p1\":[1466,1071],\"p2\":[1633,1071],\"z\":[4.0,5.8],\"source_refs\":[\"2f_view.png south wall office4 portion of window band, split at office3/office4 divider\"]},\"reason\":\"Split SW2 at the office3/office4 divider so each half hosts on its own wall segment.\",\"source_refs\":[\"2f_view.png south wall\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "openings",
+      "id": "SW1",
+      "before": {
+        "id": "SW1",
+        "kind": "window",
+        "p1": [
+          609,
+          1071
+        ],
+        "p2": [
+          940,
+          1071
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png south wall window; South_view.png upper-zone chain 1950/3600/3900/3600/1950 matches same x span as north windows"
+        ]
+      },
+      "after": null,
+      "reason": "Opening spanned across the office1/office2 divider junction (x=3.75m) and cannot host on a single wall segment; splitting into two per-office windows.",
+      "source_refs": [
+        "2f_view.png south wall; opening_host_failure.png confirms junction crossing"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "openings",
+      "id": "SW2",
+      "before": {
+        "id": "SW2",
+        "kind": "window",
+        "p1": [
+          1300,
+          1071
+        ],
+        "p2": [
+          1633,
+          1071
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png south wall window, mirrored position"
+        ]
+      },
+      "after": null,
+      "reason": "Opening spanned across the office3/office4 divider junction (x=11.25m); splitting into two per-office windows.",
+      "source_refs": [
+        "2f_view.png south wall"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "openings",
+      "id": "SW1a",
+      "before": null,
+      "after": {
+        "id": "SW1a",
+        "kind": "window",
+        "p1": [
+          609,
+          1071
+        ],
+        "p2": [
+          774,
+          1071
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png south wall office1 portion of window band, split at office1/office2 divider"
+        ]
+      },
+      "reason": "Split SW1 at the office1/office2 divider so each half hosts on its own wall segment.",
+      "source_refs": [
+        "2f_view.png south wall"
+      ]
+    },
+    {
+      "operation_index": 3,
+      "field": "openings",
+      "id": "SW1b",
+      "before": null,
+      "after": {
+        "id": "SW1b",
+        "kind": "window",
+        "p1": [
+          774,
+          1071
+        ],
+        "p2": [
+          940,
+          1071
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png south wall office2 portion of window band, split at office1/office2 divider"
+        ]
+      },
+      "reason": "Split SW1 at the office1/office2 divider so each half hosts on its own wall segment.",
+      "source_refs": [
+        "2f_view.png south wall"
+      ]
+    },
+    {
+      "operation_index": 4,
+      "field": "openings",
+      "id": "SW2a",
+      "before": null,
+      "after": {
+        "id": "SW2a",
+        "kind": "window",
+        "p1": [
+          1300,
+          1071
+        ],
+        "p2": [
+          1466,
+          1071
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png south wall office3 portion of window band, split at office3/office4 divider"
+        ]
+      },
+      "reason": "Split SW2 at the office3/office4 divider so each half hosts on its own wall segment.",
+      "source_refs": [
+        "2f_view.png south wall"
+      ]
+    },
+    {
+      "operation_index": 5,
+      "field": "openings",
+      "id": "SW2b",
+      "before": null,
+      "after": {
+        "id": "SW2b",
+        "kind": "window",
+        "p1": [
+          1466,
+          1071
+        ],
+        "p2": [
+          1633,
+          1071
+        ],
+        "z": [
+          4.0,
+          5.8
+        ],
+        "source_refs": [
+          "2f_view.png south wall office4 portion of window band, split at office3/office4 divider"
+        ]
+      },
+      "reason": "Split SW2 at the office3/office4 divider so each half hosts on its own wall segment.",
+      "source_refs": [
+        "2f_view.png south wall"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "V1",
+      "V2",
+      "V3",
+      "V4",
+      "H1",
+      "H2"
+    ],
+    "openings": [
+      "NW1",
+      "NW2",
+      "EW1",
+      "WW1",
+      "D_R1",
+      "D_R2",
+      "D_O1",
+      "D_O2",
+      "D_O3",
+      "D_O4"
+    ],
+    "space_seeds": [
+      "MR1",
+      "MR2",
+      "CORR2",
+      "O1",
+      "O2",
+      "O3",
+      "O4"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

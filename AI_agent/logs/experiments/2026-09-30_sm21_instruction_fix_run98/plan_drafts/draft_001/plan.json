@@ -1,0 +1,40 @@
+{"floor_id":"F1","z_floor":0,"ceiling_height":3.0,
+"x_anchors":[[426,0],[1815,15]],"y_anchors":[[1087,0],[345,8]],
+"basis":"Calibrated from overall 15000mm (west outer face px426 to east outer face px1815) and 8000mm (south outer face px1087 to north outer face px345) dimension chains on 1f_view.png. Perimeter uses outer wall faces. Interior partitions use measured wall-band centerlines from pixel_profile ink scans.",
+"footprint_pixels":[[426,345],[1815,345],[1815,1087],[426,1087]],
+"partitions":[
+ {"id":"P-north-corridor","points":[[426,617],[1815,617]],"source_refs":["1f_view.png: continuous wall band y=605-629 (pixel_profile), pierced by 3 office doors"]},
+ {"id":"P-south-corridor","points":[[426,805],[1815,805]],"source_refs":["1f_view.png: continuous wall band y=795-815 (pixel_profile), pierced by 3 room doors"]},
+ {"id":"P-vert1-top","points":[[888,345],[888,617]],"source_refs":["1f_view.png: vertical partition x=883-894 (pixel_profile), office row only"]},
+ {"id":"P-vert1-bot","points":[[888,805],[888,1087]],"source_refs":["1f_view.png: vertical partition x=883-894 continues in bottom room row only"]},
+ {"id":"P-vert2-top","points":[[1352,345],[1352,617]],"source_refs":["1f_view.png: vertical partition x=1346-1358, office row only"]},
+ {"id":"P-vert2-bot","points":[[1352,805],[1352,1087]],"source_refs":["1f_view.png: vertical partition x=1346-1358 continues in bottom room row only"]}
+],
+"openings":[
+ {"id":"EXT-W-DOOR","kind":"door","p1":[436,647],"p2":[436,786],"z":[0,2.1],"source_refs":["1f_view.png: west wall gap y647-786 (~1500mm, matches West_view.png ground-floor double door); height assumed pending elevation claim"]},
+ {"id":"EXT-S-DOOR","kind":"door","p1":[474,1076],"p2":[558,1076],"z":[0,2.1],"source_refs":["1f_view.png: south wall gap x474-558 (~900mm), dimension label 900; height assumed"]},
+ {"id":"EXT-S-WIN1","kind":"window","p1":[743,1076],"p2":[856,1076],"z":[1.0,2.2],"source_refs":["1f_view.png: south wall gap x743-856 (~1200mm), dimension label 1200; height assumed pending elevation claim"]},
+ {"id":"EXT-S-WIN2","kind":"window","p1":[1008,1076],"p2":[1231,1076],"z":[1.0,2.2],"source_refs":["1f_view.png: south wall gap x1008-1231 (~2400mm), dimension label 2400; height assumed pending elevation claim"]},
+ {"id":"EXT-S-WIN3","kind":"window","p1":[1477,1076],"p2":[1702,1076],"z":[1.0,2.2],"source_refs":["1f_view.png: south wall gap x1477-1702 (~2400mm), dimension label 2400; height assumed pending elevation claim"]},
+ {"id":"EXT-N-WIN1","kind":"window","p1":[539,352],"p2":[764,352],"z":[1.0,2.2],"source_refs":["1f_view.png: north wall gap x539-764 (~2400mm); height assumed pending elevation claim"]},
+ {"id":"EXT-N-WIN2","kind":"window","p1":[1008,352],"p2":[1231,352],"z":[1.0,2.2],"source_refs":["1f_view.png: north wall gap x1008-1231 (~2400mm); height assumed pending elevation claim"]},
+ {"id":"EXT-N-WIN3","kind":"window","p1":[1477,352],"p2":[1700,352],"z":[1.0,2.2],"source_refs":["1f_view.png: north wall gap x1477-1700 (~2400mm); height assumed pending elevation claim"]},
+ {"id":"EXT-E-WIN","kind":"window","p1":[1805,661],"p2":[1805,772],"z":[1.0,2.2],"source_refs":["1f_view.png: east wall gap y661-772 (~1200mm, matches East_view.png window); height assumed pending elevation claim"]},
+ {"id":"D-N1","kind":"door","p1":[772,617],"p2":[855,617],"z":[0,2.1],"source_refs":["1f_view.png: north-corridor wall gap x772-855 with door swing arc; height assumed, no drawn dimension"]},
+ {"id":"D-N2","kind":"door","p1":[922,617],"p2":[1005,617],"z":[0,2.1],"source_refs":["1f_view.png: north-corridor wall gap x922-1005 with door swing arc; height assumed"]},
+ {"id":"D-N3","kind":"door","p1":[1385,617],"p2":[1469,617],"z":[0,2.1],"source_refs":["1f_view.png: north-corridor wall gap x1385-1469 with door swing arc; height assumed"]},
+ {"id":"D-S1","kind":"door","p1":[772,805],"p2":[855,805],"z":[0,2.1],"source_refs":["1f_view.png: south-corridor wall gap x772-855 with door swing arc; height assumed"]},
+ {"id":"D-S2","kind":"door","p1":[922,805],"p2":[1005,805],"z":[0,2.1],"source_refs":["1f_view.png: south-corridor wall gap x922-1005 with door swing arc; height assumed"]},
+ {"id":"D-S3","kind":"door","p1":[1385,805],"p2":[1469,805],"z":[0,2.1],"source_refs":["1f_view.png: south-corridor wall gap x1385-1469 with door swing arc; height assumed"]}
+],
+"space_seeds":[
+ {"id":"office1","point":[650,480],"role":"office"},
+ {"id":"office2","point":[1120,480],"role":"office"},
+ {"id":"office3","point":[1580,480],"role":"office"},
+ {"id":"corridor1f","point":[1100,710],"role":"corridor"},
+ {"id":"room_wc","point":[650,950],"role":"restroom"},
+ {"id":"room_store","point":[1120,950],"role":"storage"},
+ {"id":"room_meeting","point":[1580,950],"role":"meeting"}
+],
+"assumptions":["Floor-to-floor ceiling height 3.0m for 1F taken from the lower band of North/South elevation dimension chains (3000mm), pending confirmation.","All opening heights are provisional pending elevation-based claims (step 6)."],
+"unresolved":["Interior door heights unconfirmed by any drawing.","Window sill/head heights are provisional; to be set from North/South/East/West elevation dimension chains."]}

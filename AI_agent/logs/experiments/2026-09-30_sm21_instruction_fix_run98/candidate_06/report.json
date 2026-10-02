@@ -1,0 +1,65 @@
+{
+  "agent_assumptions": [
+    "Floor-to-floor heights: 1F ceiling_height=3.0m, 2F z_floor=3.0m/ceiling_height=3.6m, taken from the North/South elevation overall 6600mm dimension chain (3000mm lower band + 3600mm upper band), confirmed by calibrated elevation overlays (roof/ground/floor-line pixel positions matched the chain to within rounding).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights (all F1 D-N/D-S and F2 D-N/D-S doors) are assumed 2.1m: no plan or elevation drawing dimensions an interior door height."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "b0d463447d14f73fc582c83994c53f476178d13a4d7c2e7467e22f6424f0c8f9",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0006.json",
+      "parent_candidate": "candidate_05",
+      "parent_proposal_sha256": "59501456084c685fb6130671bdad9f41334f8db09cbccbbd7f63203307cb76d4"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "a86448b266cde12e3991aec0aefe38d33c11813e5ecb9e379252cd43b0c47a3f",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "59501456084c685fb6130671bdad9f41334f8db09cbccbbd7f63203307cb76d4"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "0a2c186b904776fa4421bb6462092608453ff407abfea5d524ba9cc9ced0d3cc",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Pixel-to-world calibration for each plan/elevation image was supplied by the agent from the drawings' own dimension chains and outer wall faces; it was cross-checked between plan and elevation (independent chains agree to within ~1%) but not independently verified by a third source.",
+    "F1:EXT-S-WIN1 (room_wc) and F1 corridor E/W windows use dimension chains adjacent to, but not unambiguously labelled as, those specific openings; assignment is by position and is the most consistent reading found, but remains a judgment call rather than a directly labelled chain."
+  ]
+}

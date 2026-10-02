@@ -63,6 +63,10 @@ def test_plan_tool_source_images_provenance_and_revised_calibration(tmp_path):
             response = await session.call_tool("build_plan_bim", {"image": "plan.png", "plan_json": raw})
             built = _json_result(response)
             assert built["source_geometry_ready"], built
+            assert next(iter(built)) == "drawing_differences"
+            differences = built["drawing_differences"]
+            assert differences["status"] == "reported" and differences["meaning"]
+            assert (run / differences["file"]).is_file() and "drawing_differences" not in built["plan_input"]
             assert len([block for block in response.content if block.type == "image"]) == 2
             record = built["plan_input"]
             assert (run / record["plan_file"]).read_bytes() == raw.encode()

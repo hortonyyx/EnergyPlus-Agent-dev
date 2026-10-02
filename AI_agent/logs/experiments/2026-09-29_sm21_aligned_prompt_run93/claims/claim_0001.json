@@ -1,0 +1,137 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "F1:W_N1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_N3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S1",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S2",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_S3",
+        "kind": "window"
+      },
+      {
+        "id": "F1:W_E1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png vertical dimension chain (left side, building top to ground) reads 800/1800/1000 for the upper(2F) band and 400/1600/1000 for the lower(1F) band, summing to 3600 and 3000 matching the elevation's own 3600/3000 split (total 6600). Absolute building top z=6.6m (1F ceiling_height 3.0 + F2 ceiling_height 3.6). Walking down from the F2 floor level z=3.0: header 400mm, window 1600mm, sill 1000mm to ground z=0. This gives the 1F window family sill=1.0m/head=2.6m above ground, applied uniformly to all 1F windows including the East corridor window (East_view.png shows the same 800/1800/1000 and lower-band split at the same scale, confirming the family is shared across facades for this simple two-band elevation).",
+    "sources": [
+      {
+        "view_id": "view_0007"
+      }
+    ],
+    "unresolved": [
+      "East facade's own dimension chain was not separately transcribed; assumed to share the North/South window family."
+    ],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": -1,
+        "lengths": [
+          400.0,
+          1600.0,
+          1000.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 0.4,
+            "span_m": [
+              2.6,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.6,
+            "span_m": [
+              1.0,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "5aa5815a0dec3cdf53bb0c38c7ebb4efb2cd5842b3cfbc271637f875411aa607",
+  "resolved_values": {
+    "z": [
+      1.0,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        300,
+        600
+      ],
+      "image": "North_view.png",
+      "sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+      "size": [
+        1354,
+        812
+      ],
+      "view_id": "view_0007",
+      "view_sha256": "28d10d508cc23bdee3f88dbeb5211b1d2339f29a74878214b7073ebc8797dd6a"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

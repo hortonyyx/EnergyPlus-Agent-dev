@@ -1,0 +1,150 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "c60d21fca7ea05e6c6394560f641192836e3f8c371dcdf92d5949e4a8572abb8",
+  "operations_json": "[\n {\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_T1\",\"changes\":{\"p2\":[884,636]},\"reason\":\"avoid touching partition junction at x=889 causing T-junction host ambiguity\",\"source_refs\":[\"1f_view.png: door arc room T1 to corridor\"]},\n {\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_T2\",\"changes\":{\"p1\":[895,636]},\"reason\":\"avoid touching partition junction at x=889 causing T-junction host ambiguity\",\"source_refs\":[\"1f_view.png: door arc room T2 to corridor\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "openings",
+      "id": "D_T1",
+      "before": {
+        "id": "D_T1",
+        "kind": "door",
+        "p1": [
+          792,
+          636
+        ],
+        "p2": [
+          890,
+          636
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "state": "unknown",
+        "source_refs": [
+          "1f_view.png: door arc room T1 to corridor"
+        ]
+      },
+      "after": {
+        "id": "D_T1",
+        "kind": "door",
+        "p1": [
+          792,
+          636
+        ],
+        "p2": [
+          884,
+          636
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "state": "unknown",
+        "source_refs": [
+          "1f_view.png: door arc room T1 to corridor"
+        ]
+      },
+      "reason": "avoid touching partition junction at x=889 causing T-junction host ambiguity",
+      "source_refs": [
+        "1f_view.png: door arc room T1 to corridor"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "openings",
+      "id": "D_T2",
+      "before": {
+        "id": "D_T2",
+        "kind": "door",
+        "p1": [
+          927,
+          636
+        ],
+        "p2": [
+          1010,
+          636
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "state": "unknown",
+        "source_refs": [
+          "1f_view.png: door arc room T2 to corridor"
+        ]
+      },
+      "after": {
+        "id": "D_T2",
+        "kind": "door",
+        "p1": [
+          895,
+          636
+        ],
+        "p2": [
+          1010,
+          636
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "state": "unknown",
+        "source_refs": [
+          "1f_view.png: door arc room T2 to corridor"
+        ]
+      },
+      "reason": "avoid touching partition junction at x=889 causing T-junction host ambiguity",
+      "source_refs": [
+        "1f_view.png: door arc room T2 to corridor"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "space_seeds": [
+      "T1",
+      "T2",
+      "T3",
+      "Corridor",
+      "BottomOpen"
+    ],
+    "partitions": [
+      "P_T12",
+      "P_T23",
+      "P_CorrTop",
+      "P_CorrBottom"
+    ],
+    "openings": [
+      "W_T1",
+      "W_T2",
+      "W_T3",
+      "W_B1",
+      "W_B2",
+      "W_B3",
+      "W_East",
+      "D_South",
+      "D_West",
+      "D_T3",
+      "D_B1",
+      "D_B2",
+      "D_B3"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

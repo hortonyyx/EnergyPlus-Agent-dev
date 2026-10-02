@@ -1,0 +1,100 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "1F:D_ext_S",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "South_view.png ground-floor door column vertical dimension chain reads, from the 2F floor/slab line downward: 600 (gap above the door's transom), 900 (transom panel height), 1500 (door-leaf height down to the ground floor). World z origin is the 1F floor at z=0; the chain's own datum is the 2F slab at absolute z=3.0 (matching the 1F floor-to-floor height). Merging the transom+leaf segments (900+1500=2400mm) into one span below the 600mm gap: lengths=[600,2400], origin_m=3.0, direction=-1, segment index 1 gives absolute span [0,2.4], i.e. the full door opening from ground floor to head, matching the declared z=[0,2.4].",
+    "sources": [
+      {
+        "view_id": "view_0007"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": -1,
+        "lengths": [
+          600.0,
+          2400.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.4,
+            "index": 0,
+            "length_m": 0.6,
+            "span_m": [
+              2.4,
+              3.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 0.0,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.0,
+              2.4
+            ],
+            "start_m": 2.4
+          }
+        ],
+        "total_m": 3.0
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "79093237dcc8900c2452b00faf34d91b1de39547f325c3d42240069fd2e5c807",
+  "resolved_values": {
+    "height": [
+      0.0,
+      2.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        450,
+        600
+      ],
+      "image": "South_view.png",
+      "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+      "size": [
+        1423,
+        794
+      ],
+      "view_id": "view_0007",
+      "view_sha256": "065e466d29069744f53b460b31f6ef2d8b39476b15772fe3b7cc14b17bf1f15b"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

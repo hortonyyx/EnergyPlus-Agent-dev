@@ -1,0 +1,5893 @@
+{
+ "method": "Offline validation of drawing_differences against frozen original-image references.",
+ "references": {
+  "sm21": "AI_agent/logs/experiments/2026-09-26_sm21_whole_building_setup/original_reference.json",
+  "sm24": "AI_agent/logs/experiments/2026-09-23_sm24_cold_plan_setup/original_observations.json",
+  "sm25": "AI_agent/logs/experiments/2026-09-27_sm25_full_inventory_setup/original_reference.json"
+ },
+ "door_offset_m": 0.1,
+ "cross_match_m": 0.3,
+ "drafts": [
+  {
+   "run": "2026-09-20_sm24_host_recovery_run02",
+   "draft": "draft_002",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "6356aca4e1492219f496afc7abbb69d1a2fcfef3ada02331620118e76257fd54",
+   "compilation_sha256": "3cd138e1f993b45a671fee419b74966e328217681189df6868a6a2953611f626",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "CorridorN_SE_open",
+     "seeds": [
+      "C",
+      "SE"
+     ],
+     "points": [
+      [
+       430,
+       500
+      ],
+      [
+       510,
+       815
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-WN-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      359,
+      392
+     ],
+     "declared_opening": "D_w2_corr",
+     "declared_span": [
+      357.0,
+      403.0
+     ],
+     "end_offsets_m": [
+      -0.055,
+      0.303
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SE-C",
+     "orient": "h",
+     "reference_cross": 699,
+     "reference_span": [
+      559,
+      592
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-20_sm24_method_transfer_run01",
+   "draft": "draft_005",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "aa63c6eaa4a084bdb057c2c886554db0914b3c76962c3d68c9b95bc718a496b5",
+   "compilation_sha256": "a7ead4bd636dca54c02ec40dcb68157932e1ab46fd878cbee2283fd9718147a3",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "CorridorN_SE_open",
+     "seeds": [
+      "C",
+      "SE"
+     ],
+     "points": [
+      [
+       430,
+       500
+      ],
+      [
+       510,
+       815
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-WN-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      359,
+      392
+     ],
+     "declared_opening": "D_w2_corr",
+     "declared_span": [
+      357.0,
+      403.0
+     ],
+     "end_offsets_m": [
+      -0.055,
+      0.303
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SE-C",
+     "orient": "h",
+     "reference_cross": 699,
+     "reference_span": [
+      559,
+      592
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-20_sm24_opening_heights_run04",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "bac9c8c1d3a6b1e4f4febb1d7faa1ba7661369c5bce93c2f2c74e0ec0dad55f2",
+   "compilation_sha256": "47380b8fe6a53a7ce9d4765d3bcc8dfb0c950cc7290c50cc315954fee378575d",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-WN-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      359,
+      392
+     ],
+     "declared_opening": "D_w2_corr",
+     "declared_span": [
+      357.0,
+      403.0
+     ],
+     "end_offsets_m": [
+      -0.055,
+      0.303
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-20_sm24_southeast_recovery_run03",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "5d2e6abe7f03b85f1afa40a898844d54a0f01422eca42bbfefe77f4de3701be4",
+   "compilation_sha256": "47380b8fe6a53a7ce9d4765d3bcc8dfb0c950cc7290c50cc315954fee378575d",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-WN-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      359,
+      392
+     ],
+     "declared_opening": "D_w2_corr",
+     "declared_span": [
+      357.0,
+      403.0
+     ],
+     "end_offsets_m": [
+      -0.055,
+      0.303
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-21_sm24_autonomous_recovery_run06",
+   "draft": "draft_004",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "0ebce0cc2d044339dcd34c7ca5d0e9cb74ded638385e07139ebec0ebd8e7e09a",
+   "compilation_sha256": "1478368d740dd0cfe8c3cc53d368da6ccd7e7feebf6a6fd3ebdff0e2e4d5c2dc",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "CorridorN_SE_open",
+     "seeds": [
+      "C",
+      "SE"
+     ],
+     "points": [
+      [
+       430,
+       500
+      ],
+      [
+       510,
+       815
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-WN-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      359,
+      392
+     ],
+     "declared_opening": "D_w2_corr",
+     "declared_span": [
+      357.0,
+      403.0
+     ],
+     "end_offsets_m": [
+      -0.055,
+      0.303
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SE-C",
+     "orient": "h",
+     "reference_cross": 699,
+     "reference_span": [
+      559,
+      592
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-22_sm21_glm_independent_generation_run23",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "d5eb2020185ae161e01c18622d37a21631a6b11964c3d944651221cd1d1306e5",
+   "compilation_sha256": "6b8e6664fc5af9a83edfc8ce1c0e6c0726e3bdbd5595815f5a56946eef16ee11",
+   "mpp": [
+    0.01079136690647482,
+    0.010825439783491205
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-22_sm21_glm_independent_generation_run23",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "6139c5deb96bb16ce5bca6ee5663ba7e5815a72cd7699db58eb5444a7760aa2a",
+   "compilation_sha256": "cd162f44e4d96249901297c912c8198f5d3b4bf27ed791fe06322900962da716",
+   "mpp": [
+    0.01083815028901734,
+    0.010810810810810811
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-22_sm24_glm_independent_generation_run14",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "f5e5ff3ae3d1c5be2ea48fec572e656bd498aa7e4f7ef5d9eb843048378bbac0",
+   "compilation_sha256": "4f64292934935d4963aa9241785cfbe794d7338995617ceff59b62da18600ff3",
+   "mpp": [
+    0.027548209366391185,
+    0.027548209366391185
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "room_R3",
+     "area_m2": 13.35
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-EN-C",
+     "orient": "v",
+     "reference_cross": 459.5,
+     "reference_span": [
+      323,
+      356
+     ],
+     "declared_opening": "D_R1",
+     "declared_span": [
+      325.0,
+      360.0
+     ],
+     "end_offsets_m": [
+      0.055,
+      0.11
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-23_sm21_cold_plan_glm_run31",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "8149783fc1a03c8609d64be92b54f39646e544eb917a5e9ab010b59a99c903cb",
+   "compilation_sha256": "aecbf17ae4bbd4bd22d02b6d2fd9ecefd6d12009b80634d71a79798b139258e0",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-23_sm24_cold_plan_glm_run32",
+   "draft": "draft_004",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "2fe65af8b64ee243ac45c2e433f003e7d0e9782cb501ead76077b5bcf413edc9",
+   "compilation_sha256": "f7fc89c8c60ff446413853437e9a2c4c6ec38f13d967f02129f683075e3f8156",
+   "mpp": [
+    0.027472527472527472,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "meeting_east",
+     "seeds": [
+      "EN",
+      "EC"
+     ],
+     "points": [
+      [
+       530,
+       335
+      ],
+      [
+       530,
+       460
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D_top",
+     "declared_span": [
+      400.0,
+      459.5
+     ],
+     "end_offsets_m": [
+      -0.22,
+      0.234
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-23_sm24_self_review_glm_run36",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "c1642614e72835053d432d1b72356a61c2a9c6f3bbadc81a7ccadd180bbfecec",
+   "compilation_sha256": "f7fc89c8c60ff446413853437e9a2c4c6ec38f13d967f02129f683075e3f8156",
+   "mpp": [
+    0.027472527472527472,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "meeting_east",
+     "seeds": [
+      "EN",
+      "EC"
+     ],
+     "points": [
+      [
+       530,
+       335
+      ],
+      [
+       530,
+       460
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D_top",
+     "declared_span": [
+      400.0,
+      459.5
+     ],
+     "end_offsets_m": [
+      -0.22,
+      0.234
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-23_sm24_self_review_glm_run36",
+   "draft": "draft_003",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "de427a57429fa9e7359b143ecee1a6feebc73da2e2168dd648af08d0c3509bfd",
+   "compilation_sha256": "2bf513162788317733dd4af0a89aed5eb15b19c6552a32dd9d202a579ed31362",
+   "mpp": [
+    0.027472527472527472,
+    0.027510316368638238
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-23_sm24_wall_context_recovery_glm_run35",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "32efa774f837dbdae004cb6cf4a6ce680f3d5d82dc780789f786952ff0407d4d",
+   "compilation_sha256": "5e68498bf5ca303f9f141de474b9248b8f6d8c9804d7ea8918f737366358f04b",
+   "mpp": [
+    0.027472527472527472,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "meeting_east",
+     "seeds": [
+      "EN",
+      "EC"
+     ],
+     "points": [
+      [
+       530,
+       335
+      ],
+      [
+       530,
+       460
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D_top",
+     "declared_span": [
+      400.0,
+      459.5
+     ],
+     "end_offsets_m": [
+      -0.22,
+      0.234
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-23_sm24_wall_context_recovery_glm_run35",
+   "draft": "draft_003",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "79bf44b7a8cffc429cef3985e649555f03ae6ff631ab9ead88921293bc3ad1b1",
+   "compilation_sha256": "86855bf8755129f595deadbc5e5c3a5892eed94e7346805a5b2653ff12c6dfd3",
+   "mpp": [
+    0.027472527472527472,
+    0.027510316368638238
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-24_sm24_cold_context_glm_run37",
+   "draft": "draft_002",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "3e25170445438c82db6758f55d6a0f026e7356c2abb6c59ad8b83b35eccf8cb0",
+   "compilation_sha256": "d316abc87c6dec0f597d1a565baeb7258644f96873d64d63cc42b441a69f9b2f",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "zoneA",
+     "area_m2": 13.06
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D1_corridor_head",
+     "declared_span": [
+      403.0,
+      456.0
+     ],
+     "end_offsets_m": [
+      -0.138,
+      0.138
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm24_cold_support_glm_run39",
+   "draft": "draft_003",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "1cf7ff01a685b5e819ac5583d014ef2ef76e48ff29d2b1aaef3aeff0f1295359",
+   "compilation_sha256": "a27986a80e73153b0bad7270c2e40a85fdcf67ded6eb3b04286d3503eb0d0457",
+   "mpp": [
+    0.027700831024930747,
+    0.027586206896551724
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-24_sm24_path_support_glm_run38",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "0a1c69cc3731517eff63889b1956b295257d895bf30d7d1e3b8be1cfc94a502a",
+   "compilation_sha256": "d316abc87c6dec0f597d1a565baeb7258644f96873d64d63cc42b441a69f9b2f",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "zoneA",
+     "area_m2": 13.06
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D1_corridor_head",
+     "declared_span": [
+      403.0,
+      456.0
+     ],
+     "end_offsets_m": [
+      -0.138,
+      0.138
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm24_path_support_glm_run38",
+   "draft": "draft_002",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "7693a76237774814ceaf52d1c76fa3ad24e65022447a922fa0178d15df7e0893",
+   "compilation_sha256": "f09e1ba3c321cc2ab98a5320e302e76c92d017be59acc2727e74db9f5d149d99",
+   "mpp": [
+    0.027548209366391185,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D1_corridor_head",
+     "declared_span": [
+      403.0,
+      456.0
+     ],
+     "end_offsets_m": [
+      -0.138,
+      0.138
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm24_repeat_support_glm_run40",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "ea46a52e897c5b2e2eb168c2df3e895ecd4b7f24fe3a5cbcbed0132ad83aefa9",
+   "compilation_sha256": "280aa30dbb90ffa16e2048a4b3c8c85b423bcd00afb69be28cf62a028fa7067b",
+   "mpp": [
+    0.027700831024930747,
+    0.027548209366391185
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-24_sm25_cold_support_glm_run42",
+   "draft": "draft_004",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "f9fbc2db84016ec7339edf70bd863ef15b37070fa431e3f443ded130f3eb644f",
+   "compilation_sha256": "5d2b4779175a09db90b461cf35437433db4f23b11bcc68b736b59a1e4bc058a1",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm25_continuous_space_glm_run44",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "809590de3e3c45865eccba8b52fa7b88bf9df3997fb1da52a676721265433f52",
+   "compilation_sha256": "7b6de100f2ec0eeb38de39406531bd40da7594149a67abcdd80877a433e96247",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "PASS_corr_s",
+     "orient": "h",
+     "cross": 957.0,
+     "declared_span": [
+      697.0,
+      789.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm25_continuous_space_glm_run44",
+   "draft": "draft_003",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830",
+   "compilation_sha256": "fa4d0df9b2fdce4e6ec194624b59748426918a607598a79f57eab62c7210cb26",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "PASS_corr_s",
+     "orient": "h",
+     "cross": 957.0,
+     "declared_span": [
+      697.0,
+      789.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm25_local_plan_glm_run43",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "c36b660c697a28d1eff44fbbd3070244922c8af4ba5b061be5a785ebe3a56a65",
+   "compilation_sha256": "5d2b4779175a09db90b461cf35437433db4f23b11bcc68b736b59a1e4bc058a1",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm25_local_plan_glm_run43",
+   "draft": "draft_003",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "38beb082411576b05ce026e574e22d4896e392c057e2e4e40ae4b9b116d9f555",
+   "compilation_sha256": "7b6de100f2ec0eeb38de39406531bd40da7594149a67abcdd80877a433e96247",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "PASS_corr_s",
+     "orient": "h",
+     "cross": 957.0,
+     "declared_span": [
+      697.0,
+      789.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-24_sm25_partition_feedback_glm_run45",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "46a2a913643a7f1900eb8e8c47bdf3e25b33ee3cdd18ba7b9f458b32aafbef2d",
+   "compilation_sha256": "d2a9c221407360307cff857074bb542d0ad7e0534babe88c320ec867a00d5dcb",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-25_sm25_relation_cold_claude_run48",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "53ea6f094837939d07db9f42979a02b33707862c908bb1a06cc6aa7c0fb0a8b2",
+   "compilation_sha256": "3127f41daf5db7d12cd0815fd52146cf92c2cc7d2a128868fd6c67dcb2265a4c",
+   "mpp": [
+    0.02162629757785467,
+    0.021645021645021644
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-25_sm25_relation_repeat_claude_run49",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "c9d5cce7f3169dfa594cec13c38cd88d31b5a25a29dfdf91636be6b0a84d207e",
+   "compilation_sha256": "088dee75d76277842dc78bb5be0519f89dfa8a2f7bc49aba98346c9e72ac5024",
+   "mpp": [
+    0.021645021645021644,
+    0.021645021645021644
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-25_sm25_space_relation_claude_run47",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830",
+   "compilation_sha256": "fa4d0df9b2fdce4e6ec194624b59748426918a607598a79f57eab62c7210cb26",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "PASS_corr_s",
+     "orient": "h",
+     "cross": 957.0,
+     "declared_span": [
+      697.0,
+      789.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-25_sm25_space_relation_claude_run47",
+   "draft": "draft_002",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "29863d3280f4b35688b26564332ac9cee0d67dab8db744e937d38ad276cba775",
+   "compilation_sha256": "4bc706989dba2be03f5fa8588dceca9fb5947e8a713c020ee537fb838012ccde",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-25_sm25_space_relation_glm_run46",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "33d195f228119c935934a8506f9ce09cc75c5717dede4fad7b2858fcf9c06681",
+   "compilation_sha256": "d569682ca398d066078ffd0e98c44ea6c79064c6975618fa1600f9b311c3200b",
+   "mpp": [
+    0.021645021645021644,
+    0.021621621621621623
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S13",
+     "area_m2": 57.18
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "PASS_corr_s",
+     "orient": "h",
+     "cross": 957.0,
+     "declared_span": [
+      697.0,
+      789.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-26_sm21_whole_building_claude_run57",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "0938a8eb5bedc03309dfefafbfe658085f522599bfc7dcbf22786725c1229e72",
+   "compilation_sha256": "e9b9cbc2ccbac6346817ece4bed58f2a4046187e77b205d7b2d007c84370302d",
+   "mpp": [
+    0.010788262370540851,
+    0.010813733441470666
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm21_whole_building_claude_run57",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "2863ae4f81135918b83bdbf81f5a55433340e4421386e7e99f9dd75bdb5d042d",
+   "compilation_sha256": "26a26bc103cd67d91b86963ab76932979c4fd696187773ee65e2fd37e4b0bdb7",
+   "mpp": [
+    0.010825635103926097,
+    0.010821046936291087
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm24_whole_building_claude_run55",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "9d8e233c35484cb3658f1ad50241fbf907fe99c4b1ede8142cf09b7b6ce70cfb",
+   "compilation_sha256": "ac87344ade3255a65c79719394423739ce5312d5e0ff74bf95c5f08599fa2cf4",
+   "mpp": [
+    0.0273972602739726,
+    0.027472527472527472
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm24_whole_building_repeat_claude_run56",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "1011ba80eb23038c13b4c6a146dd81a79a835f62b02f361a1c5a113718ccb692",
+   "compilation_sha256": "fdf6daca721b6f6e524e50e4b7ddc394465fcf9825c9762639eca16584b73cb3",
+   "mpp": [
+    0.0273972602739726,
+    0.027510316368638238
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_height_cold_claude_run53",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "f951a1eaa054081c1913199cb5878b0da15821c1326a66552096fce533407658",
+   "compilation_sha256": "684852cc50d9f8852b7f1abbb5a09dc214a1da99f7542923d8a52666c6c7d3d5",
+   "mpp": [
+    0.021603871413757348,
+    0.02164970772894566
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "DE4",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      605,
+      641
+     ],
+     "declared_opening": "D_w4",
+     "declared_span": [
+      610.0,
+      642.0
+     ],
+     "end_offsets_m": [
+      0.108,
+      0.022
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-26_sm25_height_cold_claude_run53",
+   "draft": "draft_002",
+   "case": "sm25",
+   "image": "2f_view.png",
+   "plan_sha256": "f74c3ec77dedf332bee1949e0ff8bd08069109a5b3ad25e219904dd78f223d4e",
+   "compilation_sha256": "d3bf86351903889e6b21d12e8d6a636cd52b33e3613fb47655f81732cec015c3",
+   "mpp": [
+    0.021790290246666087,
+    0.021824530772588387
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_height_cold_claude_run53",
+   "draft": "draft_003",
+   "case": "sm25",
+   "image": "2f_view.png",
+   "plan_sha256": "47060f5a439b80f060a505a5967b5e46474904d136210627e91d9a9ff48a81f0",
+   "compilation_sha256": "e81df3fcd6a3883a9fcc2b46dc48d6d8129377b774b76087fa0df385eddb5371",
+   "mpp": [
+    0.021790290246666087,
+    0.021824530772588387
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_height_repeat_claude_run54",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "801e9350f83eb78e91df6766088676d09c6d2335528cb92416c4cddec0a6d652",
+   "compilation_sha256": "7c74b2893110821defc4c0499d969cb2b2e6506b185423716e37af80f13106f4",
+   "mpp": [
+    0.021607605877268798,
+    0.021652051531882644
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_height_repeat_claude_run54",
+   "draft": "draft_002",
+   "case": "sm25",
+   "image": "2f_view.png",
+   "plan_sha256": "2f4c515a690e176511452539317c4d6a5f2ff136dcff0f41bf38f39c0b4fc90e",
+   "compilation_sha256": "f19a8845a3981da9f9209583ea2f1a4ca67920e5a38c5d65bfdedd08f06bc96f",
+   "mpp": [
+    0.021795989537925022,
+    0.02182214948172395
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "DE3",
+     "orient": "v",
+     "reference_cross": 747.5,
+     "reference_span": [
+      746,
+      784
+     ],
+     "declared_opening": "D_e3",
+     "declared_span": [
+      742.0,
+      778.0
+     ],
+     "end_offsets_m": [
+      -0.087,
+      -0.131
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-26_sm25_height_repeat_claude_run54",
+   "draft": "draft_003",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "342f406ffcef023a8b8809c99684c3b5c6c6568bfaf0b66c75127315eddcb683",
+   "compilation_sha256": "6e543916e8c25ac64a8a742d33e5f14abb0957358462a3e61281c7119e647582",
+   "mpp": [
+    0.021607605877268798,
+    0.021652051531882644
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_height_repeat_claude_run54",
+   "draft": "draft_004",
+   "case": "sm25",
+   "image": "2f_view.png",
+   "plan_sha256": "830e9d684a98536677c156857f9d82d8274a56591d87dd140c66ad6c8db19a1f",
+   "compilation_sha256": "b7b7624526c5a34b1515ce2b400d63a2332a3a5b9b5de36fce179ebb1306989d",
+   "mpp": [
+    0.021795989537925022,
+    0.02182214948172395
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "DE3",
+     "orient": "v",
+     "reference_cross": 747.5,
+     "reference_span": [
+      746,
+      784
+     ],
+     "declared_opening": "D_e3",
+     "declared_span": [
+      742.0,
+      778.0
+     ],
+     "end_offsets_m": [
+      -0.087,
+      -0.131
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-26_sm25_multifloor_claude_run50",
+   "draft": "draft_001",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "8046169656fd31b875a1b38ee433948e3aa6063c1a774e1b7e1a6a8f295e0359",
+   "compilation_sha256": "7230188e23770747f335ea8aa174cb24b9f3416eba13a4290d1ab0f9ea4dc43c",
+   "mpp": [
+    0.02162629757785467,
+    0.021645021645021644
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E1",
+      "NW1"
+     ],
+     "points": [
+      [
+       881.5,
+       359.5
+      ],
+      [
+       400.25,
+       404.25
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "NW1",
+      "NW2"
+     ],
+     "points": [
+      [
+       400.25,
+       404.25
+      ],
+      [
+       627.25,
+       404.25
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "NW2",
+      "E2"
+     ],
+     "points": [
+      [
+       627.25,
+       404.25
+      ],
+      [
+       881.5,
+       449.25
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E2",
+      "E3"
+     ],
+     "points": [
+      [
+       881.5,
+       449.25
+      ],
+      [
+       881.5,
+       541.75
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E3",
+      "E4"
+     ],
+     "points": [
+      [
+       881.5,
+       541.75
+      ],
+      [
+       881.5,
+       634.0
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E4",
+      "W1"
+     ],
+     "points": [
+      [
+       881.5,
+       634.0
+      ],
+      [
+       607.25,
+       677.5
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "W1",
+      "E5"
+     ],
+     "points": [
+      [
+       607.25,
+       677.5
+      ],
+      [
+       881.5,
+       726.5
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E5",
+      "C"
+     ],
+     "points": [
+      [
+       881.5,
+       726.5
+      ],
+      [
+       744.5,
+       772.75
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "C",
+      "E6"
+     ],
+     "points": [
+      [
+       744.5,
+       772.75
+      ],
+      [
+       881.5,
+       819.0
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E6",
+      "W2"
+     ],
+     "points": [
+      [
+       881.5,
+       819.0
+      ],
+      [
+       607.25,
+       868.0
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "W2",
+      "E7"
+     ],
+     "points": [
+      [
+       607.25,
+       868.0
+      ],
+      [
+       881.5,
+       914.25
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "E7",
+      "S1"
+     ],
+     "points": [
+      [
+       881.5,
+       914.25
+      ],
+      [
+       701.0,
+       1141.25
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "F1_S01",
+     "seeds": [
+      "S1",
+      "S2"
+     ],
+     "points": [
+      [
+       701.0,
+       1141.25
+      ],
+      [
+       1066.5,
+       1141.25
+      ]
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DN1",
+     "orient": "h",
+     "reference_cross": 492.5,
+     "reference_span": [
+      460,
+      496
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DN2",
+     "orient": "h",
+     "reference_cross": 492.5,
+     "reference_span": [
+      530,
+      566
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE1",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      350,
+      385
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE2",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      420,
+      456
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE3",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      535,
+      570
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE4",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      605,
+      641
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE5",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      719,
+      755
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE6",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      790,
+      826
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DE7",
+     "orient": "v",
+     "reference_cross": 793.5,
+     "reference_span": [
+      882,
+      918
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DW1",
+     "orient": "v",
+     "reference_cross": 695.5,
+     "reference_span": [
+      719,
+      755
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DW2",
+     "orient": "v",
+     "reference_cross": 695.5,
+     "reference_span": [
+      790,
+      825
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DS1",
+     "orient": "h",
+     "reference_cross": 1053,
+     "reference_span": [
+      793,
+      866
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "DS2",
+     "orient": "h",
+     "reference_cross": 1053,
+     "reference_span": [
+      900,
+      973
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-26_sm25_multifloor_claude_run50",
+   "draft": "draft_002",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "1bab19dd18570c6d87b0783a6636dffe958d89aa7ba2e35a75e58a6762131855",
+   "compilation_sha256": "8e28014270bfc3ec128df4157d49635dd17ad6f0660a035295b597f045f88587",
+   "mpp": [
+    0.02162629757785467,
+    0.021645021645021644
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_multifloor_claude_run50",
+   "draft": "draft_004",
+   "case": "sm25",
+   "image": "2f_view.png",
+   "plan_sha256": "43ed945e5fb696a930f72e487aa33a7bf4e92a0b43942f3a9d1bf21b07a2e4c4",
+   "compilation_sha256": "35909749cdafbf94fe402342c8139875635a929e13aa55166245f3349c2fbb9d",
+   "mpp": [
+    0.021795989537925022,
+    0.02182214948172395
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_multifloor_cold_claude_run51",
+   "draft": "draft_002",
+   "case": "sm25",
+   "image": "1f_view.png",
+   "plan_sha256": "969c2369e2d179a8b20f92c2a439925d3f68e30d2fd85afd44a70699be9f8975",
+   "compilation_sha256": "5b19955fa3e6a4a008ec7a49035ea3ca79857d005fcb65815e9b5455b1662dc2",
+   "mpp": [
+    0.02162629757785467,
+    0.021654395842355994
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-26_sm25_multifloor_cold_claude_run51",
+   "draft": "draft_003",
+   "case": "sm25",
+   "image": "2f_view.png",
+   "plan_sha256": "54ef27161a46550427ed9235b6b2d4d0b92ccf0a96eeb6dfbac604f0c58e8be1",
+   "compilation_sha256": "e41abb771e7cb5809c20eb70c70b63001f806db92487ac31fbea9a978f6b7bc2",
+   "mpp": [
+    0.02181500872600349,
+    0.021800741225201654
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "8a151727768dfffc38f4f9621472bdafbb2717af60e3829c1e5bbc40ad961f19",
+   "compilation_sha256": "fb43725a6d5ca24cea57c20613c91b78ce9b9b93b38bc2d1e791990cb7dc92d8",
+   "mpp": [
+    0.01079136690647482,
+    0.010767160161507403
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_N1",
+     "declared_span": [
+      771.6,
+      882.8
+     ],
+     "end_offsets_m": [
+      -0.004,
+      0.3
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_N2",
+     "declared_span": [
+      894.8,
+      1007.1
+     ],
+     "end_offsets_m": [
+      -0.294,
+      0.012
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_N3",
+     "declared_span": [
+      1347.0,
+      1469.5
+     ],
+     "end_offsets_m": [
+      -0.41,
+      0.005
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      771.6,
+      882.8
+     ],
+     "end_offsets_m": [
+      -0.004,
+      0.3
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_S2",
+     "declared_span": [
+      894.8,
+      1007.1
+     ],
+     "end_offsets_m": [
+      -0.294,
+      0.012
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_S3",
+     "declared_span": [
+      1347.0,
+      1469.5
+     ],
+     "end_offsets_m": [
+      -0.41,
+      0.005
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "26cf8d0bebab3c9a488f6587b3a47fbc3a9b4f0a2d6e0785f12d4790c0def746",
+   "compilation_sha256": "d61e2bb80d021eeae2d1af16da55371357471fe907ee10b6f2afb1c6f78d1f89",
+   "mpp": [
+    0.01079136690647482,
+    0.009456264775413711
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_M1",
+     "orient": "h",
+     "cross": 559.4,
+     "declared_span": [
+      1003.0,
+      1114.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_M2",
+     "orient": "h",
+     "cross": 559.4,
+     "declared_span": [
+      1126.0,
+      1237.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O1",
+     "orient": "h",
+     "cross": 728.6,
+     "declared_span": [
+      657.0,
+      741.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O2",
+     "orient": "h",
+     "cross": 728.6,
+     "declared_span": [
+      807.0,
+      891.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O3",
+     "orient": "h",
+     "cross": 728.6,
+     "declared_span": [
+      1126.0,
+      1180.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O4",
+     "orient": "h",
+     "cross": 728.6,
+     "declared_span": [
+      1478.0,
+      1599.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "5aae31919c680b2808c2f95316e6767ec48e46435304469ab99825b79e398424",
+   "compilation_sha256": "ff3594f4f106367da6cf0c7c4c82b133a90b3e991bb734f7bf79432136665f37",
+   "mpp": [
+    0.01079136690647482,
+    0.010680907877169559
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_M1",
+     "declared_span": [
+      1003.0,
+      1114.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.302
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_M2",
+     "declared_span": [
+      1126.0,
+      1237.0
+     ],
+     "end_offsets_m": [
+      -0.281,
+      0.011
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_O4",
+     "declared_span": [
+      1478.0,
+      1599.0
+     ],
+     "end_offsets_m": [
+      -0.237,
+      0.162
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O3",
+     "orient": "h",
+     "cross": 772.4,
+     "declared_span": [
+      1126.0,
+      1180.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_current_tools_claude_run69",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "9c2809d8516bcd1071a097a13209d1b920095c55414ad2c48307b75ab9ee6a89",
+   "compilation_sha256": "ff3594f4f106367da6cf0c7c4c82b133a90b3e991bb734f7bf79432136665f37",
+   "mpp": [
+    0.01079136690647482,
+    0.010680907877169559
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_M1",
+     "declared_span": [
+      1003.0,
+      1114.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.302
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_M2",
+     "declared_span": [
+      1126.0,
+      1237.0
+     ],
+     "end_offsets_m": [
+      -0.281,
+      0.011
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_O4",
+     "declared_span": [
+      1478.0,
+      1599.0
+     ],
+     "end_offsets_m": [
+      -0.237,
+      0.162
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O3",
+     "orient": "h",
+     "cross": 772.4,
+     "declared_span": [
+      1126.0,
+      1180.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_guidance_ablation_run72",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "d8d7c22bd6d6341324d36e969f71396e811792be602c703d90ebe8fad2c0c2f8",
+   "compilation_sha256": "5d823530fb85f4a853ddfcd6394534aed2ec14b3d25134b64583adeac6c0f18a",
+   "mpp": [
+    10.783608914450037,
+    10.796221322537113
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_A_top",
+     "orient": "h",
+     "cross": 623.0,
+     "declared_span": [
+      772.0,
+      855.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_B_top",
+     "orient": "h",
+     "cross": 623.0,
+     "declared_span": [
+      922.0,
+      1005.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_C_top",
+     "orient": "h",
+     "cross": 623.0,
+     "declared_span": [
+      1385.0,
+      1469.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_A_bot",
+     "orient": "h",
+     "cross": 809.0,
+     "declared_span": [
+      772.0,
+      855.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_B_bot",
+     "orient": "h",
+     "cross": 809.0,
+     "declared_span": [
+      922.0,
+      1005.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_C_bot",
+     "orient": "h",
+     "cross": 809.0,
+     "declared_span": [
+      1385.0,
+      1469.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_guidance_ablation_run72",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "a06de2ad5c8558f239e23149ea75b86dcf5181a03da1f591c528ec2a052ac935",
+   "compilation_sha256": "4630ed04eee3d3b380dc7bf2a123d8ea6ea6171c523af11daeb8c9da825dab4a",
+   "mpp": [
+    10.822510822510823,
+    10.81081081081081
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_room1",
+     "orient": "h",
+     "cross": 608.0,
+     "declared_span": [
+      1003.0,
+      1086.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_room2",
+     "orient": "h",
+     "cross": 608.0,
+     "declared_span": [
+      1153.0,
+      1236.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_A",
+     "orient": "h",
+     "cross": 793.0,
+     "declared_span": [
+      657.0,
+      740.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_B",
+     "orient": "h",
+     "cross": 793.0,
+     "declared_span": [
+      807.0,
+      890.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_C",
+     "orient": "h",
+     "cross": 793.0,
+     "declared_span": [
+      1350.0,
+      1433.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_D",
+     "orient": "h",
+     "cross": 793.0,
+     "declared_span": [
+      1500.0,
+      1583.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_guidance_control_run71",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "b53669253b7dc2830fe25d87a0d1f388ff1d1a4649b802a4c24646628a4d1c44",
+   "compilation_sha256": "60173f5f42cff83aea04567bc8da9527f35a2a2cb1b85bcc26512f3a2940cba1",
+   "mpp": [
+    0.010699001426533523,
+    0.010624169986719787
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_guidance_control_run71",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "7a59044fe897916a86d95f9225949b3189c66cae987d40f5fcf35b2c4741abba",
+   "compilation_sha256": "2cb8a4fdf09aa75b1d0c1aacc57a588a51afbb9fd5e983e6c228b1833d9f8c71",
+   "mpp": [
+    0.01083815028901734,
+    0.011019283746556474
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_profile_current_run74",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "3ff4246c7a6bda5cab0365c5dd0c8c2d9bde933d5aeb9bb6bc407ec9e3536a5d",
+   "compilation_sha256": "73cdd5d693b89c4d6eb0c6f0a32f28ab8bc250b5d5d37b83781c08bed0600025",
+   "mpp": [
+    0.01060070671378092,
+    0.010624169986719787
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_A_corr",
+     "declared_span": [
+      793.0,
+      883.0
+     ],
+     "end_offsets_m": [
+      0.223,
+      0.297
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_B_corr",
+     "declared_span": [
+      895.0,
+      985.0
+     ],
+     "end_offsets_m": [
+      -0.286,
+      -0.223
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_C_corr",
+     "declared_span": [
+      1400.0,
+      1490.0
+     ],
+     "end_offsets_m": [
+      0.159,
+      0.223
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_Ap_corr",
+     "declared_span": [
+      793.0,
+      883.0
+     ],
+     "end_offsets_m": [
+      0.223,
+      0.297
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_Bp_corr",
+     "declared_span": [
+      895.0,
+      985.0
+     ],
+     "end_offsets_m": [
+      -0.286,
+      -0.223
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_Cp_corr",
+     "declared_span": [
+      1400.0,
+      1490.0
+     ],
+     "end_offsets_m": [
+      0.159,
+      0.223
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_profile_current_run74",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "18406bcc7a7155e5c2dce46e48e77ff1fb1fdd0969a20c2c6189317dc543b5a5",
+   "compilation_sha256": "d7fff73df98cc4589c44f84b437523c2c1845598411e5b391392165fe3b2227f",
+   "mpp": [
+    0.01085383502170767,
+    0.010810810810810811
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_TL_corr",
+     "declared_span": [
+      1035.0,
+      1120.0
+     ],
+     "end_offsets_m": [
+      0.347,
+      0.369
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_TR_corr",
+     "declared_span": [
+      1120.0,
+      1205.0
+     ],
+     "end_offsets_m": [
+      -0.347,
+      -0.336
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_r1_corr",
+     "declared_span": [
+      660.0,
+      774.0
+     ],
+     "end_offsets_m": [
+      0.033,
+      0.358
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ],
+     "declared_opening": "D_r2_corr",
+     "declared_span": [
+      774.0,
+      864.0
+     ],
+     "end_offsets_m": [
+      -0.358,
+      -0.293
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_r3_corr",
+     "declared_span": [
+      1350.0,
+      1457.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.25
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_r4_corr",
+     "declared_span": [
+      1457.0,
+      1550.0
+     ],
+     "end_offsets_m": [
+      -0.467,
+      -0.369
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "69c6ba1d108e7f7dd38c1543f5cdf46aab298ed3f360d5bfcf6809d3498db3b0",
+   "compilation_sha256": "b4d753ce3b9fbe4a4165dc38f49d70509bf689c44e08aab3a63b94e6e8fe6c70",
+   "mpp": [
+    0.010752688172043012,
+    0.010767160161507403
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_N1",
+     "declared_span": [
+      772.0,
+      886.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.333
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_N2",
+     "declared_span": [
+      886.0,
+      1005.0
+     ],
+     "end_offsets_m": [
+      -0.387,
+      -0.011
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      772.0,
+      886.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.333
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_S2",
+     "declared_span": [
+      886.0,
+      1005.0
+     ],
+     "end_offsets_m": [
+      -0.387,
+      -0.011
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "9e46ac4f18b2a97cf364c2940eddfb4ec94729929708c4748685ba19ce1eb198",
+   "compilation_sha256": "51d89e9b60e0fc72d3c7f0a49ea6de657d3c67355e3621e15f59cdc60bf94df7",
+   "mpp": [
+    0.01079136690647482,
+    0.010869565217391304
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_N_west",
+     "declared_span": [
+      1003.0,
+      1120.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.367
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_N_east",
+     "declared_span": [
+      1120.0,
+      1236.0
+     ],
+     "end_offsets_m": [
+      -0.345,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "46da220c90ee3ca7a791b6c9bfa92d64944872a063ed3b6f631ffb3a1dac0d2f",
+   "compilation_sha256": "26f53963cbc847e88ebac8842b6a374f8824221a2fd2d23e9a8d40797f740a1f",
+   "mpp": [
+    0.010752688172043012,
+    0.010767160161507403
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_N1",
+     "declared_span": [
+      772.0,
+      886.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.333
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_N2",
+     "declared_span": [
+      886.0,
+      1005.0
+     ],
+     "end_offsets_m": [
+      -0.387,
+      -0.011
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      772.0,
+      886.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.333
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_S2",
+     "declared_span": [
+      886.0,
+      1005.0
+     ],
+     "end_offsets_m": [
+      -0.387,
+      -0.011
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "1cbdd4da9caa3ff5e0408c7f9a34d1815acd95866b151bf41a1a295630574622",
+   "compilation_sha256": "295e75b607bdc1171c278f725445935f2ad5a5b8e7ee2ae1e5b3f3b772f84e1f",
+   "mpp": [
+    0.01079136690647482,
+    0.010869565217391304
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_N_west",
+     "declared_span": [
+      1003.0,
+      1120.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.367
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_N_east",
+     "declared_span": [
+      1120.0,
+      1236.0
+     ],
+     "end_offsets_m": [
+      -0.345,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_profile_legacy_run73",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "864a3db608f081131531eaf5bd6ba5fbb8143ebd4983bff77c2d21a848f2b7c2",
+   "compilation_sha256": "295e75b607bdc1171c278f725445935f2ad5a5b8e7ee2ae1e5b3f3b772f84e1f",
+   "mpp": [
+    0.01079136690647482,
+    0.010869565217391304
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_N_west",
+     "declared_span": [
+      1003.0,
+      1120.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.367
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_N_east",
+     "declared_span": [
+      1120.0,
+      1236.0
+     ],
+     "end_offsets_m": [
+      -0.345,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_after_run76",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "c117bdd7ab97382baaaf8e75ee37bcbc1071286974a38525bb5ce27abd3f4e24",
+   "compilation_sha256": "3ed0e12f7614f9e7c2e99c7d070b17478f076463f3fef217eb67fe2c2ddbf8c0",
+   "mpp": [
+    0.010775862068965518,
+    0.010810810810810811
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_after_run76",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "86fde32b54a0025d20000717b7626bbb7afdf14f4444d48313005fdec0e150a7",
+   "compilation_sha256": "ab92042c4d02d9ad3f1b5b32458bd0de437a7b9dcc5f940dff9ac2ee1bebff60",
+   "mpp": [
+    0.01083815028901734,
+    0.010825439783491205
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_topR",
+     "declared_span": [
+      1123.0,
+      1200.0
+     ],
+     "end_offsets_m": [
+      -0.314,
+      -0.39
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_b1",
+     "declared_span": [
+      680.0,
+      745.0
+     ],
+     "end_offsets_m": [
+      0.249,
+      0.043
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ],
+     "declared_opening": "D_b2",
+     "declared_span": [
+      800.0,
+      880.0
+     ],
+     "end_offsets_m": [
+      -0.076,
+      -0.119
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_b3",
+     "declared_span": [
+      1360.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      0.108,
+      0.065
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_b4",
+     "declared_span": [
+      1495.0,
+      1560.0
+     ],
+     "end_offsets_m": [
+      -0.054,
+      -0.26
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_after_run76",
+   "draft": "draft_006",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "6e8966ba06fdfa33b707696b18f3300201c915a216416d7bde94c1895226b457",
+   "compilation_sha256": "ab92042c4d02d9ad3f1b5b32458bd0de437a7b9dcc5f940dff9ac2ee1bebff60",
+   "mpp": [
+    0.01083815028901734,
+    0.010825439783491205
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_topR",
+     "declared_span": [
+      1123.0,
+      1200.0
+     ],
+     "end_offsets_m": [
+      -0.314,
+      -0.39
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_b1",
+     "declared_span": [
+      680.0,
+      745.0
+     ],
+     "end_offsets_m": [
+      0.249,
+      0.043
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ],
+     "declared_opening": "D_b2",
+     "declared_span": [
+      800.0,
+      880.0
+     ],
+     "end_offsets_m": [
+      -0.076,
+      -0.119
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_b3",
+     "declared_span": [
+      1360.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      0.108,
+      0.065
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_b4",
+     "declared_span": [
+      1495.0,
+      1560.0
+     ],
+     "end_offsets_m": [
+      -0.054,
+      -0.26
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "bcad680f5a23acc5c2cd752f597c049bb8b828b564f0020a9f6ab851eb2b6a78",
+   "compilation_sha256": "662d563b3030075996c80cf9eb0fbd2e335af95ca58be2ea0215f4dbea9ad957",
+   "mpp": [
+    0.010768126346015794,
+    0.010810810810810811
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "north_open_office",
+     "seeds": [
+      "NW",
+      "NC"
+     ],
+     "points": [
+      [
+       650,
+       450
+      ],
+      [
+       1100,
+       450
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "north_open_office",
+     "seeds": [
+      "NC",
+      "NE"
+     ],
+     "points": [
+      [
+       1100,
+       450
+      ],
+      [
+       1550,
+       450
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "south_open_office",
+     "seeds": [
+      "SW",
+      "SC"
+     ],
+     "points": [
+      [
+       650,
+       950
+      ],
+      [
+       1100,
+       950
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "south_open_office",
+     "seeds": [
+      "SC",
+      "SE"
+     ],
+     "points": [
+      [
+       1100,
+       950
+      ],
+      [
+       1550,
+       950
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "7e57f36feb4bf994dfcfe6ff616be589b4197bba14d65cf8a7846aa39368515b",
+   "compilation_sha256": "c560b427c407dae58e2ec25d190b5d23168d425d55155ee7caaf2c93c3560ba8",
+   "mpp": [
+    0.01079913606911447,
+    0.010825439783491205
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "fb4fb69ed4aa7959e38eddde5628efdb0683af8b9932b2085cbae0de90264cf6",
+   "compilation_sha256": "936e7a372bbbfc96fe7580169c0a5d7ba7e9e08197c57ad84a481b595cefbae7",
+   "mpp": [
+    0.010768126346015794,
+    0.010810810810810811
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "north_open_office",
+     "seeds": [
+      "NW",
+      "NC"
+     ],
+     "points": [
+      [
+       650,
+       450
+      ],
+      [
+       1100,
+       450
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "north_open_office",
+     "seeds": [
+      "NC",
+      "NE"
+     ],
+     "points": [
+      [
+       1100,
+       450
+      ],
+      [
+       1550,
+       450
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "south_open_office",
+     "seeds": [
+      "SW",
+      "SC"
+     ],
+     "points": [
+      [
+       650,
+       950
+      ],
+      [
+       1100,
+       950
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "south_open_office",
+     "seeds": [
+      "SC",
+      "SE"
+     ],
+     "points": [
+      [
+       1100,
+       950
+      ],
+      [
+       1550,
+       950
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm21_use_guidance_before_run75",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "49d70c82038201b532be6701dba4b01b07445b25f91507a2d8e4e670408424eb",
+   "compilation_sha256": "75395484beecadf50cd0b11b13b39f854126a99096e5e80173fc77596a6f8d3b",
+   "mpp": [
+    0.01079913606911447,
+    0.010825439783491205
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "a0721ffe186095084f013850db063f6116f8c306aa87f64ad678c6b6cfa80e50",
+   "compilation_sha256": "290f16fa830b5d42423d3978941cc4037ada073eda12d6c0bfee2e88e09ccd11",
+   "mpp": [
+    0.01079913606911447,
+    0.010810810810810811
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "381a23764e68683ac23a58091c9d6786281c113a2d9dc91d5969da9646f9ce56",
+   "compilation_sha256": "ca92d4b14b7845cb99f7829b7748f0f1a4c83a46e799894c18bc6edfe8c6391f",
+   "mpp": [
+    0.010830324909747292,
+    0.010854816824966078
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm24_room_types_claude_run59",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "93fb585dbc0790d5d10dc95cbd20b959bed6bc5406eec812dbd010a6ec0ecc04",
+   "compilation_sha256": "8c49aa2783c898a6c4288172060b112568ec72b0cda4026bbf31047f5ecdce7b",
+   "mpp": [
+    0.0273972602739726,
+    0.027510316368638238
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-27_sm24_room_types_cold_claude_run61",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "d6ced029250d92900cce5cc6cb98a5a59d0ecb6ba72d90def799bf41340218a7",
+   "compilation_sha256": "98891b040cb8ccbd294b509bfd8f04a18f72bd24734f462d2699cd2d176d43b2",
+   "mpp": [
+    0.027472527472527472,
+    0.027548209366391185
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "D1",
+     "declared_span": [
+      408.0,
+      455.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.11
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-27_sm24_room_types_feedback_claude_run62",
+   "draft": "draft_001",
+   "case": "sm24",
+   "image": "1f_view.png",
+   "plan_sha256": "435f7af44bae25176507dcfe0fa70597cc5e833da36ddf15a9d2e583cfab0cc7",
+   "compilation_sha256": "c263522866a103cc517a61154e812e8399f3be1726ac2aa1ec8fd394bd0218cb",
+   "mpp": [
+    0.027472527472527472,
+    0.027510316368638238
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-N-C",
+     "orient": "h",
+     "reference_cross": 298.5,
+     "reference_span": [
+      408,
+      451
+     ],
+     "declared_opening": "DHall",
+     "declared_span": [
+      408.0,
+      455.0
+     ],
+     "end_offsets_m": [
+      0.0,
+      0.11
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-WC-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      418,
+      451
+     ],
+     "declared_opening": "DW2",
+     "declared_span": [
+      415.0,
+      447.0
+     ],
+     "end_offsets_m": [
+      -0.083,
+      -0.11
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-WS-C",
+     "orient": "v",
+     "reference_cross": 400,
+     "reference_span": [
+      599,
+      632
+     ],
+     "declared_opening": "DW3",
+     "declared_span": [
+      597.0,
+      627.0
+     ],
+     "end_offsets_m": [
+      -0.055,
+      -0.138
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-EN-C",
+     "orient": "v",
+     "reference_cross": 459.5,
+     "reference_span": [
+      323,
+      356
+     ],
+     "declared_opening": "DE1",
+     "declared_span": [
+      332.0,
+      363.0
+     ],
+     "end_offsets_m": [
+      0.248,
+      0.193
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-EC-C",
+     "orient": "v",
+     "reference_cross": 459.5,
+     "reference_span": [
+      383,
+      416
+     ],
+     "declared_opening": "DE2",
+     "declared_span": [
+      376.0,
+      411.0
+     ],
+     "end_offsets_m": [
+      -0.193,
+      -0.138
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_baseline_ink_run87",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "5d612f1f6469e4bc4781b74c81544c6fdad9e92eb32ed349e0f2b53468c7172a",
+   "compilation_sha256": "06be61645d9caaf0362e7789d8def96fd50d48e6c44ce743f5b96c3e697c582e",
+   "mpp": [
+    0.010775862068965518,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S04",
+     "area_m2": 10.03
+    },
+    {
+     "type": "declared_space_without_reference",
+     "space_id": "F1_S06",
+     "area_m2": 10.06
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_baseline_ink_run87",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "34eb0bce5cbdede5ff0ebe2d845cf3a6e68c77da6ab613f39e83c333458f4e9b",
+   "compilation_sha256": "2323b476c9ce7b33b89800b1b3906792816faa524012eba68e4a0576faf5c4ad",
+   "mpp": [
+    0.010775862068965518,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_baseline_ink_run87",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "d806c99ab68ac9bc19dadea489451c6efa7cf67d63df6406dcbdae56cf6d6861",
+   "compilation_sha256": "93ccddebedd7f1eb79fa683cc10c1872065bffb2f99e3a889ab0abe2553d0e52",
+   "mpp": [
+    0.01079913606911447,
+    0.010825439783491205
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "2c1c4262548db5a676395b57c15c270568d262e1736c7cbd56e2c7e6e289f38a",
+   "compilation_sha256": "dd80c76b34ee08453b22a099460e48ddf738e7b357b94ec30422c15c61577498",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "57774892713a07fd72f870e1a366bdbe94c8c01b970d352f3ad466afe09e9ce7",
+   "compilation_sha256": "8e6377fa4f6acc8c97a64a5d25ca0402135a6de484a4a5d133678b237d164621",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "0baee0864a3419c7049d5dbeb12f7f0d045cb9ca626c768d3c66486cf14feb8c",
+   "compilation_sha256": "3ac2b9a382b22147565636c80567e6dd09103d31e9317291925731f0b95c9655",
+   "mpp": [
+    0.010822510822510822,
+    0.010810810810810811
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "draft": "draft_006",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "097406dec915b15aee4efe7cdcda16600b22b85013a071fba22ef388aeab2d6e",
+   "compilation_sha256": "a891559af41b6eac3b72cf2aba3d89ea8623dbbe3afafc2282b85e3a3e819f02",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_cold_run82",
+   "draft": "draft_007",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "021c6d6e2d92ce218ee7545e2ef10d1dce2c32720845541e8eb782cdfe30a230",
+   "compilation_sha256": "5efa1c78f4bb7058ab9cb2cde22d0c61864ab8eb038b0a6f5ae2e6b85cca3777",
+   "mpp": [
+    0.010822510822510822,
+    0.010810810810810811
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_repeat_run83",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "ab939cd76102aec3fd9ba0d1b2617ac48f73ce6f5761d289b1e1c88cf24d364e",
+   "compilation_sha256": "cfee655b9658dbcef5a51d05629c74218213f9026044ec53723da6c249d42a01",
+   "mpp": [
+    0.010699001426533523,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_N2",
+     "orient": "h",
+     "cross": 600.0,
+     "declared_span": [
+      1150.0,
+      1220.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_N3",
+     "orient": "h",
+     "cross": 600.0,
+     "declared_span": [
+      1600.0,
+      1670.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_S2",
+     "orient": "h",
+     "cross": 800.0,
+     "declared_span": [
+      1150.0,
+      1220.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_S3",
+     "orient": "h",
+     "cross": 800.0,
+     "declared_span": [
+      1600.0,
+      1670.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_behavior_repeat_run83",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "8825a9a05254b8f6017c3aefc80d3d13f12c4d5ac6d749b082410b13596544f3",
+   "compilation_sha256": "7f5a18b197c0f83b9fb414ad3fc45cbd418ac3444608eaca1806d67dcb39af37",
+   "mpp": [
+    0.010822510822510822,
+    0.010825439783491205
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "hall",
+     "seeds": [
+      "NW",
+      "NE"
+     ],
+     "points": [
+      [
+       700,
+       450
+      ],
+      [
+       1450,
+       450
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_hall",
+     "declared_span": [
+      980.0,
+      1265.0
+     ],
+     "end_offsets_m": [
+      -0.249,
+      1.937
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      605.0,
+      700.0
+     ],
+     "end_offsets_m": [
+      -0.563,
+      -0.444
+     ]
+    },
+    {
+     "type": "door_misplaced",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ],
+     "declared_opening": "D_S2",
+     "declared_span": [
+      850.0,
+      920.0
+     ],
+     "end_offsets_m": [
+      0.465,
+      0.314
+     ]
+    },
+    {
+     "type": "door_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_S3",
+     "declared_span": [
+      1320.0,
+      1390.0
+     ],
+     "end_offsets_m": [
+      -0.325,
+      -0.476
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_S4",
+     "declared_span": [
+      1540.0,
+      1635.0
+     ],
+     "end_offsets_m": [
+      0.433,
+      0.552
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "c8c0954d54cbf3f5bebe8e537eef0147ebef03a9965a534950cc75b97e4712f4",
+   "compilation_sha256": "0819baea4f13e957a235fc1ca09c8a82d1956bb09b4e0b5321f8df0c3892fa87",
+   "mpp": [
+    0.010775862068965518,
+    0.010811541320359483
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_room1_corr",
+     "declared_span": [
+      795.0,
+      884.0
+     ],
+     "end_offsets_m": [
+      0.248,
+      0.312
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_room2_corr",
+     "declared_span": [
+      892.0,
+      1065.0
+     ],
+     "end_offsets_m": [
+      -0.323,
+      0.636
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_room3_corr",
+     "declared_span": [
+      1358.0,
+      1450.0
+     ],
+     "end_offsets_m": [
+      -0.291,
+      -0.205
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_room4_corr",
+     "declared_span": [
+      795.0,
+      884.0
+     ],
+     "end_offsets_m": [
+      0.248,
+      0.312
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_room5_corr",
+     "declared_span": [
+      892.0,
+      1065.0
+     ],
+     "end_offsets_m": [
+      -0.323,
+      0.636
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_room6_corr",
+     "declared_span": [
+      1357.0,
+      1470.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      0.011
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "7c28018c9f9679627d7d0381af68624249ef9012663a49d310b511c1ca02be88",
+   "compilation_sha256": "79631882d804544a86ea11f73b74b726fb645c3619e14c2bb19534e0bf19eeee",
+   "mpp": [
+    0.010814708002883922,
+    0.010821778829895164
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_top1_corr",
+     "declared_span": [
+      996.0,
+      1112.0
+     ],
+     "end_offsets_m": [
+      -0.076,
+      0.281
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_top2_corr",
+     "declared_span": [
+      1128.0,
+      1237.0
+     ],
+     "end_offsets_m": [
+      -0.26,
+      0.011
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_b1_corr",
+     "declared_span": [
+      680.0,
+      751.0
+     ],
+     "end_offsets_m": [
+      0.249,
+      0.108
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ],
+     "declared_opening": "D_b2_corr",
+     "declared_span": [
+      759.0,
+      886.0
+     ],
+     "end_offsets_m": [
+      -0.519,
+      -0.054
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_b3_corr",
+     "declared_span": [
+      1380.0,
+      1451.0
+     ],
+     "end_offsets_m": [
+      0.324,
+      0.184
+     ]
+    },
+    {
+     "type": "door_misplaced",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_b4_corr",
+     "declared_span": [
+      1459.0,
+      1530.0
+     ],
+     "end_offsets_m": [
+      -0.443,
+      -0.584
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "5fe6569c3c3bc894551d14facd96c3cff232ece0750262d8dd4980fba53c6b00",
+   "compilation_sha256": "7f41959d9ba3bf9fe86cf4a032798fe554225b3729689358ac2219155a21b42a",
+   "mpp": [
+    0.010775862068965518,
+    0.010811541320359483
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_room1_corr",
+     "declared_span": [
+      795.0,
+      884.0
+     ],
+     "end_offsets_m": [
+      0.248,
+      0.312
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_room2_corr",
+     "declared_span": [
+      892.0,
+      1065.0
+     ],
+     "end_offsets_m": [
+      -0.323,
+      0.636
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_room3_corr",
+     "declared_span": [
+      1358.0,
+      1450.0
+     ],
+     "end_offsets_m": [
+      -0.291,
+      -0.205
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_room4_corr",
+     "declared_span": [
+      795.0,
+      884.0
+     ],
+     "end_offsets_m": [
+      0.248,
+      0.312
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_room5_corr",
+     "declared_span": [
+      892.0,
+      1065.0
+     ],
+     "end_offsets_m": [
+      -0.323,
+      0.636
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_room6_corr",
+     "declared_span": [
+      1357.0,
+      1470.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      0.011
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_dimension_first_run84",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "a5237f442afda2a8c7425583f142fdc0e65c02854ca4435d03800f3e74c1c91b",
+   "compilation_sha256": "c4fe552b1f58e2e37b9eafb6022333bbc7a22450946d0d15ac97621c2fb79c42",
+   "mpp": [
+    0.010814708002883922,
+    0.010821778829895164
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_top1_corr",
+     "declared_span": [
+      996.0,
+      1112.0
+     ],
+     "end_offsets_m": [
+      -0.076,
+      0.281
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_top2_corr",
+     "declared_span": [
+      1128.0,
+      1237.0
+     ],
+     "end_offsets_m": [
+      -0.26,
+      0.011
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_b1_corr",
+     "declared_span": [
+      680.0,
+      751.0
+     ],
+     "end_offsets_m": [
+      0.249,
+      0.108
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ],
+     "declared_opening": "D_b2_corr",
+     "declared_span": [
+      759.0,
+      886.0
+     ],
+     "end_offsets_m": [
+      -0.519,
+      -0.054
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_b3_corr",
+     "declared_span": [
+      1380.0,
+      1451.0
+     ],
+     "end_offsets_m": [
+      0.324,
+      0.184
+     ]
+    },
+    {
+     "type": "door_misplaced",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_b4_corr",
+     "declared_span": [
+      1459.0,
+      1530.0
+     ],
+     "end_offsets_m": [
+      -0.443,
+      -0.584
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_evidence_feedback_run86",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "294c76f72e70e81201fcb598ce43a339d5952f00cbbaca05cee85a79bfe88748",
+   "compilation_sha256": "a429aa1d11cdcf3718397c8c86031676b549cc59c081868519e04c9e96f91285",
+   "mpp": [
+    0.010737294201861132,
+    0.0107095046854083
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_N1",
+     "declared_span": [
+      783.0,
+      867.0
+     ],
+     "end_offsets_m": [
+      0.118,
+      0.129
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_N3",
+     "declared_span": [
+      1388.0,
+      1455.0
+     ],
+     "end_offsets_m": [
+      0.032,
+      -0.15
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      783.0,
+      867.0
+     ],
+     "end_offsets_m": [
+      0.118,
+      0.129
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_S3",
+     "declared_span": [
+      1388.0,
+      1455.0
+     ],
+     "end_offsets_m": [
+      0.032,
+      -0.15
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_evidence_feedback_run86",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "22cb4ed0513ac2ca5d81514a2fd91b72e86e67d6f8bf2867050dec428ae02416",
+   "compilation_sha256": "c36a45ab59a99d004a842209bbb4d38342a0d23ab02105910a7f98ce1068c205",
+   "mpp": [
+    0.010737294201861132,
+    0.0107095046854083
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_N1",
+     "declared_span": [
+      783.0,
+      867.0
+     ],
+     "end_offsets_m": [
+      0.118,
+      0.129
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_N3",
+     "declared_span": [
+      1388.0,
+      1455.0
+     ],
+     "end_offsets_m": [
+      0.032,
+      -0.15
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      783.0,
+      867.0
+     ],
+     "end_offsets_m": [
+      0.118,
+      0.129
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_S3",
+     "declared_span": [
+      1388.0,
+      1455.0
+     ],
+     "end_offsets_m": [
+      0.032,
+      -0.15
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_evidence_feedback_run86",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "16ec6a898b9498e3ba9119ca0a91935b1967f81369913bd3f22463a999ce078e",
+   "compilation_sha256": "44ac245e43196e67ba7db41058579c080d792893750581c9702036db1c76d0f2",
+   "mpp": [
+    0.010814708002883922,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "B2",
+     "seeds": [
+      "S2",
+      "S3"
+     ],
+     "points": [
+      [
+       950,
+       950
+      ],
+      [
+       1250,
+       950
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_B1",
+     "declared_span": [
+      650.0,
+      770.0
+     ],
+     "end_offsets_m": [
+      -0.076,
+      0.314
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_B2e",
+     "declared_span": [
+      1320.0,
+      1400.0
+     ],
+     "end_offsets_m": [
+      -0.324,
+      -0.368
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_historical_tree_run81",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "04396ea6fe91b74986bf14519988e8ab510a9753ab0f35b0419eb10e9a9a1605",
+   "compilation_sha256": "56cd0a1834b8be59253fd587b0a059e9366e179cd1f257bd75f442549b15f614",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_historical_tree_run81",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "c1310e59fa229f9cf2135ad59f283e2d71e29fb64a3a19d832437c2bba96f866",
+   "compilation_sha256": "6425a2134ba3918a3dde0a7e6e886500162164e1bf91a34f921e37fe028eccd5",
+   "mpp": [
+    0.010830324909747292,
+    0.010796221322537112
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_method_control_run85",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "79f67db4a2c8e566e2808794826e1b5f475c421e32b7da9d2b089eb5bfd20178",
+   "compilation_sha256": "ccffcda01a178291a2d533608e37f15925ebe62319bd25969e7349e4a750dbf7",
+   "mpp": [
+    10.79136690647482,
+    10.796221322537113
+   ],
+   "labels": [
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "DN1",
+     "orient": "h",
+     "cross": 618.0,
+     "declared_span": [
+      778.0,
+      862.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "DN2",
+     "orient": "h",
+     "cross": 618.0,
+     "declared_span": [
+      918.0,
+      1001.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "DN3",
+     "orient": "h",
+     "cross": 618.0,
+     "declared_span": [
+      1382.0,
+      1466.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "DS1",
+     "orient": "h",
+     "cross": 804.0,
+     "declared_span": [
+      778.0,
+      862.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "DS2",
+     "orient": "h",
+     "cross": 804.0,
+     "declared_span": [
+      918.0,
+      1001.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "DS3",
+     "orient": "h",
+     "cross": 804.0,
+     "declared_span": [
+      1382.0,
+      1466.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_current_run80",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "a2e1cd5a431671a3d072f69d000a22ddfee418aebccd5ad83aa915140c07fcbf",
+   "compilation_sha256": "1beb439ea5927a5be6514f9ab038baa58d1803e95167efffaad908d146a27004",
+   "mpp": [
+    0.010775862068965518,
+    0.01078167115902965
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_current_run80",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "563f77d04d94ea1abfed61a88091066526775a82dd35c11dc22c3afa993628f9",
+   "compilation_sha256": "39630dd95c83059522a68c097accf81935bcbc3858d177a50a0c480be5ef3889",
+   "mpp": [
+    0.010814708002883922,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_T1",
+     "declared_span": [
+      989.0,
+      1072.0
+     ],
+     "end_offsets_m": [
+      -0.151,
+      -0.151
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_current_run80",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "df24f1cab186d6354167bc5b6c5e7b05730e79d3cea940815a956b001398602c",
+   "compilation_sha256": "d542d9ba14f530e15d0922d80f5ceb29d49f132962219a79df6ea04b2dc862f5",
+   "mpp": [
+    0.010775862068965518,
+    0.01078167115902965
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_current_run80",
+   "draft": "draft_006",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "c05f34e20a18f277ef55d7cd5435fc57a0068aee41a4eaece4e8a592d364de86",
+   "compilation_sha256": "80850cea6376dc9c88a0a2368a50714d4d009aaa52d2135b4cfc3d9a3f970a27",
+   "mpp": [
+    0.010814708002883922,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_T1",
+     "declared_span": [
+      989.0,
+      1072.0
+     ],
+     "end_offsets_m": [
+      -0.151,
+      -0.151
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "draft": "draft_003",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "a4d804482e08f9fe48cbd0e728eca49d4a84d55724a9fb7af12cd09bfaf2cf63",
+   "compilation_sha256": "d69517b73fa4ce023e5e31efba77e0dca8b029f7f1183fd4847ec3439ee465d1",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_A",
+     "declared_span": [
+      716.0,
+      855.0
+     ],
+     "end_offsets_m": [
+      -0.604,
+      0.0
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_B",
+     "declared_span": [
+      894.0,
+      1030.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      0.259
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_C",
+     "declared_span": [
+      1352.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      -0.356,
+      -0.313
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_D",
+     "declared_span": [
+      716.0,
+      855.0
+     ],
+     "end_offsets_m": [
+      -0.604,
+      0.0
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_E",
+     "declared_span": [
+      894.0,
+      1030.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      0.259
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_F",
+     "declared_span": [
+      1352.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      -0.356,
+      -0.313
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "draft": "draft_005",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "a0e221d4be9ddd3e0cfb6560ff85d3740eb5c45ae7a7bab466860d4bfa190c6b",
+   "compilation_sha256": "c1d35868856cafc1261f426f09e7175a4b77d89e5e4fc2fe4e9f069f14184c6b",
+   "mpp": [
+    0.010822510822510822,
+    0.010810810810810811
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "draft": "draft_006",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "ae6febd1f1fff1077da48731e9d0d3a706059e6c333dac33cb028b684db4a055",
+   "compilation_sha256": "153f2eca94fb75dc9024895efa04503bf3320d421d19f91fa11888dd7845d75e",
+   "mpp": [
+    0.01079136690647482,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_A",
+     "declared_span": [
+      716.0,
+      855.0
+     ],
+     "end_offsets_m": [
+      -0.604,
+      0.0
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_B",
+     "declared_span": [
+      894.0,
+      1030.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      0.259
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_C",
+     "declared_span": [
+      1352.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      -0.356,
+      -0.313
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_D",
+     "declared_span": [
+      716.0,
+      855.0
+     ],
+     "end_offsets_m": [
+      -0.604,
+      0.0
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_E",
+     "declared_span": [
+      894.0,
+      1030.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      0.259
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_F",
+     "declared_span": [
+      1352.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      -0.356,
+      -0.313
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-28_sm21_threshold_legacy_run79",
+   "draft": "draft_007",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "b40e594bdd273f53a5b5cb9bbda568efa5e7fc5641def070511c53c5709ffafd",
+   "compilation_sha256": "d6d8998d20020e10088f38c4a9b1fe1d6e644d578ce3307ea45a3990c592ac75",
+   "mpp": [
+    0.010822510822510822,
+    0.010810810810810811
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-29_sm21_aligned_prompt_run92",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "4a62399fd44a557fd29a52b04733a75abaee03e33e8fb901fca5ed6b37ba8eea",
+   "compilation_sha256": "763192f08353df5a4c2c21f3e69bf624e18ca1668c8e6191dc2ee4739c85b52c",
+   "mpp": [
+    0.010775862068965518,
+    0.01078167115902965
+   ],
+   "labels": []
+  },
+  {
+   "run": "2026-09-29_sm21_aligned_prompt_run93",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "ac6005c81707c9241ce67c6fd295a44e9844b44115ad54125048c00b2fd82c23",
+   "compilation_sha256": "777ed14d6dbe07f1f012e586917341ad7f17c7c9b03bec1ffc8b3db186460876",
+   "mpp": [
+    0.010744985673352435,
+    0.01078167115902965
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_NL",
+     "declared_span": [
+      755.0,
+      845.0
+     ],
+     "end_offsets_m": [
+      -0.183,
+      -0.107
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_NM",
+     "declared_span": [
+      947.0,
+      1038.0
+     ],
+     "end_offsets_m": [
+      0.269,
+      0.344
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_NR",
+     "declared_span": [
+      1350.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      -0.376,
+      -0.312
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_SL",
+     "declared_span": [
+      755.0,
+      845.0
+     ],
+     "end_offsets_m": [
+      -0.183,
+      -0.107
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_SM",
+     "declared_span": [
+      947.0,
+      1038.0
+     ],
+     "end_offsets_m": [
+      0.269,
+      0.344
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_SR",
+     "declared_span": [
+      1350.0,
+      1440.0
+     ],
+     "end_offsets_m": [
+      -0.376,
+      -0.312
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-29_sm21_aligned_prompt_run93",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "51dc37c195e26b8fc320dbe2d8d0416629e76c578d0ab764de9b6b1c222ee288",
+   "compilation_sha256": "ab6094aa040925a68801da5461d64bdeddc65de9abaffeed950fce4eed169adb",
+   "mpp": [
+    0.010822510822510822,
+    0.010825439783491205
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      690.0,
+      769.0
+     ],
+     "end_offsets_m": [
+      0.357,
+      0.303
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ],
+     "declared_opening": "D_S4",
+     "declared_span": [
+      1471.0,
+      1550.0
+     ],
+     "end_offsets_m": [
+      -0.314,
+      -0.368
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_S2",
+     "orient": "h",
+     "cross": 793.0,
+     "declared_span": [
+      1037.0,
+      1115.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_S3",
+     "orient": "h",
+     "cross": 793.0,
+     "declared_span": [
+      1125.0,
+      1203.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-29_sm21_instruction_refactor_run94",
+   "draft": "draft_002",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "bf1b9825c1e2f1538028783792e80056a82caea29414a153a13d6cc4628b6fe7",
+   "compilation_sha256": "6047569a806ee1da6b4b19c0190f8298273cf0af7e2e1bd7dbccf4f9ca297619",
+   "mpp": [
+    0.010775862068965518,
+    0.01078167115902965
+   ],
+   "labels": [
+    {
+     "type": "missing_divider",
+     "declared_space": "BottomOpen",
+     "seeds": [
+      "SW",
+      "SC"
+     ],
+     "points": [
+      [
+       650,
+       950
+      ],
+      [
+       1100,
+       950
+      ]
+     ]
+    },
+    {
+     "type": "missing_divider",
+     "declared_space": "BottomOpen",
+     "seeds": [
+      "SC",
+      "SE"
+     ],
+     "points": [
+      [
+       1100,
+       950
+      ],
+      [
+       1550,
+       950
+      ]
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_T1",
+     "declared_span": [
+      792.0,
+      884.0
+     ],
+     "end_offsets_m": [
+      0.216,
+      0.312
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_T2",
+     "declared_span": [
+      895.0,
+      1010.0
+     ],
+     "end_offsets_m": [
+      -0.291,
+      0.043
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_B1",
+     "declared_span": [
+      755.0,
+      852.0
+     ],
+     "end_offsets_m": [
+      -0.183,
+      -0.032
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_B3",
+     "declared_span": [
+      1394.0,
+      1491.0
+     ],
+     "end_offsets_m": [
+      0.097,
+      0.237
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-29_sm21_instruction_refactor_run94",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "e9a3474b568add77785f91f05d815328c57273a159a8e8b5b1ce377bbc555f75",
+   "compilation_sha256": "44c8947b9cfd29714837c1782e5fc4c19efdd02dd755893cca6eb59dbde3b2d7",
+   "mpp": [
+    0.010814708002883922,
+    0.010796221322537112
+   ],
+   "labels": [
+    {
+     "type": "door_misplaced",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_C1",
+     "declared_span": [
+      920.0,
+      1010.0
+     ],
+     "end_offsets_m": [
+      -0.898,
+      -0.822
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_C2",
+     "declared_span": [
+      1180.0,
+      1270.0
+     ],
+     "end_offsets_m": [
+      0.303,
+      0.368
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ],
+     "declared_opening": "D_B1",
+     "declared_span": [
+      610.0,
+      700.0
+     ],
+     "end_offsets_m": [
+      -0.508,
+      -0.443
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ],
+     "declared_opening": "D_B3",
+     "declared_span": [
+      1306.0,
+      1396.0
+     ],
+     "end_offsets_m": [
+      -0.476,
+      -0.411
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_B2",
+     "orient": "h",
+     "cross": 776.0,
+     "declared_span": [
+      958.0,
+      1048.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_B4",
+     "orient": "h",
+     "cross": 776.0,
+     "declared_span": [
+      1654.0,
+      1744.0
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-29_sm21_whole_drawing_run91",
+   "draft": "draft_001",
+   "case": "sm21",
+   "image": "1f_view.png",
+   "plan_sha256": "448cb8f6b27dc3fc74a7acdd7c0d733746cd2e611a3711f7be0e3c67810fcc14",
+   "compilation_sha256": "5ab061b4f5ba85fd12d45116db270c0b89e7392d68f2fcf950185a830130f4a7",
+   "mpp": [
+    0.01079136690647482,
+    0.010825439783491205
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_N1",
+     "declared_span": [
+      796.0,
+      879.0
+     ],
+     "end_offsets_m": [
+      0.259,
+      0.259
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NC",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_N2",
+     "declared_span": [
+      898.0,
+      1000.0
+     ],
+     "end_offsets_m": [
+      -0.259,
+      -0.065
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 624,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_N3",
+     "declared_span": [
+      1357.0,
+      1441.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      -0.302
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SW",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      772,
+      855
+     ],
+     "declared_opening": "D_S1",
+     "declared_span": [
+      796.0,
+      879.0
+     ],
+     "end_offsets_m": [
+      0.259,
+      0.259
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SC",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      922,
+      1006
+     ],
+     "declared_opening": "D_S2",
+     "declared_span": [
+      898.0,
+      1000.0
+     ],
+     "end_offsets_m": [
+      -0.259,
+      -0.065
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-SE",
+     "orient": "h",
+     "reference_cross": 810,
+     "reference_span": [
+      1385,
+      1469
+     ],
+     "declared_opening": "D_S3",
+     "declared_span": [
+      1357.0,
+      1441.0
+     ],
+     "end_offsets_m": [
+      -0.302,
+      -0.302
+     ]
+    }
+   ]
+  },
+  {
+   "run": "2026-09-29_sm21_whole_drawing_run91",
+   "draft": "draft_004",
+   "case": "sm21",
+   "image": "2f_view.png",
+   "plan_sha256": "ba1dd0183e7b5ca5f56ceebb46ace50e8ea9b49087cc1f70c68a8b1d39eb893d",
+   "compilation_sha256": "fd7fe5c79211e6ddc7f2f4dee2da88753229c957ba06f3f4c618ac17355ccb92",
+   "mpp": [
+    0.01083815028901734,
+    0.010810810810810811
+   ],
+   "labels": [
+    {
+     "type": "door_offset",
+     "reference_door": "door-NW",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1003,
+      1086
+     ],
+     "declared_opening": "D_R1",
+     "declared_span": [
+      1037.0,
+      1121.0
+     ],
+     "end_offsets_m": [
+      0.368,
+      0.379
+     ]
+    },
+    {
+     "type": "door_offset",
+     "reference_door": "door-NE",
+     "orient": "h",
+     "reference_cross": 608.5,
+     "reference_span": [
+      1152,
+      1236
+     ],
+     "declared_opening": "D_R2",
+     "declared_span": [
+      1121.0,
+      1203.0
+     ],
+     "end_offsets_m": [
+      -0.336,
+      -0.358
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S1",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      657,
+      741
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S2",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      807,
+      891
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S3",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1350,
+      1434
+     ]
+    },
+    {
+     "type": "door_missing_or_misplaced",
+     "reference_door": "door-S4",
+     "orient": "h",
+     "reference_cross": 793.5,
+     "reference_span": [
+      1500,
+      1584
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O1",
+     "orient": "h",
+     "cross": 794.0,
+     "declared_span": [
+      557.0,
+      640.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O2",
+     "orient": "h",
+     "cross": 794.0,
+     "declared_span": [
+      903.0,
+      986.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O3",
+     "orient": "h",
+     "cross": 794.0,
+     "declared_span": [
+      1249.0,
+      1332.0
+     ]
+    },
+    {
+     "type": "declared_door_without_reference",
+     "declared_opening": "D_O4",
+     "orient": "h",
+     "cross": 794.0,
+     "declared_span": [
+      1596.0,
+      1679.0
+     ]
+    }
+   ]
+  }
+ ]
+}

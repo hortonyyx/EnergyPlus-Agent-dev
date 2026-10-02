@@ -1,0 +1,2729 @@
+{
+  "assumptions": [
+    "Interior partition/corridor wall thickness treated as zero per geometry contract; centerlines derived from measured pixel gaps and labeled dimension chains (250mm corridor walls per label; ~120mm vertical office dividers inferred from pixel measurement to make the 15000mm chain sum exactly).",
+    "Interior corridor-to-office door widths/positions are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths not individually dimensioned in the drawing.",
+    "All interior door heights (corridor-office doors) assumed standard 2.1m; not dimensioned in the drawing.",
+    "East 1F window height family assumed same as North/South 1F windows (sill1.0/head2.6m); not independently re-derived from a separate East elevation internal dimension chain.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior partition/wall thickness treated as zero per geometry contract; wall centerlines placed at clean round-number positions (7.5m single meeting-room divider; corridor 3.0-5.0m; office dividers at 3.75/7.5/11.25m) consistent with measured pixel gaps within a few percent.",
+    "South wall window positions assumed to mirror north wall windows exactly (x=1.95-5.55m and 9.45-13.05m), based on South_view.png upper-zone dimension chain (1950/3600/3900/3600/1950=15000mm) rather than assuming one window per small office; this is a simplification since the interior office grid (3.75m bays) does not align 1:1 with this 2-window facade pattern.",
+    "All interior corridor-office/meeting-room door widths and exact positions are approximated from visible arc symbols, not individually dimensioned.",
+    "Interior door head heights assumed standard 2.1m (unobserved).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "id": "F1:N1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              4.996403,
+              0.0
+            ],
+            [
+              4.996403,
+              3.128552
+            ],
+            [
+              0.0,
+              3.128552
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Two-desk office furniture visible in 1f_view.png plan"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk pair"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+            "1f_view.png: north corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            4.996403
+          ],
+          "y": [
+            0.0,
+            3.128552
+          ]
+        },
+        "before": {
+          "id": "F1:N1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              4.996403,
+              0.0
+            ],
+            [
+              4.996403,
+              3.128552
+            ],
+            [
+              0.0,
+              3.128552
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+            "1f_view.png: north corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            4.996403
+          ],
+          "y": [
+            0.0,
+            3.128552
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains two desks facing each other, typical small office.",
+        "source_refs": [
+          "1f_view.png: desk pair"
+        ],
+        "space_id": "F1:N1"
+      },
+      {
+        "after": {
+          "id": "F1:N2",
+          "polygon": [
+            [
+              4.996403,
+              0.0
+            ],
+            [
+              10.003597,
+              0.0
+            ],
+            [
+              10.003597,
+              3.128552
+            ],
+            [
+              4.996403,
+              3.128552
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Two-desk office furniture visible"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: desk pair"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+            "1f_view.png: vertical divider between north office bay2/bay3",
+            "1f_view.png: north corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            4.996403,
+            10.003597
+          ],
+          "y": [
+            0.0,
+            3.128552
+          ]
+        },
+        "before": {
+          "id": "F1:N2",
+          "polygon": [
+            [
+              4.996403,
+              0.0
+            ],
+            [
+              10.003597,
+              0.0
+            ],
+            [
+              10.003597,
+              3.128552
+            ],
+            [
+              4.996403,
+              3.128552
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+            "1f_view.png: vertical divider between north office bay2/bay3",
+            "1f_view.png: north corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            4.996403,
+            10.003597
+          ],
+          "y": [
+            0.0,
+            3.128552
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains two desks.",
+        "source_refs": [
+          "1f_view.png: desk pair"
+        ],
+        "space_id": "F1:N2"
+      },
+      {
+        "after": {
+          "id": "F1:N3",
+          "polygon": [
+            [
+              10.003597,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              3.128552
+            ],
+            [
+              10.003597,
+              3.128552
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Round table with 4 chairs, could be small meeting/office; treated as office given size and single small table"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: round table with chairs"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between north office bay2/bay3",
+            "1f_view.png: north corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            10.003597,
+            15.0
+          ],
+          "y": [
+            0.0,
+            3.128552
+          ]
+        },
+        "before": {
+          "id": "F1:N3",
+          "polygon": [
+            [
+              10.003597,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              3.128552
+            ],
+            [
+              10.003597,
+              3.128552
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between north office bay2/bay3",
+            "1f_view.png: north corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            10.003597,
+            15.0
+          ],
+          "y": [
+            0.0,
+            3.128552
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Small room with round table and chairs, consistent with a small office/meeting nook.",
+        "source_refs": [
+          "1f_view.png: round table with chairs"
+        ],
+        "space_id": "F1:N3"
+      },
+      {
+        "after": {
+          "id": "F1:S1",
+          "polygon": [
+            [
+              0.0,
+              4.871448
+            ],
+            [
+              4.996403,
+              4.871448
+            ],
+            [
+              4.996403,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "lobby",
+          "role_evidence": {
+            "assumptions": [
+              "Room has direct exterior south door plus an L-shaped counter/furniture shape typical of a reception desk, near both building entrances"
+            ],
+            "basis": "inferred",
+            "role": "lobby",
+            "source_refs": [
+              "1f_view.png: L-shaped furniture, exterior door D_S_ext"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between south office bay1/bay2",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            4.996403
+          ],
+          "y": [
+            4.871448,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F1:S1",
+          "polygon": [
+            [
+              0.0,
+              4.871448
+            ],
+            [
+              4.996403,
+              4.871448
+            ],
+            [
+              4.996403,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "lobby",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between south office bay1/bay2",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            4.996403
+          ],
+          "y": [
+            4.871448,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Ground-floor room adjacent to both the south and west exterior entrances, with counter-like furniture, suggests a reception/lobby.",
+        "source_refs": [
+          "1f_view.png: L-shaped furniture, exterior door D_S_ext"
+        ],
+        "space_id": "F1:S1"
+      },
+      {
+        "after": {
+          "id": "F1:S2",
+          "polygon": [
+            [
+              4.996403,
+              4.871448
+            ],
+            [
+              10.003597,
+              4.871448
+            ],
+            [
+              10.003597,
+              8.0
+            ],
+            [
+              4.996403,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "L-shaped desk furniture typical of office"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: L-shaped desk"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between south office bay1/bay2",
+            "1f_view.png: vertical divider between south office bay2/bay3",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            4.996403,
+            10.003597
+          ],
+          "y": [
+            4.871448,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F1:S2",
+          "polygon": [
+            [
+              4.996403,
+              4.871448
+            ],
+            [
+              10.003597,
+              4.871448
+            ],
+            [
+              10.003597,
+              8.0
+            ],
+            [
+              4.996403,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between south office bay1/bay2",
+            "1f_view.png: vertical divider between south office bay2/bay3",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            4.996403,
+            10.003597
+          ],
+          "y": [
+            4.871448,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains an L-shaped desk arrangement.",
+        "source_refs": [
+          "1f_view.png: L-shaped desk"
+        ],
+        "space_id": "F1:S2"
+      },
+      {
+        "after": {
+          "id": "F1:S3",
+          "polygon": [
+            [
+              10.003597,
+              4.871448
+            ],
+            [
+              15.0,
+              4.871448
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              10.003597,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Round table with 4 chairs treated as small office/meeting nook"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "1f_view.png: round table with chairs"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between south office bay2/bay3",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            10.003597,
+            15.0
+          ],
+          "y": [
+            4.871448,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F1:S3",
+          "polygon": [
+            [
+              10.003597,
+              4.871448
+            ],
+            [
+              15.0,
+              4.871448
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              10.003597,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: vertical divider between south office bay2/bay3",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            10.003597,
+            15.0
+          ],
+          "y": [
+            4.871448,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Small room with round table and chairs.",
+        "source_refs": [
+          "1f_view.png: round table with chairs"
+        ],
+        "space_id": "F1:S3"
+      },
+      {
+        "after": {
+          "id": "F1:CORR",
+          "polygon": [
+            [
+              0.0,
+              3.128552
+            ],
+            [
+              15.0,
+              3.128552
+            ],
+            [
+              15.0,
+              4.871448
+            ],
+            [
+              0.0,
+              4.871448
+            ]
+          ],
+          "role": "corridor",
+          "role_evidence": {
+            "assumptions": [],
+            "basis": "observed",
+            "role": "corridor",
+            "source_refs": [
+              "1f_view.png: central corridor between north and south room rows"
+            ]
+          },
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: north corridor wall, full width, doors declared separately",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            3.128552,
+            4.871448
+          ]
+        },
+        "before": {
+          "id": "F1:CORR",
+          "polygon": [
+            [
+              0.0,
+              3.128552
+            ],
+            [
+              15.0,
+              3.128552
+            ],
+            [
+              15.0,
+              4.871448
+            ],
+            [
+              0.0,
+              4.871448
+            ]
+          ],
+          "role": "corridor",
+          "source_refs": [
+            "image:1f_view.png",
+            "1f_view.png: north corridor wall, full width, doors declared separately",
+            "1f_view.png: south corridor wall, full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            3.128552,
+            4.871448
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Long central circulation space connecting all ground-floor rooms and both exterior doors.",
+        "source_refs": [
+          "1f_view.png: central corridor between north and south room rows"
+        ],
+        "space_id": "F1:CORR"
+      },
+      {
+        "after": {
+          "id": "F2:MR1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              7.510838,
+              0.0
+            ],
+            [
+              7.510838,
+              2.994595
+            ],
+            [
+              0.0,
+              2.994595
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "role_evidence": {
+            "assumptions": [
+              "Large oval table with many chairs indicates a meeting/conference room"
+            ],
+            "basis": "inferred",
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "2f_view.png: oval table with chairs"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between the two meeting rooms, north half only",
+            "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            7.510838
+          ],
+          "y": [
+            0.0,
+            2.994595
+          ]
+        },
+        "before": {
+          "id": "F2:MR1",
+          "polygon": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              7.510838,
+              0.0
+            ],
+            [
+              7.510838,
+              2.994595
+            ],
+            [
+              0.0,
+              2.994595
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between the two meeting rooms, north half only",
+            "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            7.510838
+          ],
+          "y": [
+            0.0,
+            2.994595
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains a large oval conference table with ~10 chairs.",
+        "source_refs": [
+          "2f_view.png: oval table with chairs"
+        ],
+        "space_id": "F2:MR1"
+      },
+      {
+        "after": {
+          "id": "F2:MR2",
+          "polygon": [
+            [
+              7.510838,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              2.994595
+            ],
+            [
+              7.510838,
+              2.994595
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "role_evidence": {
+            "assumptions": [
+              "Large oval table with many chairs indicates a meeting/conference room"
+            ],
+            "basis": "inferred",
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "2f_view.png: oval table with chairs"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between the two meeting rooms, north half only",
+            "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately"
+          ],
+          "x": [
+            7.510838,
+            15.0
+          ],
+          "y": [
+            0.0,
+            2.994595
+          ]
+        },
+        "before": {
+          "id": "F2:MR2",
+          "polygon": [
+            [
+              7.510838,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              2.994595
+            ],
+            [
+              7.510838,
+              2.994595
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between the two meeting rooms, north half only",
+            "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately"
+          ],
+          "x": [
+            7.510838,
+            15.0
+          ],
+          "y": [
+            0.0,
+            2.994595
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains a large oval conference table with ~10 chairs.",
+        "source_refs": [
+          "2f_view.png: oval table with chairs"
+        ],
+        "space_id": "F2:MR2"
+      },
+      {
+        "after": {
+          "id": "F2:O1",
+          "polygon": [
+            [
+              0.0,
+              5.005405
+            ],
+            [
+              3.75,
+              5.005405
+            ],
+            [
+              3.75,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Desk plus cabinet furniture typical of small office"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: desk and cabinet"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office1/office2",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            3.75
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:O1",
+          "polygon": [
+            [
+              0.0,
+              5.005405
+            ],
+            [
+              3.75,
+              5.005405
+            ],
+            [
+              3.75,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office1/office2",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            3.75
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains desk and storage cabinet.",
+        "source_refs": [
+          "2f_view.png: desk and cabinet"
+        ],
+        "space_id": "F2:O1"
+      },
+      {
+        "after": {
+          "id": "F2:O2",
+          "polygon": [
+            [
+              3.75,
+              5.005405
+            ],
+            [
+              7.510838,
+              5.005405
+            ],
+            [
+              7.510838,
+              8.0
+            ],
+            [
+              3.75,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Desk plus cabinet furniture typical of small office"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: desk and cabinet"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office1/office2",
+            "2f_view.png: divider between south office2/office3, aligned with main structural divider above",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            3.75,
+            7.510838
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:O2",
+          "polygon": [
+            [
+              3.75,
+              5.005405
+            ],
+            [
+              7.510838,
+              5.005405
+            ],
+            [
+              7.510838,
+              8.0
+            ],
+            [
+              3.75,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office1/office2",
+            "2f_view.png: divider between south office2/office3, aligned with main structural divider above",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            3.75,
+            7.510838
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains desk and storage cabinet.",
+        "source_refs": [
+          "2f_view.png: desk and cabinet"
+        ],
+        "space_id": "F2:O2"
+      },
+      {
+        "after": {
+          "id": "F2:O3",
+          "polygon": [
+            [
+              7.510838,
+              5.005405
+            ],
+            [
+              11.25,
+              5.005405
+            ],
+            [
+              11.25,
+              8.0
+            ],
+            [
+              7.510838,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Desk plus cabinet furniture typical of small office"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: desk and cabinet"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office2/office3, aligned with main structural divider above",
+            "2f_view.png: divider between south office3/office4",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            7.510838,
+            11.25
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:O3",
+          "polygon": [
+            [
+              7.510838,
+              5.005405
+            ],
+            [
+              11.25,
+              5.005405
+            ],
+            [
+              11.25,
+              8.0
+            ],
+            [
+              7.510838,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office2/office3, aligned with main structural divider above",
+            "2f_view.png: divider between south office3/office4",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            7.510838,
+            11.25
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains desk and storage cabinet.",
+        "source_refs": [
+          "2f_view.png: desk and cabinet"
+        ],
+        "space_id": "F2:O3"
+      },
+      {
+        "after": {
+          "id": "F2:O4",
+          "polygon": [
+            [
+              11.25,
+              5.005405
+            ],
+            [
+              15.0,
+              5.005405
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              11.25,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "role_evidence": {
+            "assumptions": [
+              "Desk plus cabinet furniture typical of small office"
+            ],
+            "basis": "inferred",
+            "role": "office",
+            "source_refs": [
+              "2f_view.png: desk and cabinet"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office3/office4",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            11.25,
+            15.0
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "before": {
+          "id": "F2:O4",
+          "polygon": [
+            [
+              11.25,
+              5.005405
+            ],
+            [
+              15.0,
+              5.005405
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              11.25,
+              8.0
+            ]
+          ],
+          "role": "office",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: divider between south office3/office4",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            11.25,
+            15.0
+          ],
+          "y": [
+            5.005405,
+            8.0
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Room contains desk and storage cabinet.",
+        "source_refs": [
+          "2f_view.png: desk and cabinet"
+        ],
+        "space_id": "F2:O4"
+      },
+      {
+        "after": {
+          "id": "F2:CORR2",
+          "polygon": [
+            [
+              0.0,
+              2.994595
+            ],
+            [
+              15.0,
+              2.994595
+            ],
+            [
+              15.0,
+              5.005405
+            ],
+            [
+              0.0,
+              5.005405
+            ]
+          ],
+          "role": "corridor",
+          "role_evidence": {
+            "assumptions": [],
+            "basis": "observed",
+            "role": "corridor",
+            "source_refs": [
+              "2f_view.png: central corridor between meeting rooms and offices"
+            ]
+          },
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            2.994595,
+            5.005405
+          ]
+        },
+        "before": {
+          "id": "F2:CORR2",
+          "polygon": [
+            [
+              0.0,
+              2.994595
+            ],
+            [
+              15.0,
+              2.994595
+            ],
+            [
+              15.0,
+              5.005405
+            ],
+            [
+              0.0,
+              5.005405
+            ]
+          ],
+          "role": "corridor",
+          "source_refs": [
+            "image:2f_view.png",
+            "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately",
+            "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+          ],
+          "x": [
+            0.0,
+            15.0
+          ],
+          "y": [
+            2.994595,
+            5.005405
+          ]
+        },
+        "operation": "set_space_role",
+        "reason": "Long central circulation space connecting the two meeting rooms and four offices on the upper floor.",
+        "source_refs": [
+          "2f_view.png: central corridor between meeting rooms and offices"
+        ],
+        "space_id": "F2:CORR2"
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "F1:N1",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.996403,
+                0.0
+              ],
+              [
+                4.996403,
+                3.128552
+              ],
+              [
+                0.0,
+                3.128552
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Two-desk office furniture visible in 1f_view.png plan"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "1f_view.png: desk pair"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+              "1f_view.png: north corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              4.996403
+            ],
+            "y": [
+              0.0,
+              3.128552
+            ]
+          },
+          {
+            "id": "F1:N2",
+            "polygon": [
+              [
+                4.996403,
+                0.0
+              ],
+              [
+                10.003597,
+                0.0
+              ],
+              [
+                10.003597,
+                3.128552
+              ],
+              [
+                4.996403,
+                3.128552
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Two-desk office furniture visible"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "1f_view.png: desk pair"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+              "1f_view.png: vertical divider between north office bay2/bay3",
+              "1f_view.png: north corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              4.996403,
+              10.003597
+            ],
+            "y": [
+              0.0,
+              3.128552
+            ]
+          },
+          {
+            "id": "F1:N3",
+            "polygon": [
+              [
+                10.003597,
+                0.0
+              ],
+              [
+                15.0,
+                0.0
+              ],
+              [
+                15.0,
+                3.128552
+              ],
+              [
+                10.003597,
+                3.128552
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Round table with 4 chairs, could be small meeting/office; treated as office given size and single small table"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "1f_view.png: round table with chairs"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between north office bay2/bay3",
+              "1f_view.png: north corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              10.003597,
+              15.0
+            ],
+            "y": [
+              0.0,
+              3.128552
+            ]
+          },
+          {
+            "id": "F1:CORR",
+            "polygon": [
+              [
+                0.0,
+                3.128552
+              ],
+              [
+                15.0,
+                3.128552
+              ],
+              [
+                15.0,
+                4.871448
+              ],
+              [
+                0.0,
+                4.871448
+              ]
+            ],
+            "role": "corridor",
+            "role_evidence": {
+              "assumptions": [],
+              "basis": "observed",
+              "role": "corridor",
+              "source_refs": [
+                "1f_view.png: central corridor between north and south room rows"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: north corridor wall, full width, doors declared separately",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              15.0
+            ],
+            "y": [
+              3.128552,
+              4.871448
+            ]
+          },
+          {
+            "id": "F1:S1",
+            "polygon": [
+              [
+                0.0,
+                4.871448
+              ],
+              [
+                4.996403,
+                4.871448
+              ],
+              [
+                4.996403,
+                8.0
+              ],
+              [
+                0.0,
+                8.0
+              ]
+            ],
+            "role": "lobby",
+            "role_evidence": {
+              "assumptions": [
+                "Room has direct exterior south door plus an L-shaped counter/furniture shape typical of a reception desk, near both building entrances"
+              ],
+              "basis": "inferred",
+              "role": "lobby",
+              "source_refs": [
+                "1f_view.png: L-shaped furniture, exterior door D_S_ext"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between south office bay1/bay2",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              4.996403
+            ],
+            "y": [
+              4.871448,
+              8.0
+            ]
+          },
+          {
+            "id": "F1:S2",
+            "polygon": [
+              [
+                4.996403,
+                4.871448
+              ],
+              [
+                10.003597,
+                4.871448
+              ],
+              [
+                10.003597,
+                8.0
+              ],
+              [
+                4.996403,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "L-shaped desk furniture typical of office"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "1f_view.png: L-shaped desk"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between south office bay1/bay2",
+              "1f_view.png: vertical divider between south office bay2/bay3",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              4.996403,
+              10.003597
+            ],
+            "y": [
+              4.871448,
+              8.0
+            ]
+          },
+          {
+            "id": "F1:S3",
+            "polygon": [
+              [
+                10.003597,
+                4.871448
+              ],
+              [
+                15.0,
+                4.871448
+              ],
+              [
+                15.0,
+                8.0
+              ],
+              [
+                10.003597,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Round table with 4 chairs treated as small office/meeting nook"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "1f_view.png: round table with chairs"
+              ]
+            },
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between south office bay2/bay3",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              10.003597,
+              15.0
+            ],
+            "y": [
+              4.871448,
+              8.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ]
+        },
+        "name": "F1",
+        "z_floor": 0.0
+      },
+      {
+        "ceiling_height": 3.6,
+        "cells": [
+          {
+            "id": "F2:MR1",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                7.510838,
+                0.0
+              ],
+              [
+                7.510838,
+                2.994595
+              ],
+              [
+                0.0,
+                2.994595
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "role_evidence": {
+              "assumptions": [
+                "Large oval table with many chairs indicates a meeting/conference room"
+              ],
+              "basis": "inferred",
+              "role": "conference/meeting/multipurpose",
+              "source_refs": [
+                "2f_view.png: oval table with chairs"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: divider between the two meeting rooms, north half only",
+              "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              7.510838
+            ],
+            "y": [
+              0.0,
+              2.994595
+            ]
+          },
+          {
+            "id": "F2:MR2",
+            "polygon": [
+              [
+                7.510838,
+                0.0
+              ],
+              [
+                15.0,
+                0.0
+              ],
+              [
+                15.0,
+                2.994595
+              ],
+              [
+                7.510838,
+                2.994595
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "role_evidence": {
+              "assumptions": [
+                "Large oval table with many chairs indicates a meeting/conference room"
+              ],
+              "basis": "inferred",
+              "role": "conference/meeting/multipurpose",
+              "source_refs": [
+                "2f_view.png: oval table with chairs"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: divider between the two meeting rooms, north half only",
+              "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately"
+            ],
+            "x": [
+              7.510838,
+              15.0
+            ],
+            "y": [
+              0.0,
+              2.994595
+            ]
+          },
+          {
+            "id": "F2:CORR2",
+            "polygon": [
+              [
+                0.0,
+                2.994595
+              ],
+              [
+                15.0,
+                2.994595
+              ],
+              [
+                15.0,
+                5.005405
+              ],
+              [
+                0.0,
+                5.005405
+              ]
+            ],
+            "role": "corridor",
+            "role_evidence": {
+              "assumptions": [],
+              "basis": "observed",
+              "role": "corridor",
+              "source_refs": [
+                "2f_view.png: central corridor between meeting rooms and offices"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: north corridor wall (meeting rooms to corridor), full width, doors declared separately",
+              "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              15.0
+            ],
+            "y": [
+              2.994595,
+              5.005405
+            ]
+          },
+          {
+            "id": "F2:O1",
+            "polygon": [
+              [
+                0.0,
+                5.005405
+              ],
+              [
+                3.75,
+                5.005405
+              ],
+              [
+                3.75,
+                8.0
+              ],
+              [
+                0.0,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Desk plus cabinet furniture typical of small office"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "2f_view.png: desk and cabinet"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: divider between south office1/office2",
+              "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              3.75
+            ],
+            "y": [
+              5.005405,
+              8.0
+            ]
+          },
+          {
+            "id": "F2:O2",
+            "polygon": [
+              [
+                3.75,
+                5.005405
+              ],
+              [
+                7.510838,
+                5.005405
+              ],
+              [
+                7.510838,
+                8.0
+              ],
+              [
+                3.75,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Desk plus cabinet furniture typical of small office"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "2f_view.png: desk and cabinet"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: divider between south office1/office2",
+              "2f_view.png: divider between south office2/office3, aligned with main structural divider above",
+              "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+            ],
+            "x": [
+              3.75,
+              7.510838
+            ],
+            "y": [
+              5.005405,
+              8.0
+            ]
+          },
+          {
+            "id": "F2:O3",
+            "polygon": [
+              [
+                7.510838,
+                5.005405
+              ],
+              [
+                11.25,
+                5.005405
+              ],
+              [
+                11.25,
+                8.0
+              ],
+              [
+                7.510838,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Desk plus cabinet furniture typical of small office"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "2f_view.png: desk and cabinet"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: divider between south office2/office3, aligned with main structural divider above",
+              "2f_view.png: divider between south office3/office4",
+              "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+            ],
+            "x": [
+              7.510838,
+              11.25
+            ],
+            "y": [
+              5.005405,
+              8.0
+            ]
+          },
+          {
+            "id": "F2:O4",
+            "polygon": [
+              [
+                11.25,
+                5.005405
+              ],
+              [
+                15.0,
+                5.005405
+              ],
+              [
+                15.0,
+                8.0
+              ],
+              [
+                11.25,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "role_evidence": {
+              "assumptions": [
+                "Desk plus cabinet furniture typical of small office"
+              ],
+              "basis": "inferred",
+              "role": "office",
+              "source_refs": [
+                "2f_view.png: desk and cabinet"
+              ]
+            },
+            "source_refs": [
+              "image:2f_view.png",
+              "2f_view.png: divider between south office3/office4",
+              "2f_view.png: south corridor wall (corridor to offices), full width, doors declared separately"
+            ],
+            "x": [
+              11.25,
+              15.0
+            ],
+            "y": [
+              5.005405,
+              8.0
+            ]
+          }
+        ],
+        "footprint": {
+          "vertices": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ]
+        },
+        "name": "F2",
+        "z_floor": 3.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      15.0
+    ],
+    "footprint_y": [
+      0.0,
+      8.0
+    ],
+    "notes": "Deterministic assembly of explicit single-floor plan proposals.\nFloor 'F1' from 'F1'; source_ref='Ground floor; z=0 datum established from North/South/East/West elevation overall height chain (6600mm total = 3000mm F1 + 3600mm F2).'; source z_floor=0.0, target z_floor=0.0; note='Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.'\nFloor 'F2' from 'F2'; source_ref=\"Upper floor base at z=3.0m matching the elevation's 3000mm (1F) height; draft already declares absolute z_floor=3.0 and absolute opening z values, so no additional shift is applied.\"; source z_floor=3.0, target z_floor=3.0; note='Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.'",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "F1:D_S_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.539568,
+          8.0
+        ],
+        "p2": [
+          1.435252,
+          8.0
+        ],
+        "source_refs": [
+          "1f_view.png south wall entrance door width 540/900 dimension; South_view.png door head/sill 900+1200 from division -> head2.1 sill0"
+        ],
+        "space_id": "F1:S1",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "F1:D_W_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          3.399188
+        ],
+        "p2": [
+          0.0,
+          4.600812
+        ],
+        "source_refs": [
+          "1f_view.png west wall door opening into corridor; West_view.png elevation shows double-leaf door width 1200mm centered 3400/1200/3400, head2.1 sill0 from 900+1500+600 chain (900+600=1500... actually 3000-900=2100 head, sill0)"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width/position approximated from visible arc/frame near x=4.0-4.9m; standard 2.1m head height assumed, not separately dimensioned"
+        ],
+        "id": "F1:D_N1",
+        "kind": "door",
+        "other_space_id": "F1:N1",
+        "p1": [
+          4.003597,
+          3.128552
+        ],
+        "p2": [
+          4.899281,
+          3.128552
+        ],
+        "source_refs": [
+          "1f_view.png door arc from bay1(N) into corridor near partition1"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated from visible frame near x=5.1-6.2m"
+        ],
+        "id": "F1:D_N2",
+        "kind": "door",
+        "other_space_id": "F1:N2",
+        "p1": [
+          5.104317,
+          3.128552
+        ],
+        "p2": [
+          6.205036,
+          3.128552
+        ],
+        "source_refs": [
+          "1f_view.png door from bay2(N) into corridor near partition1"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated near x=10.06-10.96m"
+        ],
+        "id": "F1:D_N3",
+        "kind": "door",
+        "other_space_id": "F1:N3",
+        "p1": [
+          10.057554,
+          3.128552
+        ],
+        "p2": [
+          10.964029,
+          3.128552
+        ],
+        "source_refs": [
+          "1f_view.png door from bay3(N) into corridor near partition2"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated, mirrored from north side pattern"
+        ],
+        "id": "F1:D_S1",
+        "kind": "door",
+        "other_space_id": "F1:S1",
+        "p1": [
+          4.003597,
+          4.871448
+        ],
+        "p2": [
+          4.899281,
+          4.871448
+        ],
+        "source_refs": [
+          "1f_view.png door from bay1(S) into corridor near partition1"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "F1:D_S2",
+        "kind": "door",
+        "other_space_id": "F1:S2",
+        "p1": [
+          5.104317,
+          4.871448
+        ],
+        "p2": [
+          6.205036,
+          4.871448
+        ],
+        "source_refs": [
+          "1f_view.png door from bay2(S) into corridor near partition1"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "F1:D_S3",
+        "kind": "door",
+        "other_space_id": "F1:S3",
+        "p1": [
+          10.057554,
+          4.871448
+        ],
+        "p2": [
+          10.964029,
+          4.871448
+        ],
+        "source_refs": [
+          "1f_view.png door from bay3(S) into corridor near partition2"
+        ],
+        "space_id": "F1:CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact width approximated from visible arc; interior door head height assumed 2.1m, not separately dimensioned"
+        ],
+        "id": "F2:D_R1",
+        "kind": "door",
+        "other_space_id": "F2:MR1",
+        "p1": [
+          6.600434,
+          2.994595
+        ],
+        "p2": [
+          7.510838,
+          2.994595
+        ],
+        "source_refs": [
+          "2f_view.png door arc from meeting room1 into corridor, hinge near central divider"
+        ],
+        "space_id": "F2:CORR2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact width approximated"
+        ],
+        "id": "F2:D_R2",
+        "kind": "door",
+        "other_space_id": "F2:MR2",
+        "p1": [
+          7.510838,
+          2.994595
+        ],
+        "p2": [
+          8.399566,
+          2.994595
+        ],
+        "source_refs": [
+          "2f_view.png door arc from meeting room2 into corridor, hinge near central divider"
+        ],
+        "space_id": "F2:CORR2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated centered in bay"
+        ],
+        "id": "F2:D_O1",
+        "kind": "door",
+        "other_space_id": "F2:O1",
+        "p1": [
+          1.398121,
+          5.005405
+        ],
+        "p2": [
+          2.297688,
+          5.005405
+        ],
+        "source_refs": [
+          "2f_view.png door arc, office1 into corridor"
+        ],
+        "space_id": "F2:CORR2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "F2:D_O2",
+        "kind": "door",
+        "other_space_id": "F2:O2",
+        "p1": [
+          5.148121,
+          5.005405
+        ],
+        "p2": [
+          6.047688,
+          5.005405
+        ],
+        "source_refs": [
+          "2f_view.png door arc, office2 into corridor"
+        ],
+        "space_id": "F2:CORR2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "F2:D_O3",
+        "kind": "door",
+        "other_space_id": "F2:O3",
+        "p1": [
+          8.898121,
+          5.005405
+        ],
+        "p2": [
+          9.797688,
+          5.005405
+        ],
+        "source_refs": [
+          "2f_view.png door arc, office3 into corridor"
+        ],
+        "space_id": "F2:CORR2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "F2:D_O4",
+        "kind": "door",
+        "other_space_id": "F2:O4",
+        "p1": [
+          12.65896,
+          5.005405
+        ],
+        "p2": [
+          13.558526,
+          5.005405
+        ],
+        "source_refs": [
+          "2f_view.png door arc, office4 into corridor"
+        ],
+        "space_id": "F2:CORR2",
+        "state": "unknown",
+        "z": [
+          3.0,
+          5.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "F1:W_N1",
+        "kind": "window",
+        "p1": [
+          1.348921,
+          0.0
+        ],
+        "p2": [
+          3.636691,
+          0.0
+        ],
+        "room": "F1:N1",
+        "source_refs": [
+          "1f_view.png north wall bay1 window; height family from North_view.png elevation lower-zone dimension chain 400/1600/1000 -> sill1.0 head2.6"
+        ],
+        "span": [
+          1.348921,
+          3.636691
+        ],
+        "width_m": 2.28777,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "F1:W_N2",
+        "kind": "window",
+        "p1": [
+          6.302158,
+          0.0
+        ],
+        "p2": [
+          8.697842,
+          0.0
+        ],
+        "room": "F1:N2",
+        "source_refs": [
+          "1f_view.png north wall bay2 window"
+        ],
+        "span": [
+          6.302158,
+          8.697842
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "F1:W_N3",
+        "kind": "window",
+        "p1": [
+          11.363309,
+          0.0
+        ],
+        "p2": [
+          13.758993,
+          0.0
+        ],
+        "room": "F1:N3",
+        "source_refs": [
+          "1f_view.png north wall bay3 window"
+        ],
+        "span": [
+          11.363309,
+          13.758993
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_S_small",
+        "kind": "window",
+        "p1": [
+          4.640288,
+          8.0
+        ],
+        "p2": [
+          4.996403,
+          8.0
+        ],
+        "room": "F1:S1",
+        "source_refs": [
+          "1f_view.png small south window (360mm) near bay1; South_view.png shows 600mm tall window between 1500-2100 head/sill exactly matching pixel span of this symbol"
+        ],
+        "span": [
+          4.640288,
+          4.996403
+        ],
+        "width_m": 0.356115,
+        "z": [
+          1.5,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_S2",
+        "kind": "window",
+        "p1": [
+          6.302158,
+          8.0
+        ],
+        "p2": [
+          8.697842,
+          8.0
+        ],
+        "room": "F1:S2",
+        "source_refs": [
+          "1f_view.png south wall bay2 window, same family as north"
+        ],
+        "span": [
+          6.302158,
+          8.697842
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "F1:W_S3",
+        "kind": "window",
+        "p1": [
+          11.363309,
+          8.0
+        ],
+        "p2": [
+          13.758993,
+          8.0
+        ],
+        "room": "F1:S3",
+        "source_refs": [
+          "1f_view.png south wall bay3 window"
+        ],
+        "span": [
+          11.363309,
+          13.758993
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [
+          "East 1F window height assumed to match North/South 1F window family (sill1.0/head2.6); not independently confirmed from a dedicated East elevation dimension chain reading"
+        ],
+        "facade": "East",
+        "floor": "F1",
+        "id": "F1:W_E1",
+        "kind": "window",
+        "p1": [
+          15.0,
+          3.399188
+        ],
+        "p2": [
+          15.0,
+          4.600812
+        ],
+        "room": "F1:CORR",
+        "source_refs": [
+          "1f_view.png east wall window at y=3.4-4.6m; East_view.png elevation shows 1200mm window centered 3400/1200/3400; height family assumed same as other 1F windows (unverified independently for East facade)"
+        ],
+        "span": [
+          3.399188,
+          4.600812
+        ],
+        "width_m": 1.201624,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F2",
+        "id": "F2:NW1",
+        "kind": "window",
+        "p1": [
+          1.961705,
+          0.0
+        ],
+        "p2": [
+          5.549133,
+          0.0
+        ],
+        "room": "F2:MR1",
+        "source_refs": [
+          "2f_view.png meeting room1 north window, 1950/3600/1889 chain; North_view.png upper-zone 800/1800/1000 -> sill4.0 head5.8"
+        ],
+        "span": [
+          1.961705,
+          5.549133
+        ],
+        "width_m": 3.587428,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F2",
+        "id": "F2:NW2",
+        "kind": "window",
+        "p1": [
+          9.450867,
+          0.0
+        ],
+        "p2": [
+          13.059971,
+          0.0
+        ],
+        "room": "F2:MR2",
+        "source_refs": [
+          "2f_view.png meeting room2 north window"
+        ],
+        "span": [
+          9.450867,
+          13.059971
+        ],
+        "width_m": 3.609104,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F2",
+        "id": "F2:EW1",
+        "kind": "window",
+        "p1": [
+          15.0,
+          3.405405
+        ],
+        "p2": [
+          15.0,
+          4.605405
+        ],
+        "room": "F2:CORR2",
+        "source_refs": [
+          "2f_view.png east wall window y=3.4-4.6m; East_view.png upper-zone 3400/1200/3400 chain, sill4.0/head5.8 from 800/1800/1000"
+        ],
+        "span": [
+          3.405405,
+          4.605405
+        ],
+        "width_m": 1.2,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F2",
+        "id": "F2:WW1",
+        "kind": "window",
+        "p1": [
+          0.0,
+          3.405405
+        ],
+        "p2": [
+          0.0,
+          4.605405
+        ],
+        "room": "F2:CORR2",
+        "source_refs": [
+          "2f_view.png west wall window y=3.4-4.6m; West_view.png upper-zone matching chain"
+        ],
+        "span": [
+          3.405405,
+          4.605405
+        ],
+        "width_m": 1.2,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:SW1a",
+        "kind": "window",
+        "p1": [
+          1.961705,
+          8.0
+        ],
+        "p2": [
+          3.75,
+          8.0
+        ],
+        "room": "F2:O1",
+        "source_refs": [
+          "2f_view.png south wall office1 portion of window band, split at office1/office2 divider"
+        ],
+        "span": [
+          1.961705,
+          3.75
+        ],
+        "width_m": 1.788295,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:SW1b",
+        "kind": "window",
+        "p1": [
+          3.75,
+          8.0
+        ],
+        "p2": [
+          5.549133,
+          8.0
+        ],
+        "room": "F2:O2",
+        "source_refs": [
+          "2f_view.png south wall office2 portion of window band, split at office1/office2 divider"
+        ],
+        "span": [
+          3.75,
+          5.549133
+        ],
+        "width_m": 1.799133,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:SW2a",
+        "kind": "window",
+        "p1": [
+          9.450867,
+          8.0
+        ],
+        "p2": [
+          11.25,
+          8.0
+        ],
+        "room": "F2:O3",
+        "source_refs": [
+          "2f_view.png south wall office3 portion of window band, split at office3/office4 divider"
+        ],
+        "span": [
+          9.450867,
+          11.25
+        ],
+        "width_m": 1.799133,
+        "z": [
+          4.0,
+          5.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F2",
+        "id": "F2:SW2b",
+        "kind": "window",
+        "p1": [
+          11.25,
+          8.0
+        ],
+        "p2": [
+          13.059971,
+          8.0
+        ],
+        "room": "F2:O4",
+        "source_refs": [
+          "2f_view.png south wall office4 portion of window band, split at office3/office4 divider"
+        ],
+        "span": [
+          11.25,
+          13.059971
+        ],
+        "width_m": 1.809971,
+        "z": [
+          4.0,
+          5.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact interior door widths at each office-corridor junction are approximate; original arcs partially overlap adjacent partitions and were not individually pixel-measured to sub-100mm precision.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact correspondence between the 4 south-row offices and the 2 large south-facade windows is not fully resolved from the drawing; offices 2 and 3 may each receive only a partial share of a window rather than each office having its own dedicated window.",
+    "Interior door exact widths/positions at office/meeting-room to corridor junctions are approximate.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

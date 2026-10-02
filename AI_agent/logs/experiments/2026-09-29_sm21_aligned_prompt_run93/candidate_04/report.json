@@ -1,0 +1,71 @@
+{
+  "agent_assumptions": [
+    "Interior corridor door widths/positions approximated (~900mm) from swing-arc pixel evidence; exact jamb pixels not individually re-measured.",
+    "Interior door heights (all corridor doors, west entrance, south exterior door) assumed 2.1m; no elevation dimension found for these.",
+    "South small window (W_S1) assumed same 1.0/2.6 sill/head family as other 1F windows.",
+    "Corridor walls modelled as zero-thickness centerlines at y=3.0/5.0, absorbing the drawn 250mm wall thickness on each side into the corridor space rather than the flanking rooms.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior corridor door widths/positions approximated (~900mm) from swing-arc pixel evidence, mirrored where the far side was not individually re-measured.",
+    "Interior door heights assumed 2.1m leaf (z 3.0-5.1 absolute); no elevation dimension found for these.",
+    "Corridor walls modelled as zero-thickness centerlines at y=3.0/5.0 (world), absorbing drawn wall thickness into the corridor space, consistent with F1.",
+    "West 2F window and East 1F/2F window heights assumed to follow the same North/South-derived sill1.0/head1.8(2F) or sill1.0/head1.6(1F) family; no explicit East/West elevation height dimension chain was separately transcribed.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "5aa5815a0dec3cdf53bb0c38c7ebb4efb2cd5842b3cfbc271637f875411aa607",
+  "provenance": {
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "6f462aceca74fb7b25b517ec8c56644e309098e1591a3a70a41c8e81f10d1481",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_002.json",
+      "sha256": "dd489d41108844d525d96868cdabfdc87bf547dae9ff0f66fe395d10734ee3d8"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "9e980d64ba1f8c8bc9495b75a0903bdd24adca464829728cbc74934989e7e84d",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exact south room1 furniture (L-shaped counter + small square) not identified as a specific fixture; role left as unknown.",
+    "Precise interior door leaf widths not individually verified against arc endpoints for every door.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact south-office door leaf widths not individually re-measured for every door; positions approximated from visible arc clusters and mirrored symmetry.",
+    "Whether the single x=7.5m partition load-bears through both floors and the ground was not verified beyond plan evidence.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

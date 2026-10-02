@@ -1,0 +1,151 @@
+{
+  "name": "1f_view.png",
+  "profile_id": "profile_004",
+  "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+  "axis": "x",
+  "box_original_pixels": [
+    1300,
+    400,
+    1500,
+    410
+  ],
+  "rgb": [
+    200,
+    200,
+    200
+  ],
+  "tolerance": 80.0,
+  "min_fraction": 0.1,
+  "minimum_count": 1,
+  "support_length": 10,
+  "matching_pixels": 0,
+  "candidates": [],
+  "threshold_excluded_support": {
+    "coordinate_count": 0,
+    "matching_pixels": 0,
+    "minimum_count": 1,
+    "support_length": 10,
+    "intervals": [],
+    "note": "These coordinates contain matching ink but are below min_fraction; they are not empty background. Intervals use inclusive original pixels. Counts do not prove the same stroke continues between rows/columns. Compare the clean crop and cross-axis support, or choose a narrower crop or lower threshold after inspecting the original. No wall, opening or candidate is inferred; existing candidate IDs are unchanged."
+  },
+  "cross_axis_profile": {
+    "axis": "y",
+    "min_fraction": 0.1,
+    "minimum_count": 20,
+    "support_length": 200,
+    "runs": [],
+    "threshold_excluded_support": {
+      "coordinate_count": 0,
+      "matching_pixels": 0,
+      "minimum_count": 20,
+      "support_length": 200,
+      "intervals": [],
+      "note": "These coordinates contain matching ink but are below min_fraction; they are not empty background. Intervals use inclusive original pixels. Counts do not prove the same stroke continues between rows/columns. Compare the clean crop and cross-axis support, or choose a narrower crop or lower threshold after inspecting the original. No wall, opening or candidate is inferred; existing candidate IDs are unchanged."
+    },
+    "note": "Same exact mask and fraction, measured along the other axis. Compare long traces with local junction peaks; neither is a wall label. For bindable C IDs on this axis, request a profile using this axis."
+  },
+  "crop_context": {
+    "edge_support_intervals": {
+      "left": [],
+      "right": [],
+      "top": [],
+      "bottom": []
+    },
+    "suggested_view_box": [
+      1268,
+      368,
+      1532,
+      442
+    ],
+    "note": "Edge intervals are matching pixels on the crop border (right/bottom are exclusive box limits, so samples are at right-1/bottom-1). A crop edge is not an object endpoint. The suggested box is only an initial 32px context expansion; inspect further as needed to establish both endpoints and adjoining space boundaries. No continuation is inferred."
+  },
+  "profile_image": "pixel_profiles/profile_004.png",
+  "profile_record": "pixel_profiles/profile_004.json",
+  "profile_image_sha256": "0b262bceb8006d09e20c6536bdf84ab82de7d636f903ab04c9c4fad5ee030d7a",
+  "panel_layout": {
+    "original_crop_combined_pixels": [
+      0,
+      0,
+      200,
+      10
+    ],
+    "mask_panel_combined_pixels": [
+      203,
+      0,
+      403,
+      10
+    ],
+    "separator_width": 3
+  },
+  "panel_note": "Left is the untouched original crop. Right is an exact color-distance mask: magenta outlines candidate bands; blue marks only actual support at the peak coordinate. Marks are coordinate references, not entities. Right-panel local coordinates correspond to the same original crop after removing its combined-image offset.",
+  "evidence_note": "Support intervals are measured only at each candidate peak. They do not prove a whole band is continuous or identify a wall. Filtered or empty results do not prove an object is absent.",
+  "remaining_seconds": 2692,
+  "empty_filter_diagnostics": {
+    "reason": "no_pixels_match_requested_color",
+    "nearest_observed_color": {
+      "rgb": [
+        126,
+        126,
+        126
+      ],
+      "distance": 128.17176,
+      "pixel_count": 10
+    },
+    "frequent_observed_colors": [
+      {
+        "rgb": [
+          0,
+          0,
+          0
+        ],
+        "pixel_count": 1960
+      },
+      {
+        "rgb": [
+          79,
+          79,
+          79
+        ],
+        "pixel_count": 10
+      },
+      {
+        "rgb": [
+          96,
+          96,
+          96
+        ],
+        "pixel_count": 10
+      },
+      {
+        "rgb": [
+          108,
+          108,
+          108
+        ],
+        "pixel_count": 10
+      },
+      {
+        "rgb": [
+          126,
+          126,
+          126
+        ],
+        "pixel_count": 10
+      }
+    ],
+    "total_crop_pixels": 2000,
+    "maximum_support_count": 0,
+    "maximum_support_fraction": 0.0,
+    "minimum_count": 1,
+    "interpretation": "These are exact crop colours and filter support, not object labels. Reinspect the original and choose a suitable RGB/axis/threshold if needed. An empty filter does not establish a missing wall or an open connection."
+  },
+  "returned_size": [
+    403,
+    10
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.0,
+    1.0
+  ],
+  "display_note": "For a returned-image point (rx, ry), first multiply by original_pixels_per_returned_pixel to obtain full combined-image coordinates (fx, fy). On the left, original image coordinates are (box_left + fx, box_top + fy). On the right, subtract mask_panel_combined_pixels[0] from fx before adding box_left. Prefer candidates and support intervals, which already use original-image coordinates."
+}

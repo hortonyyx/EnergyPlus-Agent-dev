@@ -1,0 +1,132 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_03",
+    "objects": [
+      {
+        "id": "F2:W_E_corridor",
+        "kind": "window"
+      },
+      {
+        "id": "F2:W_W_corridor",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Second-floor corridor-end windows. East_view.png and West_view.png upper chains both read 1000 (sill above 2F floor z=3.0) + 1800 (window) + 800 (to roof z=6.6). Segment 1 from origin z=3.0 gives absolute z=[4.0,5.8]. Matches the declared z of both corridor-end windows.",
+    "sources": [
+      {
+        "box": null,
+        "image": "East_view.png"
+      },
+      {
+        "box": null,
+        "image": "West_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "z": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 6.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 5.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 4.0
+          },
+          {
+            "end_m": 6.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 5.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0006",
+  "parent_proposal_sha256": "259e8e3bb98bfa59cb1f883aa691f5c9b5684d295f8a56abf06cf33dc203b50a",
+  "resolved_values": {
+    "z": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        945,
+        741
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ]
+    },
+    {
+      "box": [
+        0,
+        0,
+        1077,
+        773
+      ],
+      "image": "West_view.png",
+      "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+      "size": [
+        1077,
+        773
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

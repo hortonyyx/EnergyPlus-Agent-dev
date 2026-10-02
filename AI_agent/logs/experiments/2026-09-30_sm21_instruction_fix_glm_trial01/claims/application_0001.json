@@ -1,0 +1,1013 @@
+{
+  "id": "application_0001",
+  "parent_candidate": "candidate_03",
+  "submitted_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_S_entrance",
+      "changes": {
+        "z": {
+          "claim": "claim_0007",
+          "value": "z"
+        }
+      },
+      "reason": "Apply the door head measured on South_view.png (drawn frame top y=448 against ground y=569 and storey line y=396, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm",
+      "source_refs": [
+        "image:South_view.png: entrance door frame at x 344-395, ground line y=569, storey line y=396",
+        "profile:profile_001"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_W_entrance",
+      "changes": {
+        "z": {
+          "claim": "claim_0008",
+          "value": "z"
+        }
+      },
+      "reason": "Apply the door head measured on West_view.png (drawn frame top y=440 against ground y=561 and storey line y=388, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm",
+      "source_refs": [
+        "image:West_view.png: entrance door frame at x 566-652, ground line y=561, storey line y=388",
+        "profile:profile_002"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_corridor",
+      "role": "corridor",
+      "basis": "inferred",
+      "assumptions": [
+        "Long continuous space between the two room rows with doors from every room and entrances at both ends; no furniture drawn in it"
+      ],
+      "reason": "Layout and connectivity identify a circulation corridor; no printed use label exists on the plan",
+      "source_refs": [
+        "image:1f_view.png: continuous furniture-free strip between corridor wall lines y=623-810 with 7 doors onto it"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NW",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs facing the north window"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the north-west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NM",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the north-middle room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NE",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the north-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SW",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks; also hosts the south entrance door"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office despite the secondary entrance; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks drawn inside the south-west room, south entrance door D_S_entrance on its south wall"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SM",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the south-middle room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SE",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: square table with four chairs around it, unlike the desks elsewhere"
+      ],
+      "reason": "Table-and-chairs furniture reads as a small meeting room; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: 4-seat square table drawn inside the south-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_meet_W",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: large oval conference table with about ten chairs"
+      ],
+      "reason": "Conference-table furniture reads as a meeting room; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: oval conference table with ~10 chairs in the north-west second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_meet_E",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: large oval conference table with about ten chairs"
+      ],
+      "reason": "Conference-table furniture reads as a meeting room; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: oval conference table with ~10 chairs in the north-east second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_A",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in south-west second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_B",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in the second bottom-row room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_C",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in the third bottom-row room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_D",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in south-east second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_corridor",
+      "role": "corridor",
+      "basis": "inferred",
+      "assumptions": [
+        "Long continuous space between the two room rows with doors from every room and windows at both ends; no furniture drawn in it"
+      ],
+      "reason": "Layout and connectivity identify a circulation corridor; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: continuous furniture-free strip between corridor wall lines y=601-795 with 6 doors onto it"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.",
+      "replacement": [],
+      "reason": "Duplicate of the identical assumption already saved for the 1F draft; both floors use the same orientation convention"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior partitions declared on the midplane of their drawn line pairs.",
+      "replacement": [],
+      "reason": "Duplicate of the 1F assumption which already states the midplane convention (with the corridor-wall caveat)"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+      "replacement": [],
+      "reason": "Duplicate of the identical compiler note already saved from the 1F draft"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.",
+      "replacement": [
+        "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1:D_C1-D_C6, F2:D_A-D_D, F2:D_M1-D_M2). Entrance door heights were measured on the elevations and applied via claim_0007 (south) and claim_0008 (west)."
+      ],
+      "reason": "Entrance door heights are no longer assumptions: they were measured on South_view.png and West_view.png and applied from claims"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.",
+      "replacement": [],
+      "reason": "Covered by the consolidated 1F assumption about interior door heights"
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+      "replacement": [],
+      "reason": "Duplicate note from the two separate floor drafts; the identical calibration caveat is already saved once"
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.",
+      "replacement": [
+        "2F divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its exact position carries about +/-10 px (~110 mm) uncertainty. The compiled draft shows no drawing_differences there."
+      ],
+      "reason": "State the residual uncertainty and that the draft compiled without differences at this divider"
+    }
+  ],
+  "claim_ids": [
+    "claim_0007",
+    "claim_0008"
+  ],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "259e8e3bb98bfa59cb1f883aa691f5c9b5684d295f8a56abf06cf33dc203b50a",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:D_S_entrance"
+          ]
+        ],
+        "claim_id": "claim_0007",
+        "value_field": "z",
+        "resolved_value": [
+          0.0,
+          2.098265896
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            569,
+            396,
+            569,
+            448
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.017341040462427744,
+          "measurement_bindings": [
+            {
+              "slot": "pixels[2]",
+              "reference": {
+                "at": "peak",
+                "candidate": "C06",
+                "profile": "profile_001"
+              },
+              "resolved_pixel": 569,
+              "profile_sha256": "9d2e6dc56460c2ea3cbdab07e087ec513d6207bdfb48ea2868b9d3e56261cbf5",
+              "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "image": "South_view.png",
+              "axis": "y",
+              "candidate": {
+                "id": "C06",
+                "pixels": [
+                  569,
+                  569
+                ],
+                "peak": 569,
+                "selected_at": "peak"
+              }
+            },
+            {
+              "slot": "pixels[3]",
+              "reference": {
+                "at": "peak",
+                "candidate": "C01",
+                "profile": "profile_001"
+              },
+              "resolved_pixel": 448,
+              "profile_sha256": "9d2e6dc56460c2ea3cbdab07e087ec513d6207bdfb48ea2868b9d3e56261cbf5",
+              "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "image": "South_view.png",
+              "axis": "y",
+              "candidate": {
+                "id": "C01",
+                "pixels": [
+                  448,
+                  450
+                ],
+                "peak": 448,
+                "selected_at": "peak"
+              }
+            }
+          ],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      },
+      {
+        "operation_index": 1,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "F1:D_W_entrance"
+          ]
+        ],
+        "claim_id": "claim_0008",
+        "value_field": "z",
+        "resolved_value": [
+          0.0,
+          2.098265896
+        ],
+        "computation": {
+          "method": "image_axis",
+          "axis": "y",
+          "pixels": [
+            561,
+            388,
+            561,
+            440
+          ],
+          "metre_anchors": [
+            0.0,
+            3.0
+          ],
+          "metres_per_pixel": -0.017341040462427744,
+          "measurement_bindings": [
+            {
+              "slot": "pixels[2]",
+              "reference": {
+                "at": "peak",
+                "candidate": "C06",
+                "profile": "profile_002"
+              },
+              "resolved_pixel": 561,
+              "profile_sha256": "ddf475e9b00ad5634f0eccea127ff9ece933ed9a58219ebeaa47821026feb3f7",
+              "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "image": "West_view.png",
+              "axis": "y",
+              "candidate": {
+                "id": "C06",
+                "pixels": [
+                  561,
+                  561
+                ],
+                "peak": 561,
+                "selected_at": "peak"
+              }
+            },
+            {
+              "slot": "pixels[3]",
+              "reference": {
+                "at": "peak",
+                "candidate": "C01",
+                "profile": "profile_002"
+              },
+              "resolved_pixel": 440,
+              "profile_sha256": "ddf475e9b00ad5634f0eccea127ff9ece933ed9a58219ebeaa47821026feb3f7",
+              "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "image": "West_view.png",
+              "axis": "y",
+              "candidate": {
+                "id": "C01",
+                "pixels": [
+                  440,
+                  442
+                ],
+                "peak": 440,
+                "selected_at": "peak"
+              }
+            }
+          ],
+          "calibration": "caller_interpreted_not_verified"
+        }
+      }
+    ],
+    "claims": {
+      "claim_0007": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_03",
+            "objects": [
+              {
+                "id": "F1:D_S_entrance",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "South entrance door height measured on South_view.png. Grey building outline runs: ground line at pixel y=569 and 1F storey line at y=396 (profile_003 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_001): top run C01 peak y=448, bottom run C06 peak y=569. image_axis maps y=569 to z=0 and y=396 to z=3.0; the two door pixels return the ordered interval z=[0,2.098], i.e. the drawn 2100 door head. Matches the declared z=[0,2.1].",
+            "sources": [
+              {
+                "box": null,
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [
+              "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+            ],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    569,
+                    0
+                  ],
+                  [
+                    396,
+                    3.0
+                  ]
+                ],
+                "axis": "y",
+                "image": "South_view.png",
+                "pixels": [
+                  {
+                    "at": "peak",
+                    "candidate": "C06",
+                    "profile": "profile_001"
+                  },
+                  {
+                    "at": "peak",
+                    "candidate": "C01",
+                    "profile": "profile_001"
+                  }
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [
+                {
+                  "axis": "y",
+                  "candidate": {
+                    "id": "C06",
+                    "peak": 569,
+                    "pixels": [
+                      569,
+                      569
+                    ],
+                    "selected_at": "peak"
+                  },
+                  "image": "South_view.png",
+                  "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "profile_sha256": "9d2e6dc56460c2ea3cbdab07e087ec513d6207bdfb48ea2868b9d3e56261cbf5",
+                  "reference": {
+                    "at": "peak",
+                    "candidate": "C06",
+                    "profile": "profile_001"
+                  },
+                  "resolved_pixel": 569,
+                  "slot": "pixels[2]"
+                },
+                {
+                  "axis": "y",
+                  "candidate": {
+                    "id": "C01",
+                    "peak": 448,
+                    "pixels": [
+                      448,
+                      450
+                    ],
+                    "selected_at": "peak"
+                  },
+                  "image": "South_view.png",
+                  "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+                  "profile_sha256": "9d2e6dc56460c2ea3cbdab07e087ec513d6207bdfb48ea2868b9d3e56261cbf5",
+                  "reference": {
+                    "at": "peak",
+                    "candidate": "C01",
+                    "profile": "profile_001"
+                  },
+                  "resolved_pixel": 448,
+                  "slot": "pixels[3]"
+                }
+              ],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                3.0
+              ],
+              "metres_per_pixel": -0.017341040462427744,
+              "pixels": [
+                569,
+                396,
+                569,
+                448
+              ]
+            }
+          },
+          "id": "claim_0007",
+          "parent_proposal_sha256": "259e8e3bb98bfa59cb1f883aa691f5c9b5684d295f8a56abf06cf33dc203b50a",
+          "resolved_values": {
+            "z": [
+              0.0,
+              2.098265896
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                0,
+                0,
+                1423,
+                794
+              ],
+              "image": "South_view.png",
+              "sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+              "size": [
+                1423,
+                794
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0007",
+          "disposition": "adopted",
+          "id": "decision_0007",
+          "reason": "Measured door frame on the south elevation gives z=[0,2.098]≈[0,2.1]; matches declared z."
+        }
+      },
+      "claim_0008": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_03",
+            "objects": [
+              {
+                "id": "F1:D_W_entrance",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "candidate_review",
+            "reason": "West entrance door height measured on West_view.png. Grey building outline runs: ground line at pixel y=561 and 1F storey line at y=388 (profile_004 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_002): top run C01 peak y=440, bottom run C06 peak y=561. image_axis maps y=561 to z=0 and y=388 to z=3.0; the two door pixels return the ordered interval z=[0,2.098], i.e. the drawn 2100 door head. Matches the declared z=[0,2.1]. Width conflict: the plan chain gives 1500 mm (3250-4750) while this elevation's horizontal chain gives 1200 mm (3400-4600); the plan chain width was adopted in the BIM and the conflict is recorded in the candidate's unresolved notes.",
+            "sources": [
+              {
+                "box": null,
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [
+              "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+            ],
+            "value_targets": null,
+            "values": {
+              "z": {
+                "anchors": [
+                  [
+                    561,
+                    0
+                  ],
+                  [
+                    388,
+                    3.0
+                  ]
+                ],
+                "axis": "y",
+                "image": "West_view.png",
+                "pixels": [
+                  {
+                    "at": "peak",
+                    "candidate": "C06",
+                    "profile": "profile_002"
+                  },
+                  {
+                    "at": "peak",
+                    "candidate": "C01",
+                    "profile": "profile_002"
+                  }
+                ],
+                "reduction": null,
+                "type": "image_axis"
+              }
+            }
+          },
+          "computations": {
+            "z": {
+              "axis": "y",
+              "calibration": "caller_interpreted_not_verified",
+              "measurement_bindings": [
+                {
+                  "axis": "y",
+                  "candidate": {
+                    "id": "C06",
+                    "peak": 561,
+                    "pixels": [
+                      561,
+                      561
+                    ],
+                    "selected_at": "peak"
+                  },
+                  "image": "West_view.png",
+                  "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                  "profile_sha256": "ddf475e9b00ad5634f0eccea127ff9ece933ed9a58219ebeaa47821026feb3f7",
+                  "reference": {
+                    "at": "peak",
+                    "candidate": "C06",
+                    "profile": "profile_002"
+                  },
+                  "resolved_pixel": 561,
+                  "slot": "pixels[2]"
+                },
+                {
+                  "axis": "y",
+                  "candidate": {
+                    "id": "C01",
+                    "peak": 440,
+                    "pixels": [
+                      440,
+                      442
+                    ],
+                    "selected_at": "peak"
+                  },
+                  "image": "West_view.png",
+                  "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+                  "profile_sha256": "ddf475e9b00ad5634f0eccea127ff9ece933ed9a58219ebeaa47821026feb3f7",
+                  "reference": {
+                    "at": "peak",
+                    "candidate": "C01",
+                    "profile": "profile_002"
+                  },
+                  "resolved_pixel": 440,
+                  "slot": "pixels[3]"
+                }
+              ],
+              "method": "image_axis",
+              "metre_anchors": [
+                0.0,
+                3.0
+              ],
+              "metres_per_pixel": -0.017341040462427744,
+              "pixels": [
+                561,
+                388,
+                561,
+                440
+              ]
+            }
+          },
+          "id": "claim_0008",
+          "parent_proposal_sha256": "259e8e3bb98bfa59cb1f883aa691f5c9b5684d295f8a56abf06cf33dc203b50a",
+          "resolved_values": {
+            "z": [
+              0.0,
+              2.098265896
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                0,
+                0,
+                1077,
+                773
+              ],
+              "image": "West_view.png",
+              "sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+              "size": [
+                1077,
+                773
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0008",
+          "disposition": "adopted",
+          "id": "decision_0008",
+          "reason": "Measured door frame on the west elevation gives z=[0,2.098]≈[0,2.1]; matches declared z."
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_S_entrance",
+      "changes": {
+        "z": [
+          0.0,
+          2.098265896
+        ]
+      },
+      "reason": "Apply the door head measured on South_view.png (drawn frame top y=448 against ground y=569 and storey line y=396, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm",
+      "source_refs": [
+        "image:South_view.png: entrance door frame at x 344-395, ground line y=569, storey line y=396",
+        "profile:profile_001",
+        "claim:claim_0007:8997201d7f1f350926ce28705a3551c1f5b8647361c5bef4f7eab341bf638438"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_W_entrance",
+      "changes": {
+        "z": [
+          0.0,
+          2.098265896
+        ]
+      },
+      "reason": "Apply the door head measured on West_view.png (drawn frame top y=440 against ground y=561 and storey line y=388, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm",
+      "source_refs": [
+        "image:West_view.png: entrance door frame at x 566-652, ground line y=561, storey line y=388",
+        "profile:profile_002",
+        "claim:claim_0008:1b5858f1838a4ece85539e2d80bae5f9b475f206a4cc7f5bb624ba8641b9e8ea"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_corridor",
+      "role": "corridor",
+      "basis": "inferred",
+      "assumptions": [
+        "Long continuous space between the two room rows with doors from every room and entrances at both ends; no furniture drawn in it"
+      ],
+      "reason": "Layout and connectivity identify a circulation corridor; no printed use label exists on the plan",
+      "source_refs": [
+        "image:1f_view.png: continuous furniture-free strip between corridor wall lines y=623-810 with 7 doors onto it"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NW",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs facing the north window"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the north-west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NM",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the north-middle room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NE",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the north-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SW",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks; also hosts the south entrance door"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office despite the secondary entrance; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks drawn inside the south-west room, south entrance door D_S_entrance on its south wall"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SM",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture reads as an office; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs drawn inside the south-middle room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SE",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: square table with four chairs around it, unlike the desks elsewhere"
+      ],
+      "reason": "Table-and-chairs furniture reads as a small meeting room; no printed use label exists",
+      "source_refs": [
+        "image:1f_view.png: 4-seat square table drawn inside the south-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_meet_W",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: large oval conference table with about ten chairs"
+      ],
+      "reason": "Conference-table furniture reads as a meeting room; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: oval conference table with ~10 chairs in the north-west second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_meet_E",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: large oval conference table with about ten chairs"
+      ],
+      "reason": "Conference-table furniture reads as a meeting room; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: oval conference table with ~10 chairs in the north-east second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_A",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in south-west second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_B",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in the second bottom-row room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_C",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in the third bottom-row room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_D",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn furniture: single desk with task chair and cabinet"
+      ],
+      "reason": "Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: desk, chair and cabinet drawn in south-east second-floor room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_corridor",
+      "role": "corridor",
+      "basis": "inferred",
+      "assumptions": [
+        "Long continuous space between the two room rows with doors from every room and windows at both ends; no furniture drawn in it"
+      ],
+      "reason": "Layout and connectivity identify a circulation corridor; no printed use label exists",
+      "source_refs": [
+        "image:2f_view.png: continuous furniture-free strip between corridor wall lines y=601-795 with 6 doors onto it"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.",
+      "replacement": [],
+      "reason": "Duplicate of the identical assumption already saved for the 1F draft; both floors use the same orientation convention"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior partitions declared on the midplane of their drawn line pairs.",
+      "replacement": [],
+      "reason": "Duplicate of the 1F assumption which already states the midplane convention (with the corridor-wall caveat)"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+      "replacement": [],
+      "reason": "Duplicate of the identical compiler note already saved from the 1F draft"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.",
+      "replacement": [
+        "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1:D_C1-D_C6, F2:D_A-D_D, F2:D_M1-D_M2). Entrance door heights were measured on the elevations and applied via claim_0007 (south) and claim_0008 (west)."
+      ],
+      "reason": "Entrance door heights are no longer assumptions: they were measured on South_view.png and West_view.png and applied from claims"
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.",
+      "replacement": [],
+      "reason": "Covered by the consolidated 1F assumption about interior door heights"
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+      "replacement": [],
+      "reason": "Duplicate note from the two separate floor drafts; the identical calibration caveat is already saved once"
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.",
+      "replacement": [
+        "2F divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its exact position carries about +/-10 px (~110 mm) uncertainty. The compiled draft shows no drawing_differences there."
+      ],
+      "reason": "State the residual uncertainty and that the draft compiled without differences at this divider"
+    }
+  ],
+  "error": "replace_note: source_refs must be a nonempty list of nonblank strings"
+}

@@ -1,0 +1,16 @@
+{
+ "user_message": "好的，先做sm21的两次，串行做",
+ "recorded_utc": "2026-09-29T11:01:02Z",
+ "approved_runs": [
+  "run91",
+  "run92"
+ ],
+ "not_approved": [
+  "run93 (sm24)",
+  "run94 (sm25)"
+ ],
+ "order": "serial; run92 starts only in a separate step after run91's real receipt and summary show a completed response",
+ "conditions": "preflight_sm21.json (branch commit d3d607f8): Sonnet 5 pinned claude-sonnet-5, medium, 3000 s, 24 candidates, 0 continuation, delegation prohibited by the unchanged scope, original images only",
+ "stop_rule": "429, error or incomplete response stops the batch; no retry, overwrite or automatic next run",
+ "cli_version": "2.1.284 (Claude Code)"
+}

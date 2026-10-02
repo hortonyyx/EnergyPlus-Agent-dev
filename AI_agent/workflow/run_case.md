@@ -11,7 +11,7 @@
 
 **候选额度是过程版本额度。** 新实验`--max-candidates`默认24，由单层生成、整栋装配和修订导出共用。创建并留档的`candidate_*`目录占位，含可能失败的导出；仅看图、量测、检查或确认数值不变不占位，未创建候选目录的声明编译失败也不占位。例：一层稿＋二层稿＋装配稿＋一次修改稿＝4个。模型不必用满，最终选一份交付，不是生成24栋楼或给用户24个方案；续查不重置额度。用户09-28已确认此理解。旧manifest缺少额度字段时仍按历史6处理，不改写旧实验条件。
 
-09-20新增`get_bim_reference('reconstruction')`按需操作参考：说明尺寸刻度标定、原像素坐标、成对墙带与接头判读、完整空间、平立面开口对应和实际源反馈。无案例答案或预选参数，不改变几何检查或限定固定工具顺序。当前效果与适用边界见[方法迁移记录](../logs/worklog/2026-09-20_reconstruction_method_transfer.md)。
+09-30（分支 `dev/opus-guidance-recovery-20260929`，未合入 main）：`get_bim_reference('reconstruction')` 与系统提示里的图纸做法是同一份文字（读全套图 → 看不清处放大 → 每层先出可检查草稿 → 按报出的差异和自己的未决项核改 → 高度按量该开口的尺寸链读）。系统提示按运行清单的 `image_kind`（`--image-kind drawings|mesh_views|photos|unknown`；缺省时无体量为 drawings、有体量为 unknown）挂载对应做法。`build_plan_bim`、`revise_plan_bim`、`assemble_plan_bim` 的返回最前面有 `drawing_differences`：原图墨线与声明对不上的地方（图上有而未声明的双线/填充墙、声明了但没有墨线的隔墙、隔墙缺口与声明门不符、完全未声明隔墙时的整层提醒），只报告、不拦截、不自动改，完整列表由 `inspect_plan_draft` 返回；比例明显不合理时不检查。`record_claim` 返回只读 `facts`：尺寸链范围与该值实际套用的楼层/墙面/宽度。离线验证与局限见[实验记录](../logs/experiments/2026-09-30_instruction_fix/README.md)。
 
 **09-14 新增 `--building-input 文件.json`。** 该文件原字节复制为运行目录的`building_input.json`；`inputs.json`保留原声明、散列与图面关联，模型通过`inputs`取得。用途、位置、面积、层数等按原字段提供；`thermal_zones`明确为后端分区声明，不自动解释成源物理房间数。声明与图证冲突需模型说明取舍，接口本身不判真。
 

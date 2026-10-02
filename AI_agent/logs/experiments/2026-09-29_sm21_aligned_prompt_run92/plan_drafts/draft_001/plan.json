@@ -1,0 +1,51 @@
+{
+"floor_id": "F1",
+"z_floor": 0,
+"ceiling_height": 3.0,
+"x_anchors": [[425,0],[1817,15.0]],
+"y_anchors": [[346,8.0],[1088,0.0]],
+"basis": "1f_view.png: outer wall faces at overall 15000x8000 dimension chain endpoints (x:425->0m,1817->15m; y:346->8m north wall, 1088->0m south wall). Interior partitions at their drawn double-line centerlines. Corridor boundary walls at y=618px(north side)/810px(south side), derived from wall-ink gaps measured via pixel_profile matching door openings.",
+"footprint_pixels": [[425,346],[1817,346],[1817,1088],[425,1088]],
+"partitions": [
+ {"id":"P-AB-top","points":[[891,346],[891,618]],"source_refs":["1f_view.png: double-line partition between room A and B desks, spans full office depth"]},
+ {"id":"P-AB-bot","points":[[891,810],[891,1088]],"source_refs":["1f_view.png: mirrored partition below corridor between room D and E"]},
+ {"id":"P-BC-top","points":[[1365,346],[1365,618]],"source_refs":["1f_view.png: partition between room B and C"]},
+ {"id":"P-BC-bot","points":[[1365,810],[1365,1088]],"source_refs":["1f_view.png: mirrored partition between room E and F"]},
+ {"id":"Corr-N-1","points":[[425,618],[772,618]],"source_refs":["1f_view.png: corridor north wall segment west corner to room A door, measured via wall-ink gap profile"]},
+ {"id":"Corr-N-2","points":[[855,618],[922,618]],"source_refs":["1f_view.png: corridor north wall pier between room A and B doors, at partition P-AB-top"]},
+ {"id":"Corr-N-3","points":[[1005,618],[1385,618]],"source_refs":["1f_view.png: corridor north wall segment between room B door and room C door, crossing partition P-BC-top"]},
+ {"id":"Corr-N-4","points":[[1469,618],[1817,618]],"source_refs":["1f_view.png: corridor north wall segment room C door to east corner"]},
+ {"id":"Corr-S-1","points":[[425,810],[772,810]],"source_refs":["1f_view.png: corridor south wall segment west corner to room D door"]},
+ {"id":"Corr-S-2","points":[[855,810],[922,810]],"source_refs":["1f_view.png: corridor south wall pier between room D and E doors, at partition P-AB-bot"]},
+ {"id":"Corr-S-3","points":[[1005,810],[1385,810]],"source_refs":["1f_view.png: corridor south wall segment between room E and F doors, crossing partition P-BC-bot"]},
+ {"id":"Corr-S-4","points":[[1469,810],[1817,810]],"source_refs":["1f_view.png: corridor south wall segment room F door to east corner"]}
+],
+"openings": [
+ {"id":"D-A","kind":"door","p1":[772,618],"p2":[855,618],"z":[0,2.1],"source_refs":["1f_view.png: office-to-corridor door swing, gap in corridor north wall; height assumed standard interior door"]},
+ {"id":"D-B","kind":"door","p1":[922,618],"p2":[1005,618],"z":[0,2.1],"source_refs":["1f_view.png: office-to-corridor door B; height assumed"]},
+ {"id":"D-C","kind":"door","p1":[1385,618],"p2":[1469,618],"z":[0,2.1],"source_refs":["1f_view.png: office-to-corridor door C; height assumed"]},
+ {"id":"D-D","kind":"door","p1":[772,810],"p2":[855,810],"z":[0,2.1],"source_refs":["1f_view.png: office-to-corridor door D; height assumed"]},
+ {"id":"D-E","kind":"door","p1":[922,810],"p2":[1005,810],"z":[0,2.1],"source_refs":["1f_view.png: office-to-corridor door E; height assumed"]},
+ {"id":"D-F","kind":"door","p1":[1385,810],"p2":[1469,810],"z":[0,2.1],"source_refs":["1f_view.png: office-to-corridor door F; height assumed"]},
+ {"id":"D-West","kind":"door","p1":[425,647],"p2":[425,786],"z":[0,3.0],"source_refs":["1f_view.png: west exterior corridor entrance, double-door swing spanning most of west wall gap","West_view.png: lower zone shows glazed door filling full 1F wall height with no head/sill sub-chain, so height taken as full floor-to-ceiling 3.0m"]},
+ {"id":"D-South","kind":"door","p1":[475,1088],"p2":[558,1088],"z":[0,2.1],"source_refs":["1f_view.png: room D exterior south door, offset 540mm from SW corner width ~900mm","South_view.png: door dimension chain 900/600/1500 from floor line; head taken at 2100mm (3000-900) as standard door height, decorative transom above assumed non-operable"]},
+ {"id":"W-A","kind":"window","p1":[541,346],"p2":[763,346],"z":[1.0,2.6],"source_refs":["1f_view.png: north wall window room A","North_view.png: 1F window chain 400/1600/1000 giving sill1000 head2600"]},
+ {"id":"W-B","kind":"window","p1":[1010,346],"p2":[1230,346],"z":[1.0,2.6],"source_refs":["1f_view.png: north wall window room B","North_view.png: same 1F window family"]},
+ {"id":"W-C","kind":"window","p1":[1479,346],"p2":[1699,346],"z":[1.0,2.6],"source_refs":["1f_view.png: north wall window room C","North_view.png: same 1F window family"]},
+ {"id":"W-D","kind":"window","p1":[745,1088],"p2":[854,1088],"z":[1.0,2.6],"source_refs":["1f_view.png: south wall small window room D, width ~1200mm","South_view.png: no distinct chain for this window; assumed same 1F office family as North windows"]},
+ {"id":"W-E","kind":"window","p1":[1010,1088],"p2":[1230,1088],"z":[1.0,2.6],"source_refs":["1f_view.png: south wall window room E","South_view.png: matches North window family, symmetric layout"]},
+ {"id":"W-F","kind":"window","p1":[1479,1088],"p2":[1701,1088],"z":[1.0,2.6],"source_refs":["1f_view.png: south wall window room F","South_view.png: matches North window family"]},
+ {"id":"W-Corr-E","kind":"window","p1":[1817,660],"p2":[1817,774],"z":[1.0,2.8],"source_refs":["1f_view.png: east wall corridor window, width ~1200mm along wall","East_view.png: 1F window chain 200/1800/1000 from floor line giving head2800 sill1000, taller than office family"]}
+],
+"space_seeds": [
+ {"id":"RoomA","point":[600,480],"role":"office/enclosed"},
+ {"id":"RoomB","point":[1080,480],"role":"office/enclosed"},
+ {"id":"RoomC","point":[1550,480],"role":"office/enclosed"},
+ {"id":"Corridor","point":[1100,714],"role":"corridor"},
+ {"id":"RoomD","point":[600,950],"role":"office/enclosed"},
+ {"id":"RoomE","point":[1080,950],"role":"office/enclosed"},
+ {"id":"RoomF","point":[1550,950],"role":"lounge/breakroom"}
+],
+"assumptions": ["Interior office-to-corridor door heights (2.1m) assumed, no elevation dimension chain observed for these internal doors.","South room D window and 1F south E/F windows assumed to share the North wall's 1F office window height family (sill1.0/head2.6m) since South elevation only dimensions the door there explicitly.","South exterior door head taken at 2100mm from the 900/600/1500 floor-line chain; glazing above up to 3000mm assumed fixed/non-operable transom, not counted as door pass height."],
+"unresolved": ["Exact wall-face vs centerline convention for 240mm partitions approximated at measured pixel centerline; small (<100mm) positional uncertainty possible.","Room D/E furniture (L-shaped desks) role assumed office/enclosed; Room F round table treated as lounge/breakroom pending confirmation."]
+}

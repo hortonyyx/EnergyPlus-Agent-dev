@@ -1,0 +1,69 @@
+{
+  "agent_assumptions": [
+    "Interior door heights (D1-D6, corridor to rooms) assumed 2.1m; not dimensioned on any supplied drawing.",
+    "West exterior double-door height assumed 2.4m by analogy with the South entrance door's dimensioned transom breakdown (600+900+1500=3000mm floor-to-floor, giving head=2400mm); West elevation itself does not subdivide this opening's height.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door heights (D1-D6, rooms/offices to corridor) assumed 2.1m; not dimensioned on any supplied drawing.",
+    "2F ceiling_height set to 3.6m to match the elevation's dimensioned floor-to-roof/parapet chain above the 2F floor line (800+1800+1000=3600mm); no 3rd floor exists so this is the top-of-wall height, not a floor-to-floor to another storey.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "79093237dcc8900c2452b00faf34d91b1de39547f325c3d42240069fd2e5c807",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0003.json",
+      "parent_candidate": "candidate_03",
+      "parent_proposal_sha256": "01725557607c5818b361b6339be41fa3568d7b6439e52e2662417b3f4078e34c"
+    },
+    "generator": "claude subscription tool loop",
+    "input_manifest_sha256": "22c0899023689e9f33b8071dc27910129c47472117aff796e6ea5cf148f4f5de",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "01725557607c5818b361b6339be41fa3568d7b6439e52e2662417b3f4078e34c"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "6bcb4699d4f0c54929ea89af46c57ef691b222280f3017236768f86725f837ed",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Small gray wall-overview fragments (R13-R22 in pixel region scan) near partition/opening junctions were cross-checked visually but not individually modelled; they correspond to the jamb/corner pixels already captured by the partitions and openings above.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

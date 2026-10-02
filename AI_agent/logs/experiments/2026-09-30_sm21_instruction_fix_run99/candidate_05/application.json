@@ -1,0 +1,91 @@
+{
+  "id": "application_0004",
+  "parent_candidate": "candidate_04",
+  "submitted_operations": [
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "West exterior double-door height assumed 2.4m by analogy with the South entrance door's dimensioned transom breakdown (600+900+1500=3000mm floor-to-floor, giving head=2400mm); West elevation itself does not subdivide this opening's height.",
+      "replacement": [
+        "West exterior double-door (1F:D_ext_W) height assumed 2.4m by analogy with the dimensioned and claim-confirmed South entrance door (claim_0001, head=2.4m); West_view.png's own ground-floor dimension chain shows only an undivided 3000mm floor-to-floor span for this opening, so its exact head height is not independently observed."
+      ],
+      "reason": "Clarify that exterior window/door heights elsewhere are now claim-confirmed from elevations (claim_0001/0002/0003), isolating the one opening that remains a true analogy-based assumption",
+      "source_refs": [
+        "West_view.png: undivided 3000mm chain at the door column",
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior door heights (D1-D6, corridor to rooms) assumed 2.1m; not dimensioned on any supplied drawing.",
+      "replacement": [
+        "Interior door heights (1F:D1-D6 and 2F:D1-D6, all corridor-to-room doors) assumed 2.1m (standard door height); none of the six supplied drawings dimension any interior door, so this remains an explicit assumption, not an observation."
+      ],
+      "reason": "Consolidate and clarify the interior-door-height assumption note now that exterior opening heights are claim-confirmed separately",
+      "source_refs": [
+        "1f_view.png",
+        "2f_view.png"
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "79093237dcc8900c2452b00faf34d91b1de39547f325c3d42240069fd2e5c807",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "West exterior double-door height assumed 2.4m by analogy with the South entrance door's dimensioned transom breakdown (600+900+1500=3000mm floor-to-floor, giving head=2400mm); West elevation itself does not subdivide this opening's height.",
+      "replacement": [
+        "West exterior double-door (1F:D_ext_W) height assumed 2.4m by analogy with the dimensioned and claim-confirmed South entrance door (claim_0001, head=2.4m); West_view.png's own ground-floor dimension chain shows only an undivided 3000mm floor-to-floor span for this opening, so its exact head height is not independently observed."
+      ],
+      "reason": "Clarify that exterior window/door heights elsewhere are now claim-confirmed from elevations (claim_0001/0002/0003), isolating the one opening that remains a true analogy-based assumption",
+      "source_refs": [
+        "West_view.png: undivided 3000mm chain at the door column",
+        "claim_0001"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "Interior door heights (D1-D6, corridor to rooms) assumed 2.1m; not dimensioned on any supplied drawing.",
+      "replacement": [
+        "Interior door heights (1F:D1-D6 and 2F:D1-D6, all corridor-to-room doors) assumed 2.1m (standard door height); none of the six supplied drawings dimension any interior door, so this remains an explicit assumption, not an observation."
+      ],
+      "reason": "Consolidate and clarify the interior-door-height assumption note now that exterior opening heights are claim-confirmed separately",
+      "source_refs": [
+        "1f_view.png",
+        "2f_view.png"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "f487e1c14cf9b840d6877d5c8e54f24a0ee7adeaad64357f4228ac0ab95a7457",
+  "geometry_after_sha256": "f487e1c14cf9b840d6877d5c8e54f24a0ee7adeaad64357f4228ac0ab95a7457",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_05",
+  "source_model_sha256": "28f206314758b9c99a747972776f6af48e6fb18504e88acba22289d3540aeebf",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

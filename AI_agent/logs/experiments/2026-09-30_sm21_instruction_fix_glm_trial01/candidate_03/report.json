@@ -1,0 +1,68 @@
+{
+  "agent_assumptions": [
+    "North = up on the plan sheets (no printed north arrow seen); world y grows north from the south outer face.",
+    "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.",
+    "Interior partitions declared on the midplane of their drawn line pairs (drawn ~120 mm thick); corridor walls placed at drawn centre lines y=5000/3000 although the west chain annotates the corridor zone as 250+1500+250.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.",
+    "Second floor occupies z 3000-6600 per the elevation storey chains (3000 + 3600).",
+    "Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.",
+    "Interior partitions declared on the midplane of their drawn line pairs.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 84,
+    "connections": 14,
+    "openings": 29,
+    "spaces": 14,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "259e8e3bb98bfa59cb1f883aa691f5c9b5684d295f8a56abf06cf33dc203b50a",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "412378f8d7da73dfb230a62acc806061774630fa8b7efe9abfbeee927e85ae53",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "a0e6ca8ea4204336a6430b93d89c77f5a9300e7ce5c98d83fc7186f5407c0719"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "f6df449a46e5f806c3ff43cdaaffc9e300ed66b5e0c76847618685a7502874aa",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "West elevation draws the west entrance door 1200 wide at 3400-4600 while the 1F plan chain gives 1500 at 3250-4750; the plan chain was adopted and the discrepancy is recorded.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

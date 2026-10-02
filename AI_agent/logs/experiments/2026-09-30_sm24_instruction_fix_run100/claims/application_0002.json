@@ -1,0 +1,818 @@
+{
+  "id": "application_0002",
+  "parent_candidate": "candidate_02",
+  "submitted_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "L1_reception",
+      "role": "lobby",
+      "basis": "inferred",
+      "assumptions": [
+        "Sofa set, main entrance, north/east/west windows suggest a reception/lobby room"
+      ],
+      "reason": "Furniture (sofa set) and position at main entry.",
+      "source_refs": [
+        "1f_view.png: sofa furniture in top room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "WestRoomA",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with two chairs suggests a small enclosed office"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in this cell"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "WestRoomB",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk, computer (X-mark) and chairs suggest a private enclosed office"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: desk+computer+2 chairs in this cell"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "WestRoomC",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Large oval table with many chairs suggests a meeting/dining room"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: oval table with 8+ chairs"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "NE_small_room",
+      "role": "storage",
+      "basis": "inferred",
+      "assumptions": [
+        "Small room with only a credenza/sideboard, no desk, suggests storage or pantry use"
+      ],
+      "reason": "Furniture layout (sideboard only).",
+      "source_refs": [
+        "1f_view.png: two-cell credenza furniture only"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "MidEastRoom",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Two round tables with 4 chairs each suggest a meeting/break room"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: two round tables with 4 chairs each"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "SE_room",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with 2 chairs and computer suggests an office"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Small nook/stub wall near px(456,298)-(456,325) with a secondary door arc in the NE small room was simplified away; the NE small room is modeled with a single door (DoorA) only - look again if this detail matters.",
+      "replacement": [
+        "NE small room connectivity was corrected using measured ink gaps on P2 and P3 (drawing_differences): it connects to L1 via Dtop and to MidEastRoom via DoorE; no direct opening to the west rooms was found in the ink."
+      ],
+      "reason": "Draft_002 resolved this with direct evidence from drawing_differences; the earlier simplification note is obsolete.",
+      "source_refs": [
+        "drawing_differences draft_001->draft_002, P2/P3 gap resolution"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+      "replacement": [
+        "Calibration cross-axis check reports x=36.5 px/m vs y=36 px/m (1.38% deviation) and small residuals (~0.11m over 10m in x, ~0.055m over 20m in y) against the supplied anchors. This is within ordinary drawing/rounding tolerance for this plan but was not re-measured at the extension-line ticks; absolute positions may carry up to ~1-2% error."
+      ],
+      "reason": "Record the actual overlay calibration warning returned by the tool instead of a generic unverified note.",
+      "source_refs": [
+        "build_plan_bim/geometry overlay calibration warnings, candidate_02"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "A small square mark near the East_view.png door, within its 5700mm wall segment, is unresolved: no corresponding window was found on the matching plan wall (SE room east wall is drawn solid); left unassigned.",
+      "replacement": [
+        "EW1 and EW2 (east-wall small windows, L1 and NE_small_room) use the same 1.0-2.8m height as the matching west/south small windows by analogy; East_view.png's own dimension chain only labels the door and the large window, not these small squares, so this height is an assumption, not a direct East_view reading.",
+        "A small square mark on East_view.png near the left (south) end of its 5700mm wall segment, before the door, was not matched to any plan opening: the plan's corresponding south-east room east wall is drawn solid with no window ink. Left unassigned/unresolved."
+      ],
+      "reason": "Clarify which opening heights are directly observed per facade versus assumed by analogy, and keep the unmatched elevation mark explicit.",
+      "source_refs": [
+        "East_view.png full view; 1f_view.png SE room east wall crop (580,850)-(620,890)"
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_02",
+    "parent_proposal_sha256": "5a4fa37dadf67d51ca4a8ce7221a086e9f7fee621f941382f03b43d12543deb2",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_space_role",
+      "space_id": "L1_reception",
+      "role": "lobby",
+      "basis": "inferred",
+      "assumptions": [
+        "Sofa set, main entrance, north/east/west windows suggest a reception/lobby room"
+      ],
+      "reason": "Furniture (sofa set) and position at main entry.",
+      "source_refs": [
+        "1f_view.png: sofa furniture in top room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "WestRoomA",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with two chairs suggests a small enclosed office"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs in this cell"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "WestRoomB",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk, computer (X-mark) and chairs suggest a private enclosed office"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: desk+computer+2 chairs in this cell"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "WestRoomC",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Large oval table with many chairs suggests a meeting/dining room"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: oval table with 8+ chairs"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "NE_small_room",
+      "role": "storage",
+      "basis": "inferred",
+      "assumptions": [
+        "Small room with only a credenza/sideboard, no desk, suggests storage or pantry use"
+      ],
+      "reason": "Furniture layout (sideboard only).",
+      "source_refs": [
+        "1f_view.png: two-cell credenza furniture only"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "MidEastRoom",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Two round tables with 4 chairs each suggest a meeting/break room"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: two round tables with 4 chairs each"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "SE_room",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Desk with 2 chairs and computer suggests an office"
+      ],
+      "reason": "Furniture layout.",
+      "source_refs": [
+        "1f_view.png: desk+2 chairs"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Small nook/stub wall near px(456,298)-(456,325) with a secondary door arc in the NE small room was simplified away; the NE small room is modeled with a single door (DoorA) only - look again if this detail matters.",
+      "replacement": [
+        "NE small room connectivity was corrected using measured ink gaps on P2 and P3 (drawing_differences): it connects to L1 via Dtop and to MidEastRoom via DoorE; no direct opening to the west rooms was found in the ink."
+      ],
+      "reason": "Draft_002 resolved this with direct evidence from drawing_differences; the earlier simplification note is obsolete.",
+      "source_refs": [
+        "drawing_differences draft_001->draft_002, P2/P3 gap resolution"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "unresolved",
+      "old": "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+      "replacement": [
+        "Calibration cross-axis check reports x=36.5 px/m vs y=36 px/m (1.38% deviation) and small residuals (~0.11m over 10m in x, ~0.055m over 20m in y) against the supplied anchors. This is within ordinary drawing/rounding tolerance for this plan but was not re-measured at the extension-line ticks; absolute positions may carry up to ~1-2% error."
+      ],
+      "reason": "Record the actual overlay calibration warning returned by the tool instead of a generic unverified note.",
+      "source_refs": [
+        "build_plan_bim/geometry overlay calibration warnings, candidate_02"
+      ]
+    },
+    {
+      "op": "replace_note",
+      "field": "assumptions",
+      "old": "A small square mark near the East_view.png door, within its 5700mm wall segment, is unresolved: no corresponding window was found on the matching plan wall (SE room east wall is drawn solid); left unassigned.",
+      "replacement": [
+        "EW1 and EW2 (east-wall small windows, L1 and NE_small_room) use the same 1.0-2.8m height as the matching west/south small windows by analogy; East_view.png's own dimension chain only labels the door and the large window, not these small squares, so this height is an assumption, not a direct East_view reading.",
+        "A small square mark on East_view.png near the left (south) end of its 5700mm wall segment, before the door, was not matched to any plan opening: the plan's corresponding south-east room east wall is drawn solid with no window ink. Left unassigned/unresolved."
+      ],
+      "reason": "Clarify which opening heights are directly observed per facade versus assumed by analogy, and keep the unmatched elevation mark explicit.",
+      "source_refs": [
+        "East_view.png full view; 1f_view.png SE room east wall crop (580,850)-(620,890)"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "be78f65ef2dc07fb7c53ef38bf97a02930acd02599dbb45949de3db600a79b02",
+  "geometry_after_sha256": "cc312fca1d644e8778bdb1f51be47450ec6445ba8bacf5e591c5de0813b475d7",
+  "changes": [
+    {
+      "kind": "space",
+      "id": "L1_reception",
+      "before": {
+        "floor": "F1",
+        "id": "L1_reception",
+        "polygon": [
+          [
+            0.0,
+            16.083333
+          ],
+          [
+            10.0,
+            16.083333
+          ],
+          [
+            10.0,
+            20.0
+          ],
+          [
+            0.0,
+            20.0
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          16.083333,
+          20.0
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "L1_reception",
+        "polygon": [
+          [
+            0.0,
+            16.083333
+          ],
+          [
+            10.0,
+            16.083333
+          ],
+          [
+            10.0,
+            20.0
+          ],
+          [
+            0.0,
+            20.0
+          ]
+        ],
+        "role": "lobby",
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          16.083333,
+          20.0
+        ],
+        "role_evidence": {
+          "role": "lobby",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "MidEastRoom",
+      "before": {
+        "floor": "F1",
+        "id": "MidEastRoom",
+        "polygon": [
+          [
+            4.191781,
+            4.972222
+          ],
+          [
+            8.60274,
+            4.972222
+          ],
+          [
+            8.60274,
+            4.055556
+          ],
+          [
+            10.0,
+            4.055556
+          ],
+          [
+            10.0,
+            14.222222
+          ],
+          [
+            4.191781,
+            14.222222
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          4.191781,
+          10.0
+        ],
+        "y": [
+          4.055556,
+          14.222222
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "MidEastRoom",
+        "polygon": [
+          [
+            4.191781,
+            4.972222
+          ],
+          [
+            8.60274,
+            4.972222
+          ],
+          [
+            8.60274,
+            4.055556
+          ],
+          [
+            10.0,
+            4.055556
+          ],
+          [
+            10.0,
+            14.222222
+          ],
+          [
+            4.191781,
+            14.222222
+          ]
+        ],
+        "role": "conference/meeting/multipurpose",
+        "x": [
+          4.191781,
+          10.0
+        ],
+        "y": [
+          4.055556,
+          14.222222
+        ],
+        "role_evidence": {
+          "role": "conference/meeting/multipurpose",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "NE_small_room",
+      "before": {
+        "floor": "F1",
+        "id": "NE_small_room",
+        "polygon": [
+          [
+            4.191781,
+            14.222222
+          ],
+          [
+            10.0,
+            14.222222
+          ],
+          [
+            10.0,
+            16.083333
+          ],
+          [
+            4.191781,
+            16.083333
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          4.191781,
+          10.0
+        ],
+        "y": [
+          14.222222,
+          16.083333
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "NE_small_room",
+        "polygon": [
+          [
+            4.191781,
+            14.222222
+          ],
+          [
+            10.0,
+            14.222222
+          ],
+          [
+            10.0,
+            16.083333
+          ],
+          [
+            4.191781,
+            16.083333
+          ]
+        ],
+        "role": "storage",
+        "x": [
+          4.191781,
+          10.0
+        ],
+        "y": [
+          14.222222,
+          16.083333
+        ],
+        "role_evidence": {
+          "role": "storage",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "SE_room",
+      "before": {
+        "floor": "F1",
+        "id": "SE_room",
+        "polygon": [
+          [
+            4.191781,
+            0.0
+          ],
+          [
+            10.0,
+            0.0
+          ],
+          [
+            10.0,
+            4.055556
+          ],
+          [
+            8.60274,
+            4.055556
+          ],
+          [
+            8.60274,
+            4.972222
+          ],
+          [
+            4.191781,
+            4.972222
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          4.191781,
+          10.0
+        ],
+        "y": [
+          0.0,
+          4.972222
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "SE_room",
+        "polygon": [
+          [
+            4.191781,
+            0.0
+          ],
+          [
+            10.0,
+            0.0
+          ],
+          [
+            10.0,
+            4.055556
+          ],
+          [
+            8.60274,
+            4.055556
+          ],
+          [
+            8.60274,
+            4.972222
+          ],
+          [
+            4.191781,
+            4.972222
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          4.191781,
+          10.0
+        ],
+        "y": [
+          0.0,
+          4.972222
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "WestRoomA",
+      "before": {
+        "floor": "F1",
+        "id": "WestRoomA",
+        "polygon": [
+          [
+            0.0,
+            13.083333
+          ],
+          [
+            4.191781,
+            13.083333
+          ],
+          [
+            4.191781,
+            16.083333
+          ],
+          [
+            0.0,
+            16.083333
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          0.0,
+          4.191781
+        ],
+        "y": [
+          13.083333,
+          16.083333
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "WestRoomA",
+        "polygon": [
+          [
+            0.0,
+            13.083333
+          ],
+          [
+            4.191781,
+            13.083333
+          ],
+          [
+            4.191781,
+            16.083333
+          ],
+          [
+            0.0,
+            16.083333
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          0.0,
+          4.191781
+        ],
+        "y": [
+          13.083333,
+          16.083333
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "WestRoomB",
+      "before": {
+        "floor": "F1",
+        "id": "WestRoomB",
+        "polygon": [
+          [
+            0.0,
+            8.222222
+          ],
+          [
+            4.191781,
+            8.222222
+          ],
+          [
+            4.191781,
+            13.083333
+          ],
+          [
+            0.0,
+            13.083333
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          0.0,
+          4.191781
+        ],
+        "y": [
+          8.222222,
+          13.083333
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "WestRoomB",
+        "polygon": [
+          [
+            0.0,
+            8.222222
+          ],
+          [
+            4.191781,
+            8.222222
+          ],
+          [
+            4.191781,
+            13.083333
+          ],
+          [
+            0.0,
+            13.083333
+          ]
+        ],
+        "role": "office/enclosed",
+        "x": [
+          0.0,
+          4.191781
+        ],
+        "y": [
+          8.222222,
+          13.083333
+        ],
+        "role_evidence": {
+          "role": "office/enclosed",
+          "basis": "inferred"
+        }
+      }
+    },
+    {
+      "kind": "space",
+      "id": "WestRoomC",
+      "before": {
+        "floor": "F1",
+        "id": "WestRoomC",
+        "polygon": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            4.191781,
+            0.0
+          ],
+          [
+            4.191781,
+            8.222222
+          ],
+          [
+            0.0,
+            8.222222
+          ]
+        ],
+        "role": "unknown",
+        "x": [
+          0.0,
+          4.191781
+        ],
+        "y": [
+          0.0,
+          8.222222
+        ]
+      },
+      "after": {
+        "floor": "F1",
+        "id": "WestRoomC",
+        "polygon": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            4.191781,
+            0.0
+          ],
+          [
+            4.191781,
+            8.222222
+          ],
+          [
+            0.0,
+            8.222222
+          ]
+        ],
+        "role": "conference/meeting/multipurpose",
+        "x": [
+          0.0,
+          4.191781
+        ],
+        "y": [
+          0.0,
+          8.222222
+        ],
+        "role_evidence": {
+          "role": "conference/meeting/multipurpose",
+          "basis": "inferred"
+        }
+      }
+    }
+  ],
+  "scope_check": "not_supported_for_all_operations",
+  "outside_declared_scope": null,
+  "parameters_without_claims": [],
+  "candidate": "candidate_03",
+  "source_model_sha256": "6d7cac9b85cede7dbd014f6133a30a05a415d05f35567d248839b95c65c1ba36",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

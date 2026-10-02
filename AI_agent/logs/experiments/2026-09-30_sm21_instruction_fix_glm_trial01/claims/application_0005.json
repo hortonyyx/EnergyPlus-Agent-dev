@@ -1,0 +1,225 @@
+{
+  "id": "application_0005",
+  "parent_candidate": "candidate_04",
+  "submitted_operations": [
+    {
+      "op": "update_opening",
+      "id": "F1:D_S_entrance",
+      "changes": {
+        "z": {
+          "claim": "claim_0007",
+          "value": "z"
+        }
+      },
+      "reason": "Apply the door head measured on South_view.png (frame top y=448, ground y=569, storey line y=396, 3.0 m chain)",
+      "source_refs": [
+        "image:South_view.png: entrance door frame x 344-395",
+        "profile:profile_001"
+      ]
+    },
+    {
+      "op": "update_opening",
+      "id": "F1:D_W_entrance",
+      "changes": {
+        "z": {
+          "claim": "claim_0008",
+          "value": "z"
+        }
+      },
+      "reason": "Apply the door head measured on West_view.png (frame top y=440, ground y=561, storey line y=388, 3.0 m chain)",
+      "source_refs": [
+        "image:West_view.png: entrance door frame x 566-652",
+        "profile:profile_002"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_corridor",
+      "role": "corridor",
+      "basis": "inferred",
+      "assumptions": [
+        "Continuous furniture-free strip with doors from every room and entrances at both ends"
+      ],
+      "reason": "Layout and connectivity identify a circulation corridor; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: furniture-free strip y 623-810 with 7 doors"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NW",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs in north-west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NM",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs in north-middle room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_NE",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs in north-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SW",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn desks; hosts the south entrance door"
+      ],
+      "reason": "Enclosed room with desk furniture despite secondary entrance; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: desks in south-west room, south entrance on its south wall"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SM",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn desks with office chairs"
+      ],
+      "reason": "Enclosed room with desk furniture; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: desks and chairs in south-middle room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F1:R_SE",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn square table with four chairs, unlike the desks elsewhere"
+      ],
+      "reason": "Table-and-chairs furniture reads as a small meeting room; no printed use label",
+      "source_refs": [
+        "image:1f_view.png: 4-seat square table in south-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_meet_W",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn large oval conference table with about ten chairs"
+      ],
+      "reason": "Conference-table furniture reads as a meeting room; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: oval table with about 10 chairs in north-west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_meet_E",
+      "role": "conference/meeting/multipurpose",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn large oval conference table with about ten chairs"
+      ],
+      "reason": "Conference-table furniture reads as a meeting room; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: oval table with about 10 chairs in north-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_A",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn single desk with task chair and cabinet"
+      ],
+      "reason": "Single-workstation enclosed room reads as an office; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: desk, chair, cabinet in south-west room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_B",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn single desk with task chair and cabinet"
+      ],
+      "reason": "Single-workstation enclosed room reads as an office; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: desk, chair, cabinet in second bottom-row room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_C",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn single desk with task chair and cabinet"
+      ],
+      "reason": "Single-workstation enclosed room reads as an office; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: desk, chair, cabinet in third bottom-row room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_D",
+      "role": "office/enclosed",
+      "basis": "inferred",
+      "assumptions": [
+        "Drawn single desk with task chair and cabinet"
+      ],
+      "reason": "Single-workstation enclosed room reads as an office; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: desk, chair, cabinet in south-east room"
+      ]
+    },
+    {
+      "op": "set_space_role",
+      "space_id": "F2:R2_corridor",
+      "role": "corridor",
+      "basis": "inferred",
+      "assumptions": [
+        "Continuous furniture-free strip with doors from every room and windows at both ends"
+      ],
+      "reason": "Layout and connectivity identify a circulation corridor; no printed use label",
+      "source_refs": [
+        "image:2f_view.png: furniture-free strip y 601-795 with 6 doors"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0007",
+    "claim_0008"
+  ],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "error": "claim is stale for this parent proposal; record a new claim"
+}

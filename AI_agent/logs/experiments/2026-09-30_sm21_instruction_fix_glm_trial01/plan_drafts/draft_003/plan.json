@@ -1,0 +1,43 @@
+{"floor_id":"F2","z_floor":3.0,"ceiling_height":3.6,
+"x_anchors":[[426,0],[1813,15]],
+"y_anchors":[[1070.5,0],[330.5,8]],
+"basis":"2f_view.png: outer perimeter on observed outer wall faces (15000 x 8000 chains); interior partitions on the midplane of each drawn line pair (top-row divider ~x7500; bottom-row dividers ~x3750/7500/11250; corridor walls at drawn centre lines ~y5000/3000); north = up; opening widths from drawn jamb-to-jamb gaps, cross-checked against printed chains (north 1950+3600+3900..., south 2190+1200+720+1200+4380+1200+720+1200+2190)",
+"footprint_pixels":[[426,330.5],[1813,330.5],[1813,1070.5],[426,1070.5]],
+"partitions":[
+ {"id":"P_div_top_7500","points":[[1119.5,330.5],[1119.5,601.5]],"source_refs":["2f_view.png: divider line pair 1113-1126 between the two north meeting rooms, ending at corridor north wall"]},
+ {"id":"P_div_bot_3750","points":[[773.5,794.5],[773.5,1070.5]],"source_refs":["2f_view.png: bottom-row divider between rooms A and B, drawn wall ~768-779, T-junction at corridor south wall"]},
+ {"id":"P_div_bot_7500","points":[[1119.5,794.5],[1119.5,1070.5]],"source_refs":["2f_view.png: bottom-row divider line pair 1113-1126 between rooms B and C"]},
+ {"id":"P_div_bot_11250","points":[[1466,794.5],[1466,1070.5]],"source_refs":["2f_view.png: bottom-row divider between rooms C and D, drawn ~1455-1473, T-junction at corridor south wall"]},
+ {"id":"P_corridor_north","points":[[426,601.5],[1813,601.5]],"source_refs":["2f_view.png: corridor north wall lines ~596-607, two door apertures"]},
+ {"id":"P_corridor_south","points":[[426,794.5],[1813,794.5]],"source_refs":["2f_view.png: corridor south wall lines ~789-800, four door apertures"]}
+],
+"openings":[
+ {"id":"W_N1","kind":"window","p1":[607,330.5],"p2":[940,330.5],"z":[4.0,5.8],"source_refs":["2f_view.png: north window cyan 607-940 (chain 1950-5550, 3600 wide); North_view.png chain sill 1000 above 2F floor + 1800 high"]},
+ {"id":"W_N2","kind":"window","p1":[1300,330.5],"p2":[1633,330.5],"z":[4.0,5.8],"source_refs":["2f_view.png: north window cyan 1300-1633 (chain 9450-13050); North_view.png chain sill 1000 above 2F floor + 1800 high"]},
+ {"id":"W_S1","kind":"window","p1":[629,1070.5],"p2":[740,1070.5],"z":[4.0,5.8],"source_refs":["2f_view.png: south window cyan 629-740 (chain 2190-3390); South_view.png measured sill 4000 head 5800"]},
+ {"id":"W_S2","kind":"window","p1":[807,1070.5],"p2":[918,1070.5],"z":[4.0,5.8],"source_refs":["2f_view.png: south window cyan 807-918 (chain 4110-5310); South_view.png measured sill 4000 head 5800"]},
+ {"id":"W_S3","kind":"window","p1":[1322,1070.5],"p2":[1433,1070.5],"z":[4.0,5.8],"source_refs":["2f_view.png: south window cyan 1322-1433 (chain 9690-10890); South_view.png measured sill 4000 head 5800"]},
+ {"id":"W_S4","kind":"window","p1":[1500,1070.5],"p2":[1611,1070.5],"z":[4.0,5.8],"source_refs":["2f_view.png: south window cyan 1500-1611 (chain 11610-12810); South_view.png measured sill 4000 head 5800"]},
+ {"id":"W_W_corridor","kind":"window","p1":[426,645],"p2":[426,757],"z":[4.0,5.8],"source_refs":["2f_view.png: west corridor-end window cyan 645-757 (1200 chain 3400-4600); West_view.png 2F window sill 4000 head 5800"]},
+ {"id":"W_E_corridor","kind":"window","p1":[1813,645],"p2":[1813,757],"z":[4.0,5.8],"source_refs":["2f_view.png: east corridor-end window cyan 645-757; East_view.png 2F window sill 4000 head 5800"]},
+ {"id":"D_M1","kind":"door","p1":[1005,601.5],"p2":[1088,601.5],"z":[3.0,5.1],"source_refs":["2f_view.png: corridor north wall aperture 1005-1088, swing into west meeting room; height not drawn, assumed 2100"]},
+ {"id":"D_M2","kind":"door","p1":[1152,601.5],"p2":[1236,601.5],"z":[3.0,5.1],"source_refs":["2f_view.png: corridor north wall aperture 1152-1236, swing into east meeting room; height not drawn, assumed 2100"]},
+ {"id":"D_A","kind":"door","p1":[657,794.5],"p2":[740,794.5],"z":[3.0,5.1],"source_refs":["2f_view.png: corridor south wall aperture 657-740, swing into room A; height not drawn, assumed 2100"]},
+ {"id":"D_B","kind":"door","p1":[806,794.5],"p2":[890,794.5],"z":[3.0,5.1],"source_refs":["2f_view.png: corridor south wall aperture 806-890, swing into room B; height not drawn, assumed 2100"]},
+ {"id":"D_C","kind":"door","p1":[1350,794.5],"p2":[1434,794.5],"z":[3.0,5.1],"source_refs":["2f_view.png: corridor south wall aperture 1350-1434, swing into room C; height not drawn, assumed 2100"]},
+ {"id":"D_D","kind":"door","p1":[1502,794.5],"p2":[1581,794.5],"z":[3.0,5.1],"source_refs":["2f_view.png: corridor south wall aperture 1502-1581, swing into room D; height not drawn, assumed 2100"]}
+],
+"space_seeds":[
+ {"id":"R2_meet_W","point":[800,450]},
+ {"id":"R2_meet_E","point":[1500,450]},
+ {"id":"R2_corridor","point":[1120,700]},
+ {"id":"R2_A","point":[500,950]},
+ {"id":"R2_B","point":[1000,950]},
+ {"id":"R2_C","point":[1300,950]},
+ {"id":"R2_D","point":[1700,950]}
+],
+"assumptions":["North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.",
+"Second floor occupies z 3000-6600 per the elevation storey chains (3000 + 3600).",
+"Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.",
+"Interior partitions declared on the midplane of their drawn line pairs."],
+"unresolved":["Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile."]}

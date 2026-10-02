@@ -1,0 +1,1504 @@
+{
+  "candidate": "candidate_08",
+  "source_model_sha256": "77307aa6f9055a4b8187601ef7e63ff8827bdb5cd76fec24463f67ce327e805b",
+  "input_mode": "instruction_fix_glm_trial_original_only_cold",
+  "input_and_producer_hashes_verified": true,
+  "source_display_replay_exact": true,
+  "assemblies_replayed": [
+    {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "a0e6ca8ea4204336a6430b93d89c77f5a9300e7ce5c98d83fc7186f5407c0719",
+      "floors": [
+        {
+          "draft_id": "draft_002",
+          "draft_sha256": "8ee2182d6dd5ba7718c73ad3bdf28bdf61720eb7a5854a69b6ba6d37ce475f49",
+          "image": "1f_view.png",
+          "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+          "floor_id": "F1",
+          "z_floor": 0
+        },
+        {
+          "draft_id": "draft_003",
+          "draft_sha256": "8acff65082ae346833e493740c65f7670926ff95a4208707007ba7af79e25334",
+          "image": "2f_view.png",
+          "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+          "floor_id": "F2",
+          "z_floor": 3.0
+        }
+      ],
+      "candidate_replay_matches": [
+        "candidate_03"
+      ],
+      "unmatched_note": null
+    }
+  ],
+  "original_reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+  "invocations": 1,
+  "actual_models": [
+    "glm-5.3-flash"
+  ],
+  "elapsed_seconds": 2019.72,
+  "estimated_usd_not_bill": 4.7996512000000005,
+  "counts": {
+    "floors": 2,
+    "spaces": 14,
+    "boundaries": 84,
+    "openings": 29,
+    "connections": 14
+  },
+  "kinds": {
+    "door": 14,
+    "window": 15
+  },
+  "floor_levels": [
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.0,
+      "id": "F1",
+      "name": "F1",
+      "z_floor": 0.0
+    },
+    {
+      "footprint": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.6,
+      "id": "F2",
+      "name": "F2",
+      "z_floor": 3.0
+    }
+  ],
+  "room_use": {
+    "source_model_sha256": "77307aa6f9055a4b8187601ef7e63ff8827bdb5cd76fec24463f67ce327e805b",
+    "summary": {
+      "total_count": 14,
+      "recorded_count": 14,
+      "unrecorded_count": 0,
+      "observed_count": 0,
+      "inferred_count": 14,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [],
+    "unknown_ids_truncated": false,
+    "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "total_count": 29,
+    "image_linked_count": 17,
+    "non_image_linked_count": 0,
+    "unchecked_height_opening_ids": [
+      "F1:D_C1",
+      "F1:D_C2",
+      "F1:D_C3",
+      "F1:D_C4",
+      "F1:D_C5",
+      "F1:D_C6",
+      "F2:D_A",
+      "F2:D_B",
+      "F2:D_C",
+      "F2:D_D",
+      "F2:D_M1",
+      "F2:D_M2"
+    ]
+  },
+  "current_claim_state": {
+    "candidate": "candidate_08",
+    "claims": [
+      {
+        "id": "claim_0001",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0001",
+          "reason": "Chain 1000+1600+400 measured on both north and south elevations gives z=[1.0,2.6] for all five 1F standard windows; matches declared z."
+        },
+        "objects": [
+          {
+            "id": "F1:W_N1",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_N2",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_N3",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S2",
+            "kind": "window"
+          },
+          {
+            "id": "F1:W_S3",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.0,
+            2.6
+          ]
+        },
+        "reason": "Ground-floor standard windows. North_view.png left vertical chain reads bottom-up 1000 (sill above z=0) + 1600 (window) + 400 (to 1F top z=3.0); South_view.png shows the same 1000/1600/400 pattern on both side chains for the regular south windows. Segment 1 (the 1600 window run) from origin z=0 gives absolute z=[1.0,2.6]. This matches the z already declared for these windows in the plans.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_N3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_N3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S3"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0002",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0002",
+          "disposition": "adopted",
+          "id": "decision_0002",
+          "reason": "South chain 1500+600+900 gives z=[1.5,2.1] for the small south window; matches declared z."
+        },
+        "objects": [
+          {
+            "id": "F1:W_S1",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.5,
+            2.1
+          ]
+        },
+        "reason": "Small south window beside the south entrance. South_view.png left chain reads bottom-up 1500 (sill above z=0) + 600 (window) + 900 (to 1F top z=3.0); segment 1 (the 600 window run) gives absolute z=[1.5,2.1]. Matches the declared z of F1:W_S1.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_S1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_S1"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0003",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0003",
+          "disposition": "adopted",
+          "id": "decision_0003",
+          "reason": "East chain 1000+1800+200 gives z=[1.0,2.8] for the 1F corridor-end window; matches declared z."
+        },
+        "objects": [
+          {
+            "id": "F1:W_E_corridor",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Ground-floor corridor-end window on the east facade. East_view.png left chain reads bottom-up 1000 (sill) + 1800 (window) + 200 (to 1F top z=3.0); segment 1 gives absolute z=[1.0,2.8]. Matches the declared z of F1:W_E_corridor.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F1:W_E_corridor"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F1:W_E_corridor"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0004",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0004",
+          "disposition": "adopted",
+          "id": "decision_0004",
+          "reason": "North 2F chain 1000+1800+800 above z=3.0 gives z=[4.0,5.8]; matches declared z of both 2F north windows."
+        },
+        "objects": [
+          {
+            "id": "F2:W_N1",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_N2",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            4.0,
+            5.8
+          ]
+        },
+        "reason": "Second-floor north meeting-room windows. North_view.png upper chain reads bottom-up 1000 (sill above the 2F floor level z=3.0) + 1800 (window) + 800 (to roof z=6.6); storey heights 3000+3600=6600 from both side chains. Segment 1 from origin z=3.0 gives absolute z=[4.0,5.8]. Matches the declared z of the 2F north windows.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_N1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_N1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_N2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_N2"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0005",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0005",
+          "disposition": "adopted",
+          "id": "decision_0005",
+          "reason": "South 2F chain 1000+1800+800 above z=3.0 gives z=[4.0,5.8]; matches declared z of all four 2F south windows."
+        },
+        "objects": [
+          {
+            "id": "F2:W_S1",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S2",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S3",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_S4",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            4.0,
+            5.8
+          ]
+        },
+        "reason": "Second-floor south office windows. South_view.png upper chain reads 1000 (sill above 2F floor z=3.0) + 1800 (window) + 800 (to roof z=6.6), total storey 3600. Segment 1 from origin z=3.0 gives absolute z=[4.0,5.8]. Matches the declared z of the 2F south windows.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S1"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S1"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S2"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S2"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S3"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S3"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_S4"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_S4"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0006",
+        "state": "confirmed_unchanged",
+        "decision": {
+          "claim_id": "claim_0006",
+          "disposition": "adopted",
+          "id": "decision_0006",
+          "reason": "East and West 2F chains 1000+1800+800 above z=3.0 give z=[4.0,5.8]; matches declared z of both corridor-end windows."
+        },
+        "objects": [
+          {
+            "id": "F2:W_E_corridor",
+            "kind": "window"
+          },
+          {
+            "id": "F2:W_W_corridor",
+            "kind": "window"
+          }
+        ],
+        "values": {
+          "z": [
+            4.0,
+            5.8
+          ]
+        },
+        "reason": "Second-floor corridor-end windows. East_view.png and West_view.png upper chains both read 1000 (sill above 2F floor z=3.0) + 1800 (window) + 800 (to roof z=6.6). Segment 1 from origin z=3.0 gives absolute z=[4.0,5.8]. Matches the declared z of both corridor-end windows.",
+        "unresolved": [],
+        "retained_bindings": [
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_E_corridor"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_E_corridor"
+              ]
+            ]
+          },
+          {
+            "record": "confirmation_0001",
+            "kind": "confirmation",
+            "value": "z",
+            "targets": [
+              [
+                "window",
+                "F2:W_W_corridor"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "window",
+                "F2:W_W_corridor"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0007",
+        "state": "pending_application",
+        "decision": {
+          "claim_id": "claim_0007",
+          "disposition": "adopted",
+          "id": "decision_0007",
+          "reason": "Measured door frame on the south elevation gives z=[0,2.098]≈[0,2.1]; matches declared z."
+        },
+        "objects": [
+          {
+            "id": "F1:D_S_entrance",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.0,
+            2.098265896
+          ]
+        },
+        "reason": "South entrance door height measured on South_view.png. Grey building outline runs: ground line at pixel y=569 and 1F storey line at y=396 (profile_003 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_001): top run C01 peak y=448, bottom run C06 peak y=569. image_axis maps y=569 to z=0 and y=396 to z=3.0; the two door pixels return the ordered interval z=[0,2.098], i.e. the drawn 2100 door head. Matches the declared z=[0,2.1].",
+        "unresolved": [
+          "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+        ],
+        "retained_bindings": [],
+        "changed_bindings": [],
+        "missing_bindings": [
+          [
+            "z",
+            "opening",
+            "F1:D_S_entrance"
+          ]
+        ],
+        "failed_attempts": [
+          "application_0001",
+          "application_0002",
+          "application_0003",
+          "application_0005"
+        ]
+      },
+      {
+        "id": "claim_0008",
+        "state": "pending_application",
+        "decision": {
+          "claim_id": "claim_0008",
+          "disposition": "adopted",
+          "id": "decision_0008",
+          "reason": "Measured door frame on the west elevation gives z=[0,2.098]≈[0,2.1]; matches declared z."
+        },
+        "objects": [
+          {
+            "id": "F1:D_W_entrance",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.0,
+            2.098265896
+          ]
+        },
+        "reason": "West entrance door height measured on West_view.png. Grey building outline runs: ground line at pixel y=561 and 1F storey line at y=388 (profile_004 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_002): top run C01 peak y=440, bottom run C06 peak y=561. image_axis maps y=561 to z=0 and y=388 to z=3.0; the two door pixels return the ordered interval z=[0,2.098], i.e. the drawn 2100 door head. Matches the declared z=[0,2.1]. Width conflict: the plan chain gives 1500 mm (3250-4750) while this elevation's horizontal chain gives 1200 mm (3400-4600); the plan chain width was adopted in the BIM and the conflict is recorded in the candidate's unresolved notes.",
+        "unresolved": [
+          "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+        ],
+        "retained_bindings": [],
+        "changed_bindings": [],
+        "missing_bindings": [
+          [
+            "z",
+            "opening",
+            "F1:D_W_entrance"
+          ]
+        ],
+        "failed_attempts": [
+          "application_0001",
+          "application_0002",
+          "application_0003",
+          "application_0005"
+        ]
+      },
+      {
+        "id": "claim_0009",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0009",
+          "disposition": "adopted",
+          "id": "decision_0009",
+          "reason": "Measured door frame on the south elevation gives z=[0,2.098]; adopting the observed head for the south entrance door."
+        },
+        "objects": [
+          {
+            "id": "F1:D_S_entrance",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.0,
+            2.098265896
+          ]
+        },
+        "reason": "South entrance door height measured on South_view.png. Grey building outline: ground line y=569 and 1F storey line y=396 (profile_003 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_001): top run C01 peak y=448, bottom run C06 peak y=569. image_axis maps y=569 to z=0 and y=396 to z=3.0; the door pixels return the ordered interval z=[0,2.098], the drawn 2100 door head.",
+        "unresolved": [
+          "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+        ],
+        "retained_bindings": [
+          {
+            "record": "application_0006",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "F1:D_S_entrance"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "F1:D_S_entrance"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      },
+      {
+        "id": "claim_0010",
+        "state": "applied_current",
+        "decision": {
+          "claim_id": "claim_0010",
+          "disposition": "adopted",
+          "id": "decision_0010",
+          "reason": "Measured door frame on the west elevation gives z=[0,2.098]; adopting the observed head for the west entrance door."
+        },
+        "objects": [
+          {
+            "id": "F1:D_W_entrance",
+            "kind": "opening"
+          }
+        ],
+        "values": {
+          "z": [
+            0.0,
+            2.098265896
+          ]
+        },
+        "reason": "West entrance door height measured on West_view.png. Grey building outline: ground line y=561 and 1F storey line y=388 (profile_004 C02/C01); the 3000 mm storey chain gives 3.0 m between them. Door frame ink (profile_002): top run C01 peak y=440, bottom run C06 peak y=561. image_axis maps y=561 to z=0 and y=388 to z=3.0; the door pixels return the ordered interval z=[0,2.098], the drawn 2100 door head. Width conflict (plan 1500 at 3250-4750 vs elevation 1200 at 3400-4600) is recorded in the candidate's unresolved notes; plan chain adopted.",
+        "unresolved": [
+          "Door head read from the drawn frame top; the elevation prints no explicit head dimension for this door."
+        ],
+        "retained_bindings": [
+          {
+            "record": "application_0006",
+            "kind": "application",
+            "value": "z",
+            "targets": [
+              [
+                "opening",
+                "F1:D_W_entrance"
+              ]
+            ],
+            "parameter": "z",
+            "result_targets": [
+              [
+                "opening",
+                "F1:D_W_entrance"
+              ]
+            ]
+          }
+        ],
+        "changed_bindings": [],
+        "missing_bindings": [],
+        "failed_attempts": []
+      }
+    ],
+    "other_branch_claim_ids": [],
+    "inherited_observations": [],
+    "superseded_notes": [
+      {
+        "after": [
+          "2F divider between bottom rooms C and D read at pixels about 1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its position carries about 110 mm uncertainty. The compiled draft shows no drawing_differences there."
+        ],
+        "before": "Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.",
+        "field": "unresolved",
+        "operation": "replace_note",
+        "reason": "State the residual uncertainty and that the draft compiled without differences at this divider",
+        "source_refs": [
+          "image:2f_view.png: divider ink about 1455-1473 at the corridor south wall"
+        ]
+      },
+      {
+        "after": [
+          "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1 and F2). The two entrance doors and all 15 exterior windows have observed heights: window sill/head applied from confirmed dimension-chain claims claim_0001-claim_0006, and entrance door heads z=[0,2.098] applied from claims claim_0009 (South_view.png frame) and claim_0010 (West_view.png frame)."
+        ],
+        "before": "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.",
+        "field": "assumptions",
+        "operation": "replace_note",
+        "reason": "Entrance door heights are no longer assumed: claims claim_0009 and claim_0010 were recorded, adopted and applied to F1:D_S_entrance and F1:D_W_entrance.",
+        "source_refs": [
+          "claim:claim_0009:c5c2a70e72051d151be55dd5165607586e1906d84dff56ac7b9ccf030baa5a92",
+          "claim:claim_0010:16e4069dc5e93cdb14ae98f4d0a354747b9352f0e39ca0c0352381bcf68d62d4"
+        ]
+      },
+      {
+        "after": [],
+        "before": "North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.",
+        "field": "assumptions",
+        "operation": "replace_note",
+        "reason": "Exact duplicate content of the surviving 'North = up on the plan sheets ...' note; one copy is enough.",
+        "source_refs": [
+          "image:1f_view.png: no north arrow printed",
+          "image:2f_view.png: no north arrow printed"
+        ]
+      },
+      {
+        "after": [],
+        "before": "Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.",
+        "field": "assumptions",
+        "operation": "replace_note",
+        "reason": "Subsumed by the combined interior-door assumption, which already states that 2100 mm is assumed for all interior doors on F1 and F2; no 2F elevation gives an interior door height.",
+        "source_refs": [
+          "image:2f_view.png: no printed door heights",
+          "claim:claim_0004",
+          "claim:claim_0005",
+          "claim:claim_0006"
+        ]
+      }
+    ],
+    "drawing_fidelity": "not_evaluated",
+    "note": "Current numerical/context consistency only; neither retained nor confirmed means drawing truth."
+  },
+  "strict_partition_status": "severe",
+  "matched_spaces": 14,
+  "space_identity_findings": [],
+  "topology_findings": [
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "Floor 2",
+      "missing_length_m": 15.010269997000002,
+      "extra_length_m": 14.919999996000001,
+      "missing_wkt": "MULTILINESTRING ((7.5 5, 0.020000001 5), (14.979999999 5, 7.5 5), (7.5 5, 7.5 5.050269999))",
+      "extra_wkt": "MULTILINESTRING ((14.979999999 5.07027, 7.520000001 5.07027), (7.479999999 5.07027, 0.020000001 5.07027))"
+    }
+  ],
+  "original_openings": {
+    "candidate": "candidate_08",
+    "reference_sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+    "reference_count": 29,
+    "matched": 29,
+    "positions": 27,
+    "hosts": 29,
+    "door_connections": 14,
+    "floors": [
+      {
+        "floor_id": "F1",
+        "image": "1f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F1:R_NW"
+          ],
+          "NC": [
+            "F1:R_NM"
+          ],
+          "NE": [
+            "F1:R_NE"
+          ],
+          "C": [
+            "F1:R_corridor"
+          ],
+          "SW": [
+            "F1:R_SW"
+          ],
+          "SC": [
+            "F1:R_SM"
+          ],
+          "SE": [
+            "F1:R_SE"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      },
+      {
+        "floor_id": "F2",
+        "image": "2f_view.png",
+        "space_identity_by_interior_point": {
+          "NW": [
+            "F2:R2_meet_W"
+          ],
+          "NE": [
+            "F2:R2_meet_E"
+          ],
+          "C": [
+            "F2:R2_corridor"
+          ],
+          "S1": [
+            "F2:R2_A"
+          ],
+          "S2": [
+            "F2:R2_B"
+          ],
+          "S3": [
+            "F2:R2_C"
+          ],
+          "S4": [
+            "F2:R2_D"
+          ]
+        },
+        "unmatched_reference": [],
+        "unmatched_actual": []
+      }
+    ],
+    "comparisons": [
+      {
+        "floor_id": "F1",
+        "reference_id": "N-W",
+        "opening_id": "F1:W_N1",
+        "max_endpoint_error_m": 0.009899025161754116,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_NW"
+        ],
+        "actual_hosts": [
+          "F1:R_NW"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-C",
+        "opening_id": "F1:W_N2",
+        "max_endpoint_error_m": 0.015329785046729327,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_NM"
+        ],
+        "actual_hosts": [
+          "F1:R_NM"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "N-E",
+        "opening_id": "F1:W_N3",
+        "max_endpoint_error_m": 0.01169136592379516,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_NE"
+        ],
+        "actual_hosts": [
+          "F1:R_NE"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-W",
+        "opening_id": "F1:W_S1",
+        "max_endpoint_error_m": 0.0182468332135155,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SW"
+        ],
+        "actual_hosts": [
+          "F1:R_SW"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-C",
+        "opening_id": "F1:W_S2",
+        "max_endpoint_error_m": 0.015329785046729327,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SM"
+        ],
+        "actual_hosts": [
+          "F1:R_SM"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "S-E",
+        "opening_id": "F1:W_S3",
+        "max_endpoint_error_m": 0.013405795830337297,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SE"
+        ],
+        "actual_hosts": [
+          "F1:R_SE"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "E-C",
+        "opening_id": "F1:W_E_corridor",
+        "max_endpoint_error_m": 0.012380283400809766,
+        "perpendicular_error_m": 0.11861969805895001,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NW",
+        "opening_id": "F1:D_C1",
+        "max_endpoint_error_m": 0.0182468332135155,
+        "perpendicular_error_m": 0.008071472334682639,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_NW",
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_NW",
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NC",
+        "opening_id": "F1:D_C2",
+        "max_endpoint_error_m": 0.02786677929547121,
+        "perpendicular_error_m": 0.008071472334682639,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_NM",
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_NM",
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-NE",
+        "opening_id": "F1:D_C3",
+        "max_endpoint_error_m": 0.013483706685835983,
+        "perpendicular_error_m": 0.008071472334682639,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_NE",
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_NE",
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SW",
+        "opening_id": "F1:D_C4",
+        "max_endpoint_error_m": 0.0182468332135155,
+        "perpendicular_error_m": 0.002666306342779645,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SW",
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_SW",
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SC",
+        "opening_id": "F1:D_C5",
+        "max_endpoint_error_m": 0.02786677929547121,
+        "perpendicular_error_m": 0.002666306342779645,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SM",
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_SM",
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-SE",
+        "opening_id": "F1:D_C6",
+        "max_endpoint_error_m": 0.013483706685835983,
+        "perpendicular_error_m": 0.002666306342779645,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SE",
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_SE",
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-W",
+        "opening_id": "F1:D_W_entrance",
+        "max_endpoint_error_m": 0.008747618083670083,
+        "perpendicular_error_m": 0.1186196980589504,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_corridor"
+        ],
+        "actual_hosts": [
+          "F1:R_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F1",
+        "reference_id": "door-S",
+        "opening_id": "F1:D_S_entrance",
+        "max_endpoint_error_m": 0.04211820345075479,
+        "perpendicular_error_m": 0.11875843454790846,
+        "position_match": true,
+        "expected_hosts": [
+          "F1:R_SW"
+        ],
+        "actual_hosts": [
+          "F1:R_SW"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NW",
+        "opening_id": "F2:W_N1",
+        "max_endpoint_error_m": 0.009410051948052,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_meet_W"
+        ],
+        "actual_hosts": [
+          "F2:R2_meet_W"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-NE",
+        "opening_id": "F2:W_N2",
+        "max_endpoint_error_m": 0.004003051948052061,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_meet_E"
+        ],
+        "actual_hosts": [
+          "F2:R2_meet_E"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S1",
+        "opening_id": "F2:W_S1",
+        "max_endpoint_error_m": 0.009238813852813887,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_A"
+        ],
+        "actual_hosts": [
+          "F2:R2_A"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S2",
+        "opening_id": "F2:W_S2",
+        "max_endpoint_error_m": 0.007849887445886772,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_B"
+        ],
+        "actual_hosts": [
+          "F2:R2_B"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S3",
+        "opening_id": "F2:W_S3",
+        "max_endpoint_error_m": 0.003830813852813364,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_C"
+        ],
+        "actual_hosts": [
+          "F2:R2_C"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-S4",
+        "opening_id": "F2:W_S4",
+        "max_endpoint_error_m": 0.0024418874458866924,
+        "perpendicular_error_m": 0.12432432432432439,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_D"
+        ],
+        "actual_hosts": [
+          "F2:R2_D"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-W",
+        "opening_id": "F2:W_W_corridor",
+        "max_endpoint_error_m": 0.005405594594594554,
+        "perpendicular_error_m": 0.11904761904761904,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:R2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "window-E",
+        "opening_id": "F2:W_E_corridor",
+        "max_endpoint_error_m": 0.005405594594594554,
+        "perpendicular_error_m": 0.11904761904761862,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:R2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": null
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NW",
+        "opening_id": "F2:D_M1",
+        "max_endpoint_error_m": 0.02794976623376577,
+        "perpendicular_error_m": 0.07026999999999983,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:R2_corridor",
+          "F2:R2_meet_W"
+        ],
+        "actual_hosts": [
+          "F2:R2_corridor",
+          "F2:R2_meet_W"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-NE",
+        "opening_id": "F2:D_M2",
+        "max_endpoint_error_m": 0.0051576536796540395,
+        "perpendicular_error_m": 0.07026999999999983,
+        "position_match": false,
+        "expected_hosts": [
+          "F2:R2_corridor",
+          "F2:R2_meet_E"
+        ],
+        "actual_hosts": [
+          "F2:R2_corridor",
+          "F2:R2_meet_E"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S1",
+        "opening_id": "F2:D_A",
+        "max_endpoint_error_m": 0.009020510822510541,
+        "perpendicular_error_m": 0.016216000000000008,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_A",
+          "F2:R2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:R2_A",
+          "F2:R2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S2",
+        "opening_id": "F2:D_B",
+        "max_endpoint_error_m": 0.0036200216450215095,
+        "perpendicular_error_m": 0.016216000000000008,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_B",
+          "F2:R2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:R2_B",
+          "F2:R2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S3",
+        "opening_id": "F2:D_C",
+        "max_endpoint_error_m": 0.0036125108225100178,
+        "perpendicular_error_m": 0.016216000000000008,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_C",
+          "F2:R2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:R2_C",
+          "F2:R2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      },
+      {
+        "floor_id": "F2",
+        "reference_id": "door-S4",
+        "opening_id": "F2:D_D",
+        "max_endpoint_error_m": 0.030657021645021487,
+        "perpendicular_error_m": 0.016216000000000008,
+        "position_match": true,
+        "expected_hosts": [
+          "F2:R2_D",
+          "F2:R2_corridor"
+        ],
+        "actual_hosts": [
+          "F2:R2_D",
+          "F2:R2_corridor"
+        ],
+        "host_match": true,
+        "connection_match": true
+      }
+    ],
+    "limits": [
+      "Approximate manual pixel observations, not surveyed geometry or an automated semantic judge.",
+      "Interior seeds establish room identity, not complete room shape. Independent GT partition evaluated separately.",
+      "No door height, operating state, material or vertical circulation claim."
+    ]
+  },
+  "matched_exterior": 17,
+  "exterior_parameters_match": 17,
+  "height_mismatches": [],
+  "unmatched_reference": [],
+  "unmatched_built_exterior": [],
+  "source_assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "North = up on the plan sheets (no printed north arrow seen); world y grows north from the south outer face.",
+    "Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1 and F2). The two entrance doors and all 15 exterior windows have observed heights: window sill/head applied from confirmed dimension-chain claims claim_0001-claim_0006, and entrance door heads z=[0,2.098] applied from claims claim_0009 (South_view.png frame) and claim_0010 (West_view.png frame).",
+    "Interior partitions declared on the midplane of their drawn line pairs (drawn ~120 mm thick); corridor walls placed at drawn centre lines y=5000/3000 although the west chain annotates the corridor zone as 250+1500+250.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Second floor occupies z 3000-6600 per the elevation storey chains (3000 + 3600).",
+    "Interior partitions declared on the midplane of their drawn line pairs.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "West elevation draws the west entrance door 1200 wide at 3400-4600 while the 1F plan chain gives 1500 at 3250-4750; the plan chain was adopted and the discrepancy is recorded.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "2F divider between bottom rooms C and D read at pixels about 1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its position carries about 110 mm uncertainty. The compiled draft shows no drawing_differences there.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "tools": {
+    "inputs": 1,
+    "view_image": 32,
+    "get_bim_reference": 3,
+    "pixel_profile": 31,
+    "build_plan_bim": 3,
+    "revise_plan_bim": 2,
+    "assemble_plan_bim": 2,
+    "view_pixel_profile": 4,
+    "record_claim": 10,
+    "view_claim_evidence": 12,
+    "decide_claim": 10,
+    "confirm_claims": 1,
+    "claim_application": 11,
+    "inspect_candidate": 1,
+    "revise_bim": 5,
+    "check_openings": 1,
+    "finish_bim": 1
+  },
+  "transported_images": 66,
+  "continuation": {
+    "max_rounds": 0,
+    "turns": [],
+    "stop_reason": "disabled",
+    "task_completion": "not_certified",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "candidate_budget": {
+    "limit": 24,
+    "used": 8,
+    "remaining": 16
+  },
+  "limits": [
+    "One current-runtime original-only run, not a frozen repeat or causal ablation.",
+    "Image access, view binding and model stop do not certify image understanding.",
+    "Existing original/GT references remain unchanged and post-generation only.",
+    "No EnergyPlus or user acceptance; internal door heights may remain assumed."
+  ]
+}

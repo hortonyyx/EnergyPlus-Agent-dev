@@ -1,0 +1,139 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_04",
+    "objects": [
+      {
+        "id": "2F:WN1",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WN2",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WS1",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WS2",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WS3",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WS4",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WE1",
+        "kind": "window"
+      },
+      {
+        "id": "2F:WW1",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East_view.png upper-floor vertical dimension chain (top of the window column) reads, from the roof/parapet line downward: 800 (parapet gap), 1800 (window height), 1000 (sill to 2F floor level). World z origin is the 2F floor at absolute z=3.0. Reordering bottom-up as [1000,1800,800] with origin_m=3.0 and direction=1, segment index 1 (the 1800mm window-height segment) yields absolute sill=4.0m, head=5.8m, matching the declared opening z=[4.0,5.8]. The same 800/1800/1000 proportions are independently confirmed on South_view.png and North_view.png upper-floor chains.",
+    "sources": [
+      {
+        "view_id": "view_0008"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": null,
+    "values": {
+      "height": {
+        "direction": 1,
+        "lengths": [
+          1000.0,
+          1800.0,
+          800.0
+        ],
+        "origin_m": 3.0,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "height": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": 1,
+        "end_m": 6.6,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 3.0,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 4.0,
+            "index": 0,
+            "length_m": 1.0,
+            "span_m": [
+              3.0,
+              4.0
+            ],
+            "start_m": 3.0
+          },
+          {
+            "end_m": 5.8,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              4.0,
+              5.8
+            ],
+            "start_m": 4.0
+          },
+          {
+            "end_m": 6.6,
+            "index": 2,
+            "length_m": 0.8,
+            "span_m": [
+              5.8,
+              6.6
+            ],
+            "start_m": 5.8
+          }
+        ],
+        "total_m": 3.6
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0003",
+  "parent_proposal_sha256": "79093237dcc8900c2452b00faf34d91b1de39547f325c3d42240069fd2e5c807",
+  "resolved_values": {
+    "height": [
+      4.0,
+      5.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        150,
+        300,
+        580
+      ],
+      "image": "East_view.png",
+      "sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+      "size": [
+        945,
+        741
+      ],
+      "view_id": "view_0008",
+      "view_sha256": "2a19137c0c93cfd394022f77f7426fab9ac0a0a08534bf79fdb0ea7dc406cc9a"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

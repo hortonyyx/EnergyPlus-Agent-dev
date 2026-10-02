@@ -1,0 +1,104 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "cf704927d9a1a41bec4c68dbae2e371f74d37ce5c4be90f9f94dd4cdb316777a",
+  "operations_json": "[{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"EXT-W-DOOR\",\"changes\":{\"p1\":[426,647],\"p2\":[426,786]},\"reason\":\"Host must lie exactly on footprint outer edge (x=426); the wall-centerline x=436 previously used did not match a boundary segment.\",\"source_refs\":[\"1f_view.png: west wall gap y647-786\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "openings",
+      "id": "EXT-W-DOOR",
+      "before": {
+        "id": "EXT-W-DOOR",
+        "kind": "door",
+        "p1": [
+          436,
+          647
+        ],
+        "p2": [
+          436,
+          786
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: west wall gap y647-786 (~1500mm, matches West_view.png ground-floor double door); height assumed pending elevation claim"
+        ]
+      },
+      "after": {
+        "id": "EXT-W-DOOR",
+        "kind": "door",
+        "p1": [
+          426,
+          647
+        ],
+        "p2": [
+          426,
+          786
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: west wall gap y647-786 (~1500mm, matches West_view.png ground-floor double door); height assumed pending elevation claim"
+        ]
+      },
+      "reason": "Host must lie exactly on footprint outer edge (x=426); the wall-centerline x=436 previously used did not match a boundary segment.",
+      "source_refs": [
+        "1f_view.png: west wall gap y647-786"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "space_seeds": [
+      "office1",
+      "office2",
+      "office3",
+      "corridor1f",
+      "room_wc",
+      "room_store",
+      "room_meeting"
+    ],
+    "openings": [
+      "EXT-S-DOOR",
+      "EXT-S-WIN1",
+      "EXT-S-WIN2",
+      "EXT-S-WIN3",
+      "EXT-N-WIN1",
+      "EXT-N-WIN2",
+      "EXT-N-WIN3",
+      "EXT-E-WIN",
+      "D-N1",
+      "D-N2",
+      "D-N3",
+      "D-S1",
+      "D-S2",
+      "D-S3"
+    ],
+    "partitions": [
+      "P-north-corridor",
+      "P-south-corridor",
+      "P-vert1-top",
+      "P-vert1-bot",
+      "P-vert2-top",
+      "P-vert2-bot"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "partitions",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

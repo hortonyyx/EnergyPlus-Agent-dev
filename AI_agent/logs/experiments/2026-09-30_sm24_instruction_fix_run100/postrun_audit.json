@@ -1,0 +1,99 @@
+{
+  "mode": "post_generation_developer_audit",
+  "candidate": "candidate_03",
+  "source_replay_exact": true,
+  "display_replay_exact": true,
+  "runtime_hashes_match": true,
+  "runtime_hash_source": "runtime_snapshot",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "counts": {
+    "spaces": 7,
+    "openings": {
+      "door": 10,
+      "window": 11
+    },
+    "connections": 10,
+    "unsupported": 0,
+    "unbuilt_openings": 0
+  },
+  "partition_status": "severe",
+  "partition_topology_findings": [
+    {
+      "code": "missing_source_space",
+      "severity": "severe",
+      "reference_ids": [
+        "z6"
+      ],
+      "candidate_ids": [],
+      "message": "Reference space has no one-to-one candidate counterpart.",
+      "floor_id": "F1",
+      "area_m2": 24.82920000000001
+    },
+    {
+      "code": "source_spaces_merged",
+      "severity": "severe",
+      "reference_ids": [
+        "z5",
+        "z6"
+      ],
+      "candidate_ids": [
+        "MidEastRoom"
+      ],
+      "message": "One candidate source space substantially covers multiple reference spaces.",
+      "floor_id": "F1",
+      "overlaps": [
+        {
+          "reference_id": "z5",
+          "intersection_area_m2": 28.01296030171998,
+          "reference_coverage_fraction": 0.8351706627507341
+        },
+        {
+          "reference_id": "z6",
+          "intersection_area_m2": 24.82920000000001,
+          "reference_coverage_fraction": 1.0
+        }
+      ]
+    },
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "F1",
+      "missing_length_m": 41.611780984000006,
+      "extra_length_m": 30.759998985000014,
+      "missing_wkt": "MULTILINESTRING ((4.171780999 8.059999999999999, 0.020000001 8.059999999999999), (4.171780999 12.999999999999996, 0.020000001 12.999999999999996), (4.171780999 15.939999999999994, 0.020000001 15.939999999999994), (4.211781000999999 15.939999999999994, 5.819999999999997 15.939999999999994), (5.819999999999997 15.939999999999994, 9.979999999 15.939999999999994), (9.979999999 4.940000000000001, 8.622740001 4.940000000000001), (8.582739999000001 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.211781000999999 3.4400000000000013), (9.979999999 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 14.202221999), (5.819999999999997 14.242222001, 5.819999999999997 15.939999999999994), (9.979999999 13.999999999999996, 5.819999999999997 13.999999999999996))",
+      "extra_wkt": "MULTILINESTRING ((4.191781 16.083333, 9.979999999 16.083333), (0.020000001 16.083333, 4.191781 16.083333), (9.979999999 14.222222, 5.840000000999996 14.222222), (5.799999998999997 14.222222, 4.200000000999999 14.222222), (4.200000000999999 4.972222, 8.60274 4.972222), (8.60274 4.972222, 8.60274 4.960000001000001), (8.60274 4.919999999000002, 8.60274 4.055556), (8.60274 4.055556, 9.979999999 4.055556), (4.191781 16.083333, 4.191781 15.960000000999994), (0.020000001 13.083333, 4.159999999 13.083333), (0.020000001 8.222222, 4.159999999 8.222222))"
+    }
+  ],
+  "original_partition_status": "severe",
+  "original_partition_matched_count": 7,
+  "original_aperture_count": 21,
+  "matched_apertures": 19,
+  "position_matches": 14,
+  "host_matches": 18,
+  "door_connections_matched": 7,
+  "max_aperture_endpoint_error_m": 0.5494505494505493,
+  "viewer_has_no_remote_scripts": true,
+  "limits": [
+    "Manual original-image interpretation, not an automatic semantic judge.",
+    "GT diagnosis remains independent, unmodified and post-generation only.",
+    "Original partition comparison uses explicit zero-thickness representative walls; small offsets remain measured.",
+    "All heights, materials, unseen elevations and full-building acceptance excluded.",
+    "One bounded cold start does not establish repeatability or whole-building autonomy.",
+    "No browser WebGL interaction was tested in this audit."
+  ]
+}

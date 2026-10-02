@@ -1,0 +1,73 @@
+{
+  "id": "application_0004",
+  "parent_candidate": "candidate_05",
+  "submitted_operations": [
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "Interior partition wall thickness treated as zero per the geometry contract; centerlines were derived from measured pixel gaps and labeled dimension chains (1F: 250mm labeled corridor walls; ~120mm inferred office dividers making the 15000mm chain sum exactly; 2F: clean round-number centerlines at 3.0/5.0m corridor bounds and 3.75/7.5/11.25m office dividers, matching measured pixel gaps within a few percent).",
+        "Interior corridor-to-office/meeting-room door widths and exact positions (F1:D_N1-3, D_S1-3; F2:D_R1-2, D_O1-4) are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths are not individually dimensioned in the drawing. Their head heights (2.1m above each floor) are an unobserved standard-door assumption.",
+        "East-facade window heights (F1:W_E1, F2:EW1) and the corridor's West-facade 2F window (F2:WW1) are assumed to match the North/South window family for their floor (1F sill1.0/head2.6m from claim_0001; 2F sill4.0/head5.8m from claim_0002) by symmetry of the East_view.png/West_view.png dimension pattern (3400/1200/3400), but were not independently re-derived from a dedicated East/West dimension_chain claim in this run.",
+        "South wall 2F window positions (F2:SW1a/b, SW2a/b) are taken directly from South_view.png's own upper-zone dimension chain (1950/3600/3900/3600/1950=15000mm), which places two 3600mm-wide window bands independent of the 3.75m office grid; each band was split at the office/office partition it crosses so every opening hosts on one wall segment. The correspondence between these two continuous window bands and the four individual offices behind them is a simplification, not an independently confirmed per-office window count.",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping or inferred partition was applied beyond the stated calibration and centerline choices."
+      ],
+      "unresolved": [
+        "1F/2F interior door widths and exact positions at every corridor junction remain approximate (visible arc symbols only, not individually dimensioned); their 2.1m head height is an unobserved assumption, not linked to any elevation.",
+        "East-facade window heights (F1:W_E1, F2:EW1) and 2F corridor West window (F2:WW1) remain unlinked to a dedicated East/West elevation height claim in this run; they carry the North/South family value by symmetry assumption only.",
+        "The exact physical correspondence between the two large South-facade 2F window bands and the four individual south offices is unresolved; it is plausible the window mullions do not align with the interior office partitions exactly as modelled.",
+        "Calibration (pixel-to-metre anchors) for both floor plans and all four elevations is caller-supplied from measured outer wall faces and dimension-chain pixel positions; it was cross-checked against multiple independent dimension chains (footprint totals, window/door families) with consistent results within about 0.3%, but was not independently re-verified by a second reviewer.",
+        "Furniture-implied room uses (office/lobby/meeting) are inferred from plan furniture symbols, not from any text label in the drawing."
+      ]
+    }
+  ],
+  "claim_ids": [],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "80912261f220560ba16285ca798a5477b10947d4ed0d05f72aca84a25bf10595",
+    "bindings": [],
+    "claims": {}
+  },
+  "resolved_operations": [
+    {
+      "op": "set_notes",
+      "assumptions": [
+        "Interior partition wall thickness treated as zero per the geometry contract; centerlines were derived from measured pixel gaps and labeled dimension chains (1F: 250mm labeled corridor walls; ~120mm inferred office dividers making the 15000mm chain sum exactly; 2F: clean round-number centerlines at 3.0/5.0m corridor bounds and 3.75/7.5/11.25m office dividers, matching measured pixel gaps within a few percent).",
+        "Interior corridor-to-office/meeting-room door widths and exact positions (F1:D_N1-3, D_S1-3; F2:D_R1-2, D_O1-4) are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths are not individually dimensioned in the drawing. Their head heights (2.1m above each floor) are an unobserved standard-door assumption.",
+        "East-facade window heights (F1:W_E1, F2:EW1) and the corridor's West-facade 2F window (F2:WW1) are assumed to match the North/South window family for their floor (1F sill1.0/head2.6m from claim_0001; 2F sill4.0/head5.8m from claim_0002) by symmetry of the East_view.png/West_view.png dimension pattern (3400/1200/3400), but were not independently re-derived from a dedicated East/West dimension_chain claim in this run.",
+        "South wall 2F window positions (F2:SW1a/b, SW2a/b) are taken directly from South_view.png's own upper-zone dimension chain (1950/3600/3900/3600/1950=15000mm), which places two 3600mm-wide window bands independent of the 3.75m office grid; each band was split at the office/office partition it crosses so every opening hosts on one wall segment. The correspondence between these two continuous window bands and the four individual offices behind them is a simplification, not an independently confirmed per-office window count.",
+        "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping or inferred partition was applied beyond the stated calibration and centerline choices."
+      ],
+      "unresolved": [
+        "1F/2F interior door widths and exact positions at every corridor junction remain approximate (visible arc symbols only, not individually dimensioned); their 2.1m head height is an unobserved assumption, not linked to any elevation.",
+        "East-facade window heights (F1:W_E1, F2:EW1) and 2F corridor West window (F2:WW1) remain unlinked to a dedicated East/West elevation height claim in this run; they carry the North/South family value by symmetry assumption only.",
+        "The exact physical correspondence between the two large South-facade 2F window bands and the four individual south offices is unresolved; it is plausible the window mullions do not align with the interior office partitions exactly as modelled.",
+        "Calibration (pixel-to-metre anchors) for both floor plans and all four elevations is caller-supplied from measured outer wall faces and dimension-chain pixel positions; it was cross-checked against multiple independent dimension chains (footprint totals, window/door families) with consistent results within about 0.3%, but was not independently re-verified by a second reviewer.",
+        "Furniture-implied room uses (office/lobby/meeting) are inferred from plan furniture symbols, not from any text label in the drawing."
+      ]
+    }
+  ],
+  "geometry_before_sha256": "ecfe397f4eb43ff68c50547a5fe89c97040b5ffb3a2176909aea9844a53082b9",
+  "geometry_after_sha256": "ecfe397f4eb43ff68c50547a5fe89c97040b5ffb3a2176909aea9844a53082b9",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_06",
+  "source_model_sha256": "bd62549f51fa00e031fd67a3ab8d4b32092122456b85b27be92b22f02084aad8",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

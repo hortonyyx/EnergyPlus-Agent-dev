@@ -1,0 +1,679 @@
+{
+  "assumptions": [
+    "Interior partition/corridor wall thickness treated as zero per geometry contract; centerlines derived from measured pixel gaps and labeled dimension chains (250mm corridor walls per label; ~120mm vertical office dividers inferred from pixel measurement to make the 15000mm chain sum exactly).",
+    "Interior corridor-to-office door widths/positions are approximated from visible arc/frame symbols near the bay-dividing partitions; exact widths not individually dimensioned in the drawing.",
+    "All interior door heights (corridor-office doors) assumed standard 2.1m; not dimensioned in the drawing.",
+    "East 1F window height family assumed same as North/South 1F windows (sill1.0/head2.6m); not independently re-derived from a separate East elevation internal dimension chain.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 3.0,
+        "cells": [
+          {
+            "id": "N1",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.996403,
+                0.0
+              ],
+              [
+                4.996403,
+                3.128552
+              ],
+              [
+                0.0,
+                3.128552
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+              "1f_view.png: north corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              4.996403
+            ],
+            "y": [
+              0.0,
+              3.128552
+            ]
+          },
+          {
+            "id": "N2",
+            "polygon": [
+              [
+                4.996403,
+                0.0
+              ],
+              [
+                10.003597,
+                0.0
+              ],
+              [
+                10.003597,
+                3.128552
+              ],
+              [
+                4.996403,
+                3.128552
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between north office bay1/bay2, continues to corridor wall",
+              "1f_view.png: vertical divider between north office bay2/bay3",
+              "1f_view.png: north corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              4.996403,
+              10.003597
+            ],
+            "y": [
+              0.0,
+              3.128552
+            ]
+          },
+          {
+            "id": "N3",
+            "polygon": [
+              [
+                10.003597,
+                0.0
+              ],
+              [
+                15.0,
+                0.0
+              ],
+              [
+                15.0,
+                3.128552
+              ],
+              [
+                10.003597,
+                3.128552
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between north office bay2/bay3",
+              "1f_view.png: north corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              10.003597,
+              15.0
+            ],
+            "y": [
+              0.0,
+              3.128552
+            ]
+          },
+          {
+            "id": "CORR",
+            "polygon": [
+              [
+                0.0,
+                3.128552
+              ],
+              [
+                15.0,
+                3.128552
+              ],
+              [
+                15.0,
+                4.871448
+              ],
+              [
+                0.0,
+                4.871448
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: north corridor wall, full width, doors declared separately",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              15.0
+            ],
+            "y": [
+              3.128552,
+              4.871448
+            ]
+          },
+          {
+            "id": "S1",
+            "polygon": [
+              [
+                0.0,
+                4.871448
+              ],
+              [
+                4.996403,
+                4.871448
+              ],
+              [
+                4.996403,
+                8.0
+              ],
+              [
+                0.0,
+                8.0
+              ]
+            ],
+            "role": "lobby",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between south office bay1/bay2",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              0.0,
+              4.996403
+            ],
+            "y": [
+              4.871448,
+              8.0
+            ]
+          },
+          {
+            "id": "S2",
+            "polygon": [
+              [
+                4.996403,
+                4.871448
+              ],
+              [
+                10.003597,
+                4.871448
+              ],
+              [
+                10.003597,
+                8.0
+              ],
+              [
+                4.996403,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between south office bay1/bay2",
+              "1f_view.png: vertical divider between south office bay2/bay3",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              4.996403,
+              10.003597
+            ],
+            "y": [
+              4.871448,
+              8.0
+            ]
+          },
+          {
+            "id": "S3",
+            "polygon": [
+              [
+                10.003597,
+                4.871448
+              ],
+              [
+                15.0,
+                4.871448
+              ],
+              [
+                15.0,
+                8.0
+              ],
+              [
+                10.003597,
+                8.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: vertical divider between south office bay2/bay3",
+              "1f_view.png: south corridor wall, full width, doors declared separately"
+            ],
+            "x": [
+              10.003597,
+              15.0
+            ],
+            "y": [
+              4.871448,
+              8.0
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      15.0
+    ],
+    "footprint_y": [
+      0.0,
+      8.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D_S_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.539568,
+          8.0
+        ],
+        "p2": [
+          1.435252,
+          8.0
+        ],
+        "source_refs": [
+          "1f_view.png south wall entrance door width 540/900 dimension; South_view.png door head/sill 900+1200 from division -> head2.1 sill0"
+        ],
+        "space_id": "S1",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D_W_ext",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.0,
+          3.399188
+        ],
+        "p2": [
+          0.0,
+          4.600812
+        ],
+        "source_refs": [
+          "1f_view.png west wall door opening into corridor; West_view.png elevation shows double-leaf door width 1200mm centered 3400/1200/3400, head2.1 sill0 from 900+1500+600 chain (900+600=1500... actually 3000-900=2100 head, sill0)"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "exact door width/position approximated from visible arc/frame near x=4.0-4.9m; standard 2.1m head height assumed, not separately dimensioned"
+        ],
+        "id": "D_N1",
+        "kind": "door",
+        "other_space_id": "N1",
+        "p1": [
+          4.003597,
+          3.128552
+        ],
+        "p2": [
+          4.899281,
+          3.128552
+        ],
+        "source_refs": [
+          "1f_view.png door arc from bay1(N) into corridor near partition1"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated from visible frame near x=5.1-6.2m"
+        ],
+        "id": "D_N2",
+        "kind": "door",
+        "other_space_id": "N2",
+        "p1": [
+          5.104317,
+          3.128552
+        ],
+        "p2": [
+          6.205036,
+          3.128552
+        ],
+        "source_refs": [
+          "1f_view.png door from bay2(N) into corridor near partition1"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated near x=10.06-10.96m"
+        ],
+        "id": "D_N3",
+        "kind": "door",
+        "other_space_id": "N3",
+        "p1": [
+          10.057554,
+          3.128552
+        ],
+        "p2": [
+          10.964029,
+          3.128552
+        ],
+        "source_refs": [
+          "1f_view.png door from bay3(N) into corridor near partition2"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated, mirrored from north side pattern"
+        ],
+        "id": "D_S1",
+        "kind": "door",
+        "other_space_id": "S1",
+        "p1": [
+          4.003597,
+          4.871448
+        ],
+        "p2": [
+          4.899281,
+          4.871448
+        ],
+        "source_refs": [
+          "1f_view.png door from bay1(S) into corridor near partition1"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "D_S2",
+        "kind": "door",
+        "other_space_id": "S2",
+        "p1": [
+          5.104317,
+          4.871448
+        ],
+        "p2": [
+          6.205036,
+          4.871448
+        ],
+        "source_refs": [
+          "1f_view.png door from bay2(S) into corridor near partition1"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [
+          "position approximated"
+        ],
+        "id": "D_S3",
+        "kind": "door",
+        "other_space_id": "S3",
+        "p1": [
+          10.057554,
+          4.871448
+        ],
+        "p2": [
+          10.964029,
+          4.871448
+        ],
+        "source_refs": [
+          "1f_view.png door from bay3(S) into corridor near partition2"
+        ],
+        "space_id": "CORR",
+        "state": "unknown",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_N1",
+        "kind": "window",
+        "p1": [
+          1.348921,
+          0.0
+        ],
+        "p2": [
+          3.636691,
+          0.0
+        ],
+        "room": "N1",
+        "source_refs": [
+          "1f_view.png north wall bay1 window; height family from North_view.png elevation lower-zone dimension chain 400/1600/1000 -> sill1.0 head2.6"
+        ],
+        "span": [
+          1.348921,
+          3.636691
+        ],
+        "width_m": 2.28777,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_N2",
+        "kind": "window",
+        "p1": [
+          6.302158,
+          0.0
+        ],
+        "p2": [
+          8.697842,
+          0.0
+        ],
+        "room": "N2",
+        "source_refs": [
+          "1f_view.png north wall bay2 window"
+        ],
+        "span": [
+          6.302158,
+          8.697842
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W_N3",
+        "kind": "window",
+        "p1": [
+          11.363309,
+          0.0
+        ],
+        "p2": [
+          13.758993,
+          0.0
+        ],
+        "room": "N3",
+        "source_refs": [
+          "1f_view.png north wall bay3 window"
+        ],
+        "span": [
+          11.363309,
+          13.758993
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_S_small",
+        "kind": "window",
+        "p1": [
+          4.640288,
+          8.0
+        ],
+        "p2": [
+          4.996403,
+          8.0
+        ],
+        "room": "S1",
+        "source_refs": [
+          "1f_view.png small south window (360mm) near bay1; South_view.png shows 600mm tall window between 1500-2100 head/sill exactly matching pixel span of this symbol"
+        ],
+        "span": [
+          4.640288,
+          4.996403
+        ],
+        "width_m": 0.356115,
+        "z": [
+          1.5,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_S2",
+        "kind": "window",
+        "p1": [
+          6.302158,
+          8.0
+        ],
+        "p2": [
+          8.697842,
+          8.0
+        ],
+        "room": "S2",
+        "source_refs": [
+          "1f_view.png south wall bay2 window, same family as north"
+        ],
+        "span": [
+          6.302158,
+          8.697842
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W_S3",
+        "kind": "window",
+        "p1": [
+          11.363309,
+          8.0
+        ],
+        "p2": [
+          13.758993,
+          8.0
+        ],
+        "room": "S3",
+        "source_refs": [
+          "1f_view.png south wall bay3 window"
+        ],
+        "span": [
+          11.363309,
+          13.758993
+        ],
+        "width_m": 2.395684,
+        "z": [
+          1.0,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [
+          "East 1F window height assumed to match North/South 1F window family (sill1.0/head2.6); not independently confirmed from a dedicated East elevation dimension chain reading"
+        ],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W_E1",
+        "kind": "window",
+        "p1": [
+          15.0,
+          3.399188
+        ],
+        "p2": [
+          15.0,
+          4.600812
+        ],
+        "room": "CORR",
+        "source_refs": [
+          "1f_view.png east wall window at y=3.4-4.6m; East_view.png elevation shows 1200mm window centered 3400/1200/3400; height family assumed same as other 1F windows (unverified independently for East facade)"
+        ],
+        "span": [
+          3.399188,
+          4.600812
+        ],
+        "width_m": 1.201624,
+        "z": [
+          1.0,
+          2.6
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Exact interior door widths at each office-corridor junction are approximate; original arcs partially overlap adjacent partitions and were not individually pixel-measured to sub-100mm precision.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

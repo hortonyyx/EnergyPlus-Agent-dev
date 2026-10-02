@@ -1,0 +1,36 @@
+{
+ "date": "2026-09-30",
+ "user_message": "都批准，先做到跑sm21一次",
+ "approved": [
+  "The joint Opus/Astra fix package (joint_review_0930/README.md), including the limited report-only drawing checks in the first regression",
+  "Regression plan: joint version, at most 6 cold starts in phases - A run98 sm21; B (after A passes) run99 sm21, run100 sm24, run101 sm25; C (after B passes) run102 sm24, run103 sm25. Stop the batch on a serious error or 429, no automatic retry; results before and after an implementation change are not pooled",
+  "Merge to main only after the fix package passes joint review, the offline checks and the approved regression"
+ ],
+ "run_now": [
+  "run98",
+  "run99",
+  "run100"
+ ],
+ "later": "Phases B and C wait until the user has seen run98 (user: 先做到跑sm21一次).",
+ "channel": "claude-sonnet-5 / medium through the existing Claude subscription; no paid API, no DeepSeek, no delegation, 0 continuations",
+ "phase_b": {
+  "date": "2026-10-01",
+  "asked": "B 段：run98 同一套代码和条件，按顺序各跑一次 sm21（重复）、sm24、sm25（Sonnet5/medium，每次上限 3000 秒），每次跑完先读回执，严重错误或额度限制即停，不自动重试。",
+  "user_message": "放行三次，串行，做完一次之后挂闹钟隔两小时再做下一次，免得被5小时卡，都做完之后等我，不着急合入",
+  "approved_runs": [
+   "run99",
+   "run100",
+   "run101"
+  ],
+  "order": "run99 (sm21) -> run100 (sm24) -> run101 (sm25), serial",
+  "spacing": "after each run ends and its receipt is read, wait two hours before starting the next run in a separate step",
+  "stop_rule": "stop the batch if a receipt does not end normally (returncode, is_error, timeout, routing or model mismatch) or shows a usage/429 limit; no automatic retry; quality shortfalls are recorded, not grounds to skip the remaining approved runs",
+  "after": "when all three are done and evaluated, report and wait for the user; do not merge the fix package into main yet",
+  "phase_c": "run102/run103 not approved",
+  "amended": {
+   "date": "2026-10-01",
+   "user_message": "那我认为这样来吧，先还是继续把sm24跑了，然后你来做三个案例，做完之后明早一起汇总给我，我们讨论一下看要不直接改工作模型吧，免得因为模型自身问题导致我们一直反复",
+   "effect": "run100 (sm24) still runs at the planned time; run101 (sm25) is withdrawn from run_now and not executed; afterwards the developer (Opus 5.5) reconstructs sm21/sm24/sm25 with the same tools and reports with run99/run100 the next morning"
+  }
+ }
+}
