@@ -27,11 +27,12 @@ HERE = Path(__file__).resolve().parent
 DEFAULT_ARCHIVE = HERE / "evidence_all.compact.tar.xz"
 ROLE_MANIFEST = HERE / "role_cases/manifest.json"
 CALIBRATION = HERE / "calibration"
-EXPECTED_ROOTS = {
+REQUIRED_ROOTS = {
     "offline_demo": ".stage3-work/offline_final",
     "role_tests": ".stage3-work/roles",
     "offline_driver": ".stage3-work/offline_final_driver",
 }
+OPTIONAL_ROOTS = {"role_followup": ".stage3-work/roles_followup"}
 SCHEMA = "harness-stage3-delivery-verification/v1"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
@@ -487,7 +488,7 @@ def _validate_child_packages(
                     boxes += 1
 
             case = manifest_cases.get(package.task_id)
-            if run.base.startswith("role_tests/"):
+            if run.base.startswith(("role_tests/", "role_followup/")):
                 if case is None or package.question != case["question"]:
                     raise FindingError("role_package_mismatch", task_dir, "role task differs from frozen case")
                 declared = Counter(row["sha256"] for row in case["images"])
@@ -559,52 +560,76 @@ def _usage_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
     return totals
 
 
-def _validate_role_coverage(
-    view: ArchiveView, manifest: dict[str, Any], runs: list[RunEvidence]
+def _validate_role_batch(
+    view: ArchiveView,
+    manifest: dict[str, Any],
+    runs: list[RunEvidence],
+    *,
+    root_name: str,
+    expected_case_ids: set[str],
+    request_cap: int,
 ) -> dict[str, Any]:
-    protocol = view.json("role_tests/protocol.json")
-    index = view.json("role_tests/index.json")
+    protocol_path = f"{root_name}/protocol.json"
+    index_path = f"{root_name}/index.json"
+    protocol = view.json(protocol_path)
+    index = view.json(index_path)
     if not isinstance(index, list):
-        raise FindingError("invalid_role_index", "role_tests/index.json", "role index is not a list")
+        raise FindingError("invalid_role_index", index_path, "role index is not a list")
     manifest_bytes = ROLE_MANIFEST.read_bytes()
     if protocol.get("manifest_sha256") != _sha256(manifest_bytes):
-        raise FindingError("role_manifest_mismatch", "role_tests/protocol.json", "frozen manifest hash differs")
+        raise FindingError("role_manifest_mismatch", protocol_path, "frozen manifest hash differs")
     models = protocol.get("models")
     if not isinstance(models, list) or len(models) != 2 or len(set(models)) != 2:
-        raise FindingError("invalid_role_models", "role_tests/protocol.json", "protocol needs two unique models")
+        raise FindingError("invalid_role_models", protocol_path, "protocol needs two unique models")
     cases = {row["case_id"]: row for row in manifest["cases"]}
+    if not expected_case_ids <= set(cases):
+        raise FindingError("unknown_expected_role_case", root_name, "batch expects a case outside the manifest")
+    max_model_calls = protocol.get("max_model_calls_per_question")
+    if type(max_model_calls) is not int or max_model_calls < 1:
+        raise FindingError("role_protocol_model_cap", protocol_path, "per-question model cap is invalid")
     if (
-        protocol.get("questions_per_model") != len(cases)
-        or protocol.get("max_batch_requests") != 60
+        protocol.get("questions_per_model") != len(expected_case_ids)
+        or protocol.get("max_batch_requests") not in {request_cap, 60}
         or protocol.get("retries") != 0
         or protocol.get("fallback") is not False
     ):
-        raise FindingError("role_protocol_mismatch", "role_tests/protocol.json", "batch protocol or cap differs")
-    expected = {(case_id, model) for case_id in cases for model in models}
+        raise FindingError("role_protocol_mismatch", protocol_path, "batch protocol or cap differs")
+    if root_name == "role_followup":
+        if (
+            max_model_calls != 3
+            or protocol.get("max_requests_this_batch") != request_cap
+            or max_model_calls * len(expected_case_ids) * len(models) != request_cap
+        ):
+            raise FindingError(
+                "followup_request_cap_mismatch", protocol_path, "follow-up per-question and batch caps disagree"
+            )
+        budget_limits = protocol.get("budget_limits")
+        if not isinstance(budget_limits, dict) or not {
+            "model_calls", "tool_calls", "tokens", "seconds"
+        } <= set(budget_limits):
+            raise FindingError(
+                "followup_budget_limits_missing", protocol_path, "follow-up per-question limits are not recorded"
+            )
+    else:
+        budget_limits = None
+    expected = {(case_id, model) for case_id in expected_case_ids for model in models}
     observed = [(row.get("case_id"), row.get("model")) for row in index]
-    if len(observed) != 20 or set(observed) != expected or len(set(observed)) != len(observed):
-        raise FindingError("role_coverage_incomplete", "role_tests/index.json", "index is not the exact 20 case/model matrix")
-    expected_groups = Counter({
-        "drawing": 3,
-        "mesh_render": 3,
-        "photo_surrogate": 2,
-        "information_insufficient": 2,
-    })
-    groups = Counter(row["test_group"] for row in manifest["cases"])
-    if groups != expected_groups:
-        raise FindingError("role_group_coverage", "role_cases/manifest.json", "manifest does not cover four frozen groups")
+    if len(observed) != len(expected) or set(observed) != expected or len(set(observed)) != len(observed):
+        raise FindingError("role_coverage_incomplete", index_path, "index is not the exact case/model matrix")
     run_by_base = {run.base: run for run in runs}
     model_request_total = 0
+    expected_reports: set[str] = set()
     for row in index:
         case = cases[row["case_id"]]
         for field in ("test_group", "input_kind", "information_sufficiency", "photo_surrogate"):
             if row.get(field) != case[field]:
-                raise FindingError("role_index_case_mismatch", "role_tests/index.json", "index differs from manifest")
+                raise FindingError("role_index_case_mismatch", index_path, "index differs from manifest")
         run_id = row.get("run_id")
-        base = f"role_tests/{run_id}"
+        base = f"{root_name}/{run_id}"
         if base not in run_by_base:
             raise FindingError("role_run_missing", base, "indexed role run has no event log")
         case_path = f"{base}/role_case.json"
+        expected_reports.add(case_path)
         report = view.json(case_path)
         for field in ("case_id", "model", "run_id", "test_group", "model_requests"):
             if report.get(field) != row.get(field):
@@ -614,11 +639,41 @@ def _validate_role_coverage(
         }
         if child_ids != {row["case_id"]}:
             raise FindingError("role_child_mismatch", base, "role run child task differs from indexed case")
+        delegations = sorted(
+            path
+            for path in view.keys
+            if path.startswith(base + "/tasks/") and path.endswith("/delegation.json")
+        )
+        if len(delegations) != 1:
+            raise FindingError("role_delegation_count", base, "role run must have one child delegation")
+        delegation = view.json(delegations[0])
+        delegated_budget = delegation.get("arguments", {}).get("budget")
+        if not isinstance(delegated_budget, dict) or delegated_budget.get("model_calls") != max_model_calls:
+            raise FindingError("role_delegated_budget", delegations[0], "delegation differs from protocol model cap")
+        if budget_limits is not None and any(
+            delegated_budget.get(key) != budget_limits.get(key)
+            for key in ("model_calls", "tool_calls", "tokens", "seconds")
+        ):
+            raise FindingError("followup_delegated_budget", delegations[0], "delegation differs from protocol limits")
+        observation = view.json(delegations[0].removesuffix("delegation.json") + "observation.json")
+        runtime = observation.get("runtime", {})
+        runtime_limits = runtime.get("limits", {})
+        if any(
+            runtime_limits.get(key) != delegated_budget.get(key)
+            for key in ("model_calls", "tool_calls", "tokens", "seconds")
+        ):
+            raise FindingError("role_runtime_limits", delegations[0], "runtime limits differ from delegation")
         actual_requests = sum(
             isinstance(event.payload, AdapterRequestPayload) for event in run_by_base[base].events
         )
         if actual_requests != row["model_requests"]:
             raise FindingError("role_request_count_mismatch", base, "index request count differs from event log")
+        actual_tools = sum(
+            event.task_id == row["case_id"] and event.payload.event_type == "tool_execution"
+            for event in run_by_base[base].events
+        )
+        if runtime.get("model_calls") != actual_requests or runtime.get("tool_calls") != actual_tools:
+            raise FindingError("role_runtime_counts", base, "runtime call counts differ from event log")
         event_usage = [
             event.payload.usage.model_dump(mode="json")
             for event in run_by_base[base].events
@@ -627,12 +682,59 @@ def _validate_role_coverage(
         if report.get("usage") != event_usage or row.get("usage") != event_usage:
             raise FindingError("role_usage_mismatch", base, "role usage differs from message events")
         model_request_total += actual_requests
+    discovered_reports = {
+        path for path in view.keys if path.startswith(root_name + "/") and path.endswith("/role_case.json")
+    }
+    if discovered_reports != expected_reports:
+        raise FindingError(
+            "unindexed_role_report", root_name, "role_case files differ from the complete batch index"
+        )
+    if model_request_total > request_cap:
+        raise FindingError("role_batch_cap_exceeded", root_name, "batch exceeded its request allowance")
+    groups = Counter(cases[case_id]["test_group"] for case_id in expected_case_ids)
     return {
         "questions": len(index),
-        "cases": len(cases),
+        "cases": len(expected_case_ids),
         "models": len(models),
         "groups": dict(sorted(groups.items())),
         "model_requests": model_request_total,
+        "request_cap": request_cap,
+        "semantic_correctness": "not_evaluated",
+    }
+
+
+def _validate_role_coverage(
+    view: ArchiveView, manifest: dict[str, Any], runs: list[RunEvidence]
+) -> dict[str, Any]:
+    cases = {row["case_id"]: row for row in manifest["cases"]}
+    groups = Counter(row["test_group"] for row in manifest["cases"])
+    expected_groups = Counter({
+        "drawing": 3,
+        "mesh_render": 3,
+        "photo_surrogate": 2,
+        "information_insufficient": 2,
+    })
+    if groups != expected_groups:
+        raise FindingError(
+            "role_group_coverage", "role_cases/manifest.json", "manifest does not cover four frozen groups"
+        )
+    baseline = _validate_role_batch(
+        view, manifest, runs, root_name="role_tests", expected_case_ids=set(cases), request_cap=60
+    )
+    followup_present = any(path.startswith("role_followup/") for path in view.keys)
+    followup: dict[str, Any] | str = "absent"
+    if followup_present:
+        drawing = {case_id for case_id, row in cases.items() if row["test_group"] == "drawing"}
+        followup = _validate_role_batch(
+            view, manifest, runs, root_name="role_followup", expected_case_ids=drawing, request_cap=18
+        )
+    followup_requests = followup.get("model_requests", 0) if isinstance(followup, dict) else 0
+    followup_questions = followup.get("questions", 0) if isinstance(followup, dict) else 0
+    return {
+        "baseline": baseline,
+        "followup": followup,
+        "questions": baseline["questions"] + followup_questions,
+        "model_requests": baseline["model_requests"] + followup_requests,
         "semantic_correctness": "not_evaluated",
     }
 
@@ -664,7 +766,7 @@ def _validate_quota(
     event_reported = [
         event.payload.usage.raw_usage
         for run in runs
-        if run.base.startswith("role_tests/")
+        if run.base.startswith(("role_tests/", "role_followup/"))
         for event in run.events
         if event.payload.event_type == "model_response" and event.payload.usage.kind == "reported"
     ]
@@ -722,15 +824,22 @@ def _validate_calibration() -> dict[str, Any]:
 
 
 def _validate_protocol_sources(view: ArchiveView) -> dict[str, int]:
-    protocol = view.json("role_tests/protocol.json")
-    sources = protocol.get("source_files")
-    if not isinstance(sources, dict) or not sources:
-        raise FindingError("missing_protocol_sources", "role_tests/protocol.json", "source hashes are absent")
-    for relative, digest in sources.items():
-        path = (ROOT / relative).resolve()
-        if not path.is_relative_to(ROOT) or not path.is_file() or _sha256(path.read_bytes()) != digest:
-            raise FindingError("protocol_source_mismatch", "role_tests/protocol.json", "recorded source hash differs")
-    return {"source_files": len(sources)}
+    count = 0
+    roots = ["role_tests"]
+    if any(path.startswith("role_followup/") for path in view.keys):
+        roots.append("role_followup")
+    for root_name in roots:
+        logical = f"{root_name}/protocol.json"
+        protocol = view.json(logical)
+        sources = protocol.get("source_files")
+        if not isinstance(sources, dict) or not sources:
+            raise FindingError("missing_protocol_sources", logical, "source hashes are absent")
+        for relative, digest in sources.items():
+            path = (ROOT / relative).resolve()
+            if not path.is_relative_to(ROOT) or not path.is_file() or _sha256(path.read_bytes()) != digest:
+                raise FindingError("protocol_source_mismatch", logical, "recorded source hash differs")
+        count += len(sources)
+    return {"protocols": len(roots), "source_file_records": count}
 
 
 def verify_mapping(files: Mapping[str, bytes], *, archive_manifest: dict[str, Any]) -> dict[str, Any]:
@@ -745,7 +854,10 @@ def verify_mapping(files: Mapping[str, bytes], *, archive_manifest: dict[str, An
         roots = archive_manifest.get("roots")
         auditor.require(isinstance(roots, dict), "invalid_archive_roots", "archive", "archive roots are absent")
         observed = {name: row.get("source_path") for name, row in roots.items()}
-        auditor.require(observed == EXPECTED_ROOTS, "archive_root_mismatch", "archive", "source roots differ from delivery plan")
+        expected = dict(REQUIRED_ROOTS)
+        if "role_followup" in observed:
+            expected.update(OPTIONAL_ROOTS)
+        auditor.require(observed == expected, "archive_root_mismatch", "archive", "source roots differ from delivery plan")
         return {"roots": sorted(observed), "files": len(files)}
 
     auditor.check("archive_roots", archive_identity)
@@ -782,7 +894,7 @@ def verify_mapping(files: Mapping[str, bytes], *, archive_manifest: dict[str, An
             "adapter_requests": wire_detail.get("adapter_requests", 0),
         },
         "provider_usage": {
-            "role_tests": quota_detail,
+            "shared_role_quota": quota_detail,
             "calibration": calibration_detail,
             "combined_attempts": int(quota_detail.get("attempts", 0))
             + int(calibration_detail.get("attempts", 0)),
