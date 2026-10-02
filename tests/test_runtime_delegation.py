@@ -173,6 +173,20 @@ def test_evidence_tools_reject_write_before_backing_client(tmp_path):
     assert frozen.calls == []
 
 
+@pytest.mark.parametrize("image_key", ["plan_image", "elevation_image"])
+def test_evidence_tools_refuse_undelivered_facade_inputs(tmp_path, image_key):
+    with _store(tmp_path) as store:
+        frozen = _ForbiddenWriteTools(tmp_path)
+        frozen.repeatability = lambda name: "read_only"
+        tools = EvidenceTools(frozen, local_observer_role(BudgetAmounts(calls=2)),
+                              [_registered_view(store)])
+        with pytest.raises(ValueError, match="outside the local evidence package"):
+            asyncio.run(tools.call_tool("compare_facade_spans", {
+                "plan_image": "plan.png", "elevation_image": "plan.png",
+                image_key: "undelivered.png"}))
+        assert frozen.calls == []
+
+
 class _CoordinatorTools:
     def __init__(self, run_directory):
         self.run_directory = run_directory
