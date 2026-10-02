@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -147,40 +148,44 @@ def test_building_state_keeps_hashed_geometry_and_distinguishes_selected_from_cu
         assert latest.value["record"] == {"decision": "stop", "next_action": ""}
 
 
-def test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again(tmp_path):
+def test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again():
     # This calls the real frozen BIM MCP service, with a five-response script.
     # It is a small transport fixture, not a model-driven whole-case generation.
-    brief = tmp_path / "building-input.json"
-    brief.write_text(json.dumps({"constraints": ["Do not merge the two physical rooms"],
-        "thermal_zones": 1}))
-    args = parser().parse_args(["--out", str(tmp_path / "run"),
-        "--images", str(STAGE1 / "offline_inputs"), "--provider", "scripted",
-        "--building-input", str(brief),
-        "--script", str(STAGE1 / "offline_responses.json"), "--context-window", "3",
-        "--model-calls", "6", "--seconds", "180"])
-    first = asyncio.run(execute(args))
-    assert first["status"] == "completed"
-    output = args.out
-    before = (output / "events.jsonl").read_bytes()
-    bim_before = (output / "bim/candidate_01/source_model.json").read_bytes()
-    journal = json.loads((output / "journal.json").read_bytes())
-    with EventStore(output, run_id=output.name, task_id="coordinator",
-            budget_limit=BudgetAmounts.model_validate_json(json.dumps(journal["budget_limit"]))) as store:
-        _, checkpoint, _ = store.latest_checkpoint()
-        manager = ContextManager.load(store, checkpoint["context"])
-        checklist = manager.checklist()
-        requirement = checklist.entries("user_requirement")[0]
-        assert "Do not merge the two physical rooms" in json.dumps(requirement.value)
-        assert "not a measured" in json.dumps(requirement.value)
-        first_request = next(e.payload for e in store.events if e.payload.event_type == "adapter_request")
-        assert "Do not merge the two physical rooms" in json.dumps(store.resolve(first_request.final_request_body))
-        for category in ("user_requirement", "constraint", "evidence_reference", "artifact_version",
-                         "unresolved", "todo", "dimension", "object_id", "geometry"):
-            assert checklist.entries(category), category
-        manifest = json.loads((output / "versions.json").read_bytes())
-        assert len(manifest["dependency_lock"]["identifier"]) == 64
-    args.resume = True
-    resumed = asyncio.run(execute(args))
-    assert resumed["resume_status"] == "already_completed"
-    assert (output / "events.jsonl").read_bytes() == before
-    assert (output / "bim/candidate_01/source_model.json").read_bytes() == bim_before
+    # pytest's default tmp_path may live outside the repository, but the real
+    # entry deliberately permits writes only inside its own worktree.
+    with tempfile.TemporaryDirectory(prefix=".stage2-entry-test-", dir=ROOT) as temporary:
+        test_directory = Path(temporary)
+        brief = test_directory / "building-input.json"
+        brief.write_text(json.dumps({"constraints": ["Do not merge the two physical rooms"],
+            "thermal_zones": 1}))
+        args = parser().parse_args(["--out", str(test_directory / "run"),
+            "--images", str(STAGE1 / "offline_inputs"), "--provider", "scripted",
+            "--building-input", str(brief),
+            "--script", str(STAGE1 / "offline_responses.json"), "--context-window", "3",
+            "--model-calls", "6", "--seconds", "180"])
+        first = asyncio.run(execute(args))
+        assert first["status"] == "completed"
+        output = args.out
+        before = (output / "events.jsonl").read_bytes()
+        bim_before = (output / "bim/candidate_01/source_model.json").read_bytes()
+        journal = json.loads((output / "journal.json").read_bytes())
+        with EventStore(output, run_id=output.name, task_id="coordinator",
+                budget_limit=BudgetAmounts.model_validate_json(json.dumps(journal["budget_limit"]))) as store:
+            _, checkpoint, _ = store.latest_checkpoint()
+            manager = ContextManager.load(store, checkpoint["context"])
+            checklist = manager.checklist()
+            requirement = checklist.entries("user_requirement")[0]
+            assert "Do not merge the two physical rooms" in json.dumps(requirement.value)
+            assert "not a measured" in json.dumps(requirement.value)
+            first_request = next(e.payload for e in store.events if e.payload.event_type == "adapter_request")
+            assert "Do not merge the two physical rooms" in json.dumps(store.resolve(first_request.final_request_body))
+            for category in ("user_requirement", "constraint", "evidence_reference", "artifact_version",
+                             "unresolved", "todo", "dimension", "object_id", "geometry"):
+                assert checklist.entries(category), category
+            manifest = json.loads((output / "versions.json").read_bytes())
+            assert len(manifest["dependency_lock"]["identifier"]) == 64
+        args.resume = True
+        resumed = asyncio.run(execute(args))
+        assert resumed["resume_status"] == "already_completed"
+        assert (output / "events.jsonl").read_bytes() == before
+        assert (output / "bim/candidate_01/source_model.json").read_bytes() == bim_before

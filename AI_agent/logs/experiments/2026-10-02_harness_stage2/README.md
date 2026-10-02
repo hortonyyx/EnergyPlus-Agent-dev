@@ -31,10 +31,12 @@
 
 ## 独立复验
 
-从本工作树根目录运行，工具不读取凭据、不访问外部模型、不向归档内解包：
+必须把 `PYTHONPATH` 显式指向本工作树，避免共享 editable 安装把导入解析到其他树。工具不读取凭据、不访问外部模型、不向归档内解包：
 
 ```bash
-PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 \
+STAGE2_WORKTREE=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage2
+cd "$STAGE2_WORKTREE"
+PYTHONPATH="$STAGE2_WORKTREE" PYTHONDONTWRITEBYTECODE=1 \
   python AI_agent/logs/experiments/2026-10-02_harness_stage2/verify_delivery.py
 ```
 
