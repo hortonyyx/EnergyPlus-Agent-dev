@@ -74,10 +74,16 @@ def main():
     frozen = subprocess.check_output(["git", "diff", "--name-only", "5bb10538", "--", *frozen_paths], cwd=ROOT, text=True).splitlines()
     protected = subprocess.check_output(["git", "diff", "--name-only", "3047caac", "--", *protected_paths], cwd=ROOT, text=True).splitlines()
     assert not frozen and not protected
+    probe_requests = sum(
+        event.payload.event_type == "adapter_request"
+        for log in HERE.glob("paratera_probe_*/events.jsonl")
+        for event in EventStore.read_events(log)
+    )
+    assert probe_requests <= 20
     report = {"frozen_base": "5bb10538", "task_base": "3047caac",
         "frozen_changed_files": frozen, "protected_changed_files": protected,
         "runs": {p.name: audit_run(p) for p in [HERE / "offline_run", HERE / "paratera_probe_01"]},
-        "model_call_boundary": {"Paratera": 2, "whole_building": 0, "DeepSeek": 0, "GLM_subscription": 0},
+        "model_call_boundary": {"Paratera": probe_requests, "whole_building": 0, "DeepSeek": 0, "GLM_subscription": 0},
         "note": "No external request; this checks existing artifacts and does not regenerate them."}
     (HERE / "delivery_audit.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(report, ensure_ascii=False))
