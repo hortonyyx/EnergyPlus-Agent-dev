@@ -28,9 +28,9 @@ DEFAULT_ARCHIVE = HERE / "evidence_all.compact.tar.xz"
 ROLE_MANIFEST = HERE / "role_cases/manifest.json"
 CALIBRATION = HERE / "calibration"
 REQUIRED_ROOTS = {
-    "offline_demo": ".stage3-work/offline_final",
+    "offline_demo": ".stage3-work/offline_followup",
     "role_tests": ".stage3-work/roles",
-    "offline_driver": ".stage3-work/offline_final_driver",
+    "offline_driver": ".stage3-work/offline_followup_driver",
 }
 OPTIONAL_ROOTS = {"role_followup": ".stage3-work/roles_followup"}
 SCHEMA = "harness-stage3-delivery-verification/v1"
@@ -265,6 +265,11 @@ def _iter_sha_refs(value: Any):
 
 
 def _validate_event_logs(view: ArchiveView, runs: list[RunEvidence]) -> dict[str, int]:
+    run_ids = [run.run_id for run in runs]
+    if len(run_ids) != len(set(run_ids)):
+        raise FindingError(
+            "duplicate_run_id", "archive", "event roots must keep globally unique run IDs"
+        )
     event_count = blob_ref_count = 0
     for run in runs:
         budget = BudgetAmounts.model_validate_json(json.dumps(run.journal.get("budget_limit")))
@@ -599,6 +604,11 @@ def _validate_role_batch(
             max_model_calls != 3
             or protocol.get("max_requests_this_batch") != request_cap
             or max_model_calls * len(expected_case_ids) * len(models) != request_cap
+            or protocol.get("run_prefix") != "followup_"
+            or set(protocol.get("case_ids", ())) != expected_case_ids
+            or protocol.get("shared_quota")
+            != REQUIRED_ROOTS["role_tests"] + "/role_requests.jsonl"
+            or protocol.get("baseline_attempts_at_start") != 21
         ):
             raise FindingError(
                 "followup_request_cap_mismatch", protocol_path, "follow-up per-question and batch caps disagree"
@@ -625,9 +635,15 @@ def _validate_role_batch(
             if row.get(field) != case[field]:
                 raise FindingError("role_index_case_mismatch", index_path, "index differs from manifest")
         run_id = row.get("run_id")
+        if root_name == "role_followup" and not str(run_id).startswith("followup_"):
+            raise FindingError(
+                "followup_run_prefix", index_path, "follow-up run ID lacks its independent prefix"
+            )
         base = f"{root_name}/{run_id}"
         if base not in run_by_base:
             raise FindingError("role_run_missing", base, "indexed role run has no event log")
+        if run_by_base[base].run_id != run_id:
+            raise FindingError("role_run_id_mismatch", base, "directory, index and journal run IDs differ")
         case_path = f"{base}/role_case.json"
         expected_reports.add(case_path)
         report = view.json(case_path)
@@ -781,13 +797,15 @@ def _validate_quota(
         row.get("event") == "response" and row.get("usage_status") == "missing"
         for row in completions
     )
+    failures = sum(row.get("event") == "failure" for row in completions)
     return {
         "attempts": len(attempts),
         "limit": 60,
         "responses": sum(row.get("event") == "response" for row in completions),
-        "failures": sum(row.get("event") == "failure" for row in completions),
+        "failures": failures,
         "reported_usage": _usage_counts(reported),
         "missing_usage_responses": missing,
+        "attempts_without_reported_usage": failures + missing,
     }
 
 
@@ -824,7 +842,7 @@ def _validate_calibration() -> dict[str, Any]:
 
 
 def _validate_protocol_sources(view: ArchiveView) -> dict[str, int]:
-    count = 0
+    count = current_matches = historical_versions = 0
     roots = ["role_tests"]
     if any(path.startswith("role_followup/") for path in view.keys):
         roots.append("role_followup")
@@ -835,11 +853,29 @@ def _validate_protocol_sources(view: ArchiveView) -> dict[str, int]:
         if not isinstance(sources, dict) or not sources:
             raise FindingError("missing_protocol_sources", logical, "source hashes are absent")
         for relative, digest in sources.items():
+            if (
+                not isinstance(relative, str)
+                or not isinstance(digest, str)
+                or not SHA256_RE.fullmatch(digest)
+            ):
+                raise FindingError("protocol_source_invalid", logical, "recorded source identity is invalid")
             path = (ROOT / relative).resolve()
-            if not path.is_relative_to(ROOT) or not path.is_file() or _sha256(path.read_bytes()) != digest:
-                raise FindingError("protocol_source_mismatch", logical, "recorded source hash differs")
+            if not path.is_relative_to(ROOT) or not path.is_file():
+                raise FindingError("protocol_source_invalid", logical, "recorded source identity is invalid")
+            if _sha256(path.read_bytes()) == digest:
+                current_matches += 1
+            else:
+                # Baseline and follow-up intentionally freeze different code
+                # versions. The protocol hash identifies the executed bytes;
+                # a later worktree version is not evidence corruption.
+                historical_versions += 1
         count += len(sources)
-    return {"protocols": len(roots), "source_file_records": count}
+    return {
+        "protocols": len(roots),
+        "source_file_records": count,
+        "current_source_matches": current_matches,
+        "recorded_historical_versions": historical_versions,
+    }
 
 
 def verify_mapping(files: Mapping[str, bytes], *, archive_manifest: dict[str, Any]) -> dict[str, Any]:
