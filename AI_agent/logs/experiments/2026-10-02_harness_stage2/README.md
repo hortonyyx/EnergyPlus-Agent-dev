@@ -1,0 +1,49 @@
+# 阶段 2：长任务与恢复交付
+
+工作树 `.worktrees/astra-stage2`，分支 `dev/astra-stage2-20261002`，派工起点 `c5926024`。主体实现和离线验证由 Astra 负责，正式验收由 Opus 决定。本分支不合入、不推送 main；历史实验只读。
+
+实现说明见[长任务设计](../../../design/runtime_long_tasks.md)。验收依据是[阶段 2 A–H](../../../project/unified_agent_acceptance.md#阶段-2长任务与恢复)，本目录没有修改验收口径或派工单。
+
+## 实现
+
+- 完整历史与当前状态、活动请求分开保存；去重、旧摘要失效、图片取回都有可追溯事件。
+- 图片按原 view_id 与哈希取回，最终请求按字节哈希去重；固定证据与容量冲突时明确停止。
+- 用户要求、约束原文来源、依据、源 BIM、未决项、待办、尺寸和对象编号保持机器可读。摘要不能把推断改成事实，不能成为几何的唯一来源。
+- 主任务、摘要、重试与子任务预算预留共用根账本；子任务实际运行属于阶段 3。缺失用量不归零，费用估计不冒充账单。
+- 事件式检查点、后缀回放、显式破尾修复；已记录成功的写不重复执行，未知写先查真实保存状态再安全停止。
+
+## 证据入口
+
+| 材料 | 内容 |
+| --- | --- |
+| [validation.json](validation.json) | 实际测试命令、数量、结果、历史失败的解释、外部调用量 |
+| [pytest_final.log](pytest_final.log)、[JUnit](pytest_final.xml) | 原 132 项加 42 项新增短检查，174 passed |
+| [长夹具说明](long_fixture_report.md)、[源清单](source_manifest.json) | run99 的 75 组调用/回包、67 个原图片块及改编边界 |
+| [故障报告](fault_report.md) | 最终长任务各注入点、预期、实测结果与写次数 |
+| [delivery_audit.json](delivery_audit.json) | 冻结范围、归档事件契约、全部本地哈希引用、实际请求和图片校验 |
+| [evidence_archives.json](evidence_archives.json) | 完整长任务和未知写归档的逐文件哈希、事件数及写入账 |
+| [evidence_frozen_entry.tar.gz](evidence_frozen_entry.tar.gz) | 真实冻结工具的小型离线闭环，含事件、附件、源 BIM、查看文件和六层版本 |
+| [evidence_complete75.tar.gz](evidence_complete75.tar.gz) | 75 步中断恢复完成记录，完整事件、附件、检查点与隔离 BIM |
+| [evidence_unknown_write.tar.gz](evidence_unknown_write.tar.gz) | 未知写保存状态检查及安全停止记录 |
+| [交付报告](delivery_report.md) | A–H 自评、阶段 1 跟进、文件与提交、未决项、阶段 3 估算 |
+
+长记录来自真实历史，但模型序列是脚本，token 数是明确标注的测试值；隔离后端映射历史写入，不代表重新生成了原建筑。真实冻结入口也是两房间的运输与恢复小夹具。本阶段没有新增整案实测。
+
+## 独立复验
+
+从本工作树根目录运行，工具不读取凭据、不访问外部模型、不向归档内解包：
+
+```bash
+PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 \
+  python AI_agent/logs/experiments/2026-10-02_harness_stage2/verify_delivery.py
+```
+
+它核对冻结路径、日志契约、哈希附件、实际请求注入位置、图片字节、工具实际呈现和检查点历史；要求最终 `missing_archives` 为空。归档只有普通相对路径文件，不含锁文件或临时文件。工具会更新本目录的 `delivery_audit.json`。
+
+运行测试须把 `TMPDIR` 和 `--basetemp` 放在本树内，且各并行执行者用独立目录。具体命令见 `validation.json`，不要把整个共享临时目录当作单次 pytest 的 basetemp。
+
+## 仍然保留的边界
+
+Paratera 0 次，DeepSeek 0 次，GLM 0 次；未读取 Paratera 凭据。服务的真实上下文上限、缓存、图片限制与当前价格未核实，本地策略不宣称代表这些服务规则。远端模型别名仍未核实为固定版本。
+
+摘要是受约束的状态索引；任意长文本自由摘要没有开启。未知写没有自动幂等恢复，孤立预算预留没有自动释放；两者会明确停止。当前逐次日志前缀校验和每图决策记录有开销，性能优化留到后续。名词草案仍待用户确认，既有类型不改名。
