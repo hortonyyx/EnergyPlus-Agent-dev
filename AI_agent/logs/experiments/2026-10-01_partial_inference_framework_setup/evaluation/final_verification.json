@@ -1,0 +1,30 @@
+{
+  "status": "pass",
+  "scope": "Offline integration checks after post-freeze repairs; not a new model run or architectural acceptance",
+  "code_identical_to_commit": "5221f365",
+  "checks": [
+    {
+      "command": "python -m pytest -q -n 2 tests/test_parametric_proposal.py tests/test_source_proposal.py tests/test_bim_agent_inference.py tests/test_bim_agent_bridge.py",
+      "passed": 22,
+      "failed": 0
+    },
+    {
+      "command": "python -m pytest -q -n 2 tests/test_source_naming.py tests/test_geometry_viewer.py tests/test_source_spanning_spaces.py tests/test_source_spanning_feedback.py",
+      "passed": 34,
+      "failed": 0,
+      "fixture_note": "Six old fixture failures reproduced on patch parent; changed synthetic core role from removed vertical_circulation to existing stairwell. Product catalog unchanged."
+    },
+    {
+      "command": "python -m pytest -q -n 2 tests/test_proposal_edits.py tests/test_bim_claims.py",
+      "passed": 52,
+      "failed": 0,
+      "executed_by": "delegated developer on integrated-equivalent code"
+    }
+  ],
+  "test_count_note": "Earlier initial-package 77 checks and intermediate targeted checks overlap these scopes; counts are not summed.",
+  "integrity_report": "final_integrity.json",
+  "comparison_browser": "comparison_browser.json",
+  "original_model_browser_reports": ["browser_61sol/report.json", "browser_6sol/report.json"],
+  "original_model_browser_note": "Both render, section and select; partial due to original public floor-label mismatch. Repairs do not rewrite frozen model deliverables.",
+  "new_model_calls_for_post_freeze_repairs": 0
+}

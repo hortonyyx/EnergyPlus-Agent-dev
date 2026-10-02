@@ -203,6 +203,57 @@ def test_viewer_without_roles_falls_back_to_white_zone_fill():
     assert geo["roles"] == {}  # empty → JS HAS_ROLES false → legacy white zone fill
 
 
+def test_source_spanning_spaces_are_filter_members_without_slicing_geometry():
+    data = copy.deepcopy(_GEO)
+    data["zones"] = ["room-1", "room-2", "core"]
+    data["surfaces"] = [
+        {"name": "r1", "zone": "room-1", "type": "Wall",
+         "verts": [[0, 0, 0], [1, 0, 0], [1, 0, 3], [0, 0, 3]]},
+        {"name": "r2", "zone": "room-2", "type": "Wall",
+         "verts": [[0, 0, 3], [1, 0, 3], [1, 0, 6], [0, 0, 6]]},
+        {"name": "core-wall", "zone": "core", "type": "Wall",
+         "verts": [[1, 0, 0], [2, 0, 0], [2, 0, 6], [1, 0, 6]]},
+    ]
+    data["windows"] = []
+    data["source_model"] = {
+        "floors": [
+            {"id": "F1", "name": "F1", "z_floor": 0, "spanning_space_ids": ["core"]},
+            {"id": "CORE", "name": "Core", "z_floor": 0},
+            {"id": "F2", "name": "F2", "z_floor": 3, "spanning_space_ids": ["core"]},
+        ],
+        "spaces": [
+            {"id": "room-1", "floor_id": "F1"},
+            {"id": "room-2", "floor_id": "F2"},
+            {"id": "core", "floor_id": "CORE"},
+        ],
+        "boundaries": [], "derived": {},
+        "public_names": {"floors": {"F1": "F1", "CORE": "Core", "F2": "F2"}},
+        "validation": {"status": "pass"}, "openings": [], "connections": [],
+    }
+    html = rgv.build_viewer_html(data, title="spanning")
+    start = html.index("window.GEO = ") + len("window.GEO = ")
+    embedded = json.loads(html[start:html.index(";</script>", start)])
+    floor_index = {row["id"]: i for i, row in enumerate(embedded["public_names"]["floors"])}
+    assert embedded["floor_memberships"]["room-1"] == [floor_index["F1"]]
+    assert embedded["floor_memberships"]["room-2"] == [floor_index["F2"]]
+    assert embedded["floor_memberships"]["core"] == [
+        floor_index["CORE"], floor_index["F1"], floor_index["F2"]]
+    assert "const zoneFloor = {}, zoneFloors = {};" in html
+    assert "const declared=(GEO.floor_memberships||{})[z]||[]" in html
+    assert "const okF=(u)=>onFloor(u,f)" in html
+    # Primary floor remains single-valued for colouring/explode. Filtering uses
+    # the declared local + spanning index set and never creates sliced geometry.
+    assert "zoneFloors[z]=declared.length ? declared : [zoneFloor[z]]" in html
+
+
+def test_legacy_viewer_keeps_geometric_floor_fallback():
+    html = rgv.build_viewer_html(_GEO, title="legacy")
+    start = html.index("window.GEO = ") + len("window.GEO = ")
+    geo = json.loads(html[start:html.index(";</script>", start)])
+    assert geo["source_model"] is None and geo["public_names"]["floors"] == []
+    assert "cluster((floorSurf.length ? floorSurf : SURF).map(zmin))" in html
+
+
 def test_discover_roles_prefers_zone_meta_then_legacy_correction(tmp_path):
     """zone→role auto-discovery prefers building_geometry zone_meta because
     deterministic public names differ from correction cell ids."""

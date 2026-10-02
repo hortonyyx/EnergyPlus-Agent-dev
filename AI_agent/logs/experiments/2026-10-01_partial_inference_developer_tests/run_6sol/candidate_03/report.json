@@ -1,0 +1,59 @@
+{
+  "agent_assumptions": [
+    "Yaw +15 degrees aligns the dominant original-mesh wall traces with the BIM axes; source registration uses zero translation.",
+    "Eight main office storeys at 3.35 m and two lower-wing storeys are inferred from approximately repeated facade bands and ~27 m parapet.",
+    "The detailed interior circulation, enclosed rooms, doors, shafts and their uses are architectural inference; no interiors are supplied.",
+    "Curved metal roofs are represented by three flat-topped attic volumes plus two roof mechanical volumes and one chimney in this orthogonal source schema.",
+    "Window module dimensions are regularized from repeated but noisy texture marks."
+  ],
+  "counts": {
+    "boundaries": 1250,
+    "connections": 213,
+    "openings": 511,
+    "spaces": 203,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "8f974f68efef73a7342a604e10a9d01c96644a2286f55caab03e7426c86d6cdd",
+  "provenance": {
+    "generator": "external_development_agent subscription tool loop",
+    "input_manifest_sha256": "298463ac9e1dd9decf702c109d0b1feccff7eac2d0020e5e5e42067acc2b2005",
+    "mode": "native_mesh_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "73e6654b6cf5f4a4bbb4b4aa8fc049743dadf9e675ef7a376a53133ca822e0a6",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "True internal partition, stair, lift, service and entry positions remain unverified by original interior evidence.",
+    "Exact roof curvature, dormer geometry and parapet profiles are unsupported by the orthogonal source representation.",
+    "Some outer mesh surfaces are missing, noisy or occluded; exact opening counts and jambs on these facades remain uncertain."
+  ]
+}

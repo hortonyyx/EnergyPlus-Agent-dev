@@ -645,6 +645,9 @@ class Toolkit:
                     expected.add((name.removeprefix("update_"), operation["id"]))
                 elif name == "add_opening":
                     expected.add(("opening", operation["opening"]["id"]))
+                elif name == "remove_opening":
+                    expected.update((kind, operation["id"]) for kind in ("window", "opening")
+                                    if (kind, operation["id"]) in old_objects)
                 elif name == "move_shared_wall":
                     expected.update(("space", identity) for identity in operation["space_ids"])
                 elif name == "reshape_spaces":
@@ -2123,13 +2126,16 @@ def serve(run: Path, readonly=False):
     server = FastMCP("bim", log_level="WARNING")
     from scripts.tool_scripts.bim_agent_mesh import register_mesh_tools
     register_mesh_tools(server, toolkit)
+    from scripts.tool_scripts.bim_agent_inference import register_inference_tools
+    register_inference_tools(server, toolkit)
 
     @server.tool()
     def get_bim_reference(topic: str) -> dict:
         """Topics: plan_partition, plan_assembly, geometry, parametric (build formats);
         edits, wall_dimensions (revise_bim operations); claims; opening_review;
         facade_correspondence; room_types (role catalog); naming (public names);
-        reconstruction (the drawing method already in the system prompt).
+        reconstruction (the drawing method already in the system prompt);
+        partial_inference (mesh evidence, architectural hypotheses, assembly, source review).
         Generic formats and interfaces, not case observations or answers.
         """
         if topic not in REFERENCES:
@@ -2903,7 +2909,8 @@ def run_experiment(args):
                                  "saved_generated_proposal": {"included": bool(seed_path)},
                                  "ground_truth_or_evaluation": {"included": False},
                              },
-                             "deadline_epoch": time.time() + args.timeout,
+                             "deadline_epoch": (None if getattr(args, "prepare_only", False)
+                                                else time.time() + args.timeout),
                              "implementation_sha256": {
                                  "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),
                                  "src/agent/geometry/source_model.py":digest(ROOT/"src/agent/geometry/source_model.py"),
@@ -2921,6 +2928,7 @@ def run_experiment(args):
                                  "src/agent/execution/bim_height_coverage.py":digest(ROOT/"src/agent/execution/bim_height_coverage.py"),
                                  "src/agent/geometry/component_attributes.py":digest(ROOT/"src/agent/geometry/component_attributes.py"),
                                  "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
+                                 "scripts/tool_scripts/bim_agent_inference.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inference.py"),
                                  "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),
                                  "src/agent/geometry/mesh_bim_frame.py":digest(ROOT/"src/agent/geometry/mesh_bim_frame.py"),
                                  "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
@@ -2998,6 +3006,9 @@ def run_experiment(args):
                     "openings and connectivity with the original images. Choose substantive "
                     "discrepancies for local review or revision, while preserving reliable geometry; "
                     "do not redo a full reading." if seed_path else
+                    "Observe the exterior evidence, state architectural hypotheses for missing parts "
+                    "and interiors, and build at the requested space detail. Inspect the actual saved "
+                    "source against the input and repair substantive discrepancies." if mesh_input else
                     "No saved proposal is supplied; work from the original inputs.")
     declaration_prompt = (
         " A structured user building declaration is available from inputs under "
@@ -3008,9 +3019,20 @@ def run_experiment(args):
         if building_input else
         " No structured building declaration was supplied for this experiment."
     )
-    record = subscription(run, f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
-                          f"Start by listing supplied inputs.{declaration_prompt} {continuation} "
-                          "Report limitations honestly, and finish within the budget.",
+    prompt = (f"Scope: {args.scope}\nBudget: {args.timeout} seconds. "
+              f"Start by listing supplied inputs.{declaration_prompt} {continuation} "
+              "Report limitations honestly, and finish within the budget.")
+    if getattr(args, "prepare_only", False):
+        (run / "task.txt").write_text(prompt, encoding="utf-8")
+        (run / "guide.txt").write_text(run_guide(run), encoding="utf-8")
+        prepared = {"status": "prepared_not_run", "run": str(run),
+                    "model_calls": 0, "deadline_epoch": None,
+                    "note": "Frozen inputs and common instructions only. An external controller must "
+                            "record its model, start/deadline and receipt before claiming an experiment."}
+        dump(run / "preparation.json", prepared)
+        print(json.dumps(prepared, ensure_ascii=False, indent=2))
+        return prepared
+    record = subscription(run, prompt,
                           model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
                           name="agent", timeout=args.timeout,
                           effort=getattr(args, "effort", None),
@@ -3090,6 +3112,8 @@ def main():
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
     run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--prepare-only", action="store_true",
+                     help="Freeze admitted inputs and instructions without a model call or ticking deadline")
     run.add_argument("--max-candidates", type=int, default=24,
                      help="Shared export quota for floor builds, assembly and revisions (default: 24)")
     run.add_argument("--continuation-rounds", type=int, choices=range(5), default=0,

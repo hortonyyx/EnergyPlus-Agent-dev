@@ -1,0 +1,208 @@
+{
+  "images": {
+    "parent_courtyard.png": {
+      "size": [
+        1500,
+        1100
+      ],
+      "sha256": "d00430598b72d78125fc20fc4b6b978daad57c7291e84a5ceaaabe6e9691b49e"
+    },
+    "parent_detail_front.png": {
+      "size": [
+        700,
+        1700
+      ],
+      "sha256": "2d5e9aae867986311b3a9e9f8b28e58070dae5de1c1a4b8e08697b75b6a5de09"
+    },
+    "parent_detail_side.png": {
+      "size": [
+        700,
+        1700
+      ],
+      "sha256": "d331065fd6ab2db34d099872ddd3a05f59d56896c12318dba83633599bc4fd16"
+    },
+    "parent_top.png": {
+      "size": [
+        1500,
+        1100
+      ],
+      "sha256": "9606cecfaeb980dbd7d4cfb58f09030b21104ff7f045041db4aaacfdbae034e7"
+    }
+  },
+  "scope": "Develop a complete viewable lightweight BIM for the target single building\nin the admitted original textured GLB, using the common BIM framework. This is\npartial inference at a fine space-detail level for an office building. The\nadditional four raw, unlabeled parent-tile context crops can help interpret the\ntarget's missing surfaces; neighboring buildings are context, not BIM targets.\nInfer useful plausible physical rooms, circulation, openings and roof ancillary\nspaces where interior or exterior evidence is missing. Keep observed, inferred\nand simplified decisions explicit. Use reasonable architectural dimensions;\ndo not chase noisy texture pixels. Fine detail does not require inventing\npartitions in physically continuous spaces. Choose simpler interpretations\nwhere evidence supports several equally plausible alternatives.\nThe target is a complete architecturally plausible building, not a quick shell.\nNo fixed expected space/opening count or preselected building coordinates is given.\n",
+  "provider": "external_development_agent",
+  "max_candidates": 24,
+  "continuation_rounds": 0,
+  "input_mode": "native_mesh_agent_experiment",
+  "exploratory_opus": false,
+  "source_input_mode": "native_mesh_with_images",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 4
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    },
+    "original_mesh": {
+      "included": true,
+      "sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc"
+    }
+  },
+  "deadline_epoch": 1790852916.1525493,
+  "implementation_sha256": {
+    "src/agent/correction/schema.py": "d17b3c37b1afa6216787db802c2de4a06b736613db7cd142d9c3342d79b19446",
+    "src/agent/geometry/source_model.py": "58bd64f933b6eb6500162c9720bd405931db399a9504cf1cb90702a42c738ebc",
+    "src/agent/roles.py": "0de7de005ee53764a309b30163c9a1dea729e01e0d6a2727e65062208159e0f3",
+    "src/agent/data/room_types.json": "06137438aa8cee4e7a008a54dc07a468bee280e50e3a2f65aed5af7321125ee5",
+    "src/agent/geometry/source_naming.py": "f99de48e7ee43e383f5bfca32cdc883ebd1ec981cbc0a6ca5b92024fb2b15750",
+    "scripts/tool_scripts/render_geometry_viewer.py": "04f0156366639c2e45cc30eeb6b5e0bdf598921b4b68f1a52ed692910c1dbe5c",
+    "scripts/tool_scripts/run_bim_agent.py": "4cceaf57d5ef4dc65eb7f08333b773945f59fa4c238d9e2df53c74c21c6025ab",
+    "scripts/tool_scripts/bim_agent_guidance.py": "8620ccd24fd07fa33eca34e3dca675aeb3ca320c128b9704c8b4f762e4159d67",
+    "scripts/tool_scripts/bim_agent_continuation.py": "59f5fe137114d4c9acc530fae25285428c6033f07c312742bd20ee1b40e979ce",
+    "src/agent/geometry/parametric_proposal.py": "722a982b388dcc85ac7718d436bd1826d540758ac7f7c5714cb0c17d806904c7",
+    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
+    "src/agent/execution/bim_claims.py": "8938c5be592ce5d5ec924859b56dd528bfac8043beb2fa2f929370f992e86def",
+    "src/agent/execution/bim_claim_state.py": "9b5bc96dd67257cf7e3e899b1ae2e010d7cd789461f07fe947c8b38102f70299",
+    "src/agent/execution/bim_height_coverage.py": "64c51ad76a4a368887aebc2792f9e76b1d06ddaeb86fe0341232ed759ffea2b5",
+    "src/agent/geometry/component_attributes.py": "c6084c54e07c7eb17d1a8c86442276d70fcbf11c61d872ee21823f4643468be6",
+    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
+    "scripts/tool_scripts/bim_agent_inference.py": "faba14260f44cc2534167f997afc2e133807cc48dfd5c6f8e888151909d029b9",
+    "src/agent/geometry/mesh_observation.py": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05",
+    "src/agent/geometry/mesh_bim_frame.py": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2",
+    "src/agent/execution/source_proposal.py": "2401d2fe32b96c33b6c83dbb82cde5d6527aede71ad309fb67e82c91720c1edb",
+    "src/agent/geometry/proposal_edits.py": "3bfe06d3560839f1a01431dd9d169921d41661861cfa264350d215210d69832a",
+    "src/agent/geometry/opening_review.py": "47cf71cfe1ed71689e8c1fec52c497d25067503691b700aefc5c762cf08e84c3",
+    "src/agent/geometry/bim_delivery.py": "69a234f925d79a1f85eca99fb1f109bfaa89cb41f3453ee1f4bed93c11de82f4",
+    "src/agent/geometry/source_image_overlay.py": "fc7d24707461cebd490ff63f9c4bcd01635158f54e507d396ed55a8ffcc572ab",
+    "src/agent/geometry/source_floor_selection.py": "ee390e2aa37d958619f60e7d0e8cf055e8f387911fd58c8e471d1fbec7cfe82f",
+    "src/agent/geometry/source_space_relations.py": "97601df4bb9e9fa5af0279aa6e1373ab17a926bd33aed0f409d36115c382c2e5",
+    "src/agent/geometry/source_elevation_view.py": "d1c2c272ed2d6c04a4b9aceb3f665e1250d244f7a8d1abd71ef3e528c72b097c",
+    "src/agent/geometry/source_elevation_overlay.py": "feb3368705cde39bf7bca555238823b0996e05bdd22e525137614d8964957f16",
+    "src/agent/geometry/source_plan_view.py": "9a535f1decb0df714b3444929a308f2efc7ea74543418a3c5f893585b1618373",
+    "src/agent/geometry/source_bim.py": "40f58f2cc3e35bf3e6ff52ec3ff6b04dc25d9577a419328ae867b5b71b719e25",
+    "src/agent/geometry/wall_reference.py": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768",
+    "src/agent/geometry/dimension_chain.py": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073",
+    "src/agent/geometry/facade_span_comparison.py": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113",
+    "src/agent/geometry/profile_observation_binding.py": "cbb02779a25acc243199922f71575db7d28c7d03e4c82b808992ad530ac68296",
+    "src/agent/geometry/plan_feedback.py": "870dcd56ce7f0fb9e764c860bd373e869d5aaf5a12e0a54e9306fc20defcf980",
+    "src/agent/geometry/space_trace.py": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd",
+    "src/agent/geometry/plan_partition.py": "6dc64a1301b9f050b8f3cc30849a27aa88159bc6768dfbf65ba5782651d689d3",
+    "src/agent/geometry/plan_assembly.py": "d46c27628f390ac4fa54f0311972b60591af40d963b94a2c1288ece910408048",
+    "src/agent/geometry/plan_revision.py": "9ec61ac7afbd8216da1ab218ec2366fb2063c4796e176824c934e43c1660d40d",
+    "src/agent/geometry/plan_wall_support.py": "f52d85d13bd6cd157f37122e32780ab3e4883134386d21465d1d7cf62c7256b8",
+    "src/agent/geometry/plan_draft_view.py": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a",
+    "src/agent/geometry/pixel_region.py": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13",
+    "src/agent/geometry/pixel_region_overview.py": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+  },
+  "only_input": "Admitted original GLB and optional original PNGs, explicit building declaration, user scope and optional saved proposal. Mesh views are generated on demand internally; no GT/evaluation or preselected camera package.",
+  "mesh_input": {
+    "source_path": "admitted original single-building GLB",
+    "frozen_path": "assets/input.glb",
+    "sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "bytes": 969568,
+    "geometry": {
+      "mesh_path": "/tmp/ep-partial-developer-tests-20261001/run_6sol/assets/input.glb",
+      "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+      "coordinate_frame": "BIM-local right-handed Z-up metres",
+      "source_coordinate_transform": {
+        "order": "scene node transform, then glTF Y-up to BIM Z-up, then operation yaw",
+        "y_up_to_z_up": "[X, -Z, Y]",
+        "y_up_to_z_up_matrix": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            -1.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "yaw_degrees_counterclockwise_about_positive_z": 0.0,
+        "yaw_matrix": [
+          [
+            1.0,
+            -0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "vertex_count": 8242,
+      "face_count": 12520,
+      "scene_instance_count": 1,
+      "selected_vertex_count": 8242,
+      "selected_face_count": 12520,
+      "bounds": [
+        [
+          -22.37481689453125,
+          -33.08087158203125,
+          0.0
+        ],
+        [
+          26.085182189941406,
+          29.569124221801758,
+          34.27320098876953
+        ]
+      ],
+      "selection_bounds": null,
+      "selection_method": "all faces",
+      "selection_caveat": "A bounded centroid selection can hide intersecting or occluding surfaces; it is an observation filter, not evidence of enclosure truth.",
+      "evidence_caveat": "Bounds and counts describe the supplied surface mesh only; they do not establish floors, rooms, enclosure, or a true footprint."
+    },
+    "note": "Original mesh asset; no preselected cameras or BIM observations. Mesh surfaces may be incomplete/noisy and are not room semantics."
+  },
+  "development_model": "gpt-6-sol",
+  "effort": "max",
+  "supplemental_evidence": {
+    "parent_courtyard.png": {
+      "sha256": "d00430598b72d78125fc20fc4b6b978daad57c7291e84a5ceaaabe6e9691b49e",
+      "interpretation": "unlabeled historical raw parent-tile crop; selected supplemental view, not BIM or measurements"
+    },
+    "parent_top.png": {
+      "sha256": "9606cecfaeb980dbd7d4cfb58f09030b21104ff7f045041db4aaacfdbae034e7",
+      "interpretation": "unlabeled historical raw parent-tile crop; selected supplemental view, not BIM or measurements"
+    },
+    "parent_detail_front.png": {
+      "sha256": "2d5e9aae867986311b3a9e9f8b28e58070dae5de1c1a4b8e08697b75b6a5de09",
+      "interpretation": "unlabeled historical raw parent-tile crop; selected supplemental view, not BIM or measurements"
+    },
+    "parent_detail_side.png": {
+      "sha256": "d331065fd6ab2db34d099872ddd3a05f59d56896c12318dba83633599bc4fd16",
+      "interpretation": "unlabeled historical raw parent-tile crop; selected supplemental view, not BIM or measurements"
+    }
+  },
+  "execution_channel": "collaboration.spawn_agent; clean fork; common MCP bridge; instruction-based file scope",
+  "start_epoch": 1790849316.1525493
+}

@@ -16,7 +16,10 @@ def geometry_key(vertices):
 
 def build_public_names(source: dict) -> dict:
     floors = sorted(source["floors"], key=lambda f: (f["z_floor"], f["id"]))
-    floor_names = {f["id"]: f"F{i}" for i, f in enumerate(floors, 1)}
+    # A source floor can also describe an annex or one continuous vertical
+    # volume. Its explicit name is the only safe display label; ordinal F#
+    # labels would turn those independent groups into invented storeys.
+    floor_names = {f["id"]: f.get("name") or f["id"] for f in floors}
     floor_order = {f["id"]: i for i, f in enumerate(floors)}
     polys = {s["id"]: Polygon(s["polygon"]) for s in source["spaces"]}
     points = [p for f in floors for p in f["footprint"]]
@@ -115,6 +118,6 @@ def viewer_names(data: dict, parts: dict) -> dict:
         rank = {i:n for n,i in enumerate(order, 1)}
         edges[obj["name"]] = [f"{objects[obj['name']]}_Edge{rank[i]}" for i in range(len(vs))]
     floors = sorted(source.get("floors", []), key=lambda f: (f["z_floor"], f["id"]))
-    return {"floors": [{"id": f["id"], "name": names.get("floors", {}).get(f["id"], f["name"]), "z_floor": f["z_floor"]} for f in floors],
+    return {"floors": [{"id": f["id"], "name": f.get("name") or f["id"], "z_floor": f["z_floor"]} for f in floors],
             "spaces": names.get("spaces", {}), "objects": objects, "parts": fragment_names,
             "regions": region_names, "edges": edges}

@@ -80,7 +80,7 @@ def expand_parametric_proposal(plan: dict) -> dict:
     floors, windows, openings, all_points = [], [], [], []
     ids = set()
     for instance in plan['instances']:
-        fields(instance, ('id', 'template', 'z', 'height'))
+        fields(instance, ('id', 'template', 'z', 'height'), ('spanning_space_ids',))
         fid = identifier(instance['id'])
         if fid in ids:
             raise ValueError(f'duplicate instance {fid}')
@@ -115,8 +115,11 @@ def expand_parametric_proposal(plan: dict) -> dict:
                 assumptions=strings(space.get('assumptions', []))))
         if not cells:
             raise ValueError('instance requires explicitly declared spaces')
+        spanning_space_ids = strings(instance.get('spanning_space_ids', []))
         floors.append(dict(name=fid, z_floor=base, ceiling_height=height,
-                           footprint={'vertices': footprint}, cells=cells))
+                           footprint={'vertices': footprint}, cells=cells,
+                           **({'spanning_space_ids': spanning_space_ids}
+                              if spanning_space_ids else {})))
         row_ids = set()
         for row in template.get('window_rows', []):
             fields(row, ('id', 'facade', 'plane', 'spans', 'z', 'source_refs'), ('assumptions',))

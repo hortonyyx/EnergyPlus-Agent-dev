@@ -117,10 +117,17 @@ _APP_JS = r"""
   const _zFloorZ = {}, _zMinZ = {};
   SURF.forEach(s => { const z=s.zone||'?', mn=zmin(s); _zMinZ[z]=Math.min(_zMinZ[z]??1e9,mn);
     if(s.type==='Floor') _zFloorZ[z]=Math.min(_zFloorZ[z]??1e9,mn); });
-  const zoneFloor = {};
+  const zoneFloor = {}, zoneFloors = {};
   Object.keys(_zMinZ).forEach(z => { const sid=(SOURCE_MAP.zones||{})[z]||z;
     const fi=NAMED_FLOORS.findIndex(f=>f.id===SOURCE_SPACES[sid]?.floor_id);
-    zoneFloor[z]=fi>=0 ? fi : nearestBase(_zFloorZ[z]??_zMinZ[z], BASES); });
+    zoneFloor[z]=fi>=0 ? fi : nearestBase(_zFloorZ[z]??_zMinZ[z], BASES);
+    // Filtering follows declared source membership only. A continuous space
+    // remains one volume while appearing in every storey that explicitly
+    // lists it; legacy viewers keep their single geometric floor assignment.
+    const declared=(GEO.floor_memberships||{})[z]||[];
+    zoneFloors[z]=declared.length ? declared : [zoneFloor[z]];
+  });
+  const onFloor = (u,f) => f<0 || (zoneFloors[u.zone]||[u.floor]).includes(f);
 
   // ---- zone centroids (explode-by-zone + window pop-out) ----
   const zoneSum = {};
@@ -389,7 +396,8 @@ _APP_JS = r"""
   const _ray=new THREE.Raycaster();
   function occluded(w){ const from=camera.position; const dir=w.clone().sub(from); const dist=dir.length()||1e-6;
     _ray.set(from, dir.divideScalar(dist)); _ray.near=0; _ray.far=dist-radius*0.01;   // only faces strictly IN FRONT of w
-    return _ray.intersectObjects(surfMeshes.filter(m=>m.visible), false).length>0; }
+    return _ray.intersectObjects(surfMeshes.filter(m=>m.visible), false)
+      .some(h=>activePlanes().every(p=>p.distanceToPoint(h.point)>=-0.0001)); }
   function seeThrough(){ return parseFloat($('opacity').value) < 1; }   // transparent → allowed to reach behind
   function snapPick(cx, cy){ const r=renderer.domElement.getBoundingClientRect(); const thru=seeThrough();
     let best=null, bd=24*24;
@@ -409,7 +417,7 @@ _APP_JS = r"""
   OPENS.forEach(o=>{const z=_surfZoneByName[o.parent];pushEdges(o.verts,z,zoneFloor[z]||0,Boolean(o.partner&&o.name>o.partner),'opening',o.name);});
   // only pick an edge whose source face is currently shown (same predicate as applyFilter)
   function edgeVisible(e){ const f=parseInt($('floorSel').value,10); const exploded=parseFloat($('explode').value)>0;
-    if(!(f<0||e.floor===f)) return false;
+    if(!onFloor(e,f)) return false;
     if(!exploded && e.dup) return false;
     return (e.kind==='window') ? $('showWin').checked : (e.kind==='opening') ? $('showOpen').checked : $('showWalls').checked; }
   function segDist(px,py,ax,ay,bx,by){ const dx=bx-ax,dy=by-ay, L2=dx*dx+dy*dy||1;
@@ -434,7 +442,8 @@ _APP_JS = r"""
   function pick(ev){ const r=renderer.domElement.getBoundingClientRect();
     const mouse=new THREE.Vector2(((ev.clientX-r.left)/r.width)*2-1, -((ev.clientY-r.top)/r.height)*2+1);
     raycaster.setFromCamera(mouse,camera);
-    const hits=raycaster.intersectObjects(allPickables().filter(m=>m.visible),false); return hits.length?hits[0]:null; }
+    const hits=raycaster.intersectObjects(allPickables().filter(m=>m.visible),false)
+      .filter(h=>activePlanes().every(p=>p.distanceToPoint(h.point)>=-0.0001)); return hits.length?hits[0]:null; }
   // structured selection readout: a titled block of label→value rows (one per line)
   function kv(pairs){ return pairs.filter(p=>p[1]!=null && p[1]!=='').map(p=>row(p[0], esc(p[1]))).join(''); }
   function evidenceText(items){ return (items||[]).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('; '); }
@@ -516,7 +525,7 @@ _APP_JS = r"""
   function applyFilter(){ const f=parseInt($('floorSel').value,10);
     const exploded=parseFloat($('explode').value)>0;
     const sw=$('showWalls').checked, swin=$('showWin').checked, se=$('showEdges').checked;
-    const okF=(u)=>(f<0||u.floor===f) && (exploded || !u.dup);
+    const okF=(u)=>onFloor(u,f) && (exploded || !u.dup);
     surfMeshes.forEach(m=>m.visible = sw && okF(m.userData));
     winMeshes.forEach(m=>m.visible = swin && okF(m.userData));
     openingMeshes.forEach(m=>m.visible=$('showOpen').checked && okF(m.userData));
@@ -758,6 +767,23 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
     geo["roles"] = {sid: normalize(role) or "unknown" for sid, role in geo["roles"].items()}
     geo["room_types"] = ROOM_TYPES
     geo["public_names"] = viewer_names(data, geo["visible_wall_parts"])
+    source = data.get("source_model") or {}
+    spaces = {row["id"]: row for row in source.get("spaces", [])}
+    source_floors = {row["id"]: row for row in source.get("floors", [])}
+    zone_map = source.get("derived", {}).get("zones", {})
+    named_floors = geo["public_names"]["floors"]
+    memberships = {}
+    for zone in geo["zones"]:
+        sid = zone_map.get(zone, zone)
+        space = spaces.get(sid)
+        if not space:
+            continue
+        indices = [i for i, floor in enumerate(named_floors)
+                   if space["floor_id"] == floor["id"]
+                   or sid in source_floors.get(floor["id"], {}).get("spanning_space_ids", [])]
+        if indices:
+            memberships[zone] = indices
+    geo["floor_memberships"] = memberships
     safe_title = html.escape(title)  # HTML-context (title tag + panel text)
     return (
         _HTML

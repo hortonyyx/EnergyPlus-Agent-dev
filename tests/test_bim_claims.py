@@ -64,6 +64,22 @@ def test_real_parameter_application_and_candidate_provenance_survive_reload(tmp_
     assert persisted["applications"][0] == app
 
 
+@pytest.mark.parametrize(("identity", "kind"), [("window", "window"), ("door", "opening")])
+def test_aperture_removal_scope_matches_the_actual_proposal_collection(tmp_path, identity, kind):
+    run, toolkit = setup_run(tmp_path)
+    result = toolkit.revise("seed", json.dumps([{
+        "op": "remove_opening", "id": identity, "reason": "synthetic aperture retraction",
+        "source_refs": ["synthetic source review"],
+    }]))
+    app = result["claim_application"]
+    assert app["status"] == "applied"
+    assert app["scope_check"] == "checked" and app["outside_declared_scope"] == []
+    assert [(row["kind"], row["id"], row["after"]) for row in app["changes"]] == [
+        (kind, identity, None)]
+    proposal = json.loads((run / result["candidate"] / "proposal.json").read_text())
+    assert proposal["geometry"]["corrections"][-1]["target_collection"] == kind + "s"
+
+
 def test_unadopted_retracted_wrong_target_and_stale_claims_leave_failure_records(tmp_path):
     run, toolkit = setup_run(tmp_path)
     row = toolkit.record_claim(json.dumps(claim()))

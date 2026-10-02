@@ -1,0 +1,119 @@
+{
+  "status": "pass",
+  "source_model_sha256": "ce779db5cbd1f7f4e32fd23d2904dc3c82b3b0776f05934981352ed14d0a83e8",
+  "checks": [
+    {
+      "name": "digest_and_source_checks",
+      "pass_check": true,
+      "detail": {
+        "findings": [],
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "status": "pass"
+      }
+    },
+    {
+      "name": "spaces_floors_unchanged",
+      "pass_check": true,
+      "detail": "All 267 spaces, storeys, role evidence and continuous/annex circulation unchanged."
+    },
+    {
+      "name": "windows_unchanged",
+      "pass_check": true,
+      "detail": 334
+    },
+    {
+      "name": "door_identity_preserved",
+      "pass_check": true,
+      "detail": 284
+    },
+    {
+      "name": "untargeted_doors_unchanged",
+      "pass_check": true,
+      "detail": 38
+    },
+    {
+      "name": "enclosure_and_boundary_geometry_unchanged",
+      "pass_check": true,
+      "detail": "The door repair adds no partitions, storey slabs or exterior openings."
+    },
+    {
+      "name": "door_width_jamb_swing_and_saved_connections",
+      "pass_check": true,
+      "detail": {
+        "doors": 246,
+        "failed": [],
+        "width_m": 0.9,
+        "partition_reference_offset_m": 0.25,
+        "swing": "Inward illustrative sector clear of room walls and corridor."
+      }
+    },
+    {
+      "name": "paired_doors_mirror_actual_shared_partition",
+      "pass_check": true,
+      "detail": {
+        "pairs": 114,
+        "unpaired_room_doors": 18,
+        "failed": []
+      }
+    },
+    {
+      "name": "circulation_connections",
+      "pass_check": true,
+      "detail": {
+        "unreachable": [],
+        "redirected_from_stair_to_corridor": [
+          "D_F2_meeting_S_CORE_S",
+          "D_F2_E_01_TOWER_STAIR",
+          "D_F2_S_01_CORE_E",
+          "D_F3_meeting_S_CORE_S",
+          "D_F3_E_01_TOWER_STAIR",
+          "D_F3_S_01_CORE_E",
+          "D_F4_meeting_S_CORE_S",
+          "D_F4_E_01_TOWER_STAIR",
+          "D_F4_S_01_CORE_E",
+          "D_F5_meeting_S_CORE_S",
+          "D_F5_E_01_TOWER_STAIR",
+          "D_F5_S_01_CORE_E",
+          "D_F6_meeting_S_CORE_S",
+          "D_F6_E_01_TOWER_STAIR",
+          "D_F6_S_01_CORE_E",
+          "D_F7_meeting_S_CORE_S",
+          "D_F7_E_01_TOWER_STAIR",
+          "D_F7_S_01_CORE_E"
+        ],
+        "annex": "unchanged"
+      }
+    },
+    {
+      "name": "public_names_and_roles",
+      "pass_check": true,
+      "detail": "Room names/types unchanged; door-side names regenerated after moving to their new host wall."
+    },
+    {
+      "name": "blank_end_walls_have_explicit_inference",
+      "pass_check": true,
+      "detail": {
+        "count": 38,
+        "status": "Inferred blank party/gable walls; hidden and exposed actual window inventory remains unverified."
+      }
+    }
+  ],
+  "counts": {
+    "spaces": 267,
+    "windows": 334,
+    "doors": 284
+  },
+  "not_evaluated": [
+    "Human acceptance",
+    "As-built door/hidden-window fidelity",
+    "Detailed hardware or regulatory compliance",
+    "Framework or working-model performance"
+  ]
+}

@@ -1,0 +1,396 @@
+[
+  {
+    "tool": "inspect_candidate",
+    "value": {
+      "candidate": "candidate_01",
+      "proposal": {
+        "assumptions": [
+          "Exterior massing is constrained by admitted mesh_003 through mesh_012 and metric mesh pixel hits. The 15-degree local yaw is fixed, with zero translation; axes are local building axes, not surveyed geographic bearings.",
+          "All interior partitions, use assignments and door leaf positions are architectural inferences. A saved role_evidence record is supplied for every physical source space; the true interior has not been recovered.",
+          "The main building has one tall ground storey z0..6.4 and six 3.15m office storeys z6.4..25.3, inferred from six regular facade rows over a tall glass band. No unobserved mezzanine is inserted.",
+          "Continuous stairwell/shaft source spaces span the levels without cloned rooms or intermediate floor slabs. Stair flights, landings, lift machinery and door leaves are beyond this lightweight volume model.",
+          "Window frames with two closely spaced panes are represented by one grouped aperture. Structural bay wall strips are retained; pane mullions and decorative facade fins are omitted.",
+          "The courtyard annex is two 3.5m storeys with an inferred independent stair. Its upper open office is a single continuous room; the main/annex ground passage is inferred.",
+          "Roof mansards and curved copper plant caps are deliberately simplified as setback orthogonal spaces with flat caps: occupied roof offices, attic storage, mechanical plant and core continuations are distinct.",
+          "Missing southern end, some core glazing, ground entrances, western attic openings and shadowed lower transverse openings are explicitly inferred; door state is unknown. Geometry consistency is not original-image fidelity or code compliance."
+        ],
+        "mesh_frame": {
+          "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+          "reason": "Bounded original long-wall direction evidence near 90 degrees at yaw15, confirmed by the complete asymmetric footprint and distinct transverse wing. Representative wall planes are regularized around measured surface hits.",
+          "source_refs": [
+            "directions_001",
+            "directions_002",
+            "mesh_003",
+            "mesh_004",
+            "mesh_005",
+            "06_observe_record: metric hits"
+          ],
+          "translation_m": [
+            0,
+            0,
+            0
+          ],
+          "yaw_degrees": 15
+        },
+        "unresolved": [
+          "No interior plans, floor slab survey, structural information or actual stair/landing geometry were supplied. Repeated upper interior layout is only one plausible office interpretation.",
+          "The original mesh is incomplete around the ground perimeter and end faces; the partly occluded eastern corner aperture and several shadowed facade dimensions are regularized rather than precisely recovered.",
+          "Observed four elongated annex roof skylights are not represented as horizontal apertures because this common source kernel supports wall-hosted openings; their roof locations remain visible in mesh_003 and view_0001.",
+          "Pitched/curved roof surfaces, parapet relief, cornices, wall thickness, furniture, balconies and decorative mullions are omitted or represented by the orthogonal envelope. Roof/service use boundaries are inferred.",
+          "The exact function of the highest south roof cap (lift ventilation or chimney) is uncertain; it is represented as a continuous service shaft. Native z0 is used as ground datum, although noise and street grade vary.",
+          "Stairwell source volumes provide storey connectivity and plausible clear room dimensions but do not demonstrate travel-distance, fire separation, accessibility or stair code compliance."
+        ]
+      },
+      "floors": [
+        {
+          "id": "CORE_S_STAIR",
+          "z_floor": 0,
+          "height": 31.5,
+          "space_count": 1
+        },
+        {
+          "id": "CORE_S_LIFT",
+          "z_floor": 0,
+          "height": 34.2,
+          "space_count": 1
+        },
+        {
+          "id": "CORE_N_STAIR",
+          "z_floor": 0,
+          "height": 32.0,
+          "space_count": 1
+        },
+        {
+          "id": "CORE_N_LIFT",
+          "z_floor": 0,
+          "height": 32.0,
+          "space_count": 1
+        },
+        {
+          "id": "F1",
+          "z_floor": 0,
+          "height": 6.4,
+          "space_count": 23
+        },
+        {
+          "id": "F2",
+          "z_floor": 6.4,
+          "height": 3.15,
+          "space_count": 24
+        },
+        {
+          "id": "F3",
+          "z_floor": 9.55,
+          "height": 3.15,
+          "space_count": 24
+        },
+        {
+          "id": "F4",
+          "z_floor": 12.7,
+          "height": 3.15,
+          "space_count": 24
+        },
+        {
+          "id": "F5",
+          "z_floor": 15.85,
+          "height": 3.15,
+          "space_count": 24
+        },
+        {
+          "id": "F6",
+          "z_floor": 19.0,
+          "height": 3.15,
+          "space_count": 24
+        },
+        {
+          "id": "F7",
+          "z_floor": 22.15,
+          "height": 3.15,
+          "space_count": 24
+        },
+        {
+          "id": "ANNEX_STAIR",
+          "z_floor": 0,
+          "height": 7,
+          "space_count": 1
+        },
+        {
+          "id": "A1",
+          "z_floor": 0,
+          "height": 3.5,
+          "space_count": 5
+        },
+        {
+          "id": "A2",
+          "z_floor": 3.5,
+          "height": 3.5,
+          "space_count": 4
+        },
+        {
+          "id": "ROOF_ATTIC",
+          "z_floor": 25.3,
+          "height": 3.6,
+          "space_count": 8
+        },
+        {
+          "id": "ROOF_PLANT_N",
+          "z_floor": 25.3,
+          "height": 5.4,
+          "space_count": 2
+        },
+        {
+          "id": "ROOF_MACHINE_S",
+          "z_floor": 28.9,
+          "height": 2.6,
+          "space_count": 1
+        }
+      ],
+      "room_use_review": {
+        "source_model_sha256": "b0405aa14198051f9c4a17808c21e9f3830a2e7966c69df7b878535f99622ce3",
+        "summary": {
+          "total_count": 192,
+          "recorded_count": 192,
+          "unrecorded_count": 0,
+          "observed_count": 0,
+          "inferred_count": 192,
+          "unknown_count": 0
+        },
+        "unrecorded_space_ids": [],
+        "unrecorded_ids_truncated": false,
+        "unknown_space_ids": [],
+        "unknown_ids_truncated": false,
+        "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+        "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+        "drawing_fidelity": "not_evaluated",
+        "delivery_blocked": false
+      },
+      "geometry_included": false,
+      "floor_filter": null,
+      "summary_due_to_size": false,
+      "geometry_read_hint": "Use floor_id or read_candidate_items for bounded reads; partial results must not replace the full proposal.",
+      "wall_dimension_report": null,
+      "source_validation": {
+        "findings": [
+          {
+            "code": "source.opening_unbuilt",
+            "opening_id": "F1_NCORE_S_01",
+            "reason": "expected one complete exterior host; found 0",
+            "severity": "severe"
+          },
+          {
+            "code": "source.opening_unbuilt",
+            "opening_id": "F1_NCORE_S_02",
+            "reason": "expected one complete exterior host; found 0",
+            "severity": "severe"
+          }
+        ],
+        "not_evaluated": [
+          "drawing partition fidelity and completeness",
+          "unobserved openings",
+          "voids and false slabs",
+          "thermal properties and solver acceptance"
+        ],
+        "numerical_tolerance_m": 1e-07,
+        "scope": "source geometry, contacts and explicit opening hosts",
+        "status": "severe"
+      },
+      "counts": {
+        "boundaries": 1198,
+        "connections": 216,
+        "openings": 632,
+        "spaces": 192,
+        "unbuilt_openings": 2,
+        "unsupported": 0
+      },
+      "remaining_seconds": 1737
+    }
+  },
+  {
+    "tool": "audit_inference_candidate",
+    "value": {
+      "schema_version": "bim_inference_candidate_audit_summary_v1",
+      "candidate": "candidate_01",
+      "source_model_sha256": "b0405aa14198051f9c4a17808c21e9f3830a2e7966c69df7b878535f99622ce3",
+      "audit_file": "inference_audits/audit_001.json",
+      "scope": "Deterministic facts from the saved source_model.json only. This does not establish architectural truth, drawing fidelity, code compliance, geometry acceptance, or delivery acceptance.",
+      "counts": {
+        "spaces": 192,
+        "boundaries": 1198,
+        "openings": 632,
+        "windows": 416,
+        "doors": 214,
+        "other_openings": 2
+      },
+      "space_dimension_ranges": {
+        "bbox_x_span_m": {
+          "min": 2.0,
+          "max": 32.6
+        },
+        "bbox_y_span_m": {
+          "min": 2.700000000000003,
+          "max": 52.5
+        },
+        "height_m": {
+          "min": 2.6000000000000014,
+          "max": 34.2
+        },
+        "footprint_area_m2": {
+          "min": 6.599999999999994,
+          "max": 225.57
+        }
+      },
+      "room_role_counts": {
+        "attic": 1,
+        "conference/meeting/multipurpose": 32,
+        "copy/print": 14,
+        "corridor": 10,
+        "electrical/mechanical": 10,
+        "lobby": 2,
+        "lounge/breakroom": 7,
+        "office": 26,
+        "office/enclosed": 66,
+        "restroom": 14,
+        "shaft": 2,
+        "stairwell": 3,
+        "storage": 5
+      },
+      "window_count_distribution": {
+        "0": 31,
+        "1": 26,
+        "2": 76,
+        "3": 16,
+        "4": 39,
+        "5": 1,
+        "7": 1,
+        "8": 1,
+        "14": 1
+      },
+      "window_dimension_ranges": {
+        "width_m": {
+          "min": 1.1999999999999993,
+          "max": 6.900000000000002
+        },
+        "height_m": {
+          "min": 1.6999999999999993,
+          "max": 4.4
+        },
+        "sill_above_source_space_base_m": {
+          "min": 0.4499999999999993,
+          "max": 26.0
+        },
+        "sill_reference": "each referenced source space z_floor; not an assumed storey datum"
+      },
+      "floor_membership_counts": [
+        {
+          "floor_id": "A1",
+          "space_count": 5,
+          "declared_spanning_space_count": 1
+        },
+        {
+          "floor_id": "A2",
+          "space_count": 4,
+          "declared_spanning_space_count": 1
+        },
+        {
+          "floor_id": "ANNEX_STAIR",
+          "space_count": 1,
+          "declared_spanning_space_count": 0
+        },
+        {
+          "floor_id": "CORE_N_LIFT",
+          "space_count": 1,
+          "declared_spanning_space_count": 0
+        },
+        {
+          "floor_id": "CORE_N_STAIR",
+          "space_count": 1,
+          "declared_spanning_space_count": 0
+        },
+        {
+          "floor_id": "CORE_S_LIFT",
+          "space_count": 1,
+          "declared_spanning_space_count": 0
+        },
+        {
+          "floor_id": "CORE_S_STAIR",
+          "space_count": 1,
+          "declared_spanning_space_count": 0
+        },
+        {
+          "floor_id": "F1",
+          "space_count": 23,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "F2",
+          "space_count": 24,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "F3",
+          "space_count": 24,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "F4",
+          "space_count": 24,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "F5",
+          "space_count": 24,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "F6",
+          "space_count": 24,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "F7",
+          "space_count": 24,
+          "declared_spanning_space_count": 4
+        },
+        {
+          "floor_id": "ROOF_ATTIC",
+          "space_count": 8,
+          "declared_spanning_space_count": 2
+        },
+        {
+          "floor_id": "ROOF_MACHINE_S",
+          "space_count": 1,
+          "declared_spanning_space_count": 0
+        },
+        {
+          "floor_id": "ROOF_PLANT_N",
+          "space_count": 2,
+          "declared_spanning_space_count": 0
+        }
+      ],
+      "door_summary": {
+        "count": 214,
+        "measured_count": 214,
+        "width_m": {
+          "min": 0.8999999999999986,
+          "max": 1.8000000000000007
+        },
+        "height_m": {
+          "min": 2.099999999999998,
+          "max": 2.7
+        },
+        "host_end_clearance_m": {
+          "min": 0.40000000000000036,
+          "max": 43.2
+        },
+        "connectivity": {
+          "unknown": 214
+        }
+      },
+      "comparison_counts": null
+    }
+  },
+  {
+    "tool": "revise_bim",
+    "value": "Error executing tool revise_bim: remove_opening: expected exactly one existing id 'F1_NCORE_S_01', found 0"
+  }
+]

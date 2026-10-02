@@ -1,5 +1,17 @@
 # 开发与产品运行的模型使用约定
 
+**10-02 用户决定换工作模型（Opus 5.5 讨论）：** 工作模型现在就换，不再等 Sonnet 恢复质量，覆盖下方 09-29“继续先用Sonnet5推进，恢复后再考虑切不切”。运行底座先调研 Claude Code、Codex、pi、DeepSeek Harness 等成熟方案，再设计轻量、服务本任务的自有底座，不急于开做。暂不实跑；用户估计直接上 27B 效果可能不理想，初期可由开发模型调度 27B 完成任务，之后再看能否换成工作档，届时再定。Paratera 等按量计费 API 的实跑仍逐批由用户批准。本次讨论 0 模型调用。见[讨论记录](../logs/worklog/2026-10-02_reconstruction_discussion.md)。
+
+**10-01 还原 B 段两次与开发模型亲做三例（Opus 5.5，用户直接安排）：** 用户放行 B 段并要求每次间隔两小时，随后改为只跑 sm24、由开发模型亲做三例。run99（sm21）与 run100（sm24）均实际 `claude-sonnet-5`/medium、CLI 2.1.284、各 1 次主调用，1081.42/1095.6 秒，回执正常，无局部模型、续查、自动重试、付费 API 或 DeepSeek；CLI 估价 4.17/3.06 美元（非账单）。两次分别占 5 小时额度窗口 32%/27%（好结果时期 5–11%）；run99 开跑时 7 天窗口已到 97%，15:00 UTC 重置后回到 1%。run101 撤下，C 段未放行。开发侧为本会话 Opus 5.5（max），经工具客户端亲做 sm21/sm24/sm25，未派子代理、未调用其他模型。用户提出模型后台变化与我方关系不大，倾向更早转到本地部署级模型 API，并考虑以开源基础 harness（如 pi）稳定运行环境；属明早讨论事项，尚未决定，默认配置不变。见[交接](../logs/worklog/2026-10-01_opus_reconstruction_dev_pass.md)。
+
+**10-01 当前部分推理开发验证：** 用户指定“6.1sol和6sol”，以协作工具明确选择 `gpt-6.1-sol`／`gpt-6-sol`、max，各一次独立空白上下文，同一冻结公共工具、原始GLB及4张有限原始补充图、任务和预算（3600秒／24候选）。两者属于开发框架测试，不表示工作模型迁移已通过；没有付费API／DeepSeek／局部模型／自动回退。两组均完成：6.1 Sol到最终工具3471.89秒，6 Sol为1449.70秒，精细档均部分达到；接口未提供token或账单，保留空值。批次关闭，用户决定本轮收工、下轮先看两份现有输出，尚未批准新节点实跑，实际结果见[本轮交接](../logs/worklog/2026-10-01_partial_inference_framework.md)。
+
+**09-30 GLM Flash 独立试跑已结束：** 用户要求先试一次、不替代主开发；同 run98 条件的 sm21 原图冷启动实际 `glm-5.3-flash`/medium，2019.72 秒，1 主调用、0 委派/续查/重开/回退。14 房间、29 宿主、14 门连接对应，位置 27/29、高度 17/17；本次比 Sonnet 慢约 1.80 倍，主线仍固定 Sonnet5。CLI modelUsage 输入 470941、缓存读取 4961536、输出 96179，两次自动压缩共 198.642 秒；CLI 估价 USD 4.7996512 且 `costBasis=unknown`，非账单，不推算真实省费。无活动模型，原 Sonnet B/C 段未放行。[完整试跑与续接](../logs/worklog/2026-09-30_glm_flash_trial.md)。
+
+**09-30 Opus 共同复查与修复包回归已结束：** 用户批准后只执行 run98（sm21）：实际`claude-sonnet-5`/medium、CLI 2.1.284，1124.6秒、1主调用，回执正常，无局部模型/续查/自动重试/付费回退/DeepSeek；CLI估价6.78美元（非账单；116轮，缓存读取约1,844万token，高于run94的755万）。B、C段未放行。开发侧：Opus 5.5本会话max；Astra经`codex exec`（codex-cli 0.153.4、现有ChatGPT订阅）以`gpt-6-astra`、`model_reasoning_effort=max`只读参与独立审查、两轮讨论和两次实现复核，未用自动派子代理的ultra。容器内Codex默认bwrap沙箱无法创建命名空间，首次启动未读到内容已作废，改用Landlock只读（`--enable use_legacy_landlock`，先实测可读、写被拒）。五次有效调用输入约1,083万token（其中缓存约1,028万）、输出约9.7万，无子代理、无写入。见[交接](../logs/worklog/2026-09-30_opus_joint_review_fix_close.md)。
+
+**09-29 深夜 Opus 重构节点回归已结束：** 用户“先发一次”只批准run94（sm21，重构第一版指令）；实际`claude-sonnet-5`/medium、CLI 2.1.284，1198.54秒、1主调用，回执正常，无局部模型/续跑/自动重试/付费回退；CLI估价3.95美元，非订阅账单。原提请的run95–97未获批、未运行。开发侧为Opus 5.5本会话：重构实现与run94评价在较低推理档，整体复查在max。见[交接](../logs/worklog/2026-09-29_opus_instruction_refactor_review_close.md)。
+
 **09-29 晚 Opus 调查中的批准回归已结束：** 用户批准sm21两次串行后，run91（仅系统提示/方法参考改动）执行，同条件第二次按事先约定未跑；用户随后批准对齐方案run92，658秒遇429（monthly spend limit/session reset 13:10 UTC）中断；用户同意重开，1次极小文本探针OK后run93正常完成。均实际`claude-sonnet-5`/medium、CLI 2.1.284、各1主调用，无局部模型/续跑/自动重试/付费回退；开发侧为Opus 5.5本会话。CLI估价run91 5.51、run92 1.67、run93 3.52、探针0.001美元，非订阅账单。本轮授权已用完，sm24/sm25未获批。见[交接](../logs/worklog/2026-09-29_opus_regression_diagnosis_close.md)。
 
 **09-29 显示包唯一批准回归结束：** 用户“启动”批准run90；实际`claude-sonnet-5`/medium、CLI2.1.284，505.09秒、1主调用，0修订候选，主动交付原seed；returncode0且型号无漂移，无局部模型/续跑/重试/付费回退。CLI估价1.8101924美元非账单，本批授权已用完。新显示实际采用但东窗仍低约19.5cm，质量未恢复，继续固定Sonnet5。见[完整结果](../logs/experiments/2026-09-29_sm21_elevation_label_recovery_run90/README.md)。

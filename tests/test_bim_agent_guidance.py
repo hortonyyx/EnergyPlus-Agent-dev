@@ -2,7 +2,7 @@ import json
 
 from scripts.tool_scripts import bim_agent_continuation
 from scripts.tool_scripts.bim_agent_guidance import (
-    CORE, DELIVERY, DRAWING_METHOD, FINISHING, IMAGE_KINDS, MESH_METHOD, MESH_VIEWS, PHOTOS, REFERENCES, TOOLS,
+    CORE, DELIVERY, DRAWING_METHOD, FINISHING, IMAGE_KINDS, MESH_GUIDE, MESH_VIEWS, PHOTOS, REFERENCES, TOOLS,
     build_guide)
 from scripts.tool_scripts.run_bim_agent import run_guide
 
@@ -10,18 +10,22 @@ from scripts.tool_scripts.run_bim_agent import run_guide
 def test_system_prompt_carries_only_the_methods_for_the_declared_inputs():
     drawings = build_guide(images="drawings")
     assert drawings.startswith(CORE) and DRAWING_METHOD in drawings
-    assert all(text not in drawings for text in (MESH_METHOD, MESH_VIEWS, PHOTOS, IMAGE_KINDS))
-    views = build_guide(images="mesh_views")
-    assert MESH_VIEWS in views and DRAWING_METHOD not in views and MESH_METHOD not in views
+    assert all(text not in drawings for text in (MESH_VIEWS, PHOTOS, IMAGE_KINDS))
     photos = build_guide(images="photos")
     assert PHOTOS in photos and DRAWING_METHOD not in photos
-    mixed = build_guide(images="unknown", mesh=True)
-    assert all(text in mixed for text in (IMAGE_KINDS, DRAWING_METHOD, MESH_VIEWS, PHOTOS, MESH_METHOD))
+    unknown = build_guide(images="unknown")
+    assert all(text in unknown for text in (IMAGE_KINDS, DRAWING_METHOD, MESH_VIEWS, PHOTOS))
     assert "none that is not drawn" in DRAWING_METHOD and "not drawn" not in CORE
-    mesh = build_guide(mesh=True)
-    assert MESH_METHOD in mesh and DRAWING_METHOD not in mesh and MESH_VIEWS not in mesh
     assert all(build_guide(images=kind).endswith(TOOLS + "\n" + DELIVERY)
-               for kind in ("drawings", "mesh_views", "photos", "unknown"))
+               for kind in ("drawings", "photos", "unknown"))
+
+
+def test_mesh_inputs_keep_the_partial_inference_guide_whole():
+    # The 10-01 partial-inference developer tests ran on this guide; it stays whole
+    # until the two instruction layers are deliberately unified.
+    assert "get_bim_reference('partial_inference')" in MESH_GUIDE and DRAWING_METHOD not in MESH_GUIDE
+    assert all(build_guide(images=kind, mesh=mesh) == MESH_GUIDE
+               for kind, mesh in (("mesh_views", False), ("unknown", True), (None, True), ("drawings", True)))
 
 
 def test_run_guide_follows_the_manifest_and_legacy_runs_keep_their_old_meaning(tmp_path):

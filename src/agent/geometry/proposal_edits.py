@@ -183,11 +183,15 @@ def _remove_opening(geometry: dict, operation: dict) -> dict:
     identity = _nonblank_string(operation.get("id"), field="id", operation=name)
     reason = _nonblank_string(operation.get("reason"), field="reason", operation=name)
     refs = _source_refs(operation.get("source_refs"), operation=name)
-    row = _find(geometry["openings"], identity, operation=name)
+    matches = [(collection, row) for collection in ("windows", "openings")
+               for row in geometry.get(collection, []) if row.get("id") == identity]
+    if len(matches) != 1:
+        raise ValueError(f"{name}: expected exactly one existing id {identity!r}, found {len(matches)}")
+    collection, row = matches[0]
     before = copy.deepcopy(row)
-    geometry["openings"].remove(row)
+    geometry[collection].remove(row)
     return {"operation": name, "id": identity, "reason": reason, "source_refs": refs,
-            "before": before, "after": None}
+            "target_collection": collection, "before": before, "after": None}
 
 
 def _set_space_role(geometry: dict, operation: dict) -> dict:

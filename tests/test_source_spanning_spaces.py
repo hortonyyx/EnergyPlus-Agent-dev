@@ -12,7 +12,7 @@ def geometry():
         footprint=FootprintRing(vertices=[(0,0),(4,0),(4,4),(0,4)]),
         spanning_space_ids=['core']) for i in range(2)]
     floors.append(Floor(name='CORE', z_floor=0, ceiling_height=6,
-        cells=[Cell(id='core', role='vertical_circulation', x=[3,4], y=[0,4])],
+        cells=[Cell(id='core', role='stairwell', x=[3,4], y=[0,4])],
         footprint=FootprintRing(vertices=[(3,0),(4,0),(4,4),(3,4)])))
     return CorrectedGeometry(schema_version='2', footprint_x=[0,4], footprint_y=[0,4], floors=floors, windows=[])
 

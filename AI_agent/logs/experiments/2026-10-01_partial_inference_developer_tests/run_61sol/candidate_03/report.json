@@ -1,0 +1,183 @@
+{
+  "agent_assumptions": [
+    "Exterior massing is constrained by admitted mesh_003 through mesh_012 and metric mesh pixel hits. The 15-degree local yaw is fixed, with zero translation; axes are local building axes, not surveyed geographic bearings.",
+    "All interior partitions, use assignments and door leaf positions are architectural inferences. A saved role_evidence record is supplied for every physical source space; the true interior has not been recovered.",
+    "The main building has one tall ground storey z0..6.4 and six 3.15m office storeys z6.4..25.3, inferred from six regular facade rows over a tall glass band. No unobserved mezzanine is inserted.",
+    "Continuous stairwell/shaft source spaces span the levels without cloned rooms or intermediate floor slabs. Stair flights, landings, lift machinery and door leaves are beyond this lightweight volume model.",
+    "Window frames with two closely spaced panes are represented by one grouped aperture. Structural bay wall strips are retained; pane mullions and decorative facade fins are omitted.",
+    "The courtyard annex is two 3.5m storeys with an inferred independent stair. Its upper open office is a single continuous room; the main/annex ground passage is inferred.",
+    "Roof mansards and curved copper plant caps are deliberately simplified as setback orthogonal spaces with flat caps: occupied roof offices, attic storage, mechanical plant and core continuations are distinct.",
+    "Missing southern end, some core glazing, ground entrances, western attic openings and shadowed lower transverse openings are explicitly inferred; door state is unknown. Geometry consistency is not original-image fidelity or code compliance.",
+    "The northwest roof strip seen at approximately z28.0..28.2 is retained in one continuous L-shaped attic room with the long wing, with an inferred service door to the plant room. Its flat cap is simplified to z28.9.",
+    "Two initially inferred ground northern-core windows were explicitly retracted because the attached annex makes this wall internal; all upper core glazing is retained.",
+    "North roof source review separates a continuous attic at z25.3..28.2 from a raised plant room at z28.2..30.7, with its north wall regularized near y21.2. The plant deck and room uses are inferred; the measured stepped roof profile is observed."
+  ],
+  "counts": {
+    "boundaries": 1210,
+    "connections": 217,
+    "openings": 638,
+    "spaces": 193,
+    "unbuilt_openings": 1,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mesh_frame": {
+    "mesh_sha256": "9a73349d9d024a128160e8771d4bccba79b6e3462ae4f35d787f35f4ddf337fc",
+    "reason": "Bounded original long-wall direction evidence near 90 degrees at yaw15, confirmed by the complete asymmetric footprint and distinct transverse wing. Representative wall planes are regularized around measured surface hits.",
+    "source_refs": [
+      "directions_001",
+      "directions_002",
+      "mesh_003",
+      "mesh_004",
+      "mesh_005",
+      "06_observe_record: metric hits"
+    ],
+    "translation_m": [
+      0,
+      0,
+      0
+    ],
+    "yaw_degrees": 15
+  },
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "03fd2d527ca98f52860a82283e4025d0c01720beb27a0f8154ea6c99bef969f6",
+  "provenance": {
+    "generator": "external_development_agent subscription tool loop",
+    "input_manifest_sha256": "0dccfc5462e65ee449aba6a34efcae2c765fbbbd318f00eb3207592f87f9a959",
+    "mode": "native_mesh_agent_experiment"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": false,
+  "source_geometry_self_consistency": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            28.2,
+            30.3
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                28.2,
+                30.3
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                28.2,
+                30.7
+              ],
+              "floor_id": "ROOF_PLANT_N",
+              "side": "space",
+              "space_id": "N_PLANT",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                28.2,
+                30.3
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                28.2,
+                30.7
+              ],
+              "floor_id": "ROOF_PLANT_N",
+              "side": "other_space",
+              "space_id": "N_PLANT_STORE",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "N_PLANT_STORE_D",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "source_model_sha256": "76b925635327af2f0c461271d36602815ea060851babcda4e2c291a6ef8130b9",
+  "source_validation": {
+    "findings": [
+      {
+        "code": "source.opening_unbuilt",
+        "height_host_diagnostic": {
+          "actual_opening_z_bounds_m": [
+            28.2,
+            30.3
+          ],
+          "declared_space_bounds": [
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                28.2,
+                30.3
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                28.2,
+                30.7
+              ],
+              "floor_id": "ROOF_PLANT_N",
+              "side": "space",
+              "space_id": "N_PLANT",
+              "within_declared_space_z_bounds": true
+            },
+            {
+              "above_ceiling_m": 0.0,
+              "actual_opening_z_bounds_m": [
+                28.2,
+                30.3
+              ],
+              "below_floor_m": 0.0,
+              "expected_z_bounds_m": [
+                28.2,
+                30.7
+              ],
+              "floor_id": "ROOF_PLANT_N",
+              "side": "other_space",
+              "space_id": "N_PLANT_STORE",
+              "within_declared_space_z_bounds": true
+            }
+          ],
+          "scope": "diagnostic only; host containment and source geometry are unchanged"
+        },
+        "opening_id": "N_PLANT_STORE_D",
+        "reason": "opening requires one complete source boundary on each declared side",
+        "severity": "severe"
+      }
+    ],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "severe"
+  },
+  "status": "severe",
+  "unresolved": [
+    "No interior plans, floor slab survey, structural information or actual stair/landing geometry were supplied. Repeated upper interior layout is only one plausible office interpretation.",
+    "The original mesh is incomplete around the ground perimeter and end faces; the partly occluded eastern corner aperture and several shadowed facade dimensions are regularized rather than precisely recovered.",
+    "Observed four elongated annex roof skylights are not represented as horizontal apertures because this common source kernel supports wall-hosted openings; their roof locations remain visible in mesh_003 and view_0001.",
+    "Pitched/curved roof surfaces, parapet relief, cornices, wall thickness, furniture, balconies and decorative mullions are omitted or represented by the orthogonal envelope. Roof/service use boundaries are inferred.",
+    "The exact function of the highest south roof cap (lift ventilation or chimney) is uncertain; it is represented as a continuous service shaft. Native z0 is used as ground datum, although noise and street grade vary.",
+    "Stairwell source volumes provide storey connectivity and plausible clear room dimensions but do not demonstrate travel-distance, fire separation, accessibility or stair code compliance.",
+    "The northern plant deck z28.2 is an architectural interpretation of the stepped exterior roof, not an observed interior slab. Copper slopes/curves are still approximated by orthogonal source spaces."
+  ]
+}

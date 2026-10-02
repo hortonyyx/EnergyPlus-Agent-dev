@@ -216,8 +216,58 @@ def test_updates_removal_and_notes_keep_full_audit_history():
     assert audit[1]["after"]["source_refs"] == ["plan:door-leaf"]
     assert audit[1]["after"]["assumptions"] == ["leaf state observed"]
     assert audit[2]["before"]["id"] == "door" and audit[2]["after"] is None
+    assert audit[2]["target_collection"] == "openings"
     assert audit[2]["source_refs"] == ["elevation:no-door"]
     assert revised["assumptions"] == ["new orientation"] and revised["unresolved"] == []
+
+
+def test_remove_opening_removes_a_built_window_by_its_unique_aperture_id():
+    proposal = _proposal()
+    revised = apply_proposal_edits(proposal, [{
+        "op": "remove_opening", "id": "west", "reason": "facade review retracts this window",
+        "source_refs": ["elevation: solid wall"],
+    }])
+    assert {row["id"] for row in revised["geometry"]["windows"]} == {"north", "south", "east"}
+    assert revised["geometry"]["openings"] == proposal["geometry"]["openings"]
+    audit = revised["geometry"]["corrections"][-1]
+    assert audit["target_collection"] == "windows"
+    assert audit["before"]["id"] == "west" and audit["after"] is None
+    source = build_source_bim(ensure_corrected_geometry(revised["geometry"]),
+                              capability_profile="orthogonal_polygon")
+    assert source["validation"]["status"] == "pass"
+    assert "west" not in {row["id"] for row in source["openings"]}
+
+
+def test_remove_opening_retracts_unbuilt_window_from_parent_proposal():
+    proposal = _proposal()
+    bad = next(row for row in proposal["geometry"]["windows"] if row["id"] == "west")
+    bad["span"] = [7, 8]
+    before = build_source_bim(ensure_corrected_geometry(proposal["geometry"]),
+                              capability_profile="orthogonal_polygon")
+    assert before["validation"]["status"] == "severe"
+    assert [row["id"] for row in before["unbuilt_openings"]] == ["west"]
+
+    revised = apply_proposal_edits(proposal, [{
+        "op": "remove_opening", "id": "west", "reason": "invalid host disproves this window",
+        "source_refs": ["source.opening_unbuilt diagnostic"],
+    }])
+    after = build_source_bim(ensure_corrected_geometry(revised["geometry"]),
+                             capability_profile="orthogonal_polygon")
+    assert after["validation"]["status"] == "pass"
+    assert after["unbuilt_openings"] == []
+    assert revised["geometry"]["corrections"][-1]["target_collection"] == "windows"
+
+
+def test_remove_opening_rejects_absent_or_cross_collection_duplicate_ids():
+    operation = {"op": "remove_opening", "id": "absent", "reason": "synthetic absence",
+                 "source_refs": ["synthetic review"]}
+    with pytest.raises(ValueError, match="expected exactly one existing id 'absent', found 0"):
+        apply_proposal_edits(_proposal(), [operation])
+
+    duplicate = _proposal()
+    duplicate["geometry"]["openings"][0]["id"] = "west"
+    with pytest.raises(ValueError, match="duplicate opening id: west"):
+        apply_proposal_edits(duplicate, [{**operation, "id": "west"}])
 
 
 def test_move_shared_wall_preserves_unrelated_geometry_and_hosts_its_door():

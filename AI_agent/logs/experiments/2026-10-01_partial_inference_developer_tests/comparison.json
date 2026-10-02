@@ -1,0 +1,38 @@
+{
+  "conclusion": "两组都完成了从原始资料到可查看 BIM 的独立运行，源几何检查通过。6.1 Sol 的门位、连续核心和证据复核更完整；两组普通房间仍普遍跨多个窗组，尚未复现用户已认可的精细档。",
+  "conditions": "同一原始 GLB、4 张无标注父瓦片局部图、冻结公共工具和任务；各一次、max、60 分钟上限。无中途人工提示。单案例单次结果不代表模型稳定性。这里链接模型原始交付页，其公共楼层编号存在已记录的错标；源 F3 平面以本页图片为准。",
+  "models": [
+    {
+      "label": "6.1 Sol · candidate_04",
+      "verdict": "建筑方案合理；精细档部分达到",
+      "spaces": 193,
+      "windows": 421,
+      "doors": 216,
+      "minutes": 57.8648333333,
+      "viewer": "run_61sol/candidate_04/viewer.html",
+      "review": "../2026-10-01_partial_inference_framework_setup/evaluation/review_61sol.md",
+      "plan": "../2026-10-01_partial_inference_framework_setup/evaluation/61sol_candidate04/floorplan_F3_7c96eb02cc.png",
+      "findings": [
+        "门普遍偏置，连续交通核有逐层归属，附楼分成两层；屋顶机房与阁楼分别推断。",
+        "66 个封闭办公室中没有单窗房，49 个对应两窗；标准层粒度仍低于本次精细偏好。",
+        "193 个空间均在声明开口连通图中可达；另有 2 处敞口。几何与连通检查不证明真实室内或规范合格。"
+      ]
+    },
+    {
+      "label": "6 Sol · candidate_11",
+      "verdict": "工具链跑通；房间粒度与门位需修复",
+      "spaces": 203,
+      "windows": 408,
+      "doors": 217,
+      "minutes": 24.1616666667,
+      "viewer": "run_6sol/candidate_11/viewer.html",
+      "review": "../2026-10-01_partial_inference_framework_setup/evaluation/review_6sol.md",
+      "plan": "../2026-10-01_partial_inference_framework_setup/evaluation/6sol/floorplan_F3_7c96eb02cc.png",
+      "findings": [
+        "主要体量、两层附楼与连续交通核成立；屋顶附属空间没有统称办公室。",
+        "普通办公室多数跨两窗组；184 个普通房门中 176 个精确居中。",
+        "交通核实体存在，但参数化接口未传递跨层归属，分层图漏显示核心。本轮已修公共工具，原候选保持。"
+      ]
+    }
+  ]
+}
