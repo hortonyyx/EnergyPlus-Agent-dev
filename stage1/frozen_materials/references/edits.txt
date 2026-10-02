@@ -1,0 +1,87 @@
+revise_bim takes candidate plus an operations_json list. Operations include:
+{"op":"set_space_role","space_id":"F1_left","role":"office",
+ "basis":"inferred","assumptions":["Furniture suggests office; no use label supplied"],
+ "reason":"Review existing room function","source_refs":["plan.png: desk symbols in room interior, original pixels [20,30,80,90]"]};
+{"op":"reflect","axis":"y","reason":"explain the chosen frame change"};
+{"op":"update_window","id":"W1","changes":{"span":[1,2]},
+ "reason":"explain","source_refs":["image: observation or explicit assumption"]};
+{"op":"update_opening","id":"D1","changes":{"p1":[3,1],"p2":[3,2]},
+ "reason":"explain","source_refs":["image: observation or explicit assumption"]};
+{"op":"move_shared_wall","space_ids":["F1_left","F1_right"],"coordinate_m":3.5,
+ "reason":"explain observed partition displacement","source_refs":["plan: observed wall"]};
+{"op":"reshape_spaces","spaces":[{"id":"room-A","polygon":[[0,0],[3,0],[3,2],[0,2]]}],
+ "reason":"explain observed wall extents","source_refs":["plan: local evidence"]};
+{"op":"remove_opening","id":"D1","reason":"explain reclassification",
+ "source_refs":["image: observation"]};
+{"op":"add_opening","opening":{"id":"new_D2","kind":"door",
+ "space_id":"room-A","other_space_id":"room-B","p1":[3,1],"p2":[3,2],
+ "z":[0,2.1],"state":"unknown","assumptions":["height assumed"]},
+ "reason":"new door observed","source_refs":["plan: door and both hosts"]};
+{"op":"set_notes","assumptions":["updated assumptions"],"unresolved":[]}.
+set_space_role only changes the selected room's catalog role and role_evidence;
+it preserves all geometry, IDs, openings, connections and geometry source notes.
+Read room_types first. basis is observed for explicit input labels/declarations,
+inferred for a plausible interpretation, including a broad use from building context
+(requires nonempty assumptions). Prefer an inferred listed use over unknown; the fallback is
+unknown paired with role=unknown. For observed/unknown, omitted assumptions become
+an empty list; inferred still requires an explicit nonempty assumption. source_refs
+must locate the evidence or explain its insufficiency. A later assignment replaces the active role_evidence and keeps
+the old value in the edit history. Normal export updates public names and colors.
+It does not establish drawing truth. Reconcile obsolete global notes explicitly.
+remove_opening removes exactly one declared aperture by ID from windows or openings,
+including a window that failed to build; its prior record remains in the edit audit.
+Withdraw an inferred opening only with a reason; a host failure alone does not disprove
+an observed opening. Normal rebuilding updates the saved unbuilt records.
+add_opening preserves all existing objects; it supports doors/open apertures and
+requires a new ID. World z is absolute, including on upper floors. Normal source
+validation rejects wrong/ambiguous hosts, overlaps or out-of-floor heights.
+For an inherited geometry.unsupported entry of kind as_drawn_opening_unbuilt,
+read exact records with read_candidate_items(collection="unsupported");
+after adding or identifying its actual door, explicitly use
+{"op":"resolve_unbuilt_observation","input_id":"plan",
+ "observation_ids":["old-face-gap"],"opening_ids":["new_D2"],
+ "reason":"explain original-image correspondence","source_refs":["plan: observation"]}.
+input_id/observation_ids must exactly match one saved entry. Replacement openings
+must exist on that floor. Multiple face observations may map to one physical door
+only with drawing evidence; do not count them as separate doors. The old record
+remains in corrections. This records your interpretation, not an independent pass.
+Combine addition and resolution in one revision when appropriate. Unresolved
+observations must remain; do not clear them merely to pass a check.
+Reflect transforms the entire proposal around the footprint midpoint on that
+axis, including rooms, window directions/spans and door coordinates. It preserves
+identities and connectivity. Replace stale directional assumptions with set_notes.
+Source IDs remain stable even if they contain an obsolete direction in their name.
+move_shared_wall is a local operation for two same-floor rectangular cells
+sharing one complete edge. It derives the wall axis from their existing geometry
+and moves both sides to coordinate_m together; openings hosted between those
+two cells move with the wall. Other objects retain their world coordinates and
+are checked by the normal builder. Polygon cells, partial shared sides and
+explicit enclosure declarations are unsupported by this edit; no new rooms or
+walls are invented. Preserve image basis and check the resulting geometry.
+replace_space_region takes space_id, neighbor_space_id, polygon, reason, source_refs.
+It replaces one complete room and computes the adjacent room as the remainder of
+their original union; both stay single hole-free spaces. It refuses third-space
+encroachment, does not move apertures, and records before/after. Use explicit
+update_opening operations in the same revision when hosts or positions change.
+reshape_spaces replaces only the listed existing space polygons, deriving their
+x/y bounds by code. It preserves other objects and NEVER moves or resizes an
+opening. Update all affected adjoining spaces in one operation; include explicit
+update_opening edits in the same revision where a moved host requires them.
+Preserve the aperture's width/height unless new image evidence supports a change.
+Normal source checks still reject overlaps and unhosted openings. This operation
+rejects explicit enclosure declarations or nonempty wall reference/dimension
+records; it does not add/remove spaces or remap wall evidence.
+For edits not supported by revise_bim, submit a complete revised proposal with
+build_bim, retaining the reliable geometry, IDs, source references and caveats.
+
+To supersede obsolete text, include a local note replacement:
+{"op":"replace_note", "field":"assumptions", "old":"Exact existing note",
+ "replacement":["Updated statement limited to the inspected objects; others remain assumptions"],
+ "reason":"What observation superseded this statement", "source_refs":["claim_0001"]}.
+field can be assumptions or unresolved; replacement=[] explicitly withdraws that
+one note with a reason. Old text must match exactly once. Unrelated notes survive,
+the replacement enters source BIM and the old statement remains in audit history.
+Use this in the SAME revision as the geometry correction when possible. Do not
+leave a known false all-objects assumption in the saved source. Text associations
+are model judgments, not automatic semantic verification of the replacement.
+
