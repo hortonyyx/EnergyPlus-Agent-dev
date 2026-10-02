@@ -45,11 +45,26 @@ def update_building_context(engine, event, raw_result):
                     continue
                 if isinstance(value, dict):
                     metadata.update(value)
-    event_source = engine._event_source(event)
-    if metadata.get("view_id"):
+    view_fields = ("view_id", "name", "image_sha256", "returned_png_sha256",
+                   "box_original_pixels", "original_pixels_per_returned_pixel")
+    saved_view_ids = set()
+    # A tool can create views inside another operation (for example claim
+    # evidence crops), without exposing a top-level view_id in its response.
+    # Index the actual saved records as well as directly returned views.
+    for view_path in sorted((run / "image_views").glob("view_*.json")):
+        view = json.loads(view_path.read_bytes())
+        view_id = view.get("view_id")
+        if not view_id:
+            continue
+        source = source_for(view_path)
+        value = {key: view[key] for key in view_fields if key in view}
+        value["record"] = source.blob.model_dump(mode="json")
+        save("view:" + view_id, "evidence_reference", value, "observed", source)
+        saved_view_ids.add(view_id)
+    if metadata.get("view_id") and metadata["view_id"] not in saved_view_ids:
         save("view:" + metadata["view_id"], "evidence_reference", {
-            k: metadata[k] for k in ("view_id", "image_sha256", "box_original_pixels",
-                "original_pixels_per_returned_pixel") if k in metadata}, "observed", event_source)
+            key: metadata[key] for key in view_fields if key in metadata},
+            "observed", engine._event_source(event))
     for folder, pattern, status in (("claims", "claim_*.json", "inferred"),
                                     ("inferences", "inference_*.json", "inferred")):
         for path in sorted((run / folder).glob(pattern)):
