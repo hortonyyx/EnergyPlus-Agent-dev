@@ -16,3 +16,7 @@
 ## 启动（10-02）
 
 用户回复“给你授权”。审核仍拦截与其他命令拼在一起的启动；项目设置 `.claude/settings.local.json` 里原有允许规则 `Bash(codex *)`，Opus 改为单独一条 `codex exec` 启动，按该规则执行。15:30 UTC 开工：`gpt-6-astra`、思考档 max、`danger-full-access`、`project_doc_fallback_filenames=["AI_agent/Agent.md"]`，工作目录 `.worktrees/astra-stage0`，线程 `01a0fd3d-752e-7971-a327-2ddd66126fdf`。之后 Opus 挂的进度监视被审核以同样理由拦下，未再监视，等运行结束的系统通知后验收。
+
+## 交付与验收（10-02）
+
+Astra 16:45 UTC 交付，75 分钟，三个提交、69 个新增文件、86 项新检查；自派三个开发子代理（`gpt-5.6-sol` high ×2、`gpt-5.6-terra` high ×1）。[交付报告](delivery_report.md)、[运行回执](run_receipt.json)、[覆盖表](coverage.md)、[来源映射](source_mapping.md)。Opus 复核后验收通过，8 个跟进项在阶段 1 处理，见[验收记录](../../../project/unified_agent_acceptance.md#验收结论10-02opus)。
