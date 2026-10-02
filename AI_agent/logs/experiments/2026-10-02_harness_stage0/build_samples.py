@@ -324,22 +324,9 @@ def main():
     recon["declarations"][0]["scope"] = dict(kind="floor", ids=["F1"])
     recon["declarations"][0]["declared_object_refs"] = [obj("F1:O2"), obj("F1:O3")]
     recon["declarations"].append(f2); recon["model_versions"][0]["declaration_ids"].append("decl:f2")
-    assembly_rows = [
-        dict(
-            draft_id="draft_001",
-            expected_plan_sha256=digest(SM25+"dev_inputs/plan_f1.json"),
-            floor_id="F1",
-            z_floor=.2,
-            evidence="1f_view.png floor identity and elevations' ground/storey chains",
-        ),
-        dict(
-            draft_id="draft_002",
-            expected_plan_sha256=digest(SM25+"dev_inputs/plan_f2.json"),
-            floor_id="F2",
-            z_floor=3.6,
-            evidence="2f_view.png floor identity and elevations' storey chains",
-        ),
-    ]
+    recorded_assembly = read(SM25+"dev_inputs/req_assemble.json")
+    assert len(recorded_assembly) == 1 and recorded_assembly[0]["tool"] == "assemble_plan_bim"
+    assembly_rows = json.loads(recorded_assembly[0]["arguments"]["floors_json"])
     assembly = copy.deepcopy(recon["declarations"][0])
     assembly.update(
         declaration_id="decl:assembly",
