@@ -319,6 +319,137 @@ class _ObserverFrozenTools:
         return {}
 
 
+class _MeasuringObserverFrozenTools(_ObserverFrozenTools):
+    async def call_tool(self, name, arguments):
+        self.calls.append((name, arguments))
+        return {
+            "content": [{"type": "text", "text": "profile measured"}],
+            "structuredContent": {"status": "ok"},
+            "isError": False,
+        }
+
+
+def _profile_call(call_id, *, box=(20, 30, 40, 50)):
+    return (
+        call_id,
+        "pixel_profile",
+        {"name": "plan.png", "box": list(box), "axis": "x"},
+    )
+
+
+def _run_scripted_observer(tmp_path, *, task_id, limits, responses):
+    adapter = ScriptedAdapter(responses)
+    frozen = _MeasuringObserverFrozenTools(tmp_path)
+    with EventStore(
+        tmp_path / "observer-run",
+        run_id=task_id + "-run",
+        task_id="coordinator",
+        budget_limit=BudgetAmounts(
+            tokens=300_000,
+            calls=6,
+            seconds=Decimal("180"),
+        ),
+    ) as root_store:
+        store = root_store.for_task(task_id, parent_task_id="coordinator")
+        view = _registered_view(store)
+        outcome = asyncio.run(run_observer(
+            store=store,
+            frozen_tools=frozen,
+            adapter=adapter,
+            model="scripted-observer",
+            parameters={"max_tokens": 4096, "temperature": 0.0},
+            limits=limits,
+            package=_package(view, task_id=task_id),
+            views=[view],
+            notes=["offline scripted observer budget revision test"],
+            root=ROOT,
+            route={"route_id": "offline-test", "model": "scripted-observer"},
+        ))
+        executions = [
+            event.payload
+            for event in store.events
+            if event.payload.event_type == "tool_execution"
+        ]
+    return outcome, adapter, frozen, executions
+
+
+def _remaining_budget_entry(wire_bytes):
+    body = json.loads(wire_bytes)
+    state_messages = [
+        message["content"]
+        for message in body["messages"]
+        if message["role"] == "user"
+        and isinstance(message.get("content"), str)
+        and message["content"].startswith("Current runtime state")
+    ]
+    assert len(state_messages) == 1
+    entries = json.loads(state_messages[0].partition(": ")[2])
+    return next(entry for entry in entries
+                if entry["key"] == "observer-remaining-budget")
+
+
+def test_run_observer_updates_budget_revision_for_two_tools_in_one_response(tmp_path):
+    limits = RunLimits(
+        model_calls=2,
+        tool_calls=3,
+        seconds=60.0,
+        tokens=100_000,
+    )
+    outcome, adapter, frozen, executions = _run_scripted_observer(
+        tmp_path,
+        task_id="observer-two-tools-one-turn",
+        limits=limits,
+        responses=[
+            _response(calls=(
+                _profile_call("profile-left"),
+                _profile_call("profile-right", box=(40, 30, 60, 50)),
+            )),
+            _response(text=_answer()),
+        ],
+    )
+
+    assert outcome["status"] == "completed"
+    assert [execution.outcome for execution in executions] == ["succeeded", "succeeded"]
+    assert len(frozen.calls) == 2
+    assert len(adapter.requests) == 2
+    remaining = _remaining_budget_entry(adapter.requests[1])
+    assert remaining["revision"] == 2
+    assert remaining["value"]["model_calls"] == 1
+    assert remaining["value"]["tool_calls"] == 1
+
+
+def test_run_observer_updates_budget_revision_across_two_tool_rounds(tmp_path):
+    limits = RunLimits(
+        model_calls=3,
+        tool_calls=3,
+        seconds=60.0,
+        tokens=100_000,
+    )
+    outcome, adapter, frozen, executions = _run_scripted_observer(
+        tmp_path,
+        task_id="observer-two-tool-rounds",
+        limits=limits,
+        responses=[
+            _response(calls=(_profile_call("profile-first"),)),
+            _response(calls=(_profile_call("profile-second", box=(40, 30, 60, 50)),)),
+            _response(text=_answer()),
+        ],
+    )
+
+    assert outcome["status"] == "completed"
+    assert [execution.outcome for execution in executions] == ["succeeded", "succeeded"]
+    assert len(frozen.calls) == 2
+    assert len(adapter.requests) == 3
+    after_first = _remaining_budget_entry(adapter.requests[1])
+    assert after_first["revision"] == 1
+    assert after_first["value"]["model_calls"] == 2
+    assert after_first["value"]["tool_calls"] == 2
+    after_second = _remaining_budget_entry(adapter.requests[2])
+    assert after_second["revision"] == 2
+    assert after_second["value"]["model_calls"] == 1
+    assert after_second["value"]["tool_calls"] == 1
+
+
 def test_run_observer_recovers_from_known_bad_image_name_with_budget_update(tmp_path):
     root_limits = BudgetAmounts(tokens=200_000, calls=4, seconds=Decimal("120"))
     child_limits = RunLimits(
