@@ -110,6 +110,7 @@ def _read_event_log(path: Path) -> dict[str, Any]:
     event_ids = [event.event_id for event in events]
     if len(event_ids) != len(set(event_ids)):
         raise ValueError(f"event IDs are not unique: {path}")
+    events_by_id = {event.event_id: event for event in events}
 
     presentations: dict[str, tuple[EventEnvelope, Any]] = {}
     for event in events:
@@ -183,10 +184,24 @@ def _read_event_log(path: Path) -> dict[str, Any]:
             elif presentation is not None:
                 presentation_event, presentation_payload = presentation
                 visible = _captured(presentation_payload.shown_result, path.parent)
-                if visible != prepared:
+                if visible != prepared and presentation_payload.context_event_id is None:
                     raise ValueError(
                         f"tool presentation {presentation_event.event_id} differs from prepared result {event.event_id}"
                     )
+                if visible != prepared:
+                    context_event = events_by_id.get(presentation_payload.context_event_id)
+                    request_event = events_by_id.get(presentation_payload.request_event_id)
+                    if (context_event is None or context_event.payload.event_type != "context"
+                            or request_event is None or request_event.payload.event_type != "adapter_request"
+                            or context_event.sequence >= request_event.sequence):
+                        raise ValueError("changed tool presentation lacks its prior context decision")
+                    sent = _captured(request_event.payload.final_request_body, path.parent)
+                    messages = sent.get("messages", [])
+                    blocks = [b for m in messages if isinstance(m.get("content"), list)
+                        for b in m["content"]]
+                    if (visible.get("tool_message") not in messages
+                            or any(b not in blocks for b in visible.get("image_blocks", []))):
+                        raise ValueError("changed tool presentation is absent from the actual request")
                 delivered, presentation_id = True, presentation_event.event_id
             else:
                 visible, delivered, presentation_id = None, False, None
@@ -201,6 +216,7 @@ def _read_event_log(path: Path) -> dict[str, Any]:
                 "delivered_to_model": delivered,
                 "presentation_status": payload.presentation_status,
                 "presentation_event_id": presentation_id,
+                "context_event_id": presentation[1].context_event_id if presentation else None,
                 "raw_result": raw,
                 "outcome": payload.outcome,
                 "is_error": payload.outcome == "failed",

@@ -389,9 +389,12 @@ class FrozenBimTools:
         if not isinstance(raw_result, Mapping):
             raise TypeError("raw_result must be the JSON MCP result object")
         metadata = _result_metadata(raw_result)
-        source_name = metadata.get("name") or metadata.get("image")
-        source_hash = metadata.get("image_sha256")
-        source_path = self.run_directory / "images" / source_name if isinstance(source_name, str) else None
+        # Claim results return real image views in evidence_previews rather than
+        # at the response root. Match each preview to the exact returned PNG so
+        # its original view_id remains usable after context eviction.
+        previews = metadata.get("evidence_previews", [])
+        if not isinstance(previews, list):
+            previews = []
         result: dict[str, dict[str, Any]] = {}
         content = raw_result.get("content", [])
         if not isinstance(content, list):
@@ -407,10 +410,15 @@ class FrozenBimTools:
             except ValueError as error:
                 raise ValueError("MCP image content is not valid base64") from error
             sent_sha = hashlib.sha256(sent).hexdigest()
+            image_metadata = next((preview for preview in previews
+                if isinstance(preview, dict) and preview.get("returned_png_sha256") == sent_sha), metadata)
+            source_name = image_metadata.get("name") or image_metadata.get("image")
+            source_hash = image_metadata.get("image_sha256")
+            source_path = self.run_directory / "images" / source_name if isinstance(source_name, str) else None
             origin: dict[str, Any] = {
                 "sent_sha256": sent_sha,
                 "mime_type": block.get("mimeType"),
-                "raw_metadata": metadata,
+                "raw_metadata": image_metadata,
             }
             if source_path is not None and source_path.is_file() and isinstance(source_hash, str):
                 actual_source_sha = _sha256(source_path)
@@ -418,9 +426,9 @@ class FrozenBimTools:
                     origin.update(
                         original_path=str(source_path),
                         original_sha256=source_hash,
-                        box_original_pixels=metadata.get("box_original_pixels"),
-                        original_pixels_per_returned_pixel=metadata.get("original_pixels_per_returned_pixel"),
-                        view_id=metadata.get("view_id"),
+                        box_original_pixels=image_metadata.get("box_original_pixels"),
+                        original_pixels_per_returned_pixel=image_metadata.get("original_pixels_per_returned_pixel"),
+                        view_id=image_metadata.get("view_id"),
                     )
                     if sent_sha == source_hash:
                         origin["transport"] = "original_bytes"

@@ -150,6 +150,8 @@ class VersionManifest(ContractModel):
 
 class AdapterRequestPayload(ContractModel):
     event_type: Literal["adapter_request"] = "adapter_request"
+    reservation_id: NonEmptyStr | None = None
+    logical_purpose: Literal["primary_task", "context_summary"] | None = None
     adapter: NonEmptyStr
     final_request_body: CapturedValue
     injected_content: tuple[InjectedContent, ...] = ()
@@ -276,6 +278,7 @@ class ToolPresentationPayload(ContractModel):
     request_event_id: NonEmptyStr
     response_event_id: NonEmptyStr
     shown_result: CapturedValue
+    context_event_id: NonEmptyStr | None = None
 
 
 class StateInspectionPayload(ContractModel):
@@ -337,12 +340,16 @@ class BudgetEventPayload(ContractModel):
 
 class ContextEventPayload(ContractModel):
     event_type: Literal["context"] = "context"
-    action: Literal["compact", "remove_image", "retrieve_image"]
+    action: Literal["compact", "retain_image", "remove_image", "retrieve_image"]
     reason: NonEmptyStr
     summary: BlobRef | None = None
     replaced_event_ids: tuple[NonEmptyStr, ...] = ()
     image: BlobRef | None = None
     removal_event_id: NonEmptyStr | None = None
+    view_id: NonEmptyStr | None = None
+    before: HashedBlobRef | None = None
+    after: HashedBlobRef | None = None
+    details: HashedBlobRef | None = None
 
     @model_validator(mode="after")
     def validate_context_action(self) -> ContextEventPayload:
@@ -351,12 +358,20 @@ class ContextEventPayload(ContractModel):
                 raise ValueError("compression needs a summary and replaced event IDs")
             if self.image is not None or self.removal_event_id is not None:
                 raise ValueError("image fields are not valid for compression")
-        elif self.action == "remove_image":
+        elif self.action in {"remove_image", "retain_image"}:
             if self.image is None or self.summary is not None or self.removal_event_id:
                 raise ValueError("image removal needs only the image reference")
         elif self.image is None or self.removal_event_id is None or self.summary is not None:
             raise ValueError("image retrieval needs image and removal_event_id")
         return self
+
+
+class CheckpointPayload(ContractModel):
+    """Durable recovery state; the JSON pointer file is only an acceleration."""
+
+    event_type: Literal["checkpoint"] = "checkpoint"
+    state: HashedBlobRef
+    after_event_id: NonEmptyStr
 
 
 class ExternalCoordinatorMcpPayload(ContractModel):
@@ -388,6 +403,7 @@ EventPayload = Annotated[
     | RunLifecyclePayload
     | BudgetEventPayload
     | ContextEventPayload
+    | CheckpointPayload
     | ExternalCoordinatorMcpPayload
     | RunAggregateUsagePayload,
     Field(discriminator="event_type"),

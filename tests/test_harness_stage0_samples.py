@@ -224,5 +224,21 @@ def test_sample_generator_is_byte_deterministic_without_touching_history(tmp_pat
     module.read = lambda path:json.loads(generated[path]) if path in generated else real_read(path)
     module.digest = lambda path:hashlib.sha256(generated[path].encode()).hexdigest() if path in generated else real_digest(path)
     module.main()
+    first = dict(generated)
+    generated.clear()
+    module.main()
+    assert first == generated  # Exact bytes remain deterministic between builds.
+
+    def with_current_event_defaults(value):
+        # Read historical fixtures under the current additive event schema;
+        # never rewrite the original fixtures just to add optional null fields.
+        if isinstance(value, dict):
+            if value.get("mode") in {"complete", "excerpt"} and "events" in value:
+                return EventLog.model_validate_json(json.dumps(value)).model_dump(mode="json")
+            return {k: with_current_event_defaults(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [with_current_event_defaults(v) for v in value]
+        return value
+
     for relative,content in generated.items():
-        assert (ROOT / relative).read_text() == content
+        assert with_current_event_defaults(read(ROOT / relative)) == with_current_event_defaults(json.loads(content))

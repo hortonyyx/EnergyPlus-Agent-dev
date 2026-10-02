@@ -1,0 +1,170 @@
+{
+  "scope": "Supplement to the first Opus stage-2 review; baseline 952444cb; current frozen tools execute unchanged run99 arguments; no model-driven whole-case run.",
+  "joint_suite": {
+    "command": "TMPDIR=\"$PWD/.stage2_followup_tmp/tmp_joint\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=\"$PWD:$PWD/tests\" python -m pytest tests/test_harness_core_contracts.py tests/test_building_contracts.py tests/test_harness_stage0_samples.py tests/test_harness_stage0_history.py tests/test_harness_stage0_provenance.py tests/test_harness_stage0_boundaries.py tests/test_agent_runtime.py tests/test_runtime_snapshot.py tests/test_runtime_frozen_tools.py tests/test_stage1_behaviour.py tests/test_runtime_context.py tests/test_runtime_budget.py tests/test_runtime_budget_integration.py tests/test_runtime_recovery_edges.py tests/test_runtime_stage2_integration.py tests/test_runtime_frozen_long_task.py::test_saved_claim_view_is_indexed_without_top_level_view_id tests/test_runtime_frozen_long_task.py::test_claim_preview_image_keeps_its_original_view_id tests/test_runtime_compact_evidence.py -n 2 -s --basetemp=\"$PWD/.stage2_followup_tmp/joint-tests\" --junitxml=\"$PWD/.stage2_followup_tmp/pytest_supplement_joint.xml\" -o cache_dir=\"$PWD/.stage2_followup_tmp/cache-joint\" -q",
+    "passed": 179,
+    "failed": 0,
+    "seconds": 47.01,
+    "prior_cases": 174,
+    "new_short_cases": 5,
+    "stdout": "pytest_supplement_joint.log",
+    "junit": "pytest_supplement_joint.xml"
+  },
+  "real_frozen_sequence_suite": {
+    "command": "TMPDIR=\"$PWD/.stage2_followup_tmp/tmp\" PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=\"$PWD:$PWD/tests\" STAGE2_FROZEN_REPLAY_OUT=\"$PWD/.stage2_followup_tmp/final_run\" python -m pytest -q -n 0 -s tests/test_runtime_frozen_long_task.py --basetemp=\"$PWD/.stage2_followup_tmp/final-tests\" -o cache_dir=\"$PWD/.stage2_followup_tmp/cache-final\"",
+    "passed": 3,
+    "failed": 0,
+    "seconds": 277.95,
+    "long_replay_cases": 1,
+    "short_cases_already_in_joint_suite": 2,
+    "stdout": "pytest_supplement_frozen.log"
+  },
+  "final_compression_followup": {
+    "owner": "followup_portability",
+    "files": [
+      "compact_evidence.py",
+      "tests/test_runtime_compact_evidence.py"
+    ],
+    "passed": 3,
+    "failed": 0,
+    "seconds": 8.92,
+    "result_source": "delegated execution report",
+    "reason": "After the joint suite, added optional XZ compression; only archive helper and its tests changed. Root independently compared all 2245 real-run reconstructed files across gzip/XZ and verified the final XZ."
+  },
+  "counting": {
+    "distinct_checks_run_this_supplement": 180,
+    "new_checks": 6,
+    "repeated_short_checks_not_added": 2,
+    "previous_long_fault_matrix": "10 passed in 479 seconds in Opus review; runtime core and simulated backend unchanged, not repeated here"
+  },
+  "archive_audit": {
+    "command": "PYTHONPATH=\"$PWD\" PYTHONDONTWRITEBYTECODE=1 python AI_agent/logs/experiments/2026-10-02_harness_stage2/verify_delivery.py",
+    "report": "delivery_audit.json",
+    "details": "frozen_replay_audit.json",
+    "stdout": "verify_supplement.log",
+    "supplement": {
+      "archive": "evidence_frozen_run99.compact.tar.xz",
+      "archive_sha256": "60c87044e62ce785c5bc9672acccb36b5f960410bbdf5ecac2f3cb3aa8dd4dd1",
+      "archive_bytes": 1542988,
+      "event_count": 3531,
+      "blob_count": 2034,
+      "verified_distinct_references": 2034,
+      "requests_with_exact_wire_verified": 76,
+      "verified_image_transmissions": 137,
+      "checkpoint_history_messages": 209,
+      "state_categories": {
+        "user_requirement": 1,
+        "constraint": 1,
+        "evidence_reference": 29,
+        "artifact_version": 2,
+        "unresolved": 1,
+        "todo": 1,
+        "dimension": 1,
+        "object_id": 1,
+        "geometry": 1,
+        "general": 1
+      },
+      "context_actions": {
+        "retain_image": 137,
+        "remove_image": 2484,
+        "compact": 72,
+        "retrieve_image": 3
+      },
+      "receipt_status": "completed",
+      "frozen_guidance_characters": 9179,
+      "frozen_tools": 42,
+      "six_required_versions_verified": [
+        "code_commit",
+        "dependency_lock",
+        "prompt",
+        "tool_definitions",
+        "inference_parameters",
+        "model_route"
+      ],
+      "remote_alias_status": "unverified",
+      "code_files_matching_current_worktree": true,
+      "all_saved_views_indexed": 26,
+      "all_claims_indexed": 3,
+      "all_requests_within_budget": true,
+      "maximum_request_estimated_tokens": 3250594
+    },
+    "preserved_previous_archive_hashes": [
+      {
+        "archive": "evidence_frozen_entry.tar.gz",
+        "sha256": "2259b0786f0a2bfabfd4d153bc309bbfcca454440f50126b51210992998e86fb"
+      },
+      {
+        "archive": "evidence_complete75.tar.gz",
+        "sha256": "e9a79903dc595e12c6837fb429e05d478c3f0a597883668adbd523aab2fb68a8"
+      },
+      {
+        "archive": "evidence_unknown_write.tar.gz",
+        "sha256": "bf12dc32b85b56c29aeae73daac4dad5a03fe2d19140db8d37498a2a3f7ca69d"
+      }
+    ],
+    "all_original_files_reconstructed": 2245,
+    "external_image_hashes": 78,
+    "embedded_images": 0
+  },
+  "local_budget": {
+    "model_call_limit": 80,
+    "actual_scripted_requests": 76,
+    "tool_call_limit": 80,
+    "actual_tool_calls": 75,
+    "seconds_limit": 900,
+    "actual_runtime_seconds": 270.1001388299992,
+    "root_token_limit": 80000000,
+    "context_estimate_limit": 12000000,
+    "maximum_request_estimated_tokens": 3250594,
+    "output_limit_per_scripted_request": 64,
+    "reported_synthetic_tokens_per_response": 20,
+    "reported_synthetic_total": 1520,
+    "money_limit": null,
+    "price_and_billing": "not verified; no real provider requests; no monetary amount inferred"
+  },
+  "diagnostic_work": {
+    "initial_real_replay": "75 real calls completed; filesystem inspection found 3 claim-created views missing from the old state and image identity mapping. This diagnostic run is not the supplementary acceptance artifact.",
+    "targeted_checks_before_final": {
+      "passed": 14,
+      "seconds": 27.62,
+      "superseded_by_joint_suite": true
+    },
+    "initial_archive": "gzip was 13,951,559 bytes; replaced by losslessly equivalent XZ, 1,542,988 bytes. A one-off size-print command used st_size as a function and was corrected without altering the archive."
+  },
+  "frozen_paths_unchanged": [
+    "scripts/tool_scripts",
+    "src/agent/geometry",
+    "src/agent/correction",
+    "src/agent/execution",
+    "AI_agent/Agent.md",
+    "AI_agent/project",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/brief.md"
+  ],
+  "historical_run_unchanged": "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99",
+  "test_environment": "validation_environment.json (same Python, dependencies and lock; no installation or upgrade)",
+  "api_usage": {
+    "Paratera": {
+      "requests": 0,
+      "tokens": 0
+    },
+    "DeepSeek": 0,
+    "GLM": 0,
+    "whole_case_model_runs": 0
+  },
+  "development_agents": [
+    {
+      "task": "followup_portability",
+      "model": "gpt-5.6-sol",
+      "reasoning": "high",
+      "scope": "portable test directory, README, compact archives"
+    },
+    {
+      "task": "replay_review",
+      "model": "gpt-5.6-sol",
+      "reasoning": "high",
+      "scope": "read-only historical replay and difference analysis"
+    }
+  ],
+  "development_token_and_billing_usage": "not provided by the collaboration interface; not verified",
+  "approval": "Opus re-acceptance pending; no merge or push"
+}
