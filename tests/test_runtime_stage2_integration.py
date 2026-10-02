@@ -96,6 +96,9 @@ def test_building_state_keeps_hashed_geometry_and_distinguishes_selected_from_cu
     run = tmp_path / "bim"
     (run / "claims").mkdir(parents=True)
     (run / "inferences").mkdir()
+    (run / "work_reviews").mkdir()
+    (run / "work_reviews/review_0001.json").write_text(json.dumps({"decision": "continue",
+        "next_action": "check the door against the original view", "candidate": "candidate_02"}))
     (run / "claims/claim_1.json").write_text(json.dumps({"claim": {
         "uncertain": ["door side"], "width_m": 1.1}}))
     (run / "inferences/inference_1.json").write_text(json.dumps({"declaration": {
@@ -134,13 +137,25 @@ def test_building_state_keeps_hashed_geometry_and_distinguishes_selected_from_cu
             assert saved["spaces"][0]["height"] == 3.0
             assert saved["spaces"][0]["id"] == "room-2"
         assert entries["source-bim-todo"].epistemic_status == "unresolved"
+        review = entries["current-work-review"]
+        assert review.category == "todo" and review.epistemic_status == "inferred"
+        assert review.value["record"]["next_action"] == "check the door against the original view"
+        (run / "work_reviews/review_0002.json").write_text('{"decision":"stop","next_action":""}')
+        update_building_context(engine, event, {})
+        latest = next(s for s in context.state if s.key == "current-work-review")
+        assert latest.revision == review.revision + 1
+        assert latest.value["record"] == {"decision": "stop", "next_action": ""}
 
 
 def test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again(tmp_path):
     # This calls the real frozen BIM MCP service, with a five-response script.
     # It is a small transport fixture, not a model-driven whole-case generation.
+    brief = tmp_path / "building-input.json"
+    brief.write_text(json.dumps({"constraints": ["Do not merge the two physical rooms"],
+        "thermal_zones": 1}))
     args = parser().parse_args(["--out", str(tmp_path / "run"),
         "--images", str(STAGE1 / "offline_inputs"), "--provider", "scripted",
+        "--building-input", str(brief),
         "--script", str(STAGE1 / "offline_responses.json"), "--context-window", "3",
         "--model-calls", "6", "--seconds", "180"])
     first = asyncio.run(execute(args))
@@ -154,6 +169,11 @@ def test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_ag
         _, checkpoint, _ = store.latest_checkpoint()
         manager = ContextManager.load(store, checkpoint["context"])
         checklist = manager.checklist()
+        requirement = checklist.entries("user_requirement")[0]
+        assert "Do not merge the two physical rooms" in json.dumps(requirement.value)
+        assert "not a measured" in json.dumps(requirement.value)
+        first_request = next(e.payload for e in store.events if e.payload.event_type == "adapter_request")
+        assert "Do not merge the two physical rooms" in json.dumps(store.resolve(first_request.final_request_body))
         for category in ("user_requirement", "constraint", "evidence_reference", "artifact_version",
                          "unresolved", "todo", "dimension", "object_id", "geometry"):
             assert checklist.entries(category), category

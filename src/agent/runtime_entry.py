@@ -146,6 +146,15 @@ async def execute(args) -> dict:
                 if not args.resume:
                     store.write_json("versions.json", versions.model_dump(mode="json"))
                 originals, user_content = {}, [{"type": "text", "text": task}]
+                # Keep admitted user declarations in the initial requirement
+                # record, so a later activity window cannot discard constraints
+                # that were otherwise visible only in the inputs tool reply.
+                admitted = json.loads((run / "inputs.json").read_bytes()).get("building_input")
+                if admitted:
+                    user_content.append({"type": "text", "text":
+                        "Additional user-supplied building declaration; not independently verified: "
+                        + json.dumps({key: admitted[key] for key in ("raw_sha256", "declaration",
+                            "field_semantics", "conflict_policy")}, ensure_ascii=False)})
                 for name in args.attach_image:
                     if Path(name).name != name:
                         raise ValueError("--attach-image needs an admitted filename")
@@ -156,7 +165,7 @@ async def execute(args) -> dict:
                     user_content += [{"type": "text", "text": f"Input image: {name}"},
                         {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw).decode()}}]
                 messages = [{"role": "system", "content": guide},
-                    {"role": "user", "content": user_content if args.attach_image else task}]
+                    {"role": "user", "content": user_content if len(user_content) > 1 else task}]
                 engine = Runtime(store=store, adapter=adapter, tools=tools, role=role,
                     model=route["model"], parameters=parameters, versions=versions, limits=limits,
                     context_policy=context_policy, pricing=pricing,

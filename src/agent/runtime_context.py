@@ -62,6 +62,13 @@ def update_building_context(engine, event, raw_result):
             for field in ("unresolved", "uncertain"):
                 if isinstance(claim, dict) and claim.get(field):
                     save(path.stem + ":" + field, "unresolved", claim[field], "unresolved", source)
+    reviews = sorted((run / "work_reviews").glob("review_*.json"))
+    if reviews:
+        review_source = source_for(reviews[-1])
+        review = json.loads(reviews[-1].read_bytes())
+        save("current-work-review", "todo", {"record": review,
+            "basis": "latest explicitly saved model review; planned action is not proof of completion"},
+            "inferred", review_source)
     candidates = sorted(p for p in run.glob("candidate_*/source_model.json") if p.is_file())
     old = next((s for s in context.state if s.key == "current-source-bim"), None)
     selected = old.value["candidate"] if old else None
