@@ -16,6 +16,8 @@ from src.agent.runtime_tools import (
     COORDINATOR_TOOL_NAMES,
     FROZEN_BASELINE_COMMIT,
     LOCAL_OBSERVER_TOOL_NAMES,
+    MESH_COORDINATOR_TOOL_NAMES,
+    MESH_LOCAL_OBSERVER_TOOL_NAMES,
     FrozenBimTools,
     ToolCatalogMismatch,
     UnknownWriteOutcome,
@@ -32,25 +34,36 @@ from src.harness_contracts.budget import BudgetAmounts
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER = ROOT / "scripts/tool_scripts/run_bim_agent.py"
+MATERIALS = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage1/frozen_materials"
 
 
-def _prepared_run(tmp_path: Path) -> Path:
+def _prepared_run(tmp_path: Path, *, mesh: bool = False) -> Path:
     run = tmp_path / "run"
     image_directory = run / "images"
     image_directory.mkdir(parents=True)
     image_path = image_directory / "plan.png"
     Image.new("RGB", (12, 8), "white").save(image_path)
-    run.joinpath("inputs.json").write_text(json.dumps({
+    manifest = {
         "images": {"plan.png": {"size": [12, 8], "sha256": hashlib.sha256(image_path.read_bytes()).hexdigest()}},
         "scope": "stage-1 frozen tool test",
         "only_input": "synthetic admitted image",
-    }), encoding="utf-8")
+    }
+    if mesh:
+        # Registration depends only on admitted mesh metadata. Calls that read
+        # the asset remain outside this catalog-only test.
+        manifest["mesh_input"] = {"sha256": "0" * 64, "frozen_path": "assets/input.glb"}
+    run.joinpath("inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
     return run
 
 
 def _frozen_catalog(mode: str = "coordinator") -> list[dict]:
-    name = "coordinator_tools.json" if mode == "coordinator" else "local_observer_tools.json"
-    return json.loads((ROOT / "stage1" / "frozen_materials" / name).read_text(encoding="utf-8"))["tools"]
+    names = {
+        "coordinator": "coordinator_tools.json",
+        "readonly": "local_observer_tools.json",
+        "coordinator_mesh": "coordinator_mesh_tools.json",
+        "readonly_mesh": "local_observer_mesh_tools.json",
+    }
+    return json.loads((MATERIALS / names[mode]).read_text(encoding="utf-8"))["tools"]
 
 
 async def _catalog(run: Path, readonly: bool) -> list[dict]:
@@ -98,14 +111,49 @@ def test_real_frozen_server_catalogs_roles_and_materials(tmp_path):
         assert coordinator_record["definitions_sha256"] == saved["definitions_sha256"]
         assert material["prompts"]["drawing_system_prompt.txt"]["byte_count"] > 1000
         assert material["references"]["geometry"]["byte_count"] > 100
-        checked_manifest = json.loads(
-            (ROOT / "stage1/frozen_materials/tool_catalog_manifest.json").read_text(encoding="utf-8")
-        )
+        checked_manifest = json.loads((MATERIALS / "tool_catalog_manifest.json").read_text(encoding="utf-8"))
         assert checked_manifest["catalogs"]["coordinator"]["definitions_sha256"] == coordinator_record["definitions_sha256"]
         assert checked_manifest["catalogs"]["readonly"]["definitions_sha256"] == observer_record["definitions_sha256"]
         assert json.loads(
-            (ROOT / "stage1/frozen_materials/material_manifest.json").read_text(encoding="utf-8")
+            (MATERIALS / "material_manifest.json").read_text(encoding="utf-8")
         ) == material
+    asyncio.run(scenario())
+
+
+def test_real_mesh_input_adds_exact_frozen_mesh_catalog_variants(tmp_path):
+    async def scenario():
+        run = _prepared_run(tmp_path, mesh=True)
+        coordinator_catalog, observer_catalog = await asyncio.gather(
+            _catalog(run, False), _catalog(run, True),
+        )
+        assert {tool["name"] for tool in coordinator_catalog} == set(MESH_COORDINATOR_TOOL_NAMES)
+        assert {tool["name"] for tool in observer_catalog} == set(MESH_LOCAL_OBSERVER_TOOL_NAMES)
+        assert len(coordinator_catalog) == 49
+        assert len(observer_catalog) == 18
+        coordinator = FrozenBimTools(
+            _StaticClient(coordinator_catalog), coordinator_role(BudgetAmounts(calls=2)),
+            run_directory=run,
+        )
+        observer = FrozenBimTools(
+            _StaticClient(observer_catalog), local_observer_role(BudgetAmounts(calls=2)),
+            run_directory=run,
+        )
+        await coordinator.list_tools()
+        await observer.list_tools()
+        assert coordinator.repeatability("set_candidate_mesh_frame") == "non_idempotent_write"
+        assert coordinator.repeatability("overlay_mesh_candidate") == "read_only"
+        assert observer.repeatability("view_mesh") == "read_only"
+
+        material_directory = tmp_path / "mesh_materials"
+        coordinator_record = write_frozen_tool_catalog(
+            material_directory, coordinator_catalog, readonly=False,
+        )
+        observer_record = write_frozen_tool_catalog(
+            material_directory, observer_catalog, readonly=True,
+        )
+        checked = json.loads((MATERIALS / "tool_catalog_manifest.json").read_text(encoding="utf-8"))
+        assert checked["catalogs"]["coordinator_mesh"]["definitions_sha256"] == coordinator_record["definitions_sha256"]
+        assert checked["catalogs"]["readonly_mesh"]["definitions_sha256"] == observer_record["definitions_sha256"]
     asyncio.run(scenario())
 
 

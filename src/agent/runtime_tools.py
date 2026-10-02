@@ -44,8 +44,17 @@ FROZEN_SOURCE_SHA256 = {
 FROZEN_DEFINITIONS_SHA256 = {
     "coordinator": "34115d43dba5491cf433cd11f24b6c8057601c5db83f4f55a11407aad5293dd7",
     "readonly": "1deb060d7883298fc291f687b5a9ba7fb9ead63e976eb1680d612a16e6b1e01b",
+    "coordinator_mesh": "b16dacdb8014426c7f721e0f39e36bd0d64dc27fcd819ec40566c1d8192ac778",
+    "readonly_mesh": "532205cbd505f5bd10c51aff87183ecdfaf44e7c99130a8900827a640d718b3e",
 }
 
+MESH_OBSERVER_TOOL_NAMES = (
+    "inspect_mesh", "inspect_mesh_directions", "view_mesh", "measure_mesh_pixels",
+    "view_mesh_observation",
+)
+MESH_COORDINATOR_ONLY_TOOL_NAMES = (
+    "set_candidate_mesh_frame", "overlay_mesh_candidate",
+)
 LOCAL_OBSERVER_TOOL_NAMES = (
     "get_bim_reference", "inputs", "view_image", "pixel_profile",
     "view_pixel_profile", "view_pixel_region_overview", "view_pixel_region",
@@ -63,6 +72,10 @@ COORDINATOR_ONLY_TOOL_NAMES = (
     "inspect_parametric_plan", "build_bim", "view_elevation_candidate", "view_candidate",
 )
 COORDINATOR_TOOL_NAMES = LOCAL_OBSERVER_TOOL_NAMES + COORDINATOR_ONLY_TOOL_NAMES
+MESH_LOCAL_OBSERVER_TOOL_NAMES = MESH_OBSERVER_TOOL_NAMES + LOCAL_OBSERVER_TOOL_NAMES
+MESH_COORDINATOR_TOOL_NAMES = (
+    MESH_OBSERVER_TOOL_NAMES + MESH_COORDINATOR_ONLY_TOOL_NAMES + COORDINATOR_TOOL_NAMES
+)
 
 # These coordinator-only tools inspect saved state.  Their implementations can
 # append tools.jsonl or create replaceable render/measurement caches, but they do
@@ -82,7 +95,10 @@ NON_IDEMPOTENT_WRITE_TOOL_NAMES = tuple(
 )
 FROZEN_TOOL_REPEATABILITY: Mapping[str, Repeatability] = {
     **{name: "read_only" for name in LOCAL_OBSERVER_TOOL_NAMES},
+    **{name: "read_only" for name in MESH_OBSERVER_TOOL_NAMES},
     **{name: "read_only" for name in COORDINATOR_INSPECTION_TOOL_NAMES},
+    "overlay_mesh_candidate": "read_only",
+    "set_candidate_mesh_frame": "non_idempotent_write",
     **{name: "non_idempotent_write" for name in NON_IDEMPOTENT_WRITE_TOOL_NAMES},
 }
 
@@ -168,7 +184,19 @@ def repeatability_for(tool_name: str) -> Repeatability:
         raise ToolCatalogMismatch(f"tool is not in the frozen 5bb10538 catalog: {tool_name}") from error
 
 
-def validate_frozen_catalog(tools: list[dict[str, Any]], *, readonly: bool) -> None:
+def _catalog_mode(*, readonly: bool, mesh: bool) -> str:
+    return ("readonly" if readonly else "coordinator") + ("_mesh" if mesh else "")
+
+
+def _catalog_names(*, readonly: bool, mesh: bool) -> tuple[str, ...]:
+    if mesh:
+        return MESH_LOCAL_OBSERVER_TOOL_NAMES if readonly else MESH_COORDINATOR_TOOL_NAMES
+    return LOCAL_OBSERVER_TOOL_NAMES if readonly else COORDINATOR_TOOL_NAMES
+
+
+def validate_frozen_catalog(
+    tools: list[dict[str, Any]], *, readonly: bool, mesh: bool | None = None
+) -> str:
     """Require the exact definitions exposed by the frozen server mode."""
 
     names = [tool.get("name") for tool in tools]
@@ -176,29 +204,42 @@ def validate_frozen_catalog(tools: list[dict[str, Any]], *, readonly: bool) -> N
         raise ToolCatalogMismatch("MCP catalog contains a missing or invalid tool name")
     if len(names) != len(set(names)):
         raise ToolCatalogMismatch("MCP catalog contains duplicate tool names")
-    expected = set(LOCAL_OBSERVER_TOOL_NAMES if readonly else COORDINATOR_TOOL_NAMES)
     actual = set(names)
+    if mesh is None:
+        variants = [candidate for candidate in (False, True)
+                    if actual == set(_catalog_names(readonly=readonly, mesh=candidate))]
+        if len(variants) != 1:
+            base = set(_catalog_names(readonly=readonly, mesh=False))
+            mesh_names = set(_catalog_names(readonly=readonly, mesh=True))
+            raise ToolCatalogMismatch(
+                "frozen MCP catalog name set matches neither admitted-input variant; "
+                f"base_missing={sorted(base - actual)}, base_extra={sorted(actual - base)}, "
+                f"mesh_missing={sorted(mesh_names - actual)}, mesh_extra={sorted(actual - mesh_names)}"
+            )
+        mesh = variants[0]
+    expected = set(_catalog_names(readonly=readonly, mesh=mesh))
     if actual != expected:
         raise ToolCatalogMismatch(
             f"frozen MCP catalog mismatch; missing={sorted(expected - actual)}, extra={sorted(actual - expected)}"
         )
-    mode = "readonly" if readonly else "coordinator"
+    mode = _catalog_mode(readonly=readonly, mesh=mesh)
     actual_hash = hashlib.sha256(_canonical_json_bytes(tools)).hexdigest()
     if actual_hash != FROZEN_DEFINITIONS_SHA256[mode]:
         raise ToolCatalogMismatch(
             f"frozen MCP {mode} definitions changed: {actual_hash}"
         )
+    return mode
 
 
 def coordinator_role(budget: BudgetAmounts) -> RoleDefinition:
-    """Return the real coordinator role; the caller owns the run budget choice."""
+    """Return the coordinator whitelist for either frozen input variant."""
 
     return RoleDefinition(
         role_id="coordinator",
         responsibilities=("inspect evidence, decide building changes, and save selected BIM output",),
         tool_whitelist=tuple(
             ToolGrant(tool_name=name, access="read" if repeatability_for(name) == "read_only" else "write")
-            for name in COORDINATOR_TOOL_NAMES
+            for name in MESH_COORDINATOR_TOOL_NAMES
         ),
         input_materials=(
             InputMaterialRequirement(name="admitted_run_inputs", media_type="application/json"),
@@ -212,12 +253,14 @@ def coordinator_role(budget: BudgetAmounts) -> RoleDefinition:
 
 
 def local_observer_role(budget: BudgetAmounts) -> RoleDefinition:
-    """Return the real phase-1 local observer role with no coordinator tools."""
+    """Return the read-only whitelist for either frozen input variant."""
 
     return RoleDefinition(
         role_id="local_observer",
         responsibilities=("inspect admitted evidence and report a bounded local observation",),
-        tool_whitelist=tuple(ToolGrant(tool_name=name, access="read") for name in LOCAL_OBSERVER_TOOL_NAMES),
+        tool_whitelist=tuple(
+            ToolGrant(tool_name=name, access="read") for name in MESH_LOCAL_OBSERVER_TOOL_NAMES
+        ),
         input_materials=(
             InputMaterialRequirement(name="admitted_images_or_views", media_type="image/*"),
             InputMaterialRequirement(name="localized_question", media_type="text/plain"),
@@ -246,10 +289,13 @@ class FrozenBimTools:
         self.run_directory = Path(run_directory).resolve()
         self.phase = phase
         self._catalog_checked = False
+        manifest_path = self.run_directory / "inputs.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.mesh = bool(manifest.get("mesh_input"))
 
     async def list_tools(self) -> list[dict[str, Any]]:
         tools = await self.client.list_tools()
-        validate_frozen_catalog(tools, readonly=self.role.read_only)
+        validate_frozen_catalog(tools, readonly=self.role.read_only, mesh=self.mesh)
         self._catalog_checked = True
         return tools
 
@@ -500,7 +546,7 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
 def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]], *, readonly: bool) -> dict[str, Any]:
     """Persist exact live definitions plus separate policy and byte evidence."""
 
-    validate_frozen_catalog(tools, readonly=readonly)
+    mode = validate_frozen_catalog(tools, readonly=readonly)
     output = Path(output_directory).resolve()
     output.mkdir(parents=True, exist_ok=True)
     # Copy through JSON to prevent later mutation of the live client result.
@@ -518,14 +564,20 @@ def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]
     }
     catalog = {
         "baseline_commit": FROZEN_BASELINE_COMMIT,
-        "server_mode": "readonly" if readonly else "coordinator",
+        "server_mode": mode,
         "definition_encoding": "UTF-8 canonical JSON (sorted keys, compact separators)",
         "definitions_sha256": hashlib.sha256(_canonical_json_bytes(definitions)).hexdigest(),
         "definition_sha256_by_name": definition_hashes,
         "tools": definitions,
         "policy_by_name": policy,
     }
-    target = output / ("local_observer_tools.json" if readonly else "coordinator_tools.json")
+    target_names = {
+        "coordinator": "coordinator_tools.json",
+        "readonly": "local_observer_tools.json",
+        "coordinator_mesh": "coordinator_mesh_tools.json",
+        "readonly_mesh": "local_observer_mesh_tools.json",
+    }
+    target = output / target_names[mode]
     target.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     receipt = {
         "path": str(target),

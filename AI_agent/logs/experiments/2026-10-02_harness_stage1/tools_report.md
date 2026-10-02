@@ -1,19 +1,20 @@
 # Frozen BIM tools: stage 1 classification
 
 The catalog comes from a real stdio launch of the `run_bim_agent.py serve`
-registration at frozen baseline `5bb10538`. The coordinator launch exposes 42
-tools; the server's `--readonly` launch exposes the exact 13-tool local-observer
-whitelist. The transport follows every `tools/list` page and rejects repeated
-cursors and duplicate names.
+registration at frozen baseline `5bb10538`. An image-only run exposes 42
+coordinator tools and 13 local-observer tools. A run whose admitted manifest has
+`mesh_input` exposes seven additional coordinator tools and five additional
+local-observer tools: 49 and 18 respectively. The transport follows every
+`tools/list` page and rejects repeated cursors and duplicate names.
 
 The classification is based on implementation effects, not merely whether a tool
 is absent from the server's `--readonly` mode:
 
 | Class | Count | Meaning in this adapter |
 | --- | ---: | --- |
-| `read_only` | 23 | Does not modify source BIM or persistent workflow decisions. It may append the legacy audit log or create a replaceable view/measurement cache. |
+| `read_only` | 23 base; 29 with mesh | Does not modify source BIM or persistent workflow decisions. It may append the legacy audit log or create a replaceable view/measurement cache. |
 | `idempotent_write` | 0 | The frozen protocol provides no stable operation key and server-side duplicate-application contract. |
-| `non_idempotent_write` | 19 | Creates or changes a candidate, claim, inference/audit, review, calibration, continuation decision, or delivery selection. A lost reply therefore stops the run without retry. |
+| `non_idempotent_write` | 19 base; 20 with mesh | Creates or changes a candidate, claim, inference/audit, review, calibration, continuation decision, or delivery selection. A lost reply therefore stops the run without retry. |
 
 The 13 tools in both the coordinator and local-observer catalogs are
 `get_bim_reference`, `inputs`, `view_image`, `pixel_profile`,
@@ -40,6 +41,18 @@ The 19 non-idempotent writes are `record_inference`,
 persist reviews or audits that affect later status, coverage, or replay, so they
 remain writes even though they do not edit source BIM.
 
+Mesh admission adds `inspect_mesh`, `inspect_mesh_directions`, `view_mesh`,
+`measure_mesh_pixels`, and `view_mesh_observation` to both roles. It adds
+`set_candidate_mesh_frame` and `overlay_mesh_candidate` to the coordinator.
+The first five are observations; their saved render/evidence sidecars are the
+same disclosed read-side effect as image views. `overlay_mesh_candidate` also
+only creates a replaceable inspection projection. `set_candidate_mesh_frame`
+creates a new candidate and is therefore a non-idempotent write.
+The two role definitions whitelist the union of their legitimate conditional
+tools. The live catalog still contains only the variant selected by `inputs.json`;
+an image-only request never sends mesh definitions to the model, while a mesh
+request is checked against the 49/18 hashes before its first model request.
+
 `review_detail` stays visible with its exact frozen name, description, and
 schema. Phase 1 never executes it because its implementation launches another
 image model. The adapter returns a normal MCP-style error envelope with
@@ -48,8 +61,9 @@ policy refusal instead of an unknown write outcome.
 
 ## Byte evidence
 
-`coordinator_tools.json` and `local_observer_tools.json` retain the exact
-JSON-compatible definitions returned by the live MCP server under `tools`.
+The base files `coordinator_tools.json` and `local_observer_tools.json`, plus
+`coordinator_mesh_tools.json` and `local_observer_mesh_tools.json`, retain the
+exact JSON-compatible definitions returned by all four live MCP variants under `tools`.
 `definition_sha256_by_name` hashes each complete definition, including name,
 description, input schema, output schema, annotations, and any future fields.
 `definitions_sha256` hashes the complete ordered definition list using the
