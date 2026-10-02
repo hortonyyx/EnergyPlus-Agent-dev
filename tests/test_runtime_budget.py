@@ -351,4 +351,3 @@ def test_price_configuration_never_turns_an_estimate_into_reported_cost():
         reason="configured price estimate retained because no provider bill was supplied",
     )
     assert decision.settlement.actual.money_usd is None
-
