@@ -304,13 +304,42 @@ class ContextManager:
         elif entry.revision != previous.revision + 1:
             raise ValueError("a changed state entry must increment revision by exactly one")
         if entry.category in _PROTECTED_CATEGORIES and all(
-            ref.source_kind == "generated" and ref.source_id.startswith("context-summary")
-            for ref in entry.source_refs
+            self._is_summary_source(ref) for ref in entry.source_refs
         ):
             raise ValueError(
                 "dimensions, object IDs, geometry and artifact versions cannot exist only in a summary"
             )
         self._state[entry.key] = entry
+
+    def _is_summary_source(self, ref: SourceRef) -> bool:
+        """Recognize summary provenance by ledger/blob identity, not a label."""
+
+        if ref.source_kind == "generated" and ref.source_id.startswith("context-summary"):
+            return True
+        blob_sha = ref.blob.sha256 if isinstance(ref.blob, HashedBlobRef) else None
+        for event in self.store.events:
+            payload = event.payload
+            if payload.event_type != "context" or payload.action != "compact":
+                continue
+            if ref.event_id == event.event_id:
+                return True
+            if blob_sha is not None and any(
+                isinstance(candidate, HashedBlobRef) and candidate.sha256 == blob_sha
+                for candidate in (payload.summary, payload.details)
+            ):
+                return True
+            if ref.event_id is None or payload.details is None:
+                continue
+            try:
+                details = json.loads(self.store.get_bytes(payload.details))
+            except (OSError, ValueError, json.JSONDecodeError):
+                continue
+            if (
+                details.get("kind") == "validated_model_summary"
+                and details.get("response_event_id") == ref.event_id
+            ):
+                return True
+        return False
 
     def register_image(
         self,
@@ -608,6 +637,7 @@ class ContextManager:
         *,
         required_tags: tuple[str, ...] = (),
         required_view_ids: tuple[str, ...] = (),
+        consume_retrievals: bool = True,
     ) -> ContextProjection:
         required = set(required_tags) | set(self.policy.pinned_tags)
         exact_retrievals = set(self._retrieval_pins)
@@ -705,7 +735,8 @@ class ContextManager:
 
         messages = [item.message for item in projected]
         _validate_projected_tool_protocol(tuple(messages))
-        self._retrieval_pins.difference_update(exact_retrievals)
+        if consume_retrievals:
+            self._retrieval_pins.difference_update(exact_retrievals)
         return ContextProjection(
             messages=messages,
             sources=[item.record.source for item in projected],
@@ -714,6 +745,13 @@ class ContextManager:
             included_history_ids=tuple(r.history_id for r in selected),
             omitted_history_ids=tuple(r.history_id for r in omitted),
         )
+
+    def acknowledge_projection(self) -> tuple[str, ...]:
+        """Consume exact-retrieval pins after the primary response is accepted."""
+
+        consumed = tuple(sorted(self._retrieval_pins))
+        self._retrieval_pins.clear()
+        return consumed
 
     def dump(self) -> dict:
         history = []

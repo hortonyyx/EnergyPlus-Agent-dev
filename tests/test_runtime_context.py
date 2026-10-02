@@ -361,6 +361,34 @@ def test_summary_validation_cannot_promote_inference_or_become_only_geometry_sou
         summary_history = manager.compact_with_summary(good)
         assert summary_history.startswith("history-")
 
+        summary_event = next(
+            event for event in reversed(store.events)
+            if event.payload.event_type == "context"
+            and event.payload.action == "compact"
+            and event.payload.details
+            and json.loads(store.get_bytes(event.payload.details)).get("kind")
+            == "validated_model_summary"
+        )
+        disguised_blob_source = SourceRef(
+            source_id="ordinary-runtime-capture",
+            source_kind="runtime",
+            locator=summary_event.payload.summary.uri,
+            blob=summary_event.payload.summary,
+        )
+        disguised_event_source = SourceRef(
+            source_id="ordinary-runtime-event",
+            source_kind="runtime",
+            locator=f"events.jsonl:{summary_event.sequence + 1}",
+            event_id=summary_event.event_id,
+        )
+        for index, disguised in enumerate((disguised_blob_source, disguised_event_source)):
+            with pytest.raises(ValueError, match="cannot exist only in a summary"):
+                manager.set_state(StateEntry(
+                    key=f"geometry.disguised-{index}", category="geometry",
+                    value={"x": 1}, epistemic_status="inferred",
+                    source_refs=(disguised,),
+                ))
+
         generated = store.source("context-summary-only", {"claim": "made up"}, kind="generated")
         with pytest.raises(ValueError, match="cannot exist only in a summary"):
             manager.set_state(inferred.model_copy(update={
@@ -438,12 +466,18 @@ def test_exact_old_image_retrieval_is_persisted_until_one_projection(tmp_path):
 
         assert manager.retrieve_image("view-shared", old_ref.sha256) == old_bytes
         restored = ContextManager.load(store, manager.dump())
-        projection = restored.project()
+        projection = restored.project(consume_retrievals=False)
         wire = json.dumps(projection.messages)
         assert base64.b64encode(old_bytes).decode("ascii") in wire
         assert base64.b64encode(new_bytes).decode("ascii") not in wire
-        # The exact pin is consumed only after a valid request projection.
-        second = restored.project()
+        # Summary/preflight projections and checkpoints do not consume the pin.
+        second_preflight = restored.project(consume_retrievals=False)
+        assert base64.b64encode(old_bytes).decode("ascii") in json.dumps(second_preflight.messages)
+        restored = ContextManager.load(store, restored.dump())
+        third_preflight = restored.project(consume_retrievals=False)
+        assert base64.b64encode(old_bytes).decode("ascii") in json.dumps(third_preflight.messages)
+        assert restored.acknowledge_projection() == (old_key,)
+        second = restored.project(consume_retrievals=False)
         assert base64.b64encode(old_bytes).decode("ascii") not in json.dumps(second.messages)
 
 
