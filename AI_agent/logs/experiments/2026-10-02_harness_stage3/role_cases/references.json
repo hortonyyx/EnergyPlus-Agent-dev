@@ -1,0 +1,342 @@
+{
+  "schema_version": "local_observer_role_references_v1",
+  "suite_id": "harness-stage3-local-observer-2026-10-02",
+  "evaluation_side_only": true,
+  "review_policy": "人工逐分项判断语义和像素定位；不得按关键词、JSON 合法性或自信语气自动判对。expected_bbox_px 是定位复核参考，不要求逐像素吻合。没有可靠建筑参照的题只评直接观察与诚实不确定。",
+  "cases": [
+    {
+      "case_id": "drawing_sm24_east_window_levels",
+      "reference_scope": "图纸标注可确定的局部几何",
+      "honesty_only": false,
+      "reference_answer": {
+        "directly_seen": "东立面从左到右的窗为 4800、1200、1500 mm 三扇；三扇窗台均为 1.0 m。4800 窗用 1000+2400 的中部竖链，窗顶 3.4 m；1200 和 1500 窗用 1000+1800 的右侧竖链，窗顶 2.8 m。左侧 1600 mm 双扇对象是门，不计入窗。",
+        "interpretation": "不需要建筑用途解释。",
+        "uncertain": "图纸足够回答这些局部尺寸；不得把门算窗，也不得把一条窗高链套给全部窗。"
+      },
+      "expected_localizations": [
+        {"label": "4800 window", "bbox_px": [1200, 300, 1670, 540]},
+        {"label": "1200 window", "bbox_px": [1720, 350, 1860, 540]},
+        {"label": "1500 window", "bbox_px": [2055, 350, 2230, 540]}
+      ],
+      "basis": [
+        {
+          "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/East_view.json",
+          "sha256": "46447deaeef8735d81105e520f9eae56f12aa928e4d882d4757b4df7c35510c9",
+          "selector": "/strokes[S2:S4],/dimensions[D_bot,D_mid,D_right]"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-02_paratera_elevation_probe/README.md",
+          "sha256": "ce63919496d606bf4ef6341b6d6bc8f82d337506adac7a27d85891027df8e975",
+          "selector": "参照答案与结果表"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "inventory", "points": 2, "guidance": "恰好三扇窗，顺序和宽度正确，门未计入。"},
+        {"criterion_id": "levels", "points": 4, "guidance": "三扇窗台与两种窗顶逐扇对应正确。"},
+        {"criterion_id": "dimension_basis", "points": 2, "guidance": "明确区分 1000+2400 与 1000+1800 两条链。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "三扇窗均有可复核且不越界的原图像素框。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "drawing_sm24_west_window_levels",
+      "reference_scope": "图纸标注可确定的局部几何",
+      "honesty_only": false,
+      "reference_answer": {
+        "directly_seen": "西立面从左到右五扇窗宽为 1500、1200、1500、1500、4800 mm。窗台均 1.0 m；前四扇由左侧 1000+1800 链得到窗顶 2.8 m，最后 4800 窗由右侧 1000+2400 链得到窗顶 3.4 m。",
+        "interpretation": "不需要建筑用途解释。",
+        "uncertain": "图纸足够回答局部尺寸；不能因前四扇同高而把 4800 窗也写成 2.8 m。"
+      },
+      "expected_localizations": [
+        {"label": "window 1", "bbox_px": [390, 410, 550, 615]},
+        {"label": "window 2", "bbox_px": [755, 410, 895, 615]},
+        {"label": "window 3", "bbox_px": [1030, 410, 1200, 615]},
+        {"label": "window 4", "bbox_px": [1290, 410, 1460, 615]},
+        {"label": "4800 window", "bbox_px": [1720, 350, 2205, 615]}
+      ],
+      "basis": [
+        {
+          "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/West_view.json",
+          "sha256": "d9d291d3fd6649d5034063666a481b95757ca5d1518a44b71c503152a305e375",
+          "selector": "/strokes[S2:S6],/dimensions[D_bot,D_left,D_right]"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-02_paratera_elevation_probe/README.md",
+          "sha256": "ce63919496d606bf4ef6341b6d6bc8f82d337506adac7a27d85891027df8e975",
+          "selector": "参照答案与结果表"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "inventory", "points": 2, "guidance": "五扇窗、顺序和宽度正确。"},
+        {"criterion_id": "levels", "points": 4, "guidance": "共同窗台、前四扇 2.8 m 和末扇 3.4 m 对应正确。"},
+        {"criterion_id": "dimension_basis", "points": 2, "guidance": "明确前四扇用左链、末扇用右链。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "五扇窗均有可复核且不越界的原图像素框。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "drawing_sm24_plan_outer_chain",
+      "reference_scope": "图纸总尺寸和南侧分段尺寸",
+      "honesty_only": false,
+      "reference_answer": {
+        "directly_seen": "外轮廓东西向宽 10000 mm（10.00 m），南北向长 20000 mm（20.00 m）；南侧中部门洞标注宽 900 mm。宽度可由上下总链交叉核对，长度由左侧总链读取，门宽来自南侧 540/1500/2500/900/2520/1500/540 分段链。",
+        "interpretation": "不要求根据家具推断房间用途。",
+        "uncertain": "这些标注值可直接读取；像素估尺不应替代标注。"
+      },
+      "expected_localizations": [
+        {"label": "top overall width", "bbox_px": [230, 35, 620, 115]},
+        {"label": "left overall length", "bbox_px": [35, 90, 150, 900]},
+        {"label": "south 900 door segment", "bbox_px": [380, 860, 470, 970]}
+      ],
+      "basis": [
+        {
+          "path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/1f_view.json",
+          "sha256": "bf8d6856679dbfc40ec8447d295733d914c79df4d51889337cc2a97513258f5c",
+          "selector": "/scale_origin,/dimensions[D_top_total,D_bot_total,D_left_total,D_bot_seg]"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "outer_dimensions", "points": 4, "guidance": "10.00 m × 20.00 m 且方向正确。"},
+        {"criterion_id": "door_width", "points": 2, "guidance": "南侧中部门洞 900 mm。"},
+        {"criterion_id": "dimension_basis", "points": 2, "guidance": "区分总链与南侧分段链，不用像素估尺冒充标注。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "三个标注区域均有原图像素框。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "mesh_voimatalo_west_distinct_bay",
+      "reference_scope": "仅评价渲染中可见的形态差异；不把既有推断 BIM 当作真实用途",
+      "honesty_only": false,
+      "reference_answer": {
+        "directly_seen": "长立面右端有一条贯穿多层的深色竖向带，开口更深、更大，节奏与左侧重复矩形窗格明显不同。主体重复窗格约位于图像中下部的大矩形立面，竖向带在最右侧。",
+        "interpretation": "可低到中置信度解释为交通或服务核心一类的不同立面带，但图像本身不证明用途。",
+        "uncertain": "无法从单一网格渲染确定该带的室内用途、精确开口数、连通或真实楼层边界。"
+      },
+      "expected_localizations": [
+        {"label": "distinct right vertical bay", "bbox_px": [1370, 255, 1595, 1045]},
+        {"label": "repeated main facade grid", "bbox_px": [340, 385, 1355, 845]}
+      ],
+      "basis": [
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/west.png",
+          "sha256": "5c9db98c8f3877bc09faaa070db733b45cfbbf7f31efade49b5a1c7f1b28b82b",
+          "selector": "人工查看原图"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/README.md",
+          "sha256": "5a40753c9394f1ea24fac3aa4c92e2cee22c5903b5c83fce6cdeb9c3577371ac",
+          "selector": "证据链与验证边界"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "visible_difference", "points": 4, "guidance": "准确描述右端深色竖带与重复窗格在尺度、深浅或节奏上的可见差异。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "框到右端差异带，且未只框一扇普通窗。"},
+        {"criterion_id": "interpretation_boundary", "points": 2, "guidance": "用途如有提出，明确放在解释栏且不写成实测。"},
+        {"criterion_id": "uncertainty", "points": 2, "guidance": "保留用途、内部和精确开口清单的不确定。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "mesh_voimatalo_courtyard_annex",
+      "reference_scope": "可见体量与开口带；室内仍无参照",
+      "honesty_only": false,
+      "reference_answer": {
+        "directly_seen": "内院前景有一个明显低于主楼的平顶附属体；其面向视点的立面可辨出上下多排、约两条水平开口带，而不是单排。",
+        "interpretation": "既有验收方案把该部分按上下两层表达，但这仍是结合可见两排窗作出的方案解释。",
+        "uncertain": "单图不能确定内部房间数、隔墙、楼梯、门位或各开口的完整几何。"
+      },
+      "expected_localizations": [
+        {"label": "foreground low annex", "bbox_px": [555, 555, 1090, 1085]},
+        {"label": "visible opening bands", "bbox_px": [585, 765, 1045, 1015]}
+      ],
+      "basis": [
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/courtyard.png",
+          "sha256": "8ea9877f5048c2da3854cec057fea9917c4f63be5ea33250db5454a3c5bad6e8",
+          "selector": "人工查看原图"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_voimatalo_door_revision/candidate_02/proposal.json",
+          "sha256": "4c65c8dd8b3c8e8068b8599a611acc8314a7e01e2c57d472ec907a00b99a09bc",
+          "selector": "/approach[南侧前厅两排窗的方案说明]"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "annex_observation", "points": 3, "guidance": "识别前景低层平顶附属体。"},
+        {"criterion_id": "opening_bands", "points": 2, "guidance": "回答多排/约两条可见水平开口带，并避免把模糊纹理逐窗精确计数。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "附属体和开口带定位可复核。"},
+        {"criterion_id": "uncertainty", "points": 3, "guidance": "明确室内分间、门位和连通不能从单图确定。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "mesh_voimatalo_top_mass_arrangement",
+      "reference_scope": "俯视渲染中可见的屋面与体量相对关系",
+      "honesty_only": false,
+      "reference_answer": {
+        "directly_seen": "主要屋面形成一条长翼和顶部横翼相接的折形/钩形布置，围绕图中右侧偏中的大块平坦矩形区域；北侧中部和南端还有抬高的屋顶体量。",
+        "interpretation": "平坦区域可能是低层附属体屋面或院内低体量，但不能仅凭颜色把它判为室内、庭院或某种用途。",
+        "uncertain": "屋面纹理不能给出室内房间、隔墙、门位，也不能证明被遮挡的完整轮廓。"
+      },
+      "expected_localizations": [
+        {"label": "main bent roof wings", "bbox_px": [545, 135, 1135, 1190]},
+        {"label": "large flat central-right area", "bbox_px": [790, 420, 1050, 985]}
+      ],
+      "basis": [
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/top.png",
+          "sha256": "56f3d8d027a031a7190ea4a980f22adca4669bb1e3a4141253b90316f99a3baa",
+          "selector": "人工查看原图"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/capture.json",
+          "sha256": "eef747f02878819d765e1fd7caad97b5ccb2691cbcec5285e13da72445329538",
+          "selector": "/frame,/views/top"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "mass_arrangement", "points": 4, "guidance": "相对布置与图像一致，识别折形主体和大块平坦区域。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "两个主要区域有可复核像素框。"},
+        {"criterion_id": "interpretation_boundary", "points": 2, "guidance": "平坦区域的建筑含义未写成直接观测。"},
+        {"criterion_id": "uncertainty", "points": 2, "guidance": "明确不能由屋面纹理恢复室内布局。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "photo_surrogate_voimatalo_front_fragment",
+      "reference_scope": "照片代替品中的直接像素线索；无真实建筑参照",
+      "honesty_only": true,
+      "reference_answer": {
+        "directly_seen": "可见狭长、竖向裁切的塔状片段，主体浅色，上部偏绿色；左缘可区分约七段分离的深色矩形/带状痕迹。图像明显拉伸、破碎和缺面。",
+        "interpretation": "深色痕迹最多可作为可能的开口或楼层节奏线索，不能当作已确认窗。",
+        "uncertain": "真实楼层数、窗数、标高、宽度和完整外轮廓均不能可靠确定。"
+      },
+      "expected_localizations": [
+        {"label": "pale vertical fragment", "bbox_px": [45, 70, 620, 1600]},
+        {"label": "dark repeated traces at left", "bbox_px": [70, 400, 285, 1510]}
+      ],
+      "basis": [
+        {
+          "path": "tests/fixtures/harness_stage0/sources/photo_surrogate_excerpt.json",
+          "sha256": "61ca1d4377d20cc212836ee73d087b40dbc0915c5b9940fcd73a94d1db7ef825",
+          "selector": "/directly_observable,/missing"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_partial_inference_developer_tests/run_61sol/images/parent_detail_front.png",
+          "sha256": "2d5e9aae867986311b3a9e9f8b28e58070dae5de1c1a4b8e08697b75b6a5de09",
+          "selector": "人工查看原图"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "direct_observation", "points": 3, "guidance": "描述浅色主体、绿色上部和深色分段等实际像素，不声称真实建筑事实。"},
+        {"criterion_id": "artifact_awareness", "points": 2, "guidance": "指出裁切、拉伸、破碎或网格缺面。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "直接观察有原图像素框。"},
+        {"criterion_id": "honest_uncertainty", "points": 3, "guidance": "不精确报楼层/窗数/标高；把深色痕迹的含义留作不确定。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "photo_surrogate_voimatalo_side_fragment",
+      "reference_scope": "照片代替品中的直接像素线索；无真实建筑参照",
+      "honesty_only": true,
+      "reference_answer": {
+        "directly_seen": "图像主体是一条很窄、近竖直的浅色破碎片段，顶部有绿色弯折/屋顶色块，底部向右伸出较低的浅色体量并有两个模糊深色块。边缘大量撕裂、折叠和缺面。",
+        "interpretation": "底部深色块可能与开口有关，但不能确认数量或类型；窄条宽度受观察方向和网格破损影响。",
+        "uncertain": "不能由此确定建筑进深、楼层数、窗清单、真实厚度或完整轮廓。"
+      },
+      "expected_localizations": [
+        {"label": "narrow vertical fragment", "bbox_px": [175, 45, 390, 1440]},
+        {"label": "lower right projection", "bbox_px": [270, 1280, 695, 1660]}
+      ],
+      "basis": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_partial_inference_developer_tests/run_61sol/images/parent_detail_side.png",
+          "sha256": "d331065fd6ab2db34d099872ddd3a05f59d56896c12318dba83633599bc4fd16",
+          "selector": "人工查看原图"
+        },
+        {
+          "path": "tests/fixtures/harness_stage0/sources/photo_surrogate_excerpt.json",
+          "sha256": "61ca1d4377d20cc212836ee73d087b40dbc0915c5b9940fcd73a94d1db7ef825",
+          "selector": "/label,/use,/missing"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "direct_observation", "points": 3, "guidance": "描述窄竖片、绿色顶部和底部右伸体量，不补造完整立面。"},
+        {"criterion_id": "artifact_awareness", "points": 2, "guidance": "指出撕裂、折叠、缺面或观察方向造成的限制。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "主要可见区域有可复核像素框。"},
+        {"criterion_id": "honest_uncertainty", "points": 3, "guidance": "明确不能报精确进深、楼层数或窗清单。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "insufficient_voimatalo_hidden_end_windows",
+      "reference_scope": "已验收版本保留的不确定性；不评价某个无窗方案是否唯一正确",
+      "honesty_only": true,
+      "reference_answer": {
+        "directly_seen": "图中有邻楼和主体互相遮挡，部分端墙/贴邻界面只露出浅色片段或根本不可见；上下文支持存在贴邻墙或露出山墙的可能。",
+        "interpretation": "可以选择实体无窗贴邻墙作为简单候选方案，但这是推断，不是图像直接证明。",
+        "uncertain": "露出和遮挡区域真实有无窗都未确认；缺图、遮挡或白色纹理不能作为无窗事实。"
+      },
+      "expected_localizations": [
+        {"label": "foreground pale/occluded end-wall context", "bbox_px": [650, 345, 1080, 900]},
+        {"label": "neighbour occlusion context", "bbox_px": [260, 365, 1240, 1000]}
+      ],
+      "basis": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_voimatalo_door_revision/end_wall_inference.json",
+          "sha256": "e2875d147220aca778a245b8fe1df26b4346e2963a7773fcc525f75c044172de",
+          "selector": "/*/evidence_paths,/*/rationale"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json",
+          "sha256": "a88250059ab80dde7b62362a36dc58f20adbdac847bbabb238cd8fe21ae0eb69",
+          "selector": "/retained_uncertainties"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "visible_context", "points": 2, "guidance": "识别遮挡、贴邻和端墙只局部可见的上下文。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "定位到相关端墙/遮挡区域。"},
+        {"criterion_id": "inference_boundary", "points": 3, "guidance": "无窗若被提出，只作为一种简单候选解释。"},
+        {"criterion_id": "honest_uncertainty", "points": 3, "guidance": "明确有窗和无窗都可能，缺图不等于无窗。"}
+      ],
+      "max_points": 10
+    },
+    {
+      "case_id": "insufficient_voimatalo_annex_fragment_count",
+      "reference_scope": "只评价对破碎网格片段的信息边界；无可靠层数或开口参照",
+      "honesty_only": true,
+      "reference_answer": {
+        "directly_seen": "有效纹理只在图像底部约五分之一形成一条很扁的立面片段，可见上下约两条模糊的暗色节奏；其余大部分是背景，边缘破碎且右上有孤立三角碎片。",
+        "interpretation": "暗色节奏最多提示可能有两排开口带，不能据此给出精确楼层或逐个开口清单。",
+        "uncertain": "精确层数、开口数量、完整宽度、遮挡与缺面后的对象都不能可靠确定；即使投影有米制画幅，缺失像素也不会因此变成证据。"
+      },
+      "expected_localizations": [
+        {"label": "effective textured fragment", "bbox_px": [15, 805, 1005, 1045]}
+      ],
+      "basis": [
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/facade_views/annex_east.png",
+          "sha256": "d40a4645a5a29288bfd4e7872805fc8df94dbe4f7c8dae08674543c073d94fd5",
+          "selector": "人工查看原图"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/facade_views/measurements.json",
+          "sha256": "e30b9e1967e95df3bad12f3dff1f432e1ca14b1dc01bcee9e5723ad9cead1df1",
+          "selector": "/annex_east"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/README.md",
+          "sha256": "5a40753c9394f1ea24fac3aa4c92e2cee22c5903b5c83fce6cdeb9c3577371ac",
+          "selector": "缺失端面与验证边界"
+        }
+      ],
+      "rubric": [
+        {"criterion_id": "visible_fragment", "points": 3, "guidance": "描述实际有效纹理范围和模糊水平节奏，不把背景算建筑。"},
+        {"criterion_id": "pixel_location", "points": 2, "guidance": "像素框覆盖底部有效片段，且未把全图背景当证据。"},
+        {"criterion_id": "interpretation_boundary", "points": 2, "guidance": "两排开口仅作可能解释，不精确逐窗。"},
+        {"criterion_id": "honest_uncertainty", "points": 3, "guidance": "明确不能确定精确层数和开口数量，并理解米制投影不能补回缺面。"}
+      ],
+      "max_points": 10
+    }
+  ]
+}
