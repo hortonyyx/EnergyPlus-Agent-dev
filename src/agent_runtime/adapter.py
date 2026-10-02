@@ -31,6 +31,14 @@ class PreparedRequest:
     token_reservation_estimate: int
     event_payload: AdapterRequestPayload
 
+    @property
+    def output_token_limit(self) -> int:
+        return self.body.get("max_tokens", self.body.get("max_completion_tokens"))
+
+    @property
+    def input_token_upper_bound(self) -> int:
+        return self.token_reservation_estimate - self.output_token_limit
+
 
 @dataclass(frozen=True)
 class ParsedResponse:

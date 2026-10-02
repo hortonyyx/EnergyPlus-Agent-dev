@@ -23,13 +23,13 @@ def json_bytes(value) -> bytes:
 class EventStore:
     """One writer per run; flushed intent precedes every external operation.
 
-    Torn JSONL tails are rejected, never silently deleted. Crash-tail recovery
-    and concurrent scheduling belong to stage 2. Existing complete journals can
+    Torn JSONL tails are rejected unless explicit recovery preserves the exact
+    tail and records its repair. Existing complete journals can
     be reopened; a nonblocking file lock prevents two writers using one run.
     """
 
     def __init__(self, directory: Path, *, run_id: str, task_id: str,
-                 budget_limit: BudgetAmounts):
+                 budget_limit: BudgetAmounts, recover_tail: bool = False):
         self.directory = Path(directory).resolve()
         self.directory.mkdir(parents=True, exist_ok=True)
         (self.directory / "blobs").mkdir(exist_ok=True)
@@ -39,6 +39,7 @@ class EventStore:
         self._lock = (self.directory / "writer.lock").open("a+b")
         try:
             fcntl.flock(self._lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            repair = self._repair_tail() if recover_tail else None
             self.events = self.read_events(self.path)
             if self.events:
                 self.validate()
@@ -51,6 +52,11 @@ class EventStore:
                 raise ValueError("journal limits/identity cannot change on resume")
             if not path.exists():
                 self.write_json("journal.json", metadata)
+            if repair:
+                from src.harness_contracts import RunLifecyclePayload
+                self.append(RunLifecyclePayload(action="failure", failure_stage="journal_append",
+                    reason="explicit torn-tail recovery; original bytes preserved"),
+                    source_refs=(self.source("journal-tail-repair", repair),))
         except BaseException:
             self.close()
             raise
@@ -63,6 +69,54 @@ class EventStore:
         if raw and not raw.endswith(b"\n"):
             raise ValueError("incomplete event journal tail; explicit recovery required")
         return [EventEnvelope.model_validate_json(line) for line in raw.splitlines()]
+
+    def _repair_tail(self):
+        if not self.path.exists():
+            return None
+        raw = self.path.read_bytes()
+        if not raw or raw.endswith(b"\n"):
+            return None
+        boundary = raw.rfind(b"\n") + 1
+        prefix, tail = raw[:boundary], raw[boundary:]
+        # Verify every completed record before changing even the partial tail.
+        events = [EventEnvelope.model_validate_json(line) for line in prefix.splitlines()]
+        if events:
+            EventLog(mode="complete", events=tuple(events), budget_limit=self.budget_limit)
+        saved = self.put_bytes(tail)
+        record = {"original_sha256": hashlib.sha256(raw).hexdigest(),
+                  "prefix_sha256": hashlib.sha256(prefix).hexdigest(),
+                  "offset": boundary, "tail": saved.model_dump(mode="json")}
+        # A complete JSON event missing only its newline is retained as an event.
+        try:
+            last = EventEnvelope.model_validate_json(tail)
+            EventLog(mode="complete", events=tuple([*events, last]), budget_limit=self.budget_limit)
+        except ValueError:
+            repaired, record["action"] = prefix, "archive_incomplete_tail"
+        else:
+            repaired, record["action"] = raw + b"\n", "complete_newline"
+        # The repair intent and removed bytes are durable before replacing JSONL.
+        self.write_json("tail_repair.json", record)
+        temporary = self.path.with_name(f"events.repair.{os.getpid()}.tmp")
+        with temporary.open("wb") as output:
+            output.write(repaired)
+            output.flush()
+            os.fsync(output.fileno())
+        os.replace(temporary, self.path)
+        self._sync_directory(self.directory)
+        return record
+
+    def latest_checkpoint(self):
+        for event in reversed(self.events):
+            if event.payload.event_type == "checkpoint":
+                # Verify the blob now; never silently fall back past corruption.
+                return event.payload.state, json.loads(self.get_bytes(event.payload.state)), event.sequence
+        pointer = self.directory / "checkpoint.json"
+        if not pointer.exists():
+            return None
+        ref = HashedBlobRef.model_validate_json(pointer.read_bytes())
+        snapshot = json.loads(self.get_bytes(ref))
+        sequence = next(e.sequence for e in self.events if e.event_id == snapshot["last_event_id"])
+        return ref, snapshot, sequence
 
     def close(self):
         if not self._lock.closed:
