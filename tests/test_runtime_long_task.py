@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import gzip
 import hashlib
@@ -9,6 +10,23 @@ import shutil
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+import pytest
+
+from src.agent_runtime.adapter import ScriptedAdapter
+from src.agent_runtime.context import ContextPolicy
+from src.agent_runtime.loop import RunLimits, Runtime
+from src.agent_runtime.store import EventStore
+from src.harness_contracts import (
+    BudgetAmounts,
+    InputMaterialRequirement,
+    RemoteModelIdentity,
+    ReturnRequirement,
+    RoleDefinition,
+    ToolGrant,
+    VersionManifest,
+    VersionStamp,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -206,6 +224,61 @@ class HistoricalToolBackend:
         self.position = start_step
         self.unknown_write_ordinal = unknown_write_ordinal
         self.calls: list[tuple[str, dict[str, Any]]] = []
+        self._origins_by_sha: dict[str, dict[str, Any]] = {}
+        for step in self.sequence.steps:
+            metadata = self._result_metadata(step["raw_result"])
+            images = [
+                block
+                for block in step["raw_result"]["content"]
+                if block.get("type") == "image"
+            ]
+            identity = (
+                metadata.get("view_id")
+                or metadata.get("overview_id")
+                or metadata.get("profile_id")
+                or (metadata.get("result") or {}).get("profile_id")
+                or f"run99-step-{step['ordinal']:03d}"
+            )
+            for index, block in enumerate(images):
+                digest = _sha256(base64.b64decode(block["data"], validate=True))
+                # Identical bytes may recur in several saved candidates. Their
+                # first historical identity is stable and sufficient for exact
+                # retrieval by view_id + hash.
+                self._origins_by_sha.setdefault(
+                    digest,
+                    {
+                        "view_id": (
+                            identity
+                            if len(images) == 1
+                            else f"{identity}:image-{index + 1}"
+                        ),
+                        "tags": tuple(
+                            value
+                            for value in (
+                                f"tool:{step['tool_name']}",
+                                (
+                                    f"image:{step['arguments'].get('name')}"
+                                    if step["arguments"].get("name")
+                                    else None
+                                ),
+                            )
+                            if value
+                        ),
+                    },
+                )
+
+    @staticmethod
+    def _result_metadata(raw_result: dict[str, Any]) -> dict[str, Any]:
+        for block in raw_result["content"]:
+            if block.get("type") != "text":
+                continue
+            try:
+                decoded = json.loads(block["text"])
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if isinstance(decoded, dict):
+                return decoded
+        return {}
 
     async def list_tools(self) -> list[dict[str, Any]]:
         names = tuple(dict.fromkeys(item["tool_name"] for item in self.sequence.steps))
@@ -259,6 +332,17 @@ class HistoricalToolBackend:
                 raise ConnectionError("injected return-path loss after isolated fixture write")
         return step["raw_result"]
 
+    def image_origins(self, raw_result: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        return {
+            digest: self._origins_by_sha[digest]
+            for digest in (
+                _sha256(base64.b64decode(block["data"], validate=True))
+                for block in raw_result.get("content", ())
+                if block.get("type") == "image"
+            )
+            if digest in self._origins_by_sha
+        }
+
     def snapshot_state(self) -> dict[str, str]:
         return {
             path.name: _sha256(path.read_bytes())
@@ -296,8 +380,9 @@ def test_simulated_backend_keeps_writes_in_copy_and_counts_each_once(tmp_path):
     )
     assert backend.source_model_path != seed_path
     assert backend.source_model_path.read_bytes() == seed_path.read_bytes()
-
-    import asyncio
+    first_view = sequence.steps[1]["raw_result"]
+    first_digest = sequence.steps[1]["result"]["images"][0]["sha256"]
+    assert backend.image_origins(first_view)[first_digest]["view_id"] == "view_0001"
 
     async def replay() -> None:
         for step in sequence.steps:
@@ -313,3 +398,275 @@ def test_simulated_backend_keeps_writes_in_copy_and_counts_each_once(tmp_path):
     assert _sha256(seed_path.read_bytes()) == sequence.source_manifest["sources"][
         "isolated_write_seed"
     ]["sha256"]
+
+
+MESSAGES = [
+    {"role": "system", "content": "frozen run99 long-task fixture"},
+    {"role": "user", "content": "replay the captured tool sequence"},
+]
+
+
+def _versions() -> VersionManifest:
+    stamp = VersionStamp(identifier="run99-fixture-v1")
+    return VersionManifest(
+        code_commit=stamp,
+        dependency_lock=stamp,
+        prompt=stamp,
+        tool_definitions=stamp,
+        inference_parameters=stamp,
+        model_route=stamp,
+        remote_model=RemoteModelIdentity(
+            route_id="offline-run99",
+            remote_alias="offline-run99-fixture",
+            alias_status="unverified",
+        ),
+    )
+
+
+def _limits(*, model_calls: int = 90) -> RunLimits:
+    return RunLimits(
+        model_calls=model_calls,
+        tool_calls=80,
+        seconds=900.0,
+        tokens=80_000_000,
+        context_tokens=12_000_000,
+        max_model_retries=1,
+    )
+
+
+def _role(sequence: Run99Sequence, limits: RunLimits) -> RoleDefinition:
+    names = tuple(dict.fromkeys(item["tool_name"] for item in sequence.steps))
+    return RoleDefinition(
+        role_id="coordinator",
+        responsibilities=("replay the offline run99 recovery fixture",),
+        tool_whitelist=tuple(
+            ToolGrant(
+                tool_name=name,
+                access=(
+                    "read"
+                    if next(
+                        item["repeatability"]
+                        for item in sequence.steps
+                        if item["tool_name"] == name
+                    )
+                    == "read_only"
+                    else "write"
+                ),
+            )
+            for name in names
+        ),
+        input_materials=(
+            InputMaterialRequirement(name="run99 fixture", media_type="application/json"),
+        ),
+        return_requirements=(
+            ReturnRequirement(name="offline result", schema_ref="stage2/run99-fixture"),
+        ),
+        budget=limits.ledger_limit(),
+    )
+
+
+def _open_runtime(
+    run_directory: Path,
+    sequence: Run99Sequence,
+    backend: HistoricalToolBackend,
+    responses: list[dict[str, Any]],
+    *,
+    limits: RunLimits,
+    fault_hook=None,
+    retrieve_images: tuple[tuple[str, str], ...] = (),
+) -> tuple[EventStore, Runtime, ScriptedAdapter]:
+    store = EventStore(
+        run_directory,
+        run_id="run99-long-fixture",
+        task_id="stage2-fault-injection",
+        budget_limit=limits.ledger_limit(),
+    )
+    adapter = ScriptedAdapter(responses)
+    engine = Runtime(
+        store=store,
+        adapter=adapter,
+        tools=backend,
+        role=_role(sequence, limits),
+        model="offline-run99-fixture",
+        parameters={"max_tokens": 64, "temperature": 0.0},
+        versions=_versions(),
+        limits=limits,
+        context_policy=ContextPolicy(
+            active_window_messages=8,
+            preserve_initial_messages=2,
+            max_images=2,
+            max_image_bytes=250_000,
+        ),
+        fault_hook=fault_hook,
+        retrieve_images=retrieve_images,
+    )
+    return store, engine, adapter
+
+
+class InjectedCrash(BaseException):
+    pass
+
+
+class FaultOnce:
+    def __init__(self, name: str, predicate) -> None:
+        self.name = name
+        self.predicate = predicate
+        self.triggered = False
+        self.observed: dict[str, Any] | None = None
+
+    def __call__(self, name: str, engine: Runtime) -> None:
+        if not self.triggered and name == self.name and self.predicate(engine):
+            self.triggered = True
+            self.observed = {
+                "name": name,
+                "model_calls": engine.counts["model_calls"],
+                "tool_calls": engine.counts["tool_calls"],
+                "stage": engine.stage,
+            }
+            raise InjectedCrash(name)
+
+
+def _crash_then_resume(
+    tmp_path: Path,
+    *,
+    fault: FaultOnce,
+    retrieve_images: tuple[tuple[str, str], ...] = (),
+) -> tuple[dict[str, Any], Run99Sequence, HistoricalToolBackend, Runtime, int, list[str]]:
+    sequence = Run99Sequence()
+    responses = sequence.scripted_responses()
+    limits = _limits()
+    run_directory = tmp_path / "run"
+    backend = HistoricalToolBackend(sequence, tmp_path / "isolated-bim")
+    store, engine, adapter = _open_runtime(
+        run_directory,
+        sequence,
+        backend,
+        responses,
+        limits=limits,
+        fault_hook=fault,
+    )
+    with store:
+        with pytest.raises(InjectedCrash):
+            asyncio.run(engine.run(MESSAGES))
+    sent = len(adapter.requests)
+    ledger_at_crash = list(backend._ledger())
+    store, resumed, _ = _open_runtime(
+        run_directory,
+        sequence,
+        backend,
+        responses[sent:],
+        limits=limits,
+        retrieve_images=retrieve_images,
+    )
+    with store:
+        receipt = asyncio.run(resumed.run(MESSAGES, resume=True))
+    return receipt, sequence, backend, resumed, sent, ledger_at_crash
+
+
+@pytest.mark.parametrize(
+    ("hook_name", "predicate"),
+    [
+        ("before_request", lambda engine: engine.counts["model_calls"] == 20),
+        ("after_request", lambda engine: engine.counts["model_calls"] == 20),
+        ("after_response", lambda engine: engine.counts["model_calls"] == 20),
+    ],
+)
+def test_long_run_recovers_across_request_boundaries(tmp_path, hook_name, predicate):
+    fault = FaultOnce(hook_name, predicate)
+    receipt, _, backend, _, _, _ = _crash_then_resume(tmp_path, fault=fault)
+    assert fault.triggered and receipt["status"] == "completed"
+    assert backend.position == 75
+    assert len(backend._ledger()) == 14
+    assert len({key for key in backend._ledger()}) == 14
+
+
+def test_long_run_recovers_write_interrupted_before_intent(tmp_path):
+    fault = FaultOnce(
+        "before_tool",
+        lambda engine: engine.counts["model_calls"] == 46,
+    )
+    receipt, _, backend, _, _, ledger_at_crash = _crash_then_resume(tmp_path, fault=fault)
+    assert receipt["status"] == "completed"
+    assert "historical-step-046" not in ledger_at_crash
+    assert backend._ledger().count("historical-step-046") == 1
+
+
+def test_long_run_replays_durable_write_result_without_repeating_write(tmp_path):
+    fault = FaultOnce(
+        "after_execution",
+        lambda engine: engine.counts["tool_calls"] == 46,
+    )
+    receipt, _, backend, _, _, ledger_at_crash = _crash_then_resume(tmp_path, fault=fault)
+    assert receipt["status"] == "completed"
+    assert ledger_at_crash.count("historical-step-046") == 1
+    assert backend._ledger().count("historical-step-046") == 1
+
+
+def test_long_run_unknown_write_stops_after_state_check_without_retry(tmp_path):
+    fault = FaultOnce(
+        "after_tool",
+        lambda engine: engine.counts["tool_calls"] == 46,
+    )
+    receipt, _, backend, resumed, _, ledger_at_crash = _crash_then_resume(
+        tmp_path,
+        fault=fault,
+    )
+    assert receipt["status"] == "resume_pending_operation"
+    assert ledger_at_crash.count("historical-step-046") == 1
+    assert backend._ledger().count("historical-step-046") == 1
+    assert backend.position == 46
+    inspections = [
+        event.payload
+        for event in resumed.store.events
+        if event.payload.event_type == "state_inspection"
+        and event.payload.purpose == "unknown_write_recovery"
+    ]
+    assert inspections and inspections[-1].conclusion == "inconclusive"
+
+
+def test_long_run_recovers_after_compaction_and_retrieves_exact_removed_image(tmp_path):
+    sequence = Run99Sequence()
+    first_image = sequence.steps[1]["result"]["images"][0]
+    fault = FaultOnce(
+        "after_checkpoint",
+        lambda engine: engine.counts["tool_calls"] == 40,
+    )
+    receipt, _, backend, resumed, _, _ = _crash_then_resume(
+        tmp_path,
+        fault=fault,
+        retrieve_images=(("view_0001", first_image["sha256"]),),
+    )
+    assert receipt["status"] == "completed"
+    assert len(backend._ledger()) == 14
+    context_events = [
+        event.payload
+        for event in resumed.store.events
+        if event.payload.event_type == "context"
+    ]
+    assert any(event.action == "compact" for event in context_events)
+    retrievals = [event for event in context_events if event.action == "retrieve_image"]
+    assert retrievals and retrievals[-1].image.sha256 == first_image["sha256"]
+    assert resumed.context.retrieve_image("view_0001", first_image["sha256"])
+    full_messages, full_sources = resumed.context.full_history()
+    assert len(full_messages) == len(full_sources)
+    assert full_messages[:2] == MESSAGES
+    assert full_messages[-1]["content"] == "fixture complete"
+
+
+def test_long_run_budget_stops_before_sixty_first_model_call(tmp_path):
+    sequence = Run99Sequence()
+    responses = sequence.scripted_responses()
+    limits = _limits(model_calls=60)
+    backend = HistoricalToolBackend(sequence, tmp_path / "isolated-bim")
+    store, engine, adapter = _open_runtime(
+        tmp_path / "run",
+        sequence,
+        backend,
+        responses,
+        limits=limits,
+    )
+    with store:
+        receipt = asyncio.run(engine.run(MESSAGES))
+    assert receipt["status"] == "model_budget_exhausted"
+    assert receipt["model_calls"] == len(adapter.requests) == 60
+    assert receipt["tool_calls"] == backend.position == 60
