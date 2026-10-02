@@ -111,7 +111,15 @@ class ObserveReplay:
                 if e.payload.event_type == "budget" and e.payload.action == "reserve"
                 and e.payload.reservation.reservation_id == payload.reservation_id)
             decision = json.loads(engine.store.get_bytes(reservation_event.source_refs[0].blob))
-            estimate = len(raw) + pixels + json.loads(raw)["max_tokens"]
+            token_estimate = decision["token_estimate"]
+            assert token_estimate["input_tokens_estimate"] == (
+                token_estimate["text_tokens"] + token_estimate["image_tokens"])
+            # The explicit offline compatibility profile retains the historical
+            # decoded-pixel image upper bound used by this replay.
+            assert token_estimate["image_tokens"] == pixels
+            assert token_estimate["output_token_limit"] == json.loads(raw)["max_tokens"]
+            estimate = (token_estimate["input_tokens_upper_bound"]
+                        + token_estimate["output_token_limit"])
             assert estimate == decision["reservation"]["amounts"]["tokens"]
             assert estimate <= engine.limits.context_tokens
             assert decision["action"] == "allow"
