@@ -29,6 +29,23 @@ class BudgetAmounts(ContractModel):
             calls=add_optional(self.calls, other.calls),
         )
 
+    def subtract(self, other: BudgetAmounts) -> BudgetAmounts:
+        """Subtract known dimensions without turning an unbounded one into zero."""
+
+        def subtract_optional(
+            left: int | Decimal | None, right: int | Decimal | None
+        ) -> int | Decimal | None:
+            if left is None:
+                return None
+            return left - (right or 0)
+
+        return BudgetAmounts(
+            tokens=subtract_optional(self.tokens, other.tokens),
+            money_usd=subtract_optional(self.money_usd, other.money_usd),
+            seconds=subtract_optional(self.seconds, other.seconds),
+            calls=subtract_optional(self.calls, other.calls),
+        )
+
 
 class UsageReported(ContractModel):
     kind: Literal["reported"] = "reported"
@@ -121,13 +138,10 @@ class BudgetLedger(ContractModel):
         if not _has_positive_dimension(self.total_limit):
             raise ValueError("total budget needs at least one positive dimension")
         reservation_by_id: dict[str, BudgetReservation] = {}
-        reserved = BudgetAmounts()
         for item in self.reservations:
             if item.reservation_id in reservation_by_id:
                 raise ValueError(f"duplicate reservation_id: {item.reservation_id}")
             reservation_by_id[item.reservation_id] = item
-            reserved = reserved.add(item.amounts)
-        _ensure_within(reserved, self.total_limit, "reservations exceed total budget")
 
         settled: set[str] = set()
         for item in self.settlements:
@@ -137,7 +151,7 @@ class BudgetLedger(ContractModel):
             reservation = reservation_by_id.get(item.reservation_id)
             if reservation is None:
                 raise ValueError(f"settlement has no reservation: {item.reservation_id}")
-            _ensure_within(
+            _ensure_within_reservation(
                 item.actual,
                 reservation.amounts,
                 f"settlement exceeds reservation: {item.reservation_id}",
@@ -154,14 +168,91 @@ class BudgetLedger(ContractModel):
                 raise ValueError(
                     f"settlement cost exceeds reservation: {item.reservation_id}"
                 )
+        _ensure_within_limit(
+            self.committed,
+            self.total_limit,
+            "effective charges and outstanding reservations exceed total budget",
+        )
         return self
 
+    @property
+    def outstanding(self) -> BudgetAmounts:
+        """Full conservative holds for reservations without a settlement."""
 
-def _ensure_within(actual: BudgetAmounts, limit: BudgetAmounts, message: str) -> None:
+        settled = {item.reservation_id for item in self.settlements}
+        total = BudgetAmounts()
+        for reservation in self.reservations:
+            if reservation.reservation_id not in settled:
+                total = total.add(reservation.amounts)
+        return total
+
+    @property
+    def charged(self) -> BudgetAmounts:
+        """Effective settled charge, retaining holds where evidence is unknown."""
+
+        reservation_by_id = {
+            item.reservation_id: item for item in self.reservations
+        }
+        total = BudgetAmounts()
+        for settlement in self.settlements:
+            reservation = reservation_by_id.get(settlement.reservation_id)
+            if reservation is not None:
+                total = total.add(_effective_charge(reservation, settlement))
+        return total
+
+    @property
+    def committed(self) -> BudgetAmounts:
+        """Settled effective charge plus every still-outstanding reservation."""
+
+        return self.charged.add(self.outstanding)
+
+    @property
+    def available(self) -> BudgetAmounts:
+        """Remaining configured capacity; None continues to mean unbounded."""
+
+        return self.total_limit.subtract(self.committed)
+
+
+def _effective_charge(
+    reservation: BudgetReservation, settlement: BudgetSettlement
+) -> BudgetAmounts:
+    """Return what remains committed after a settlement, dimension by dimension."""
+
+    def actual_or_hold(name: str):
+        actual = getattr(settlement.actual, name)
+        return actual if actual is not None else getattr(reservation.amounts, name)
+
+    if settlement.cost.kind == "reported":
+        money = settlement.cost.usd
+    elif settlement.cost.kind == "estimated_upper_bound":
+        money = settlement.cost.usd
+    else:
+        money = reservation.amounts.money_usd
+    return BudgetAmounts(
+        tokens=actual_or_hold("tokens"),
+        money_usd=money,
+        seconds=actual_or_hold("seconds"),
+        calls=actual_or_hold("calls"),
+    )
+
+
+def _ensure_within_reservation(
+    actual: BudgetAmounts, limit: BudgetAmounts, message: str
+) -> None:
     for name in ("tokens", "money_usd", "seconds", "calls"):
         value = getattr(actual, name)
         ceiling = getattr(limit, name)
         if value is not None and (ceiling is None or value > ceiling):
+            raise ValueError(f"{message} ({name})")
+
+
+def _ensure_within_limit(
+    actual: BudgetAmounts, limit: BudgetAmounts, message: str
+) -> None:
+    for name in ("tokens", "money_usd", "seconds", "calls"):
+        value = getattr(actual, name)
+        ceiling = getattr(limit, name)
+        if ceiling is not None and value is not None and value > ceiling:
             raise ValueError(f"{message} ({name})")
 
 
