@@ -103,3 +103,27 @@ async with frozen_bim_client(run_directory) as client:
 The generic `McpToolClient` knows only `command`, `args`, `cwd`, and
 `run_directory`. The building-specific `serve RUN [--readonly]` command is
 assembled only by `frozen_bim_client`.
+
+## Offline validation evidence
+
+The final tool-package test used the following exact shell command. `-n0` means
+zero xdist workers: pytest ran in one main process. It did not make provider or
+model calls.
+
+```bash
+find AI_agent/logs/experiments/2026-10-02_harness_stage1/.tmp/pytest -depth -delete 2>/dev/null || true; mkdir -p AI_agent/logs/experiments/2026-10-02_harness_stage1/.tmp/pytest_related && TMPDIR="$PWD/AI_agent/logs/experiments/2026-10-02_harness_stage1/.tmp" PYTHONDONTWRITEBYTECODE=1 pytest -n0 -s --basetemp="$PWD/AI_agent/logs/experiments/2026-10-02_harness_stage1/.tmp/pytest_related" tests/test_runtime_frozen_tools.py tests/test_agent_runtime.py tests/test_harness_core_contracts.py tests/test_stage1_behaviour.py tests/test_bim_agent_guidance.py
+```
+
+Observed result: `69 passed in 21.15s` after collecting 69 tests:
+
+| File | Collected and passed | Relationship to this tool work package |
+| --- | ---: | --- |
+| `tests/test_runtime_frozen_tools.py` | 8 | Tool-package tests, including both live base catalogs, both live mesh catalogs, hashes, role policy, MCP pagination, startup cleanup, images, artifacts, and blocked delegation. |
+| `tests/test_agent_runtime.py` | 24 | Runtime-loop tests from the runtime work package; not modified by this tool work package. |
+| `tests/test_harness_core_contracts.py` | 24 | Existing stage-0 core-contract regression tests; not modified by this tool work package. |
+| `tests/test_stage1_behaviour.py` | 7 | Behaviour-report tests from its separate work package; not modified by this tool work package. |
+| `tests/test_bim_agent_guidance.py` | 6 | Existing frozen-runner guidance regressions; not modified by this tool work package. These directly cover drawing/photo/unknown prompt selection, mesh prompt selection, manifest routing, and frozen reference placement. |
+
+This 69-test invocation was observed in the development command result but was
+not piped to a standalone log file. The stage-wide final ten-file run is saved
+separately as `pytest_final.log`; it is not duplicated here.
