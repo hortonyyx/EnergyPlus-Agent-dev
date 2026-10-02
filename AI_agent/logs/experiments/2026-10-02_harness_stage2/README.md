@@ -4,6 +4,32 @@
 
 实现说明见[长任务设计](../../../design/runtime_long_tasks.md)。验收依据是[阶段 2 A–H](../../../project/unified_agent_acceptance.md#阶段-2长任务与恢复)，本目录没有修改验收口径或派工单。
 
+## 第一次验收后的补充
+
+首次验收要求补足 B 在真实长任务上的证据。本次补充见[补充报告](supplement_report.md)，正式结论仍由 Opus 给出。原交付报告和三份旧归档保留；原两个长故障样例属于隔离写模拟，B 的真实长任务证明以本补充为准。
+
+- [真实冻结工具归档](evidence_frozen_run99.compact.tar.xz)：按历史原参数顺序执行75次工具调用，模型响应为脚本；完整保留事件、真实产物、附件和请求。1,542,988字节，78种图片均按仓库来源及哈希引用，没有重复嵌入。
+- [独立核验](frozen_replay_audit.json)：26个view_id、3个claim、5次候选更新、真实报告未决项和待办、72次压缩及3次精确取图。
+- 状态清单：[20步](state_step_20.json)、[40步](state_step_40.json)、[75步](state_step_75.json)；[逐步状态大小](state_growth.csv)；[76份请求预算](request_budgets.csv)。
+- [逐调用差异与7次历史错误](replay_differences.md)、[本次测试与用量](supplement_validation.json)、[补充文件及提交清单](supplement_changes.json)。
+
+`verify_delivery.py` 现在同时核验三份旧归档和新归档。新格式由 `compact_evidence.read_archive()` 无磁盘解包地恢复原文件，再逐文件验证哈希；依赖仓库中原有的run99图片和压缩流，不能脱离这些来源单独验证。旧冻结入口归档的 `code_files_matching_current_worktree=false` 是因为本次修正了两个建筑适配文件，旧归档原字节未动；新75步归档该项为true。
+
+真实冻结入口测试已自行使用工作树内临时目录，不再要求调用者把pytest的basetemp设在树内才能通过。下面复验命令仍将全部测试临时文件限制在本工作树，以遵守本次派工范围。
+
+```bash
+mkdir -p .stage2-followup-check/tmp
+PYTHONPATH="$PWD" PYTHONDONTWRITEBYTECODE=1 TMPDIR="$PWD/.stage2-followup-check/tmp" \
+  python -m pytest -q -n 0 -s tests/test_runtime_frozen_long_task.py \
+  tests/test_runtime_compact_evidence.py \
+  --basetemp="$PWD/.stage2-followup-check/tests" \
+  -o cache_dir="$PWD/.stage2-followup-check/cache"
+PYTHONPATH="$PWD" PYTHONDONTWRITEBYTECODE=1 \
+  python AI_agent/logs/experiments/2026-10-02_harness_stage2/verify_delivery.py
+```
+
+须在本工作树根目录执行，并显式设置 `PYTHONPATH`；共享安装可能指向另一工作树。测试默认自动清理真实重放目录；如需保留，可设置 `STAGE2_FROZEN_REPLAY_OUT` 为本工作树内尚不存在的目录。脚本中的20 token/回包属于测试用量，不能当作服务商token或账单。
+
 ## 实现
 
 - 完整历史与当前状态、活动请求分开保存；去重、旧摘要失效、图片取回都有可追溯事件。
