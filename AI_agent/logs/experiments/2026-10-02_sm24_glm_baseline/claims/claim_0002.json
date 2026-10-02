@@ -1,0 +1,136 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W-east-1",
+        "kind": "window"
+      },
+      {
+        "id": "W-east-2",
+        "kind": "window"
+      },
+      {
+        "id": "W-east-3",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "East_view.png vertical chain beside the east windows reads top-down 1700, 1800, 1000 (sum 4500); the 1800 segment measures the window extent: sill 1.0 m, head 2.8 m, for both small windows and the large 4800 window on this facade.",
+    "sources": [
+      {
+        "view_id": "view_0004"
+      }
+    ],
+    "unresolved": [
+      "Grade line assumed at z=0; finished floor level not dimensioned in the inputs."
+    ],
+    "value_targets": {
+      "window_z": [
+        {
+          "id": "W-east-1",
+          "kind": "window"
+        },
+        {
+          "id": "W-east-2",
+          "kind": "window"
+        },
+        {
+          "id": "W-east-3",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "window_z": {
+        "direction": -1,
+        "lengths": [
+          1700.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "window_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.8,
+            "index": 0,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 2.8
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0002",
+  "parent_proposal_sha256": "7bd322fc11e69c13166eebbabc63c55aa5b852c1acc8f608dc758e5593d9bb5d",
+  "resolved_values": {
+    "window_z": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "view_id": "view_0004",
+      "view_sha256": "c0c9f5c34527c40a4e870c33b1529dc0c136a46a16ab6b0aba63aaec38baebd1"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

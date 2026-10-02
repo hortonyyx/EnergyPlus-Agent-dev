@@ -1,0 +1,77 @@
+{
+  "model": "GLM-5.3-Flash",
+  "facade": "West_view.png",
+  "request": {
+    "model": "GLM-5.3-Flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "This image is an elevation drawing of one facade of a building. Dimension annotations are in millimetres.\nList every window on this facade from left to right. For each window give its width in millimetres if it can be read, its sill height and head height in metres above the ground line as drawn, and which dimension annotations you used.\nReply with JSON only, in this form: {\"windows\": [{\"index\": 1, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"...\"}]}"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "<case_tests/e2e_tests/sm24_anchor/case_data/West_view.png sha256=04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d>"
+            }
+          }
+        ]
+      }
+    ],
+    "temperature": 0.7,
+    "max_tokens": 16384,
+    "extra_body": {
+      "reasoning_effort": "low"
+    }
+  },
+  "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+  "response": {
+    "id": "2026100300280724db7a2222f64b57",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"windows\": [\n{\"index\": 1, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"width from bottom chain '1500'; sill from vertical '1000'; head from '1000'+'1800'\"},\n{\"index\": 2, \"width_mm\": 1200, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"width from bottom chain '1200'; sill '1000'; head '1000'+'1800'\"},\n{\"index\": 3, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"width from bottom chain '1500'; sill '1000'; head '1000'+'1800'\"},\n{\"index\": 4, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"width from bottom chain '1500'; sill '1000'; head '1000'+'1800'\"},\n{\"index\": 5, \"width_mm\": 4800, \"sill_m\": 1.0, \"head_m\": 3.4, \"basis\": \"width from bottom chain '4800'; sill '1000'; head '1000'+'2400' (right-side chain)\"}\n]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null,
+          "reasoning_content": "Widths: 1500, 1200, 1500, 1500, 4800. Sill 1.0 (1000), small windows height 1800 → head 2.8. Large window: sill 1.0, head 1000+2400=3400 → 3.4.",
+          "provider_specific_fields": {
+            "refusal": null,
+            "reasoning_content": "Widths: 1500, 1200, 1500, 1500, 4800. Sill 1.0 (1000), small windows height 1800 → head 2.8. Large window: sill 1.0, head 1000+2400=3400 → 3.4."
+          }
+        },
+        "provider_specific_fields": {}
+      }
+    ],
+    "created": 1790958493,
+    "model": "GLM-5.3-Flash",
+    "object": "chat.completion",
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 386,
+      "prompt_tokens": 3483,
+      "total_tokens": 3869,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "reasoning_tokens": 71,
+        "rejected_prediction_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cached_tokens": 0
+      }
+    },
+    "request_id": "2026100300280724db7a2222f64b57"
+  },
+  "elapsed_seconds": 6.16
+}

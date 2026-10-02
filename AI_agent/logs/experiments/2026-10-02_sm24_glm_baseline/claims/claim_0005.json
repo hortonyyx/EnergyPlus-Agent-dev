@@ -1,0 +1,174 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "D-north-entry",
+        "kind": "opening"
+      },
+      {
+        "id": "D-east",
+        "kind": "opening"
+      },
+      {
+        "id": "D-south",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "Each elevation shows the same vertical chain beside its exterior door, reading top-down 1900, 2400, 200 (sum 4500): the door opening extends from 0.2 m (200 above the drawn grade line, i.e. a raised sill/threshold) to 2.6 m; the 1900 segment is wall from door head to eaves. Observed identically on North_view.png, South_view.png and East_view.png, so the value applies to all three exterior doors.",
+    "sources": [
+      {
+        "view_id": "view_0002"
+      },
+      {
+        "view_id": "view_0003"
+      },
+      {
+        "view_id": "view_0004"
+      }
+    ],
+    "unresolved": [
+      "Door sill observed at +0.2 m relative to the drawn grade line; finished floor level is not dimensioned, so whether the 0.2 m is a threshold step or the floor level is undeterminable from the inputs."
+    ],
+    "value_targets": {
+      "door_z": [
+        {
+          "id": "D-north-entry",
+          "kind": "opening"
+        },
+        {
+          "id": "D-east",
+          "kind": "opening"
+        },
+        {
+          "id": "D-south",
+          "kind": "opening"
+        }
+      ]
+    },
+    "values": {
+      "door_z": {
+        "direction": -1,
+        "lengths": [
+          1900.0,
+          2400.0,
+          200.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "door_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 0.2,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.2
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "7bd322fc11e69c13166eebbabc63c55aa5b852c1acc8f608dc758e5593d9bb5d",
+  "resolved_values": {
+    "door_z": [
+      0.2,
+      2.6
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2890,
+        1651
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ],
+      "view_id": "view_0002",
+      "view_sha256": "4bcb5842dfc82f243424c9d28484f1a50739f5790319784c907c103fa5d72d1b"
+    },
+    {
+      "box": [
+        0,
+        0,
+        2434,
+        1457
+      ],
+      "image": "South_view.png",
+      "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "size": [
+        2434,
+        1457
+      ],
+      "view_id": "view_0003",
+      "view_sha256": "92bbecebde75d006e8a14ef1e2a07ad8e9e014f852102e2188503d9aea7fd813"
+    },
+    {
+      "box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "view_id": "view_0004",
+      "view_sha256": "c0c9f5c34527c40a4e870c33b1529dc0c136a46a16ab6b0aba63aaec38baebd1"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

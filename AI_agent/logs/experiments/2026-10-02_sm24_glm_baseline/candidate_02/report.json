@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Wall thickness 240 mm nominal: partitions are drawn as single ink lines or thin line pairs with '240' labels; exterior walls drawn ~10 px filled.",
+    "Interior door heights 2.1 m assumed; no interior elevation is supplied. Exterior doors use their elevation chains (sill 0.2, head 2.6).",
+    "Floor level taken as z=0; elevation chains measure from the drawn grade line, which may sit slightly below finished floor.",
+    "Roof assumed flat at eaves height 4.5 m shown on all four elevations; no roof plan supplied.",
+    "The corridor strip, east hall and SE desk area are not separated by drawn walls (wall-C stops at the corridor, wall-E return stub ends at y~752 px), so they compile as one connected open space; door D8 in wall-E still separates the SE desk area from the east hall on that side.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "a9a16b112621e4067ee6d0fd2801a586f3d855d698d09e2c6d216be40de8746c",
+  "provenance": {
+    "claim_application": {
+      "bindings": [],
+      "claims": {},
+      "file": "claims/application_0001.json",
+      "parent_candidate": "candidate_01",
+      "parent_proposal_sha256": "7bd322fc11e69c13166eebbabc63c55aa5b852c1acc8f608dc758e5593d9bb5d"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "7e22d24144075932bf898a487c93bd4f890b4764d838d2ea19557c2b0234bd5e",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "7bd322fc11e69c13166eebbabc63c55aa5b852c1acc8f608dc758e5593d9bb5d"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "e55aa30ec556064eb81e9cb9a0553e5911db1100bb48559c0642b18613a657e5",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

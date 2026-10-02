@@ -1,0 +1,78 @@
+{
+  "model": "Qwen3.8-Flash",
+  "facade": "West_view.png",
+  "request": {
+    "model": "Qwen3.8-Flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "This image is an elevation drawing of one facade of a building. Dimension annotations are in millimetres.\nList every window on this facade from left to right. For each window give its width in millimetres if it can be read, its sill height and head height in metres above the ground line as drawn, and which dimension annotations you used.\nReply with JSON only, in this form: {\"windows\": [{\"index\": 1, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"...\"}]}"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "<case_tests/e2e_tests/sm24_anchor/case_data/West_view.png sha256=04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d>"
+            }
+          }
+        ]
+      }
+    ],
+    "temperature": 0.7,
+    "max_tokens": 16384,
+    "extra_body": {
+      "enable_thinking": true
+    }
+  },
+  "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+  "response": {
+    "id": "chatcmpl-a8327752-ed24-9bc9-956d-ae917e7eff03",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"windows\": [{\"index\": 1, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"Width from bottom chain segment 1500 (after 540). Sill from left vertical 1000; head from left vertical 1000+1800=2800.\"}, {\"index\": 2, \"width_mm\": 1200, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"Width from bottom chain segment 1200 (after 2380 gap). Sill from left vertical 1000; head from left vertical 1000+1800=2800.\"}, {\"index\": 3, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"Width from bottom chain segment 1500 (after 1740 gap). Sill from left vertical 1000; head from left vertical 1000+1800=2800.\"}, {\"index\": 4, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"Width from bottom chain segment 1500 (after 1220 gap). Sill from left vertical 1000; head from left vertical 1000+1800=2800.\"}, {\"index\": 5, \"width_mm\": 4800, \"sill_m\": 1.0, \"head_m\": 3.4, \"basis\": \"Width from bottom chain segment 4800 (after 3080 gap). Sill from right vertical 1000; head from right vertical 1000+2400=3400.\"}]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null,
+          "reasoning_content": "The user wants me to read an elevation drawing and list every window from left to right, providing width in mm, sill height in m, head height in m, and the basis (which dimension annotations were used).\n\nLet me carefully examine the image.\n\nThe drawing shows a facade with a horizontal dimension chain at the bottom and vertical dimensions on left and right.\n\nHorizontal dimensions at bottom (left to right): 540, 1500, 2380, 1200, 1740, 1500, 1220, 1500, 3080, 4800, 540. Let me check the sum: 540+1500=2040; +2380=4420; +1200=5620; +1740=7360; +1500=8860; +1220=10080; +1500=11580; +3080=14660; +4800=19460; +540=20000. Yes, sums to 20000, matching the overall 20000 dimension. Good.\n\nNow let me map the windows. There are 5 windows drawn in cyan.\n\nLet me look at the vertical positions. The left vertical dimensions: from bottom: 1000, then 1800, then 1700. Total 4500. The right vertical dimensions: 1000, 2400, 1100. Total 4500.\n\nSo the ground line is at the bottom of the facade rectangle. The vertical dimension chain on the left: 1000 is from ground line up to the sill line of the first four windows? Let's look. The left dimensions: 1000 (bottom segment), 1800 (middle segment), 1700 (top segment). The extension lines: there's a line at the bottom (ground), a line at the sill level of the small windows, a line at the head level of the small windows, and a line at the top of the facade.\n\nLooking at the image, the small windows (first four) have their bottom aligned with the line between 1000 and 1800, and their top aligned with the line between 1800 and 1700. So sill = 1000 mm = 1.0 m, head = 1000+1800 = 2800 mm = 2.8 m. Height = 1800 mm.\n\nThe big window on the right: its bottom aligns with the line between 1000 and 2400 on the right side, and its top aligns with the line between 2400 and 1100. So sill = 1000 mm = 1.0 m, head = 1000+2400 = 3400 mm = 3.4 m. Height = 2400 mm.\n\nNow widths. Let's map horizontal dimensions to windows.\n\nThe horizontal chain: 540 (left edge to first window left), 1500 (first window width), 2380 (gap), 1200 (second window width), 1740 (gap), 1500 (third window width), 1220 (gap), 1500 (fourth window width), 3080 (gap), 4800 (fifth window width), 540 (right edge gap).\n\nLet's verify by looking at the drawing positions. The first window left edge is at 540 from left. Width 1500. Yes the first window looks about square-ish, 1500 wide, 1800 tall. Good.\n\nSecond window: after 2380 gap, width 1200. The second window looks narrower. Yes 1200 wide, 1800 tall. Good.\n\nThird window: after 1740 gap, width 1500. Good.\n\nFourth window: after 1220 gap, width 1500. Good.\n\nFifth window: after 3080 gap, width 4800. The big window. Good.\n\nThen 540 to right edge.\n\nSo widths: 1500, 1200, 1500, 1500, 4800.\n\nNow let's confirm the vertical alignment of the big window's head and sill with the right dimension chain. The right chain shows 1000 at bottom, 2400 middle, 1100 top. The big window's bottom line aligns with the 1000/2400 boundary, top aligns with 2400/1100 boundary. Yes. So sill 1.0 m, head 3.4 m.\n\nNow for the small windows, do they align with left chain? Left chain 1000/1800/1700. The small windows bottom aligns with 1000 line, top aligns with 1800 line. Yes.\n\nBut wait, the question asks \"sill height and head height in metres above the ground line as drawn\". So we use the vertical dimensions. For small windows, the left dimension chain gives 1000 and 1800. For big window, the right dimension chain gives 1000 and 2400.\n\nNow basis: I should mention which dimension annotations used. For width, the horizontal chain segment. For sill/head, the vertical chain segments.\n\nLet me write basis for each.\n\nWindow 1: width 1500 from horizontal chain; sill 1.0 from left 1000; head 2.8 from left 1000+1800. Basis: \"horizontal 1500; vertical left 1000 (sill) and 1000+1800=2800 (head)\".\n\nWindow 2: width 1200; sill 1.0; head 2.8.\n\nWindow 3: width 1500; sill 1.0; head 2.8.\n\nWindow 4: width 1500; sill 1.0; head 2.8.\n\nWindow 5: width 4800; sill 1.0; head 3.4 (right 1000+2400).\n\nNow produce JSON.\n\nLet me double check the head of small windows: 1000+1800 = 2800 mm = 2.8 m. Good.\n\nThe big window head: 1000+2400 = 3400 mm = 3.4 m. Good.\n\nAll widths readable. Good.\n\nNow I'll write the basis strings concisely referencing the annotations.\n\nLet me ensure index from 1 to 5.\n\nI'll output JSON only.",
+          "provider_specific_fields": {
+            "refusal": null,
+            "reasoning_content": "The user wants me to read an elevation drawing and list every window from left to right, providing width in mm, sill height in m, head height in m, and the basis (which dimension annotations were used).\n\nLet me carefully examine the image.\n\nThe drawing shows a facade with a horizontal dimension chain at the bottom and vertical dimensions on left and right.\n\nHorizontal dimensions at bottom (left to right): 540, 1500, 2380, 1200, 1740, 1500, 1220, 1500, 3080, 4800, 540. Let me check the sum: 540+1500=2040; +2380=4420; +1200=5620; +1740=7360; +1500=8860; +1220=10080; +1500=11580; +3080=14660; +4800=19460; +540=20000. Yes, sums to 20000, matching the overall 20000 dimension. Good.\n\nNow let me map the windows. There are 5 windows drawn in cyan.\n\nLet me look at the vertical positions. The left vertical dimensions: from bottom: 1000, then 1800, then 1700. Total 4500. The right vertical dimensions: 1000, 2400, 1100. Total 4500.\n\nSo the ground line is at the bottom of the facade rectangle. The vertical dimension chain on the left: 1000 is from ground line up to the sill line of the first four windows? Let's look. The left dimensions: 1000 (bottom segment), 1800 (middle segment), 1700 (top segment). The extension lines: there's a line at the bottom (ground), a line at the sill level of the small windows, a line at the head level of the small windows, and a line at the top of the facade.\n\nLooking at the image, the small windows (first four) have their bottom aligned with the line between 1000 and 1800, and their top aligned with the line between 1800 and 1700. So sill = 1000 mm = 1.0 m, head = 1000+1800 = 2800 mm = 2.8 m. Height = 1800 mm.\n\nThe big window on the right: its bottom aligns with the line between 1000 and 2400 on the right side, and its top aligns with the line between 2400 and 1100. So sill = 1000 mm = 1.0 m, head = 1000+2400 = 3400 mm = 3.4 m. Height = 2400 mm.\n\nNow widths. Let's map horizontal dimensions to windows.\n\nThe horizontal chain: 540 (left edge to first window left), 1500 (first window width), 2380 (gap), 1200 (second window width), 1740 (gap), 1500 (third window width), 1220 (gap), 1500 (fourth window width), 3080 (gap), 4800 (fifth window width), 540 (right edge gap).\n\nLet's verify by looking at the drawing positions. The first window left edge is at 540 from left. Width 1500. Yes the first window looks about square-ish, 1500 wide, 1800 tall. Good.\n\nSecond window: after 2380 gap, width 1200. The second window looks narrower. Yes 1200 wide, 1800 tall. Good.\n\nThird window: after 1740 gap, width 1500. Good.\n\nFourth window: after 1220 gap, width 1500. Good.\n\nFifth window: after 3080 gap, width 4800. The big window. Good.\n\nThen 540 to right edge.\n\nSo widths: 1500, 1200, 1500, 1500, 4800.\n\nNow let's confirm the vertical alignment of the big window's head and sill with the right dimension chain. The right chain shows 1000 at bottom, 2400 middle, 1100 top. The big window's bottom line aligns with the 1000/2400 boundary, top aligns with 2400/1100 boundary. Yes. So sill 1.0 m, head 3.4 m.\n\nNow for the small windows, do they align with left chain? Left chain 1000/1800/1700. The small windows bottom aligns with 1000 line, top aligns with 1800 line. Yes.\n\nBut wait, the question asks \"sill height and head height in metres above the ground line as drawn\". So we use the vertical dimensions. For small windows, the left dimension chain gives 1000 and 1800. For big window, the right dimension chain gives 1000 and 2400.\n\nNow basis: I should mention which dimension annotations used. For width, the horizontal chain segment. For sill/head, the vertical chain segments.\n\nLet me write basis for each.\n\nWindow 1: width 1500 from horizontal chain; sill 1.0 from left 1000; head 2.8 from left 1000+1800. Basis: \"horizontal 1500; vertical left 1000 (sill) and 1000+1800=2800 (head)\".\n\nWindow 2: width 1200; sill 1.0; head 2.8.\n\nWindow 3: width 1500; sill 1.0; head 2.8.\n\nWindow 4: width 1500; sill 1.0; head 2.8.\n\nWindow 5: width 4800; sill 1.0; head 3.4 (right 1000+2400).\n\nNow produce JSON.\n\nLet me double check the head of small windows: 1000+1800 = 2800 mm = 2.8 m. Good.\n\nThe big window head: 1000+2400 = 3400 mm = 3.4 m. Good.\n\nAll widths readable. Good.\n\nNow I'll write the basis strings concisely referencing the annotations.\n\nLet me ensure index from 1 to 5.\n\nI'll output JSON only."
+          }
+        },
+        "provider_specific_fields": {}
+      }
+    ],
+    "created": 1790958456,
+    "model": "Qwen3.8-Flash",
+    "object": "chat.completion",
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 2086,
+      "prompt_tokens": 2699,
+      "total_tokens": 4785,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "reasoning_tokens": 1630,
+        "rejected_prediction_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 186,
+        "image_tokens": 2513
+      }
+    }
+  },
+  "elapsed_seconds": 20.7
+}

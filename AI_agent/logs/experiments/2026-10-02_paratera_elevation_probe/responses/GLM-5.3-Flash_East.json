@@ -1,0 +1,77 @@
+{
+  "model": "GLM-5.3-Flash",
+  "facade": "East_view.png",
+  "request": {
+    "model": "GLM-5.3-Flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "This image is an elevation drawing of one facade of a building. Dimension annotations are in millimetres.\nList every window on this facade from left to right. For each window give its width in millimetres if it can be read, its sill height and head height in metres above the ground line as drawn, and which dimension annotations you used.\nReply with JSON only, in this form: {\"windows\": [{\"index\": 1, \"width_mm\": 1500, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"...\"}]}"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "<case_tests/e2e_tests/sm24_anchor/case_data/East_view.png sha256=a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8>"
+            }
+          }
+        ]
+      }
+    ],
+    "temperature": 0.7,
+    "max_tokens": 16384,
+    "extra_body": {
+      "reasoning_effort": "low"
+    }
+  },
+  "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+  "response": {
+    "id": "202610030027574b0ca36c08aa49b3",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"windows\": [\n  {\"index\": 1, \"width_mm\": 1600, \"sill_m\": 0.0, \"head_m\": 2.4, \"basis\": \"Width from bottom chain 1600; head from vertical dim 2400 (door reaches ground)\"},\n  {\"index\": 2, \"width_mm\": 4800, \"sill_m\": 1.0, \"head_m\": 2.8, \"basis\": \"Width from bottom chain 4800; sill 1000, head 1000+1800=2800 (right side dims 1000 and 1800)\"},\n  {\"index\": 3, \"width_mm\": 1200, \"sill_m\": 1.8, \"head_m\": 2.8, \"basis\": \"Width from bottom chain 1200; top aligns with large window head 2800, bottom from right dim 1800\"},\n  {\"index\": 4, \"width_mm\": 1500, \"sill_m\": 1.8, \"head_m\": 2.8, \"basis\": \"Width from bottom chain 1500; top aligns with large window head 2800, bottom from right dim 1800\"}\n]}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null,
+          "reasoning_content": "Door: width 1600? Actually 1600 is door opening. Sill 0, head 2400+? Door height 2400? Left dims: 200, 2400, 1900 total 4500. Door head at 2400? Right dims: 1000 sill, 1800, 1700 for big window: head 1000+1800+... 1000+1800=2800? 1700 is above top? 1000+1800=2800, top window head. Big window sill 1000, head 2800. Small windows: same sill? Their bottom aligns same? Small windows bottom lower... right side dims 1000 and 1800 apply to big window; small windows appear bottom at ~same as big window top? Actually small windows appear mid-height, sill maybe 1800? From image, small window top aligns with big window top (2800), bottom at 1800. Width 1200 and 1500.\n\nDoor: width 1600, head 2400 (2400 dim), sill 0.",
+          "provider_specific_fields": {
+            "refusal": null,
+            "reasoning_content": "Door: width 1600? Actually 1600 is door opening. Sill 0, head 2400+? Door height 2400? Left dims: 200, 2400, 1900 total 4500. Door head at 2400? Right dims: 1000 sill, 1800, 1700 for big window: head 1000+1800+... 1000+1800=2800? 1700 is above top? 1000+1800=2800, top window head. Big window sill 1000, head 2800. Small windows: same sill? Their bottom aligns same? Small windows bottom lower... right side dims 1000 and 1800 apply to big window; small windows appear bottom at ~same as big window top? Actually small windows appear mid-height, sill maybe 1800? From image, small window top aligns with big window top (2800), bottom at 1800. Width 1200 and 1500.\n\nDoor: width 1600, head 2400 (2400 dim), sill 0."
+          }
+        },
+        "provider_specific_fields": {}
+      }
+    ],
+    "created": 1790958487,
+    "model": "GLM-5.3-Flash",
+    "object": "chat.completion",
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 504,
+      "prompt_tokens": 3365,
+      "total_tokens": 3869,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "reasoning_tokens": 236,
+        "rejected_prediction_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cached_tokens": 0
+      }
+    },
+    "request_id": "202610030027574b0ca36c08aa49b3"
+  },
+  "elapsed_seconds": 10.61
+}

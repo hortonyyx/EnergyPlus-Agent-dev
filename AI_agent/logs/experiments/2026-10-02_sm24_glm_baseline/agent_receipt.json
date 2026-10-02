@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 3000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1442.03,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 1425910,
+    "stop_reason": "end_turn",
+    "session_id": "b0a6d534-81dc-45cd-ade6-f92a6eac14b3",
+    "total_cost_usd": 2.602668000000001,
+    "usage": {
+      "input_tokens": 203047,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2205888,
+      "output_tokens": 60331,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 204395,
+        "outputTokens": 65552,
+        "cacheReadInputTokens": 2370240,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 2.602668000000001,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 44,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Delivered candidate: **candidate_02** (viewer: `candidate_02/viewer.html`, full report: `delivery.json`). Single-storey office building, 10.0 m × 20.0 m, eaves 4.5 m, floor z = 0; 8 spaces, 54 boundaries, 21 openings, 10 door connections. Geometry compiles clean, `drawing_differences` = 0 on the final draft (draft_003), source validation pass.\n\n**Observed (from the original drawings, checked against them)**\n- Plan (1f_view.png, viewed full + 7 crops): outer footprint on measured outer faces (10 000 × 20 000 mm chains), 10 interior dividers at their ink midplanes — including the double-line cross wall at the corridor's south end found via a drawing-differences item in draft_001 and verified visually before adding it.\n- All 21 openings placed from their own jamb pixels; every exterior gap matches the plan's dimension chains (540/1500/2520/4800 etc.) and the elevation ink gaps to within a few pixels.\n- Exterior heights, read from each facade's own vertical chain (top-down from eaves 4500) and saved as 5 located claims, adopted and confirmed unchanged (confirmation_0001, all bound on candidate_02):\n  - All 11 windows S/W/E: chain 1700/1800/1000 → sill 1.0 m, head 2.8 m (claims 0001–0003).\n  - North window: chain 1100/2400/1000 → sill 1.0 m, head 3.4 m (claim_0004).\n  - Exterior doors N/S/E: chain 1900/2400/200 → sill 0.2 m, head 2.6 m (claim_0005).\n- Connectivity: all 7 interior doors open into the central circulation strip/east hall; the SE desk area (F1_S08) connects only via D8 (to the hall) and D-south (outdoors).\n\n**Assumed (explicit in the saved BIM)**\n- Interior door heights 2.1 m (no interior elevation supplied) — recorded as assumptions, visibly \"unchecked\" in height coverage.\n- Wall thickness 240 mm nominal per the \"240\" labels; interior partitions declared at ink midplanes.\n- Floor at z = 0 (chains measure from the drawn grade line); flat roof at 4.5 m (no roof plan).\n- Room uses (all `basis: inferred`, no printed labels): hall-north → lobby, office-nw/office-ne → office/enclosed, work-west → office, conference-sw and meeting-east → conference/meeting/multipurpose, open-hall → corridor, F1_S08 → lobby — each with its furniture evidence recorded.\n\n**Left unexamined / undeterminable (stated with reason)**\n- The corridor strip, east entry hall and its desk extension are one connected open space: the plan draws no divider between them (wall-C stops at the corridor; wall-E's return ends at the cross wall), so they were not split — consistent with the \"several doors into one space\" check.\n- Whether the exterior-door +0.2 m is a threshold step or the finished-floor level: not determinable from the inputs (kept as the claim's unresolved note).\n- Pixel-to-metre calibration rests on my reading of the plan's dimension chains (27.32/27.43 mm/px); all chains sum correctly to 10 000/20 000/4500, but no independent verification exists.\n- No interior wall faces vs. partition centres beyond the midplane convention; door swing directions beyond the drawn arcs; roof construction details — no input evidence.",
+    "ttft_ms": 5448,
+    "type": "result",
+    "duration_ms": 1434228,
+    "uuid": "e8a16cbb-be3c-4666-b73f-25612c6fd3c4",
+    "ttft_stream_ms": 5348,
+    "time_to_request_ms": 90,
+    "first_content_frame_ms": 5348,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

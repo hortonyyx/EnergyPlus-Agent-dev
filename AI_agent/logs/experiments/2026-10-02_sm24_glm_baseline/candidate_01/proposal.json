@@ -1,0 +1,880 @@
+{
+  "assumptions": [
+    "Wall thickness 240 mm nominal: partitions are drawn as single ink lines or thin line pairs with '240' labels; exterior walls drawn ~10 px filled.",
+    "Interior door heights 2.1 m assumed; no interior elevation is supplied. Exterior doors use their elevation chains (sill 0.2, head 2.6).",
+    "Floor level taken as z=0; elevation chains measure from the drawn grade line, which may sit slightly below finished floor.",
+    "Roof assumed flat at eaves height 4.5 m shown on all four elevations; no roof plan supplied.",
+    "The corridor strip, east hall and SE desk area are not separated by drawn walls (wall-C stops at the corridor, wall-E return stub ends at y~752 px), so they compile as one connected open space; door D8 in wall-E still separates the SE desk area from the east hall on that side.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "hall-north",
+            "polygon": [
+              [
+                0.0,
+                15.934066
+              ],
+              [
+                10.0,
+                15.934066
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                0.0,
+                20.0
+              ]
+            ],
+            "role": "reception",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width divider under north band, ink y=296-300, door aperture at x=408-451"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              15.934066,
+              20.0
+            ]
+          },
+          {
+            "id": "office-nw",
+            "polygon": [
+              [
+                0.0,
+                13.076923
+              ],
+              [
+                4.136986,
+                13.076923
+              ],
+              [
+                4.136986,
+                15.934066
+              ],
+              [
+                0.0,
+                15.934066
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width divider under north band, ink y=296-300, door aperture at x=408-451",
+              "1f_view.png: west corridor wall, single ink line x=397-398, runs from wall-A to south wall, three door apertures",
+              "1f_view.png: west divider between NW office and west work room, ink y=400-404"
+            ],
+            "x": [
+              0.0,
+              4.136986
+            ],
+            "y": [
+              13.076923,
+              15.934066
+            ]
+          },
+          {
+            "id": "open-hall",
+            "polygon": [
+              [
+                4.136986,
+                3.461538
+              ],
+              [
+                5.863014,
+                3.461538
+              ],
+              [
+                5.863014,
+                4.917582
+              ],
+              [
+                10.0,
+                4.917582
+              ],
+              [
+                10.0,
+                8.049451
+              ],
+              [
+                5.863014,
+                8.049451
+              ],
+              [
+                5.863014,
+                15.934066
+              ],
+              [
+                4.136986,
+                15.934066
+              ]
+            ],
+            "role": "circulation",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width divider under north band, ink y=296-300, door aperture at x=408-451",
+              "1f_view.png: west corridor wall, single ink line x=397-398, runs from wall-A to south wall, three door apertures",
+              "1f_view.png: east corridor wall upper portion, single ink line x=461-462, from wall-A to wall-C, two door apertures",
+              "1f_view.png: divider north of east hall, east of corridor, ink y=583-587; corridor gap x=398-461 is real: no ink across",
+              "1f_view.png: divider between east hall and SE desk room, ink faces y=697/701, door aperture x=559-592",
+              "1f_view.png: short return wall on west side of SE desk room from wall-E down to y=752, then no ink: open to corridor strip below",
+              "1f_view.png: double-line wall crossing the corridor at ink y=750/755.5 from wall-B to the stub line, no aperture; closes the corridor's south end"
+            ],
+            "x": [
+              4.136986,
+              10.0
+            ],
+            "y": [
+              3.461538,
+              15.934066
+            ]
+          },
+          {
+            "id": "office-ne",
+            "polygon": [
+              [
+                5.863014,
+                13.983516
+              ],
+              [
+                10.0,
+                13.983516
+              ],
+              [
+                10.0,
+                15.934066
+              ],
+              [
+                5.863014,
+                15.934066
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: full-width divider under north band, ink y=296-300, door aperture at x=408-451",
+              "1f_view.png: east corridor wall upper portion, single ink line x=461-462, from wall-A to wall-C, two door apertures",
+              "1f_view.png: divider between NE thin office and east meeting room, ink faces y=365.5/372"
+            ],
+            "x": [
+              5.863014,
+              10.0
+            ],
+            "y": [
+              13.983516,
+              15.934066
+            ]
+          },
+          {
+            "id": "meeting-east",
+            "polygon": [
+              [
+                5.863014,
+                8.049451
+              ],
+              [
+                10.0,
+                8.049451
+              ],
+              [
+                10.0,
+                13.983516
+              ],
+              [
+                5.863014,
+                13.983516
+              ]
+            ],
+            "role": "meeting_room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: east corridor wall upper portion, single ink line x=461-462, from wall-A to wall-C, two door apertures",
+              "1f_view.png: divider north of east hall, east of corridor, ink y=583-587; corridor gap x=398-461 is real: no ink across",
+              "1f_view.png: divider between NE thin office and east meeting room, ink faces y=365.5/372"
+            ],
+            "x": [
+              5.863014,
+              10.0
+            ],
+            "y": [
+              8.049451,
+              13.983516
+            ]
+          },
+          {
+            "id": "work-west",
+            "polygon": [
+              [
+                0.0,
+                8.049451
+              ],
+              [
+                4.136986,
+                8.049451
+              ],
+              [
+                4.136986,
+                13.076923
+              ],
+              [
+                0.0,
+                13.076923
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: west corridor wall, single ink line x=397-398, runs from wall-A to south wall, three door apertures",
+              "1f_view.png: west divider between NW office and west work room, ink y=400-404",
+              "1f_view.png: divider north of SW conference room, west of corridor, ink y=583-587"
+            ],
+            "x": [
+              0.0,
+              4.136986
+            ],
+            "y": [
+              8.049451,
+              13.076923
+            ]
+          },
+          {
+            "id": "conference-sw",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.136986,
+                0.0
+              ],
+              [
+                4.136986,
+                8.049451
+              ],
+              [
+                0.0,
+                8.049451
+              ]
+            ],
+            "role": "conference_room",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: west corridor wall, single ink line x=397-398, runs from wall-A to south wall, three door apertures",
+              "1f_view.png: divider north of SW conference room, west of corridor, ink y=583-587"
+            ],
+            "x": [
+              0.0,
+              4.136986
+            ],
+            "y": [
+              0.0,
+              8.049451
+            ]
+          },
+          {
+            "id": "F1_S08",
+            "polygon": [
+              [
+                4.136986,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.917582
+              ],
+              [
+                5.863014,
+                4.917582
+              ],
+              [
+                5.863014,
+                3.461538
+              ],
+              [
+                4.136986,
+                3.461538
+              ]
+            ],
+            "role": "unknown",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: west corridor wall, single ink line x=397-398, runs from wall-A to south wall, three door apertures",
+              "1f_view.png: divider between east hall and SE desk room, ink faces y=697/701, door aperture x=559-592",
+              "1f_view.png: short return wall on west side of SE desk room from wall-E down to y=752, then no ink: open to corridor strip below",
+              "1f_view.png: double-line wall crossing the corridor at ink y=750/755.5 from wall-B to the stub line, no aperture; closes the corridor's south end"
+            ],
+            "x": [
+              4.136986,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.917582
+            ]
+          }
+        ],
+        "name": "F1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D-north-entry",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.547945,
+          20.0
+        ],
+        "p2": [
+          2.164384,
+          20.0
+        ],
+        "source_refs": [
+          "1f_view.png: north wall door gap px267-326 (chain 540+1600); North_view.png door chain 1900/2400/200"
+        ],
+        "space_id": "hall-north",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-south",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.575342,
+          0.0
+        ],
+        "p2": [
+          5.452055,
+          0.0
+        ],
+        "source_refs": [
+          "1f_view.png: south wall door gap px414-446 (chain 900); South_view.png door chain 1900/2400/200"
+        ],
+        "space_id": "F1_S08",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-east",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.307692
+        ],
+        "p2": [
+          10.0,
+          5.686813
+        ],
+        "source_refs": [
+          "1f_view.png east wall door gap px612-671 (chain 1600); East_view.png door chain 1900/2400/200"
+        ],
+        "space_id": "open-hall",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D1",
+        "kind": "door",
+        "other_space_id": "open-hall",
+        "p1": [
+          4.410959,
+          15.934066
+        ],
+        "p2": [
+          5.589041,
+          15.934066
+        ],
+        "source_refs": [
+          "1f_view.png: double door in wall-A, jambs px408/451, arcs into north band; height assumed"
+        ],
+        "space_id": "hall-north",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D2",
+        "kind": "door",
+        "other_space_id": "open-hall",
+        "p1": [
+          5.863014,
+          15.247253
+        ],
+        "p2": [
+          5.863014,
+          14.368132
+        ],
+        "source_refs": [
+          "1f_view.png: door in wall-WC into NE thin office, gap px323-355; height assumed"
+        ],
+        "space_id": "office-ne",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D3",
+        "kind": "door",
+        "other_space_id": "open-hall",
+        "p1": [
+          5.863014,
+          13.626374
+        ],
+        "p2": [
+          5.863014,
+          12.71978
+        ],
+        "source_refs": [
+          "1f_view.png: door in wall-WC into east meeting room, gap px382-415; height assumed"
+        ],
+        "space_id": "meeting-east",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D4",
+        "kind": "door",
+        "other_space_id": "open-hall",
+        "p1": [
+          4.136986,
+          14.230769
+        ],
+        "p2": [
+          4.136986,
+          13.351648
+        ],
+        "source_refs": [
+          "1f_view.png: door in wall-B into NW office, gap px360-392; height assumed"
+        ],
+        "space_id": "office-nw",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D5",
+        "kind": "door",
+        "other_space_id": "work-west",
+        "p1": [
+          4.136986,
+          12.637363
+        ],
+        "p2": [
+          4.136986,
+          11.703297
+        ],
+        "source_refs": [
+          "1f_view.png: door in wall-B into west work room, gap px418-452; height assumed"
+        ],
+        "space_id": "open-hall",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D6",
+        "kind": "door",
+        "other_space_id": "open-hall",
+        "p1": [
+          4.136986,
+          7.692308
+        ],
+        "p2": [
+          4.136986,
+          6.785714
+        ],
+        "source_refs": [
+          "1f_view.png: door in wall-B into SW conference room, gap px598-631; height assumed"
+        ],
+        "space_id": "conference-sw",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D8",
+        "kind": "door",
+        "other_space_id": "open-hall",
+        "p1": [
+          8.547945,
+          4.917582
+        ],
+        "p2": [
+          9.452055,
+          4.917582
+        ],
+        "source_refs": [
+          "1f_view.png: door in wall-E into SE desk room, gap px559-592; height assumed"
+        ],
+        "space_id": "F1_S08",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "F1",
+        "id": "W-north",
+        "kind": "window",
+        "p1": [
+          4.684932,
+          20.0
+        ],
+        "p2": [
+          9.424658,
+          20.0
+        ],
+        "room": "hall-north",
+        "source_refs": [
+          "1f_view.png: north wall window gap px418-591 (chain 4800); North_view.png chain 1100/2400/1000"
+        ],
+        "span": [
+          4.684932,
+          9.424658
+        ],
+        "width_m": 4.739726,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W-south-1",
+        "kind": "window",
+        "p1": [
+          0.547945,
+          0.0
+        ],
+        "p2": [
+          2.054795,
+          0.0
+        ],
+        "room": "conference-sw",
+        "source_refs": [
+          "1f_view.png: south wall window gap px267-322; South_view.png chain 1700/1800/1000"
+        ],
+        "span": [
+          0.547945,
+          2.054795
+        ],
+        "width_m": 1.50685,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "F1",
+        "id": "W-south-2",
+        "kind": "window",
+        "p1": [
+          7.945205,
+          0.0
+        ],
+        "p2": [
+          9.39726,
+          0.0
+        ],
+        "room": "F1_S08",
+        "source_refs": [
+          "1f_view.png: south wall window gap px537-590; South_view.png chain 1700/1800/1000"
+        ],
+        "span": [
+          7.945205,
+          9.39726
+        ],
+        "width_m": 1.452055,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W-west-1",
+        "kind": "window",
+        "p1": [
+          0.0,
+          19.423077
+        ],
+        "p2": [
+          0.0,
+          17.967033
+        ],
+        "room": "hall-north",
+        "source_refs": [
+          "1f_view.png west wall gap px171-224; West_view.png chain 540/1500 sill 1000 head 2800"
+        ],
+        "span": [
+          17.967033,
+          19.423077
+        ],
+        "width_m": 1.456044,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W-west-2",
+        "kind": "window",
+        "p1": [
+          0.0,
+          15.549451
+        ],
+        "p2": [
+          0.0,
+          14.395604
+        ],
+        "room": "office-nw",
+        "source_refs": [
+          "1f_view.png west wall gap px312-354; West_view.png 1200 window sill 1000 head 2800"
+        ],
+        "span": [
+          14.395604,
+          15.549451
+        ],
+        "width_m": 1.153847,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W-west-3",
+        "kind": "window",
+        "p1": [
+          0.0,
+          12.60989
+        ],
+        "p2": [
+          0.0,
+          11.153846
+        ],
+        "room": "work-west",
+        "source_refs": [
+          "1f_view.png west wall gap px419-472; West_view.png 1500 window sill 1000 head 2800"
+        ],
+        "span": [
+          11.153846,
+          12.60989
+        ],
+        "width_m": 1.456044,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W-west-4",
+        "kind": "window",
+        "p1": [
+          0.0,
+          10.027473
+        ],
+        "p2": [
+          0.0,
+          8.434066
+        ],
+        "room": "work-west",
+        "source_refs": [
+          "1f_view.png west wall gap px513-571; West_view.png 1500 window sill 1000 head 2800"
+        ],
+        "span": [
+          8.434066,
+          10.027473
+        ],
+        "width_m": 1.593407,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "F1",
+        "id": "W-west-5",
+        "kind": "window",
+        "p1": [
+          0.0,
+          5.302198
+        ],
+        "p2": [
+          0.0,
+          0.576923
+        ],
+        "room": "conference-sw",
+        "source_refs": [
+          "1f_view.png west wall gap px685-857 (chain 4800); West_view.png big window sill 1000 head 2800"
+        ],
+        "span": [
+          0.576923,
+          5.302198
+        ],
+        "width_m": 4.725275,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W-east-1",
+        "kind": "window",
+        "p1": [
+          10.0,
+          19.423077
+        ],
+        "p2": [
+          10.0,
+          17.93956
+        ],
+        "room": "hall-north",
+        "source_refs": [
+          "1f_view.png east wall gap px171-225; East_view.png chain 1700/1800/1000"
+        ],
+        "span": [
+          17.93956,
+          19.423077
+        ],
+        "width_m": 1.483517,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W-east-2",
+        "kind": "window",
+        "p1": [
+          10.0,
+          15.549451
+        ],
+        "p2": [
+          10.0,
+          14.368132
+        ],
+        "room": "office-ne",
+        "source_refs": [
+          "1f_view.png east wall gap px312-355; East_view.png 1200 window sill 1000 head 2800"
+        ],
+        "span": [
+          14.368132,
+          15.549451
+        ],
+        "width_m": 1.181319,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "F1",
+        "id": "W-east-3",
+        "kind": "window",
+        "p1": [
+          10.0,
+          13.598901
+        ],
+        "p2": [
+          10.0,
+          8.846154
+        ],
+        "room": "meeting-east",
+        "source_refs": [
+          "1f_view.png east wall gap px383-556 (chain 4800); East_view.png big window sill 1000 head 2800"
+        ],
+        "span": [
+          8.846154,
+          13.598901
+        ],
+        "width_m": 4.752747,
+        "z": [
+          1.0,
+          2.8
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

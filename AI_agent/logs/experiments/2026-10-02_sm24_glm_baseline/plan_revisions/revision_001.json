@@ -1,0 +1,133 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "fc9c100473ba6cbcdef26aa5ff61d948f7aa6150317a9e7a3074ea450508030c",
+  "operations_json": "[\n{\"op\":\"add\",\"collection\":\"partitions\",\"value\":{\"id\":\"wall-CROSS\",\"points\":[[398,752],[461,752]],\"source_refs\":[\"1f_view.png: double-line wall crossing the corridor at ink y=750/755.5 from wall-B to the stub line, no aperture; closes the corridor's south end\"]},\n \"reason\":\"drawing_differences flagged an undeclared horizontal ink band at y~750, x 402-457; magnified view confirms a real double-line partition closing the corridor, needed to close the corridor face\",\"source_refs\":[\"1f_view.png view of px[385,730,475,775]\"]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"wall-WCstub\",\"changes\":{\"points\":[[461,699],[461,752]]},\"reason\":\"extend stub to meet the newly observed cross wall so junctions coincide (regularized to the x=461 line of wall-WC)\",\"source_refs\":[\"1f_view.png: stub ink x=456.5/461.5 from wall-E down to the cross wall\"]}\n]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "wall-CROSS",
+      "before": null,
+      "after": {
+        "id": "wall-CROSS",
+        "points": [
+          [
+            398,
+            752
+          ],
+          [
+            461,
+            752
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: double-line wall crossing the corridor at ink y=750/755.5 from wall-B to the stub line, no aperture; closes the corridor's south end"
+        ]
+      },
+      "reason": "drawing_differences flagged an undeclared horizontal ink band at y~750, x 402-457; magnified view confirms a real double-line partition closing the corridor, needed to close the corridor face",
+      "source_refs": [
+        "1f_view.png view of px[385,730,475,775]"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "wall-WCstub",
+      "before": {
+        "id": "wall-WCstub",
+        "points": [
+          [
+            461,
+            699
+          ],
+          [
+            461,
+            752
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: short return wall on west side of SE desk room from wall-E down to y=752, then no ink: open to corridor strip below"
+        ]
+      },
+      "after": {
+        "id": "wall-WCstub",
+        "points": [
+          [
+            461,
+            699
+          ],
+          [
+            461,
+            752
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: short return wall on west side of SE desk room from wall-E down to y=752, then no ink: open to corridor strip below"
+        ]
+      },
+      "reason": "extend stub to meet the newly observed cross wall so junctions coincide (regularized to the x=461 line of wall-WC)",
+      "source_refs": [
+        "1f_view.png: stub ink x=456.5/461.5 from wall-E down to the cross wall"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "space_seeds": [
+      "hall-north",
+      "office-nw",
+      "work-west",
+      "conference-sw",
+      "open-hall",
+      "office-ne",
+      "meeting-east"
+    ],
+    "openings": [
+      "D-north-entry",
+      "W-north",
+      "W-south-1",
+      "D-south",
+      "W-south-2",
+      "W-west-1",
+      "W-west-2",
+      "W-west-3",
+      "W-west-4",
+      "W-west-5",
+      "W-east-1",
+      "W-east-2",
+      "W-east-3",
+      "D-east",
+      "D1",
+      "D2",
+      "D3",
+      "D4",
+      "D5",
+      "D6",
+      "D8"
+    ],
+    "partitions": [
+      "wall-A",
+      "wall-B",
+      "wall-WC",
+      "wall-B2",
+      "wall-C1",
+      "wall-C2",
+      "wall-D",
+      "wall-E"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

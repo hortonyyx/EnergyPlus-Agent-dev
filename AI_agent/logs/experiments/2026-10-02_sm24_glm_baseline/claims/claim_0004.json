@@ -1,0 +1,120 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W-north",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North_view.png vertical chain beside the large north window reads top-down 1100, 2400, 1000 (sum 4500); the 2400 segment measures this window's extent: sill 1.0 m, head 3.4 m above the drawn grade line. The north window is taller than the south/west/east window families, so it keeps its own chain.",
+    "sources": [
+      {
+        "view_id": "view_0002"
+      }
+    ],
+    "unresolved": [
+      "Grade line assumed at z=0; finished floor level not dimensioned in the inputs."
+    ],
+    "value_targets": {
+      "window_z": [
+        {
+          "id": "W-north",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "window_z": {
+        "direction": -1,
+        "lengths": [
+          1100.0,
+          2400.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "window_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 3.4,
+            "index": 0,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 3.4
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0004",
+  "parent_proposal_sha256": "7bd322fc11e69c13166eebbabc63c55aa5b852c1acc8f608dc758e5593d9bb5d",
+  "resolved_values": {
+    "window_z": [
+      1.0,
+      3.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2890,
+        1651
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ],
+      "view_id": "view_0002",
+      "view_sha256": "4bcb5842dfc82f243424c9d28484f1a50739f5790319784c907c103fa5d72d1b"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

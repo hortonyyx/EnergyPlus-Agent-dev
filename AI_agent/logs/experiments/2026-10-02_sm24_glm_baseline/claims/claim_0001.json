@@ -1,0 +1,152 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W-west-1",
+        "kind": "window"
+      },
+      {
+        "id": "W-west-2",
+        "kind": "window"
+      },
+      {
+        "id": "W-west-3",
+        "kind": "window"
+      },
+      {
+        "id": "W-west-4",
+        "kind": "window"
+      },
+      {
+        "id": "W-west-5",
+        "kind": "window"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "West_view.png vertical dimension chain beside the west windows reads, top-down from the eaves line at 4.5 m: 1700, 1800, 1000 (sums to 4500). The 1800 segment measures the window extent: sill 1.0 m, head 2.8 m above the drawn grade line, for every window family on this facade (1500/1200/1500/1500 and the large 4800 window share the same head/sill rows in the drawing).",
+    "sources": [
+      {
+        "view_id": "view_0005"
+      }
+    ],
+    "unresolved": [
+      "Grade line assumed at z=0; finished floor level not dimensioned in the inputs."
+    ],
+    "value_targets": {
+      "window_z": [
+        {
+          "id": "W-west-1",
+          "kind": "window"
+        },
+        {
+          "id": "W-west-2",
+          "kind": "window"
+        },
+        {
+          "id": "W-west-3",
+          "kind": "window"
+        },
+        {
+          "id": "W-west-4",
+          "kind": "window"
+        },
+        {
+          "id": "W-west-5",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "window_z": {
+        "direction": -1,
+        "lengths": [
+          1700.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "window_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.8,
+            "index": 0,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 2.8
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "7bd322fc11e69c13166eebbabc63c55aa5b852c1acc8f608dc758e5593d9bb5d",
+  "resolved_values": {
+    "window_z": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2580,
+        993
+      ],
+      "image": "West_view.png",
+      "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "size": [
+        2580,
+        993
+      ],
+      "view_id": "view_0005",
+      "view_sha256": "09a7ce9f292336d96743f16faf95a6f00f8e1c576ca820fa5bdac58e32c59dad"
+    }
+  ],
+  "verification": "not_independently_verified"
+}
