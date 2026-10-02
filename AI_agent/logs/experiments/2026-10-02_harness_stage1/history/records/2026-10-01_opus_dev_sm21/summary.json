@@ -1,0 +1,300 @@
+{
+  "run": "2026-10-01_opus_dev_sm21",
+  "source_format": "legacy_bridge_audit",
+  "model": null,
+  "elapsed_seconds": null,
+  "tool_calls": 88,
+  "tool_errors": 0,
+  "tools": {
+    "inputs": 1,
+    "get_bim_reference": 4,
+    "view_image": 21,
+    "view_pixel_profile": 19,
+    "build_plan_bim": 2,
+    "assemble_plan_bim": 2,
+    "record_claim": 10,
+    "view_claim_evidence": 10,
+    "decide_claim": 10,
+    "confirm_claims": 1,
+    "revise_bim": 1,
+    "claim_application": 1,
+    "view_elevation_candidate": 4,
+    "check_openings": 1,
+    "finish_bim": 1
+  },
+  "first_draft_s": 467.701,
+  "calls_before_first_draft": 29,
+  "full_views_before_first_draft": 6,
+  "crops_before_first_draft": 1,
+  "pixel_tools_before_first_draft": 17,
+  "elevation_crops_by_facade": {},
+  "elevation_overlays_by_facade": {
+    "north": 1,
+    "south": 1,
+    "east": 1,
+    "west": 1
+  },
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "F1:W_N1",
+        "F1:W_N2",
+        "F1:W_N3"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view.png ground-storey inner chain read upward from the ground line: 1000/1600/400 = 3000; the 1600 segment spans the sill and head lines shared by the three equal ground-floor windows on this facade.",
+      "t": 609.052
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "F2:W_N1",
+        "F2:W_N2"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          4.0,
+          5.8
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view.png upper-storey chain read upward from the 3000 floor line: 1000/1800/800 = 3600; the 1800 segment spans both upper windows on this facade.",
+      "t": 609.338
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "F1:W_S2",
+        "F1:W_S3"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png right-side ground-storey chain read upward from the ground: 1000/1600/400; it measures the two large ground-floor windows (2400 wide) whose frames span exactly that segment.",
+      "t": 609.582
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "F1:W_S1"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.5,
+          2.1
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png left-side ground-storey chain read upward from the ground: 1500/600/900 = 3000; the 600 segment is the small 1200-wide window's own frame. Order checked from the ground line, not from the slab.",
+      "t": 609.828
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "F1:D_S"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.0,
+          2.1
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png left-side chain 1500/600/900 from the ground: the entrance door's head line is level with the small window head, so the door spans the first two segments (1500+600 = 2100) from the ground.",
+      "t": 610.069
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "F2:W_S1",
+        "F2:W_S2",
+        "F2:W_S3",
+        "F2:W_S4"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          4.0,
+          5.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png upper-storey chain from the 3000 floor line: 1000/1800/800; spans all four upper windows.",
+      "t": 610.305
+    },
+    {
+      "id": "claim_0007",
+      "objects": [
+        "F1:W_E"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png ground-storey chain read upward from the ground: 1000/1800/200 = 3000; this facade's own window is 1800 tall, unlike the 1600 windows on the north and south facades.",
+      "t": 610.534
+    },
+    {
+      "id": "claim_0008",
+      "objects": [
+        "F2:W_E"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          4.0,
+          5.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png upper-storey chain from the 3000 floor line: 1000/1800/800.",
+      "t": 610.78
+    },
+    {
+      "id": "claim_0009",
+      "objects": [
+        "F2:W_W"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          4.0,
+          5.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view.png upper-storey chain from the 3000 floor line: 1000/1800/800.",
+      "t": 611.051
+    },
+    {
+      "id": "claim_0010",
+      "objects": [
+        "F1:D_W"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.0,
+          2.1
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view.png gives no height dimension for the double door. Its outer frame spans y 440-561 px against the 3000 floor line at y 388 (173 px = 3.0 m), i.e. 2.098 m, rounded to 2.1 m, equal to the dimensioned 2100 south entrance door head.",
+      "t": 611.24
+    }
+  ],
+  "height_provenance_facades": {
+    "north": 2,
+    "south": 4,
+    "east": 2,
+    "west": 2
+  },
+  "cross_facade_height_claims": 0,
+  "plan_builds": 2,
+  "candidate_revisions": 1,
+  "gaps": [
+    "Bridge tools.jsonl stores result-side audit rows, not complete call arguments or model-visible transport.",
+    "Final provider request/response, visible model text, thinking and per-message usage were not archived.",
+    "Requested model is retained when present; provider actual-model identity is unverified when its receipt is absent."
+  ]
+}

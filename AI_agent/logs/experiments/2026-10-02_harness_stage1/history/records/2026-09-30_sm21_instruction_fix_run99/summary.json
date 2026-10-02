@@ -1,0 +1,140 @@
+{
+  "run": "2026-09-30_sm21_instruction_fix_run99",
+  "source_format": "claude_cli_stream",
+  "model": "claude-sonnet-5",
+  "elapsed_seconds": 1081.42,
+  "tool_calls": 75,
+  "tool_errors": 7,
+  "tools": {
+    "inputs": 1,
+    "view_image": 23,
+    "get_bim_reference": 3,
+    "view_pixel_region_overview": 2,
+    "view_pixel_profile": 25,
+    "build_plan_bim": 2,
+    "assemble_plan_bim": 1,
+    "revise_bim": 5,
+    "check_openings": 1,
+    "record_claim": 5,
+    "decide_claim": 3,
+    "confirm_claims": 1,
+    "inspect_candidate": 1,
+    "claim_status": 1,
+    "finish_bim": 1
+  },
+  "first_draft_s": 777.411,
+  "calls_before_first_draft": 45,
+  "full_views_before_first_draft": 6,
+  "crops_before_first_draft": 17,
+  "pixel_tools_before_first_draft": 20,
+  "elevation_crops_by_facade": {
+    "south": 3,
+    "east": 1,
+    "west": 2
+  },
+  "elevation_overlays_by_facade": {},
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "1F:D_ext_S"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0,
+          2.4
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png ground-floor door column vertical dimension chain reads, from the 2F floor/slab line downward: 600 (gap above the door's transom), 900 (transom panel height), 1500 (door-leaf height down to the ground floor). World z origin is the 1F floor at z=0; the chain's own datum is the 2F slab at absolute z=3.0 (matching the 1F floor-to-floor height). Merging the transom+leaf segments (900+1500=2400mm) into one span below the 600mm gap: lengths=[600,2400], origin_m=3.0, direction=-1, segment index 1 gives absolute span [0,2.4], i.e. the full door opening from ground floor to head, matching the declared z=[0,2.4].",
+      "t": 982.078
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "1F:W_N1",
+        "1F:W_N2",
+        "1F:W_N3",
+        "1F:W_S1",
+        "1F:W_S2",
+        "1F:W_S3",
+        "1F:W_E1"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east",
+        "north",
+        "south"
+      ],
+      "cross_facade": true,
+      "reason": "East_view.png ground-floor vertical dimension chain (left of the window column) reads, from the upper floor slab downward: 200 (slab/lintel gap), 1800 (window height), 1000 (sill to ground-floor level). World z origin is the 1F floor at z=0 (dimension chain's own datum is the 2F slab at absolute z=3.0, matching 1F's 3.0m floor-to-floor). Using origin_m=3.0 and direction=-1, segment index 1 (the 1800mm window-height segment) yields the window's absolute sill/head span. Identical sill(1.0m)/head(2.8m) proportions are independently confirmed by the matching 200/1800/1000 bottom chain visible on South_view.png.",
+      "t": 988.687
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "2F:WN1",
+        "2F:WN2",
+        "2F:WS1",
+        "2F:WS2",
+        "2F:WS3",
+        "2F:WS4",
+        "2F:WE1",
+        "2F:WW1"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          4,
+          5.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east",
+        "north",
+        "south",
+        "west"
+      ],
+      "cross_facade": true,
+      "reason": "East_view.png upper-floor vertical dimension chain (top of the window column) reads, from the roof/parapet line downward: 800 (parapet gap), 1800 (window height), 1000 (sill to 2F floor level). World z origin is the 2F floor at absolute z=3.0. Reordering bottom-up as [1000,1800,800] with origin_m=3.0 and direction=1, segment index 1 (the 1800mm window-height segment) yields absolute sill=4.0m, head=5.8m, matching the declared opening z=[4.0,5.8]. The same 800/1800/1000 proportions are independently confirmed on South_view.png and North_view.png upper-floor chains.",
+      "t": 994.156
+    }
+  ],
+  "height_provenance_facades": {
+    "south": 1,
+    "east": 2
+  },
+  "cross_facade_height_claims": 2,
+  "plan_builds": 2,
+  "candidate_revisions": 5,
+  "gaps": [
+    "CLI launch request is not the final provider request body.",
+    "Tool results are the CLI-visible transformed results, not guaranteed raw MCP bytes.",
+    "Thinking content is unavailable; only CLI-estimated token deltas and signatures may exist."
+  ]
+}

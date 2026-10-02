@@ -1,0 +1,265 @@
+{
+  "run": "2026-10-01_opus_dev_sm24",
+  "source_format": "legacy_bridge_audit",
+  "model": null,
+  "elapsed_seconds": null,
+  "tool_calls": 56,
+  "tool_errors": 0,
+  "tools": {
+    "inputs": 1,
+    "view_image": 15,
+    "view_pixel_profile": 8,
+    "build_plan_bim": 1,
+    "record_claim": 9,
+    "view_claim_evidence": 9,
+    "decide_claim": 9,
+    "confirm_claims": 1,
+    "revise_bim": 1,
+    "claim_application": 1,
+    "finish_bim": 1
+  },
+  "first_draft_s": 309.86,
+  "calls_before_first_draft": 15,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 1,
+  "pixel_tools_before_first_draft": 8,
+  "elevation_crops_by_facade": {},
+  "elevation_overlays_by_facade": {},
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "W_N"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view.png left chain 1000/2400/1100 = 4500, read upward from the elevation's ground line (z = 0); the 2400 segment is the 4800-wide window frame.",
+      "t": 359.586
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "D_N"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view.png right chain 200/2400/1900 = 4500, read upward from the elevation's ground line (z = 0); the double door frame spans 2400 above the 200 floor step.",
+      "t": 359.887
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "W_S1",
+        "W_S2"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png outer chains 1000/1800/1700 = 4500, read upward from the elevation's ground line (z = 0); both 1500-wide windows span the 1800 segment.",
+      "t": 360.153
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "D_S"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png door chain 200/2400/1900, read upward from the elevation's ground line (z = 0); the entrance door spans 2400 above the 200 step.",
+      "t": 360.402
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "W_E1",
+        "W_E2"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png right chain 1000/1800/1700, read upward from the elevation's ground line (z = 0); the 1500- and 1200-wide windows share the 1800 segment.",
+      "t": 360.661
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "W_E3"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png middle chain 1000/2400/1100, read upward from the elevation's ground line (z = 0); the 4800-wide window is 2400 tall.",
+      "t": 360.863
+    },
+    {
+      "id": "claim_0007",
+      "objects": [
+        "D_E"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png left chain 200/2400/1900, read upward from the elevation's ground line (z = 0); the double door spans 2400 above the 200 step.",
+      "t": 361.028
+    },
+    {
+      "id": "claim_0008",
+      "objects": [
+        "W_W1",
+        "W_W2",
+        "W_W3",
+        "W_W4"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view.png left chain 1000/1800/1700, read upward from the elevation's ground line (z = 0); the four smaller windows share the 1800 segment.",
+      "t": 361.208
+    },
+    {
+      "id": "claim_0009",
+      "objects": [
+        "W_W5"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view.png right chain 1000/2400/1100, read upward from the elevation's ground line (z = 0); the 4800-wide window is 2400 tall.",
+      "t": 361.404
+    }
+  ],
+  "height_provenance_facades": {
+    "north": 2,
+    "south": 2,
+    "east": 3,
+    "west": 2
+  },
+  "cross_facade_height_claims": 0,
+  "plan_builds": 1,
+  "candidate_revisions": 1,
+  "gaps": [
+    "Bridge tools.jsonl stores result-side audit rows, not complete call arguments or model-visible transport.",
+    "Final provider request/response, visible model text, thinking and per-message usage were not archived.",
+    "Requested model is retained when present; provider actual-model identity is unverified when its receipt is absent."
+  ]
+}

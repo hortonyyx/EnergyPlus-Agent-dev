@@ -1,0 +1,41 @@
+{
+  "scope": "Stage-1 behaviour compatibility and seven-sample history replay work package only",
+  "environment": {
+    "worktree": "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage1",
+    "model_calls": 0,
+    "external_api_calls": 0,
+    "historical_directories_modified": false
+  },
+  "checks": [
+    {
+      "command": "TMPDIR=$PWD/.stage1_tmp/tmp PYTHONDONTWRITEBYTECODE=1 python -m pytest tests/test_stage1_behaviour.py tests/test_harness_stage0_history.py -q -s --basetemp=$PWD/.stage1_tmp/pytest-behaviour-final",
+      "result": "10 passed in 12.41s",
+      "meaning": "Unified EventEnvelope JSONL, hash-verified relative blobs, legacy CLI, legacy bridge, preserved metrics, report writing, semantic diff dimensions, and Stage-0 history mappings passed."
+    },
+    {
+      "command": "TMPDIR=$PWD/.stage1_tmp/tmp PYTHONDONTWRITEBYTECODE=1 python AI_agent/logs/experiments/2026-10-02_harness_stage1/replay_history.py",
+      "result": "7 runs; 2575 archived files; delivered replay 4 exact and 3 semantic_match",
+      "meaning": "All seven historical directories were hashed; saved proposals were re-exported with current deterministic code; complete saved plan assemblies were replayed; candidate versions were compared."
+    },
+    {
+      "command": "Independent SHA-256 verification of archive_manifest.json",
+      "result": "2575 verified files; 0 mismatches",
+      "meaning": "Every regular file listed from the seven immutable historical directories still matches the generated manifest."
+    },
+    {
+      "command": "git diff --name-only -- <seven historical directories>",
+      "result": "no output",
+      "meaning": "The replay did not edit any historical source directory."
+    },
+    {
+      "command": "git diff --check -- <owned behaviour/replay files>",
+      "result": "no output",
+      "meaning": "No whitespace errors were found in this work package."
+    }
+  ],
+  "limits": [
+    "This is deterministic proposal/export and complete saved-plan-assembly replay, not a fresh model invocation or whole-case regeneration.",
+    "Historical provider traffic, thinking, raw MCP bytes, and call arguments that were never archived remain unverified and are listed per run in replay_report.json.",
+    "Object, geometry, host, and connectivity comparisons describe saved BIM changes; they do not decide source-image correctness."
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "run": "2026-09-30_sm24_instruction_fix_run100",
+  "source_format": "claude_cli_stream",
+  "model": "claude-sonnet-5",
+  "elapsed_seconds": 1095.6,
+  "tool_calls": 75,
+  "tool_errors": 2,
+  "tools": {
+    "inputs": 1,
+    "view_image": 47,
+    "get_bim_reference": 3,
+    "build_plan_bim": 1,
+    "revise_plan_bim": 1,
+    "record_claim": 8,
+    "decide_claim": 8,
+    "confirm_claims": 1,
+    "revise_bim": 2,
+    "claim_status": 1,
+    "check_openings": 1,
+    "finish_bim": 1
+  },
+  "first_draft_s": 817.095,
+  "calls_before_first_draft": 44,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 37,
+  "pixel_tools_before_first_draft": 0,
+  "elevation_crops_by_facade": {},
+  "elevation_overlays_by_facade": {},
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "W1",
+        "W2",
+        "W3",
+        "W4"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view.png shows 4 equal small windows on the west facade with an adjacent height dimension chain 1700/1800/1000 (top to bottom, total 4500 matching building height). Origin is the building top (z=4.5m absolute, z_floor=0). Walking down: 1700 to window head (z=2.8), 1800 window height, 1000 sill-to-ground remainder (z=1.0). Segment 1 (the 1800mm band) is the window extent.",
+      "t": 1006.785
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "SW1",
+        "SW2"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png shows 2 small windows on the south facade with an adjacent height dimension chain 1700/1800/1000 (top to bottom, total 4500 matching building height). Origin is building top z=4.5m absolute. Segment 1 (1800mm band) gives z=[1.0,2.8].",
+      "t": 1008.745
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "EW3"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png shows the large 4800mm-wide window with an adjacent height dimension chain 1100/2400/1000 (top to bottom, total 4500). Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[1.0,3.4].",
+      "t": 1010.609
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "W5"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view.png shows the large 4800mm-wide window (far right / south end of facade) with an adjacent height dimension chain 1100/2400/1000. Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[1.0,3.4].",
+      "t": 1012.63
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "NWin"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view.png shows the large 4800mm-wide window with an adjacent height dimension chain 1100/2400/1000. Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[1.0,3.4].",
+      "t": 1014.451
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "NDoor"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view.png shows the double-leaf main entrance door with an adjacent height dimension chain 1900/2400/200 (top to bottom, total 4500). Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[0.2,2.6].",
+      "t": 1016.122
+    },
+    {
+      "id": "claim_0007",
+      "objects": [
+        "EDoor1"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view.png shows the 1600mm double door with an adjacent height dimension chain 1900/2400/200. Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[0.2,2.6].",
+      "t": 1017.849
+    },
+    {
+      "id": "claim_0008",
+      "objects": [
+        "SDoor1"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view.png shows the 900mm door with an adjacent height dimension chain 1900/2400/200. Origin is building top z=4.5m absolute. Segment 1 (2400mm band) gives z=[0.2,2.6].",
+      "t": 1019.504
+    }
+  ],
+  "height_provenance_facades": {
+    "west": 2,
+    "south": 2,
+    "east": 2,
+    "north": 2
+  },
+  "cross_facade_height_claims": 0,
+  "plan_builds": 1,
+  "candidate_revisions": 2,
+  "gaps": [
+    "CLI launch request is not the final provider request body.",
+    "Tool results are the CLI-visible transformed results, not guaranteed raw MCP bytes.",
+    "Thinking content is unavailable; only CLI-estimated token deltas and signatures may exist."
+  ]
+}
