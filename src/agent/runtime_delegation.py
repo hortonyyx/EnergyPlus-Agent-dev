@@ -246,7 +246,10 @@ def update_observer_budget(engine, event, raw):
         "tokens": engine.task_budget.available.tokens,
         "seconds": max(0.0, engine._remaining()),
         "scope": "remaining child allowance; root budget may be lower"}
+    previous = next((entry for entry in engine.context.state
+                     if entry.key == "observer-remaining-budget"), None)
     engine.context.set_state(StateEntry(key="observer-remaining-budget", category="constraint",
+        revision=previous.revision + 1 if previous else 1,
         value=remaining, epistemic_status="computed",
         source_refs=(engine.store.source("observer-remaining-budget", remaining),)))
 

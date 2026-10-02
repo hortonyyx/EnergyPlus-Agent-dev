@@ -22,7 +22,12 @@ async def main(args):
     if len(baseline_index) != 20:
         raise ValueError("all baseline outcomes must be retained before the follow-up")
     args.quota_journal = args.baseline / "role_requests.jsonl"
-    args.run_prefix = "followup_"
+    if args.run_prefix == "final_":
+        if args.followup is None or not args.followup.resolve().is_relative_to(ROOT):
+            raise ValueError("final batch requires the preserved follow-up inside this worktree")
+        followup_index = json.loads((args.followup / "index.json").read_bytes())
+        if len(followup_index) != 6:
+            raise ValueError("the complete six-output follow-up must be retained")
     tickets = [json.loads(line) for line in args.quota_journal.read_text().splitlines()]
     initial_attempts = sum(t["event"] == "attempt" for t in tickets)
     args.budget_limits = {"model_calls": 3, "tool_calls": 6, "tokens": 100000, "seconds": 600}
@@ -44,10 +49,19 @@ async def main(args):
         "run_prefix": args.run_prefix,
         "max_model_calls_per_question": 3, "max_requests_this_batch": 18, "max_batch_requests": 60,
         "budget_limits": args.budget_limits, "shared_quota": str(args.quota_journal.relative_to(ROOT)),
-        "baseline_attempts_at_start": prior["baseline_attempts_at_start"] if prior else initial_attempts,
+        "baseline_attempts_at_start": 21,
         "retries": 0, "fallback": False,
         "selection": "all three pre-existing drawing questions, both models, one output each",
         "comparison_notice": "Independent interface follow-up: explicit limits/filenames and known scope-error feedback; tool cap 2->6, model cap 2->3, time 360->600. Not a same-condition model ranking."}
+    if args.run_prefix == "final_":
+        prior_attempts = prior["prior_attempts_at_start"] if prior else initial_attempts
+        if prior_attempts != 21 + sum(row["model_requests"] for row in followup_index):
+            raise ValueError("final start quota differs from the retained prior batches")
+        protocol["prior_attempts_at_start"] = prior_attempts
+        protocol["comparison_notice"] = (
+            "Final independent six-output check after fixing observer budget state revision. "
+            "Same questions, models and limits as the failed follow-up; every earlier outcome retained. "
+            "No further answer-based sampling after this fixed matrix.")
     if prior and prior != protocol:
         raise ValueError("resumed follow-up configuration or code changed")
     protocol_path.write_text(json.dumps(protocol, ensure_ascii=False, indent=2) + "\n")
@@ -66,5 +80,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--baseline", type=Path, required=True)
+    p.add_argument("--followup", type=Path)
+    p.add_argument("--run-prefix", choices=("followup_", "final_"), default="followup_")
     p.add_argument("--credentials-file", type=Path, required=True)
     asyncio.run(main(p.parse_args()))
