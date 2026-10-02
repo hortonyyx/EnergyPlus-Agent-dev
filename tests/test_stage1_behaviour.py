@@ -44,6 +44,31 @@ def _response(sequence: int, calls: list[dict], *, second: int) -> dict:
     }, second=second)
 
 
+def _request(sequence: int, model: str, *, second: int) -> dict:
+    versions = {
+        name: {"identifier": f"test-{name}"}
+        for name in ("code_commit", "dependency_lock", "prompt", "tool_definitions",
+                     "inference_parameters", "model_route")
+    }
+    versions["remote_model"] = {
+        "route_id": "test-route", "remote_alias": model, "fixed_revision": None,
+        "alias_status": "unverified", "evidence": None,
+    }
+    return _envelope(sequence, {
+        "event_type": "adapter_request",
+        "adapter": "test-adapter",
+        "final_request_body": {"kind": "inline", "value": {"model": model, "messages": []}},
+        "injected_content": [],
+        "images": [],
+        "parameters": {
+            "requested": {},
+            "provider_report": {"kind": "not_reported", "reason": "test"},
+            "effect": {"kind": "unverified", "reason": "test"},
+        },
+        "versions": versions,
+    }, second=second)
+
+
 def _execution(sequence: int, call_id: str, tool: str, arguments: dict, result: dict,
                *, second: int, write: bool = False) -> dict:
     payload = {
@@ -97,6 +122,30 @@ def test_current_event_log_preserves_first_draft_facade_and_height_metrics(tmp_p
     assert "行为记录：new-run" in render_timeline(record)
 
 
+def test_current_log_reads_request_model_and_counts_only_successful_views(tmp_path: Path) -> None:
+    run = tmp_path / "current-views"
+    run.mkdir()
+    events = [
+        _request(0, "Qwen-test", second=0),
+        _response(1, [
+            {"call_id": "full", "tool_name": "view_image",
+             "full_arguments": {"name": "plan.png"}},
+            {"call_id": "missing", "tool_name": "view_image",
+             "full_arguments": {"name": "missing.png"}},
+        ], second=1),
+        _execution(2, "full", "view_image", {"name": "plan.png"},
+                   {"transport_wrapper": "no top-level image metadata"}, second=2),
+        _execution(3, "missing", "view_image", {"name": "missing.png"},
+                   {"error": "not found"}, second=3),
+    ]
+    events[-1]["payload"]["outcome"] = "failed"
+    (run / "events.jsonl").write_text("".join(json.dumps(row) + "\n" for row in events))
+    summary = load_behaviour(run)["summary"]
+    assert summary["model"] == "Qwen-test"
+    assert summary["full_views_before_first_draft"] == 1
+    assert summary["crops_before_first_draft"] == 0
+
+
 def test_legacy_cli_stream_and_bridge_audit_remain_readable(tmp_path: Path) -> None:
     cli = tmp_path / "cli"
     cli.mkdir()
@@ -142,6 +191,9 @@ def test_report_writer_keeps_full_record_compressed(tmp_path: Path) -> None:
     assert (out / "timeline.md").is_file()
     with gzip.open(out / "record.json.gz", "rt") as stream:
         assert json.load(stream)["source_format"] == "legacy_bridge_audit"
+    first_bytes = (out / "record.json.gz").read_bytes()
+    write_behaviour_report(bridge, out)
+    assert (out / "record.json.gz").read_bytes() == first_bytes
 
 
 def test_event_blob_is_hash_verified_resolved_and_confined_to_run(tmp_path: Path) -> None:
@@ -230,3 +282,29 @@ def test_semantic_comparison_separates_geometry_hosts_and_connectivity() -> None
     assert comparison["geometry"]["changed"] == ["opening:D1"]
     assert comparison["hosts"]["changed"] == ["opening:D1"]
     assert comparison["connectivity"]["removed"] == before["connections"]
+
+
+def test_run99_archived_tool_snapshot_replays_saved_delivery_exactly() -> None:
+    spec = importlib.util.spec_from_file_location("stage1_replay_history", REPLAY_PATH)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    run = module.RUNS["run99"]
+    evidence = module.snapshot_code_evidence(run)
+    assert evidence["status"] == "complete"
+    assert evidence["snapshot_exact_file_count"] == evidence["file_count"] == 44
+    by_path = {row["path"]: row for row in evidence["files"]}
+    assert all(
+        by_path[path]["current_matches_snapshot"]
+        for path in module.SNAPSHOT_REPLAY_CURRENT_MATCH_PATHS
+    )
+    candidate = json.loads((run / "delivery.json").read_text())["candidate"]
+    replay = module.replay_delivered(
+        run,
+        candidate,
+        naming_module=run / "runtime_snapshot/src/agent/geometry/source_naming.py",
+        code_scope="test_archived_snapshot",
+    )
+    assert replay["status"] == "exact"
+    assert replay["source_fields_equal"] and replay["display_fields_equal"]
+    assert replay["source_bytes_equal"] and replay["display_bytes_equal"]

@@ -8,19 +8,24 @@
   },
   "checks": [
     {
-      "command": "TMPDIR=$PWD/.stage1_tmp/tmp PYTHONDONTWRITEBYTECODE=1 python -m pytest tests/test_stage1_behaviour.py tests/test_harness_stage0_history.py -q -s --basetemp=$PWD/.stage1_tmp/pytest-behaviour-presentation-final2",
-      "result": "11 passed in 11.93s",
-      "meaning": "Unified EventEnvelope JSONL, prepared-versus-presented tool results, hash-verified relative blobs, legacy CLI, legacy bridge, preserved metrics, report writing, semantic diff dimensions, and Stage-0 history mappings passed."
+      "command": "TMPDIR=$PWD/.stage1_tmp/history-replay-final/tmp PYTHONDONTWRITEBYTECODE=1 python -m pytest tests/test_stage1_behaviour.py tests/test_harness_stage0_history.py -q -s --basetemp=$PWD/.stage1_tmp/history-replay-final/pytest-deterministic-final",
+      "result": "13 passed in 12.28s",
+      "meaning": "Unified EventEnvelope JSONL, request-model extraction, successful full-view/crop metrics, prepared-versus-presented tool results, hash-verified relative blobs, legacy CLI, legacy bridge, deterministic compressed report writing, semantic diff dimensions, archived run99 tool-snapshot replay, and Stage-0 history mappings passed."
     },
     {
-      "command": "TMPDIR=$PWD/.stage1_tmp/tmp PYTHONDONTWRITEBYTECODE=1 python AI_agent/logs/experiments/2026-10-02_harness_stage1/replay_history.py",
+      "command": "TMPDIR=$PWD/.stage1_tmp/history-replay-final/tmp PYTHONDONTWRITEBYTECODE=1 python AI_agent/logs/experiments/2026-10-02_harness_stage1/replay_history.py",
       "result": "7 runs; 2575 archived files; delivered replay 4 exact and 3 semantic_match",
-      "meaning": "All seven historical directories were hashed; saved proposals were re-exported with current deterministic code; complete saved plan assemblies were replayed; candidate versions were compared."
+      "meaning": "All seven historical directories were hashed and matched to Git HEAD blobs; saved proposals were re-exported with current deterministic code; run99/run100 archived tool snapshots reproduced source and display exactly; complete saved plan assemblies were replayed; candidate versions were compared."
     },
     {
       "command": "Independent SHA-256 verification of archive_manifest.json",
       "result": "2575 verified files; 0 mismatches",
       "meaning": "Every regular file listed from the seven immutable historical directories still matches the generated manifest."
+    },
+    {
+      "command": "Per-file comparison against git ls-tree HEAD blobs",
+      "result": "2575 files present in Git HEAD; 2575 worktree bytes match the recorded Git blob; 0 missing or different",
+      "meaning": "The archive can be checked on another machine from the recorded repository revision and is not only a hash pointer to local ignored files."
     },
     {
       "command": "git diff --name-only -- <seven historical directories>",
@@ -31,10 +36,16 @@
       "command": "git diff --check -- <owned behaviour/replay files>",
       "result": "no output",
       "meaning": "No whitespace errors were found in this work package."
+    },
+    {
+      "command": "Read-only load_behaviour check on offline_run and paratera_probe_01 unified logs",
+      "result": "offline_run: scripted-model, 4 prepared/4 presented, 1 successful full view/0 crops; paratera_probe_01: Qwen3.8-27B, 1 prepared/1 presented, 1 successful full view/0 crops",
+      "meaning": "The reader accepted real current EventEnvelope logs, extracted the requested model, excluded a failed image request, and counted prepared tool results as model-visible only where a matching tool_presentation event existed."
     }
   ],
   "limits": [
     "This is deterministic proposal/export and complete saved-plan-assembly replay, not a fresh model invocation or whole-case regeneration.",
+    "Only run99 and run100 contain a hash-manifested implementation snapshot, and even those omit the historical dependency lock; the other five runs do not support an exact historical-version claim.",
     "Historical provider traffic, thinking, raw MCP bytes, and call arguments that were never archived remain unverified and are listed per run in replay_report.json.",
     "Object, geometry, host, and connectivity comparisons describe saved BIM changes; they do not decide source-image correctness."
   ]

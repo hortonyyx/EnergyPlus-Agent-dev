@@ -12,6 +12,7 @@ from datetime import datetime
 import base64
 import gzip
 import hashlib
+import io
 import json
 from pathlib import Path
 import re
@@ -132,6 +133,7 @@ def _read_event_log(path: Path) -> dict[str, Any]:
     steps: list[dict[str, Any]] = []
     texts: list[str] = []
     usage: list[dict[str, Any]] = []
+    request_models: list[str] = []
     origins = [e.occurred_at.value.timestamp() for e in events if e.occurred_at.kind == "known"]
     origin = min(origins) if origins else None
     for event in events:
@@ -139,10 +141,18 @@ def _read_event_log(path: Path) -> dict[str, Any]:
         kind = payload.event_type
         absolute = event.occurred_at.value.timestamp() if event.occurred_at.kind == "known" else None
         if kind == "adapter_request":
+            final_request_body = _captured(payload.final_request_body, path.parent)
+            request_model = (
+                final_request_body.get("model")
+                if isinstance(final_request_body, dict) else None
+            ) or payload.versions.remote_model.remote_alias
+            if request_model and request_model not in request_models:
+                request_models.append(request_model)
             requests.append({
                 "event_id": event.event_id,
                 "adapter": payload.adapter,
-                "final_request_body": _captured(payload.final_request_body, path.parent),
+                "model": request_model,
+                "final_request_body": final_request_body,
                 "injected_content": [item.model_dump(mode="json") for item in payload.injected_content],
                 "images": [item.model_dump(mode="json") for item in payload.images],
                 "parameters": payload.parameters.model_dump(mode="json"),
@@ -203,7 +213,7 @@ def _read_event_log(path: Path) -> dict[str, Any]:
         "source_format": "event_envelope_jsonl",
         "run": events[0].run_id,
         "invocations": [{"invocation": 1, "stream": path.name, "steps": steps}],
-        "model": None,
+        "model": ", ".join(request_models) or None,
         "elapsed_seconds": (max(origins) - min(origins)) if origins else None,
         "usage": usage,
         "visible_text": texts,
@@ -398,8 +408,15 @@ def _view_detail(step: dict[str, Any]) -> dict[str, Any]:
     scale = result.get("display_scale_actual")
     if isinstance(scale, list):
         scale = min(scale)
+    # The request itself distinguishes a full view from a crop even when the
+    # current runtime wraps the visible tool result for provider transport.
+    # A returned full-image box is retained as corroborating result metadata.
+    requested_box = arguments.get("box")
+    full = requested_box is None
+    if requested_box is None and size and box is not None:
+        full = box == [0, 0, *size]
     return {"image": arguments.get("name") or result.get("name"), "box": box, "scale": scale,
-            "full": bool(size) and box in (None, [0, 0, *size])}
+            "full": full}
 
 
 def _polygon_centroid(points: list[list[float]]) -> tuple[float, float] | None:
@@ -465,7 +482,8 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
     tools = Counter(step["tool"] for step in steps)
     first = next((step.get("t_call") for step in steps if step["tool"] in FIRST_DRAFT_TOOLS), None)
     views = [dict(_view_detail(step), t=step.get("t_call")) for step in steps
-             if step["tool"] == "view_image" and step.get("delivered_to_model", True)]
+             if step["tool"] == "view_image" and step.get("delivered_to_model", True)
+             and step.get("outcome") == "succeeded"]
     before = [step for step in steps if first is None or (step.get("t_call") is not None and step["t_call"] < first)]
     views_before = [view for view in views if first is None or (view.get("t") is not None and view["t"] < first)]
     crops = [view for view in views if not view["full"]]
@@ -529,6 +547,8 @@ def write_behaviour_report(path: str | Path, out: str | Path) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
     (out / "summary.json").write_text(json.dumps(record["summary"], ensure_ascii=False, indent=2) + "\n")
     (out / "timeline.md").write_text(render_timeline(record) + "\n")
-    with gzip.open(out / "record.json.gz", "wt", encoding="utf-8") as stream:
-        json.dump(record, stream, ensure_ascii=False, indent=1)
+    with (out / "record.json.gz").open("wb") as raw_stream:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw_stream, mtime=0) as compressed:
+            with io.TextIOWrapper(compressed, encoding="utf-8") as stream:
+                json.dump(record, stream, ensure_ascii=False, indent=1)
     return record["summary"]
