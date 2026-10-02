@@ -605,16 +605,16 @@ def test_long_run_replays_durable_write_result_without_repeating_write(tmp_path)
 def test_long_run_unknown_write_stops_after_state_check_without_retry(tmp_path):
     fault = FaultOnce(
         "after_tool",
-        lambda engine: engine.counts["tool_calls"] == 46,
+        lambda engine: engine.counts["tool_calls"] == 71,
     )
     receipt, _, backend, resumed, _, ledger_at_crash = _crash_then_resume(
         tmp_path,
         fault=fault,
     )
     assert receipt["status"] == "resume_pending_operation"
-    assert ledger_at_crash.count("historical-step-046") == 1
-    assert backend._ledger().count("historical-step-046") == 1
-    assert backend.position == 46
+    assert ledger_at_crash.count("historical-step-071") == 1
+    assert backend._ledger().count("historical-step-071") == 1
+    assert backend.position == 71
     inspections = [
         event.payload
         for event in resumed.store.events
@@ -638,15 +638,38 @@ def test_long_run_recovers_after_compaction_and_retrieves_exact_removed_image(tm
     )
     assert receipt["status"] == "completed"
     assert len(backend._ledger()) == 14
-    context_events = [
-        event.payload
+    context_envelopes = [
+        event
         for event in resumed.store.events
         if event.payload.event_type == "context"
     ]
+    context_events = [event.payload for event in context_envelopes]
     assert any(event.action == "compact" for event in context_events)
-    retrievals = [event for event in context_events if event.action == "retrieve_image"]
-    assert retrievals and retrievals[-1].image.sha256 == first_image["sha256"]
-    assert resumed.context.retrieve_image("view_0001", first_image["sha256"])
+    exact_retrieval = next(
+        event
+        for event in context_envelopes
+        if event.payload.action == "retrieve_image"
+        and event.payload.image.sha256 == first_image["sha256"]
+    )
+    retrieved_bytes = resumed.store.get_bytes(exact_retrieval.payload.image)
+    assert _sha256(retrieved_bytes) == first_image["sha256"]
+    assert len(retrieved_bytes) == first_image["byte_size"]
+    request_after_retrieval = next(
+        event
+        for event in resumed.store.events
+        if event.sequence > exact_retrieval.sequence
+        and event.payload.event_type == "adapter_request"
+        and any(
+            transmission.sent.sha256 == first_image["sha256"]
+            for transmission in event.payload.images
+        )
+    )
+    sent = next(
+        transmission.sent
+        for transmission in request_after_retrieval.payload.images
+        if transmission.sent.sha256 == first_image["sha256"]
+    )
+    assert resumed.store.get_bytes(sent) == retrieved_bytes
     full_messages, full_sources = resumed.context.full_history()
     assert len(full_messages) == len(full_sources)
     assert full_messages[:2] == MESSAGES

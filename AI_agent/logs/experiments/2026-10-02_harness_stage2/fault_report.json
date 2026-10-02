@@ -1,0 +1,309 @@
+{
+  "schema": "harness-stage2-long-fault-report/v1",
+  "scope": {
+    "fixture": "run99-75-tool-turns",
+    "historical_source": "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99",
+    "runtime_commit": "726b3800",
+    "fixture_version_stamps": {
+      "code_commit": "run99-fixture-v1",
+      "dependency_lock": "run99-fixture-v1",
+      "prompt": "run99-fixture-v1",
+      "tool_definitions": "run99-fixture-v1",
+      "inference_parameters": "run99-fixture-v1",
+      "model_route": "run99-fixture-v1",
+      "remote_alias": "offline-run99-fixture",
+      "meaning": "Synthetic fixture identifiers only; the real six-layer version evidence is outside this offline long-task fixture."
+    },
+    "fixture_usage_per_scripted_response": {
+      "prompt_tokens": 10,
+      "completion_tokens": 10,
+      "total_tokens": 20,
+      "meaning": "Synthetic budget-test values, not recovered historical or provider token usage."
+    },
+    "offline_fixture_only": true,
+    "real_model_calls": 0,
+    "real_tool_service_calls": 0,
+    "building_quality_revalidated": false
+  },
+  "history_statistics": {
+    "transport_records": 829,
+    "direct_model_tool_steps": 75,
+    "tool_audit_rows": 79,
+    "read_only_steps": 56,
+    "non_idempotent_write_steps": 19,
+    "historical_tool_errors": 7,
+    "image_blocks": 67,
+    "unique_image_sha256": 56,
+    "ordered_image_bytes": 2259103,
+    "standalone_historical_png_blocks": 21,
+    "gzip_stream_only_image_blocks": 46
+  },
+  "final_result": {
+    "distinct_tests": 10,
+    "passed": 10,
+    "failed": 0,
+    "interpretation": "Eight unaffected tests from the fixed-runtime full matrix plus the separately rerun compaction/image retrieval and stricter step-71 unknown-write tests. The old step-46 unknown-write result was replaced, not counted twice.",
+    "provider_calls_blocked_by_tests": 0
+  },
+  "tests": [
+    {
+      "id": "source_integrity",
+      "kind": "fixture",
+      "injection": null,
+      "expected": "Recover all historical call/result and image bytes in order.",
+      "actual": "75 ordered calls/results; 67 image blocks; all source, argument, result and image hashes matched.",
+      "status": "passed",
+      "evidence": "source_manifest.json"
+    },
+    {
+      "id": "isolated_backend",
+      "kind": "fixture",
+      "injection": null,
+      "expected": "Replay all 75 tool steps against a temporary BIM copy and apply each successful write once.",
+      "actual": "75 calls; 14 successful non-idempotent writes; 14 unique ledger keys; historical seed remained unchanged.",
+      "status": "passed",
+      "evidence": "tests/test_runtime_long_task.py::test_simulated_backend_keeps_writes_in_copy_and_counts_each_once"
+    },
+    {
+      "id": "request_before",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "before_request",
+        "model_calls": 20,
+        "tool_calls": 20
+      },
+      "expected": "Resume from the preceding checkpoint without duplicating a request or write.",
+      "actual": {
+        "stop": "completed",
+        "events": 3409,
+        "model_calls": 76,
+        "tool_calls": 75,
+        "ledger_writes": 14,
+        "unique_ledger_writes": 14,
+        "events_sha256": "6a71f1545b1c5eb1bd58d1b6152dfadfc432a4680ff5d558e9f8c65d1bfc79f3",
+        "receipt_sha256": "961946fd7727abfbf5fa43c8ad301960bdde4e6aa0f5745c04b36268b3fa2f19"
+      },
+      "status": "passed"
+    },
+    {
+      "id": "request_after_intent_before_send",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "after_request",
+        "model_calls": 20,
+        "tool_calls": 19
+      },
+      "expected": "Treat the persisted request as outcome-unknown and use the single configured retry.",
+      "actual": {
+        "stop": "completed",
+        "events": 3412,
+        "model_calls": 77,
+        "tool_calls": 75,
+        "retries": 1,
+        "ledger_writes": 14,
+        "unique_ledger_writes": 14,
+        "events_sha256": "aa774d9043963aff161403c5a0c5a2918cab0cd79b8425f4240e531f759cb43e",
+        "receipt_sha256": "74464bdf575ed184b6d77203812219207265c613e24c862a28e159596a7932b8"
+      },
+      "status": "passed"
+    },
+    {
+      "id": "request_after_response",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "after_response",
+        "model_calls": 20,
+        "tool_calls": 19
+      },
+      "expected": "Replay the durable model response and execute its tool once.",
+      "actual": {
+        "stop": "completed",
+        "events": 3390,
+        "model_calls": 76,
+        "tool_calls": 75,
+        "ledger_writes": 14,
+        "unique_ledger_writes": 14,
+        "events_sha256": "a9869b40449f8a09702580abc6d4960100bcd14802c77336bdf662fb181e4b55",
+        "receipt_sha256": "fcf171a722ecf99558ca004ba724b0c006ef14574c58242e82784c86e38ada3e"
+      },
+      "status": "passed"
+    },
+    {
+      "id": "write_before_intent",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "before_tool",
+        "historical_step": 46,
+        "tool": "build_plan_bim"
+      },
+      "expected": "The unstarted write is executed once after recovery.",
+      "actual": {
+        "stop": "completed",
+        "events": 3391,
+        "model_calls": 76,
+        "tool_calls": 75,
+        "step_46_ledger_before_resume": 0,
+        "step_46_ledger_after_resume": 1,
+        "unique_ledger_writes": 14,
+        "events_sha256": "0ee3e709831e72156d6253b8f8c859029425820596cd822c6a19ab15b2f01d90",
+        "receipt_sha256": "95eea924867b2548163685d6a5130645813cd2701303c47b456fba6ff6c0222f"
+      },
+      "status": "passed"
+    },
+    {
+      "id": "write_after_durable_execution",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "after_execution",
+        "historical_step": 46,
+        "tool": "build_plan_bim"
+      },
+      "expected": "Replay the captured result without executing the write again.",
+      "actual": {
+        "stop": "completed",
+        "events": 3390,
+        "model_calls": 76,
+        "tool_calls": 75,
+        "step_46_ledger_before_resume": 1,
+        "step_46_ledger_after_resume": 1,
+        "unique_ledger_writes": 14,
+        "events_sha256": "a13838b6640fc996fe9242170dc2aa312b46ee2e468d0f1cdf4c9adb003a7ea1",
+        "receipt_sha256": "ce5463cb4797ca6255eb0fbd42cd6e5eed8060887f458d7ce5cfabf30083f24d"
+      },
+      "status": "passed"
+    },
+    {
+      "id": "unknown_write_after_tool",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "after_tool",
+        "historical_step": 71,
+        "tool": "revise_bim"
+      },
+      "expected": "Inspect state, record an inconclusive result and stop without retrying the write.",
+      "actual": {
+        "stop": "resume_pending_operation",
+        "events": 3051,
+        "model_calls": 71,
+        "tool_calls": 71,
+        "ledger_writes": 13,
+        "unique_ledger_writes": 13,
+        "durable_applied_write_events": 12,
+        "unknown_state_inspections": 1,
+        "step_71_ledger_before_resume": 1,
+        "step_71_ledger_after_resume": 1,
+        "events_sha256": "861b63a903a19a1455e52286a28013ce815a029e3d8c85a0f31521db25e1f82a",
+        "receipt_sha256": "03c99b304e10f43be57f1df3a8861c740fd0ad42c4d1c8a06fc6a09797d01e62"
+      },
+      "status": "passed",
+      "retained_archive": "evidence_unknown_write.tar.gz"
+    },
+    {
+      "id": "compaction_recovery_and_image_retrieval",
+      "kind": "fault_injection",
+      "injection": {
+        "hook": "after_checkpoint",
+        "historical_step": 40,
+        "requested_view_id": "view_0001",
+        "requested_sha256": "b74f1e8e06ebeff3f1fa6a62e9142bf8fe0f9638d4efdaceb0979fa4c59218ff",
+        "requested_byte_size": 121252
+      },
+      "expected": "Restore compacted history, retrieve the exact removed image and send those bytes in a later request.",
+      "actual": {
+        "stop": "completed",
+        "events": 3393,
+        "model_calls": 76,
+        "tool_calls": 75,
+        "compact_events": 72,
+        "retrieve_image_events": 3,
+        "target_retrieval_event_present": true,
+        "later_adapter_request_sent_target_sha256": true,
+        "sent_bytes_equal_historical_bytes": true,
+        "ledger_writes": 14,
+        "unique_ledger_writes": 14,
+        "events_sha256": "abec37ef5924d1a584fc1c1ea6f915a650ec090ccc7a0708fb698758007b782a",
+        "receipt_sha256": "e870cba3121a1ec00146a8ceb7d4c8f2c6ea99bcab9b67a6afdc0854734df0a0"
+      },
+      "status": "passed",
+      "retained_archive": "evidence_complete75.tar.gz"
+    },
+    {
+      "id": "model_budget_stop",
+      "kind": "budget",
+      "injection": {
+        "model_call_limit": 60
+      },
+      "expected": "Stop before model request 61 without silently truncating a request or executing tool 61.",
+      "actual": {
+        "stop": "model_budget_exhausted",
+        "events": 2313,
+        "model_calls": 60,
+        "tool_calls": 60,
+        "backend_position": 60,
+        "ledger_writes": 5,
+        "unique_ledger_writes": 5,
+        "events_sha256": "fe4a7e90894aa12d53040ec82d52c2344dbd84667a1dc727c33848cb06da5555",
+        "receipt_sha256": "8519ddf8932a65fb8f2a2230bc7dedda0f3e0f41319de573c21e6b9fafefe7ed"
+      },
+      "status": "passed"
+    }
+  ],
+  "retained_evidence": {
+    "manifest": "evidence_archives.json",
+    "complete_75_step_recovery": {
+      "archive": "evidence_complete75.tar.gz",
+      "archive_sha256": "e9a79903dc595e12c6837fb429e05d478c3f0a597883668adbd523aab2fb68a8",
+      "archive_bytes": 21241919,
+      "members": 1784,
+      "event_count": 3393,
+      "blob_count": 1778,
+      "blob_bytes": 59671937,
+      "checkpoint_sha256": "ba51fcf8fcc20a238dca032dd73304fa022bbd074435b8ae96b14a8a0775594d"
+    },
+    "unknown_write_stop": {
+      "archive": "evidence_unknown_write.tar.gz",
+      "archive_sha256": "bf12dc32b85b56c29aeae73daac4dad5a03fe2d19140db8d37498a2a3f7ca69d",
+      "archive_bytes": 18942301,
+      "members": 1686,
+      "event_count": 3051,
+      "blob_count": 1680,
+      "blob_bytes": 52463076,
+      "checkpoint_sha256": "03e13b2dba822d27e31ce30bac628834b27faf74b25e9ea99492f771566bb78b"
+    }
+  },
+  "test_runs": [
+    {
+      "purpose": "fixed-runtime full matrix before the final test-lifecycle correction",
+      "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/long_fixture_tmp python -m pytest -q -n 2 -s tests/test_runtime_long_task.py --basetemp=$PWD/.stage2_tmp/long_fixture_final_726b3800",
+      "result": "9 passed, 1 failed in 429.31s",
+      "failure_explanation": "The runtime completed successfully. The test then called ContextManager.retrieve_image after its EventStore context manager had closed; that API can append a new retrieval event when the image was later moved out again, so the post-run assertion itself raised 'journal is closed'. The final assertion instead reads the already-recorded retrieval blob and verifies the first later adapter request sent the same hash and bytes."
+    },
+    {
+      "purpose": "final compaction and actual image-wire verification",
+      "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/long_fixture_tmp python -m pytest -q -n 0 -s tests/test_runtime_long_task.py::test_long_run_recovers_after_compaction_and_retrieves_exact_removed_image --basetemp=$PWD/.stage2_tmp/long_fixture_retrieval_verified",
+      "result": "1 passed in 113.05s"
+    },
+    {
+      "purpose": "final stricter 71-step unknown-write verification",
+      "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/long_fixture_tmp python -m pytest -q -n 0 -s tests/test_runtime_long_task.py::test_long_run_unknown_write_stops_after_state_check_without_retry --basetemp=$PWD/.stage2_tmp/long_fixture_unknown71_verified",
+      "result": "1 passed in 100.10s",
+      "replacement": "Replaces the earlier passing step-46 version so that the unknown-write run itself contains at least 60 historical steps."
+    }
+  ],
+  "development_failures_not_counted_as_final": [
+    {
+      "result": "9 passed, 1 failed in 533.45s",
+      "cause": "The first fixture backend keyed image origins by Python object identity. Runtime blob deserialization correctly changed object identity, so the requested historical view_id was absent. The fixture now keys origins by image SHA-256 and locks view_0001 explicitly."
+    },
+    {
+      "result": "old step-46 unknown-write test passed",
+      "cause": "The safety behavior was correct, but the injection stopped before 60 steps. It was superseded by the passing step-71 test and is not counted in the final ten."
+    }
+  ],
+  "limitations": [
+    "The model responses and usage are scripted offline data; no provider reasoning, billing, cache behavior or model quality is inferred.",
+    "The tool backend returns captured historical results and writes only an isolated source BIM copy plus a test operation ledger; it does not replay the frozen BIM service.",
+    "Historical image bytes, sizes, counts and return order are exact, but concurrent calls from one original assistant message are split into ordered single-call scripted responses.",
+    "This verifies runtime losslessness and recovery behavior, not run99 building quality or cold-start modeling stability."
+  ]
+}
