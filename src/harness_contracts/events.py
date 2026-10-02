@@ -1,0 +1,400 @@
+"""Typed event payloads for the model/tool harness boundary."""
+
+from __future__ import annotations
+
+from typing import Annotated, Literal
+
+from pydantic import Field, JsonValue, model_validator
+
+from .base import ContractModel, EventTimestamp, NonEmptyStr, ParentTaskRef
+from .budget import BudgetReservation, BudgetSettlement, UsageEvidence
+from .refs import BlobRef, HashedBlobRef, ImageTransmission, SourceRef
+
+
+class InlineCapture(ContractModel):
+    kind: Literal["inline"] = "inline"
+    value: JsonValue
+
+
+class BlobCapture(ContractModel):
+    kind: Literal["blob"] = "blob"
+    blob: BlobRef
+
+
+class MissingCapture(ContractModel):
+    kind: Literal["missing"] = "missing"
+    reason: NonEmptyStr
+
+
+CapturedValue = Annotated[
+    InlineCapture | BlobCapture | MissingCapture,
+    Field(discriminator="kind"),
+]
+
+
+class InjectedContent(ContractModel):
+    request_location: NonEmptyStr
+    content: CapturedValue
+    source: SourceRef
+
+
+class PublicThinking(ContractModel):
+    kind: Literal["public_content"] = "public_content"
+    content: NonEmptyStr
+
+
+class ThinkingSummary(ContractModel):
+    kind: Literal["summary"] = "summary"
+    summary: NonEmptyStr
+
+
+class ThinkingTokenCount(ContractModel):
+    kind: Literal["reported_token_count"] = "reported_token_count"
+    tokens: int = Field(ge=0)
+
+
+class ThinkingSignature(ContractModel):
+    kind: Literal["signature"] = "signature"
+    signature: NonEmptyStr
+
+
+class ThinkingUnavailable(ContractModel):
+    kind: Literal["unavailable"] = "unavailable"
+    reason: NonEmptyStr
+
+
+ThinkingEvidence = Annotated[
+    PublicThinking
+    | ThinkingSummary
+    | ThinkingTokenCount
+    | ThinkingSignature
+    | ThinkingUnavailable,
+    Field(discriminator="kind"),
+]
+
+
+class ParametersReported(ContractModel):
+    kind: Literal["reported"] = "reported"
+    values: dict[str, JsonValue]
+
+
+class ParametersNotReported(ContractModel):
+    kind: Literal["not_reported"] = "not_reported"
+    reason: NonEmptyStr
+
+
+ParameterReport = Annotated[
+    ParametersReported | ParametersNotReported,
+    Field(discriminator="kind"),
+]
+
+
+class ParametersVerified(ContractModel):
+    kind: Literal["verified"] = "verified"
+    evidence: SourceRef
+
+
+class ParametersUnverified(ContractModel):
+    kind: Literal["unverified"] = "unverified"
+    reason: NonEmptyStr
+
+
+ParameterEffect = Annotated[
+    ParametersVerified | ParametersUnverified,
+    Field(discriminator="kind"),
+]
+
+
+class ParameterAudit(ContractModel):
+    requested: dict[str, JsonValue]
+    provider_report: ParameterReport
+    effect: ParameterEffect
+
+    @model_validator(mode="after")
+    def unreported_parameters_cannot_be_verified(self) -> ParameterAudit:
+        if self.provider_report.kind == "not_reported" and self.effect.kind == "verified":
+            raise ValueError("unreported parameters cannot be marked verified")
+        return self
+
+
+class VersionStamp(ContractModel):
+    identifier: NonEmptyStr
+    evidence: SourceRef | None = None
+
+
+class RemoteModelIdentity(ContractModel):
+    route_id: NonEmptyStr
+    remote_alias: NonEmptyStr
+    fixed_revision: NonEmptyStr | None = None
+    alias_status: Literal["verified_fixed", "unverified"]
+    evidence: SourceRef | None = None
+
+    @model_validator(mode="after")
+    def verified_alias_needs_evidence(self) -> RemoteModelIdentity:
+        if self.alias_status == "verified_fixed" and (
+            self.fixed_revision is None or self.evidence is None
+        ):
+            raise ValueError("a verified remote alias needs a revision and evidence")
+        return self
+
+
+class VersionManifest(ContractModel):
+    code_commit: VersionStamp
+    dependency_lock: VersionStamp
+    prompt: VersionStamp
+    tool_definitions: VersionStamp
+    inference_parameters: VersionStamp
+    model_route: VersionStamp
+    remote_model: RemoteModelIdentity
+
+
+class AdapterRequestPayload(ContractModel):
+    event_type: Literal["adapter_request"] = "adapter_request"
+    adapter: NonEmptyStr
+    final_request_body: CapturedValue
+    injected_content: tuple[InjectedContent, ...] = ()
+    images: tuple[ImageTransmission, ...] = ()
+    parameters: ParameterAudit
+    versions: VersionManifest
+
+    @model_validator(mode="after")
+    def references_match_final_body(self) -> AdapterRequestPayload:
+        if self.final_request_body.kind != "inline":
+            if self.final_request_body.kind == "missing" and (
+                self.injected_content or self.images
+            ):
+                raise ValueError(
+                    "a missing final request cannot claim injected content or image locations"
+                )
+            return self
+        body = self.final_request_body.value
+        if not isinstance(body, dict):
+            raise ValueError("an inline final request body must be a JSON object")
+        for item in self.injected_content:
+            actual = _resolve_json_pointer(body, item.request_location)
+            if item.content.kind == "inline" and actual != item.content.value:
+                raise ValueError(
+                    f"injected content differs from final request at {item.request_location}"
+                )
+        for item in self.images:
+            _resolve_json_pointer(body, item.request_reference)
+        return self
+
+
+class ResponseToolCall(ContractModel):
+    call_id: NonEmptyStr
+    tool_name: NonEmptyStr
+    full_arguments: dict[str, JsonValue]
+
+
+class ModelResponsePayload(ContractModel):
+    event_type: Literal["model_response"] = "model_response"
+    request_event_id: NonEmptyStr
+    visible_text: tuple[NonEmptyStr, ...] = ()
+    tool_calls: tuple[ResponseToolCall, ...] = ()
+    thinking: tuple[ThinkingEvidence, ...]
+    usage: UsageEvidence
+    raw_response: CapturedValue
+
+    @model_validator(mode="after")
+    def distinguish_thinking_forms(self) -> ModelResponsePayload:
+        kinds = [item.kind for item in self.thinking]
+        if not kinds:
+            raise ValueError("thinking must use an available form or explicit unavailable")
+        if len(kinds) != len(set(kinds)):
+            raise ValueError("each thinking evidence form may occur at most once")
+        if "unavailable" in kinds and len(kinds) != 1:
+            raise ValueError("unavailable thinking cannot be combined with available forms")
+        call_ids = [item.call_id for item in self.tool_calls]
+        if len(call_ids) != len(set(call_ids)):
+            raise ValueError("response tool call IDs must be unique")
+        return self
+
+
+class ToolExecutionPayload(ContractModel):
+    event_type: Literal["tool_execution"] = "tool_execution"
+    call_id: NonEmptyStr
+    tool_name: NonEmptyStr
+    full_arguments: dict[str, JsonValue]
+    raw_result: CapturedValue
+    shown_result: CapturedValue
+    repeatability: Literal["read_only", "idempotent_write", "non_idempotent_write"]
+    outcome: Literal["succeeded", "failed", "unknown"]
+    capture_scope: Literal["complete", "historical_excerpt"] = "complete"
+    operation_key: NonEmptyStr | None = None
+    applied_write_id: NonEmptyStr | None = None
+    retry_event_id: NonEmptyStr | None = None
+
+    @model_validator(mode="after")
+    def validate_execution_result(self) -> ToolExecutionPayload:
+        is_write = self.repeatability != "read_only"
+        if is_write and self.operation_key is None:
+            raise ValueError("write operations need a stable operation_key")
+        if not is_write and self.applied_write_id is not None:
+            raise ValueError("read-only tools cannot report an applied write")
+        if self.outcome == "succeeded":
+            if self.capture_scope == "complete" and (
+                self.raw_result.kind == "missing" or self.shown_result.kind == "missing"
+            ):
+                raise ValueError(
+                    "a complete successful execution needs raw and model-visible results"
+                )
+            if is_write and self.applied_write_id is None:
+                raise ValueError("successful writes need an applied_write_id")
+        elif self.applied_write_id is not None:
+            raise ValueError("only a successful write can have applied_write_id")
+        if self.outcome == "unknown" and self.raw_result.kind != "missing":
+            raise ValueError("an unknown outcome must not claim a raw result")
+        return self
+
+
+class StateInspectionPayload(ContractModel):
+    event_type: Literal["state_inspection"] = "state_inspection"
+    purpose: Literal["unknown_write_recovery", "resume"]
+    target_event_id: NonEmptyStr
+    persisted_state: HashedBlobRef
+    conclusion: Literal["not_applied", "already_applied", "inconclusive", "safe_to_resume"]
+
+
+class RunLifecyclePayload(ContractModel):
+    event_type: Literal["run_lifecycle"] = "run_lifecycle"
+    action: Literal["retry", "cancel", "timeout", "resume", "failure"]
+    reason: NonEmptyStr
+    retry_of_event_id: NonEmptyStr | None = None
+    attempt: int | None = Field(default=None, ge=2)
+    state_inspection_event_id: NonEmptyStr | None = None
+    checkpoint: HashedBlobRef | None = None
+    failure_stage: NonEmptyStr | None = None
+    partial_artifacts: tuple[BlobRef, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_action_fields(self) -> RunLifecyclePayload:
+        if self.action == "retry":
+            if self.retry_of_event_id is None or self.attempt is None:
+                raise ValueError("retry needs retry_of_event_id and attempt")
+        elif self.retry_of_event_id is not None or self.attempt is not None:
+            raise ValueError("retry fields are only valid for retry")
+        if self.action == "resume":
+            if self.checkpoint is None or self.state_inspection_event_id is None:
+                raise ValueError("resume needs a checkpoint and prior state inspection")
+        elif self.checkpoint is not None:
+            raise ValueError("checkpoint is only valid for resume")
+        if self.action == "failure" and self.failure_stage is None:
+            raise ValueError("failure needs failure_stage")
+        if self.action != "failure" and self.failure_stage is not None:
+            raise ValueError("failure_stage is only valid for failure")
+        return self
+
+
+class BudgetEventPayload(ContractModel):
+    event_type: Literal["budget"] = "budget"
+    action: Literal["reserve", "settle"]
+    reservation: BudgetReservation | None = None
+    settlement: BudgetSettlement | None = None
+
+    @model_validator(mode="after")
+    def exactly_one_budget_record(self) -> BudgetEventPayload:
+        if self.action == "reserve" and (
+            self.reservation is None or self.settlement is not None
+        ):
+            raise ValueError("reserve event needs only reservation")
+        if self.action == "settle" and (
+            self.settlement is None or self.reservation is not None
+        ):
+            raise ValueError("settle event needs only settlement")
+        return self
+
+
+class ContextEventPayload(ContractModel):
+    event_type: Literal["context"] = "context"
+    action: Literal["compact", "remove_image", "retrieve_image"]
+    reason: NonEmptyStr
+    summary: BlobRef | None = None
+    replaced_event_ids: tuple[NonEmptyStr, ...] = ()
+    image: BlobRef | None = None
+    removal_event_id: NonEmptyStr | None = None
+
+    @model_validator(mode="after")
+    def validate_context_action(self) -> ContextEventPayload:
+        if self.action == "compact":
+            if self.summary is None or not self.replaced_event_ids:
+                raise ValueError("compression needs a summary and replaced event IDs")
+            if self.image is not None or self.removal_event_id is not None:
+                raise ValueError("image fields are not valid for compression")
+        elif self.action == "remove_image":
+            if self.image is None or self.summary is not None or self.removal_event_id:
+                raise ValueError("image removal needs only the image reference")
+        elif self.image is None or self.removal_event_id is None or self.summary is not None:
+            raise ValueError("image retrieval needs image and removal_event_id")
+        return self
+
+
+class ExternalCoordinatorMcpPayload(ContractModel):
+    event_type: Literal["external_coordinator_mcp"] = "external_coordinator_mcp"
+    phase: Literal["dispatch", "operation", "return"]
+    coordinator_task_id: NonEmptyStr
+    method: NonEmptyStr
+    request_content: CapturedValue
+    result_content: CapturedValue
+
+
+class RunAggregateUsagePayload(ContractModel):
+    """Run-level receipt data that must not replace per-message usage."""
+
+    event_type: Literal["run_usage_summary"] = "run_usage_summary"
+    scope: Literal["run_aggregate"] = "run_aggregate"
+    usage: UsageEvidence
+    raw_summary: CapturedValue
+    notes: tuple[NonEmptyStr, ...] = ()
+
+
+EventPayload = Annotated[
+    AdapterRequestPayload
+    | ModelResponsePayload
+    | ToolExecutionPayload
+    | StateInspectionPayload
+    | RunLifecyclePayload
+    | BudgetEventPayload
+    | ContextEventPayload
+    | ExternalCoordinatorMcpPayload
+    | RunAggregateUsagePayload,
+    Field(discriminator="event_type"),
+]
+
+
+class EventEnvelope(ContractModel):
+    schema_version: Literal["harness.event.v1"] = "harness.event.v1"
+    event_id: NonEmptyStr
+    run_id: NonEmptyStr
+    task_id: NonEmptyStr
+    parent_task: ParentTaskRef
+    sequence: int = Field(ge=0)
+    occurred_at: EventTimestamp
+    source_refs: tuple[SourceRef, ...] = ()
+    payload: EventPayload
+
+    @model_validator(mode="after")
+    def task_cannot_parent_itself(self) -> EventEnvelope:
+        if self.parent_task.kind == "known" and self.parent_task.task_id == self.task_id:
+            raise ValueError("task cannot be its own parent")
+        return self
+
+
+def _resolve_json_pointer(document: JsonValue, pointer: str) -> JsonValue:
+    if pointer == "":
+        return document
+    if not pointer.startswith("/"):
+        raise ValueError(f"request reference must be a JSON pointer: {pointer}")
+    current = document
+    for raw_part in pointer[1:].split("/"):
+        part = raw_part.replace("~1", "/").replace("~0", "~")
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+        elif isinstance(current, list):
+            try:
+                current = current[int(part)]
+            except (ValueError, IndexError) as error:
+                raise ValueError(f"request reference does not exist: {pointer}") from error
+        else:
+            raise ValueError(f"request reference does not exist: {pointer}")
+    return current
