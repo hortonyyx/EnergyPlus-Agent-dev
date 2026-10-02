@@ -15,9 +15,7 @@ from src.harness_contracts import (
     BudgetSettlement,
     CostUnavailable,
     EstimatedCostUpperBound,
-    ReportedCost,
     UsageMissing,
-    UsageReported,
 )
 from src.harness_contracts.base import ContractModel, NonEmptyStr
 from src.harness_contracts.budget import CostEvidence, UsageEvidence
