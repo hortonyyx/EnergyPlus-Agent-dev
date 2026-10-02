@@ -110,6 +110,22 @@ def _read_event_log(path: Path) -> dict[str, Any]:
     if len(event_ids) != len(set(event_ids)):
         raise ValueError(f"event IDs are not unique: {path}")
 
+    presentations: dict[str, tuple[EventEnvelope, Any]] = {}
+    for event in events:
+        payload = event.payload
+        if payload.event_type != "tool_presentation":
+            continue
+        target = payload.tool_execution_event_id
+        if target in presentations:
+            raise ValueError(f"multiple presentation events target tool execution {target}")
+        presentations[target] = (event, payload)
+    known_execution_ids = {
+        event.event_id for event in events if event.payload.event_type == "tool_execution"
+    }
+    unknown_presentations = sorted(set(presentations) - known_execution_ids)
+    if unknown_presentations:
+        raise ValueError(f"tool presentations reference unknown executions: {unknown_presentations}")
+
     responses: dict[str, dict[str, Any]] = {}
     requests: list[dict[str, Any]] = []
     response_records: list[dict[str, Any]] = []
@@ -150,13 +166,31 @@ def _read_event_log(path: Path) -> dict[str, Any]:
         elif kind == "tool_execution":
             response = responses.get(payload.call_id, {})
             raw = _captured(payload.raw_result, path.parent)
-            shown = _captured(payload.shown_result, path.parent)
+            prepared = _captured(payload.shown_result, path.parent)
+            presentation = presentations.get(event.event_id)
+            if payload.presentation_status == "sent":
+                visible, delivered, presentation_id = prepared, True, None
+            elif presentation is not None:
+                presentation_event, presentation_payload = presentation
+                visible = _captured(presentation_payload.shown_result, path.parent)
+                if visible != prepared:
+                    raise ValueError(
+                        f"tool presentation {presentation_event.event_id} differs from prepared result {event.event_id}"
+                    )
+                delivered, presentation_id = True, presentation_event.event_id
+            else:
+                visible, delivered, presentation_id = None, False, None
             steps.append({
                 "index": len(steps) + 1,
+                "execution_event_id": event.event_id,
                 "_absolute_time": absolute,
                 "tool": payload.tool_name,
                 "arguments": payload.full_arguments,
-                "result": shown,
+                "prepared_result": prepared,
+                "model_visible_result": visible,
+                "delivered_to_model": delivered,
+                "presentation_status": payload.presentation_status,
+                "presentation_event_id": presentation_id,
                 "raw_result": raw,
                 "outcome": payload.outcome,
                 "is_error": payload.outcome == "failed",
@@ -252,14 +286,17 @@ def _read_cli_stream(path: Path, invocation: int) -> dict[str, Any]:
                     raw = base64.b64decode(source.get("data") or "")
                     images.append({"media_type": source.get("media_type"), "bytes": len(raw),
                                    "sha256": hashlib.sha256(raw).hexdigest()})
-                step.update(result=_json(text), result_text=text, result_images=images,
+                step.update(result_text=text, result_images=images,
+                            model_visible_result=_json(text),
+                            delivered_to_model=True, delivery_evidence="CLI tool_result message",
                             is_error=bool(block.get("is_error")), outcome=("failed" if block.get("is_error") else "succeeded"))
         elif kind == "result":
             result = {key: event.get(key) for key in
                       ("subtype", "is_error", "num_turns", "duration_ms", "total_cost_usd",
                        "stop_reason", "terminal_reason", "result", "usage", "modelUsage")}
     for step in pending.values():
-        step.update(result=None, is_error=None, outcome="unknown", unanswered=True)
+        step.update(result_text=None, model_visible_result=None,
+                    delivered_to_model=False, is_error=None, outcome="unknown", unanswered=True)
     _relative_times(steps, origin)
     return {"invocation": invocation, "stream": path.name, "steps": steps, "init": init,
             "message_usage": list(usage.values()), "result": result,
@@ -305,7 +342,9 @@ def _read_bridge(run: Path) -> dict[str, Any]:
             if key in data:
                 arguments[key] = data[key]
         steps.append({"index": len(steps) + 1, "_absolute_time": row.get("time"),
-                      "tool": action, "arguments": arguments, "result": data,
+                      "tool": action, "arguments": arguments, "model_visible_result": data,
+                      "delivered_to_model": True,
+                      "delivery_evidence": "legacy result-side audit; exact transport unverified",
                       "is_error": bool(data.get("error")),
                       "outcome": "failed" if data.get("error") else "succeeded",
                       "arguments_capture": "historical_result_only"})
@@ -352,7 +391,8 @@ def load_behaviour(path: str | Path) -> dict[str, Any]:
 
 def _view_detail(step: dict[str, Any]) -> dict[str, Any]:
     arguments = step.get("arguments") or {}
-    result = step.get("result") if isinstance(step.get("result"), dict) else {}
+    visible = step.get("model_visible_result")
+    result = visible if isinstance(visible, dict) else {}
     box = result.get("box_original_pixels") or arguments.get("box")
     size = result.get("original_size")
     scale = result.get("display_scale_actual")
@@ -406,7 +446,8 @@ def _opening_facades(run: Path, candidate: Any, identities: set[str]) -> dict[st
 
 def _claim_detail(step: dict[str, Any], run: Path) -> dict[str, Any]:
     arguments = step.get("arguments") or {}
-    result = step.get("result") if isinstance(step.get("result"), dict) else {}
+    visible = step.get("model_visible_result")
+    result = visible if isinstance(visible, dict) else {}
     claim = result.get("claim") or arguments
     objects = [item.get("id") for item in claim.get("objects") or [] if isinstance(item, dict)]
     sources = [item.get("image") for item in result.get("sources") or [] if isinstance(item, dict)]
@@ -423,22 +464,27 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
     steps = [step for invocation in record["invocations"] for step in invocation["steps"]]
     tools = Counter(step["tool"] for step in steps)
     first = next((step.get("t_call") for step in steps if step["tool"] in FIRST_DRAFT_TOOLS), None)
-    views = [dict(_view_detail(step), t=step.get("t_call")) for step in steps if step["tool"] == "view_image"]
+    views = [dict(_view_detail(step), t=step.get("t_call")) for step in steps
+             if step["tool"] == "view_image" and step.get("delivered_to_model", True)]
     before = [step for step in steps if first is None or (step.get("t_call") is not None and step["t_call"] < first)]
     views_before = [view for view in views if first is None or (view.get("t") is not None and view["t"] < first)]
     crops = [view for view in views if not view["full"]]
     overlays = Counter(_facade((step.get("arguments") or {}).get("image") or
                                (step.get("arguments") or {}).get("name") or
-                               (step.get("result") or {}).get("facade"))
+                               (step.get("model_visible_result") or {}).get("facade"))
                        for step in steps if step["tool"] == "view_elevation_candidate")
     run = Path(record.get("_source_root", "."))
     claims = [_claim_detail(step, run) for step in steps
-              if step["tool"] == "record_claim" and not step.get("is_error")]
+              if step["tool"] == "record_claim" and not step.get("is_error")
+              and step.get("delivered_to_model", True)]
     height_sources = Counter(name for claim in claims for name in claim["source_facades"])
     return {
         "run": record["run"], "source_format": record["source_format"], "model": record.get("model"),
         "elapsed_seconds": record.get("elapsed_seconds"), "tool_calls": len(steps),
         "tool_errors": sum(bool(step.get("is_error")) for step in steps), "tools": dict(tools),
+        "prepared_tool_results": sum("prepared_result" in step for step in steps),
+        "delivered_tool_results": sum(step.get("delivered_to_model") is True for step in steps),
+        "undelivered_tool_results": sum(step.get("delivered_to_model") is False for step in steps),
         "first_draft_s": first, "calls_before_first_draft": len(before),
         "full_views_before_first_draft": sum(view["full"] for view in views_before),
         "crops_before_first_draft": sum(not view["full"] for view in views_before),
@@ -472,7 +518,7 @@ def render_timeline(record: dict[str, Any]) -> str:
         for step in invocation["steps"]:
             lines.append(f"| {step['index']} | {step.get('t_call')} | {step['tool']} | "
                          f"{_short(step.get('arguments')).replace('|', '/')} | "
-                         f"{_short(step.get('result')).replace('|', '/')} |")
+                         f"{_short(step.get('model_visible_result')).replace('|', '/')} |")
         lines.append("")
     return "\n".join(lines)
 

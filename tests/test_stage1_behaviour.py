@@ -161,7 +161,7 @@ def test_event_blob_is_hash_verified_resolved_and_confined_to_run(tmp_path: Path
     execution["payload"]["shown_result"] = capture
     (run / "events.jsonl").write_text(json.dumps(response) + "\n" + json.dumps(execution) + "\n")
     record = load_behaviour(run)
-    assert record["invocations"][0]["steps"][0]["result"] == {"candidate": "candidate_01"}
+    assert record["invocations"][0]["steps"][0]["model_visible_result"] == {"candidate": "candidate_01"}
 
     outside = tmp_path / "outside.json"
     outside.write_bytes(raw)
@@ -172,6 +172,40 @@ def test_event_blob_is_hash_verified_resolved_and_confined_to_run(tmp_path: Path
     import pytest
     with pytest.raises(ValueError, match="escapes event-log directory"):
         load_behaviour(run)
+
+
+def test_prepared_result_counts_as_visible_only_after_presentation_event(tmp_path: Path) -> None:
+    run = tmp_path / "presentation-run"
+    run.mkdir()
+    response = _response(0, [{"call_id": "view", "tool_name": "view_image",
+                              "full_arguments": {"name": "North_view.png", "box": [1, 1, 9, 9]}}], second=0)
+    execution = _execution(1, "view", "view_image",
+                           {"name": "North_view.png", "box": [1, 1, 9, 9]},
+                           {"name": "North_view.png", "box_original_pixels": [1, 1, 9, 9],
+                            "original_size": [10, 10]}, second=1)
+    execution["payload"]["presentation_status"] = "prepared"
+    (run / "events.jsonl").write_text(json.dumps(response) + "\n" + json.dumps(execution) + "\n")
+    pending = load_behaviour(run)
+    step = pending["invocations"][0]["steps"][0]
+    assert step["prepared_result"]["name"] == "North_view.png"
+    assert step["model_visible_result"] is None and not step["delivered_to_model"]
+    assert pending["summary"]["elevation_crops_by_facade"] == {}
+    assert pending["summary"]["undelivered_tool_results"] == 1
+
+    presentation = _envelope(2, {
+        "event_type": "tool_presentation",
+        "tool_execution_event_id": "event-1",
+        "request_event_id": "request-next",
+        "response_event_id": "response-next",
+        "shown_result": execution["payload"]["shown_result"],
+    }, second=2)
+    with (run / "events.jsonl").open("a") as stream:
+        stream.write(json.dumps(presentation) + "\n")
+    delivered = load_behaviour(run)
+    step = delivered["invocations"][0]["steps"][0]
+    assert step["model_visible_result"]["name"] == "North_view.png"
+    assert step["delivered_to_model"] and step["presentation_event_id"] == "event-2"
+    assert delivered["summary"]["elevation_crops_by_facade"] == {"north": 1}
 
 
 def test_semantic_comparison_separates_geometry_hosts_and_connectivity() -> None:
