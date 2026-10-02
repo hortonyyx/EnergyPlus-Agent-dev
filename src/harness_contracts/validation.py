@@ -340,9 +340,11 @@ class EventLog(ContractModel):
                 if reservation_event.task_id != event.task_id:
                     raise ValueError("budget settlement task must match reservation task")
                 settlements.append(payload.settlement)
-        if reservations or settlements:
             if self.budget_limit is None:
                 raise ValueError("budget events require the run's total budget limit")
+            # Validate every journal prefix. A later settlement may release a
+            # conservative hold, but it cannot erase evidence that an earlier
+            # reservation was admitted over the configured total.
             BudgetLedger(
                 total_limit=self.budget_limit,
                 reservations=tuple(reservations),
