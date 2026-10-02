@@ -1,0 +1,155 @@
+{
+  "joint_short_suite": {
+    "runtime_commit": "726b3800",
+    "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/root-tmp python -m pytest tests/test_harness_core_contracts.py tests/test_building_contracts.py tests/test_harness_stage0_samples.py tests/test_harness_stage0_history.py tests/test_harness_stage0_provenance.py tests/test_harness_stage0_boundaries.py tests/test_agent_runtime.py tests/test_runtime_snapshot.py tests/test_runtime_frozen_tools.py tests/test_stage1_behaviour.py tests/test_runtime_context.py tests/test_runtime_budget.py tests/test_runtime_budget_integration.py tests/test_runtime_recovery_edges.py tests/test_runtime_stage2_integration.py -n 2 -s --basetemp=$PWD/.stage2_tmp/root-tests/final --junitxml=AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_final.xml -q",
+    "passed": 174,
+    "failed": 0,
+    "seconds": 47.5,
+    "original_stage0_stage1_cases": 132,
+    "new_stage2_short_cases": 42,
+    "per_file": {
+      "tests.test_agent_runtime": 24,
+      "tests.test_building_contracts": 36,
+      "tests.test_harness_core_contracts": 24,
+      "tests.test_harness_stage0_boundaries": 2,
+      "tests.test_harness_stage0_history": 5,
+      "tests.test_harness_stage0_provenance": 6,
+      "tests.test_harness_stage0_samples": 15,
+      "tests.test_runtime_budget": 13,
+      "tests.test_runtime_budget_integration": 4,
+      "tests.test_runtime_context": 14,
+      "tests.test_runtime_frozen_tools": 8,
+      "tests.test_runtime_recovery_edges": 7,
+      "tests.test_runtime_snapshot": 4,
+      "tests.test_runtime_stage2_integration": 4,
+      "tests.test_stage1_behaviour": 8
+    },
+    "stdout": "pytest_final.log",
+    "junit": "pytest_final.xml"
+  },
+  "long_task_suite": {
+    "distinct_passed": 10,
+    "distinct_failed": 0,
+    "evidence": "fault_report.json",
+    "runs": [
+      {
+        "purpose": "fixed-runtime full matrix before the final test-lifecycle correction",
+        "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/long_fixture_tmp python -m pytest -q -n 2 -s tests/test_runtime_long_task.py --basetemp=$PWD/.stage2_tmp/long_fixture_final_726b3800",
+        "result": "9 passed, 1 failed in 429.31s",
+        "failure_explanation": "The runtime completed successfully. The test then called ContextManager.retrieve_image after its EventStore context manager had closed; that API can append a new retrieval event when the image was later moved out again, so the post-run assertion itself raised 'journal is closed'. The final assertion instead reads the already-recorded retrieval blob and verifies the first later adapter request sent the same hash and bytes."
+      },
+      {
+        "purpose": "final compaction and actual image-wire verification",
+        "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/long_fixture_tmp python -m pytest -q -n 0 -s tests/test_runtime_long_task.py::test_long_run_recovers_after_compaction_and_retrieves_exact_removed_image --basetemp=$PWD/.stage2_tmp/long_fixture_retrieval_verified",
+        "result": "1 passed in 113.05s"
+      },
+      {
+        "purpose": "final stricter 71-step unknown-write verification",
+        "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/long_fixture_tmp python -m pytest -q -n 0 -s tests/test_runtime_long_task.py::test_long_run_unknown_write_stops_after_state_check_without_retry --basetemp=$PWD/.stage2_tmp/long_fixture_unknown71_verified",
+        "result": "1 passed in 100.10s",
+        "replacement": "Replaces the earlier passing step-46 version so that the unknown-write run itself contains at least 60 historical steps."
+      }
+    ],
+    "counting": "8 unchanged passing checks + 2 targeted replacements; do not add overlapping pass counts."
+  },
+  "effective_current_tests": {
+    "prior_132_retained": 132,
+    "new_stage2": 52,
+    "distinct_total": 184,
+    "failed": 0
+  },
+  "frozen_scope": {
+    "baseline": "c5926024",
+    "unchanged": [
+      "scripts/tool_scripts",
+      "src/agent/geometry",
+      "src/agent/correction",
+      "src/agent/execution",
+      "AI_agent/Agent.md",
+      "AI_agent/project",
+      "AI_agent/logs/experiments/2026-10-02_harness_stage2/brief.md"
+    ],
+    "diff_check": "git diff --check c5926024 -- src tests AI_agent/design AI_agent/logs/worklog",
+    "diff_check_passed": true
+  },
+  "archive_audit": {
+    "script": "verify_delivery.py",
+    "report": "delivery_audit.json",
+    "archives": 3,
+    "events": 6506,
+    "attachments": 3569,
+    "requests_verified": 152,
+    "image_transmissions_verified": 268,
+    "missing_archives": [],
+    "code_files_matching_current_worktree": true
+  },
+  "historical_integration_results": [
+    {
+      "log": "pytest_runtime_initial.log",
+      "result": "No tests executed; concurrent pytest cleanup removed shared capture temp file. Later runs use per-owner TMPDIR/basetemp and -s."
+    },
+    {
+      "log": "pytest_runtime_second.log",
+      "result": "24 passed; superseded by final suite."
+    },
+    {
+      "log": "pytest_integration.log",
+      "result": "52 passed; superseded by final suite."
+    },
+    {
+      "log": "pytest_stage2_integration.log",
+      "result": "1 passed, 2 failed: actual wire duplicate image fixed; live code/commit change during CLI resume correctly rejected. Final same-version CLI test passes."
+    },
+    {
+      "log": "pytest_integration2.log",
+      "result": "38 passed; superseded by final suite."
+    },
+    {
+      "log": "pytest_preflight.log",
+      "result": "11 passed; includes retrieval across a paid-summary fixture; superseded by final suite."
+    }
+  ],
+  "environment": "validation_environment.json",
+  "api_calls": {
+    "Paratera": {
+      "requests": 0,
+      "tokens": 0,
+      "credentials_read": false
+    },
+    "DeepSeek": 0,
+    "GLM": 0,
+    "whole_case": 0
+  },
+  "service_limits_and_prices": "not verified; local policies and sourced estimates are not service-limit or billing claims",
+  "development_agents": {
+    "root": "Astra",
+    "children": [
+      {
+        "model": "gpt-5.6-sol",
+        "reasoning": "high",
+        "task": "context"
+      },
+      {
+        "model": "gpt-5.6-sol",
+        "reasoning": "high",
+        "task": "budget"
+      },
+      {
+        "model": "gpt-5.6-sol",
+        "reasoning": "high",
+        "task": "long_fixture"
+      }
+    ],
+    "token_usage": "not provided by collaboration interface; not verified"
+  },
+  "acceptance_authority": "Opus; implementation self-assessment only",
+  "final_building_state_followup": {
+    "code_commit": "2c3a6b17",
+    "command": "PYTHONPATH=$PWD PYTHONDONTWRITEBYTECODE=1 TMPDIR=$PWD/.stage2_tmp/root-tmp python -m pytest tests/test_runtime_stage2_integration.py -n 0 -s --basetemp=$PWD/.stage2_tmp/root-tests/declaration -q",
+    "passed": 4,
+    "failed": 0,
+    "seconds": 18.72,
+    "log": "pytest_declaration.log",
+    "reason": "Preserve the optional admitted user building declaration before the first request and latest saved work-review next_action. Runtime core/budget/context and long fixture paths did not change. All four overlap the 174-case suite; no additional distinct test count."
+  }
+}

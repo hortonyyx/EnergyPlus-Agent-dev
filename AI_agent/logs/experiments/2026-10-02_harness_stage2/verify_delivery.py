@@ -157,6 +157,10 @@ def audit_archive(path, prefix):
         assert all(manifest[name]["identifier"] and manifest[name]["evidence"] for name in names)
         result["six_required_versions_verified"] = list(names)
         result["remote_alias_status"] = manifest["remote_model"]["alias_status"]
+        code_ref = HashedBlobRef.model_validate_json(json.dumps(manifest["code_commit"]["evidence"]["blob"]))
+        code = json.loads(get_bytes(code_ref))
+        result["code_files_matching_current_worktree"] = all(
+            sha((ROOT / name).read_bytes()) == digest for name, digest in code["files"].items())
     return result
 
 

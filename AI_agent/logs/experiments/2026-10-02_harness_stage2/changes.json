@@ -1,0 +1,128 @@
+{
+  "baseline": "c5926024",
+  "branch": "dev/astra-stage2-20261002",
+  "snapshot_before_final_delivery_commit": "2c3a6b170c99f62deed7eb8ad590b5548ef65e96",
+  "commits": [
+    {
+      "commit": "d073f6a6255a1d96d9c36b18dda2db2ba7c953d9",
+      "subject": "Add durable stage 2 checkpoint and context event support"
+    },
+    {
+      "commit": "ae4e0148b5dd9271fcf8e8a62adcfaa5c0770f81",
+      "subject": "Add compact run99 long-task fixture manifest"
+    },
+    {
+      "commit": "dadf088010d47e605036ea5785836f0f0c18b962",
+      "subject": "Add recoverable root budget ledger"
+    },
+    {
+      "commit": "e984b2838eecae770946c9bf3a83c10d35af9d6e",
+      "subject": "Validate each budget journal prefix"
+    },
+    {
+      "commit": "397eb18713b1e8f4f769cfe13906b269d8cd577c",
+      "subject": "Clean budget test formatting"
+    },
+    {
+      "commit": "201c87b68ff05f3513da7c1ea9f2e5f8f5dafbd9",
+      "subject": "Add exact run99 fixture loader and isolated backend"
+    },
+    {
+      "commit": "25be09b91a73e794e03534afd8c9d88ef043725b",
+      "subject": "Remove unused budget imports"
+    },
+    {
+      "commit": "acb5534a00bb3751d45ccd091eb626459815b195",
+      "subject": "Cover runtime budget integration edges"
+    },
+    {
+      "commit": "f7a51fb43d6011604b4a633a586a7fbfd09eec32",
+      "subject": "Test budget and summary recovery edges"
+    },
+    {
+      "commit": "a99134274afb58398dd2e62c3f4e8276f175a87b",
+      "subject": "Add audited long-context projection"
+    },
+    {
+      "commit": "30fe48e76318b9eb0a2bb28e3dc0aa1a160cacef",
+      "subject": "Add long-task recovery fault matrix"
+    },
+    {
+      "commit": "ad252ad747b6e702cffccc4d422e3cb1c4b8629c",
+      "subject": "Harden summary provenance and image retrieval"
+    },
+    {
+      "commit": "7e1a70c29969c9f31408f19b6195dd212c285531",
+      "subject": "Integrate audited context and crash recovery into runtime"
+    },
+    {
+      "commit": "726b38002c89eeab489f58b1ad654ade07419ad4",
+      "subject": "Expose long-task policies through the frozen BIM entry"
+    },
+    {
+      "commit": "b582725971fde9593ff0e46d4ebdf2458988aac8",
+      "subject": "Document long-task operation and archive verification"
+    },
+    {
+      "commit": "fd5dd5fc25f889c7631ab790d3d47ef6cddd0151",
+      "subject": "Retain audited long-task fault evidence"
+    },
+    {
+      "commit": "2c3a6b170c99f62deed7eb8ad590b5548ef65e96",
+      "subject": "Keep admitted declarations and saved work reviews in context"
+    }
+  ],
+  "files": [
+    "AI_agent/design/runtime_long_tasks.md",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/README.md",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/build_long_fixture.py",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/changes.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/delivery_audit.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/delivery_audit.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/delivery_report.md",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/evidence_archives.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/evidence_complete75.tar.gz",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/evidence_frozen_entry.tar.gz",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/evidence_unknown_write.tar.gz",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/fault_report.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/fault_report.md",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/long_fixture_report.md",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/package_fault_evidence.py",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_declaration.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_final.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_final.xml",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_integration.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_integration2.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_preflight.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_runtime_initial.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_runtime_second.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/pytest_stage2_integration.log",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/run99_long_fixture.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/source_manifest.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/validation.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/validation_environment.json",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage2/verify_delivery.py",
+    "AI_agent/logs/worklog/2026-10-02_harness_stage2_astra.md",
+    "src/agent/runtime_behaviour.py",
+    "src/agent/runtime_context.py",
+    "src/agent/runtime_entry.py",
+    "src/agent_runtime/adapter.py",
+    "src/agent_runtime/budget.py",
+    "src/agent_runtime/context.py",
+    "src/agent_runtime/loop.py",
+    "src/agent_runtime/store.py",
+    "src/harness_contracts/__init__.py",
+    "src/harness_contracts/budget.py",
+    "src/harness_contracts/events.py",
+    "src/harness_contracts/validation.py",
+    "tests/test_harness_stage0_history.py",
+    "tests/test_harness_stage0_samples.py",
+    "tests/test_runtime_budget.py",
+    "tests/test_runtime_budget_integration.py",
+    "tests/test_runtime_context.py",
+    "tests/test_runtime_long_task.py",
+    "tests/test_runtime_recovery_edges.py",
+    "tests/test_runtime_stage2_integration.py"
+  ],
+  "note": "Final evidence/document packaging commit is the branch HEAD reported in the final response; this manifest cannot include its own future commit hash."
+}
