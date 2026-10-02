@@ -1,0 +1,23 @@
+Combine distinct saved pixel-plan drafts into one building:
+assemble_plan_bim(floors_json) takes a JSON list of 2–32 explicit items:
+[{"draft_id":"draft_001","expected_plan_sha256":"<from inspect_plan_draft>",
+  "floor_id":"F1","z_floor":0,"evidence":"original elevation base annotation"},
+ {"draft_id":"draft_002","expected_plan_sha256":"<from inspect_plan_draft>",
+  "floor_id":"F2","z_floor":3,"evidence":"original elevation storey annotation"}].
+Use inspect_plan_draft for the exact hash; an explicitly supplied resume plan is
+also admitted as draft_id=resume. Every listed draft is recompiled against its
+bound original image. IDs become floor_id:original_id, including opening hosts.
+XY, partitions, aperture dimensions and ceiling_height stay unchanged. Only
+floor base and every absolute opening z move by the same declared difference.
+This tool does not align plans: every draft must already use the common XY
+origin and direction.
+To change a layer's height first use revise_plan_bim set ceiling_height; opening
+z pairs must still fit and need separate, justified edits if they change. An
+upper draft can already use its final absolute z, or use local z with base zero;
+never add the floor base twice. Heights/evidence are caller declarations, not
+verified image truth. Assembly does not infer stairs, merge vertical spaces,
+or create vertical connections. For genuinely continuous spaces use the shared
+geometry representation explicitly instead of stacking rooms with false slabs.
+Include ALL intended floors when reassembling revised drafts. New assembly
+rebuilds from those drafts and does not carry later candidate-only edits. Each
+assembly is a new candidate; reviews of earlier candidates do not carry over.

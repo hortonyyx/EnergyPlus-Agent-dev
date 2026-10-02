@@ -1,0 +1,34 @@
+For a whole-floor plan review (without facade), use complete only after
+inspecting ALL openings of that kind on that floor; use partial for a local check.
+One mark represents one aperture/connection, not a crop with several doors.
+Door swings, dimension ticks and window marks are different evidence. A note
+saying one door does not remove a second modeled door. A review binds the reviewed
+source; changed openings are unreviewed on the new candidate. Delivery retains current/old/unreviewed scopes;
+prose cannot override those records. Do not fabricate marks to pass a checklist.
+
+check_openings review_json example (unrelated to supplied drawings):
+{"floor_id":"F1","kind":"door","image":"plan.png","coverage":"complete",
+ "marks":[{"mark_id":"door-mark-1","box":[10,20,40,60],
+ "opening_ids":["D1"],"space_ids":["room","hall"],"basis":"visible",
+ "note":"one leaf and arc in a wall gap"}]}.
+Use original-image pixels for box and enclose the entire observed aperture,
+not only its label/arc. For registered plan images, both actual source endpoints
+must fit the mark box; a mismatch is reported even if ID/kind/room all agree.
+This checks location/containment, not exact width or visual truth. Without a
+plan calibration, or for facade/elevation reviews, location_check says not_checked.
+An exterior opening lists only its indoor
+space ID in space_ids; never add an ID named 'outside' or 'outdoors'. Use no
+opening_ids when an observed aperture has not been modeled. Separate paired
+arcs serving different rooms into separate marks; a double-leaf door serving
+one connection is one aperture. basis may be visible, inferred or uncertain.
+The tool checks consistency with your observations, not their visual truth.
+For an elevation review, add optional facade: North, South, East or West.
+It limits coverage to exterior openings whose actual source host faces that
+direction; a file name alone does not establish the physical facade. Complete
+then means the WHOLE named facade for that floor/kind, not every facade on the
+floor. Submit marks:[] when a fully inspected facade has no aperture of that
+kind. All actual exterior directions, including zero-opening directions, need
+complete reviews before facade reviews can cover a floor/kind. Interior or
+unclassifiable openings stay explicitly uncovered. Without facade the original
+whole-floor plan scope remains unchanged. Use partial for incomplete views.
+

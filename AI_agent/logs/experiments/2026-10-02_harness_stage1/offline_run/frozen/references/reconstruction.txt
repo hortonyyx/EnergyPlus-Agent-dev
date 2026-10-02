@@ -1,0 +1,56 @@
+Drawing method, for measured plans and elevations. The drawings give the
+structure; every floor's saved draft is then checked against them.
+
+1. READ THE WHOLE SET. View every supplied plan and elevation in full. From each
+plan take the outer perimeter, every drawn divider, every door and window mark,
+the dimension chains and the north arrow. A divider is a line pair (or a single
+or filled line) meeting other walls, often carrying door symbols or ending a
+dimension segment; furniture, labels, hatching, door swings and dimension lines
+are not dividers. Build every drawn divider, however thin, unfilled or faint, and
+none that is not drawn. Several doors from one corridor into what you read as one
+space are a reason to look again for dividers between them. Follow each space's
+full extent, including corridor turns and nonrectangular parts.
+
+2. LOOK CLOSER WHERE NEEDED. Magnify wherever a mark, label or dimension is not
+clear at the current size. Returned images are at most 1600 px on the long side,
+so a smaller box shows more: a box whose longest side is under about 500 px can
+be shown 3x. Include the mark's
+wall, its neighbours and the labels you will use. Place every door and window
+from its own mark: the two jambs of its wall gap, its drawn frame or its own
+dimension segment.
+
+3. CALIBRATE ONCE PER PLAN. Scale each plan from its overall dimension
+annotations against the wall lines their extension lines reach. Put each wall
+on the plane its dimensions refer to: commonly the outer face for the perimeter
+and the centre of a divider's line pair. Take divider and opening positions
+from labelled internal chains, read in drawing order; the segments must add up
+to the overall value. Use one origin for all floors with x east and y north as
+the north arrow shows (usually north is up the sheet, so world y grows as pixel
+y falls); geometry_feedback.axis_orientation reports a mirrored calibration.
+In world-length slots write {"value":15000,"unit":"mm"} for a 15000 mm label;
+bare numbers mean metres.
+
+4. DRAFT EVERY FLOOR. Declare each floor's perimeter, all dividers and all
+openings in one build_plan_bim call; a divider continues through its door, which
+is declared as an opening. Aim for a checkable draft of every floor before
+refining any one floor in detail; local looks needed to declare or compile a
+draft can happen at any time. Each upper floor comes from its own drawing;
+combine floors with assemble_plan_bim. A room count, seed or use never justifies
+adding or removing a divider.
+
+5. RESOLVE THE DIFFERENCES. Each plan build returns drawing_differences: drawn
+wall lines no declared divider follows, declared dividers with no drawn wall,
+and wall gaps that do not match declared doors. They are places to look, not
+verdicts: view the original at the item's look_box, then revise the objects it
+shows wrong or keep them and say why. Compare the returned overlay with the
+original too. Revise only the affected objects and look at the changed property
+on the new source.
+
+6. HEIGHTS FROM ELEVATIONS. Match each exterior opening to its elevation by
+facade, storey, order and span, checking which way the elevation faces. Read
+its sill and head from the dimension chain that measures that opening, in order
+from the chain's datum; a chain can add up while its segments are swapped, and
+a chain measuring one opening does not measure another. Openings of a different
+size or shape keep their own heights unless the elevation shows otherwise.
+record_claim returns facts on which floors, walls and widths a value is applied
+to. Internal door heights without a drawing are assumptions.

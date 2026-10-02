@@ -1,0 +1,149 @@
+Located observations that actually supply local revision parameters.
+
+1. inspect_candidate identifies exact existing window/opening/space IDs.
+2. record_claim(claim_json) stores a candidate-bound observation:
+{
+  "candidate": "seed",
+  "objects": [{"kind": "opening", "id": "door_A"}],
+  "basis": "annotation_and_pixels",
+  "reason": "The located dimension chain bounds this door, with its origin explained here.",
+  "sources": [{"image": "elevation.png", "box": [20, 30, 100, 200]}],
+  "values": {"height": {"type": "dimension_chain", "lengths": [900, 1800, 300],
+      "unit": "mm", "origin_m": 3.0, "direction": -1, "segment": 1}},
+  "observation_mode": "candidate_review",
+  "unresolved": []
+}
+The unrelated example yields absolute z=[0.3,2.1] from the zero-based segment.
+It is NOT a case answer. Transcribe YOUR actual labels and explain the world
+origin, which physical extent they measure, and any frame assumptions.
+
+basis: annotation_and_pixels, pixels, visual_estimate, inference, declared.
+Use original image boxes; code binds actual source hashes. Image-based claims
+require sources; declared/inference may have none but must state the actual basis.
+For a whole-drawing reference, use {"image":"elevation.png"} without box; code
+binds the full original extent and returns that image. Prefer this when dimensions
+and objects are far apart or you are unsure of exact crop coordinates. A narrow
+crop is optional, never a prerequisite for valid evidence. Explain which labels
+and object family support the value; a whole-image reference is not precise localization.
+To cite an image you just viewed, prefer {"view_id":"view_0001"}, using the actual
+ID returned by view_image (including whole-image views). The saved source binds
+that view's original image hash and exact region; grid/scale are presentation only.
+Do not combine view_id with image or box. IDs are local to this run, and an image
+return is not evidence that you understood it.
+record_claim returns clean crops for the first three saved source regions, plus
+unpreviewed_source_indices. A claim is located only if its numbers, dimension
+endpoints and enough object context lie inside the referenced region. A broader
+region is fine; a window-only box does not locate a chain outside it.
+Use view_claim_evidence(claim_id, source_index, display_scale=1..8) to inspect any
+saved source or enlarge small labels. Indices are zero-based. Fractional boxes are
+enclosed in whole pixels; metadata shows both the claimed and rendered boxes.
+If the region is misplaced but the objects/values remain valid, call
+replace_claim_sources(claim_id, view_ids=[...], reason="Explain the corrected evidence").
+This copies the SAME candidate, objects, values, targets, basis and unresolved list,
+replaces only sources/reason, saves a new immutable claim and retracts the old one.
+Previous adoption/confirmation is NOT transferred. Inspect the new returned sources,
+then explicitly adopt and confirm/apply the NEW claim. It does not edit BIM geometry.
+If interpretation, values, basis, unresolved items or candidate need changing,
+record a new corrected claim and retract the obsolete one with decide_claim instead.
+Saved claims are immutable. Seeing a crop is not automatic
+OCR or independent verification, and confirmed arithmetic does not prove its labels.
+Record unexamined/conflicting evidence in unresolved. A direct observation is
+not automatically independent: observation_mode is caller-reported, and review
+of a shown hypothesis does not count as an independent corroboration.
+
+objects kinds: opening (geometry.openings), window (geometry.windows), space,
+boundary (exact source boundary ID). The source BIM's unified openings list also
+contains windows, but claim references still use kind=window for those windows
+and kind=opening for doors/passages. Keep the actual ID; do not add a type prefix.
+Values have named fields and three types:
+- literal: {"type":"literal", "value":0.18, "unit":"m"}; also a two-number
+  vector/interval. Use the true basis (including declared/inference), not a fake scan.
+- dimension_chain: as above; code uses map_dimension_chain, returns the selected
+  segment's ordered span in absolute metres. Closed arithmetic is not verified OCR.
+- image_axis: {"type":"image_axis", "image":"elevation.png", "axis":"y",
+  "anchors":[[10,3.0],[210,0.0]], "pixels":[40,180]}.
+  Image pixel axis can map to a chosen world x/y/z coordinate; explain that mapping
+  in reason. One pixel returns a scalar, two return an ORDERED metric interval.
+  Optional "reduction":"midpoint" with TWO pixels computes their representative
+  midpoint in metres, retaining the measured faces and calibration in the audit.
+  For p1/p2 use an explicit two-coordinate literal; an image_axis interval is not
+  a 2D point transformation. Each pixel, including anchor pixels, can instead be
+  {"profile":"profile_001","candidate":"C01","at":"start"} (peak/end also
+  accepted), from view_pixel_profile. Code loads the immutable measured coordinate
+  and checks image/axis/hash. Numeric pixels remain explicitly model-selected;
+  profile candidates locate ink, not automatically a physical wall or aperture.
+
+3. decide_claim(claim_id, 'adopted'|'deferred'|'retracted', reason).
+Adoption is YOUR decision, not application and not an independent fidelity pass.
+4. revise_bim uses a reference IN PLACE OF the parameter value, e.g.:
+[{"op":"update_opening", "id":"door_A",
+  "changes":{"z":{"claim":"claim_0001","value":"height"}},
+  "reason":"Apply the checked extent using the recorded chain"}]
+Code resolves the parameter; do not duplicate the numeric value. source_refs are
+added automatically for bound parameters. Supported slots: update_window.z/span;
+update_opening.z/p1/p2; move_shared_wall.coordinate_m (claim must name both spaces).
+add_opening.opening.p1/p2/z also accept references. Because the door does not
+exist yet, its claim must name the EXISTING host space(s), including both sides
+for an interior door. Use separate claims for measured plan endpoints and assumed
+height, so a plan image does not masquerade as height evidence. New door identity,
+kind and connectivity remain explicit declarations checked by the source builder.
+reshape_spaces also accepts a scalar reference at ANY polygon coordinate, e.g.
+{"op":"reshape_spaces", "spaces":[{"id":"room_A",
+ "polygon":[[0,0],[{"claim":"claim_0001","value":"wall_x"},0],
+ [{"claim":"claim_0001","value":"wall_x"},5],[0,5]]}],
+ "reason":"Use measured representative wall position"}.
+Keep unchanged coordinates literal. Reference every occurrence of a changed
+coordinate and explicitly update affected hosted openings as usual. This reuses
+the same polygon edit, preserving the complete closed-space contract.
+
+For multiple values/objects, record optional value_targets mapping EVERY value
+name to the subset of declared objects it supplies. For example:
+"value_targets":{"wall_x":[{"kind":"space","id":"room_A"}], "face_interval":[]}.
+[] marks supporting measurements, which cannot be applied as parameters and do
+not count as missing applications. Without this mapping the legacy contract is
+all values applied to all listed objects. Do not conflate different walls or
+floors merely because they share one image. Code validates each reference against
+its mapped object, so no need to duplicate a claim just to express these subsets.
+Other operations still use the edits contract and are reported as unbound.
+Claims bind the exact parent proposal. After a geometry/notes revision, record
+against the new candidate before further application; no silent stale reuse.
+Multiple objects/values may share one observation and be applied in one revision.
+
+For values already present, confirm_claims(candidate, operations_json) takes the
+SAME claim-referenced update_window/update_opening/move_shared_wall intents as
+revise_bim, verifies they change no geometry, and saves a confirmation without
+building a candidate. Confirm against the observation's exact parent BEFORE
+making other edits. Confirmations follow that candidate's descendants while the
+checked object/host remains unchanged; a different branch does not inherit them.
+This checks numerical consistency, not image interpretation. Confirm every application value and its mapped objects; supporting measurements
+need no application. Partial coverage remains explicit. For reshapes, confirmation
+requires ALL polygon coordinates bound; prefer window/opening confirmation for
+height review and avoid manufacturing claims for unrelated constant coordinates.
+
+Height review: check_openings(candidate, heights_only=true) and finish_bim expose height_coverage
+from actual openings, grouped by floor and facade. A retained adopted z binding
+with located image evidence counts as linked image observation, not certified
+image truth. A rendered/viewed elevation or a span-only review covers no heights.
+Height values are absolute z; explain each floor's origin in the dimension_chain.
+Because confirmations bind the exact parent, confirm matching windows on a
+candidate before revising others on it. Coverage reports unlinked, deferred and
+internal heights as unchecked and inference/declared heights separately. Empty
+facade scopes do not prove the drawing has no opening.
+
+claim_status(candidate) projects that candidate's ancestry: confirmed_unchanged,
+applied_current, pending_application, partially_satisfied, changed_since_check,
+deferred/retracted/undecided. It also includes claim unresolved items and explicitly
+superseded notes. Other branches are separate. Imported prior-run applications
+are marked inherited/not rechecked; run-local confirmation files are not imported
+by proposal-only recovery. claim_status() returns full run history. A failed
+edit retains its record and parent; source validation may also retain a failed
+candidate for inspection. Applications show exact resolved operations, actual
+source changes, legitimate hosted-opening movement and any unsupported scope.
+Missing claim references mean 'not tracked by this interface', not automatically
+wrong geometry. Applied on one candidate does NOT mean current on all descendants.
+finish_bim keeps failures and adopted-but-unapplied claims visible in delivery.
+pending_application means no linked execution/confirmation was verified, not
+proof that geometry was never changed. Literal reshape coordinates and unsupported
+parameter slots may already have changed geometry without references; report
+that gap explicitly. Do not record a duplicate adopted claim just to make its
+parent match; that alone supplies neither an application nor a confirmation.

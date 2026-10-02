@@ -1,0 +1,142 @@
+[
+  {
+    "id": "scripted-1",
+    "model": "scripted-model",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Offline protocol exercise.",
+          "tool_calls": [
+            {
+              "id": "offline-1",
+              "type": "function",
+              "function": {
+                "name": "view_image",
+                "arguments": "{\"name\": \"plan.png\", \"coordinate_grid\": false}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 100,
+      "completion_tokens": 30,
+      "total_tokens": 130
+    },
+    "fixture_notice": "usage is synthetic test data, not provider billing"
+  },
+  {
+    "id": "scripted-2",
+    "model": "scripted-model",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Offline protocol exercise.",
+          "tool_calls": [
+            {
+              "id": "offline-2",
+              "type": "function",
+              "function": {
+                "name": "view_image",
+                "arguments": "{\"name\": \"missing.png\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 100,
+      "completion_tokens": 30,
+      "total_tokens": 130
+    },
+    "fixture_notice": "usage is synthetic test data, not provider billing"
+  },
+  {
+    "id": "scripted-3",
+    "model": "scripted-model",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Offline protocol exercise.",
+          "tool_calls": [
+            {
+              "id": "offline-3",
+              "type": "function",
+              "function": {
+                "name": "build_bim",
+                "arguments": "{\"proposal_json\": \"{\\\"geometry\\\": {\\\"schema_version\\\": \\\"2\\\", \\\"footprint_x\\\": [0, 6], \\\"footprint_y\\\": [0, 4], \\\"floors\\\": [{\\\"name\\\": \\\"F1\\\", \\\"z_floor\\\": 0, \\\"ceiling_height\\\": 3, \\\"cells\\\": [{\\\"id\\\": \\\"left\\\", \\\"role\\\": \\\"office\\\", \\\"x\\\": [0, 3], \\\"y\\\": [0, 4]}, {\\\"id\\\": \\\"right\\\", \\\"role\\\": \\\"corridor\\\", \\\"x\\\": [3, 6], \\\"y\\\": [0, 4]}]}], \\\"windows\\\": [], \\\"openings\\\": [{\\\"id\\\": \\\"door\\\", \\\"kind\\\": \\\"door\\\", \\\"space_id\\\": \\\"left\\\", \\\"other_space_id\\\": \\\"right\\\", \\\"p1\\\": [3, 1], \\\"p2\\\": [3, 2], \\\"z\\\": [0, 2.1], \\\"source_refs\\\": [\\\"synthetic-stage1-fixture\\\"]}]}, \\\"assumptions\\\": [\\\"Offline transport fixture; not an inferred real building.\\\"], \\\"unresolved\\\": []}\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 100,
+      "completion_tokens": 30,
+      "total_tokens": 130
+    },
+    "fixture_notice": "usage is synthetic test data, not provider billing"
+  },
+  {
+    "id": "scripted-4",
+    "model": "scripted-model",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Offline protocol exercise.",
+          "tool_calls": [
+            {
+              "id": "offline-4",
+              "type": "function",
+              "function": {
+                "name": "finish_bim",
+                "arguments": "{\"candidate\": \"candidate_01\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 100,
+      "completion_tokens": 30,
+      "total_tokens": 130
+    },
+    "fixture_notice": "usage is synthetic test data, not provider billing"
+  },
+  {
+    "id": "scripted-5",
+    "model": "scripted-model",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "Offline protocol exercise."
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 100,
+      "completion_tokens": 30,
+      "total_tokens": 130
+    },
+    "fixture_notice": "usage is synthetic test data, not provider billing"
+  }
+]
