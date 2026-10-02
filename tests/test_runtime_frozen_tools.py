@@ -174,17 +174,25 @@ def test_artifacts_include_partial_viewer_and_source_bim_but_not_transport_scrat
     assert ".harness_tmp/transport.tmp" not in artifacts
 
 
-def test_mcp_tool_pagination_rejects_repeated_cursor(tmp_path):
-    client = McpToolClient(command="unused", run_directory=tmp_path)
-    client._session = _PagedSession([
+def test_mcp_tool_pagination_collects_pages_and_rejects_repeated_cursor(tmp_path):
+    complete = McpToolClient(command="unused", run_directory=tmp_path)
+    complete._session = _PagedSession([
+        _page([_tool("first")], "cursor-1"),
+        _page([_tool("second")], None),
+    ])
+    repeated = McpToolClient(command="unused", run_directory=tmp_path)
+    repeated._session = _PagedSession([
         _page([_tool("first")], "cursor-1"),
         _page([_tool("second")], "cursor-1"),
     ])
 
     async def scenario():
+        result = await complete.list_tools()
+        assert [tool["name"] for tool in result] == ["first", "second"]
+        assert complete._session.cursors == [None, "cursor-1"]
         with pytest.raises(McpTransportError, match="repeated pagination cursor"):
-            await client.list_tools()
-        assert client._session.cursors == [None, "cursor-1"]
+            await repeated.list_tools()
+        assert repeated._session.cursors == [None, "cursor-1"]
     asyncio.run(scenario())
 
 
