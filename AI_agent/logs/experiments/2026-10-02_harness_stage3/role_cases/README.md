@@ -58,7 +58,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=$PWD \
 - Voimatalo 复用 09-10 既有纹理网格渲染和 10-01 已验收精细档的局部记录。用户验收的是该推断方案的细度与可用性，不等于真实室内参照；评分细则已把这种边界写开。
 - 仓库没有获批真实照片案例。两道照片题只是阶段 0 已登记的代替品，不能据此声称真实照片能力通过。
 - 像素定位参考框由本次人工查看原图后记录，用于复核是否框到同一对象，允许合理松紧，不做逐像素 IoU 自动门槛。
-- 本题库没有挑选或隐藏模型结果；截至交付尚未运行任何题。主线程统一执行后，应按 `test_group`、`input_kind` 和 `information_sufficiency` 把全部对错一起报告。
+- 题单在运行前固定；全部真实运行与人工评价见上级目录的 `role_evaluation.json` 和 `role_review.html`。统计按 `test_group`、`input_kind` 和 `information_sufficiency` 分列，失败与不完整答案均保留。
 
 ## 10-02 评价侧坐标复核更正
 
