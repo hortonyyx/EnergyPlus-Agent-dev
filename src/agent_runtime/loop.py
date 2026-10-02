@@ -352,6 +352,12 @@ class Runtime:
                 reason=decision.reason), source_refs=(self.store.source("budget-violation", {
                     "decision": decision.model_dump(mode="json"), "observed": actual.model_dump(mode="json"),
                     "usage": usage.model_dump(mode="json")}),))
+            if "seconds" in decision.exceeded_dimensions:
+                # Cancellation cleanup can cross the deadline by milliseconds.
+                # Keep the observed duration and conservative hold unchanged,
+                # but identify the exhausted time allowance in the receipt.
+                task_limited = self.task_budget.available.seconds <= self.budget.available.seconds
+                return self._scoped_budget_reason("time", task=task_limited)
             return "token_reservation_exceeded" if "tokens" in decision.exceeded_dimensions else decision.reason
         self.store.append(BudgetEventPayload(action="settle", settlement=decision.settlement))
         return None

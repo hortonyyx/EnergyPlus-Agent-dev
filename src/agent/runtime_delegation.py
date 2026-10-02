@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from src.agent.contracts import EvidencePackage, LocalizedEvidenceResult, assert_result_applicable
 from src.agent.contracts.refs import CoordinateRelation, ExistingEvidenceRef, RunQualifiedEvidenceRef
 from src.agent.runtime_tools import local_observer_role, authorize_tool_call
-from src.agent_runtime.context import ContextPolicy
+from src.agent_runtime.context import ContextPolicy, StateEntry
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.versions import make_versions
 from src.harness_contracts import HashedBlobRef
@@ -37,6 +37,10 @@ Each visible observation needs its supplied view_id and a tight ORIGINAL-image
 pixel box around its evidence. Use the documented crop/scale transformation.
 Keep observations concise and complete for the question. Numeric answers and
 units belong in the statements. Unknown quantities belong in uncertain.
+Respect task_limits across the whole task and the remaining budget updates.
+Tool image selectors name/image/plan_image/elevation_image must exactly copy a
+tool_image_names entry. In pixel_profile, name is an INPUT IMAGE FILENAME, not
+a name for a new measurement. Measurements must stay inside a supplied crop.
 """
 
 
@@ -178,7 +182,8 @@ class EvidenceTools:
     def __init__(self, frozen, role, views):
         self.frozen, self.role = frozen, role
         self.run_directory = frozen.run_directory
-        self.images = {v.image_name for v in views}
+        self.views = tuple(views)
+        self.images = {v.image_name for v in self.views}
 
     async def list_tools(self):
         return [t for t in await self.frozen.list_tools() if t["name"] in self.names]
@@ -191,9 +196,37 @@ class EvidenceTools:
         if name not in self.names:
             raise ValueError("tool is outside the local evidence package")
         for key in ("name", "image", "plan_image", "elevation_image"):
-            if key in arguments and arguments[key] not in self.images:
-                raise ValueError("tool image is outside the local evidence package")
+            if key in arguments and (not isinstance(arguments[key], str) or arguments[key] not in self.images):
+                return self._rejected("tool image is outside the local evidence package: " + key)
+        if name == "pixel_profile":
+            box = arguments.get("box")
+            if (not isinstance(box, list) or len(box) != 4
+                    or any(type(v) not in (int, float) for v in box)):
+                return self._rejected("box must contain four original-pixel coordinates")
+            if not any(v.image_name == arguments.get("name") and self._contains(v, box)
+                       for v in self.views):
+                return self._rejected("measurement lies outside the supplied crop")
+        if name == "compare_facade_spans":
+            # This tool can bind previously saved profiles. Admit it only for
+            # complete supplied images, not an unseen remainder of a crop.
+            for key in ("plan_image", "elevation_image"):
+                if not any(v.image_name == arguments.get(key) and self._contains(
+                    v, (0, 0, *v.original_size)) for v in self.views):
+                    return self._rejected("facade comparison requires the complete supplied image: " + key)
         return await self.frozen.call_tool(name, arguments)
+
+    @staticmethod
+    def _contains(view, box):
+        bounds = view.reference.coordinate_relation.crop_original_pixels or (0, 0, *view.original_size)
+        x0, y0, x1, y1 = box
+        return bounds[0] <= x0 < x1 <= bounds[2] and bounds[1] <= y0 < y1 <= bounds[3]
+
+    def _rejected(self, reason):
+        # A policy decision is a known result, not an unknown transport outcome.
+        value = {"status": "evidence_scope_rejected", "reason": reason,
+                 "tool_image_names": sorted(self.images)}
+        return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
+                "structuredContent": value, "isError": True}
 
     def snapshot_state(self):
         return self.frozen.snapshot_state()
@@ -205,6 +238,17 @@ class EvidenceTools:
 
     def image_origins(self, raw):
         return self.frozen.image_origins(raw)
+
+
+def update_observer_budget(engine, event, raw):
+    remaining = {"model_calls": max(0, engine.limits.model_calls - engine.counts["model_calls"]),
+        "tool_calls": max(0, engine.limits.tool_calls - engine.counts["tool_calls"]),
+        "tokens": engine.task_budget.available.tokens,
+        "seconds": max(0.0, engine._remaining()),
+        "scope": "remaining child allowance; root budget may be lower"}
+    engine.context.set_state(StateEntry(key="observer-remaining-budget", category="constraint",
+        value=remaining, epistemic_status="computed",
+        source_refs=(engine.store.source("observer-remaining-budget", remaining),)))
 
 
 async def run_observer(*, store, frozen_tools, adapter, model, parameters, limits: RunLimits,
@@ -220,6 +264,8 @@ async def run_observer(*, store, frozen_tools, adapter, model, parameters, limit
         parameters=parameters, route=route, code_paths=("src/agent/runtime_delegation.py",
             "src/agent/runtime_coordinator.py", "src/agent/runtime_tools.py", "src/agent/contracts"))
     payload = {"evidence_package": package.model_dump(mode="json"),
+        "task_limits": limits.model_dump(mode="json"),
+        "tool_image_names": sorted(tools.images),
         "coordinator_notes": notes, "notes_status": "coordinator-supplied assertions, not independently verified",
         "views": [v.as_json() for v in views], "answer_schema": ObserverAnswer.model_json_schema()}
     content = [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]
@@ -233,6 +279,7 @@ async def run_observer(*, store, frozen_tools, adapter, model, parameters, limit
     engine = Runtime(store=store, adapter=adapter, tools=tools, role=role, model=model,
         parameters=parameters, versions=versions, limits=limits,
         strict_model_profile=route["route_id"] == "paratera",
+        context_update=update_observer_budget,
         context_policy=ContextPolicy(active_window_messages=16, max_images=max(1, len(views)),
                                      max_image_bytes=32_000_000))
     receipt = await engine.run([{"role": "system", "content": OBSERVER_GUIDANCE},

@@ -24,7 +24,7 @@ MODELS = ("Qwen3.8-27B", "Qwen3.8-Flash")
 
 
 async def run_case(args, case, model, index):
-    identifier = f"{index:02d}_{model.rsplit('-', 1)[-1].lower()}"
+    identifier = getattr(args, "run_prefix", "") + f"{index:02d}_{model.rsplit('-', 1)[-1].lower()}"
     out = args.out / identifier
     driver = args.out / (identifier + "_driver")
     completed = out / "role_case.json"
@@ -43,11 +43,15 @@ async def run_case(args, case, model, index):
         if not destination.exists():
             shutil.copyfile(ROOT / row["path"], destination)
     image_kind = {"drawing": "drawings", "mesh_render": "mesh_views", "photo": "photos"}[case["input_kind"]]
+    budget = getattr(args, "budget_limits", {"model_calls": 2, "tool_calls": 2,
+                                           "tokens": 60000, "seconds": 360})
+    quota_journal = getattr(args, "quota_journal", args.out / "role_requests.jsonl")
     arguments = ["-m", "src.agent.runtime_coordinator", "--out", str(out),
         "--images", str(inputs), "--image-kind", image_kind, "--provider", "paratera",
         "--model", model, "--credentials-file", str(args.credentials_file),
-        "--quota-journal", str(args.out / "role_requests.jsonl"), "--quota-limit", "60",
-        "--model-calls", "2", "--tool-calls", "8", "--tokens", "120000", "--seconds", "900",
+        "--quota-journal", str(quota_journal), "--quota-limit", "60",
+        "--model-calls", str(budget["model_calls"]), "--tool-calls", str(budget["tool_calls"] + 6),
+        "--tokens", "120000", "--seconds", "1200",
         "--output-tokens", "16384", "--scope", case["question"]]
     if out.is_dir():
         arguments.append("--resume")
@@ -67,7 +71,7 @@ async def run_case(args, case, model, index):
             "notes": ["Input kind: " + case["input_kind"],
                 "Photo surrogate, not a real photograph: " + str(case["photo_surrogate"]),
                 *[row["view_source"] + "; " + row["coordinate_source"] for row in case["images"]]],
-            "budget": {"model_calls": 2, "tool_calls": 2, "tokens": 60000, "seconds": 360}}
+            "budget": budget}
         result = await client.call_tool("delegate_to_role", task)
         outcome = result.get("structuredContent", {})
         state = (await client.call_tool("runtime_state", {}))["structuredContent"]

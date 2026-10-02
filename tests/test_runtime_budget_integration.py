@@ -38,7 +38,7 @@ def test_runtime_settlement_preserves_seconds_overrun_and_stops(tmp_path):
             UsageReported(raw_usage={"total_tokens": 30}),
             seconds=2.5,
         )
-        assert reason == "actual_usage_exceeds_reservation"
+        assert reason == "time_budget_exhausted"
         assert engine.budget.ledger.settlements == ()
         violation = next(
             event
@@ -51,6 +51,7 @@ def test_runtime_settlement_preserves_seconds_overrun_and_stops(tmp_path):
             if source.source_id == "budget-violation"
         )
         observed = json.loads(engine.store.get_bytes(evidence.blob))
+        assert observed["decision"]["reason"] == "actual_usage_exceeds_reservation"
         assert observed["observed"]["seconds"] == "2.5"
         assert observed["decision"]["exceeded_dimensions"] == ["seconds"]
 
