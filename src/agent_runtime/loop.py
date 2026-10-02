@@ -79,7 +79,7 @@ class Runtime:
         if self.context_policy is not None:
             from .context import ContextManager
             self.context = ContextManager(self.store, policy=self.context_policy)
-        if self.store.budget_limit != self.limits.ledger_limit():
+        if self.store.is_root_task and self.store.budget_limit != self.limits.ledger_limit():
             raise ValueError("runtime limits differ from persisted budget")
         for name, value in self.limits.ledger_limit().model_dump().items():
             cap = getattr(self.role.budget, name)
@@ -98,7 +98,7 @@ class Runtime:
                 raise ValueError("existing journal requires explicit resume")
             reason = self._restore()
             if reason == "already_completed":
-                return {**json.loads((self.store.directory / "receipt.json").read_bytes()),
+                return {**json.loads((self.store.task_directory / "receipt.json").read_bytes()),
                         "resume_status": reason}
             if reason:
                 return self._stop(reason)
@@ -176,7 +176,10 @@ class Runtime:
             "required_view_ids": list(self.required_view_ids)}
 
     def _load_budget(self):
-        self.budget = RuntimeBudget.from_events(self.limits.ledger_limit(), self.store.events,
+        self.budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events,
+            near_limit_policy=self.limits.near_limit, min_output_tokens=self.limits.min_output_tokens,
+            pricing=self.pricing)
+        self.task_budget = RuntimeBudget.from_events(self.limits.ledger_limit(), self.store.events,
             near_limit_policy=self.limits.near_limit, min_output_tokens=self.limits.min_output_tokens,
             pricing=self.pricing)
 
@@ -186,7 +189,7 @@ class Runtime:
         self.counts = {"model_calls": len(requests),
             "tool_calls": sum(e.payload.event_type == "tool_invocation" for e in self.store.events),
             "reported_tokens": sum(reported_tokens(r.usage) or 0 for r in responses),
-            "reserved_tokens": self.budget.ledger.committed.tokens or 0,
+            "reserved_tokens": self.task_budget.ledger.committed.tokens or 0,
             "usage_complete": len(requests) == len(responses) and all(reported_tokens(r.usage) is not None for r in responses)}
 
     def _project(self):
@@ -211,23 +214,50 @@ class Runtime:
             self._load_budget()
             remaining = self._remaining()
             if remaining <= 0:
-                return None, "time_budget_exhausted"
+                return None, self._scoped_budget_reason("time", task=True)
             # Wall-clock deadline covers tools, summaries, retries, and restart downtime.
-            seconds = min(Decimal(str(remaining)), self.budget.available.seconds)
+            seconds = min(
+                Decimal(str(remaining)),
+                self.budget.available.seconds,
+                self.task_budget.available.seconds,
+            )
             if seconds <= 0:
-                return None, "time_budget_exhausted"
-            estimate = RequestEstimate.for_model_call(purpose=purpose, task_id=self.store.task_id,
+                return None, self._scoped_budget_reason(
+                    "time", task=self.task_budget.available.seconds <= 0
+                )
+            budget_purpose = (
+                "child_task"
+                if purpose == "primary_task" and not self.store.is_root_task
+                else purpose
+            )
+            estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
                 input_token_upper_bound=prepared.input_token_upper_bound,
                 output_token_limit=prepared.output_token_limit, seconds=seconds,
                 estimate_source="UTF-8 wire bytes plus decoded image pixels; conservative estimate, not service tokenizer",
                 pricing=self.pricing)
-            decision = self.budget.reserve(f"request-{len(self.budget.ledger.reservations) + 1}", estimate)
+            reservation_id = self.store.next_reservation_id()
+            task_decision = self.task_budget.reserve(reservation_id, estimate)
+            if task_decision.action == "stop":
+                return None, self._budget_reason(
+                    task_decision,
+                    scope=None if self.store.is_root_task else "child",
+                )
+            effective = task_decision.effective_estimate
+            decision = self.budget.reserve(reservation_id, effective)
             if decision.action == "stop":
-                return None, self._budget_reason(decision)
-            if decision.action == "reduce_output":
-                degradation = decision.model_dump(mode="json")
+                return None, self._budget_reason(
+                    decision,
+                    scope="root" if not self.store.is_root_task else None,
+                )
+            if task_decision.action == "reduce_output" or decision.action == "reduce_output":
+                reduction = (
+                    decision
+                    if decision.action == "reduce_output"
+                    else task_decision
+                )
+                degradation = reduction.model_dump(mode="json")
                 key = "max_tokens" if "max_tokens" in parameters else "max_completion_tokens"
-                parameters[key] = decision.output_token_limit
+                parameters[key] = reduction.output_token_limit
                 # No event or request has been emitted yet. Re-estimate exact wire bytes.
                 self._load_budget()
                 continue
@@ -288,8 +318,13 @@ class Runtime:
             return None
         charged_seconds = Decimal(str(max(0.0, seconds))) if seconds is not None else None
         actual = BudgetAmounts(tokens=reported_tokens(usage), calls=1, seconds=charged_seconds)
-        decision = self.budget.settle(reservation_id,
+        task_decision = self.task_budget.settle(reservation_id,
             actual=actual, usage=usage)
+        if task_decision.action == "stop":
+            decision = task_decision
+        else:
+            decision = self.budget.settle(reservation_id,
+                actual=actual, usage=usage)
         if decision.action == "stop":
             self.store.append(RunLifecyclePayload(action="failure", failure_stage="budget_settlement",
                 reason=decision.reason), source_refs=(self.store.source("budget-violation", {
@@ -495,7 +530,7 @@ class Runtime:
             return "resume_state_changed"
         suffix = [e for e in self.store.events if e.sequence > sequence]
         if any(e.payload.event_type == "run_lifecycle" and e.payload.reason == "completed" for e in suffix):
-            if (self.store.directory / "receipt.json").exists():
+            if (self.store.task_directory / "receipt.json").exists():
                 return "already_completed"
         if saved.get("context"):
             from .context import ContextManager
@@ -648,21 +683,40 @@ class Runtime:
 
     def _budget_stop(self):
         if self._remaining() <= 0:
-            return "time_budget_exhausted"
+            return self._scoped_budget_reason("time", task=True)
         if self.counts["model_calls"] >= self.limits.model_calls:
-            return "model_budget_exhausted"
+            return self._scoped_budget_reason("model", task=True)
+        if self.task_budget.available.calls <= 0:
+            return self._scoped_budget_reason("model", task=True)
+        if self.task_budget.available.tokens <= 0:
+            return self._scoped_budget_reason("token", task=True)
+        if (self.task_budget.available.money_usd is not None
+                and self.task_budget.available.money_usd <= 0):
+            return self._scoped_budget_reason("money", task=True)
+        if self.task_budget.available.seconds <= 0:
+            return self._scoped_budget_reason("time", task=True)
+        if self.budget.available.calls <= 0:
+            return self._scoped_budget_reason("model")
         if self.budget.available.tokens <= 0:
-            return "token_budget_exhausted"
+            return self._scoped_budget_reason("token")
         if self.budget.available.money_usd is not None and self.budget.available.money_usd <= 0:
-            return "money_budget_exhausted"
+            return self._scoped_budget_reason("money")
+        if self.budget.available.seconds <= 0:
+            return self._scoped_budget_reason("time")
         return None
 
-    @staticmethod
-    def _budget_reason(decision):
+    def _budget_reason(self, decision, *, scope=None):
         names = {"calls": "model", "tokens": "token", "seconds": "time", "money_usd": "money"}
         if decision.exceeded_dimensions:
-            return names[decision.exceeded_dimensions[0]] + "_budget_exhausted"
+            reason = names[decision.exceeded_dimensions[0]] + "_budget_exhausted"
+            return f"{scope}_{reason}" if scope else reason
         return decision.reason
+
+    def _scoped_budget_reason(self, dimension, *, task=False):
+        reason = f"{dimension}_budget_exhausted"
+        if self.store.is_root_task:
+            return reason
+        return f"{'child' if task else 'root'}_{reason}"
 
     def _retry_count(self):
         return sum(e.payload.event_type == "run_lifecycle" and e.payload.action == "retry" for e in self.store.events)
@@ -678,7 +732,7 @@ class Runtime:
     def _exception_reason(self, exc):
         timeout = isinstance(exc, (TimeoutError, asyncio.TimeoutError))
         cancel = isinstance(exc, asyncio.CancelledError)
-        reason = "time_budget_exhausted" if timeout else "cancelled" if cancel else "failed"
+        reason = self._scoped_budget_reason("time", task=True) if timeout else "cancelled" if cancel else "failed"
         action = "timeout" if timeout else "cancel" if cancel else "failure"
         fields = {"failure_stage": self.stage} if action == "failure" else {}
         self.store.append(RunLifecyclePayload(action=action,
@@ -695,8 +749,8 @@ class Runtime:
             if path.is_file():
                 artifacts.append(self.store.put_bytes(path.read_bytes()))
                 paths.append(str(path))
-        costs = [s.cost for s in self.budget.ledger.settlements]
-        estimated = self.budget.ledger.committed.money_usd
+        costs = [s.cost for s in self.task_budget.ledger.settlements]
+        estimated = self.task_budget.ledger.committed.money_usd
         receipt = {"status": reason, "answer": self.answer,
             **self.counts, "elapsed_seconds": self.limits.seconds - self._remaining(),
             "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
@@ -704,7 +758,11 @@ class Runtime:
             "estimated_money_upper_bound_usd": str(estimated) if estimated is not None else None,
             "artifacts": [r.model_dump(mode="json") for r in artifacts], "artifact_paths": paths,
             "token_accounting": "service token use plus outstanding/unknown holds; estimates are not billing",
-            "budget": self.budget.ledger.model_dump(mode="json")}
+            "budget": self.budget.ledger.model_dump(mode="json"),
+            "root_budget_available": self.budget.available.model_dump(mode="json"),
+            "task_budget": self.task_budget.ledger.model_dump(mode="json"),
+            "task_budget_available": self.task_budget.available.model_dump(mode="json"),
+            "budget_scope": "root" if self.store.is_root_task else "child"}
         self.store.append(RunLifecyclePayload(action="stop", reason=reason, partial_artifacts=tuple(artifacts)),
             source_refs=(self.store.source("run-receipt", receipt),))
         usage = UsageReported(raw_usage={"total_tokens": self.counts["reported_tokens"]}) if self.counts["usage_complete"] and self.counts["model_calls"] else UsageMissing(reason="one or more requests lacked complete usage, or none were sent")
