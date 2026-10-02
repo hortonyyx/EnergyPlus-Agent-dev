@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import model_validator
 
+from src.harness_contracts import BudgetLedger
+
 from ._base import ContractModel, NonEmptyStr, unique
 from .declarations import BuildingDeclaration, BuildingModelVersion, InferenceHypothesis
 from .evidence import BuildingEvidenceLedger, CalculationChain, UserRequirement
@@ -21,6 +23,7 @@ class BuildingContractBundle(ContractModel):
     hypotheses: tuple[InferenceHypothesis, ...]
     declarations: tuple[BuildingDeclaration, ...]
     model_versions: tuple[BuildingModelVersion, ...]
+    budget_ledger: BudgetLedger | None = None
     evidence_packages: tuple[EvidencePackage, ...] = ()
     evidence_results: tuple[LocalizedEvidenceResult, ...] = ()
     floor_drafts: tuple[FloorDraftContract, ...] = ()
@@ -59,6 +62,18 @@ class BuildingContractBundle(ContractModel):
         for package in self.evidence_packages:
             self._known(package.known_evidence_ids, evidence, "package evidence")
             self._known((package.source_model_version_id,), versions, "package model version")
+            if self.budget_ledger is None:
+                raise ValueError("evidence packages require the authoritative harness budget ledger")
+            reservations = {
+                row.reservation_id: row for row in self.budget_ledger.reservations
+            }
+            reservation = reservations.get(package.budget_reservation_id)
+            if reservation is None:
+                raise ValueError("evidence package references an unknown budget reservation")
+            if reservation.purpose != "child_task":
+                raise ValueError("evidence package budget reservation must be for a child_task")
+            if reservation.task_id != package.task_id:
+                raise ValueError("evidence package task does not match its budget reservation")
         for result in self.evidence_results:
             if result.package_id not in packages:
                 raise ValueError(f"result references unknown package: {result.package_id}")

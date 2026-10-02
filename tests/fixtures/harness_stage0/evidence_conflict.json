@@ -62,7 +62,7 @@
       "read_only": false
     },
     {
-      "role_id": "local-observer",
+      "role_id": "local_observer",
       "responsibilities": [
         "只读回答局部问题，分别返回所见、解释和不确定项"
       ],
@@ -111,7 +111,7 @@
       "failure_policy": "stop_and_report"
     },
     {
-      "role_id": "local-observer",
+      "role_id": "local_observer",
       "default_model": {
         "route_id": "offline-fixture",
         "model_alias": "no-model-called"
@@ -676,6 +676,60 @@
             "id": "F2:O1"
           }
         ]
+      },
+      {
+        "declaration_id": "decl:assembly",
+        "scope": {
+          "kind": "object_group",
+          "ids": [
+            "F1-F2-assembly"
+          ]
+        },
+        "tool_call": {
+          "tool": "assemble_plan_bim",
+          "payload": {
+            "floors_json": "[{\"draft_id\": \"draft_001\", \"expected_plan_sha256\": \"9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347\", \"floor_id\": \"F1\", \"z_floor\": 0.2, \"evidence\": \"1f_view.png floor identity and elevations' ground/storey chains\"}, {\"draft_id\": \"draft_002\", \"expected_plan_sha256\": \"c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa\", \"floor_id\": \"F2\", \"z_floor\": 3.6, \"evidence\": \"2f_view.png floor identity and elevations' storey chains\"}]"
+          }
+        },
+        "field_partition": {
+          "model_declared": [
+            "/assembly/floors/*/floor_id",
+            "/assembly/floors/*/z_floor",
+            "/assembly/floors/*/evidence"
+          ],
+          "code_expanded": [
+            "/saved/spaces",
+            "/saved/opening_hosts",
+            "/saved/connections"
+          ]
+        },
+        "evidence_ids": [
+          "ev:inferred",
+          "ev:simplified"
+        ],
+        "requirement_ids": [
+          "req:detail"
+        ],
+        "hypothesis_ids": [
+          "hyp:choice",
+          "hyp:relation",
+          "hyp:function"
+        ],
+        "repetition": null,
+        "declared_object_refs": [
+          {
+            "kind": "space",
+            "id": "F1:O2"
+          },
+          {
+            "kind": "space",
+            "id": "F1:O3"
+          },
+          {
+            "kind": "space",
+            "id": "F2:O1"
+          }
+        ]
       }
     ],
     "model_versions": [
@@ -685,7 +739,8 @@
         "artifact_sha256": "bbd8f6991261178fea8ef09b2fd4c1dfc4d1a90fdaf1ea527c9234630a8471a4",
         "declaration_ids": [
           "decl:main",
-          "decl:f2"
+          "decl:f2",
+          "decl:assembly"
         ]
       },
       {
@@ -694,7 +749,8 @@
         "artifact_sha256": "e45344117a7acdc1acb23bbf629351701a3540eee5a00b4ef64ad313e4377988",
         "declaration_ids": [
           "decl:main",
-          "decl:f2"
+          "decl:f2",
+          "decl:assembly"
         ]
       },
       {
@@ -703,15 +759,38 @@
         "artifact_sha256": "78c4d98138a00f9df8c383672b6c6ab8b1fb8285a6420dffd02096ebed6f40a9",
         "declaration_ids": [
           "decl:main",
-          "decl:f2"
+          "decl:f2",
+          "decl:assembly"
         ]
       }
     ],
+    "budget_ledger": {
+      "total_limit": {
+        "tokens": 1200,
+        "money_usd": null,
+        "seconds": "30",
+        "calls": 1
+      },
+      "reservations": [
+        {
+          "reservation_id": "budget:local-observer",
+          "purpose": "child_task",
+          "amounts": {
+            "tokens": 1200,
+            "money_usd": null,
+            "seconds": "30",
+            "calls": 1
+          },
+          "task_id": "reconstruction-observe"
+        }
+      ],
+      "settlements": []
+    },
     "evidence_packages": [
       {
         "package_id": "package:local",
         "task_id": "reconstruction-observe",
-        "role_id": "local-observer",
+        "role_id": "local_observer",
         "question": "核对指定原图区域，分开返回可见事实、建筑解释和不确定项。不得修改模型。",
         "known_evidence_ids": [
           "ev:observed"
@@ -735,12 +814,7 @@
         ],
         "source_model_version_id": "saved-v1",
         "return_schema": "localized_evidence_result_v1",
-        "budget": {
-          "max_input_tokens": 1000,
-          "max_output_tokens": 200,
-          "max_tool_calls": 1,
-          "max_wall_seconds": 30.0
-        }
+        "budget_reservation_id": "budget:local-observer"
       }
     ],
     "evidence_results": [
@@ -1559,6 +1633,7 @@
       ]
     },
     "affected_declaration_ids": [
+      "decl:assembly",
       "decl:f2",
       "decl:main"
     ],
