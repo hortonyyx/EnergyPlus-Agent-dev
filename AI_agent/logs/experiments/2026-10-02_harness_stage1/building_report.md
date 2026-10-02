@@ -46,6 +46,7 @@
 
 - `f31a9be2 Update building contracts for stage 1`
 - `15acb37f Generate semantic snapshots from saved BIM`
+- `0d100835 Bind assembly sample to recorded call`
 
 代码和测试：`src/agent/contracts/{__init__,bundle,declarations,tasks}.py`、`src/agent/runtime_snapshot.py`、`tests/test_building_contracts.py`、`tests/test_runtime_snapshot.py`。
 
