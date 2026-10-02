@@ -79,6 +79,22 @@ def test_compact_archive_restores_duplicate_and_historical_images_exactly():
         validate=True,
     )
     assert compact_evidence._sha256(historical_stream_bytes) == stream_image["sha256"]
+    returned_hashes = {
+        image["sha256"]
+        for step in sequence.steps
+        for image in step["result"]["images"]
+    }
+    inputs_path = (
+        ROOT / "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99/inputs.json"
+    )
+    inputs = json.loads(inputs_path.read_bytes())
+    input_name, input_identity = next(
+        (name, identity)
+        for name, identity in inputs["images"].items()
+        if identity["sha256"] not in returned_hashes
+    )
+    original_input = (inputs_path.parent / "images" / input_name).read_bytes()
+    assert compact_evidence._sha256(original_input) == input_identity["sha256"]
     with tempfile.TemporaryDirectory(prefix=".compact-evidence-test-", dir=ROOT) as temporary:
         directory = Path(temporary)
         source = directory / "source"
@@ -94,6 +110,8 @@ def test_compact_archive_restores_duplicate_and_historical_images_exactly():
                     {"type": "image", "mimeType": "image/png", "data": encoded_historical},
                     {"type": "image", "mimeType": "image/png", "data":
                         base64.b64encode(historical_stream_bytes).decode("ascii")},
+                    {"type": "image", "mimeType": "image/png", "data":
+                        base64.b64encode(original_input).decode("ascii")},
                 ]}
             ]
         }
@@ -102,6 +120,7 @@ def test_compact_archive_restores_duplicate_and_historical_images_exactly():
             "new-image.png": NEW_IMAGE,
             "historical-image.png": historical_bytes,
             "historical-stream-image.png": historical_stream_bytes,
+            "unreturned-original-input.png": original_input,
             "notes.txt": b"preserve this ordinary evidence exactly\n",
         }
         for name, data in originals.items():
@@ -119,12 +138,16 @@ def test_compact_archive_restores_duplicate_and_historical_images_exactly():
         assert manifest["images"][new_digest]["kind"] == "embedded"
         assert manifest["images"][historical["sha256"]]["kind"] == "historical_file"
         assert manifest["images"][stream_image["sha256"]]["kind"] == "historical_stream"
+        original_descriptor = manifest["images"][input_identity["sha256"]]
+        assert original_descriptor["admission"] == "run99_original_input"
+        assert original_descriptor["manifest_sha256"] == compact_evidence.RUN99_INPUTS_SHA256
         members = _members(archive)
         assert list(name for name in members if name == f"images/{new_digest}") == [
             f"images/{new_digest}"
         ]
         assert f"images/{historical['sha256']}" not in members
         assert f"images/{stream_image['sha256']}" not in members
+        assert f"images/{input_identity['sha256']}" not in members
         assert encoded_new.encode("ascii") not in members[manifest["files"]["request.json"]["object"]]
         assert "writer.lock" not in restored and ".harness_tmp/transport.tmp" not in restored
 

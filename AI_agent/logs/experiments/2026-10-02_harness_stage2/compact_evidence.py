@@ -25,6 +25,7 @@ SOURCE_MANIFEST_PATH = DIRECTORY / "source_manifest.json"
 SCHEMA = "harness-stage2-compact-evidence/v1"
 MANIFEST_MEMBER = "manifest.json"
 MARKER_PREFIX = "__STAGE2_IMAGE_SHA256_"
+RUN99_INPUTS_SHA256 = "22c0899023689e9f33b8071dc27910129c47472117aff796e6ea5cf148f4f5de"
 _MARKER_RE = re.compile(
     rb"__STAGE2_IMAGE_SHA256_([0-9a-f]{64})__"
 )
@@ -81,12 +82,27 @@ def _at_path(value: Any, path: list[Any]) -> Any:
     return value
 
 
+def _png_size(data: bytes) -> tuple[int, int]:
+    if len(data) < 24 or not data.startswith(b"\x89PNG\r\n\x1a\n") or data[12:16] != b"IHDR":
+        raise ValueError("historical input image is not a PNG with an IHDR")
+    width = int.from_bytes(data[16:20], "big")
+    height = int.from_bytes(data[20:24], "big")
+    if width <= 0 or height <= 0:
+        raise ValueError("historical input PNG has invalid dimensions")
+    return width, height
+
+
 class _HistoricalImages:
     """Resolve only image origins admitted by the checked-in run99 fixture."""
 
     def __init__(self) -> None:
         fixture = json.loads(FIXTURE_PATH.read_bytes())
         source_manifest = json.loads(SOURCE_MANIFEST_PATH.read_bytes())
+        historical_run = fixture.get("historical_run")
+        if not isinstance(historical_run, str) or Path(historical_run).name != historical_run:
+            raise ValueError("run99 fixture has an invalid historical directory")
+        self._history_relative = f"AI_agent/logs/experiments/{historical_run}"
+        self._history_directory = _root_path(self._history_relative)
         stream = source_manifest["sources"]["agent_stream"]
         self._stream_source = {
             "path": stream["path"],
@@ -130,6 +146,74 @@ class _HistoricalImages:
                     self._descriptors.setdefault(digest, descriptor)
                 else:
                     raise ValueError("run99 fixture has an unsupported image origin")
+        self._admit_original_inputs()
+        self._admit_png_sidecars()
+
+    def _admit_original_inputs(self) -> None:
+        manifest_path = self._history_directory / "inputs.json"
+        manifest_bytes = manifest_path.read_bytes()
+        if _sha256(manifest_bytes) != RUN99_INPUTS_SHA256:
+            raise ValueError("run99 input manifest hash mismatch")
+        manifest = json.loads(manifest_bytes)
+        images = manifest.get("images")
+        declared_count = (
+            manifest.get("input_contents", {})
+            .get("original_png_images", {})
+            .get("count")
+        )
+        if not isinstance(images, dict) or len(images) != declared_count or declared_count != 6:
+            raise ValueError("run99 input manifest does not admit exactly six originals")
+        manifest_relative = manifest_path.relative_to(ROOT).as_posix()
+        for name, item in sorted(images.items()):
+            if not isinstance(name, str) or Path(name).name != name or not name.endswith(".png"):
+                raise ValueError("run99 input manifest has an unsafe image name")
+            digest = item.get("sha256")
+            dimensions = item.get("size")
+            if (
+                not isinstance(digest, str)
+                or not _HEX_RE.fullmatch(digest)
+                or not isinstance(dimensions, list)
+                or len(dimensions) != 2
+                or any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
+                       for value in dimensions)
+            ):
+                raise ValueError("run99 input manifest has an invalid image identity")
+            path = self._history_directory / "images" / name
+            data = path.read_bytes()
+            if _sha256(data) != digest or _png_size(data) != tuple(dimensions):
+                raise ValueError("run99 original image differs from its input manifest")
+            descriptor = {
+                "kind": "historical_file",
+                "admission": "run99_original_input",
+                "path": path.relative_to(ROOT).as_posix(),
+                "file_sha256": digest,
+                "image_sha256": digest,
+                "byte_size": len(data),
+                "pixel_size": dimensions,
+                "manifest_path": manifest_relative,
+                "manifest_sha256": RUN99_INPUTS_SHA256,
+            }
+            self._descriptors.setdefault(digest, descriptor)
+
+    def _admit_png_sidecars(self) -> None:
+        # Deliberately bounded to the single historical run named by the
+        # fixture. This does not turn the rest of the repository into an
+        # implicit image source.
+        for path in sorted(self._history_directory.rglob("*.png")):
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("run99 PNG sidecar must be a regular file")
+            data = path.read_bytes()
+            digest = _sha256(data)
+            descriptor = {
+                "kind": "historical_file",
+                "admission": "run99_png_sidecar",
+                "historical_directory": self._history_relative,
+                "path": path.relative_to(ROOT).as_posix(),
+                "file_sha256": digest,
+                "image_sha256": digest,
+                "byte_size": len(data),
+            }
+            self._descriptors.setdefault(digest, descriptor)
 
     def descriptor(self, digest: str) -> dict[str, Any] | None:
         descriptor = self._descriptors.get(digest)
@@ -145,6 +229,10 @@ class _HistoricalImages:
             data = path.read_bytes()
             if _sha256(data) != expected["file_sha256"]:
                 raise ValueError("historical image file hash mismatch")
+            if expected.get("admission") == "run99_original_input" and list(
+                _png_size(data)
+            ) != expected["pixel_size"]:
+                raise ValueError("historical input image dimensions mismatch")
         else:
             if self._stream_lines is None:
                 container = path.read_bytes()
