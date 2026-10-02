@@ -1,6 +1,6 @@
 # 统一 Agent 底座与建筑共用层开发计划
 
-10-02 由 Opus 与 Astra 讨论定稿，交用户。依据：[调研报告](../logs/experiments/2026-10-02_harness_research/astra_report.md)、两轮讨论（[第一轮](../logs/experiments/2026-10-02_harness_research/discussion_01_astra.md)、[第二轮](../logs/experiments/2026-10-02_harness_research/discussion_02_astra.md)）、[讨论记录](../logs/worklog/2026-10-02_reconstruction_discussion.md)。
+10-02 由 Opus 与 Astra 讨论定稿，交用户。各阶段验收标准与结论见[验收记录](unified_agent_acceptance.md)。依据：[调研报告](../logs/experiments/2026-10-02_harness_research/astra_report.md)、两轮讨论（[第一轮](../logs/experiments/2026-10-02_harness_research/discussion_01_astra.md)、[第二轮](../logs/experiments/2026-10-02_harness_research/discussion_02_astra.md)）、[讨论记录](../logs/worklog/2026-10-02_reconstruction_discussion.md)。
 
 用户已确定的前提：
 - 工作模型现在就换，不再等 Sonnet 恢复；
