@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import gzip
 import hashlib
+import importlib.util
 import json
-import os
-import subprocess
-import sys
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -134,12 +132,18 @@ def test_sol_bridge_call_and_return_are_exact_archived_records() -> None:
 
 def test_extractor_is_deterministic_and_preserves_historical_sources(tmp_path: Path) -> None:
     before = {entry["path"]: digest(ROOT / entry["path"]) for entry in fixture_sources()}
-    environment = os.environ.copy()
-    environment["TMPDIR"] = str(tmp_path)
     first = {path.name: path.read_bytes() for path in FIXTURES.glob("*.json")}
-    subprocess.run([sys.executable, str(EXTRACTOR)], cwd=ROOT, env=environment, check=True)
-    second = {path.name: path.read_bytes() for path in FIXTURES.glob("*.json")}
-    subprocess.run([sys.executable, str(EXTRACTOR)], cwd=ROOT, env=environment, check=True)
-    third = {path.name: path.read_bytes() for path in FIXTURES.glob("*.json")}
+    spec = importlib.util.spec_from_file_location("stage0_extract_sources", EXTRACTOR)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    # Other workers read the checked-in fixtures. Generate into this test's
+    # directory so they can never observe a truncated file during write_text.
+    module.OUT = tmp_path / "first"
+    module.main()
+    second = {path.name: path.read_bytes() for path in module.OUT.glob("*.json")}
+    module.OUT = tmp_path / "second"
+    module.main()
+    third = {path.name: path.read_bytes() for path in module.OUT.glob("*.json")}
     assert first == second == third
+    assert first == {path.name: path.read_bytes() for path in FIXTURES.glob("*.json")}
     assert before == {path: digest(ROOT / path) for path in before}

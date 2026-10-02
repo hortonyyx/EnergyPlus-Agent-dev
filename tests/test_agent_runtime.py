@@ -322,9 +322,35 @@ def test_core_budget_does_not_coerce_noninteger_tokens(bad):
 
 
 def test_unknown_cost_is_valid_without_money_budget_but_cannot_fake_money_limit():
+    from decimal import Decimal
+
     reservation = BudgetReservation(reservation_id="a", purpose="primary_task", task_id="t",
                                     amounts=BudgetAmounts(tokens=100, calls=1))
     settlement = BudgetSettlement(reservation_id="a", actual=BudgetAmounts(calls=1),
         usage=UsageMissing(reason="no receipt"), cost=CostUnavailable(reason="no bill"))
     BudgetLedger(total_limit=BudgetAmounts(tokens=100, calls=1),
                  reservations=(reservation,), settlements=(settlement,))
+    with pytest.raises(ValidationError, match="unknown cost cannot settle"):
+        BudgetLedger(total_limit=BudgetAmounts(tokens=100, calls=1, money_usd=Decimal("1")),
+            reservations=(reservation.model_copy(update={"amounts": BudgetAmounts(
+                tokens=100, calls=1, money_usd=Decimal("1"))}),), settlements=(settlement,))
+
+
+def test_runtime_core_imports_stay_independent_of_building_layer():
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    for file in (root / "src/agent_runtime").glob("*.py"):
+        for node in ast.walk(ast.parse(file.read_text(), filename=str(file))):
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                assert node.level <= 1, (file.name, "cannot import parent application")
+                names = [node.module or ""] if not node.level else []
+            else:
+                continue
+            for name in names:
+                assert name not in {"src", "agent", "scripts"}, (file.name, name)
+                assert not name.startswith(("src.agent.", "scripts.")), (file.name, name)
+                assert name != "src.agent", (file.name, name)
