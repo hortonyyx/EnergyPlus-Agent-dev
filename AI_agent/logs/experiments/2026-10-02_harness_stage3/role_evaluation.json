@@ -1,6 +1,6 @@
 {
   "schema_version": "stage3-human-review-v1",
-  "status": "baseline_complete_followup_pending",
+  "status": "baseline_and_followup_complete_final_pending",
   "method": "逐张原图查看与模型原图定位框复核；所有运行均保留，不按JSON合法性、关键词或参考框IoU自动评分。",
   "baseline_summary": {
     "no_result": 13,
@@ -267,6 +267,87 @@
       "input_kind": "mesh_render",
       "information_sufficiency": "insufficient",
       "status": "tool_budget_exhausted"
+    },
+    {
+      "run_id": "followup_01_27b",
+      "case_id": "drawing_sm24_east_window_levels",
+      "model": "Qwen3.8-27B",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "failed",
+      "batch": "roles_followup",
+      "verdict": "no_result",
+      "reason": "模型已经使用有效图片名并成功执行只读工具；第二次更新剩余额度时缺少状态版本递增，触发ValueError，未形成可评价答案。属于实现缺陷，原请求、工具回包与服务用量保留，不作读图正确性评价。",
+      "evaluation_boundary": "没有答案；不能按工具调用看起来合理判内容正确。所有失败保留，修复后另立完整固定矩阵。"
+    },
+    {
+      "run_id": "followup_01_flash",
+      "case_id": "drawing_sm24_east_window_levels",
+      "model": "Qwen3.8-Flash",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "failed",
+      "batch": "roles_followup",
+      "verdict": "no_result",
+      "reason": "模型已经使用有效图片名并成功执行只读工具；第二次更新剩余额度时缺少状态版本递增，触发ValueError，未形成可评价答案。属于实现缺陷，原请求、工具回包与服务用量保留，不作读图正确性评价。",
+      "evaluation_boundary": "没有答案；不能按工具调用看起来合理判内容正确。所有失败保留，修复后另立完整固定矩阵。"
+    },
+    {
+      "run_id": "followup_02_27b",
+      "case_id": "drawing_sm24_west_window_levels",
+      "model": "Qwen3.8-27B",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "failed",
+      "batch": "roles_followup",
+      "verdict": "no_result",
+      "reason": "模型已经使用有效图片名并成功执行只读工具；第二次更新剩余额度时缺少状态版本递增，触发ValueError，未形成可评价答案。属于实现缺陷，原请求、工具回包与服务用量保留，不作读图正确性评价。",
+      "evaluation_boundary": "没有答案；不能按工具调用看起来合理判内容正确。所有失败保留，修复后另立完整固定矩阵。"
+    },
+    {
+      "run_id": "followup_02_flash",
+      "case_id": "drawing_sm24_west_window_levels",
+      "model": "Qwen3.8-Flash",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "failed",
+      "batch": "roles_followup",
+      "verdict": "no_result",
+      "reason": "模型已经使用有效图片名并成功执行只读工具；第二次更新剩余额度时缺少状态版本递增，触发ValueError，未形成可评价答案。属于实现缺陷，原请求、工具回包与服务用量保留，不作读图正确性评价。",
+      "evaluation_boundary": "没有答案；不能按工具调用看起来合理判内容正确。所有失败保留，修复后另立完整固定矩阵。"
+    },
+    {
+      "run_id": "followup_03_27b",
+      "case_id": "drawing_sm24_plan_outer_chain",
+      "model": "Qwen3.8-27B",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "failed",
+      "batch": "roles_followup",
+      "verdict": "no_result",
+      "reason": "模型已经使用有效图片名并成功执行只读工具；第二次更新剩余额度时缺少状态版本递增，触发ValueError，未形成可评价答案。属于实现缺陷，原请求、工具回包与服务用量保留，不作读图正确性评价。",
+      "evaluation_boundary": "没有答案；不能按工具调用看起来合理判内容正确。所有失败保留，修复后另立完整固定矩阵。"
+    },
+    {
+      "run_id": "followup_03_flash",
+      "case_id": "drawing_sm24_plan_outer_chain",
+      "model": "Qwen3.8-Flash",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "failed",
+      "batch": "roles_followup",
+      "verdict": "no_result",
+      "reason": "模型已经使用有效图片名并成功执行只读工具；第二次更新剩余额度时缺少状态版本递增，触发ValueError，未形成可评价答案。属于实现缺陷，原请求、工具回包与服务用量保留，不作读图正确性评价。",
+      "evaluation_boundary": "没有答案；不能按工具调用看起来合理判内容正确。所有失败保留，修复后另立完整固定矩阵。"
     }
-  ]
+  ],
+  "followup_summary": {
+    "no_result": 6
+  }
 }
