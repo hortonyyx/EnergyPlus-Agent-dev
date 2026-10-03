@@ -1,0 +1,48 @@
+{
+  "schema_version": "runtime-r1-facade-cases/v1",
+  "suite_id": "sm24-four-facade-concurrency-2026-10-03",
+  "purpose": "Fixed run-side questions; no evaluation answers or GT",
+  "model": "Qwen3.8-27B",
+  "cases": [
+    {
+      "case_id": "north",
+      "facade": "north",
+      "image": "case_tests/e2e_tests/sm24_anchor/case_data/North_view.png",
+      "image_name": "North_view.png",
+      "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "image_size": [2890, 1651],
+      "question": "Read only the supplied north elevation. Identify every drawn window, excluding doors, from left to right and count windows for each drawn floor. The full original drawing is already supplied; do not call tools. Put each window in its own directly_seen item with a tight original-image pixel box and use exactly: WINDOW floor=F1 order=N width_mm=N sill_m=N.NN head_m=N.NN. Add one directly_seen item using exactly: COUNT floor=F1 windows=N. State the visible dimension annotations in the same statements after those required fields. Use uncertain only for a quantity that truly cannot be read. Return the required observer JSON directly.",
+      "budget": {"model_calls": 2, "tool_calls": 0, "tokens": 90000, "seconds": 360}
+    },
+    {
+      "case_id": "south",
+      "facade": "south",
+      "image": "case_tests/e2e_tests/sm24_anchor/case_data/South_view.png",
+      "image_name": "South_view.png",
+      "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+      "image_size": [2434, 1457],
+      "question": "Read only the supplied south elevation. Identify every drawn window, excluding doors, from left to right and count windows for each drawn floor. The full original drawing is already supplied; do not call tools. Put each window in its own directly_seen item with a tight original-image pixel box and use exactly: WINDOW floor=F1 order=N width_mm=N sill_m=N.NN head_m=N.NN. Add one directly_seen item using exactly: COUNT floor=F1 windows=N. State the visible dimension annotations in the same statements after those required fields. Use uncertain only for a quantity that truly cannot be read. Return the required observer JSON directly.",
+      "budget": {"model_calls": 2, "tool_calls": 0, "tokens": 90000, "seconds": 360}
+    },
+    {
+      "case_id": "east",
+      "facade": "east",
+      "image": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+      "image_name": "East_view.png",
+      "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "image_size": [2639, 931],
+      "question": "Read only the supplied east elevation. Identify every drawn window, excluding doors, from left to right and count windows for each drawn floor. The full original drawing is already supplied; do not call tools. Put each window in its own directly_seen item with a tight original-image pixel box and use exactly: WINDOW floor=F1 order=N width_mm=N sill_m=N.NN head_m=N.NN. Add one directly_seen item using exactly: COUNT floor=F1 windows=N. State the visible dimension annotations in the same statements after those required fields. Use uncertain only for a quantity that truly cannot be read. Return the required observer JSON directly.",
+      "budget": {"model_calls": 2, "tool_calls": 0, "tokens": 90000, "seconds": 360}
+    },
+    {
+      "case_id": "west",
+      "facade": "west",
+      "image": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png",
+      "image_name": "West_view.png",
+      "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+      "image_size": [2580, 993],
+      "question": "Read only the supplied west elevation. Identify every drawn window, excluding doors, from left to right and count windows for each drawn floor. The full original drawing is already supplied; do not call tools. Put each window in its own directly_seen item with a tight original-image pixel box and use exactly: WINDOW floor=F1 order=N width_mm=N sill_m=N.NN head_m=N.NN. Add one directly_seen item using exactly: COUNT floor=F1 windows=N. State the visible dimension annotations in the same statements after those required fields. Use uncertain only for a quantity that truly cannot be read. Return the required observer JSON directly.",
+      "budget": {"model_calls": 2, "tool_calls": 0, "tokens": 90000, "seconds": 360}
+    }
+  ]
+}

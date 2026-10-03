@@ -1,0 +1,43 @@
+{
+  "schema_version": "runtime-r1-facade-references/v1",
+  "suite_id": "sm24-four-facade-concurrency-2026-10-03",
+  "evaluation_side_only": true,
+  "policy": "Compare each reported sill and head with the as-drawn reference at 0.05 m inclusive tolerance. Count windows per floor, exclude doors, and review original-pixel boxes. These bytes are never loaded by the run command.",
+  "cases": [
+    {
+      "case_id": "north", "facade": "north", "expected_count_by_floor": {"F1": 1},
+      "expected_windows": [
+        {"order": 1, "width_mm": 4800, "sill_m": 1.0, "head_m": 3.4, "expected_bbox_px": [700, 570, 1520, 1000], "special_4800_east_west": false}
+      ],
+      "basis": [{"path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/North_view.json", "sha256": "e7f5709b810f98cf38be0c09c8d3fdd7b0b5b084641b85048ebe340ddeb50166", "selector": "/strokes/S2,/dimensions/D_bot,D_left"}]
+    },
+    {
+      "case_id": "south", "facade": "south", "expected_count_by_floor": {"F1": 2},
+      "expected_windows": [
+        {"order": 1, "width_mm": 1500, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [540, 570, 790, 860], "special_4800_east_west": false},
+        {"order": 2, "width_mm": 1500, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [1670, 570, 1930, 860], "special_4800_east_west": false}
+      ],
+      "basis": [{"path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/South_view.json", "sha256": "db053d2419c600ca191c9f125b89d690bd0e440e6c074aef7a65fe8f460386ba", "selector": "/strokes/S2:S3,/dimensions/D_bot,D_left,D_right"}]
+    },
+    {
+      "case_id": "east", "facade": "east", "expected_count_by_floor": {"F1": 3},
+      "expected_windows": [
+        {"order": 1, "width_mm": 4800, "sill_m": 1.0, "head_m": 3.4, "expected_bbox_px": [1200, 300, 1670, 540], "special_4800_east_west": true},
+        {"order": 2, "width_mm": 1200, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [1720, 350, 1860, 540], "special_4800_east_west": false},
+        {"order": 3, "width_mm": 1500, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [2055, 350, 2230, 540], "special_4800_east_west": false}
+      ],
+      "basis": [{"path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/East_view.json", "sha256": "46447deaeef8735d81105e520f9eae56f12aa928e4d882d4757b4df7c35510c9", "selector": "/strokes/S2:S4,/dimensions/D_bot,D_mid,D_right"}]
+    },
+    {
+      "case_id": "west", "facade": "west", "expected_count_by_floor": {"F1": 5},
+      "expected_windows": [
+        {"order": 1, "width_mm": 1500, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [390, 410, 550, 615], "special_4800_east_west": false},
+        {"order": 2, "width_mm": 1200, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [755, 410, 895, 615], "special_4800_east_west": false},
+        {"order": 3, "width_mm": 1500, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [1030, 410, 1200, 615], "special_4800_east_west": false},
+        {"order": 4, "width_mm": 1500, "sill_m": 1.0, "head_m": 2.8, "expected_bbox_px": [1290, 410, 1460, 615], "special_4800_east_west": false},
+        {"order": 5, "width_mm": 4800, "sill_m": 1.0, "head_m": 3.4, "expected_bbox_px": [1720, 350, 2205, 615], "special_4800_east_west": true}
+      ],
+      "basis": [{"path": "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/0_reading/West_view.json", "sha256": "d9d291d3fd6649d5034063666a481b95757ca5d1518a44b71c503152a305e375", "selector": "/strokes/S2:S6,/dimensions/D_bot,D_left,D_right"}]
+    }
+  ]
+}
