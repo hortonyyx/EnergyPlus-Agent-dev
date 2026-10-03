@@ -1,59 +1,43 @@
-# 阶段 3 开发与交付入口
+# 阶段 3：交付收尾中
 
-依据 [派工单](brief.md)，起点 `0662d205`，工作树 `.worktrees/astra-stage3`，分支
-`dev/astra-stage3-20261002`。本页是实施记录，正式验收由 Opus 维护。
+派工起点 `0662d205`；专用工作树 `.worktrees/astra-stage3`，分支 `dev/astra-stage3-20261002`。
+最终运行源码为 `dd4bc0b9`，源码逐文件哈希见 [代码身份](validation/final_code_identity.json)。
+本树未合入 main、未 push；正式验收由 Opus 维护，本页不代表验收通过。
 
-当前正在实施，尚未声明阶段通过。所有写入限定本树，不合入或推送 main。
+## 交付入口
 
-## 当前续接点
+- [中文交付报告](delivery_report.md)：阶段 3 A–I、自评边界、阶段 2 跟进、用量和后续安排。
+- [三批结果定稿](role_results.md)、[全部评价](role_evaluation.json)、[原图定位复核页](role_review.html)：32 组合全保留。
+- [逐请求用量与偏差](role_usage.json)、[12 次估算校准](calibration/README.md)。
+- [最终离线回归](validation.json)、[MCP 演示](validation/offline_demo_20261003.json)、[交付归档核验](delivery_verification.json)、[范围与凭据检查](scope_audit.json)。
+- [无损归档](evidence_all.compact.tar.xz)、[完整改动与提交索引](changes.json)。
+- [首批整案方案](full_case_proposal.md)：sm24 还原、Voimatalo 部分推理各一次，尚未批准、尚未运行。
+- [实施记录](../../worklog/2026-10-02_astra_harness_stage3.md)与[三批协议说明](role_followup_plan.md)。
 
-10-03 续接：全部32个角色组合评价已完成并提交 `4bcf452b`。角色请求仍为42/60，校准12/20，本次禁止新增Paratera请求。根额度两个原反例已修，补查恢复路径修正一处子任务预留范围，三项定向检查通过。正在最终代码上重跑全套离线检查和交付归档核验。旧运行与红灯日志保留，下方较早记录仅供追溯。
+## 续接状态
 
-已提交外层 MCP 与委派实现 `3e84a7cb`、估算集成 `ce7d9452`、无损精简归档
-`124506dd`。`.stage3-work/` 为本轮树内临时工作目录，保留原始运行，忽略入仓。
+10-02 后台两小时硬时限中断，末提交 `9da40977`；10-03 按 Opus 指令完成西立面及平面人工评价，修复根工具额度/直接工具时限，并补齐恢复时兄弟预留范围检查。最终241项离线验证和归档核验全部完成，正在整理提交索引后交付。
 
-- 校准已完成：12 次，15,708 token；见 `calibration/`，没有重试。
-- 最终代码的离线 MCP 演示：`.stage3-work/offline_final/verification.json`，91 条
-  事件，3 个脚本模型响应，真实 API 0；裁图、真实修改、旧结果拒绝、越权、
-  子预算与重连均通过。该演示的 token 是脚本数据，不计实报用量。
-- 短联合回归：218 通过，原日志 `.stage3-work/validation/short.*`。
-- 阶段 2 长故障矩阵 10 通过；真实工具长回归首次为 1 失败、2 通过，原因是
-  测试仍断言旧估算公式。只更新该断言后，正式 3 项复验全部通过（387秒），
-  保留 `.stage3-work/validation/frozen_final.*`。当前去重共 231 项通过。
-- 固定角色小测已在 `.stage3-work/roles/` 完成20个组合、21次实际请求。`protocol.json` 绑定题单、
-  参数和源码；`role_requests.jsonl` 是实际发送票据账，重启不重置额度。
-  已完成题保留在各 run 的 `role_case.json`，汇总 `index.json`。
-- 基线人工评价6通过、1部分通过、13无答案；逐条见 `role_evaluation.json`。
-  问题集中在未下发具体预算、图片名误填和已知拒绝被误作未知异常；一次
-  超时无服务usage，保留未知占用。缺漏与失败不删除，也不据此给模型排名。
-- 通用接口修复已提交 `580ea9f1`；16项定向检查通过。修复后演示在
-  `.stage3-work/offline_followup/verification.json`，仍为91事件/3脚本调用/0API。
-- 独立图纸复验正在 `.stage3-work/roles_followup/` 执行；固定6个组合，
-  每题至多3请求，仍共用基线60次账，见 `role_followup_plan.md`。恢复必须
-  使用 `run_role_followup.py` 的已保存协议，不再运行旧基线驱动覆盖结果。
-- 最终短回归、长故障矩阵和真实冻结工具75步回归正在
-  `.stage3-work/validation_final/` 并行执行，均为离线脚本模型。
+角色账 **42/60**（41 次实报、1 次超时用量未知），估算校准 **12/20**。10-03 续接外部调用 **0**，无新子代理。本批已关闭，剩余额度不自动使用；没有待启动模型或整案任务。角色最终六组数值 6/6、关键定位 5/6、接口收下 4/6、综合通过 3/6，全部三批对错见结果表，不能混作同条件排名。
 
-尚待：六个复验结果的人工评价、最终回归完成、交付归档
-独立核验、最终报告与提交。`build_role_review.py` 可生成带原图定位框的本地
-复核页；`summarize_usage.py` 汇总逐请求估算、实报与缺失，价格仍未核实。
-恢复时先读实际请求账和进程状态，不重新发送已完成题。
+下一步仅为 Opus 验收、汇总整案方案后报用户决定。若验收需修复，先读当前 HEAD、状态与本目录；不要重新发送完成题、覆盖旧运行、修补原始答案或把历史回包当成当前源码运行。已有类型名依 10-03 指令保持。
 
-## 工作包与续接
+## 离线复核
 
-- Astra：外层 MCP、建筑证据包、实际带图委派、集成、角色小测与交付。
-- `gpt-5.6-sol` / high（estimation）：按模型估算、模型档案和校准，最多 12 次
-  Paratera 请求；其余 8 次校准额度保留，未经本线程安排不自动使用。
-- `gpt-5.6-sol` / high（role_fixtures）：四类输入的角色小测素材及独立参照，不调用模型。
-- `gpt-5.6-sol` / high（child_runtime）：同一事件日志中的父子任务、根预算及子额度，不调用模型。
+在本工作树执行，临时文件也留在树内。这些命令不调用任何模型：
 
-真实角色小测由 Astra 统一安排，累计最多 60 次，逐次请求先落账再发送，失败也计入。
-没有整案实测、DeepSeek 或 GLM 订阅调用。凭据仅只读主工作树 `.env` 的两个
-Paratera 字段，不打印、不保存。
+```bash
+export PYTHONPATH="$PWD:$PWD/tests"
+export PYTHONDONTWRITEBYTECODE=1
+export TMPDIR="$PWD/.stage3-work/tmp"
+python AI_agent/logs/experiments/2026-10-02_harness_stage3/verify_delivery.py --archive AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_all.compact.tar.xz
+python AI_agent/logs/experiments/2026-10-02_harness_stage3/role_cases/evaluate.py validate
+```
 
-实现顺序：估算及校准 → 真实子角色；外层与预算的离线实现可同时推进。
-小测问题及参照先固定，失败、超时、格式错误与正确答案一起报告。
-新证据按哈希引用仓库已有图片字节，最终交付包尽量约 10 MB。
+精简归档恢复后每个文件的字节数和 SHA-256 都须相符；仓库原图仅按路径/哈希引用，未重复入包。若需落盘，选择本树内一个不存在的新目录：
 
-每个完成的独立能力小步英文提交。恢复本线程时先看本页、`git log` 和
-`git status`，再检查校准与小测请求账；不要仅凭脚本退出码补跑模型。
+```bash
+python AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_pack.py restore --archive AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_all.compact.tar.xz --output .stage3-work/restored_delivery
+```
+
+原始工作记录继续保存在被忽略的 `.stage3-work/roles`、`roles_followup`、`roles_final`，最终演示为 `offline_delivery_20261003`，最终测试为 `validation_20261003`。旧 `validation_final` 红灯及旧批次没有删除，必要证据另存于本目录 `validation/`。外层 Codex 内部请求及开发子代理用量未获取；归档中的脚本 usage 不计入 Paratera 消耗。

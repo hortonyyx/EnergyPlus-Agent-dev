@@ -1,15 +1,14 @@
 {
   "status": "passed",
-  "code_commit": "dd4bc0b9",
-  "code_identity": "validation/final_code_identity.json",
-  "distinct_passed": 241,
+  "code_commit": "5291bed0",
+  "distinct_passed": 238,
   "groups": [
     {
-      "group": "short",
-      "passed": 228,
+      "group": "short_after_fix",
+      "passed": 225,
       "failures": 0,
       "errors": 0,
-      "seconds": 117.477,
+      "seconds": 65.63,
       "command": [
         "/opt/venv/bin/python",
         "-m",
@@ -41,22 +40,21 @@
         "tests/test_runtime_role_cases.py",
         "tests/test_runtime_stage3_evidence.py",
         "tests/test_runtime_time_settlement.py",
-        "tests/test_runtime_coordinator_root_limits.py",
-        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/short-tmp",
-        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/short.xml",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/short_after_fix-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/short_after_fix.xml",
         "-o",
-        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/cache-short"
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/cache-short_after_fix"
       ],
       "returncode": 0,
-      "log": "validation/final_short.log",
-      "junit": "validation/final_short.xml"
+      "log": "validation/short_after_fix.log",
+      "junit": "validation/short_after_fix.xml"
     },
     {
       "group": "long",
       "passed": 10,
       "failures": 0,
       "errors": 0,
-      "seconds": 612.88,
+      "seconds": 627.423,
       "command": [
         "/opt/venv/bin/python",
         "-m",
@@ -66,21 +64,21 @@
         "2",
         "-s",
         "tests/test_runtime_long_task.py",
-        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/long-tmp",
-        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/long.xml",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/long-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/long.xml",
         "-o",
-        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/cache-long"
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/cache-long"
       ],
       "returncode": 0,
-      "log": "validation/final_long.log",
-      "junit": "validation/final_long.xml"
+      "log": "validation/long.log",
+      "junit": "validation/long.xml"
     },
     {
       "group": "frozen",
       "passed": 3,
       "failures": 0,
       "errors": 0,
-      "seconds": 416.398,
+      "seconds": 408.341,
       "command": [
         "/opt/venv/bin/python",
         "-m",
@@ -90,14 +88,14 @@
         "2",
         "-s",
         "tests/test_runtime_frozen_long_task.py",
-        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/frozen-tmp",
-        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/frozen.xml",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/frozen-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/frozen.xml",
         "-o",
-        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/cache-frozen"
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_final/cache-frozen"
       ],
       "returncode": 0,
-      "log": "validation/final_frozen.log",
-      "junit": "validation/final_frozen.xml"
+      "log": "validation/frozen.log",
+      "junit": "validation/frozen.xml"
     }
   ],
   "real_provider_calls_in_validation": 0,
@@ -108,7 +106,7 @@
     "pytest_capture": "disabled (-s) due filesystem anonymous temporary-file issue",
     "pytest_workers": 2
   },
-  "reused_evidence": "None: all three groups rerun on the final runtime source on 2026-10-03.",
+  "reused_evidence": "Long and frozen regressions cover unchanged core paths after the last observer-only state revision fix; the complete short suite was rerun after that fix.",
   "earlier_failures": [
     {
       "issue": "Old frozen replay assertion assumed byte/pixel token formula",
@@ -123,18 +121,6 @@
     {
       "issue": "New time-settlement branch called uninitialized wall-clock fields in existing direct _settle test",
       "resolution": "Uses persisted root/task budget comparison; raw violation and observed time retained. Targeted16 and final short225 passed."
-    },
-    {
-      "issue": "Child tools bypassed root tool cap; direct coordinator frozen calls had no root timeout",
-      "resolution": "Root global invocation checks at response and pending execution; direct tools bounded by remaining root time; original two failures now pass.",
-      "red": "validation/root_limits_red.log",
-      "green": "validation/root_limits_green.log"
-    },
-    {
-      "issue": "Added resume counterexample exposed sibling reservations being compared with task-local requests",
-      "resolution": "Resume checks current-task reservation ledger; recovered pending call rechecks shared root cap. Three root-limit tests pass.",
-      "red": "validation/root_limits_recovery_red.log",
-      "green": "validation/root_limits_green.log"
     }
   ]
 }

@@ -1,0 +1,271 @@
+{
+  "archive": {
+    "bytes": 4024912,
+    "name": "evidence_all.compact.tar.xz",
+    "restoration": "verified_mapping",
+    "sha256": "dfcfed4cbc249fe3c3c0acc2265d7fb154b2d32b87f317e0c5ad668ca9bc2885"
+  },
+  "checks": [
+    {
+      "evidence": {
+        "files": 2713,
+        "roots": [
+          "offline_demo",
+          "offline_driver",
+          "role_final",
+          "role_followup",
+          "role_tests"
+        ]
+      },
+      "name": "archive_roots",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "blobs": 1552,
+        "bytes": 72581832
+      },
+      "name": "blob_inventory",
+      "status": "passed"
+    },
+    {
+      "name": "event_inventory",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "blob_references": 2488,
+        "events": 1204,
+        "runs": 33
+      },
+      "name": "complete_event_logs",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "child_tasks": 36,
+        "root_ledger_reservations": 45,
+        "root_ledger_settlements": 44,
+        "tasks": 69
+      },
+      "name": "task_parentage_and_root_ledger",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "adapter_requests": 45,
+        "images": 45,
+        "injections": 223
+      },
+      "name": "request_injections_and_images",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "budget_stops_before_request": 1,
+        "localized_boxes": 73,
+        "localized_results": 13,
+        "packages": 36
+      },
+      "name": "child_evidence_packages",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "matched_returns": 209,
+        "operations_or_dispatches": 209,
+        "outer_missing_markers": 487,
+        "outer_model_request": "missing",
+        "outer_model_usage": "missing"
+      },
+      "name": "external_operation_returns",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "baseline": {
+          "cases": 10,
+          "groups": {
+            "drawing": 3,
+            "information_insufficient": 2,
+            "mesh_render": 3,
+            "photo_surrogate": 2
+          },
+          "model_requests": 21,
+          "models": 2,
+          "prior_attempts_at_start": null,
+          "questions": 20,
+          "request_cap": 60,
+          "semantic_correctness": "not_evaluated"
+        },
+        "final": {
+          "cases": 3,
+          "groups": {
+            "drawing": 3
+          },
+          "model_requests": 13,
+          "models": 2,
+          "prior_attempts_at_start": 29,
+          "questions": 6,
+          "request_cap": 18,
+          "semantic_correctness": "not_evaluated"
+        },
+        "followup": {
+          "cases": 3,
+          "groups": {
+            "drawing": 3
+          },
+          "model_requests": 8,
+          "models": 2,
+          "prior_attempts_at_start": null,
+          "questions": 6,
+          "request_cap": 18,
+          "semantic_correctness": "not_evaluated"
+        },
+        "model_requests": 42,
+        "questions": 32,
+        "semantic_correctness": "not_evaluated"
+      },
+      "name": "role_question_coverage",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "attempts": 42,
+        "attempts_without_reported_usage": 1,
+        "failures": 1,
+        "limit": 60,
+        "missing_usage_responses": 0,
+        "reported_usage": {
+          "completion_tokens": 204391,
+          "prompt_tokens": 374839,
+          "total_tokens": 579230
+        },
+        "responses": 41
+      },
+      "name": "role_request_quota",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "attempts": 12,
+        "attempts_sha256": "72a76a72844083be5d01522e5d0a93c6a375ec704a4d025f768cd754a7c51144",
+        "limit": 20,
+        "reported_usage": {
+          "completion_tokens": 34,
+          "prompt_tokens": 15674,
+          "total_tokens": 15708
+        },
+        "summary_sha256": "423edf17e9c842422ce985f69d0925b927ed64ce3328da7f2943e4e2a351280c"
+      },
+      "name": "calibration_usage",
+      "status": "passed"
+    },
+    {
+      "evidence": {
+        "current_source_matches": 48,
+        "protocols": 3,
+        "recorded_historical_versions": 11,
+        "source_file_records": 59
+      },
+      "name": "recorded_protocol_sources",
+      "status": "passed"
+    }
+  ],
+  "evidence_counts": {
+    "adapter_requests": 45,
+    "events": 1204,
+    "runs": 33
+  },
+  "findings": [],
+  "privacy": {
+    "credentials_emitted": false,
+    "request_content_emitted": false,
+    "response_content_emitted": false
+  },
+  "provider_usage": {
+    "calibration": {
+      "attempts": 12,
+      "attempts_sha256": "72a76a72844083be5d01522e5d0a93c6a375ec704a4d025f768cd754a7c51144",
+      "limit": 20,
+      "reported_usage": {
+        "completion_tokens": 34,
+        "prompt_tokens": 15674,
+        "total_tokens": 15708
+      },
+      "summary_sha256": "423edf17e9c842422ce985f69d0925b927ed64ce3328da7f2943e4e2a351280c"
+    },
+    "combined_attempts": 54,
+    "combined_reported": {
+      "completion_tokens": 204425,
+      "prompt_tokens": 390513,
+      "total_tokens": 594938
+    },
+    "offline_scripted_usage": "excluded",
+    "outer_coordinator_request": "missing",
+    "outer_coordinator_usage": "missing",
+    "shared_role_quota": {
+      "attempts": 42,
+      "attempts_without_reported_usage": 1,
+      "failures": 1,
+      "limit": 60,
+      "missing_usage_responses": 0,
+      "reported_usage": {
+        "completion_tokens": 204391,
+        "prompt_tokens": 374839,
+        "total_tokens": 579230
+      },
+      "responses": 41
+    }
+  },
+  "role_coverage": {
+    "baseline": {
+      "cases": 10,
+      "groups": {
+        "drawing": 3,
+        "information_insufficient": 2,
+        "mesh_render": 3,
+        "photo_surrogate": 2
+      },
+      "model_requests": 21,
+      "models": 2,
+      "prior_attempts_at_start": null,
+      "questions": 20,
+      "request_cap": 60,
+      "semantic_correctness": "not_evaluated"
+    },
+    "final": {
+      "cases": 3,
+      "groups": {
+        "drawing": 3
+      },
+      "model_requests": 13,
+      "models": 2,
+      "prior_attempts_at_start": 29,
+      "questions": 6,
+      "request_cap": 18,
+      "semantic_correctness": "not_evaluated"
+    },
+    "followup": {
+      "cases": 3,
+      "groups": {
+        "drawing": 3
+      },
+      "model_requests": 8,
+      "models": 2,
+      "prior_attempts_at_start": null,
+      "questions": 6,
+      "request_cap": 18,
+      "semantic_correctness": "not_evaluated"
+    },
+    "model_requests": 42,
+    "questions": 32,
+    "semantic_correctness": "not_evaluated"
+  },
+  "schema": "harness-stage3-delivery-verification/v1",
+  "semantic_correctness": {
+    "reason": "structural verification does not score architectural answer quality",
+    "status": "not_evaluated"
+  },
+  "status": "passed"
+}
