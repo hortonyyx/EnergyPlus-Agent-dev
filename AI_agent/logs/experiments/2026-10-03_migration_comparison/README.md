@@ -25,7 +25,7 @@
 ### 第 1 次（11:13–11:31 UTC）：底座停跑，没有出结果
 
 - 第 12 次请求时，模型思考了 16,377 token，把 16,384 的输出上限全部用完（finish_reason=length）。可见文字只有半句，也没有工具调用。底座把截断当作协议错误处理，直接停掉了整个运行（`incomplete_response`），没有任何补救。
-- 停跑之前一切正常：12 次请求、20 次工具调用，其中 2 次剖面工具因参数错误失败，属于模型侧，基线也有同类报错。模型还在读图阶段，没有保存候选稿。接口实报 478,174 token（其中缓存命中 86,144），按账单单价折算约 0.49 元，不含图片。评分记录见 [`evaluation_attempt_01.json`](evaluation_attempt_01.json)。
+- 停跑之前一切正常：12 次请求、20 次工具调用，其中 2 次剖面工具因参数错误失败，属于模型侧，基线也有同类报错。模型还在读图阶段，没有保存候选稿。接口实报 478,174 token（其中缓存命中 86,144），按账单单价折算约 0.49 元，不含图片。评分记录见 [`evaluation_attempt_01.json`](evaluation_attempt_01.json)；完整运行记录压缩为 [`evidence/attempt_01_run.tar.xz`](evidence/attempt_01_run.tar.xz)（6.1 MB，406 个文件，逐个哈希见 [`attempt_01_manifest.json`](evidence/attempt_01_manifest.json)），被截断的那次回复另存为 [`attempt_01_request_12_truncated_response.json`](evidence/attempt_01_request_12_truncated_response.json)。账单逐行见 [`paratera_bill_2026-10-03.csv`](paratera_bill_2026-10-03.csv)。
 - 被截断的思考是连贯的分析，没有原地打转。截断前，模型已经写明下一步要一次发出 5 个工具调用。
 - 与基线对比：Claude Code 的单次输出上限是 32,000（基线记录 `maxOutputTokens`）。基线自己也有一轮思考约 1.96 万 token、另一轮约 1.37 万；基线前 12 轮的思考合计约 5.6 万，和本次的约 5.1 万相当。所以问题不在思考档。**停跑是两个底座因素共同造成的：新底座的输出上限只有基线的一半，而且一遇到截断就停。按判定口径第 1 条，记为底座引起的失败，本次不通过。**
 
