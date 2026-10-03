@@ -37,7 +37,8 @@ def test_scripted_tool_returns_at_half_near_and_hard_deadline(tmp_path, monkeypa
             results.append("\n".join(c.text for c in content if c.type == "text"))
         assert "已用 0.0／剩余 100.0 分钟" in results[0]
         assert "时间已过半" in results[1] and "upstairs.png" in results[1]
-        assert "停止新的读图" in results[2]
+        assert "停止新范围探索" in results[2] and "有界复核已列严重问题" in results[2]
+        assert "交付并列未决" in results[2]
         assert result.isError and "时间上限已到" in results[3]
         assert not list(run.glob("candidate_*"))
         clock[0] = 6500

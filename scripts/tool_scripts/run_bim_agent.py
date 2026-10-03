@@ -715,8 +715,9 @@ class Toolkit:
         result["claim_application"] = application
         # Keep the saved provenance and its source digest unchanged. Only the
         # model-facing copy drops evidence already in the application file.
-        result["provenance"] = {**result["provenance"],
-            "claim_application": {"file": str(application_path.relative_to(self.run))}}
+        if "provenance" in result:
+            result["provenance"] = {**result["provenance"],
+                "claim_application": {"file": str(application_path.relative_to(self.run))}}
         return result
 
     def log(self, action, data):

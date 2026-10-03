@@ -105,8 +105,9 @@ def time_status(toolkit, *, now=None):
         reminders.append("时间已过半，尚无草稿的楼层图：" + ", ".join(floor_status["missing_draft_images"]) +
                          "。先按已读信息保存全楼草稿、再细化。")
     if total > 0 and remaining < total * .15:
-        reminders.append("剩余不足15%，停止新的读图，只修已列出的问题并交付。" if not toolkit.readonly else
-                         "剩余不足15%，停止新的读图，返回已有观察与未核项。")
+        # C2: the time tail must use the same bounded review rule as FINISHING.
+        reminders.append("剩余不足15%，停止新范围探索；仅有界复核已列严重问题，来不及就交付并列未决。" if not toolkit.readonly else
+                         "剩余不足15%，停止新范围探索，返回已有观察与未核项。")
     if remaining <= 0:
         reminders.append("时间上限已到，停止执行；交最近完整全楼稿，无完整稿则交最近保存稿并标明不完整。")
     return dict(active=True, elapsed_seconds=elapsed, remaining_seconds=remaining,

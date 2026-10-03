@@ -32,6 +32,11 @@ def test_seventh_revision_persists_and_explicit_limit_preserves_prior_candidates
     blocked = toolkit.build(_proposal())
     assert 'candidate budget exhausted' in blocked['error']
     assert blocked['candidate_budget'] == result['candidate_budget']
+    blocked_revision = toolkit.revise(parent, json.dumps([dict(op='set_notes',
+        assumptions=['synthetic revision beyond the limit'], unresolved=[])]))
+    assert blocked_revision['error'] == blocked['error']
+    assert blocked_revision['claim_application']['status'] == 'failed'
+    assert 'provenance' not in blocked_revision
     assert not (run / 'candidate_08').exists()
     assert all(runner.digest(run / name / 'source_model.json') == sha for name, sha in hashes.items())
 
