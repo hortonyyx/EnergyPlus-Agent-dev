@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "batch_id": "migration-comparison-sm24-attempt-03",
+  "approval_required_before_launch": true,
+  "maximum_seconds_per_case": 6000,
+  "cases": [
+    {
+      "case_id": "sm24_glm_paratera",
+      "mode": "single_model",
+      "provider": "paratera",
+      "model": "GLM-5.3-Flash",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "output": "AI_agent/logs/experiments/2026-10-03_migration_comparison/runs/attempt_03_6000s",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment constraints: work directly with the deterministic and visual tools, without review_detail or other delegation.\nBudget: 6000 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 120,
+        "tool_calls": 300,
+        "tokens": 8000000,
+        "seconds": 6000
+      },
+      "expected_usage": {
+        "model_requests": 45,
+        "provider_tokens": 3500000,
+        "basis": "attempt 02 used 22 requests and 1,674,182 reported tokens in 3000 seconds; doubled time, hard stops doubled"
+      },
+      "max_candidates": 24,
+      "context_tokens": 900000,
+      "output_tokens": 32000,
+      "temperature": 1.0,
+      "reasoning_effort": "high",
+      "parameter_difference": "The subscription run used Claude Code effort=medium, whose translation was not captured. GLM's public API accepts low/high/max only. high is the closest explicit supported level; temperature was not reported by the subscription route and is set to the upstream evaluation value 1.0. No retry or fallback. Attempt 02 (Opus, 10-03): output_tokens raised from 16384 to 32000 to match the Claude Code baseline (modelUsage.maxOutputTokens=32000). Attempt 01 stopped at request 12 with finish_reason=length after 16377 reasoning tokens; the baseline itself had one turn of about 19.6k estimated thinking tokens. Everything else is unchanged from the R1 configuration. Attempt 03 (Opus, 10-03): time limit 6000 seconds (the user's 100-minute development cap) because on this route GLM-5.3-Flash thinks about five times more per turn than in the baseline (attempt 02 stopped at 3000 s after one draft); reasoning_effort and the reasoning echo were measured and do not change it. The task text changes only in its budget sentence. Hard stops doubled with the time.",
+      "token_accounting": {
+        "profile": "src/agent_runtime/model_profiles.json:GLM-5.3-Flash",
+        "reasoning_may_exceed_max_tokens": true,
+        "reasoning_token_allowance": 32,
+        "reservation": "input_token_upper_bound + output_tokens + profile.reasoning_token_allowance",
+        "settlement": "Charge full reported total_tokens to root and task; emit budget_overrun when actual exceeds reservation. Continue while root/task capacity remains; stop only the exhausted scope. Never truncate or zero actual usage.",
+        "evidence": "AI_agent/logs/experiments/2026-10-03_runtime_r1/r1b/profile_evidence.json",
+        "limitation": "Allowance 32 rounds observed completion excess 29 upward; not a provider hard limit. Configured root token limit remains 4,000,000; unexpected billed excess is recorded in full and prevents new admission."
+      }
+    }
+  ],
+  "derived_from": "AI_agent/logs/experiments/2026-10-03_migration_comparison/configs/migration_sm24_glm_paratera_output32000.json"
+}
