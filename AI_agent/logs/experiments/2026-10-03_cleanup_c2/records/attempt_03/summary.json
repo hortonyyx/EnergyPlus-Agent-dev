@@ -1,0 +1,916 @@
+{
+  "schema_version": "bim.behaviour.v2",
+  "run": "attempt_03_6000s",
+  "source_format": "event_envelope_jsonl",
+  "model": "GLM-5.3-Flash",
+  "cli": null,
+  "turns": 36,
+  "invocations": 1,
+  "elapsed_seconds": 2512.6497869491577,
+  "tool_calls": 55,
+  "tool_capture_missing": false,
+  "call_errors": 7,
+  "domain_failures": 2,
+  "usable_source_drafts": 4,
+  "tool_errors": 7,
+  "tools": {
+    "inputs": 2,
+    "view_image": 14,
+    "view_pixel_profile": 5,
+    "get_bim_reference": 7,
+    "build_plan_bim": 1,
+    "revise_plan_bim": 2,
+    "record_claim": 9,
+    "decide_claim": 6,
+    "revise_bim": 2,
+    "inspect_candidate": 1,
+    "build_bim": 2,
+    "confirm_claims": 2,
+    "claim_status": 1,
+    "finish_bim": 1
+  },
+  "outcome_definitions": {
+    "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
+    "domain_failures": "normal return with status error/failed, error, or source_geometry_ready=false",
+    "usable_source_drafts": "build/edit/assembly returns source_geometry_ready=true; not a fidelity verdict",
+    "tool_errors": "historical alias of call_errors only",
+    "first_draft_s": "first usable source, including one produced by correcting a failed draft",
+    "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"
+  },
+  "prepared_tool_results": 55,
+  "delivered_tool_results": 55,
+  "undelivered_tool_results": 0,
+  "first_draft_s": 1181.054,
+  "calls_before_first_draft": 16,
+  "first_build_attempt_s": 1181.054,
+  "calls_before_first_build_attempt": 16,
+  "full_views_before_first_build_attempt": 5,
+  "crops_before_first_build_attempt": 4,
+  "pixel_tools_before_first_build_attempt": 4,
+  "first_assembly_s": null,
+  "finish_s": 2474.953,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 4,
+  "pixel_tools_before_first_draft": 4,
+  "crop_scales": [
+    3.0,
+    3.0,
+    4.0,
+    4.0,
+    4.0
+  ],
+  "elevation_crops_by_facade": {},
+  "elevation_overlays_by_facade": {},
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "W2",
+        "W3",
+        "W4",
+        "W5",
+        "W7",
+        "W8",
+        "W10",
+        "W11"
+      ],
+      "sources": [
+        "West_view.png",
+        "East_view.png",
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east",
+        "south",
+        "west"
+      ],
+      "target_facades": [
+        "east",
+        "south",
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "Standard-height window band read from three elevation dimension chains. Each chain runs from the facade top (z=4.5 m, the chain origin; all four facades' vertical chains sum to 4500 mm) downward in drawing order: 1700 wall band above the window head, 1800 window height, 1000 sill above floor. Segment 1 (zero-based) is the 1800 mm window extent, giving absolute z=[1.0,2.8]. The drawn window rectangles on each elevation sit exactly between the chain ticks of the 1800 segment. W2/W3/W4/W5 are the four equal small west windows on the West elevation (north-on-left chain, view_0014); W7/W8 the two small east windows on the East elevation (right-hand chain, view_0013); W10/W11 the two south windows on the South elevation (view_0012).",
+      "t": 1622.94,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0001.json",
+      "saved_sha256": "9578c8ad974ef0e8df2967f051adda3ca093ee0f36fe10fef53e39d05165a3b2"
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "W1",
+        "W6",
+        "W9"
+      ],
+      "sources": [
+        "North_view.png",
+        "West_view.png",
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east",
+        "north",
+        "west"
+      ],
+      "target_facades": [
+        "east",
+        "north",
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "Tall window band read from three elevation dimension chains running from the facade top (z=4.5 m, chain origin) downward: 1100 wall band above head, 2400 window height, 1000 sill. Segment 1 (zero-based) is the 2400 mm window extent, absolute z=[1.0,3.4]. The tall drawn rectangles sit between these chain ticks: W1 (4800 mm wide north window, North elevation left chain, view_0011), W6 (4800 mm west window, West elevation right chain, view_0014), W9 (4800 mm east window, East elevation middle chain, view_0013).",
+      "t": 1624.884,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0002.json",
+      "saved_sha256": "041beec406e5bcba71dcf94d7de19efa8b4878d98ed464ff0a3c0cd5e28d0410"
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "sources": [
+        "North_view.png",
+        "East_view.png",
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east",
+        "north",
+        "south"
+      ],
+      "target_facades": [
+        "east",
+        "north",
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "Exterior door heights read from three elevation dimension chains running from the facade top (z=4.5 m, chain origin) downward: 1900 wall band above head, 2400 door height, 200 sill above outside ground. Segment 1 (zero-based) is the 2400 mm door extent, absolute z=[0.2,2.6]. The drawn double doors sit between these ticks: D1 on the North elevation (view_0011), D2 on the East elevation (view_0013), D3 on the South elevation (view_0012).",
+      "t": 1626.866,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0003.json",
+      "saved_sha256": "e1ebfbe738ca8ad6dfd3f6e844ea0b8b4e9bd38b63279c8ae72c093da123cf2c"
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "W2",
+        "W3",
+        "W4",
+        "W5",
+        "W7",
+        "W8",
+        "W10",
+        "W11"
+      ],
+      "sources": [
+        "West_view.png",
+        "East_view.png",
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east",
+        "south",
+        "west"
+      ],
+      "target_facades": [
+        "east",
+        "south",
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "Standard-height window band read from three elevation dimension chains. Each chain runs from the facade top (z=4.5 m, the chain origin; all four facades' vertical chains sum to 4500 mm) downward in drawing order: 1700 wall band above the window head, 1800 window height, 1000 sill above floor. Segment 1 (zero-based) is the 1800 mm window extent, giving absolute z=[1.0,2.8]. The drawn window rectangles on each elevation sit exactly between the chain ticks of the 1800 segment. W2/W3/W4/W5 are the four equal small west windows on the West elevation (north-on-left chain, view_0014); W7/W8 the two small east windows on the East elevation (right-hand chain, view_0013); W10/W11 the two south windows on the South elevation (view_0012). Re-recorded for candidate_04, which rebuilds candidate_02/03 geometry with a ceiling height consistent with the observed heads.",
+      "t": 2241.008,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0004.json",
+      "saved_sha256": "3fcb100504391c79f55f08a5541fc8f13118c46f035fb8955b3668f378d836b4"
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "W1",
+        "W6",
+        "W9"
+      ],
+      "sources": [
+        "North_view.png",
+        "West_view.png",
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east",
+        "north",
+        "west"
+      ],
+      "target_facades": [
+        "east",
+        "north",
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "Tall window band read from three elevation dimension chains running from the facade top (z=4.5 m, chain origin) downward: 1100 wall band above head, 2400 window height, 1000 sill. Segment 1 (zero-based) is the 2400 mm window extent, absolute z=[1.0,3.4]. The tall drawn rectangles sit between these chain ticks: W1 (4800 mm wide north window, North elevation left chain, view_0011), W6 (4800 mm west window, West elevation right chain, view_0014), W9 (4800 mm east window, East elevation middle chain, view_0013). Re-recorded for candidate_04, which rebuilds candidate_02/03 geometry with a ceiling height consistent with these observed 3.4 m heads.",
+      "t": 2243.605,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0005.json",
+      "saved_sha256": "630f58bf4536183ed0493779dbd57e0d487603bf62d3b531093c667179154aec"
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "D1",
+        "D2",
+        "D3"
+      ],
+      "sources": [
+        "North_view.png",
+        "East_view.png",
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east",
+        "north",
+        "south"
+      ],
+      "target_facades": [
+        "east",
+        "north",
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "Exterior door heights read from three elevation dimension chains running from the facade top (z=4.5 m, chain origin) downward: 1900 wall band above head, 2400 door height, 200 sill above outside ground. Segment 1 (zero-based) is the 2400 mm door extent, absolute z=[0.2,2.6]. The drawn double doors sit between these ticks: D1 on the North elevation (view_0011), D2 on the East elevation (view_0013), D3 on the South elevation (view_0012). Re-recorded for candidate_04.",
+      "t": 2246.3,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0006.json",
+      "saved_sha256": "61e7ad034a15490a773988ae86828ef5d421d76050389bc3fb8c41c79ab8e1e8"
+    }
+  ],
+  "height_provenance_facades": {
+    "east": 6,
+    "south": 4,
+    "west": 4,
+    "north": 4
+  },
+  "claims_from_saved_files": 6,
+  "cross_facade_height_claims": 0,
+  "plan_builds": 3,
+  "plan_edits": 2,
+  "candidate_revisions": 2,
+  "gaps": [],
+  "outcomes": [
+    {
+      "index": 9,
+      "tool": "view_pixel_profile",
+      "t_call": 315.534,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 10,
+      "tool": "view_pixel_profile",
+      "t_call": 315.948,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 17,
+      "tool": "build_plan_bim",
+      "t_call": 1181.054,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 20,
+      "tool": "revise_plan_bim",
+      "t_call": 1360.152,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": false
+    },
+    {
+      "index": 21,
+      "tool": "revise_plan_bim",
+      "t_call": 1395.93,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 34,
+      "tool": "revise_bim",
+      "t_call": 1747.141,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": false
+    },
+    {
+      "index": 38,
+      "tool": "build_bim",
+      "t_call": 2071.738,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 39,
+      "tool": "build_bim",
+      "t_call": 2152.688,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 40,
+      "tool": "record_claim",
+      "t_call": 2200.304,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 41,
+      "tool": "record_claim",
+      "t_call": 2202.218,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 42,
+      "tool": "record_claim",
+      "t_call": 2208.116,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 51,
+      "tool": "confirm_claims",
+      "t_call": 2364.272,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 53,
+      "tool": "revise_bim",
+      "t_call": 2438.423,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    }
+  ],
+  "usage": [
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 14,
+        "prompt_tokens": 11163,
+        "total_tokens": 11177,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 47,
+        "prompt_tokens": 12713,
+        "total_tokens": 12760,
+        "completion_tokens_details": {
+          "reasoning_tokens": 10
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 60,
+        "prompt_tokens": 18354,
+        "total_tokens": 18414,
+        "completion_tokens_details": {
+          "reasoning_tokens": 28
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 42,
+        "prompt_tokens": 24368,
+        "total_tokens": 24410,
+        "completion_tokens_details": {
+          "reasoning_tokens": 23
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10432
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 6787,
+        "prompt_tokens": 26995,
+        "total_tokens": 33782,
+        "completion_tokens_details": {
+          "reasoning_tokens": 6691
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10432
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1817,
+        "prompt_tokens": 35820,
+        "total_tokens": 37637,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1713
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 21952
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2298,
+        "prompt_tokens": 38256,
+        "total_tokens": 40554,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2170
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10432
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 62,
+        "prompt_tokens": 36057,
+        "total_tokens": 36119,
+        "completion_tokens_details": {
+          "reasoning_tokens": 42
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 241,
+        "prompt_tokens": 37616,
+        "total_tokens": 37857,
+        "completion_tokens_details": {
+          "reasoning_tokens": 112
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 24043,
+        "prompt_tokens": 46015,
+        "total_tokens": 70058,
+        "completion_tokens_details": {
+          "reasoning_tokens": 23923
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 10028,
+        "prompt_tokens": 64389,
+        "total_tokens": 74417,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9884
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 9884,
+        "prompt_tokens": 76419,
+        "total_tokens": 86303,
+        "completion_tokens_details": {
+          "reasoning_tokens": 6893
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2593,
+        "prompt_tokens": 127346,
+        "total_tokens": 129939,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2477
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2429,
+        "prompt_tokens": 127129,
+        "total_tokens": 129558,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2288
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 8960
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2787,
+        "prompt_tokens": 131774,
+        "total_tokens": 134561,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1667
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1238,
+        "prompt_tokens": 127462,
+        "total_tokens": 128700,
+        "completion_tokens_details": {
+          "reasoning_tokens": 801
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 476,
+        "prompt_tokens": 144975,
+        "total_tokens": 145451,
+        "completion_tokens_details": {
+          "reasoning_tokens": 381
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2044,
+        "prompt_tokens": 89299,
+        "total_tokens": 91343,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1971
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3370,
+        "prompt_tokens": 93238,
+        "total_tokens": 96608,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3269
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2654,
+        "prompt_tokens": 95372,
+        "total_tokens": 98026,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1569
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2003,
+        "prompt_tokens": 80694,
+        "total_tokens": 82697,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1704
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3029,
+        "prompt_tokens": 76937,
+        "total_tokens": 79966,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1404
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1359,
+        "prompt_tokens": 151153,
+        "total_tokens": 152512,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1258
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 43264
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2604,
+        "prompt_tokens": 148372,
+        "total_tokens": 150976,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2460
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 7809,
+        "prompt_tokens": 146896,
+        "total_tokens": 154705,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4805
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 4559,
+        "prompt_tokens": 154751,
+        "total_tokens": 159310,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1627
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 108800
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1944,
+        "prompt_tokens": 146300,
+        "total_tokens": 148244,
+        "completion_tokens_details": {
+          "reasoning_tokens": 754
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1181,
+        "prompt_tokens": 146408,
+        "total_tokens": 147589,
+        "completion_tokens_details": {
+          "reasoning_tokens": 33
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 510,
+        "prompt_tokens": 106854,
+        "total_tokens": 107364,
+        "completion_tokens_details": {
+          "reasoning_tokens": 147
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 483,
+        "prompt_tokens": 95685,
+        "total_tokens": 96168,
+        "completion_tokens_details": {
+          "reasoning_tokens": 398
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1680,
+        "prompt_tokens": 74497,
+        "total_tokens": 76177,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1245
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1092,
+        "prompt_tokens": 76215,
+        "total_tokens": 77307,
+        "completion_tokens_details": {
+          "reasoning_tokens": 20
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 43264
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1376,
+        "prompt_tokens": 90002,
+        "total_tokens": 91378,
+        "completion_tokens_details": {
+          "reasoning_tokens": 416
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 325,
+        "prompt_tokens": 119645,
+        "total_tokens": 119970,
+        "completion_tokens_details": {
+          "reasoning_tokens": 261
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 43264
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 93,
+        "prompt_tokens": 91778,
+        "total_tokens": 91871,
+        "completion_tokens_details": {
+          "reasoning_tokens": 37
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1047,
+        "prompt_tokens": 95144,
+        "total_tokens": 96191,
+        "completion_tokens_details": {
+          "reasoning_tokens": 31
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 43264
+        }
+      }
+    }
+  ],
+  "model_usage": {},
+  "cost_usd_cli": null,
+  "thinking_tokens_estimated": null,
+  "visible_text_chars": 11433,
+  "five_hour_window": null,
+  "seven_day_window": null
+}

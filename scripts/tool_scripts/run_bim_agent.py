@@ -33,7 +33,7 @@ from mcp.server.fastmcp import Image
 from mcp.types import CallToolResult, TextContent
 
 
-from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide
+from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide, filter_tool_catalog, tool_capabilities
 from scripts.tool_scripts.bim_agent_inputs import freeze_building_input, freeze_plan_input
 from scripts.tool_scripts.bim_agent_feedback import ImageFilename
 
@@ -222,7 +222,7 @@ def run_guide(run: Path) -> str:
     manifest = json.loads((run / "inputs.json").read_text())
     mesh = bool(manifest.get("mesh_input"))
     kind = manifest.get("image_kind") or (("unknown" if mesh else "drawings") if manifest.get("images") else None)
-    return build_guide(images=kind, mesh=mesh)
+    return build_guide(images=kind, mesh=mesh, **tool_capabilities(manifest))
 
 
 def subscription(run: Path, prompt: str, *, model: str, name: str,
@@ -274,7 +274,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
                                     if readonly else run_guide(run))]
     if not readonly or model == "sonnet":
         command.extend(["--effort", effort or "medium"])
-    server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run)]
+    server = [sys.executable, str(Path(__file__).resolve()), "serve", str(run), "--enabled-only"]
     if readonly:
         server.append("--readonly")
     command.extend(["--mcp-config", json.dumps({"mcpServers": {"bim": {
@@ -713,6 +713,11 @@ class Toolkit:
             result["located_height_coverage"] = self.located_heights(result["candidate"])
         self.log("claim_application", application)
         result["claim_application"] = application
+        # Keep the saved provenance and its source digest unchanged. Only the
+        # model-facing copy drops evidence already in the application file.
+        if "provenance" in result:
+            result["provenance"] = {**result["provenance"],
+                "claim_application": {"file": str(application_path.relative_to(self.run))}}
         return result
 
     def log(self, action, data):
@@ -2222,7 +2227,7 @@ class Toolkit:
         return selection
 
 
-def serve(run: Path, readonly=False):
+def serve(run: Path, readonly=False, *, enabled_only=False):
     from mcp.server.fastmcp import Image
     from scripts.tool_scripts.bim_agent_feedback import FeedbackMCP
     toolkit = Toolkit(run, readonly)
@@ -2943,6 +2948,12 @@ def serve(run: Path, readonly=False):
             toolkit.log("view_candidate", metadata)
             return image
 
+    if enabled_only:
+        # The unfiltered service remains available for immutable version checks.
+        capabilities = tool_capabilities(toolkit.manifest)
+        for name in ("review_detail", "record_work_review"):
+            if not readonly and not filter_tool_catalog([{"name": name}], **capabilities):
+                server.remove_tool(name)
     server.run()
 
 
@@ -3023,6 +3034,7 @@ def run_experiment(args):
                              "time_budget_seconds": args.timeout,
                              "max_candidates":max_candidates,
                              "continuation_rounds": continuation_rounds,
+                             "review_detail_enabled": getattr(args, "review_detail", False),
                              "input_mode": generation_mode,
                              "exploratory_opus": getattr(args, "exploratory_opus", False),
                              "source_input_mode": source_input_mode,
@@ -3225,6 +3237,8 @@ def run_experiment(args):
                "not_evaluated":["independent GT comparison","human approval","EnergyPlus"],
                "estimated_cost_note":"CLI estimates are not subscription bills"}
     dump(run/"summary.json",summary)
+    from src.agent.runtime_behaviour import write_behaviour_report
+    write_behaviour_report(run, run / "behaviour")
     print(json.dumps(summary,ensure_ascii=False,indent=2))
 
 
@@ -3249,6 +3263,8 @@ def main():
                      help="Shared export quota for floor builds, assembly and revisions (default: 24)")
     run.add_argument("--continuation-rounds", type=int, choices=range(5), default=0,
                      help="Experimental bounded main-agent follow-ups within the SAME total deadline")
+    run.add_argument("--review-detail", action="store_true",
+                     help="Enable the bounded local image-model review tool")
     run.add_argument("--provider", choices=("claude", "glm"), default="claude",
                      help="Subscription route; glm uses glm-5.3-flash for main and local image tasks")
     run.add_argument("--exploratory-opus", action="store_true",
@@ -3264,8 +3280,10 @@ def main():
     server=commands.add_parser("serve")
     server.add_argument("run",type=Path)
     server.add_argument("--readonly",action="store_true")
+    server.add_argument("--enabled-only", action="store_true",
+                        help="Expose only capabilities enabled in the run manifest")
     args=parser.parse_args()
-    if args.command=="serve": serve(args.run.resolve(),args.readonly)
+    if args.command=="serve": serve(args.run.resolve(),args.readonly, enabled_only=args.enabled_only)
     else: run_experiment(args)
 
 

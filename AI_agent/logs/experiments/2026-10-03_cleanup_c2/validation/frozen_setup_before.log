@@ -1,0 +1,66 @@
+bringing up nodes...
+bringing up nodes...
+
+.F.
+=================================== FAILURES ===================================
+___________ test_real_frozen_tools_keep_run99_state_across_75_steps ____________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_real_frozen_tools_keep_run99_state_across_75_steps():
+        # Always own a temporary directory inside this worktree, regardless of pytest --basetemp.
+        retained = os.environ.get("STAGE2_FROZEN_REPLAY_OUT")
+        if retained:
+            asyncio.run(replay_frozen_run99(Path(retained)))
+            return
+        with tempfile.TemporaryDirectory(prefix=".stage2-frozen-long-", dir=ROOT) as temporary:
+>           asyncio.run(replay_frozen_run99(Path(temporary) / "run"))
+
+tests/test_runtime_frozen_long_task.py:280: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests/test_runtime_frozen_long_task.py:231: in replay_frozen_run99
+    write_frozen_tool_catalog(output / "frozen", catalog, readonly=False)
+src/agent/runtime_tools.py:555: in write_frozen_tool_catalog
+    mode = validate_frozen_catalog(tools, readonly=readonly)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tools = [{'description': 'Save one immutable observed/inferred/simplified architectural interpretation.\n\n        This record...type': 'string'}}, 'required': ['name'], 'title': 'view_imageArguments', 'type': 'object'}, 'name': 'view_image'}, ...]
+
+    def validate_frozen_catalog(
+        tools: list[dict[str, Any]], *, readonly: bool, mesh: bool | None = None
+    ) -> str:
+        """Require the exact definitions exposed by the frozen server mode."""
+    
+        names = [tool.get("name") for tool in tools]
+        if any(not isinstance(name, str) or not name for name in names):
+            raise ToolCatalogMismatch("MCP catalog contains a missing or invalid tool name")
+        if len(names) != len(set(names)):
+            raise ToolCatalogMismatch("MCP catalog contains duplicate tool names")
+        actual = set(names)
+        if mesh is None:
+            variants = [candidate for candidate in (False, True)
+                        if actual == set(_catalog_names(readonly=readonly, mesh=candidate))]
+            if len(variants) != 1:
+                base = set(_catalog_names(readonly=readonly, mesh=False))
+                mesh_names = set(_catalog_names(readonly=readonly, mesh=True))
+>               raise ToolCatalogMismatch(
+                    "frozen MCP catalog name set matches neither admitted-input variant; "
+                    f"base_missing={sorted(base - actual)}, base_extra={sorted(actual - base)}, "
+                    f"mesh_missing={sorted(mesh_names - actual)}, mesh_extra={sorted(actual - mesh_names)}"
+                )
+E               src.agent.runtime_tools.ToolCatalogMismatch: frozen MCP catalog name set matches neither admitted-input variant; base_missing=['record_work_review', 'review_detail'], base_extra=[], mesh_missing=['inspect_mesh', 'inspect_mesh_directions', 'measure_mesh_pixels', 'overlay_mesh_candidate', 'record_work_review', 'review_detail', 'set_candidate_mesh_frame', 'view_mesh', 'view_mesh_observation'], mesh_extra=[]
+
+src/agent/runtime_tools.py:175: ToolCatalogMismatch
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps
+1 failed, 2 passed in 18.98s

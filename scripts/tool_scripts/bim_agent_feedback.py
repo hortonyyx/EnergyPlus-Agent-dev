@@ -99,6 +99,10 @@ def repair_hint(toolkit, tool, arguments, message):
     if tool == "revise_plan_bim":
         try:
             ops = json.loads(arguments.get("operations_json", "[]"))
+            if not isinstance(ops, list):
+                return 'operations_json needs a JSON list of operation objects (需要列表), e.g. [{"op":"update", ...}], not {"operations":[...]}.'
+            if any(not isinstance(row, dict) for row in ops):
+                return "Each operations_json list element must be an operation object (列表元素须为对象)."
             index = int(re.search(r"operation (\d+)", message)[1]) if re.search(r"operation (\d+)", message) else 0
             op = ops[index]
         except (ValueError, TypeError, IndexError):
@@ -152,7 +156,12 @@ class FeedbackMCP(FastMCP):
             result = await super().call_tool(name, normalized)
         except Exception as error:
             message = str(error)
-            hint = repair_hint(self.toolkit, name, arguments, message)
+            # C2: T1 sm25 calls 63/65 lost the actual rejection when the hint
+            # itself raised KeyError. An explanatory failure must never hide it.
+            try:
+                hint = repair_hint(self.toolkit, name, arguments, message)
+            except Exception:
+                hint = ""
             result = CallToolResult(isError=True, content=[TextContent(type="text", text=message + ("\n" + hint if hint else ""))])
         notes.append(time_status(self.toolkit)["line"])
         if notes:

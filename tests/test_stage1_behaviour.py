@@ -103,7 +103,7 @@ def test_current_event_log_preserves_first_draft_facade_and_height_metrics(tmp_p
                    {"name": "East_view.png", "box_original_pixels": [10, 10, 40, 40],
                     "original_size": [100, 100]}, second=2),
         _execution(2, "build", "build_plan_bim", {"image": "1f_view.png", "plan_json": "{}"},
-                   {"candidate": "candidate_01"}, second=9, write=True),
+                   {"candidate": "candidate_01", "source_geometry_ready": True}, second=9, write=True),
         _response(3, [{"call_id": "claim", "tool_name": "record_claim",
                        "full_arguments": {"objects": [{"id": "W1"}]}}], second=11),
         _execution(4, "claim", "record_claim", {"objects": [{"id": "W1"}]},
@@ -158,7 +158,7 @@ def test_legacy_cli_stream_and_bridge_audit_remain_readable(tmp_path: Path) -> N
                          "input": {"image": "plan.png", "plan_json": "{}"}}]}},
         {"type": "user", "timestamp": "2026-10-02T00:00:04Z", "message": {
             "content": [{"type": "tool_result", "tool_use_id": "call-1", "is_error": False,
-                         "content": [{"type": "text", "text": "{\"candidate\":\"candidate_01\"}"}]}]}},
+                         "content": [{"type": "text", "text": "{\"candidate\":\"candidate_01\",\"source_geometry_ready\":true}"}]}]}},
     ]
     with gzip.open(cli / "agent_stream.jsonl.gz", "wt") as stream:
         for row in rows:

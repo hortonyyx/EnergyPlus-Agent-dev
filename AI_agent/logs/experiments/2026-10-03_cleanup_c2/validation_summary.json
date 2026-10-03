@@ -1,0 +1,72 @@
+{
+  "agent_version": "t1-20261003-c2.1",
+  "model_requests": 0,
+  "deepseek_requests": 0,
+  "passed": 577,
+  "failed_effective_checks": 0,
+  "skipped": 0,
+  "groups": [
+    {
+      "label": "阶段 0–3 / R1–R2 短检查",
+      "evidence": "validation/final/short.json",
+      "passed": 325,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 317.455,
+      "source_unchanged_during_run": true
+    },
+    {
+      "label": "纯底座长任务",
+      "evidence": "validation/long.json",
+      "passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1575.802,
+      "source_unchanged_during_run": true
+    },
+    {
+      "label": "75 步真实工具回放",
+      "evidence": "validation/final_retry/frozen.json",
+      "passed": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 735.851,
+      "source_unchanged_during_run": true
+    },
+    {
+      "label": "R3",
+      "evidence": "validation/final/r3.json",
+      "passed": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 127.242,
+      "source_unchanged_during_run": true
+    },
+    {
+      "label": "T1 / C2 工具检查",
+      "evidence": "validation/final/t1.json",
+      "passed": 227,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 489.343,
+      "source_unchanged_during_run": true
+    }
+  ],
+  "completed_utc": "2026-10-03T20:06:31.054343+00:00",
+  "preserved_unsuccessful_attempts": [
+    "validation/frozen_setup_before.json",
+    "validation/final/frozen.json"
+  ],
+  "timeout_retry": {
+    "unchanged_limit_seconds": 900,
+    "unchanged_assertions": true,
+    "run_separately": true,
+    "result": "passed"
+  },
+  "long_reuse_proof": "version_check.json"
+}

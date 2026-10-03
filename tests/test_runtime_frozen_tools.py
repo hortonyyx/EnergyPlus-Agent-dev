@@ -20,7 +20,6 @@ from src.agent.runtime_tools import (
     MESH_LOCAL_OBSERVER_TOOL_NAMES,
     FrozenBimTools,
     ToolCatalogMismatch,
-    UnknownWriteOutcome,
     coordinator_role,
     frozen_bim_client,
     local_observer_role,
@@ -116,10 +115,10 @@ def test_real_frozen_server_catalogs_roles_and_materials(tmp_path):
         assert registered["tool_catalog_sha256"]["readonly"] == observer_record[
             "definitions_sha256"
         ]
-        if registered["version_id"] == FROZEN_BASELINE_COMMIT:
-            assert json.loads(
-                (MATERIALS / "material_manifest.json").read_text(encoding="utf-8")
-            ) == material
+        assert material["agent_version"] == registered["version_id"]
+        assert material["source_sha256"] == {
+            path: data["sha256"] for path, data in registered["files"].items()
+        }
     asyncio.run(scenario())
 
 
@@ -183,7 +182,7 @@ def test_real_readonly_call_preserves_sent_and_original_image_metadata(tmp_path)
     asyncio.run(scenario())
 
 
-def test_phase_one_returns_known_block_before_execution_and_unknown_write_never_retries(tmp_path):
+def test_disabled_capability_returns_known_block_before_execution(tmp_path):
     run = _prepared_run(tmp_path)
 
     async def scenario():
@@ -196,14 +195,21 @@ def test_phase_one_returns_known_block_before_execution_and_unknown_write_never_
         assert blocked["structuredContent"]["status"] == "blocked"
         assert blocked["structuredContent"]["failure_stage"] == "before_execution"
         assert client.calls == []
-        before = tools.snapshot_state()
         with pytest.raises(ConnectionError):
             await tools.call_tool("build_bim", {"proposal_json": "{}"})
-        raised = tools.unknown_write_outcome("build_bim", before, tools.snapshot_state())
         assert client.calls == ["build_bim"]
-        assert raised.changed_paths == []
-        assert "unchanged_but_not_proof" in str(raised)
     asyncio.run(scenario())
+
+
+def test_historical_stage1_material_subset_matches_its_registered_version():
+    material = json.loads((MATERIALS / "material_manifest.json").read_text())
+    historical = agent_version_record(ROOT, FROZEN_BASELINE_COMMIT, verify=False)
+    assert material["baseline_commit"] == historical["source_commit"]
+    assert material["source_sha256"] == {
+        path: historical["files"][path]["sha256"] for path in material["source_sha256"]
+    }
+    for name, metadata in material["prompts"].items():
+        assert hashlib.sha256((MATERIALS / name).read_bytes()).hexdigest() == metadata["sha256"]
 
 
 def test_artifacts_include_partial_viewer_and_source_bim_but_not_transport_scratch(tmp_path):

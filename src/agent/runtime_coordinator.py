@@ -533,7 +533,7 @@ async def serve(args):
                         parameters=parameters).initialize()
                     if not args.resume:
                         write_frozen_materials(out / "frozen", repository_root=ROOT)
-                        write_frozen_tool_catalog(out / "frozen", session.catalog, readonly=False)
+                        write_frozen_tool_catalog(out / "frozen", await client.list_tools(), readonly=False)
                     server = Server("bim-runtime-coordinator", instructions=guide)
 
                     @server.list_tools()

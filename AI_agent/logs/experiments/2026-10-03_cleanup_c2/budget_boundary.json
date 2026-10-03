@@ -1,0 +1,16 @@
+{
+  "model_requests": 0,
+  "before_version": "t1-20261003-c2",
+  "trigger": "revise_bim after max_candidates is exhausted",
+  "before_error": "KeyError: 'provenance'",
+  "cause": "budget refusal contains no saved-source provenance",
+  "expected": "preserve candidate budget exhausted and persisted failed application; create no extra candidate",
+  "counterexample": "tests/test_bim_candidate_budget.py::test_seventh_revision_persists_and_explicit_limit_preserves_prior_candidates",
+  "status": "passed",
+  "fix": "Only trim provenance when a build actually returned that field.",
+  "after_version": "t1-20261003-c2.1",
+  "after_error": "candidate budget exhausted; report saved partial results",
+  "failed_application_preserved": true,
+  "source_model_bytes_unchanged": true,
+  "no_extra_candidate": true
+}

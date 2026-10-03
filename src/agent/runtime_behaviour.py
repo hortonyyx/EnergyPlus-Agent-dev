@@ -41,6 +41,55 @@ def _json(value: Any) -> Any:
         return value
 
 
+def tool_result_data(value: Any) -> dict[str, Any]:
+    """Read metadata without discarding the original response or its timing tail.
+
+    MCP, provider presentation and CLI text are transport forms of the same
+    result. T1 appends a separate time line, so decoding the entire string loses
+    otherwise valid JSON. The raw text remains in the complete behaviour record.
+    """
+    if isinstance(value, str):
+        text = value.lstrip()
+        try:
+            value, _ = json.JSONDecoder().raw_decode(text)
+        except ValueError:
+            # Claude Code truncated T1 sm25 revise_bim at step 114. Retain only
+            # complete leading fields; never treat a partial object as complete.
+            # candidate/source_geometry_ready precede the large evidence arrays.
+            if not text.startswith("{"):
+                return {}
+            decoder, fields, tail = json.JSONDecoder(), {}, text[1:].lstrip()
+            while tail:
+                try:
+                    key, end = decoder.raw_decode(tail)
+                    if not isinstance(key, str) or not tail[end:].lstrip().startswith(":"):
+                        break
+                    tail = tail[end:].lstrip()[1:].lstrip()
+                    item, end = decoder.raw_decode(tail)
+                    fields[key] = item
+                    tail = tail[end:].lstrip()
+                    if not tail.startswith(","):
+                        break
+                    tail = tail[1:].lstrip()
+                except ValueError:
+                    break
+            value = dict(fields, _partial_json=True) if fields else {}
+    if not isinstance(value, dict):
+        return {}
+    if isinstance(value.get("structuredContent"), dict):
+        return value["structuredContent"]
+    if "tool_message" in value:
+        return tool_result_data(value["tool_message"].get("content"))
+    if isinstance(value.get("content"), list):
+        for block in value["content"]:
+            if isinstance(block, dict) and block.get("type") == "text":
+                data = tool_result_data(block.get("text"))
+                if data:
+                    return data
+        return {}
+    return value
+
+
 def _facade(value: Any) -> str | None:
     text = str(value or "").lower()
     return next((name for name in FACADES if name in text), None)
@@ -259,6 +308,7 @@ def _read_cli_stream(path: Path, invocation: int) -> dict[str, Any]:
     texts: list[str] = []
     thinking = 0
     usage: dict[str, dict[str, Any]] = {}
+    quota: list[dict[str, Any]] = []
     init: dict[str, Any] = {}
     result: dict[str, Any] = {}
     last = origin
@@ -271,13 +321,21 @@ def _read_cli_stream(path: Path, invocation: int) -> dict[str, Any]:
                     ("model", "claude_code_version", "apiKeySource", "permissionMode")}
         elif kind == "system" and event.get("subtype") == "thinking_tokens":
             thinking += int(event.get("estimated_tokens_delta") or 0)
+        elif kind == "rate_limit_event":
+            info = event.get("rate_limit_info") or {}
+            windows = info.get("unifiedWindows") or {}
+            quota.append({"t": None if last is None or origin is None else round(last - origin, 3),
+                          "status": info.get("status"), "raw": info,
+                          "five_hour": (windows.get("five_hour") or {}).get("utilization"),
+                          "seven_day": (windows.get("seven_day") or {}).get("utilization")})
         elif kind == "assistant":
             message = event.get("message") or {}
             if message.get("id") and message.get("usage"):
                 previous = usage.get(message["id"], {})
                 current = message["usage"]
                 if (current.get("output_tokens") or 0) >= (previous.get("output_tokens") or 0):
-                    usage[message["id"]] = current
+                    usage[message["id"]] = dict(current, message_id=message["id"],
+                        t=None if last is None or origin is None else round(last - origin, 3))
             for block in message.get("content") or []:
                 if block.get("type") == "text" and block.get("text"):
                     texts.append(block["text"])
@@ -313,6 +371,7 @@ def _read_cli_stream(path: Path, invocation: int) -> dict[str, Any]:
                     images.append({"media_type": source.get("media_type"), "bytes": len(raw),
                                    "sha256": hashlib.sha256(raw).hexdigest()})
                 step.update(result_text=text, result_images=images,
+                            t_result=None if last is None or origin is None else round(last - origin, 3),
                             model_visible_result=_json(text),
                             delivered_to_model=True, delivery_evidence="CLI tool_result message",
                             is_error=bool(block.get("is_error")), outcome=("failed" if block.get("is_error") else "succeeded"))
@@ -325,7 +384,7 @@ def _read_cli_stream(path: Path, invocation: int) -> dict[str, Any]:
                     delivered_to_model=False, is_error=None, outcome="unknown", unanswered=True)
     _relative_times(steps, origin)
     return {"invocation": invocation, "stream": path.name, "steps": steps, "init": init,
-            "message_usage": list(usage.values()), "result": result,
+            "message_usage": list(usage.values()), "quota": quota, "result": result,
             "final_text_after_last_tool": "\n\n".join(texts),
             "trailing_thinking_tokens": thinking}
 
@@ -339,11 +398,13 @@ def _read_cli(run: Path) -> dict[str, Any]:
         "source_format": "claude_cli_stream",
         "run": run.name,
         "invocations": invocations,
-        "model": receipt.get("actual_model") or (invocations[0].get("init") or {}).get("model"),
+        "receipt": receipt,
+        "model": receipt.get("actual_model") or ((invocations[0].get("init") or {}).get("model") if invocations else None),
         "elapsed_seconds": receipt.get("elapsed_seconds"),
         "usage": [row for inv in invocations for row in inv["message_usage"]],
         "visible_text": [step["model_text_before"] for inv in invocations for step in inv["steps"]
-                         if step.get("model_text_before")],
+                         if step.get("model_text_before")] +
+                        [inv["final_text_after_last_tool"] for inv in invocations if inv["final_text_after_last_tool"]],
         "gaps": [
             "CLI launch request is not the final provider request body.",
             "Tool results are the CLI-visible transformed results, not guaranteed raw MCP bytes.",
@@ -396,7 +457,7 @@ def _read_bridge(run: Path) -> dict[str, Any]:
     }
 
 
-def load_behaviour(path: str | Path) -> dict[str, Any]:
+def load_behaviour(path: str | Path, *, source_root: str | Path | None = None) -> dict[str, Any]:
     """Load a run directory, current ``events.jsonl``, CLI stream, or bridge audit."""
     path = Path(path)
     if path.is_dir() and (path / "events.jsonl").is_file():
@@ -405,11 +466,44 @@ def load_behaviour(path: str | Path) -> dict[str, Any]:
         record = _read_event_log(path)
     elif path.is_dir() and _legacy_streams(path):
         record = _read_cli(path)
+    elif (path.is_dir() and (path / "record.json.gz").is_file()) or path.name == "record.json.gz":
+        # A historical record is an exact transformed CLI capture, not a new
+        # provider trace. Saved claim/source files can be supplied separately.
+        target = path / "record.json.gz" if path.is_dir() else path
+        with gzip.open(target, "rt") as stream:
+            record = json.load(stream)
+        record.setdefault("source_format", "claude_cli_record")
+        receipt = record.get("receipt") or {}
+        record.setdefault("model", receipt.get("actual_model"))
+        record.setdefault("elapsed_seconds", receipt.get("elapsed_seconds"))
+        record.setdefault("gaps", ["Provider request is not captured in this historical CLI record."])
+        record.setdefault("source_files", [str(target)])
+        for inv in record["invocations"]:
+            for step in inv["steps"]:
+                step.setdefault("model_visible_result", _json(step.get("result_text")))
+                step.setdefault("delivered_to_model", not step.get("unanswered", False))
+                step.setdefault("outcome", "unknown" if step.get("unanswered") else
+                                "failed" if step.get("is_error") else "succeeded")
+        record.setdefault("visible_text", [s.get("model_text_before", "") for inv in record["invocations"]
+            for s in inv["steps"]] + [inv.get("final_text_after_last_tool", "") for inv in record["invocations"]])
     elif path.is_dir() and (path / "tools.jsonl").is_file():
         record = _read_bridge(path)
+    elif path.is_dir() and (path / "inputs.json").is_file():
+        record = {"source_format": "missing_capture", "run": path.name,
+            "invocations": [], "model": None, "elapsed_seconds": None,
+            "usage": [], "visible_text": [], "source_files": [],
+            "gaps": ["No CLI stream or tool audit was captured. Zero captured steps is not evidence of zero executed calls."]}
     else:
         raise ValueError(f"no supported behaviour log found at {path}")
-    record["_source_root"] = str(path if path.is_dir() else path.parent)
+    log_root = path if path.is_dir() else path.parent
+    record["source_files"] = [str(Path(name).resolve().relative_to(log_root.resolve()))
+        if Path(name).resolve().is_relative_to(log_root.resolve()) else name
+        for name in record.get("source_files", [])]
+    record["_source_root"] = str(source_root or (path if path.is_dir() else path.parent))
+    for inv in record["invocations"]:
+        for step in inv["steps"]:
+            step["result_data"] = tool_result_data(step.get("raw_result") or
+                step.get("model_visible_result") or step.get("result_text"))
     record["summary"] = summarise(record)
     record.pop("_source_root")
     return record
@@ -417,8 +511,7 @@ def load_behaviour(path: str | Path) -> dict[str, Any]:
 
 def _view_detail(step: dict[str, Any]) -> dict[str, Any]:
     arguments = step.get("arguments") or {}
-    visible = step.get("model_visible_result")
-    result = visible if isinstance(visible, dict) else {}
+    result = step.get("result_data") or tool_result_data(step.get("model_visible_result"))
     box = result.get("box_original_pixels") or arguments.get("box")
     size = result.get("original_size")
     scale = result.get("display_scale_actual")
@@ -477,11 +570,23 @@ def _opening_facades(run: Path, candidate: Any, identities: set[str]) -> dict[st
     return found
 
 
-def _claim_detail(step: dict[str, Any], run: Path) -> dict[str, Any]:
+def _claim_detail(step: dict[str, Any], run: Path, saved: dict[str, dict]) -> dict[str, Any]:
     arguments = step.get("arguments") or {}
-    visible = step.get("model_visible_result")
-    result = visible if isinstance(visible, dict) else {}
-    claim = result.get("claim") or arguments
+    result = step.get("result_data") or {}
+    declared = _json(arguments.get("claim_json", arguments))
+    declared = declared if isinstance(declared, dict) else {}
+    identity = result.get("id") or result.get("claim_id")
+    saved_row = saved.get(identity)
+    if saved_row is None:
+        # A CLI output can be truncated. Match immutable saved input fields,
+        # never assign an ID merely by call order (counts also use record_claim).
+        matches = [row for row in saved.values() if all(
+            (row.get("claim") or {}).get(key) == declared.get(key)
+            for key in ("candidate", "objects", "values", "reason"))]
+        saved_row = matches[0] if len(matches) == 1 and declared.get("objects") else None
+    if saved_row:
+        result = saved_row
+    claim = result.get("claim") or declared
     objects = [item.get("id") for item in claim.get("objects") or [] if isinstance(item, dict)]
     sources = [item.get("image") for item in result.get("sources") or [] if isinstance(item, dict)]
     source_facades = sorted({name for name in map(_facade, sources) if name})
@@ -490,13 +595,41 @@ def _claim_detail(step: dict[str, Any], run: Path) -> dict[str, Any]:
             "resolved": result.get("resolved_values"), "source_facades": source_facades,
             "target_facades": targets,
             "cross_facade": bool(targets and source_facades and set(targets) - set(source_facades)),
-            "reason": claim.get("reason"), "t": step.get("t_call")}
+            "reason": claim.get("reason"), "t": step.get("t_call"),
+            "evidence_capture": "saved_claim_file" if saved_row else "returned_or_requested_only",
+            "saved_file": saved_row.get("_saved_file") if saved_row else None,
+            "saved_sha256": saved_row.get("_saved_sha256") if saved_row else None}
 
 
 def summarise(record: dict[str, Any]) -> dict[str, Any]:
     steps = [step for invocation in record["invocations"] for step in invocation["steps"]]
     tools = Counter(step["tool"] for step in steps)
-    first = next((step.get("t_call") for step in steps if step["tool"] in FIRST_DRAFT_TOOLS), None)
+    run = Path(record.get("_source_root", "."))
+    if (run / "bim").is_dir():
+        run = run / "bim"
+    saved = {}
+    for path in sorted((run / "claims").glob("claim_*.json")):
+        raw = path.read_bytes()
+        row = json.loads(raw)
+        saved[row["id"]] = dict(row, _saved_file=path.relative_to(run).as_posix(),
+                               _saved_sha256=hashlib.sha256(raw).hexdigest())
+    for step in steps:
+        data = step.get("result_data") or {}
+        ready = data.get("source_geometry_ready")
+        candidate = data.get("candidate")
+        if ready is None and step["tool"] in WRITE_TOOLS and isinstance(candidate, str):
+            report = (run / candidate / "report.json").resolve()
+            if report.is_relative_to(run.resolve()) and report.is_file():
+                ready = json.loads(report.read_bytes()).get("source_geometry_ready")
+        call_error = bool(step.get("is_error"))
+        domain_failure = not call_error and (data.get("status") in {"error", "failed"}
+                         or ready is False or bool(data.get("error")))
+        step["call_error"] = call_error
+        step["domain_failure"] = domain_failure
+        step["usable_source_draft"] = (not call_error and not domain_failure and ready is True
+            and step["tool"] in WRITE_TOOLS - {"finish_bim"})
+    attempt = next((step.get("t_call") for step in steps if step["tool"] in FIRST_DRAFT_TOOLS), None)
+    first = next((step.get("t_call") for step in steps if step["usable_source_draft"]), None)
     views = [dict(_view_detail(step), t=step.get("t_call")) for step in steps
              if step["tool"] == "view_image" and step.get("delivered_to_model", True)
              and step.get("outcome") == "succeeded"]
@@ -505,30 +638,85 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
     crops = [view for view in views if not view["full"]]
     overlays = Counter(_facade((step.get("arguments") or {}).get("image") or
                                (step.get("arguments") or {}).get("name") or
-                               (step.get("model_visible_result") or {}).get("facade"))
+                               (step.get("result_data") or {}).get("facade"))
                        for step in steps if step["tool"] == "view_elevation_candidate")
-    run = Path(record.get("_source_root", "."))
-    claims = [_claim_detail(step, run) for step in steps
-              if step["tool"] == "record_claim" and not step.get("is_error")
+    claims = [_claim_detail(step, run, saved) for step in steps
+              if step["tool"] in {"record_claim", "replace_claim_sources"} and not step.get("is_error")
               and step.get("delivered_to_model", True)]
+    claims = [claim for claim in claims if claim["objects"]]
     height_sources = Counter(name for claim in claims for name in claim["source_facades"])
+    invocations = record["invocations"]
+    quota = [row for inv in invocations for row in inv.get("quota", [])]
+    five = [row["five_hour"] for row in quota if row.get("five_hour") is not None]
+    seven = [row["seven_day"] for row in quota if row.get("seven_day") is not None]
+    cli = next((inv.get("init", {}).get("claude_code_version") for inv in invocations
+                if inv.get("init", {}).get("claude_code_version")), None)
+    cli_results = [inv.get("result") or {} for inv in invocations]
+    turns = (len(record["requests"]) if "requests" in record else
+             sum(row.get("num_turns") or 0 for row in cli_results) or None)
+    model_usage = {}
+    for result in cli_results:
+        for name, value in (result.get("modelUsage") or {}).items():
+            total = model_usage.setdefault(name, Counter())
+            total.update({key: number for key, number in value.items()
+                          if isinstance(number, (int, float))})
+    outcome_counts = {key: sum(step[key] for step in steps) for key in
+                      ("call_error", "domain_failure", "usable_source_draft")}
+    calls_before_attempt = [s for s in steps if attempt is None or
+                            s.get("t_call") is not None and s["t_call"] < attempt]
+    views_before_attempt = [v for v in views if attempt is None or
+                            v.get("t") is not None and v["t"] < attempt]
     return {
+        "schema_version": "bim.behaviour.v2",
         "run": record["run"], "source_format": record["source_format"], "model": record.get("model"),
+        "cli": cli, "turns": turns, "invocations": len(invocations),
         "elapsed_seconds": record.get("elapsed_seconds"), "tool_calls": len(steps),
-        "tool_errors": sum(bool(step.get("is_error")) for step in steps), "tools": dict(tools),
+        "tool_capture_missing": record["source_format"] == "missing_capture",
+        "call_errors": outcome_counts["call_error"], "domain_failures": outcome_counts["domain_failure"],
+        "usable_source_drafts": outcome_counts["usable_source_draft"],
+        "tool_errors": outcome_counts["call_error"], "tools": dict(tools),
+        "outcome_definitions": {
+            "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
+            "domain_failures": "normal return with status error/failed, error, or source_geometry_ready=false",
+            "usable_source_drafts": "build/edit/assembly returns source_geometry_ready=true; not a fidelity verdict",
+            "tool_errors": "historical alias of call_errors only",
+            "first_draft_s": "first usable source, including one produced by correcting a failed draft",
+            "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"},
         "prepared_tool_results": sum("prepared_result" in step for step in steps),
         "delivered_tool_results": sum(step.get("delivered_to_model") is True for step in steps),
         "undelivered_tool_results": sum(step.get("delivered_to_model") is False for step in steps),
         "first_draft_s": first, "calls_before_first_draft": len(before),
+        "first_build_attempt_s": attempt,
+        "calls_before_first_build_attempt": len(calls_before_attempt),
+        "full_views_before_first_build_attempt": sum(v["full"] for v in views_before_attempt),
+        "crops_before_first_build_attempt": sum(not v["full"] for v in views_before_attempt),
+        "pixel_tools_before_first_build_attempt": sum("pixel" in s["tool"] for s in calls_before_attempt),
+        "first_assembly_s": next((s.get("t_call") for s in steps if s["tool"] == "assemble_plan_bim"
+                                  and s["usable_source_draft"]), None),
+        "finish_s": next((s.get("t_call") for s in reversed(steps) if s["tool"] == "finish_bim"
+                          and not s["call_error"] and not s["domain_failure"]), None),
         "full_views_before_first_draft": sum(view["full"] for view in views_before),
         "crops_before_first_draft": sum(not view["full"] for view in views_before),
         "pixel_tools_before_first_draft": sum("pixel" in step["tool"] for step in before),
+        "crop_scales": sorted(round(v["scale"], 2) for v in crops if isinstance(v["scale"], (int, float))),
         "elevation_crops_by_facade": dict(Counter(name for name in map(lambda row: _facade(row["image"]), crops) if name)),
         "elevation_overlays_by_facade": {key: value for key, value in overlays.items() if key},
         "height_provenance_claims": claims, "height_provenance_facades": dict(height_sources),
+        "claims_from_saved_files": sum(c["evidence_capture"] == "saved_claim_file" for c in claims),
         "cross_facade_height_claims": sum(claim["cross_facade"] for claim in claims),
         "plan_builds": sum(tools[name] for name in FIRST_DRAFT_TOOLS),
+        "plan_edits": tools["revise_plan_bim"] + tools["edit_plan_bim"],
         "candidate_revisions": tools["revise_bim"], "gaps": record["gaps"],
+        "outcomes": [{key: s.get(key) for key in ("index", "tool", "t_call", "call_error", "domain_failure",
+                     "usable_source_draft")} for s in steps if s["call_error"] or s["domain_failure"] or s["usable_source_draft"]],
+        "usage": record.get("usage", [row for inv in invocations for row in inv.get("message_usage", [])]),
+        "model_usage": {key: dict(value) for key, value in model_usage.items()},
+        "cost_usd_cli": sum(row.get("total_cost_usd") or 0 for row in cli_results) if cli else None,
+        "thinking_tokens_estimated": (sum(s.get("thinking_tokens_before", 0) for s in steps)
+            + sum(inv.get("trailing_thinking_tokens", 0) for inv in invocations)) if cli else None,
+        "visible_text_chars": sum(len(t) for t in record.get("visible_text", [])),
+        "five_hour_window": [five[0], five[-1]] if five else None,
+        "seven_day_window": [seven[0], seven[-1]] if seven else None,
     }
 
 
@@ -542,23 +730,28 @@ def render_timeline(record: dict[str, Any]) -> str:
     summary = record["summary"]
     lines = [f"# 行为记录：{summary['run']}", "",
              f"来源格式 `{summary['source_format']}`；型号 `{summary['model'] or '未核实'}`；"
-             f"{summary['tool_calls']} 次工具调用（报错 {summary['tool_errors']}）；"
-             f"首稿 {summary['first_draft_s']} 秒。", ""]
+             f"{summary['tool_calls']} 次工具调用；{summary['turns']} 轮。", "",
+             "| 调用报错 | 领域未成功 | 可用源稿（不等于保真通过） |",
+             "|---:|---:|---:|",
+             f"| {summary['call_errors']} | {summary['domain_failures']} | {summary['usable_source_drafts']} |", "",
+             f"首次建模尝试 {summary['first_build_attempt_s']} 秒；首份可用源稿 {summary['first_draft_s']} 秒。", ""]
     if summary["gaps"]:
         lines += ["## 历史缺口", ""] + [f"- {gap}" for gap in summary["gaps"]] + [""]
     for invocation in record["invocations"]:
         lines += [f"## 调用 {invocation['invocation']}（{invocation['stream']}）", "",
-                  "| # | 时间 s | 工具 | 参数 | 返回 |", "|---:|---:|---|---|---|"]
+                  "| # | 时间 s | 工具 | 参数 | 返回 | 调用报错／领域未成功／可用源稿 |",
+                  "|---:|---:|---|---|---|---|"]
         for step in invocation["steps"]:
             lines.append(f"| {step['index']} | {step.get('t_call')} | {step['tool']} | "
                          f"{_short(step.get('arguments')).replace('|', '/')} | "
-                         f"{_short(step.get('model_visible_result')).replace('|', '/')} |")
+                         f"{_short(step.get('model_visible_result')).replace('|', '/')} | "
+                         f"{int(step['call_error'])}/{int(step['domain_failure'])}/{int(step['usable_source_draft'])} |")
         lines.append("")
     return "\n".join(lines)
 
 
-def write_behaviour_report(path: str | Path, out: str | Path) -> dict[str, Any]:
-    record = load_behaviour(path)
+def write_behaviour_report(path: str | Path, out: str | Path, *, source_root: str | Path | None = None) -> dict[str, Any]:
+    record = load_behaviour(path, source_root=source_root)
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "summary.json").write_text(json.dumps(record["summary"], ensure_ascii=False, indent=2) + "\n")
@@ -568,3 +761,21 @@ def write_behaviour_report(path: str | Path, out: str | Path) -> dict[str, Any]:
             with io.TextIOWrapper(compressed, encoding="utf-8") as stream:
                 json.dump(record, stream, ensure_ascii=False, indent=1)
     return record["summary"]
+
+
+def main():
+    """One offline command for CLI streams, runtime events and archived records."""
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("run", type=Path)
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--source-root", type=Path, help="Saved BIM/claim files for an archived CLI record")
+    args = parser.parse_args()
+    summary = write_behaviour_report(args.run, args.out, source_root=args.source_root)
+    print(json.dumps({key: summary[key] for key in (
+        "run", "tool_calls", "call_errors", "domain_failures", "usable_source_drafts", "first_draft_s")},
+        ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

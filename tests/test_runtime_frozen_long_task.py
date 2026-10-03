@@ -238,7 +238,7 @@ async def replay_frozen_run99(output):
             tools = ReplayTools(client, role, run_directory=run, sequence=sequence, store=store)
             catalog = await tools.list_tools()
             write_frozen_materials(output / "frozen", repository_root=ROOT)
-            write_frozen_tool_catalog(output / "frozen", catalog, readonly=False)
+            write_frozen_tool_catalog(output / "frozen", await client.list_tools(), readonly=False)
             specs = [{"type": "function", "function": {"name": t["name"],
                 "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
             parameters = {"max_tokens": 64, "temperature": 0.0}

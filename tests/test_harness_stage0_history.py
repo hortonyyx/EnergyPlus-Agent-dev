@@ -193,9 +193,22 @@ def test_mapper_is_deterministic_and_matches_checked_in_history(tmp_path: Path) 
             (HISTORY_DIR / name).read_bytes())
 
 
-def test_history_readme_discloses_unknown_versions_and_synthetic_identity() -> None:
-    readme = (HISTORY_DIR / "README.md").read_text(encoding="utf-8")
-    assert 'identifier = "not_captured"' in readme
-    assert "不是服务或" in readme
-    assert "call-index:3" in readme
-    assert "运行累计 usage" in readme
+def test_history_does_not_promote_missing_versions_or_aggregate_usage_to_observations() -> None:
+    for path in HISTORY_DIR.glob("*_event_log.json"):
+        log = EventLog.model_validate_json(path.read_bytes())
+        for event in log.events:
+            payload = event.payload
+            if payload.event_type == "adapter_request":
+                assert payload.final_request_body.kind == "missing"
+                assert payload.versions.remote_model.alias_status == "unverified"
+                assert payload.versions.dependency_lock.identifier == "not_captured"
+            elif payload.event_type == "tool_execution":
+                # Archives retain service IDs only when captured; otherwise the
+                # synthetic identity says so instead of impersonating a call ID.
+                if path.name == "sol_bridge_event_log.json":
+                    assert payload.call_id.startswith("synthetic:")
+                else:
+                    source = _load(SOURCE_DIR / "claude_run99_excerpt.json")
+                    assert payload.call_id == source["stream"]["tool_result_message"]["message"]["content"][0]["tool_use_id"]
+            elif payload.event_type == "run_usage_summary":
+                assert payload.raw_summary.kind == "inline"

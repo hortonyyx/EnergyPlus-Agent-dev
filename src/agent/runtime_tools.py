@@ -18,7 +18,7 @@ from pathlib import Path
 import sys
 from typing import Any, Literal, Protocol
 
-from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide
+from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide, filter_tool_catalog, tool_capabilities
 from src.agent_runtime.agent_registry import AgentVersionMismatch, agent_version_record
 from src.agent_runtime.mcp_tools import McpToolClient
 from src.harness_contracts.budget import BudgetAmounts
@@ -33,17 +33,6 @@ from src.harness_contracts.roles import (
 
 FROZEN_BASELINE_COMMIT = "5bb10538"
 Repeatability = Literal["read_only", "idempotent_write", "non_idempotent_write"]
-
-# Preserve the Stage-1 material manifest's historical five-entry shape.  These
-# paths are an export subset only; agent_registry verifies the full dependency
-# closure and owns all hashes.
-FROZEN_MATERIAL_SOURCE_PATHS = (
-    "scripts/tool_scripts/run_bim_agent.py",
-    "scripts/tool_scripts/bim_agent_guidance.py",
-    "scripts/tool_scripts/bim_agent_inputs.py",
-    "scripts/tool_scripts/bim_agent_inference.py",
-    "scripts/tool_scripts/bim_agent_mesh.py",
-)
 
 MESH_OBSERVER_TOOL_NAMES = (
     "inspect_mesh", "inspect_mesh_directions", "view_mesh", "measure_mesh_pixels",
@@ -112,30 +101,6 @@ class ToolAccessDenied(PermissionError):
     """A role, phase rule, or repeatability policy rejected a call before MCP."""
 
 
-class UnknownWriteOutcome(ToolAccessDenied):
-    """A transport failure left a write's persisted outcome unknown.
-
-    Callers must stop or run an explicit recovery inspection.  They must not
-    retry the original tool request from this exception.
-    """
-
-    def __init__(self, tool_name: str, before: dict[str, Any], after: dict[str, Any]) -> None:
-        self.tool_name = tool_name
-        self.before = before
-        self.after = after
-        before_paths = before["files"]
-        after_paths = after["files"]
-        self.changed_paths = sorted(
-            name for name in set(before_paths) | set(after_paths)
-            if before_paths.get(name) != after_paths.get(name)
-        )
-        state = "changed" if self.changed_paths else "unchanged_but_not_proof_of_nonapplication"
-        super().__init__(
-            f"MCP communication failed while calling {tool_name}; saved state is {state}. "
-            "Do not retry this write automatically."
-        )
-
-
 class ToolClient(Protocol):
     async def list_tools(self) -> list[dict[str, Any]]: ...
 
@@ -146,6 +111,7 @@ def frozen_bim_client(
     run_directory: Path,
     readonly: bool = False,
     repository_root: Path | None = None,
+    *, enabled_only: bool = False,
 ) -> McpToolClient:
     """Create the stage-1 building server transport from generic MCP pieces."""
 
@@ -162,6 +128,8 @@ def frozen_bim_client(
     args = [str(server), "serve", str(run)]
     if readonly:
         args.append("--readonly")
+    if enabled_only:
+        args.append("--enabled-only")
     return McpToolClient(
         command=sys.executable,
         args=args,
@@ -291,6 +259,9 @@ class FrozenBimTools:
         manifest_path = self.run_directory / "inputs.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.mesh = bool(manifest.get("mesh_input"))
+        self.capabilities = tool_capabilities(manifest)
+        if phase == 1:
+            self.capabilities["review_detail"] = False
 
     @asynccontextmanager
     async def task_session(self, *, directory, root, role, timing, images):
@@ -329,7 +300,7 @@ class FrozenBimTools:
         tools = await self.client.list_tools()
         validate_frozen_catalog(tools, readonly=self.role.read_only, mesh=self.mesh)
         self._catalog_checked = True
-        return tools
+        return filter_tool_catalog(tools, **self.capabilities)
 
     def repeatability(self, name: str) -> Repeatability:
         """Expose the frozen retry classification to the runtime loop."""
@@ -342,7 +313,7 @@ class FrozenBimTools:
         repeatability = repeatability_for(name)
         required_access: Literal["read", "write"] = "read" if repeatability == "read_only" else "write"
         authorize_tool_call(self.role, name, required_access)
-        if self.phase == 1 and name in PHASE1_FORBIDDEN_TOOLS:
+        if not filter_tool_catalog([{"name": name}], **self.capabilities):
             # This is a known policy refusal before the MCP server is called.
             # Return it through the ordinary tool-result envelope so the loop
             # records a failed call rather than an unknown write outcome.
@@ -350,7 +321,7 @@ class FrozenBimTools:
                 "status": "blocked",
                 "failure_stage": "before_execution",
                 "tool_name": name,
-                "reason": "review_detail invokes a delegated image model, which phase 1 forbids",
+                "reason": f"{name} is disabled for this run",
             }
             return {
                 "content": [{"type": "text", "text": json.dumps(blocked, ensure_ascii=False)}],
@@ -365,15 +336,6 @@ class FrozenBimTools:
         # transport exception.  This executor deliberately does no inspection
         # or retry by itself: recovery needs the loop's event/stop context.
         return await self.client.call_tool(name, arguments)
-
-    def unknown_write_outcome(
-        self, tool_name: str, before: dict[str, Any], after: dict[str, Any]
-    ) -> UnknownWriteOutcome:
-        """Build the terminal result after the loop compares two snapshots."""
-
-        if repeatability_for(tool_name) == "read_only":
-            raise ValueError("read-only tool calls cannot have an unknown write outcome")
-        return UnknownWriteOutcome(tool_name, before, after)
 
     def artifacts(self) -> list[Path]:
         """List durable run artifacts used for recovery and stop reports.
@@ -549,8 +511,7 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
     except AgentVersionMismatch as error:
         raise ToolCatalogMismatch(str(error)) from error
     source_hashes = {
-        relative: version["files"][relative]["sha256"]
-        for relative in FROZEN_MATERIAL_SOURCE_PATHS
+        relative: metadata["sha256"] for relative, metadata in version["files"].items()
     }
     prompts = {
         "drawing_system_prompt.txt": build_guide(images="drawings", mesh=False),
@@ -566,6 +527,7 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
         path.write_text(text, encoding="utf-8")
         reference_hashes[topic] = _sha256(path)
     material = {
+        "agent_version": version["version_id"],
         "baseline_commit": version["source_commit"],
         "source_sha256": source_hashes,
         "prompts": {

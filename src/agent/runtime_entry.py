@@ -165,7 +165,7 @@ async def execute(args) -> dict:
                 catalog = await tools.list_tools()
                 if not args.resume:
                     write_frozen_materials(output / "frozen", repository_root=ROOT)
-                    write_frozen_tool_catalog(output / "frozen", catalog, readonly=role.read_only)
+                    write_frozen_tool_catalog(output / "frozen", await client.list_tools(), readonly=role.read_only)
                 if args.provider == "scripted":
                     fixture = args.script.read_bytes()
                     # The local fixture gives one response per request ticket. A
