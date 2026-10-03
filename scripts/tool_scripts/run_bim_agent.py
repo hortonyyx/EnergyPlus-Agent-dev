@@ -280,7 +280,10 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     command.extend(["--mcp-config", json.dumps({"mcpServers": {"bim": {
         "command": server[0], "args": server[1:], "alwaysLoad": True}}})])
     started = time.monotonic()
+    from src.agent_runtime.agent_registry import agent_version_record
+    agent_version = agent_version_record(ROOT)["version_id"]
     record = {"requested_model": routed_model, "requested_role": model, "provider": provider,
+              "agent_version": agent_version,
               "channel": f"{provider} subscription; no paid API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
               "exploratory_opus": exploratory_opus,
