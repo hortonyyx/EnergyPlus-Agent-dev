@@ -103,7 +103,7 @@ async def _probe_tool_catalogs(root: Path) -> dict[str, str]:
 
     server = root / "scripts/tool_scripts/run_bim_agent.py"
     result: dict[str, str] = {}
-    with tempfile.TemporaryDirectory(prefix="agent-registry-") as temporary:
+    with tempfile.TemporaryDirectory(prefix=".agent-registry-", dir=root) as temporary:
         base = Path(temporary)
         for mode in _CATALOG_MODES:
             run = base / mode
