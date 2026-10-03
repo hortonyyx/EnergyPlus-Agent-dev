@@ -107,3 +107,27 @@ def test_verify_cli_and_runtime_manifest_record_current_agent_version(tmp_path, 
         evidence = manifest.agent_version.evidence
         assert evidence is not None
         assert json.loads(store.get_bytes(evidence.blob))["version_id"] == "5bb10538"
+
+
+def test_registration_can_add_a_new_tool_file_without_changing_history(tmp_path):
+    root, registry_path = _copy_registered_agent(tmp_path)
+    new_tool = root / "scripts/tool_scripts/bim_agent_new_tool.py"
+    new_tool.write_text("def register_new_tool(server):\n    return server\n", encoding="utf-8")
+    registry = load_agent_registry(root, registry_path)
+    old_record = json.loads(json.dumps(registry["versions"]["5bb10538"]))
+
+    register_agent_version(
+        root,
+        "with-new-tool",
+        registry_path=registry_path,
+        catalog_hashes=old_record["tool_catalog_sha256"],
+        additional_files={"scripts/tool_scripts/bim_agent_new_tool.py": "tool"},
+    )
+    current = agent_version_record(root, registry_path=registry_path)
+    assert current["files"]["scripts/tool_scripts/bim_agent_new_tool.py"] == {
+        "kind": "tool", "sha256": hashlib.sha256(new_tool.read_bytes()).hexdigest()
+    }
+    assert load_agent_registry(root, registry_path)["versions"]["5bb10538"] == old_record
+    new_tool.write_text("changed", encoding="utf-8")
+    with pytest.raises(AgentVersionMismatch, match="bim_agent_new_tool.py"):
+        agent_version_record(root, registry_path=registry_path)
