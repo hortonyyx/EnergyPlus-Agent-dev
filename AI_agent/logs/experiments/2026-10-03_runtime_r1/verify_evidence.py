@@ -149,7 +149,7 @@ def verify_glm_calibration():
         "limitation": "The endpoint reported reasoning plus visible output above max_tokens in two responses. One total exceeded the present reservation; input calibration is not a total-request guarantee."}
 
 
-def verify(archive_path, quota_path=None, quota_limit=None):
+def verify(archive_path, quota_path=None, quota_limit=20):
     pack = load_module("r1_evidence_pack", STAGE3 / "evidence_pack.py")
     checks = load_module("r1_stage3_checks", STAGE3 / "verify_delivery.py")
     archive = pack.read_archive(archive_path)
@@ -170,9 +170,11 @@ def verify(archive_path, quota_path=None, quota_limit=None):
         "glm_calibration": verify_glm_calibration(),
         "semantic_correctness": "evaluated separately against withheld facade references",
     }
-    if quota_path:
-        raw = quota_path.read_bytes()
-        assert raw == view.read("facade_experiment/request_quota.jsonl")
+    raw = view.read("facade_experiment/request_quota.jsonl")
+    assert raw, "completed facade experiment must retain its quota journal"
+    if quota_path is not None:
+        assert raw == quota_path.read_bytes()
+    if raw:
         assert not raw or raw.endswith(b"\n"), "torn quota journal"
         rows = [json.loads(line) for line in raw.splitlines()]
         attempts = [r for r in rows if r["event"] == "attempt"]
@@ -200,7 +202,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--quota", type=Path)
-    parser.add_argument("--quota-limit", type=int)
+    parser.add_argument("--quota-limit", type=int, default=20)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     report = verify(args.archive.resolve(), args.quota, args.quota_limit)
