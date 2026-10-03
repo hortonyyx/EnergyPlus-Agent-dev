@@ -1,77 +1,61 @@
 {
-  "attempt": "attempt_03",
-  "run": "AI_agent/logs/experiments/2026-10-03_migration_comparison/runs/attempt_03_6000s",
-  "delivered_candidate": "candidate_05",
-  "selection_origin": "agent_selected",
+  "attempt": "subscription_01",
+  "run": "AI_agent/logs/experiments/2026-10-03_migration_comparison/runs/subscription_01",
+  "delivered_candidate": "candidate_01",
+  "selection_origin": "latest_saved_fallback_not_agent_selected",
   "runtime": {
-    "status": "completed",
-    "answer_present": true,
-    "receipt_elapsed_seconds": 2512.7461351899983,
-    "event_span_seconds": 2512.6,
-    "model_calls": 36,
+    "status": "empty_response",
+    "answer_present": false,
+    "receipt_elapsed_seconds": 2918.776087759994,
+    "event_span_seconds": 2917.8,
+    "model_calls": 19,
     "retries": 0,
     "fallback": false,
     "reported_models": {
-      "GLM-5.3-Flash": 36
+      "glm-5.3-flash": 19
     },
     "usage": {
-      "prompt": 3166091,
-      "completion": 104008,
-      "total": 3270099,
-      "cached": 574976,
-      "reasoning": 82512,
+      "prompt": 1201760,
+      "completion": 115203,
+      "total": 1316963,
+      "cached": 119296,
+      "reasoning": 106193,
       "responses_without_usage": 0
     },
-    "request_image_attachments": 188,
-    "estimated_yuan_text_only": 2.824,
-    "yuan_note": "Reported tokens only; the Paratera bill also charges image tokens the usage omits.",
+    "request_image_attachments": 94,
+    "estimated_yuan_text_only": null,
+    "yuan_note": "Subscription: no usage-based price.",
     "per_round": {
-      "output_tokens": 2889,
-      "seconds": 69.8
+      "output_tokens": 6063,
+      "seconds": 153.6
     },
     "tool_calls": {
       "inputs": 2,
-      "view_image": 14,
-      "view_pixel_profile": 5,
-      "get_bim_reference": 7,
+      "view_image": 11,
+      "view_pixel_region_overview": 1,
+      "view_pixel_profile": 4,
+      "get_bim_reference": 5,
       "build_plan_bim": 1,
       "revise_plan_bim": 2,
-      "record_claim": 9,
-      "decide_claim": 6,
-      "revise_bim": 2,
-      "inspect_candidate": 1,
-      "build_bim": 2,
-      "confirm_claims": 2,
-      "claim_status": 1,
-      "finish_bim": 1
+      "record_claim": 5,
+      "decide_claim": 5,
+      "confirm_claims": 2
     },
     "tool_outcomes": {
-      "succeeded": 48,
-      "failed": 7
+      "succeeded": 34,
+      "failed": 4
     },
     "tool_failures": [
       {
-        "tool": "view_pixel_profile",
+        "tool": "view_pixel_region_overview",
         "outcome": "failed"
       },
       {
-        "tool": "view_pixel_profile",
+        "tool": "revise_plan_bim",
         "outcome": "failed"
       },
       {
-        "tool": "build_bim",
-        "outcome": "failed"
-      },
-      {
-        "tool": "record_claim",
-        "outcome": "failed"
-      },
-      {
-        "tool": "record_claim",
-        "outcome": "failed"
-      },
-      {
-        "tool": "record_claim",
+        "tool": "confirm_claims",
         "outcome": "failed"
       },
       {
@@ -87,24 +71,24 @@
       },
       {
         "action": "stop",
-        "reason": "completed",
+        "reason": "empty_response",
         "failure_stage": null
       }
     ],
     "budget_actions": {
-      "reserve": 36,
-      "settle": 36
+      "reserve": 19,
+      "settle": 19
     },
     "event_types": {
       "run_lifecycle": 2,
-      "checkpoint": 163,
-      "budget": 72,
-      "adapter_request": 36,
-      "model_response": 36,
-      "tool_invocation": 55,
-      "tool_execution": 55,
-      "tool_presentation": 55,
-      "context": 861,
+      "checkpoint": 94,
+      "budget": 38,
+      "adapter_request": 19,
+      "model_response": 19,
+      "tool_invocation": 38,
+      "tool_execution": 38,
+      "tool_presentation": 38,
+      "context": 256,
       "run_usage_summary": 1
     }
   },
@@ -116,7 +100,7 @@
       "openings": 21,
       "connections": 10
     },
-    "positions": 19,
+    "positions": 14,
     "hosts": 21,
     "door_connections": 10,
     "reference_openings": 21,
@@ -145,9 +129,9 @@
   },
   "baseline_seconds": 1442.03,
   "full_quality": {
-    "run": "attempt_03_6000s",
+    "run": "subscription_01",
     "case": "sm24",
-    "candidate": "candidate_05",
+    "candidate": "candidate_01",
     "counts": {
       "floors": 1,
       "spaces": 8,
@@ -162,7 +146,7 @@
     "original_openings": {
       "reference_count": 21,
       "matched": 21,
-      "positions": 19,
+      "positions": 14,
       "hosts": 21,
       "door_connections": 10,
       "unmatched_reference": [],
@@ -180,7 +164,7 @@
       "unclassified_exterior": [],
       "all": [
         {
-          "opening_id": "D2",
+          "opening_id": "d-east",
           "reference_id": "op_ac9",
           "reference_z_m": [
             0.19998881441390814,
@@ -197,7 +181,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "D1",
+          "opening_id": "d-north",
           "reference_id": "op_ac3",
           "reference_z_m": [
             0.19998881441390814,
@@ -214,7 +198,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "D3",
+          "opening_id": "d-south",
           "reference_id": "op_ade",
           "reference_z_m": [
             0.19998881441390814,
@@ -231,7 +215,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W9",
+          "opening_id": "w-e3",
           "reference_id": "op_aff",
           "reference_z_m": [
             0.999988814413908,
@@ -248,7 +232,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W8",
+          "opening_id": "w-e2",
           "reference_id": "op_afc",
           "reference_z_m": [
             0.999988814413908,
@@ -265,7 +249,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W7",
+          "opening_id": "w-e1",
           "reference_id": "op_aea",
           "reference_z_m": [
             0.999988814413908,
@@ -282,7 +266,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W1",
+          "opening_id": "w-north",
           "reference_id": "op_ae1",
           "reference_z_m": [
             0.999988814413908,
@@ -299,7 +283,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W10",
+          "opening_id": "w-s1",
           "reference_id": "op_af6",
           "reference_z_m": [
             0.999988814413908,
@@ -316,7 +300,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W11",
+          "opening_id": "w-s2",
           "reference_id": "op_af9",
           "reference_z_m": [
             0.999988814413908,
@@ -333,7 +317,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W6",
+          "opening_id": "w-w5",
           "reference_id": "op_ae4",
           "reference_z_m": [
             0.999988814413908,
@@ -350,7 +334,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W5",
+          "opening_id": "w-w4",
           "reference_id": "op_af3",
           "reference_z_m": [
             0.999988814413908,
@@ -367,7 +351,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W4",
+          "opening_id": "w-w3",
           "reference_id": "op_af0",
           "reference_z_m": [
             0.999988814413908,
@@ -384,7 +368,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W3",
+          "opening_id": "w-w2",
           "reference_id": "op_aed",
           "reference_z_m": [
             0.999988814413908,
@@ -401,7 +385,7 @@
           "within_strict": true
         },
         {
-          "opening_id": "W2",
+          "opening_id": "w-w1",
           "reference_id": "op_ae7",
           "reference_z_m": [
             0.999988814413908,

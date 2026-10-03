@@ -82,7 +82,7 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
         # No unverified sampling count on the Coding Plan endpoint. Capture the
         # resulting body below so the journal remains identical to wire bytes.
         body.pop("n")
-        unsupported = set(parameters) - {"max_tokens", "temperature"}
+        unsupported = set(parameters) - {"max_tokens", "temperature", "reasoning_effort"}
         if unsupported:
             raise ValueError("unreviewed GLM subscription parameters: " + ", ".join(sorted(unsupported)))
     if tools:

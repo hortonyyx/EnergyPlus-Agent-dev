@@ -272,7 +272,7 @@ def parser():
     p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")
     p.add_argument("--temperature", type=float, help="default: Paratera 0.0; subscription service default")
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
-    p.add_argument("--reasoning-effort", choices=("low", "high", "max"),
+    p.add_argument("--reasoning-effort", choices=("low", "medium", "high", "max"),
                    help="provider-native reasoning level; when set, omit enable_thinking")
     p.add_argument("--max-candidates", type=int, default=4)
     p.add_argument("--attach-image", action="append", default=[])
