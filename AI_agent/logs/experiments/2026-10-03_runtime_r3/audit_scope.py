@@ -80,6 +80,7 @@ def main():
     evidence_sizes = {str(directory.relative_to(ROOT)): sum(p.stat().st_size for p in directory.rglob("*")
         if p.is_file() and p.name != "scope_audit.json") for directory in evidence_dirs}
     result = {"checked_utc": datetime.now(timezone.utc).isoformat(), "branch": branch,
+        "audited_head_commit": git("rev-parse", "HEAD").decode().strip(),
         "base_commit": BASE, "t1_source_commit": T1_SOURCE, "t1_import_commit": T1_IMPORT,
         "model_requests": 0, "main_tree_files_written": 0, "pushed": False, "merged": False,
         "imported_files": imported_bytes, "imported_file_count": len(imported),
@@ -92,6 +93,7 @@ def main():
         "validation": validation, "distinct_checks_passed": len(all_test_ids),
         "frozen_replay_executable_code_unchanged": True,
         "main_tree_frozen_files_checked_readonly": main_frozen,
+        "evidence_size_excludes": [str((HERE / "scope_audit.json").relative_to(ROOT))],
         "evidence_bytes": evidence_sizes, "total_evidence_bytes": sum(evidence_sizes.values())}
     (HERE / "scope_audit.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps({key: result[key] for key in ("branch", "current_version", "registered_files",
