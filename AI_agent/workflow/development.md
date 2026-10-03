@@ -102,6 +102,15 @@
 
 **10-02 统一 Agent 开发的分工（用户安排）：** 主体开发交 GPT 侧，Astra 决定内部分工，负责实现、主线集成和开发记录；Opus 负责总主导、验收和质量，包括方向与优先级、阶段验收标准与结论、共享接口质量审查、回归与实测的提请、计划与验收记录；阶段结论和待拍板事项由 Opus 汇总报告用户。Claude 为 Plus 额度，Opus 不承担大段实现或长时间探索运行。见[开发计划](../project/unified_agent_harness_plan.md#五分工与交付方式10-02-用户调整)。
 
+## 从 Claude Code 派 Astra（10-02 起）
+
+- 容器禁止建立命名空间，codex 自带的写沙箱起不来，Landlock 只支持只读；要写代码只能用完全访问。10-02 用户授权 Opus 从 Claude Code 内以完全访问启动 Astra 派工、监督、验收。
+- 启动用单独一条命令，按项目设置原有的允许规则 `Bash(codex *)` 执行：`codex exec -m gpt-6-astra -c model_reasoning_effort='"max"' -c 'project_doc_fallback_filenames=["AI_agent/Agent.md"]' -s danger-full-access -C <工作树> --json -o <最终回复文件> "<派工提示>" > <事件日志> 2> <错误输出>`。不要和其他命令拼成一条，否则会转交自动审核而被拦。续接用 `codex exec resume <线程> -m gpt-6-astra -c model_reasoning_effort='"max"' -c sandbox_mode='"danger-full-access"' --json -o ... "<提示>"`；`resume` 不接受 `-C`，先把当前目录切到工作树。
+- 后台任务单次最长 2 小时；进度监视会被自动审核拦下，只能在运行结束时验收。预计超过 2 小时的阶段，建议由用户在自己的 Codex 里跑或续接。
+- 每个阶段的流程：Opus 先把验收标准和派工单写进主线 → 新建工作树（检出约 5 分钟）→ 启动 → 交付后 Opus 复核（改动范围、重跑检查、独立核实关键结论）→ 写验收结论 → 合入主线并推送，推送阶段分支备份，收回工作树。
+- 在 Astra 的工作树里跑检查时，设 `PYTHONPATH` 指向该工作树（共享安装会串到主工作树）；测试临时目录放在工作树内（开发入口只许写本工作树），用完删掉。
+- 新证据按哈希引用仓库里已有的字节，不重复打包；每个阶段新增的证据尽量控制在 10 MB 左右。
+
 ## 版本、环境和并行
 
 用 Git 提交/tag 标识代码，用 run 或工作记录保留输入、命令、关键配置、模型/人工参与、输出和未验证范围；不另造能力版本准入清单。重要证据不只留在临时目录。
