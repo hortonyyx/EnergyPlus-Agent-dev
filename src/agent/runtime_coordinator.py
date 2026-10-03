@@ -75,10 +75,52 @@ EXTRA_TOOLS = [
 ]
 
 
+EXTRA_TOOLS.insert(1, {
+    "name": "delegate_to_roles",
+    "description": "Dispatch several independent local observations in one batch. "
+        "Model requests run concurrently up to the configured limit (default 4); "
+        "frozen tool calls are serialized. Each task keeps its own budget and result, "
+        "and one failed task does not cancel its siblings. Results follow input order.",
+    "inputSchema": {"type": "object", "properties": {
+        "tasks": {"type": "array", "minItems": 1, "maxItems": 32,
+                  "items": EXTRA_TOOLS[0]["inputSchema"]}},
+        "required": ["tasks"], "additionalProperties": False},
+})
+
+
+class SerializedToolAccess:
+    """Keep the unchanged stateful tool service behind one shared async lock.
+
+    This does not serialize model requests. Synchronous snapshots and image
+    metadata reads run on the coordinator's single event loop without yielding.
+    """
+
+    def __init__(self, tools, lock):
+        self._tools, self._lock = tools, lock
+
+    def __getattr__(self, name):
+        return getattr(self._tools, name)
+
+    async def list_tools(self):
+        async with self._lock:
+            return await self._tools.list_tools()
+
+    async def call_tool(self, name, arguments):
+        async with self._lock:
+            return await self._tools.call_tool(name, arguments)
+
+
 class CoordinatorSession:
     def __init__(self, *, store, tools, observer_tools, adapter_factory, model, parameters,
-                 root=ROOT, route_id="scripted", guide="", limits=None):
-        self.store, self.tools, self.observer_tools = store, tools, observer_tools
+                 root=ROOT, route_id="scripted", guide="", limits=None,
+                 max_concurrent_observers=4):
+        if type(max_concurrent_observers) is not int or max_concurrent_observers < 1:
+            raise ValueError("max_concurrent_observers must be a positive integer")
+        self.max_concurrent_observers = max_concurrent_observers
+        self.frozen_lock = asyncio.Lock()
+        self.store = store
+        self.tools = SerializedToolAccess(tools, self.frozen_lock)
+        self.observer_tools = SerializedToolAccess(observer_tools, self.frozen_lock)
         self.adapter_factory, self.model, self.parameters = adapter_factory, model, parameters
         self.root, self.route_id, self.guide = Path(root), route_id, guide
         self.limits = limits
@@ -131,6 +173,8 @@ class CoordinatorSession:
             self.root / "src/agent/runtime_delegation.py"]
         configuration = {"model": self.model, "route_id": self.route_id,
             "parameters": self.parameters,
+            "max_concurrent_observers": self.max_concurrent_observers,
+            "frozen_tool_scheduling": "serialized_shared_service",
             "limits": self.limits.model_dump(mode="json") if self.limits else None,
             "model_profile": asdict(get_model_profile(self.model)),
             "guide_sha256": hashlib.sha256(self.guide.encode()).hexdigest(),
@@ -194,11 +238,13 @@ class CoordinatorSession:
         return {"source_bim": self.source_bim(), "views": [v.as_json() for v in self.views.values()],
             "children": {key: row["status"] for key, row in self.children.items()},
             "budget": budget.ledger.model_dump(mode="json"), "unknown_write": self.unknown_write,
-            "external_model_request": "未获取", "external_model_usage": "未获取"}
+            "external_model_request": "未获取", "external_model_usage": "未获取",
+            "max_concurrent_observers": self.max_concurrent_observers,
+            "frozen_tool_scheduling": "serialized_shared_service"}
 
     async def call_tool(self, name, arguments):
         async with self.lock:
-            self._external("dispatch" if name == "delegate_to_role" else "operation", name, arguments)
+            self._external("dispatch" if name in {"delegate_to_role", "delegate_to_roles"} else "operation", name, arguments)
             try:
                 if name not in self.schemas:
                     raise ValueError("unknown coordinator tool")
@@ -207,6 +253,8 @@ class CoordinatorSession:
                     value = result_envelope({"status": "time_budget_exhausted"}, error=True)
                 elif name == "delegate_to_role":
                     value = result_envelope(await self.delegate(arguments))
+                elif name == "delegate_to_roles":
+                    value = result_envelope(await self.delegate_many(arguments["tasks"]))
                 elif name == "inspect_local_observation":
                     value = result_envelope(self.inspect(arguments["task_id"]))
                 elif name == "apply_local_observation":
@@ -279,6 +327,30 @@ class CoordinatorSession:
         self.store.append(StateInspectionPayload(purpose="unknown_write_recovery",
             target_event_id=event_id, persisted_state=state, conclusion="inconclusive"))
 
+    async def delegate_many(self, tasks):
+        identities = [item["task_id"] for item in tasks]
+        if len(set(identities)) != len(identities) or self.store.task_id in identities:
+            raise ValueError("batch task IDs must be distinct and different from coordinator")
+        slots = asyncio.Semaphore(self.max_concurrent_observers)
+
+        async def dispatch(arguments):
+            async with slots:
+                self._external("dispatch", "delegate_to_role", arguments)
+                try:
+                    outcome = await self.delegate(arguments)
+                except (ValueError, KeyError) as exc:
+                    outcome = {"status": "rejected", "task_id": arguments["task_id"], "reason": str(exc)}
+                except Exception as exc:
+                    outcome = {"status": "child_failed", "task_id": arguments["task_id"],
+                               "error_type": type(exc).__name__}
+                self._external("return", "delegate_to_role", arguments, outcome)
+                return outcome
+
+        results = await asyncio.gather(*(dispatch(item) for item in tasks))
+        return {"status": "completed", "results": results,
+                "max_concurrent_observers": self.max_concurrent_observers,
+                "frozen_tool_scheduling": "serialized_shared_service"}
+
     async def delegate(self, arguments):
         task_id = arguments["task_id"]
         if task_id == self.store.task_id or not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}", task_id):
@@ -311,13 +383,24 @@ class CoordinatorSession:
                 return {"status": "time_budget_exhausted", "package": package.model_dump(mode="json")}
             # A restored task must retain its limits. The root's time budget is
             # also enforced by its ledger and this enclosing operation timeout.
-        adapter = self.adapter_factory(task_id)
-        running = run_observer(store=child, frozen_tools=self.observer_tools, adapter=adapter,
-            model=self.model, parameters=self.parameters, limits=limits, package=package, views=views,
-            notes=arguments.get("notes", []), root=self.root,
-            root_tool_calls=self.limits.tool_calls if self.limits else None,
-            route={"route_id": self.route_id, "model": self.model}, resume=bool(child.events))
-        outcome = await asyncio.wait_for(running, timeout=remaining) if self.limits else await running
+        try:
+            adapter = self.adapter_factory(task_id)
+            running = run_observer(store=child, frozen_tools=self.observer_tools, adapter=adapter,
+                model=self.model, parameters=self.parameters, limits=limits, package=package, views=views,
+                notes=arguments.get("notes", []), root=self.root,
+                root_tool_calls=self.limits.tool_calls if self.limits else None,
+                route={"route_id": self.route_id, "model": self.model}, resume=bool(child.events))
+            outcome = await asyncio.wait_for(running, timeout=remaining) if self.limits else await running
+        except Exception as exc:
+            # Preserve a failed child's identity and evidence as an inspectable
+            # result. Outstanding reservations remain held, never refunded on
+            # an unknown failure, and siblings may use only the remaining root.
+            child.append(RunLifecyclePayload(action="failure", failure_stage="local_observer",
+                reason="local observer failed: " + type(exc).__name__))
+            outcome = {"status": "child_failed", "error_type": type(exc).__name__,
+                "result": None, "runtime": None, "validation_error": None,
+                "package": package.model_dump(mode="json"),
+                "views": [v.as_json() for v in views], "model": self.model}
         child.write_json("observation.json", outcome)
         self._external("return", "delegation_outcome", {"task_id": task_id}, outcome,
             sources=(self.store.source("delegation-outcome", outcome),))
@@ -389,6 +472,7 @@ async def serve(args):
                     observers = FrozenBimTools(observer_client, local_observer_role(limits.ledger_limit()), run_directory=run)
                     session = await CoordinatorSession(store=store, tools=tools, observer_tools=observers,
                         adapter_factory=factory, model=model, route_id=args.provider, guide=guide, limits=limits,
+                        max_concurrent_observers=args.max_concurrent_observers,
                         parameters={"max_tokens": args.output_tokens, "temperature": 0.0,
                                     "enable_thinking": args.thinking}).initialize()
                     if not args.resume:
@@ -429,6 +513,7 @@ def parser():
     p.add_argument("--tokens", type=int, default=300_000)
     p.add_argument("--seconds", type=float, default=3600)
     p.add_argument("--output-tokens", type=int, default=8192)
+    p.add_argument("--max-concurrent-observers", type=int, default=4)
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--resume", action="store_true")
     return p
