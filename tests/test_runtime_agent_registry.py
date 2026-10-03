@@ -21,6 +21,9 @@ from src.harness_contracts import BudgetAmounts
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "src/agent_runtime/agent_versions.json"
+HISTORICAL_CONDITION = (
+    ROOT / "AI_agent/logs/experiments/2026-10-02_sm24_glm_baseline/experiment_condition.json"
+)
 
 
 def _copy_registered_agent(tmp_path: Path) -> tuple[Path, Path]:
@@ -39,14 +42,17 @@ def _copy_registered_agent(tmp_path: Path) -> tuple[Path, Path]:
 def test_historical_frozen_agent_is_a_verified_registry_version():
     registry = load_agent_registry(ROOT)
     record = agent_version_record(ROOT)
-    assert registry["current_version"] == "5bb10538"
-    assert record["version_id"] == "5bb10538"
-    assert record["source_commit"] == "5bb10538"
-    assert {item["kind"] for item in record["files"].values()} == {
+    historical = registry["versions"]["5bb10538"]
+    assert record["version_id"] == registry["current_version"]
+    assert historical["source_commit"] == "5bb10538"
+    expected_files = json.loads(HISTORICAL_CONDITION.read_text(encoding="utf-8"))[
+        "implementation_sha256"
+    ]
+    assert {path: item["sha256"] for path, item in historical["files"].items()} == expected_files
+    assert {item["kind"] for item in historical["files"].values()} == {
         "tool", "guidance", "task_description"
     }
-    assert len(record["files"]) == 5
-    assert set(record["tool_catalog_sha256"]) == {
+    assert set(historical["tool_catalog_sha256"]) == {
         "coordinator", "readonly", "coordinator_mesh", "readonly_mesh"
     }
 
@@ -83,9 +89,18 @@ def test_each_registered_file_change_fails_until_a_new_version_is_registered(
     assert updated["versions"]["5bb10538"] == old_record
 
 
+def test_tool_dependency_change_outside_original_five_is_rejected(tmp_path: Path):
+    root, registry_path = _copy_registered_agent(tmp_path)
+    dependency = root / "src/agent/geometry/plan_partition.py"
+    dependency.write_bytes(dependency.read_bytes() + b"\n# changed tool dependency\n")
+    with pytest.raises(AgentVersionMismatch, match="plan_partition.py"):
+        agent_version_record(root, registry_path=registry_path)
+
+
 def test_verify_cli_and_runtime_manifest_record_current_agent_version(tmp_path, capsys):
+    current = load_agent_registry(ROOT)["current_version"]
     assert main(["verify", "--root", str(ROOT)]) == 0
-    assert json.loads(capsys.readouterr().out)["version_id"] == "5bb10538"
+    assert json.loads(capsys.readouterr().out)["version_id"] == current
 
     run = tmp_path / "run"
     with EventStore(
@@ -103,10 +118,10 @@ def test_verify_cli_and_runtime_manifest_record_current_agent_version(tmp_path, 
             route={"route_id": "offline", "model": "test"},
         )
         assert manifest.agent_version is not None
-        assert manifest.agent_version.identifier == "5bb10538"
+        assert manifest.agent_version.identifier == current
         evidence = manifest.agent_version.evidence
         assert evidence is not None
-        assert json.loads(store.get_bytes(evidence.blob))["version_id"] == "5bb10538"
+        assert json.loads(store.get_bytes(evidence.blob))["version_id"] == current
 
 
 def test_registration_can_add_a_new_tool_file_without_changing_history(tmp_path):

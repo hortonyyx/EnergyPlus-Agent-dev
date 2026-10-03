@@ -33,6 +33,17 @@ from src.harness_contracts.roles import (
 FROZEN_BASELINE_COMMIT = "5bb10538"
 Repeatability = Literal["read_only", "idempotent_write", "non_idempotent_write"]
 
+# Preserve the Stage-1 material manifest's historical five-entry shape.  These
+# paths are an export subset only; agent_registry verifies the full dependency
+# closure and owns all hashes.
+FROZEN_MATERIAL_SOURCE_PATHS = (
+    "scripts/tool_scripts/run_bim_agent.py",
+    "scripts/tool_scripts/bim_agent_guidance.py",
+    "scripts/tool_scripts/bim_agent_inputs.py",
+    "scripts/tool_scripts/bim_agent_inference.py",
+    "scripts/tool_scripts/bim_agent_mesh.py",
+)
+
 MESH_OBSERVER_TOOL_NAMES = (
     "inspect_mesh", "inspect_mesh_directions", "view_mesh", "measure_mesh_pixels",
     "view_mesh_observation",
@@ -504,7 +515,8 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
     except AgentVersionMismatch as error:
         raise ToolCatalogMismatch(str(error)) from error
     source_hashes = {
-        relative: metadata["sha256"] for relative, metadata in version["files"].items()
+        relative: version["files"][relative]["sha256"]
+        for relative in FROZEN_MATERIAL_SOURCE_PATHS
     }
     prompts = {
         "drawing_system_prompt.txt": build_guide(images="drawings", mesh=False),
