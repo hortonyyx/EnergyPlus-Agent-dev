@@ -32,6 +32,8 @@ uv run python -m src.agent_runtime.agent_registry register --root . \
 
 `--add-file` 可重复使用，类别限 `tool`、`guidance`、`task_description`。登记命令拒绝覆盖同名历史版本，写入采用临时文件替换；默认把新记录切为当前版本。
 
+新增源文件可以通过登记纳入哈希闭包；若实际新增了对模型公开的工具名称，还必须显式扩充角色白名单和重复执行策略。版本登记本身不会绕过权限策略。
+
 ## 反例与验证
 
 - 五个原锁入口文件逐个复制到隔离仓库并各改动一次；每次运行核对均因对应路径哈希变化失败。
@@ -42,6 +44,7 @@ uv run python -m src.agent_runtime.agent_registry register --root . \
 - 首轮定向：`tests/test_runtime_agent_registry.py tests/test_runtime_frozen_tools.py tests/test_runtime_estimation.py`，27 项通过。
 - 联合定向：再加 `tests/test_harness_core_contracts.py tests/test_runtime_r2_truncation.py`，62 项通过。
 - 完整 45 文件闭包及新增文件场景补测：版本登记与冻结工具两文件，17 项通过；临时目录修正后版本登记 9 项再通过。
+- 现役冻结工具测试已改为从当前登记读取 source commit、指引文件哈希及四种目录哈希；只有当前版本仍为 `5bb10538` 时才核历史 material 字节。用 mock 的未来版本证明期望会随新指引和目录哈希更新；该文件 9 项通过。
 - `git diff 5bb10538..HEAD -- scripts/tool_scripts src/agent/geometry src/agent/correction src/agent/execution` 无输出；本包未改冻结工具、指引、几何、修正或现有执行模块。
 
 ## 提交与文件

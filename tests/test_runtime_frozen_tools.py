@@ -28,6 +28,7 @@ from src.agent.runtime_tools import (
     write_frozen_tool_catalog,
 )
 from src.agent_runtime.mcp_tools import McpToolClient, McpTransportError
+from src.agent_runtime.agent_registry import agent_version_record
 import src.agent_runtime.mcp_tools as mcp_tools_module
 from src.harness_contracts.budget import BudgetAmounts
 
@@ -56,14 +57,8 @@ def _prepared_run(tmp_path: Path, *, mesh: bool = False) -> Path:
     return run
 
 
-def _frozen_catalog(mode: str = "coordinator") -> list[dict]:
-    names = {
-        "coordinator": "coordinator_tools.json",
-        "readonly": "local_observer_tools.json",
-        "coordinator_mesh": "coordinator_mesh_tools.json",
-        "readonly_mesh": "local_observer_mesh_tools.json",
-    }
-    return json.loads((MATERIALS / names[mode]).read_text(encoding="utf-8"))["tools"]
+def _registered_agent() -> dict:
+    return agent_version_record(ROOT)
 
 
 async def _catalog(run: Path, readonly: bool) -> list[dict]:
@@ -73,6 +68,7 @@ async def _catalog(run: Path, readonly: bool) -> list[dict]:
 
 def test_real_frozen_server_catalogs_roles_and_materials(tmp_path):
     async def scenario():
+        registered = _registered_agent()
         run = _prepared_run(tmp_path)
         coordinator_catalog, observer_catalog = await asyncio.gather(
             _catalog(run, False), _catalog(run, True),
@@ -99,37 +95,45 @@ def test_real_frozen_server_catalogs_roles_and_materials(tmp_path):
         material = write_frozen_materials(material_directory, repository_root=ROOT)
         coordinator_record = write_frozen_tool_catalog(material_directory, coordinator_catalog, readonly=False)
         observer_record = write_frozen_tool_catalog(material_directory, observer_catalog, readonly=True)
-        assert material["baseline_commit"] == FROZEN_BASELINE_COMMIT
+        assert material["baseline_commit"] == registered["source_commit"]
         assert len(material["references"]) > 5
-        assert coordinator_record["tool_count"] == 42
-        assert observer_record["tool_count"] == 13
+        assert coordinator_record["tool_count"] == len(COORDINATOR_TOOL_NAMES)
+        assert observer_record["tool_count"] == len(LOCAL_OBSERVER_TOOL_NAMES)
         saved = json.loads((material_directory / "coordinator_tools.json").read_text())
         assert saved["tools"] == coordinator_catalog
-        assert len(saved["definition_sha256_by_name"]) == 42
+        assert len(saved["definition_sha256_by_name"]) == len(COORDINATOR_TOOL_NAMES)
         assert saved["policy_by_name"]["inspect_candidate"]["repeatability"] == "read_only"
         assert saved["policy_by_name"]["build_bim"]["repeatability"] == "non_idempotent_write"
         assert coordinator_record["definitions_sha256"] == saved["definitions_sha256"]
         assert material["prompts"]["drawing_system_prompt.txt"]["byte_count"] > 1000
         assert material["references"]["geometry"]["byte_count"] > 100
-        checked_manifest = json.loads((MATERIALS / "tool_catalog_manifest.json").read_text(encoding="utf-8"))
-        assert checked_manifest["catalogs"]["coordinator"]["definitions_sha256"] == coordinator_record["definitions_sha256"]
-        assert checked_manifest["catalogs"]["readonly"]["definitions_sha256"] == observer_record["definitions_sha256"]
-        assert json.loads(
-            (MATERIALS / "material_manifest.json").read_text(encoding="utf-8")
-        ) == material
+        assert material["source_sha256"]["scripts/tool_scripts/bim_agent_guidance.py"] == (
+            registered["files"]["scripts/tool_scripts/bim_agent_guidance.py"]["sha256"]
+        )
+        assert registered["tool_catalog_sha256"]["coordinator"] == coordinator_record[
+            "definitions_sha256"
+        ]
+        assert registered["tool_catalog_sha256"]["readonly"] == observer_record[
+            "definitions_sha256"
+        ]
+        if registered["version_id"] == FROZEN_BASELINE_COMMIT:
+            assert json.loads(
+                (MATERIALS / "material_manifest.json").read_text(encoding="utf-8")
+            ) == material
     asyncio.run(scenario())
 
 
 def test_real_mesh_input_adds_exact_frozen_mesh_catalog_variants(tmp_path):
     async def scenario():
+        registered = _registered_agent()
         run = _prepared_run(tmp_path, mesh=True)
         coordinator_catalog, observer_catalog = await asyncio.gather(
             _catalog(run, False), _catalog(run, True),
         )
         assert {tool["name"] for tool in coordinator_catalog} == set(MESH_COORDINATOR_TOOL_NAMES)
         assert {tool["name"] for tool in observer_catalog} == set(MESH_LOCAL_OBSERVER_TOOL_NAMES)
-        assert len(coordinator_catalog) == 49
-        assert len(observer_catalog) == 18
+        assert len(coordinator_catalog) == len(MESH_COORDINATOR_TOOL_NAMES)
+        assert len(observer_catalog) == len(MESH_LOCAL_OBSERVER_TOOL_NAMES)
         coordinator = FrozenBimTools(
             _StaticClient(coordinator_catalog), coordinator_role(BudgetAmounts(calls=2)),
             run_directory=run,
@@ -151,9 +155,12 @@ def test_real_mesh_input_adds_exact_frozen_mesh_catalog_variants(tmp_path):
         observer_record = write_frozen_tool_catalog(
             material_directory, observer_catalog, readonly=True,
         )
-        checked = json.loads((MATERIALS / "tool_catalog_manifest.json").read_text(encoding="utf-8"))
-        assert checked["catalogs"]["coordinator_mesh"]["definitions_sha256"] == coordinator_record["definitions_sha256"]
-        assert checked["catalogs"]["readonly_mesh"]["definitions_sha256"] == observer_record["definitions_sha256"]
+        assert registered["tool_catalog_sha256"]["coordinator_mesh"] == coordinator_record[
+            "definitions_sha256"
+        ]
+        assert registered["tool_catalog_sha256"]["readonly_mesh"] == observer_record[
+            "definitions_sha256"
+        ]
     asyncio.run(scenario())
 
 
@@ -178,11 +185,12 @@ def test_real_readonly_call_preserves_sent_and_original_image_metadata(tmp_path)
 
 def test_phase_one_returns_known_block_before_execution_and_unknown_write_never_retries(tmp_path):
     run = _prepared_run(tmp_path)
-    catalog = _frozen_catalog()
-    client = _FailingWriteClient(catalog)
-    tools = FrozenBimTools(client, coordinator_role(BudgetAmounts(calls=3)), run_directory=run)
 
     async def scenario():
+        client = _FailingWriteClient(await _catalog(run, False))
+        tools = FrozenBimTools(
+            client, coordinator_role(BudgetAmounts(calls=3)), run_directory=run
+        )
         blocked = await tools.call_tool("review_detail", {})
         assert blocked["isError"] is True
         assert blocked["structuredContent"]["status"] == "blocked"
@@ -209,9 +217,8 @@ def test_artifacts_include_partial_viewer_and_source_bim_but_not_transport_scrat
     scratch = run / ".harness_tmp"
     scratch.mkdir()
     scratch.joinpath("transport.tmp").write_text("temporary", encoding="utf-8")
-    catalog = _frozen_catalog()
     tools = FrozenBimTools(
-        _StaticClient(catalog), coordinator_role(BudgetAmounts(calls=1)), run_directory=run,
+        _StaticClient([]), coordinator_role(BudgetAmounts(calls=1)), run_directory=run,
     )
     artifacts = {path.relative_to(run).as_posix() for path in tools.artifacts()}
     assert "candidate_01/source_model.json" in artifacts
@@ -245,17 +252,39 @@ def test_mcp_tool_pagination_collects_pages_and_rejects_repeated_cursor(tmp_path
 
 
 def test_frozen_catalog_rejects_same_names_with_changed_description(tmp_path):
-    catalog = _frozen_catalog()
-    catalog[0]["description"] += " changed"
-    tools = FrozenBimTools(
-        _StaticClient(catalog), coordinator_role(BudgetAmounts(calls=1)),
-        run_directory=_prepared_run(tmp_path),
-    )
+    run = _prepared_run(tmp_path)
 
     async def scenario():
+        catalog = await _catalog(run, False)
+        catalog[0]["description"] += " changed"
+        tools = FrozenBimTools(
+            _StaticClient(catalog), coordinator_role(BudgetAmounts(calls=1)),
+            run_directory=run,
+        )
         with pytest.raises(ToolCatalogMismatch, match="definitions changed"):
             await tools.list_tools()
     asyncio.run(scenario())
+
+
+def test_current_catalog_and_guidance_expectations_come_from_registry(monkeypatch):
+    fake = {
+        "version_id": "future-version",
+        "source_commit": "future-commit",
+        "files": {
+            "scripts/tool_scripts/bim_agent_guidance.py": {"sha256": "1" * 64}
+        },
+        "tool_catalog_sha256": {
+            "coordinator": "2" * 64,
+            "readonly": "3" * 64,
+            "coordinator_mesh": "4" * 64,
+            "readonly_mesh": "5" * 64,
+        },
+    }
+    monkeypatch.setitem(_registered_agent.__globals__, "agent_version_record", lambda _root: fake)
+    expected = _registered_agent()
+    assert expected["version_id"] == "future-version"
+    assert expected["files"]["scripts/tool_scripts/bim_agent_guidance.py"]["sha256"] == "1" * 64
+    assert expected["tool_catalog_sha256"]["coordinator"] == "2" * 64
 
 
 def test_mcp_enter_closes_transport_when_session_initialization_fails(tmp_path, monkeypatch):
