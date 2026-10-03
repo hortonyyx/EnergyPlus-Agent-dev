@@ -1,0 +1,266 @@
+{
+  "parent_draft_id": "draft_012",
+  "parent_plan_sha256": "48d6a46870bc0359e3a4b19b2178fb95f8a17ccbd2ad7d0b33e6d1b5906151cc",
+  "operations_json": "[{\"collection\":\"partitions\",\"id\":\"P_Mwest\",\"op\":\"remove\",\"reason\":\"the M-block west wall is an exterior wall: windows W_M1/W_M2 sit on x 513 and the footprint edge [513,588]-[513,1235] already carries it; the duplicate interior centreline partition created an unmodellable wall-thickness sliver\",\"source_refs\":[\"1f_view.png windows W_M1 x 513 y 673-756, W_M2 x 513 y 789-873; draft_012 overlap error\"]},{\"collection\":\"partitions\",\"id\":\"P_corrSw\",\"op\":\"remove\",\"reason\":\"merge corridor south wall back to one path; no junction remains on it after P_Mwest removal\",\"source_refs\":[\"draft_012\"]},{\"collection\":\"partitions\",\"id\":\"P_corrS\",\"changes\":{\"points\":[[282,582.5],[695,582.5]]},\"op\":\"update\",\"reason\":\"single path again; west end on footprint west face 282\",\"source_refs\":[\"draft_012\"]},{\"collection\":\"partitions\",\"id\":\"P_Mdiv\",\"changes\":{\"points\":[[513,771],[695,771]]},\"op\":\"update\",\"reason\":\"west endpoint on footprint edge x 513 (the M-block west exterior wall)\",\"source_refs\":[\"1f_view.png\"]},{\"collection\":\"partitions\",\"id\":\"P_Msouth\",\"changes\":{\"points\":[[513,963],[695,963]]},\"op\":\"update\",\"reason\":\"west endpoint on footprint edge x 513\",\"source_refs\":[\"1f_view.png\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "P_Mwest",
+      "before": {
+        "id": "P_Mwest",
+        "points": [
+          [
+            513,
+            582.5
+          ],
+          [
+            513,
+            963
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png middle-offices west wall faces 513/524"
+        ]
+      },
+      "after": null,
+      "reason": "the M-block west wall is an exterior wall: windows W_M1/W_M2 sit on x 513 and the footprint edge [513,588]-[513,1235] already carries it; the duplicate interior centreline partition created an unmodellable wall-thickness sliver",
+      "source_refs": [
+        "1f_view.png windows W_M1 x 513 y 673-756, W_M2 x 513 y 789-873; draft_012 overlap error"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "P_corrSw",
+      "before": {
+        "id": "P_corrSw",
+        "points": [
+          [
+            282,
+            582.5
+          ],
+          [
+            513,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "draft_006 cut edge; corridor south wall west portion, endpoints on west face and P_Mwest junction"
+        ]
+      },
+      "after": null,
+      "reason": "merge corridor south wall back to one path; no junction remains on it after P_Mwest removal",
+      "source_refs": [
+        "draft_012"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "partitions",
+      "id": "P_corrS",
+      "before": {
+        "id": "P_corrS",
+        "points": [
+          [
+            513,
+            582.5
+          ],
+          [
+            695,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png corridor south wall faces 577/588, ends at M-east wall"
+        ]
+      },
+      "after": {
+        "id": "P_corrS",
+        "points": [
+          [
+            282,
+            582.5
+          ],
+          [
+            695,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png corridor south wall faces 577/588, ends at M-east wall"
+        ]
+      },
+      "reason": "single path again; west end on footprint west face 282",
+      "source_refs": [
+        "draft_012"
+      ]
+    },
+    {
+      "operation_index": 3,
+      "field": "partitions",
+      "id": "P_Mdiv",
+      "before": {
+        "id": "P_Mdiv",
+        "points": [
+          [
+            513,
+            771
+          ],
+          [
+            695,
+            771
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png M1/M2 divider world y 10"
+        ]
+      },
+      "after": {
+        "id": "P_Mdiv",
+        "points": [
+          [
+            513,
+            771
+          ],
+          [
+            695,
+            771
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png M1/M2 divider world y 10"
+        ]
+      },
+      "reason": "west endpoint on footprint edge x 513 (the M-block west exterior wall)",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    },
+    {
+      "operation_index": 4,
+      "field": "partitions",
+      "id": "P_Msouth",
+      "before": {
+        "id": "P_Msouth",
+        "points": [
+          [
+            513,
+            963
+          ],
+          [
+            695,
+            963
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png middle-offices south wall faces 957/969"
+        ]
+      },
+      "after": {
+        "id": "P_Msouth",
+        "points": [
+          [
+            513,
+            963
+          ],
+          [
+            695,
+            963
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png middle-offices south wall faces 957/969"
+        ]
+      },
+      "reason": "west endpoint on footprint edge x 513",
+      "source_refs": [
+        "1f_view.png"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P_corrN",
+      "P_Wdiv",
+      "P_WblockE",
+      "P_Rwest",
+      "P_R1R2",
+      "P_R2R3",
+      "P_R3R4",
+      "P_R4R5",
+      "P_R5R6",
+      "P_R6R7",
+      "P_hallN",
+      "P_Meast",
+      "P_Bnorth",
+      "P_B1B2",
+      "P_B2E"
+    ],
+    "space_seeds": [
+      "W1",
+      "W2",
+      "corridor",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "M1",
+      "M2",
+      "B1",
+      "B2",
+      "hall"
+    ],
+    "openings": [
+      "D_main",
+      "D_W1",
+      "D_W2",
+      "D_R1",
+      "D_R2",
+      "D_R3",
+      "D_R4",
+      "D_R5",
+      "D_R6",
+      "D_R7",
+      "D_M1",
+      "D_M2",
+      "D_B1n",
+      "D_B2n",
+      "D_B1w",
+      "D_Halle",
+      "W_N1",
+      "W_N2",
+      "W_N3",
+      "W_R1",
+      "W_R2",
+      "W_R3",
+      "W_R4",
+      "W_R5",
+      "W_R6",
+      "W_R7",
+      "W_M1",
+      "W_M2",
+      "W_S1",
+      "W_S2",
+      "W_hallN"
+    ]
+  },
+  "unchanged_fields": [
+    "assumptions",
+    "basis",
+    "ceiling_height",
+    "floor_id",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "unresolved",
+    "x_anchors",
+    "y_anchors",
+    "z_floor"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

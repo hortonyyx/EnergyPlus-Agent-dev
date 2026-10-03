@@ -1,0 +1,161 @@
+{
+  "parent_draft_id": "draft_006",
+  "parent_plan_sha256": "c0aeaf99e0237d70d01c7e5ff4534a95c02c24fb646cebfdb38888190daca931",
+  "operations_json": "[{\"collection\":\"partitions\",\"id\":\"P_corrS\",\"changes\":{\"points\":[[518.5,582.5],[695,582.5]]},\"op\":\"update\",\"reason\":\"junctions must be endpoint-to-endpoint: split P_corrS at P_Mwest junction x 518.5\",\"source_refs\":[\"draft_006 cut edge P_corrS [282,518.5]\"]},{\"collection\":\"partitions\",\"op\":\"add\",\"value\":{\"id\":\"P_corrSw\",\"points\":[[282,582.5],[518.5,582.5]],\"source_refs\":[\"draft_006 cut edge; corridor south wall west portion, endpoints on west face and P_Mwest junction\"]},\"reason\":\"west portion of corridor south wall as its own path with coincident junction at (518.5,582.5)\",\"source_refs\":[\"draft_006 cut edge report\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "P_corrS",
+      "before": {
+        "id": "P_corrS",
+        "points": [
+          [
+            282,
+            582.5
+          ],
+          [
+            695,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png corridor south wall faces 577/588, ends at M-east wall"
+        ]
+      },
+      "after": {
+        "id": "P_corrS",
+        "points": [
+          [
+            518.5,
+            582.5
+          ],
+          [
+            695,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png corridor south wall faces 577/588, ends at M-east wall"
+        ]
+      },
+      "reason": "junctions must be endpoint-to-endpoint: split P_corrS at P_Mwest junction x 518.5",
+      "source_refs": [
+        "draft_006 cut edge P_corrS [282,518.5]"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "P_corrSw",
+      "before": null,
+      "after": {
+        "id": "P_corrSw",
+        "points": [
+          [
+            282,
+            582.5
+          ],
+          [
+            518.5,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "draft_006 cut edge; corridor south wall west portion, endpoints on west face and P_Mwest junction"
+        ]
+      },
+      "reason": "west portion of corridor south wall as its own path with coincident junction at (518.5,582.5)",
+      "source_refs": [
+        "draft_006 cut edge report"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P_corrN",
+      "P_Wdiv",
+      "P_WblockE",
+      "P_Rwest",
+      "P_R1R2",
+      "P_R2R3",
+      "P_R3R4",
+      "P_R4R5",
+      "P_R5R6",
+      "P_R6R7",
+      "P_hallN",
+      "P_Mwest",
+      "P_Meast",
+      "P_Mdiv",
+      "P_Msouth",
+      "P_Bnorth",
+      "P_B1B2",
+      "P_B2E"
+    ],
+    "space_seeds": [
+      "W1",
+      "W2",
+      "corridor",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "M1",
+      "M2",
+      "B1",
+      "B2",
+      "hall"
+    ],
+    "openings": [
+      "D_main",
+      "D_W1",
+      "D_W2",
+      "D_R1",
+      "D_R2",
+      "D_R3",
+      "D_R4",
+      "D_R5",
+      "D_R6",
+      "D_R7",
+      "D_M1",
+      "D_M2",
+      "D_B1n",
+      "D_B2n",
+      "D_B1w",
+      "D_Halle",
+      "W_N1",
+      "W_N2",
+      "W_N3",
+      "W_R1",
+      "W_R2",
+      "W_R3",
+      "W_R4",
+      "W_R5",
+      "W_R6",
+      "W_R7",
+      "W_M1",
+      "W_M2",
+      "W_S1",
+      "W_S2",
+      "W_hallN"
+    ]
+  },
+  "unchanged_fields": [
+    "assumptions",
+    "basis",
+    "ceiling_height",
+    "floor_id",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "unresolved",
+    "x_anchors",
+    "y_anchors",
+    "z_floor"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

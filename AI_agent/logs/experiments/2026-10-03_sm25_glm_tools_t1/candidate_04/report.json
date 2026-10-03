@@ -1,0 +1,191 @@
+{
+  "agent_assumptions": [
+    "Interior door leaf heights 2.1 m (no internal elevation drawn); exterior door heads 2.1 m observed on west/east elevations.",
+    "West windows W_M1/W_M2 z [1.0,2.6] observed on the West elevation chain (sill 1000 / height 1600) and applied via claim_0011.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door leaf heights 2.1 m assumed (no internal elevation drawn).",
+    "No stair/vertical circulation is drawn on either plan; none invented.",
+    "The 2F volume steps: west of the x=4.97 wall and south of y=6.17 the 1F roof is below; the x=4.97 wall is the 2F west facade for y 4.0-14.2.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 198,
+    "connections": 31,
+    "openings": 62,
+    "spaces": 30,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "992fe395b0240db69d2879d0f0956e36dad8004c7defcccd9b5c0743940e4fc7",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0011",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            1.0,
+            2.6
+          ],
+          "targets": [
+            [
+              "window",
+              "1F:W_M1"
+            ]
+          ],
+          "value_field": "z"
+        },
+        {
+          "claim_id": "claim_0011",
+          "computation": {
+            "basis": "annotation_and_pixels",
+            "method": "explicit_metric_value"
+          },
+          "operation_index": 1,
+          "parameter": "z",
+          "resolved_value": [
+            1.0,
+            2.6
+          ],
+          "targets": [
+            [
+              "window",
+              "1F:W_M2"
+            ]
+          ],
+          "value_field": "z"
+        }
+      ],
+      "claims": {
+        "claim_0011": {
+          "decision": {
+            "claim_id": "claim_0011",
+            "disposition": "adopted",
+            "id": "decision_0001",
+            "reason": "Observed west elevation chain 1000/1600 for both 1F west windows; supersedes the assumed head in claim_0004."
+          },
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_03",
+              "objects": [
+                {
+                  "id": "1F:W_M1",
+                  "kind": "window"
+                },
+                {
+                  "id": "1F:W_M2",
+                  "kind": "window"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "West elevation dimension chain, 1F storey: both west windows sill 1000 mm from ground, height 1600 mm, absolute z [1.0, 2.6] m (chain reads 1000/1600/1000 up the 3600 storey). Corrects the earlier assumed head of 2.8 m.",
+              "sources": [
+                {
+                  "box": null,
+                  "image": "West_view.png"
+                }
+              ],
+              "unresolved": [
+                "Whole-image citation; shared chain value on the two west windows."
+              ],
+              "value_targets": null,
+              "values": {
+                "z": {
+                  "type": "literal",
+                  "unit": "m",
+                  "value": [
+                    1.0,
+                    2.6
+                  ]
+                }
+              }
+            },
+            "computations": {
+              "z": {
+                "basis": "annotation_and_pixels",
+                "method": "explicit_metric_value"
+              }
+            },
+            "id": "claim_0011",
+            "parent_proposal_sha256": "d02c06bc6e0b50959b4e17eb6883df89998c3123e789e5330b678bca457dd535",
+            "resolved_values": {
+              "z": [
+                1.0,
+                2.6
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  0,
+                  0,
+                  2353,
+                  1295
+                ],
+                "image": "West_view.png",
+                "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+                "size": [
+                  2353,
+                  1295
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0001.json",
+      "parent_candidate": "candidate_03",
+      "parent_proposal_sha256": "d02c06bc6e0b50959b4e17eb6883df89998c3123e789e5330b678bca457dd535"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "47e1adf3a43f3f1783bc86251ae72ce08f2c66157d6e4a15918dd55eb405f00c",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_03",
+    "parent_proposal_sha256": "d02c06bc6e0b50959b4e17eb6883df89998c3123e789e5330b678bca457dd535"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "cb57bf7577e08e036a836322bf46ad5ef70bdd633b79e817f7fdf573ba40c795",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Exterior opening z values are bound to adopted elevation claims claim_0001-claim_0011 (claim_0004 retracted, superseded by claim_0011); interior door heights 2.1 m remain explicit assumptions; widths/positions as drawn on the plans.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact jamb pixels of D_C2/D_E2 read from 2x-3x views, tolerance about 4 px.",
+    "Stair location not shown in inputs; connectivity between storeys left unmodelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

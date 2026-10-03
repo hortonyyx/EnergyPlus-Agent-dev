@@ -1,0 +1,67 @@
+{
+  "agent_assumptions": [
+    "Interior door leaf heights 2.1 m (no internal elevation drawn); exterior door heads 2.1 m observed on west/east elevations.",
+    "West windows W_M1/W_M2 head height 2.8 m assumed (sill 1.0 observed).",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Interior door leaf heights 2.1 m assumed (no internal elevation drawn).",
+    "No stair/vertical circulation is drawn on either plan; none invented.",
+    "The 2F volume steps: west of the x=4.97 wall and south of y=6.17 the 1F roof is below; the x=4.97 wall is the 2F west facade for y 4.0-14.2.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 198,
+    "connections": 31,
+    "openings": 62,
+    "spaces": 30,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "d02c06bc6e0b50959b4e17eb6883df89998c3123e789e5330b678bca457dd535",
+  "provenance": {
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "47e1adf3a43f3f1783bc86251ae72ce08f2c66157d6e4a15918dd55eb405f00c",
+    "mode": "original_images_agent_experiment",
+    "plan_assembly": {
+      "file": "plan_assemblies/assembly_001.json",
+      "sha256": "2d4512df8fc1e2ebf5e86bdb1c7ca9afd57e2cf0605ff5dc58c6983f054b5ce4"
+    }
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "68dbe279473b46de953496587e9166323638bac9d34ef5c031893e9240ace5a3",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Opening head/sill heights provisional until elevation claims are applied; widths/positions as drawn on 1f_view.png.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "Exact jamb pixels of D_C2/D_E2 read from 2x-3x views, tolerance about 4 px.",
+    "Stair location not shown in inputs; connectivity between storeys left unmodelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

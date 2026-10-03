@@ -1,0 +1,89 @@
+{
+  "status": "error",
+  "error": "partition P_corrN.source_refs must be a list of strings with at least one item",
+  "drawing_differences": {
+    "file": "plan_drafts/draft_002/drawing_differences.json",
+    "sha256": "f1f4030f1714de87f8f59b465d89c0fd0635e0dfae8a9b9768494476d5f22d9f",
+    "status": "reported",
+    "total": 2,
+    "counts": {
+      "undeclared_wall_line": 1,
+      "wall_gap_without_opening": 1
+    },
+    "items": [
+      {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 963,
+        "x_px": [
+          524,
+          692
+        ],
+        "y_m": 5.88,
+        "x_m": [
+          5.24,
+          8.87
+        ],
+        "length_m": 3.63,
+        "drawn_thickness_m": 0.24,
+        "look_box": [
+          487,
+          926,
+          729,
+          1001
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      {
+        "type": "wall_gap_without_opening",
+        "divider": "P_corrS",
+        "axis": "horizontal",
+        "y_px": 582,
+        "x_px": [
+          699,
+          789
+        ],
+        "y_m": 14.11,
+        "x_m": [
+          9.02,
+          10.97
+        ],
+        "gap_m": 1.97,
+        "look_box": [
+          662,
+          545,
+          826,
+          620
+        ],
+        "check": "A stretch of this declared divider without ink that no declared opening occupies."
+      }
+    ],
+    "truncated": false,
+    "meaning": "Places where the original's ink and this declaration disagree, to check in the original (look_box): revise only with evidence, or keep the object and say why. Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.",
+    "scope": "Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; exterior walls, windows, single-line walls and heights are not checked.",
+    "full_list": "inspect_plan_draft(draft_id) returns every item of that draft"
+  },
+  "plan_input": {
+    "plan_file": "plan_drafts/draft_002/plan.json",
+    "plan_sha256": "c0f7f94dccb58b51b5292e8744fbc27e6e1f5c5c6e6f8c2b481c80973e00f90c",
+    "image": "1f_view.png",
+    "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "geometry_feedback": {
+      "status": "unavailable",
+      "reason": "'int' object is not iterable"
+    },
+    "draft_view": {
+      "image_file": "plan_drafts/draft_002/draft_view.png",
+      "image_sha256": "2a84c767ce2645a3cc7864449f7c10e76bea868b51b663578515f1186cd5c590",
+      "metadata_file": "plan_drafts/draft_002/draft_view.json",
+      "metadata_sha256": "9f2ee51cb8c01693d573691bb1b8cab9b3c450de29f90f018b0888cdfc66eb3b",
+      "draft_only": true,
+      "drawing_fidelity": "not_evaluated",
+      "source_geometry_ready": false,
+      "unrenderable_count": 0,
+      "unrenderable": []
+    }
+  },
+  "remaining_seconds": 3263,
+  "source_geometry_ready": false
+}

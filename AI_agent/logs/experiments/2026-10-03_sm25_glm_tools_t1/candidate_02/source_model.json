@@ -1,0 +1,7386 @@
+{
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior door leaf heights 2.1 m assumed (no internal elevation drawn).",
+    "No stair/vertical circulation is drawn on either plan; none invented.",
+    "The 2F volume steps: west of the x=4.97 wall and south of y=6.17 the 1F roof is below; the x=4.97 wall is the 2F west facade for y 4.0-14.2.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "boundaries": [
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S01/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01"
+      ],
+      "space_id": "2F_S01",
+      "vertices": [
+        [
+          0.0,
+          16.095965,
+          7.2
+        ],
+        [
+          4.896658,
+          16.095965,
+          7.2
+        ],
+        [
+          4.896658,
+          20.0,
+          7.2
+        ],
+        [
+          0.0,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S01/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01"
+      ],
+      "space_id": "2F_S01",
+      "vertices": [
+        [
+          0.0,
+          20.0,
+          3.6
+        ],
+        [
+          4.896658,
+          20.0,
+          3.6
+        ],
+        [
+          4.896658,
+          16.095965,
+          3.6
+        ],
+        [
+          0.0,
+          16.095965,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/4"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S01/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01"
+      ],
+      "space_id": "2F_S01",
+      "vertices": [
+        [
+          0.0,
+          16.095965,
+          3.6
+        ],
+        [
+          4.896658,
+          16.095965,
+          3.6
+        ],
+        [
+          4.896658,
+          16.095965,
+          7.2
+        ],
+        [
+          0.0,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S02"
+      ],
+      "counterpart_ids": [
+        "space/2F_S02/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S01/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01"
+      ],
+      "space_id": "2F_S01",
+      "vertices": [
+        [
+          4.896658,
+          16.095965,
+          3.6
+        ],
+        [
+          4.896658,
+          20.0,
+          3.6
+        ],
+        [
+          4.896658,
+          20.0,
+          7.2
+        ],
+        [
+          4.896658,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S01/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01"
+      ],
+      "space_id": "2F_S01",
+      "vertices": [
+        [
+          4.896658,
+          20.0,
+          3.6
+        ],
+        [
+          0.0,
+          20.0,
+          3.6
+        ],
+        [
+          0.0,
+          20.0,
+          7.2
+        ],
+        [
+          4.896658,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S01/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01"
+      ],
+      "space_id": "2F_S01",
+      "vertices": [
+        [
+          0.0,
+          20.0,
+          3.6
+        ],
+        [
+          0.0,
+          16.095965,
+          3.6
+        ],
+        [
+          0.0,
+          16.095965,
+          7.2
+        ],
+        [
+          0.0,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S02/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02"
+      ],
+      "space_id": "2F_S02",
+      "vertices": [
+        [
+          4.896658,
+          16.095965,
+          7.2
+        ],
+        [
+          9.894459,
+          16.095965,
+          7.2
+        ],
+        [
+          9.894459,
+          20.0,
+          7.2
+        ],
+        [
+          4.896658,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S02/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02"
+      ],
+      "space_id": "2F_S02",
+      "vertices": [
+        [
+          4.896658,
+          20.0,
+          3.6
+        ],
+        [
+          9.894459,
+          20.0,
+          3.6
+        ],
+        [
+          9.894459,
+          16.095965,
+          3.6
+        ],
+        [
+          4.896658,
+          16.095965,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/4"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S02/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02"
+      ],
+      "space_id": "2F_S02",
+      "vertices": [
+        [
+          4.896658,
+          16.095965,
+          3.6
+        ],
+        [
+          9.894459,
+          16.095965,
+          3.6
+        ],
+        [
+          9.894459,
+          16.095965,
+          7.2
+        ],
+        [
+          4.896658,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S03"
+      ],
+      "counterpart_ids": [
+        "space/2F_S03/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S02/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02"
+      ],
+      "space_id": "2F_S02",
+      "vertices": [
+        [
+          9.894459,
+          16.095965,
+          3.6
+        ],
+        [
+          9.894459,
+          20.0,
+          3.6
+        ],
+        [
+          9.894459,
+          20.0,
+          7.2
+        ],
+        [
+          9.894459,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S02/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02"
+      ],
+      "space_id": "2F_S02",
+      "vertices": [
+        [
+          9.894459,
+          20.0,
+          3.6
+        ],
+        [
+          4.896658,
+          20.0,
+          3.6
+        ],
+        [
+          4.896658,
+          20.0,
+          7.2
+        ],
+        [
+          9.894459,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S01"
+      ],
+      "counterpart_ids": [
+        "space/2F_S01/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S02/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02"
+      ],
+      "space_id": "2F_S02",
+      "vertices": [
+        [
+          4.896658,
+          20.0,
+          3.6
+        ],
+        [
+          4.896658,
+          16.095965,
+          3.6
+        ],
+        [
+          4.896658,
+          16.095965,
+          7.2
+        ],
+        [
+          4.896658,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S03/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03"
+      ],
+      "space_id": "2F_S03",
+      "vertices": [
+        [
+          9.894459,
+          16.095965,
+          7.2
+        ],
+        [
+          14.929639,
+          16.095965,
+          7.2
+        ],
+        [
+          14.929639,
+          20.0,
+          7.2
+        ],
+        [
+          9.894459,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S03/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03"
+      ],
+      "space_id": "2F_S03",
+      "vertices": [
+        [
+          9.894459,
+          20.0,
+          3.6
+        ],
+        [
+          14.929639,
+          20.0,
+          3.6
+        ],
+        [
+          14.929639,
+          16.095965,
+          3.6
+        ],
+        [
+          9.894459,
+          16.095965,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04",
+        "2F_S05"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/4",
+        "space/2F_S05/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S03/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03"
+      ],
+      "space_id": "2F_S03",
+      "vertices": [
+        [
+          9.894459,
+          16.095965,
+          3.6
+        ],
+        [
+          14.929639,
+          16.095965,
+          3.6
+        ],
+        [
+          14.929639,
+          16.095965,
+          7.2
+        ],
+        [
+          9.894459,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S03/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03"
+      ],
+      "space_id": "2F_S03",
+      "vertices": [
+        [
+          14.929639,
+          16.095965,
+          3.6
+        ],
+        [
+          14.929639,
+          20.0,
+          3.6
+        ],
+        [
+          14.929639,
+          20.0,
+          7.2
+        ],
+        [
+          14.929639,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S03/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03"
+      ],
+      "space_id": "2F_S03",
+      "vertices": [
+        [
+          14.929639,
+          20.0,
+          3.6
+        ],
+        [
+          9.894459,
+          20.0,
+          3.6
+        ],
+        [
+          9.894459,
+          20.0,
+          7.2
+        ],
+        [
+          14.929639,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S02"
+      ],
+      "counterpart_ids": [
+        "space/2F_S02/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S03/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03"
+      ],
+      "space_id": "2F_S03",
+      "vertices": [
+        [
+          9.894459,
+          20.0,
+          3.6
+        ],
+        [
+          9.894459,
+          16.095965,
+          3.6
+        ],
+        [
+          9.894459,
+          16.095965,
+          7.2
+        ],
+        [
+          9.894459,
+          20.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S04/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          0.0,
+          14.122137,
+          7.2
+        ],
+        [
+          8.83905,
+          14.122137,
+          7.2
+        ],
+        [
+          8.83905,
+          5.877863,
+          7.2
+        ],
+        [
+          10.905893,
+          5.877863,
+          7.2
+        ],
+        [
+          10.905893,
+          16.095965,
+          7.2
+        ],
+        [
+          0.0,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S04/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          0.0,
+          16.095965,
+          3.6
+        ],
+        [
+          10.905893,
+          16.095965,
+          3.6
+        ],
+        [
+          10.905893,
+          5.877863,
+          3.6
+        ],
+        [
+          8.83905,
+          5.877863,
+          3.6
+        ],
+        [
+          8.83905,
+          14.122137,
+          3.6
+        ],
+        [
+          0.0,
+          14.122137,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S06"
+      ],
+      "counterpart_ids": [
+        "space/2F_S06/wall/4"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S04/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          0.0,
+          14.122137,
+          3.6
+        ],
+        [
+          8.83905,
+          14.122137,
+          3.6
+        ],
+        [
+          8.83905,
+          14.122137,
+          7.2
+        ],
+        [
+          0.0,
+          14.122137,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S06"
+      ],
+      "counterpart_ids": [
+        "space/2F_S06/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S04/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          8.83905,
+          14.122137,
+          3.6
+        ],
+        [
+          8.83905,
+          5.877863,
+          3.6
+        ],
+        [
+          8.83905,
+          5.877863,
+          7.2
+        ],
+        [
+          8.83905,
+          14.122137,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/4"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S04/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          8.83905,
+          5.877863,
+          3.6
+        ],
+        [
+          10.905893,
+          5.877863,
+          3.6
+        ],
+        [
+          10.905893,
+          5.877863,
+          7.2
+        ],
+        [
+          8.83905,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S05",
+        "2F_S07",
+        "2F_S08",
+        "2F_S09",
+        "2F_S10"
+      ],
+      "counterpart_ids": [
+        "space/2F_S05/wall/3",
+        "space/2F_S07/wall/3",
+        "space/2F_S08/wall/3",
+        "space/2F_S09/wall/3",
+        "space/2F_S10/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S04/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          10.905893,
+          5.877863,
+          3.6
+        ],
+        [
+          10.905893,
+          16.095965,
+          3.6
+        ],
+        [
+          10.905893,
+          16.095965,
+          7.2
+        ],
+        [
+          10.905893,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S01",
+        "2F_S02",
+        "2F_S03"
+      ],
+      "counterpart_ids": [
+        "space/2F_S01/wall/0",
+        "space/2F_S02/wall/0",
+        "space/2F_S03/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S04/wall/4",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          10.905893,
+          16.095965,
+          3.6
+        ],
+        [
+          0.0,
+          16.095965,
+          3.6
+        ],
+        [
+          0.0,
+          16.095965,
+          7.2
+        ],
+        [
+          10.905893,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S04/wall/5",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04"
+      ],
+      "space_id": "2F_S04",
+      "vertices": [
+        [
+          0.0,
+          16.095965,
+          3.6
+        ],
+        [
+          0.0,
+          14.122137,
+          3.6
+        ],
+        [
+          0.0,
+          14.122137,
+          7.2
+        ],
+        [
+          0.0,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S05/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05"
+      ],
+      "space_id": "2F_S05",
+      "vertices": [
+        [
+          10.905893,
+          13.958561,
+          7.2
+        ],
+        [
+          14.929639,
+          13.958561,
+          7.2
+        ],
+        [
+          14.929639,
+          16.095965,
+          7.2
+        ],
+        [
+          10.905893,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S05/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05"
+      ],
+      "space_id": "2F_S05",
+      "vertices": [
+        [
+          10.905893,
+          16.095965,
+          3.6
+        ],
+        [
+          14.929639,
+          16.095965,
+          3.6
+        ],
+        [
+          14.929639,
+          13.958561,
+          3.6
+        ],
+        [
+          10.905893,
+          13.958561,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S07"
+      ],
+      "counterpart_ids": [
+        "space/2F_S07/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S05/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05"
+      ],
+      "space_id": "2F_S05",
+      "vertices": [
+        [
+          10.905893,
+          13.958561,
+          3.6
+        ],
+        [
+          14.929639,
+          13.958561,
+          3.6
+        ],
+        [
+          14.929639,
+          13.958561,
+          7.2
+        ],
+        [
+          10.905893,
+          13.958561,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S05/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05"
+      ],
+      "space_id": "2F_S05",
+      "vertices": [
+        [
+          14.929639,
+          13.958561,
+          3.6
+        ],
+        [
+          14.929639,
+          16.095965,
+          3.6
+        ],
+        [
+          14.929639,
+          16.095965,
+          7.2
+        ],
+        [
+          14.929639,
+          13.958561,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S03"
+      ],
+      "counterpart_ids": [
+        "space/2F_S03/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S05/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05"
+      ],
+      "space_id": "2F_S05",
+      "vertices": [
+        [
+          14.929639,
+          16.095965,
+          3.6
+        ],
+        [
+          10.905893,
+          16.095965,
+          3.6
+        ],
+        [
+          10.905893,
+          16.095965,
+          7.2
+        ],
+        [
+          14.929639,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S05/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05"
+      ],
+      "space_id": "2F_S05",
+      "vertices": [
+        [
+          10.905893,
+          16.095965,
+          3.6
+        ],
+        [
+          10.905893,
+          13.958561,
+          3.6
+        ],
+        [
+          10.905893,
+          13.958561,
+          7.2
+        ],
+        [
+          10.905893,
+          16.095965,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S06/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          0.0,
+          14.002181,
+          7.2
+        ],
+        [
+          4.837291,
+          14.002181,
+          7.2
+        ],
+        [
+          4.837291,
+          5.877863,
+          7.2
+        ],
+        [
+          8.83905,
+          5.877863,
+          7.2
+        ],
+        [
+          8.83905,
+          14.122137,
+          7.2
+        ],
+        [
+          0.0,
+          14.122137,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S06/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          0.0,
+          14.122137,
+          3.6
+        ],
+        [
+          8.83905,
+          14.122137,
+          3.6
+        ],
+        [
+          8.83905,
+          5.877863,
+          3.6
+        ],
+        [
+          4.837291,
+          5.877863,
+          3.6
+        ],
+        [
+          4.837291,
+          14.002181,
+          3.6
+        ],
+        [
+          0.0,
+          14.002181,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S06/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          0.0,
+          14.002181,
+          3.6
+        ],
+        [
+          4.837291,
+          14.002181,
+          3.6
+        ],
+        [
+          4.837291,
+          14.002181,
+          7.2
+        ],
+        [
+          0.0,
+          14.002181,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S06/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          4.837291,
+          14.002181,
+          3.6
+        ],
+        [
+          4.837291,
+          5.877863,
+          3.6
+        ],
+        [
+          4.837291,
+          5.877863,
+          7.2
+        ],
+        [
+          4.837291,
+          14.002181,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/4"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S06/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          4.837291,
+          5.877863,
+          3.6
+        ],
+        [
+          8.83905,
+          5.877863,
+          3.6
+        ],
+        [
+          8.83905,
+          5.877863,
+          7.2
+        ],
+        [
+          4.837291,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S06/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          8.83905,
+          5.877863,
+          3.6
+        ],
+        [
+          8.83905,
+          14.122137,
+          3.6
+        ],
+        [
+          8.83905,
+          14.122137,
+          7.2
+        ],
+        [
+          8.83905,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S06/wall/4",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          8.83905,
+          14.122137,
+          3.6
+        ],
+        [
+          0.0,
+          14.122137,
+          3.6
+        ],
+        [
+          0.0,
+          14.122137,
+          7.2
+        ],
+        [
+          8.83905,
+          14.122137,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S06/wall/5",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06"
+      ],
+      "space_id": "2F_S06",
+      "vertices": [
+        [
+          0.0,
+          14.122137,
+          3.6
+        ],
+        [
+          0.0,
+          14.002181,
+          3.6
+        ],
+        [
+          0.0,
+          14.002181,
+          7.2
+        ],
+        [
+          0.0,
+          14.122137,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S07/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07"
+      ],
+      "space_id": "2F_S07",
+      "vertices": [
+        [
+          10.905893,
+          11.952017,
+          7.2
+        ],
+        [
+          14.929639,
+          11.952017,
+          7.2
+        ],
+        [
+          14.929639,
+          13.958561,
+          7.2
+        ],
+        [
+          10.905893,
+          13.958561,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S07/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07"
+      ],
+      "space_id": "2F_S07",
+      "vertices": [
+        [
+          10.905893,
+          13.958561,
+          3.6
+        ],
+        [
+          14.929639,
+          13.958561,
+          3.6
+        ],
+        [
+          14.929639,
+          11.952017,
+          3.6
+        ],
+        [
+          10.905893,
+          11.952017,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S08"
+      ],
+      "counterpart_ids": [
+        "space/2F_S08/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S07/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07"
+      ],
+      "space_id": "2F_S07",
+      "vertices": [
+        [
+          10.905893,
+          11.952017,
+          3.6
+        ],
+        [
+          14.929639,
+          11.952017,
+          3.6
+        ],
+        [
+          14.929639,
+          11.952017,
+          7.2
+        ],
+        [
+          10.905893,
+          11.952017,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S07/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07"
+      ],
+      "space_id": "2F_S07",
+      "vertices": [
+        [
+          14.929639,
+          11.952017,
+          3.6
+        ],
+        [
+          14.929639,
+          13.958561,
+          3.6
+        ],
+        [
+          14.929639,
+          13.958561,
+          7.2
+        ],
+        [
+          14.929639,
+          11.952017,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S05"
+      ],
+      "counterpart_ids": [
+        "space/2F_S05/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S07/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07"
+      ],
+      "space_id": "2F_S07",
+      "vertices": [
+        [
+          14.929639,
+          13.958561,
+          3.6
+        ],
+        [
+          10.905893,
+          13.958561,
+          3.6
+        ],
+        [
+          10.905893,
+          13.958561,
+          7.2
+        ],
+        [
+          14.929639,
+          13.958561,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S07/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07"
+      ],
+      "space_id": "2F_S07",
+      "vertices": [
+        [
+          10.905893,
+          13.958561,
+          3.6
+        ],
+        [
+          10.905893,
+          11.952017,
+          3.6
+        ],
+        [
+          10.905893,
+          11.952017,
+          7.2
+        ],
+        [
+          10.905893,
+          13.958561,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S08/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08"
+      ],
+      "space_id": "2F_S08",
+      "vertices": [
+        [
+          10.905893,
+          9.880044,
+          7.2
+        ],
+        [
+          14.929639,
+          9.880044,
+          7.2
+        ],
+        [
+          14.929639,
+          11.952017,
+          7.2
+        ],
+        [
+          10.905893,
+          11.952017,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S08/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08"
+      ],
+      "space_id": "2F_S08",
+      "vertices": [
+        [
+          10.905893,
+          11.952017,
+          3.6
+        ],
+        [
+          14.929639,
+          11.952017,
+          3.6
+        ],
+        [
+          14.929639,
+          9.880044,
+          3.6
+        ],
+        [
+          10.905893,
+          9.880044,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S09"
+      ],
+      "counterpart_ids": [
+        "space/2F_S09/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S08/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08"
+      ],
+      "space_id": "2F_S08",
+      "vertices": [
+        [
+          10.905893,
+          9.880044,
+          3.6
+        ],
+        [
+          14.929639,
+          9.880044,
+          3.6
+        ],
+        [
+          14.929639,
+          9.880044,
+          7.2
+        ],
+        [
+          10.905893,
+          9.880044,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S08/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08"
+      ],
+      "space_id": "2F_S08",
+      "vertices": [
+        [
+          14.929639,
+          9.880044,
+          3.6
+        ],
+        [
+          14.929639,
+          11.952017,
+          3.6
+        ],
+        [
+          14.929639,
+          11.952017,
+          7.2
+        ],
+        [
+          14.929639,
+          9.880044,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S07"
+      ],
+      "counterpart_ids": [
+        "space/2F_S07/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S08/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08"
+      ],
+      "space_id": "2F_S08",
+      "vertices": [
+        [
+          14.929639,
+          11.952017,
+          3.6
+        ],
+        [
+          10.905893,
+          11.952017,
+          3.6
+        ],
+        [
+          10.905893,
+          11.952017,
+          7.2
+        ],
+        [
+          14.929639,
+          11.952017,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S08/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08"
+      ],
+      "space_id": "2F_S08",
+      "vertices": [
+        [
+          10.905893,
+          11.952017,
+          3.6
+        ],
+        [
+          10.905893,
+          9.880044,
+          3.6
+        ],
+        [
+          10.905893,
+          9.880044,
+          7.2
+        ],
+        [
+          10.905893,
+          11.952017,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S09/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09"
+      ],
+      "space_id": "2F_S09",
+      "vertices": [
+        [
+          10.905893,
+          7.80807,
+          7.2
+        ],
+        [
+          14.929639,
+          7.80807,
+          7.2
+        ],
+        [
+          14.929639,
+          9.880044,
+          7.2
+        ],
+        [
+          10.905893,
+          9.880044,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S09/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09"
+      ],
+      "space_id": "2F_S09",
+      "vertices": [
+        [
+          10.905893,
+          9.880044,
+          3.6
+        ],
+        [
+          14.929639,
+          9.880044,
+          3.6
+        ],
+        [
+          14.929639,
+          7.80807,
+          3.6
+        ],
+        [
+          10.905893,
+          7.80807,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S10"
+      ],
+      "counterpart_ids": [
+        "space/2F_S10/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S09/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09"
+      ],
+      "space_id": "2F_S09",
+      "vertices": [
+        [
+          10.905893,
+          7.80807,
+          3.6
+        ],
+        [
+          14.929639,
+          7.80807,
+          3.6
+        ],
+        [
+          14.929639,
+          7.80807,
+          7.2
+        ],
+        [
+          10.905893,
+          7.80807,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S09/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09"
+      ],
+      "space_id": "2F_S09",
+      "vertices": [
+        [
+          14.929639,
+          7.80807,
+          3.6
+        ],
+        [
+          14.929639,
+          9.880044,
+          3.6
+        ],
+        [
+          14.929639,
+          9.880044,
+          7.2
+        ],
+        [
+          14.929639,
+          7.80807,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S08"
+      ],
+      "counterpart_ids": [
+        "space/2F_S08/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S09/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09"
+      ],
+      "space_id": "2F_S09",
+      "vertices": [
+        [
+          14.929639,
+          9.880044,
+          3.6
+        ],
+        [
+          10.905893,
+          9.880044,
+          3.6
+        ],
+        [
+          10.905893,
+          9.880044,
+          7.2
+        ],
+        [
+          14.929639,
+          9.880044,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S09/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09"
+      ],
+      "space_id": "2F_S09",
+      "vertices": [
+        [
+          10.905893,
+          9.880044,
+          3.6
+        ],
+        [
+          10.905893,
+          7.80807,
+          3.6
+        ],
+        [
+          10.905893,
+          7.80807,
+          7.2
+        ],
+        [
+          10.905893,
+          9.880044,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S10/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10"
+      ],
+      "space_id": "2F_S10",
+      "vertices": [
+        [
+          10.905893,
+          5.877863,
+          7.2
+        ],
+        [
+          14.929639,
+          5.877863,
+          7.2
+        ],
+        [
+          14.929639,
+          7.80807,
+          7.2
+        ],
+        [
+          10.905893,
+          7.80807,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S10/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10"
+      ],
+      "space_id": "2F_S10",
+      "vertices": [
+        [
+          10.905893,
+          7.80807,
+          3.6
+        ],
+        [
+          14.929639,
+          7.80807,
+          3.6
+        ],
+        [
+          14.929639,
+          5.877863,
+          3.6
+        ],
+        [
+          10.905893,
+          5.877863,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/4"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S10/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10"
+      ],
+      "space_id": "2F_S10",
+      "vertices": [
+        [
+          10.905893,
+          5.877863,
+          3.6
+        ],
+        [
+          14.929639,
+          5.877863,
+          3.6
+        ],
+        [
+          14.929639,
+          5.877863,
+          7.2
+        ],
+        [
+          10.905893,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S10/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10"
+      ],
+      "space_id": "2F_S10",
+      "vertices": [
+        [
+          14.929639,
+          5.877863,
+          3.6
+        ],
+        [
+          14.929639,
+          7.80807,
+          3.6
+        ],
+        [
+          14.929639,
+          7.80807,
+          7.2
+        ],
+        [
+          14.929639,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S09"
+      ],
+      "counterpart_ids": [
+        "space/2F_S09/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S10/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10"
+      ],
+      "space_id": "2F_S10",
+      "vertices": [
+        [
+          14.929639,
+          7.80807,
+          3.6
+        ],
+        [
+          10.905893,
+          7.80807,
+          3.6
+        ],
+        [
+          10.905893,
+          7.80807,
+          7.2
+        ],
+        [
+          14.929639,
+          7.80807,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S10/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10"
+      ],
+      "space_id": "2F_S10",
+      "vertices": [
+        [
+          10.905893,
+          7.80807,
+          3.6
+        ],
+        [
+          10.905893,
+          5.877863,
+          3.6
+        ],
+        [
+          10.905893,
+          5.877863,
+          7.2
+        ],
+        [
+          10.905893,
+          7.80807,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S11/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          4.837291,
+          3.882225,
+          7.2
+        ],
+        [
+          25.0,
+          3.882225,
+          7.2
+        ],
+        [
+          25.0,
+          5.997819,
+          7.2
+        ],
+        [
+          14.929639,
+          5.997819,
+          7.2
+        ],
+        [
+          14.929639,
+          5.877863,
+          7.2
+        ],
+        [
+          4.837291,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S11/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          4.837291,
+          5.877863,
+          3.6
+        ],
+        [
+          14.929639,
+          5.877863,
+          3.6
+        ],
+        [
+          14.929639,
+          5.997819,
+          3.6
+        ],
+        [
+          25.0,
+          5.997819,
+          3.6
+        ],
+        [
+          25.0,
+          3.882225,
+          3.6
+        ],
+        [
+          4.837291,
+          3.882225,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S12",
+        "2F_S13",
+        "2F_S14",
+        "2F_S15",
+        "2F_S16"
+      ],
+      "counterpart_ids": [
+        "space/2F_S12/wall/2",
+        "space/2F_S13/wall/2",
+        "space/2F_S14/wall/2",
+        "space/2F_S15/wall/2",
+        "space/2F_S16/wall/2"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S11/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          4.837291,
+          3.882225,
+          3.6
+        ],
+        [
+          25.0,
+          3.882225,
+          3.6
+        ],
+        [
+          25.0,
+          3.882225,
+          7.2
+        ],
+        [
+          4.837291,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S11/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          25.0,
+          3.882225,
+          3.6
+        ],
+        [
+          25.0,
+          5.997819,
+          3.6
+        ],
+        [
+          25.0,
+          5.997819,
+          7.2
+        ],
+        [
+          25.0,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S11/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          25.0,
+          5.997819,
+          3.6
+        ],
+        [
+          14.929639,
+          5.997819,
+          3.6
+        ],
+        [
+          14.929639,
+          5.997819,
+          7.2
+        ],
+        [
+          25.0,
+          5.997819,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S10"
+      ],
+      "counterpart_ids": [
+        "space/2F_S10/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S11/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          14.929639,
+          5.997819,
+          3.6
+        ],
+        [
+          14.929639,
+          5.877863,
+          3.6
+        ],
+        [
+          14.929639,
+          5.877863,
+          7.2
+        ],
+        [
+          14.929639,
+          5.997819,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S04",
+        "2F_S06",
+        "2F_S10"
+      ],
+      "counterpart_ids": [
+        "space/2F_S04/wall/2",
+        "space/2F_S06/wall/2",
+        "space/2F_S10/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S11/wall/4",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          14.929639,
+          5.877863,
+          3.6
+        ],
+        [
+          4.837291,
+          5.877863,
+          3.6
+        ],
+        [
+          4.837291,
+          5.877863,
+          7.2
+        ],
+        [
+          14.929639,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S11/wall/5",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11"
+      ],
+      "space_id": "2F_S11",
+      "vertices": [
+        [
+          4.837291,
+          5.877863,
+          3.6
+        ],
+        [
+          4.837291,
+          3.882225,
+          3.6
+        ],
+        [
+          4.837291,
+          3.882225,
+          7.2
+        ],
+        [
+          4.837291,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S12/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12"
+      ],
+      "space_id": "2F_S12",
+      "vertices": [
+        [
+          4.837291,
+          0.0,
+          7.2
+        ],
+        [
+          8.992964,
+          0.0,
+          7.2
+        ],
+        [
+          8.992964,
+          3.882225,
+          7.2
+        ],
+        [
+          4.837291,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S12/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12"
+      ],
+      "space_id": "2F_S12",
+      "vertices": [
+        [
+          4.837291,
+          3.882225,
+          3.6
+        ],
+        [
+          8.992964,
+          3.882225,
+          3.6
+        ],
+        [
+          8.992964,
+          0.0,
+          3.6
+        ],
+        [
+          4.837291,
+          0.0,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S12/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12"
+      ],
+      "space_id": "2F_S12",
+      "vertices": [
+        [
+          4.837291,
+          0.0,
+          3.6
+        ],
+        [
+          8.992964,
+          0.0,
+          3.6
+        ],
+        [
+          8.992964,
+          0.0,
+          7.2
+        ],
+        [
+          4.837291,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S13"
+      ],
+      "counterpart_ids": [
+        "space/2F_S13/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S12/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12"
+      ],
+      "space_id": "2F_S12",
+      "vertices": [
+        [
+          8.992964,
+          0.0,
+          3.6
+        ],
+        [
+          8.992964,
+          3.882225,
+          3.6
+        ],
+        [
+          8.992964,
+          3.882225,
+          7.2
+        ],
+        [
+          8.992964,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S12/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12"
+      ],
+      "space_id": "2F_S12",
+      "vertices": [
+        [
+          8.992964,
+          3.882225,
+          3.6
+        ],
+        [
+          4.837291,
+          3.882225,
+          3.6
+        ],
+        [
+          4.837291,
+          3.882225,
+          7.2
+        ],
+        [
+          8.992964,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S12/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12"
+      ],
+      "space_id": "2F_S12",
+      "vertices": [
+        [
+          4.837291,
+          3.882225,
+          3.6
+        ],
+        [
+          4.837291,
+          0.0,
+          3.6
+        ],
+        [
+          4.837291,
+          0.0,
+          7.2
+        ],
+        [
+          4.837291,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S13/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13"
+      ],
+      "space_id": "2F_S13",
+      "vertices": [
+        [
+          8.992964,
+          0.0,
+          7.2
+        ],
+        [
+          12.989226,
+          0.0,
+          7.2
+        ],
+        [
+          12.989226,
+          3.882225,
+          7.2
+        ],
+        [
+          8.992964,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S13/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13"
+      ],
+      "space_id": "2F_S13",
+      "vertices": [
+        [
+          8.992964,
+          3.882225,
+          3.6
+        ],
+        [
+          12.989226,
+          3.882225,
+          3.6
+        ],
+        [
+          12.989226,
+          0.0,
+          3.6
+        ],
+        [
+          8.992964,
+          0.0,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S13/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13"
+      ],
+      "space_id": "2F_S13",
+      "vertices": [
+        [
+          8.992964,
+          0.0,
+          3.6
+        ],
+        [
+          12.989226,
+          0.0,
+          3.6
+        ],
+        [
+          12.989226,
+          0.0,
+          7.2
+        ],
+        [
+          8.992964,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S14"
+      ],
+      "counterpart_ids": [
+        "space/2F_S14/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S13/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13"
+      ],
+      "space_id": "2F_S13",
+      "vertices": [
+        [
+          12.989226,
+          0.0,
+          3.6
+        ],
+        [
+          12.989226,
+          3.882225,
+          3.6
+        ],
+        [
+          12.989226,
+          3.882225,
+          7.2
+        ],
+        [
+          12.989226,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S13/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13"
+      ],
+      "space_id": "2F_S13",
+      "vertices": [
+        [
+          12.989226,
+          3.882225,
+          3.6
+        ],
+        [
+          8.992964,
+          3.882225,
+          3.6
+        ],
+        [
+          8.992964,
+          3.882225,
+          7.2
+        ],
+        [
+          12.989226,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S12"
+      ],
+      "counterpart_ids": [
+        "space/2F_S12/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S13/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13"
+      ],
+      "space_id": "2F_S13",
+      "vertices": [
+        [
+          8.992964,
+          3.882225,
+          3.6
+        ],
+        [
+          8.992964,
+          0.0,
+          3.6
+        ],
+        [
+          8.992964,
+          0.0,
+          7.2
+        ],
+        [
+          8.992964,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S14/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14"
+      ],
+      "space_id": "2F_S14",
+      "vertices": [
+        [
+          12.989226,
+          0.0,
+          7.2
+        ],
+        [
+          16.958004,
+          0.0,
+          7.2
+        ],
+        [
+          16.958004,
+          3.882225,
+          7.2
+        ],
+        [
+          12.989226,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S14/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14"
+      ],
+      "space_id": "2F_S14",
+      "vertices": [
+        [
+          12.989226,
+          3.882225,
+          3.6
+        ],
+        [
+          16.958004,
+          3.882225,
+          3.6
+        ],
+        [
+          16.958004,
+          0.0,
+          3.6
+        ],
+        [
+          12.989226,
+          0.0,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S14/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14"
+      ],
+      "space_id": "2F_S14",
+      "vertices": [
+        [
+          12.989226,
+          0.0,
+          3.6
+        ],
+        [
+          16.958004,
+          0.0,
+          3.6
+        ],
+        [
+          16.958004,
+          0.0,
+          7.2
+        ],
+        [
+          12.989226,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S15"
+      ],
+      "counterpart_ids": [
+        "space/2F_S15/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S14/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14"
+      ],
+      "space_id": "2F_S14",
+      "vertices": [
+        [
+          16.958004,
+          0.0,
+          3.6
+        ],
+        [
+          16.958004,
+          3.882225,
+          3.6
+        ],
+        [
+          16.958004,
+          3.882225,
+          7.2
+        ],
+        [
+          16.958004,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S14/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14"
+      ],
+      "space_id": "2F_S14",
+      "vertices": [
+        [
+          16.958004,
+          3.882225,
+          3.6
+        ],
+        [
+          12.989226,
+          3.882225,
+          3.6
+        ],
+        [
+          12.989226,
+          3.882225,
+          7.2
+        ],
+        [
+          16.958004,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S13"
+      ],
+      "counterpart_ids": [
+        "space/2F_S13/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S14/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14"
+      ],
+      "space_id": "2F_S14",
+      "vertices": [
+        [
+          12.989226,
+          3.882225,
+          3.6
+        ],
+        [
+          12.989226,
+          0.0,
+          3.6
+        ],
+        [
+          12.989226,
+          0.0,
+          7.2
+        ],
+        [
+          12.989226,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S15/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15"
+      ],
+      "space_id": "2F_S15",
+      "vertices": [
+        [
+          16.958004,
+          0.0,
+          7.2
+        ],
+        [
+          20.970756,
+          0.0,
+          7.2
+        ],
+        [
+          20.970756,
+          3.882225,
+          7.2
+        ],
+        [
+          16.958004,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S15/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15"
+      ],
+      "space_id": "2F_S15",
+      "vertices": [
+        [
+          16.958004,
+          3.882225,
+          3.6
+        ],
+        [
+          20.970756,
+          3.882225,
+          3.6
+        ],
+        [
+          20.970756,
+          0.0,
+          3.6
+        ],
+        [
+          16.958004,
+          0.0,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S15/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15"
+      ],
+      "space_id": "2F_S15",
+      "vertices": [
+        [
+          16.958004,
+          0.0,
+          3.6
+        ],
+        [
+          20.970756,
+          0.0,
+          3.6
+        ],
+        [
+          20.970756,
+          0.0,
+          7.2
+        ],
+        [
+          16.958004,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S16"
+      ],
+      "counterpart_ids": [
+        "space/2F_S16/wall/3"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S15/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15"
+      ],
+      "space_id": "2F_S15",
+      "vertices": [
+        [
+          20.970756,
+          0.0,
+          3.6
+        ],
+        [
+          20.970756,
+          3.882225,
+          3.6
+        ],
+        [
+          20.970756,
+          3.882225,
+          7.2
+        ],
+        [
+          20.970756,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S15/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15"
+      ],
+      "space_id": "2F_S15",
+      "vertices": [
+        [
+          20.970756,
+          3.882225,
+          3.6
+        ],
+        [
+          16.958004,
+          3.882225,
+          3.6
+        ],
+        [
+          16.958004,
+          3.882225,
+          7.2
+        ],
+        [
+          20.970756,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S14"
+      ],
+      "counterpart_ids": [
+        "space/2F_S14/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S15/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15"
+      ],
+      "space_id": "2F_S15",
+      "vertices": [
+        [
+          16.958004,
+          3.882225,
+          3.6
+        ],
+        [
+          16.958004,
+          0.0,
+          3.6
+        ],
+        [
+          16.958004,
+          0.0,
+          7.2
+        ],
+        [
+          16.958004,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "ceiling",
+      "id": "space/2F_S16/ceiling",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16"
+      ],
+      "space_id": "2F_S16",
+      "vertices": [
+        [
+          20.970756,
+          0.0,
+          7.2
+        ],
+        [
+          25.0,
+          0.0,
+          7.2
+        ],
+        [
+          25.0,
+          3.882225,
+          7.2
+        ],
+        [
+          20.970756,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "floor",
+      "id": "space/2F_S16/floor",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16"
+      ],
+      "space_id": "2F_S16",
+      "vertices": [
+        [
+          20.970756,
+          3.882225,
+          3.6
+        ],
+        [
+          25.0,
+          3.882225,
+          3.6
+        ],
+        [
+          25.0,
+          0.0,
+          3.6
+        ],
+        [
+          20.970756,
+          0.0,
+          3.6
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S16/wall/0",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16"
+      ],
+      "space_id": "2F_S16",
+      "vertices": [
+        [
+          20.970756,
+          0.0,
+          3.6
+        ],
+        [
+          25.0,
+          0.0,
+          3.6
+        ],
+        [
+          25.0,
+          0.0,
+          7.2
+        ],
+        [
+          20.970756,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [],
+      "counterpart_ids": [],
+      "geometry_type": "wall",
+      "id": "space/2F_S16/wall/1",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16"
+      ],
+      "space_id": "2F_S16",
+      "vertices": [
+        [
+          25.0,
+          0.0,
+          3.6
+        ],
+        [
+          25.0,
+          3.882225,
+          3.6
+        ],
+        [
+          25.0,
+          3.882225,
+          7.2
+        ],
+        [
+          25.0,
+          0.0,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S11"
+      ],
+      "counterpart_ids": [
+        "space/2F_S11/wall/0"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S16/wall/2",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16"
+      ],
+      "space_id": "2F_S16",
+      "vertices": [
+        [
+          25.0,
+          3.882225,
+          3.6
+        ],
+        [
+          20.970756,
+          3.882225,
+          3.6
+        ],
+        [
+          20.970756,
+          3.882225,
+          7.2
+        ],
+        [
+          25.0,
+          3.882225,
+          7.2
+        ]
+      ]
+    },
+    {
+      "adjacent_space_ids": [
+        "2F_S15"
+      ],
+      "counterpart_ids": [
+        "space/2F_S15/wall/1"
+      ],
+      "geometry_type": "wall",
+      "id": "space/2F_S16/wall/3",
+      "kind": "physical",
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16"
+      ],
+      "space_id": "2F_S16",
+      "vertices": [
+        [
+          20.970756,
+          3.882225,
+          3.6
+        ],
+        [
+          20.970756,
+          0.0,
+          3.6
+        ],
+        [
+          20.970756,
+          0.0,
+          7.2
+        ],
+        [
+          20.970756,
+          3.882225,
+          7.2
+        ]
+      ]
+    }
+  ],
+  "boundary_relations": [
+    {
+      "boundary_ids": [
+        "space/2F_S01/wall/0",
+        "space/2F_S04/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 17.6279688,
+          "holes": [],
+          "vertices": [
+            [
+              0.0,
+              16.095965,
+              3.6
+            ],
+            [
+              0.0,
+              16.095965,
+              7.2
+            ],
+            [
+              4.896658,
+              16.095965,
+              7.2
+            ],
+            [
+              4.896658,
+              16.095965,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S01",
+        "2F_S04"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S01/wall/1",
+        "space/2F_S02/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.054526000000001,
+          "holes": [],
+          "vertices": [
+            [
+              4.896658,
+              16.095965,
+              3.6
+            ],
+            [
+              4.896658,
+              16.095965,
+              7.2
+            ],
+            [
+              4.896658,
+              20.0,
+              7.2
+            ],
+            [
+              4.896658,
+              20.0,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S01",
+        "2F_S02"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S02/wall/0",
+        "space/2F_S04/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 17.992083599999997,
+          "holes": [],
+          "vertices": [
+            [
+              4.896658,
+              16.095965,
+              3.6
+            ],
+            [
+              4.896658,
+              16.095965,
+              7.2
+            ],
+            [
+              9.894459,
+              16.095965,
+              7.2
+            ],
+            [
+              9.894459,
+              16.095965,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S02",
+        "2F_S04"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S02/wall/1",
+        "space/2F_S03/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.054526000000001,
+          "holes": [],
+          "vertices": [
+            [
+              9.894459,
+              16.095965,
+              3.6
+            ],
+            [
+              9.894459,
+              16.095965,
+              7.2
+            ],
+            [
+              9.894459,
+              20.0,
+              7.2
+            ],
+            [
+              9.894459,
+              20.0,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S02",
+        "2F_S03"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S03/wall/0",
+        "space/2F_S04/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 3.6411624000000047,
+          "holes": [],
+          "vertices": [
+            [
+              9.894459,
+              16.095965,
+              3.6
+            ],
+            [
+              9.894459,
+              16.095965,
+              7.2
+            ],
+            [
+              10.905893,
+              16.095965,
+              7.2
+            ],
+            [
+              10.905893,
+              16.095965,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S03",
+        "2F_S04"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S03/wall/0",
+        "space/2F_S05/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.485485599999997,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              16.095965,
+              3.6
+            ],
+            [
+              10.905893,
+              16.095965,
+              7.2
+            ],
+            [
+              14.929639,
+              16.095965,
+              7.2
+            ],
+            [
+              14.929639,
+              16.095965,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S03",
+        "2F_S05"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/0",
+        "space/2F_S06/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 31.820580000000003,
+          "holes": [],
+          "vertices": [
+            [
+              0.0,
+              14.122137,
+              3.6
+            ],
+            [
+              0.0,
+              14.122137,
+              7.2
+            ],
+            [
+              8.83905,
+              14.122137,
+              7.2
+            ],
+            [
+              8.83905,
+              14.122137,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S06"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/1",
+        "space/2F_S06/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 29.679386400000002,
+          "holes": [],
+          "vertices": [
+            [
+              8.83905,
+              14.122137,
+              3.6
+            ],
+            [
+              8.83905,
+              14.122137,
+              7.2
+            ],
+            [
+              8.83905,
+              5.877863,
+              7.2
+            ],
+            [
+              8.83905,
+              5.877863,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S06"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/2",
+        "space/2F_S11/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 7.4406348000000015,
+          "holes": [],
+          "vertices": [
+            [
+              8.83905,
+              5.877863,
+              3.6
+            ],
+            [
+              8.83905,
+              5.877863,
+              7.2
+            ],
+            [
+              10.905893,
+              5.877863,
+              7.2
+            ],
+            [
+              10.905893,
+              5.877863,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S11"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/3",
+        "space/2F_S05/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 7.6946544,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              13.958561,
+              3.6
+            ],
+            [
+              10.905893,
+              13.958561,
+              7.2
+            ],
+            [
+              10.905893,
+              16.095965,
+              7.2
+            ],
+            [
+              10.905893,
+              16.095965,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S05"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/3",
+        "space/2F_S07/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 7.2235584,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              11.952017,
+              3.6
+            ],
+            [
+              10.905893,
+              11.952017,
+              7.2
+            ],
+            [
+              10.905893,
+              13.958561,
+              7.2
+            ],
+            [
+              10.905893,
+              13.958561,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S07"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/3",
+        "space/2F_S08/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 7.459102799999999,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              9.880044,
+              3.6
+            ],
+            [
+              10.905893,
+              9.880044,
+              7.2
+            ],
+            [
+              10.905893,
+              11.952017,
+              7.2
+            ],
+            [
+              10.905893,
+              11.952017,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S08"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/3",
+        "space/2F_S09/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 7.4591064000000005,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              7.80807,
+              3.6
+            ],
+            [
+              10.905893,
+              7.80807,
+              7.2
+            ],
+            [
+              10.905893,
+              9.880044,
+              7.2
+            ],
+            [
+              10.905893,
+              9.880044,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S09"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S04/wall/3",
+        "space/2F_S10/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 6.948745200000001,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              5.877863,
+              3.6
+            ],
+            [
+              10.905893,
+              5.877863,
+              7.2
+            ],
+            [
+              10.905893,
+              7.80807,
+              7.2
+            ],
+            [
+              10.905893,
+              7.80807,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S10"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S05/wall/0",
+        "space/2F_S07/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.485485599999997,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              13.958561,
+              3.6
+            ],
+            [
+              10.905893,
+              13.958561,
+              7.2
+            ],
+            [
+              14.929639,
+              13.958561,
+              7.2
+            ],
+            [
+              14.929639,
+              13.958561,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S05",
+        "2F_S07"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S06/wall/2",
+        "space/2F_S11/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.406332400000004,
+          "holes": [],
+          "vertices": [
+            [
+              4.837291,
+              5.877863,
+              3.6
+            ],
+            [
+              4.837291,
+              5.877863,
+              7.2
+            ],
+            [
+              8.83905,
+              5.877863,
+              7.2
+            ],
+            [
+              8.83905,
+              5.877863,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S06",
+        "2F_S11"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S07/wall/0",
+        "space/2F_S08/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.485485599999997,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              11.952017,
+              3.6
+            ],
+            [
+              10.905893,
+              11.952017,
+              7.2
+            ],
+            [
+              14.929639,
+              11.952017,
+              7.2
+            ],
+            [
+              14.929639,
+              11.952017,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S07",
+        "2F_S08"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S08/wall/0",
+        "space/2F_S09/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.485485599999997,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              9.880044,
+              3.6
+            ],
+            [
+              10.905893,
+              9.880044,
+              7.2
+            ],
+            [
+              14.929639,
+              9.880044,
+              7.2
+            ],
+            [
+              14.929639,
+              9.880044,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S08",
+        "2F_S09"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S09/wall/0",
+        "space/2F_S10/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.485485599999997,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              7.80807,
+              3.6
+            ],
+            [
+              10.905893,
+              7.80807,
+              7.2
+            ],
+            [
+              14.929639,
+              7.80807,
+              7.2
+            ],
+            [
+              14.929639,
+              7.80807,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S09",
+        "2F_S10"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S10/wall/0",
+        "space/2F_S11/wall/4"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.485485599999997,
+          "holes": [],
+          "vertices": [
+            [
+              10.905893,
+              5.877863,
+              3.6
+            ],
+            [
+              10.905893,
+              5.877863,
+              7.2
+            ],
+            [
+              14.929639,
+              5.877863,
+              7.2
+            ],
+            [
+              14.929639,
+              5.877863,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S10",
+        "2F_S11"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S10/wall/1",
+        "space/2F_S11/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 0.43184160000000066,
+          "holes": [],
+          "vertices": [
+            [
+              14.929639,
+              5.877863,
+              3.6
+            ],
+            [
+              14.929639,
+              5.877863,
+              7.2
+            ],
+            [
+              14.929639,
+              5.997819,
+              7.2
+            ],
+            [
+              14.929639,
+              5.997819,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S10",
+        "2F_S11"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S11/wall/0",
+        "space/2F_S12/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.960422800000003,
+          "holes": [],
+          "vertices": [
+            [
+              4.837291,
+              3.882225,
+              3.6
+            ],
+            [
+              4.837291,
+              3.882225,
+              7.2
+            ],
+            [
+              8.992964,
+              3.882225,
+              7.2
+            ],
+            [
+              8.992964,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S12"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S11/wall/0",
+        "space/2F_S13/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.386543200000002,
+          "holes": [],
+          "vertices": [
+            [
+              8.992964,
+              3.882225,
+              3.6
+            ],
+            [
+              8.992964,
+              3.882225,
+              7.2
+            ],
+            [
+              12.989226000000002,
+              3.882225,
+              7.2
+            ],
+            [
+              12.989226000000002,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S13"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S11/wall/0",
+        "space/2F_S14/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.28760079999999,
+          "holes": [],
+          "vertices": [
+            [
+              12.989226000000002,
+              3.882225,
+              3.6
+            ],
+            [
+              12.989226000000002,
+              3.882225,
+              7.2
+            ],
+            [
+              16.958004,
+              3.882225,
+              7.2
+            ],
+            [
+              16.958004,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S14"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S11/wall/0",
+        "space/2F_S15/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.44590720000001,
+          "holes": [],
+          "vertices": [
+            [
+              16.958004,
+              3.882225,
+              3.6
+            ],
+            [
+              16.958004,
+              3.882225,
+              7.2
+            ],
+            [
+              20.970756,
+              3.882225,
+              7.2
+            ],
+            [
+              20.970756,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S15"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S11/wall/0",
+        "space/2F_S16/wall/2"
+      ],
+      "regions": [
+        {
+          "area_m2": 14.505278399999995,
+          "holes": [],
+          "vertices": [
+            [
+              20.970756,
+              3.882225,
+              3.6
+            ],
+            [
+              20.970756,
+              3.882225,
+              7.2
+            ],
+            [
+              25.0,
+              3.882225,
+              7.2
+            ],
+            [
+              25.0,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S16"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S12/wall/1",
+        "space/2F_S13/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 13.97601,
+          "holes": [],
+          "vertices": [
+            [
+              8.992964,
+              0.0,
+              3.6
+            ],
+            [
+              8.992964,
+              0.0,
+              7.2
+            ],
+            [
+              8.992964,
+              3.882225,
+              7.2
+            ],
+            [
+              8.992964,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S12",
+        "2F_S13"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S13/wall/1",
+        "space/2F_S14/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 13.97601,
+          "holes": [],
+          "vertices": [
+            [
+              12.989226,
+              0.0,
+              3.6
+            ],
+            [
+              12.989226,
+              0.0,
+              7.2
+            ],
+            [
+              12.989226,
+              3.882225,
+              7.2
+            ],
+            [
+              12.989226,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S13",
+        "2F_S14"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S14/wall/1",
+        "space/2F_S15/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 13.97601,
+          "holes": [],
+          "vertices": [
+            [
+              16.958004,
+              0.0,
+              3.6
+            ],
+            [
+              16.958004,
+              0.0,
+              7.2
+            ],
+            [
+              16.958004,
+              3.882225,
+              7.2
+            ],
+            [
+              16.958004,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S14",
+        "2F_S15"
+      ]
+    },
+    {
+      "boundary_ids": [
+        "space/2F_S15/wall/1",
+        "space/2F_S16/wall/3"
+      ],
+      "regions": [
+        {
+          "area_m2": 13.97601,
+          "holes": [],
+          "vertices": [
+            [
+              20.970756,
+              0.0,
+              3.6
+            ],
+            [
+              20.970756,
+              0.0,
+              7.2
+            ],
+            [
+              20.970756,
+              3.882225,
+              7.2
+            ],
+            [
+              20.970756,
+              3.882225,
+              3.6
+            ]
+          ]
+        }
+      ],
+      "space_ids": [
+        "2F_S15",
+        "2F_S16"
+      ]
+    }
+  ],
+  "conflicts": [],
+  "connections": [
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_MR1",
+      "space_ids": [
+        "2F_S01",
+        "2F_S04"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_MR2",
+      "space_ids": [
+        "2F_S02",
+        "2F_S04"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_O1",
+      "space_ids": [
+        "2F_S03",
+        "2F_S04"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_MRbig",
+      "space_ids": [
+        "2F_S04",
+        "2F_S06"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_E1",
+      "space_ids": [
+        "2F_S04",
+        "2F_S05"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_E2",
+      "space_ids": [
+        "2F_S04",
+        "2F_S07"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_E3",
+      "space_ids": [
+        "2F_S04",
+        "2F_S08"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_E4",
+      "space_ids": [
+        "2F_S04",
+        "2F_S09"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_E5",
+      "space_ids": [
+        "2F_S04",
+        "2F_S10"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C1",
+      "space_ids": [
+        "2F_S11",
+        "2F_S12"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C2",
+      "space_ids": [
+        "2F_S11",
+        "2F_S13"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C3",
+      "space_ids": [
+        "2F_S11",
+        "2F_S14"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C4",
+      "space_ids": [
+        "2F_S11",
+        "2F_S15"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "door",
+      "opening_id": "D_C5",
+      "space_ids": [
+        "2F_S11",
+        "2F_S16"
+      ],
+      "state": "unknown"
+    },
+    {
+      "exterior": false,
+      "kind": "open",
+      "opening_id": "O_junction",
+      "space_ids": [
+        "2F_S04",
+        "2F_S11"
+      ],
+      "state": "open"
+    }
+  ],
+  "coordinate_system": {
+    "frame": "corrected building coordinates",
+    "north_axis": null,
+    "units": "m",
+    "up_axis": "Z"
+  },
+  "corrections": [],
+  "floors": [
+    {
+      "footprint": [
+        [
+          0.0,
+          14.002181
+        ],
+        [
+          4.837291,
+          14.002181
+        ],
+        [
+          4.837291,
+          0.0
+        ],
+        [
+          25.0,
+          0.0
+        ],
+        [
+          25.0,
+          5.997819
+        ],
+        [
+          14.929639,
+          5.997819
+        ],
+        [
+          14.929639,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "footprint_basis": "per_floor_correction",
+      "height": 3.6,
+      "id": "2F",
+      "name": "2F",
+      "z_floor": 3.6
+    }
+  ],
+  "generation": {
+    "corrections": [],
+    "method": "agent_geometry_proposal",
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "proposal_sha256": "e971aa1bd7cf796858f66c96f694ab545043c7787ed0a3f94734732c5ef8ab93",
+    "provenance": {
+      "generator": "glm subscription tool loop",
+      "input_manifest_sha256": "47e1adf3a43f3f1783bc86251ae72ce08f2c66157d6e4a15918dd55eb405f00c",
+      "mode": "original_images_agent_experiment",
+      "plan_input": {
+        "compilation_file": "plan_drafts/draft_017/compilation.json",
+        "compilation_sha256": "85ba68b12e7c2f7e984f0e6025cca9d5d3c5fedf119e9714f23d518c400aa722",
+        "draft_view": {
+          "draft_only": true,
+          "drawing_fidelity": "not_evaluated",
+          "image_file": "plan_drafts/draft_017/draft_view.png",
+          "image_sha256": "20b7a993c5583db6e4f4007936481a8294d7cb8a8c5d9f2ad593e0fa2bb05d89",
+          "metadata_file": "plan_drafts/draft_017/draft_view.json",
+          "metadata_sha256": "706cc83deed7fd8fea0830802c20ddb69e863f93ead093584cb1c8b8e3adcce8",
+          "source_geometry_ready": false,
+          "unrenderable": [],
+          "unrenderable_count": 0
+        },
+        "geometry_feedback": {
+          "axis_orientation": {
+            "world_east_toward": "image_right",
+            "world_north_toward": "image_top"
+          },
+          "ceiling_height_m": 3.6,
+          "drawing_fidelity": "not_evaluated",
+          "file": "plan_drafts/draft_017/geometry_feedback.json",
+          "floor_id": "2F",
+          "footprint_bounds_m": [
+            [
+              0.0,
+              25.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ],
+          "footprint_span_m": [
+            25.0,
+            20.0
+          ],
+          "metres_per_pixel": {
+            "x": 0.02198768689533861,
+            "y": -0.021810250817884406
+          },
+          "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+          "opening_count": 31,
+          "opening_dimensions": [
+            {
+              "id": "D_MR1",
+              "width_m": 0.7783641160949859,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_MR2",
+              "width_m": 0.7981530343007908,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_O1",
+              "width_m": 0.7036059806508366,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_MRbig",
+              "width_m": 1.461286804798256,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_E1",
+              "width_m": 0.7415485278080691,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_E2",
+              "width_m": 0.8287895310796074,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_E3",
+              "width_m": 0.7633587786259532,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_E4",
+              "width_m": 0.8287895310796074,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_E5",
+              "width_m": 0.8287895310796074,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_C1",
+              "width_m": 0.8795074758135453,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_C2",
+              "width_m": 0.7036059806508348,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_C3",
+              "width_m": 0.824538258575199,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_C4",
+              "width_m": 0.769569041336851,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "D_C5",
+              "width_m": 0.824538258575199,
+              "z_m": [
+                3.6,
+                5.7
+              ]
+            },
+            {
+              "id": "W2F_N1",
+              "width_m": 2.427440633245382,
+              "z_m": [
+                4.6,
+                6.8
+              ]
+            },
+            {
+              "id": "W2F_N2",
+              "width_m": 2.4285400175901515,
+              "z_m": [
+                4.6,
+                6.8
+              ]
+            },
+            {
+              "id": "W2F_N3",
+              "width_m": 0.6871152154793307,
+              "z_m": [
+                4.6,
+                6.8
+              ]
+            },
+            {
+              "id": "W2F_E1",
+              "width_m": 0.8724100327153774,
+              "z_m": [
+                4.6,
+                6.2
+              ]
+            },
+            {
+              "id": "W2F_E2",
+              "width_m": 0.8505997818974915,
+              "z_m": [
+                4.6,
+                6.2
+              ]
+            },
+            {
+              "id": "W2F_E3",
+              "width_m": 0.8505997818974933,
+              "z_m": [
+                4.6,
+                6.2
+              ]
+            },
+            {
+              "id": "W2F_E4",
+              "width_m": 0.8942202835332616,
+              "z_m": [
+                4.6,
+                6.2
+              ]
+            },
+            {
+              "id": "W2F_E5",
+              "width_m": 0.8505997818974933,
+              "z_m": [
+                4.6,
+                6.2
+              ]
+            },
+            {
+              "id": "W2F_Wbig",
+              "width_m": 4.252998909487458,
+              "z_m": [
+                4.6,
+                6.8
+              ]
+            },
+            {
+              "id": "W2F_Wsmall",
+              "width_m": 1.2366412213740468,
+              "z_m": [
+                4.6,
+                6.2
+              ]
+            }
+          ],
+          "openings_returned": 24,
+          "openings_truncated": true,
+          "sha256": "64c509511cab35856099eda5bc6e2b924996f5ca1932d800d3f659cee4b0e822",
+          "unit": "m",
+          "z_floor_m": 3.6
+        },
+        "image": "2f_view.png",
+        "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "plan_file": "plan_drafts/draft_017/plan.json",
+        "plan_sha256": "bbd9a3a56a4665f55a3a8713715ab055d66e9cecece93580be6de3b3de631103",
+        "revision": {
+          "file": "plan_revisions/revision_015.json",
+          "parent_draft_id": "draft_015",
+          "parent_plan_sha256": "ab0cf4f16f2b4db71f76a641361e86310f85ef44f32d7f9cbc704f70b6e72620",
+          "sha256": "a4a6ed1887f1b4c01326aa192ca8f84cfd370a5e9708fc0f51275f3d9cba7b9f"
+        }
+      }
+    },
+    "unresolved": [
+      "Exact jamb pixels of D_C2/D_E2 read from 2x-3x views, tolerance about 4 px.",
+      "Stair location not shown in inputs; connectivity between storeys left unmodelled.",
+      "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+    ]
+  },
+  "opening_hosts": {
+    "D_C1": [
+      "space/2F_S11/wall/0",
+      "space/2F_S12/wall/2"
+    ],
+    "D_C2": [
+      "space/2F_S11/wall/0",
+      "space/2F_S13/wall/2"
+    ],
+    "D_C3": [
+      "space/2F_S11/wall/0",
+      "space/2F_S14/wall/2"
+    ],
+    "D_C4": [
+      "space/2F_S11/wall/0",
+      "space/2F_S15/wall/2"
+    ],
+    "D_C5": [
+      "space/2F_S11/wall/0",
+      "space/2F_S16/wall/2"
+    ],
+    "D_E1": [
+      "space/2F_S04/wall/3",
+      "space/2F_S05/wall/3"
+    ],
+    "D_E2": [
+      "space/2F_S04/wall/3",
+      "space/2F_S07/wall/3"
+    ],
+    "D_E3": [
+      "space/2F_S04/wall/3",
+      "space/2F_S08/wall/3"
+    ],
+    "D_E4": [
+      "space/2F_S04/wall/3",
+      "space/2F_S09/wall/3"
+    ],
+    "D_E5": [
+      "space/2F_S04/wall/3",
+      "space/2F_S10/wall/3"
+    ],
+    "D_MR1": [
+      "space/2F_S01/wall/0",
+      "space/2F_S04/wall/4"
+    ],
+    "D_MR2": [
+      "space/2F_S02/wall/0",
+      "space/2F_S04/wall/4"
+    ],
+    "D_MRbig": [
+      "space/2F_S04/wall/1",
+      "space/2F_S06/wall/3"
+    ],
+    "D_O1": [
+      "space/2F_S03/wall/0",
+      "space/2F_S04/wall/4"
+    ],
+    "O_junction": [
+      "space/2F_S04/wall/2",
+      "space/2F_S11/wall/4"
+    ],
+    "W2F_E1": [
+      "space/2F_S05/wall/1"
+    ],
+    "W2F_E2": [
+      "space/2F_S07/wall/1"
+    ],
+    "W2F_E3": [
+      "space/2F_S08/wall/1"
+    ],
+    "W2F_E4": [
+      "space/2F_S09/wall/1"
+    ],
+    "W2F_E5": [
+      "space/2F_S10/wall/1"
+    ],
+    "W2F_N1": [
+      "space/2F_S01/wall/2"
+    ],
+    "W2F_N2": [
+      "space/2F_S02/wall/2"
+    ],
+    "W2F_N3": [
+      "space/2F_S03/wall/2"
+    ],
+    "W2F_S1": [
+      "space/2F_S12/wall/0"
+    ],
+    "W2F_S2": [
+      "space/2F_S13/wall/0"
+    ],
+    "W2F_S3": [
+      "space/2F_S14/wall/0"
+    ],
+    "W2F_S4": [
+      "space/2F_S15/wall/0"
+    ],
+    "W2F_S5": [
+      "space/2F_S16/wall/0"
+    ],
+    "W2F_Wbig": [
+      "space/2F_S06/wall/1"
+    ],
+    "W2F_Wsmall": [
+      "space/2F_S11/wall/5"
+    ],
+    "W2F_band": [
+      "space/2F_S11/wall/2"
+    ]
+  },
+  "openings": [
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S11/wall/0",
+      "id": "D_C1",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png small-room south wall door"
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S12"
+      ],
+      "vertices": [
+        [
+          7.75066,
+          3.882225,
+          3.6
+        ],
+        [
+          8.630167,
+          3.882225,
+          3.6
+        ],
+        [
+          8.630167,
+          3.882225,
+          5.7
+        ],
+        [
+          7.75066,
+          3.882225,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S11/wall/0",
+      "id": "D_C2",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png bottom-row north wall door"
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S13"
+      ],
+      "vertices": [
+        [
+          9.388742,
+          3.882225,
+          3.6
+        ],
+        [
+          10.092348,
+          3.882225,
+          3.6
+        ],
+        [
+          10.092348,
+          3.882225,
+          5.7
+        ],
+        [
+          9.388742,
+          3.882225,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S11/wall/0",
+      "id": "D_C3",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png bottom-row north wall door"
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S14"
+      ],
+      "vertices": [
+        [
+          15.666227,
+          3.882225,
+          3.6
+        ],
+        [
+          16.490765,
+          3.882225,
+          3.6
+        ],
+        [
+          16.490765,
+          3.882225,
+          5.7
+        ],
+        [
+          15.666227,
+          3.882225,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S11/wall/0",
+      "id": "D_C4",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png bottom-row north wall door"
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S15"
+      ],
+      "vertices": [
+        [
+          17.205365,
+          3.882225,
+          3.6
+        ],
+        [
+          17.974934,
+          3.882225,
+          3.6
+        ],
+        [
+          17.974934,
+          3.882225,
+          5.7
+        ],
+        [
+          17.205365,
+          3.882225,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S11/wall/0",
+      "id": "D_C5",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png bottom-row north wall door"
+      ],
+      "space_ids": [
+        "2F_S11",
+        "2F_S16"
+      ],
+      "vertices": [
+        [
+          21.273087,
+          3.882225,
+          3.6
+        ],
+        [
+          22.097625,
+          3.882225,
+          3.6
+        ],
+        [
+          22.097625,
+          3.882225,
+          5.7
+        ],
+        [
+          21.273087,
+          3.882225,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/3",
+      "id": "D_E1",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png E-column west wall jambs"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S05"
+      ],
+      "vertices": [
+        [
+          10.905893,
+          15.092694,
+          3.6
+        ],
+        [
+          10.905893,
+          14.351145,
+          3.6
+        ],
+        [
+          10.905893,
+          14.351145,
+          5.7
+        ],
+        [
+          10.905893,
+          15.092694,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/3",
+      "id": "D_E2",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png E-column west wall jambs"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S07"
+      ],
+      "vertices": [
+        [
+          10.905893,
+          13.653217,
+          3.6
+        ],
+        [
+          10.905893,
+          12.824427,
+          3.6
+        ],
+        [
+          10.905893,
+          12.824427,
+          5.7
+        ],
+        [
+          10.905893,
+          13.653217,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/3",
+      "id": "D_E3",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png E-column west wall jambs"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S08"
+      ],
+      "vertices": [
+        [
+          10.905893,
+          11.145038,
+          3.6
+        ],
+        [
+          10.905893,
+          10.381679,
+          3.6
+        ],
+        [
+          10.905893,
+          10.381679,
+          5.7
+        ],
+        [
+          10.905893,
+          11.145038,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/3",
+      "id": "D_E4",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png E-column west wall jambs"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S09"
+      ],
+      "vertices": [
+        [
+          10.905893,
+          9.661941,
+          3.6
+        ],
+        [
+          10.905893,
+          8.833152,
+          3.6
+        ],
+        [
+          10.905893,
+          8.833152,
+          5.7
+        ],
+        [
+          10.905893,
+          9.661941,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/3",
+      "id": "D_E5",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png E-column west wall jambs"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S10"
+      ],
+      "vertices": [
+        [
+          10.905893,
+          7.655398,
+          3.6
+        ],
+        [
+          10.905893,
+          6.826609,
+          3.6
+        ],
+        [
+          10.905893,
+          6.826609,
+          5.7
+        ],
+        [
+          10.905893,
+          7.655398,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S01/wall/0",
+      "id": "D_MR1",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png corridor north wall jambs"
+      ],
+      "space_ids": [
+        "2F_S01",
+        "2F_S04"
+      ],
+      "vertices": [
+        [
+          3.682938,
+          16.095965,
+          3.6
+        ],
+        [
+          4.461302,
+          16.095965,
+          3.6
+        ],
+        [
+          4.461302,
+          16.095965,
+          5.7
+        ],
+        [
+          3.682938,
+          16.095965,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S02/wall/0",
+      "id": "D_MR2",
+      "kind": "door",
+      "source_refs": [
+        "2f_view.png corridor north wall jambs"
+      ],
+      "space_ids": [
+        "2F_S02",
+        "2F_S04"
+      ],
+      "vertices": [
+        [
+          5.239666,
+          16.095965,
+          3.6
+        ],
+        [
+          6.037819,
+          16.095965,
+          3.6
+        ],
+        [
+          6.037819,
+          16.095965,
+          5.7
+        ],
+        [
+          5.239666,
+          16.095965,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/1",
+      "id": "D_MRbig",
+      "kind": "door",
+      "source_refs": [
+        "view_0028 cyan leaf band + quarter arc = door in big-MR east wall, gap y 633-700"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S06"
+      ],
+      "vertices": [
+        [
+          8.83905,
+          13.631407,
+          3.6
+        ],
+        [
+          8.83905,
+          12.17012,
+          3.6
+        ],
+        [
+          8.83905,
+          12.17012,
+          5.7
+        ],
+        [
+          8.83905,
+          13.631407,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S03/wall/0",
+      "id": "D_O1",
+      "kind": "door",
+      "source_refs": [
+        "draft_005 item 5 gap x 707-739 in corridor north wall; view_0025 arc = leaf into O1"
+      ],
+      "space_ids": [
+        "2F_S03",
+        "2F_S04"
+      ],
+      "vertices": [
+        [
+          10.048373,
+          16.095965,
+          3.6
+        ],
+        [
+          10.751979,
+          16.095965,
+          3.6
+        ],
+        [
+          10.751979,
+          16.095965,
+          5.7
+        ],
+        [
+          10.048373,
+          16.095965,
+          5.7
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "open",
+      "exterior": false,
+      "host_boundary_id": "space/2F_S04/wall/2",
+      "id": "O_junction",
+      "kind": "open",
+      "source_refs": [
+        "profile_025: grey wall gap x 654-745 in y 983/994 wall, corridor junction 2.0 m"
+      ],
+      "space_ids": [
+        "2F_S04",
+        "2F_S11"
+      ],
+      "vertices": [
+        [
+          8.883026,
+          5.877863,
+          3.6
+        ],
+        [
+          10.883905,
+          5.877863,
+          3.6
+        ],
+        [
+          10.883905,
+          5.877863,
+          7.2
+        ],
+        [
+          8.883026,
+          5.877863,
+          7.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S05/wall/1",
+      "id": "W2F_E1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_E1"
+      ],
+      "space_ids": [
+        "2F_S05"
+      ],
+      "vertices": [
+        [
+          14.929639,
+          14.372955,
+          4.6
+        ],
+        [
+          14.929639,
+          15.245365,
+          4.6
+        ],
+        [
+          14.929639,
+          15.245365,
+          6.2
+        ],
+        [
+          14.929639,
+          14.372955,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S07/wall/1",
+      "id": "W2F_E2",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_E2"
+      ],
+      "space_ids": [
+        "2F_S07"
+      ],
+      "vertices": [
+        [
+          14.929639,
+          12.758997,
+          4.6
+        ],
+        [
+          14.929639,
+          13.609597,
+          4.6
+        ],
+        [
+          14.929639,
+          13.609597,
+          6.2
+        ],
+        [
+          14.929639,
+          12.758997,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S08/wall/1",
+      "id": "W2F_E3",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_E3"
+      ],
+      "space_ids": [
+        "2F_S08"
+      ],
+      "vertices": [
+        [
+          14.929639,
+          10.381679,
+          4.6
+        ],
+        [
+          14.929639,
+          11.232279,
+          4.6
+        ],
+        [
+          14.929639,
+          11.232279,
+          6.2
+        ],
+        [
+          14.929639,
+          10.381679,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S09/wall/1",
+      "id": "W2F_E4",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_E4"
+      ],
+      "space_ids": [
+        "2F_S09"
+      ],
+      "vertices": [
+        [
+          14.929639,
+          8.7241,
+          4.6
+        ],
+        [
+          14.929639,
+          9.618321,
+          4.6
+        ],
+        [
+          14.929639,
+          9.618321,
+          6.2
+        ],
+        [
+          14.929639,
+          8.7241,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S10/wall/1",
+      "id": "W2F_E5",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_E5"
+      ],
+      "space_ids": [
+        "2F_S10"
+      ],
+      "vertices": [
+        [
+          14.929639,
+          6.761178,
+          4.6
+        ],
+        [
+          14.929639,
+          7.611778,
+          4.6
+        ],
+        [
+          14.929639,
+          7.611778,
+          6.2
+        ],
+        [
+          14.929639,
+          6.761178,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S01/wall/2",
+      "id": "W2F_N1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_N1"
+      ],
+      "space_ids": [
+        "2F_S01"
+      ],
+      "vertices": [
+        [
+          2.080035,
+          20.0,
+          6.8
+        ],
+        [
+          4.507476,
+          20.0,
+          6.8
+        ],
+        [
+          4.507476,
+          20.0,
+          4.6
+        ],
+        [
+          2.080035,
+          20.0,
+          4.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S02/wall/2",
+      "id": "W2F_N2",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_N2"
+      ],
+      "space_ids": [
+        "2F_S02"
+      ],
+      "vertices": [
+        [
+          5.194591,
+          20.0,
+          6.8
+        ],
+        [
+          7.623131,
+          20.0,
+          6.8
+        ],
+        [
+          7.623131,
+          20.0,
+          4.6
+        ],
+        [
+          5.194591,
+          20.0,
+          4.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S03/wall/2",
+      "id": "W2F_N3",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_N3"
+      ],
+      "space_ids": [
+        "2F_S03"
+      ],
+      "vertices": [
+        [
+          10.141821,
+          20.0,
+          6.8
+        ],
+        [
+          10.828936,
+          20.0,
+          6.8
+        ],
+        [
+          10.828936,
+          20.0,
+          4.6
+        ],
+        [
+          10.141821,
+          20.0,
+          4.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S12/wall/0",
+      "id": "W2F_S1",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_S1"
+      ],
+      "space_ids": [
+        "2F_S12"
+      ],
+      "vertices": [
+        [
+          6.761214,
+          0.0,
+          4.6
+        ],
+        [
+          8.575198,
+          0.0,
+          4.6
+        ],
+        [
+          8.575198,
+          0.0,
+          6.2
+        ],
+        [
+          6.761214,
+          0.0,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S13/wall/0",
+      "id": "W2F_S2",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_S2"
+      ],
+      "space_ids": [
+        "2F_S13"
+      ],
+      "vertices": [
+        [
+          9.289798,
+          0.0,
+          4.6
+        ],
+        [
+          11.158751,
+          0.0,
+          4.6
+        ],
+        [
+          11.158751,
+          0.0,
+          6.2
+        ],
+        [
+          9.289798,
+          0.0,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S14/wall/0",
+      "id": "W2F_S3",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_S3"
+      ],
+      "space_ids": [
+        "2F_S14"
+      ],
+      "vertices": [
+        [
+          14.74934,
+          0.0,
+          4.6
+        ],
+        [
+          16.552331,
+          0.0,
+          4.6
+        ],
+        [
+          16.552331,
+          0.0,
+          6.2
+        ],
+        [
+          14.74934,
+          0.0,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S15/wall/0",
+      "id": "W2F_S4",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_S4"
+      ],
+      "space_ids": [
+        "2F_S15"
+      ],
+      "vertices": [
+        [
+          17.205365,
+          0.0,
+          4.6
+        ],
+        [
+          19.019349,
+          0.0,
+          4.6
+        ],
+        [
+          19.019349,
+          0.0,
+          6.2
+        ],
+        [
+          17.205365,
+          0.0,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S16/wall/0",
+      "id": "W2F_S5",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_S5"
+      ],
+      "space_ids": [
+        "2F_S16"
+      ],
+      "vertices": [
+        [
+          21.273087,
+          0.0,
+          4.6
+        ],
+        [
+          23.087071,
+          0.0,
+          4.6
+        ],
+        [
+          23.087071,
+          0.0,
+          6.2
+        ],
+        [
+          21.273087,
+          0.0,
+          6.2
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S06/wall/1",
+      "id": "W2F_Wbig",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_Wbig"
+      ],
+      "space_ids": [
+        "2F_S06"
+      ],
+      "vertices": [
+        [
+          4.837291,
+          7.80807,
+          6.8
+        ],
+        [
+          4.837291,
+          12.061069,
+          6.8
+        ],
+        [
+          4.837291,
+          12.061069,
+          4.6
+        ],
+        [
+          4.837291,
+          7.80807,
+          4.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S11/wall/5",
+      "id": "W2F_Wsmall",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_Wsmall"
+      ],
+      "space_ids": [
+        "2F_S11"
+      ],
+      "vertices": [
+        [
+          4.837291,
+          4.209378,
+          6.2
+        ],
+        [
+          4.837291,
+          5.44602,
+          6.2
+        ],
+        [
+          4.837291,
+          5.44602,
+          4.6
+        ],
+        [
+          4.837291,
+          4.209378,
+          4.6
+        ]
+      ]
+    },
+    {
+      "assumptions": [],
+      "connectivity": "unknown",
+      "exterior": true,
+      "host_boundary_id": "space/2F_S11/wall/2",
+      "id": "W2F_band",
+      "kind": "window",
+      "source_refs": [
+        "correction:window/W2F_band"
+      ],
+      "space_ids": [
+        "2F_S11"
+      ],
+      "vertices": [
+        [
+          15.281442,
+          5.997819,
+          6.8
+        ],
+        [
+          23.306948,
+          5.997819,
+          6.8
+        ],
+        [
+          23.306948,
+          5.997819,
+          4.6
+        ],
+        [
+          15.281442,
+          5.997819,
+          4.6
+        ]
+      ]
+    }
+  ],
+  "public_names": {
+    "boundaries": {
+      "space/2F_S01/ceiling": "Z02_Ceiling",
+      "space/2F_S01/floor": "Z02_Floor",
+      "space/2F_S01/wall/0": "Z02_W1",
+      "space/2F_S01/wall/1": "Z02_W2",
+      "space/2F_S01/wall/2": "Z02_W3",
+      "space/2F_S01/wall/3": "Z02_W4",
+      "space/2F_S02/ceiling": "Z03_Ceiling",
+      "space/2F_S02/floor": "Z03_Floor",
+      "space/2F_S02/wall/0": "Z03_W1",
+      "space/2F_S02/wall/1": "Z03_W2",
+      "space/2F_S02/wall/2": "Z03_W3",
+      "space/2F_S02/wall/3": "Z03_W4",
+      "space/2F_S03/ceiling": "Z01_Ceiling",
+      "space/2F_S03/floor": "Z01_Floor",
+      "space/2F_S03/wall/0": "Z01_W1",
+      "space/2F_S03/wall/1": "Z01_W2",
+      "space/2F_S03/wall/2": "Z01_W3",
+      "space/2F_S03/wall/3": "Z01_W4",
+      "space/2F_S04/ceiling": "Z06_Ceiling",
+      "space/2F_S04/floor": "Z06_Floor",
+      "space/2F_S04/wall/0": "Z06_W5",
+      "space/2F_S04/wall/1": "Z06_W6",
+      "space/2F_S04/wall/2": "Z06_W1",
+      "space/2F_S04/wall/3": "Z06_W2",
+      "space/2F_S04/wall/4": "Z06_W3",
+      "space/2F_S04/wall/5": "Z06_W4",
+      "space/2F_S05/ceiling": "Z04_Ceiling",
+      "space/2F_S05/floor": "Z04_Floor",
+      "space/2F_S05/wall/0": "Z04_W1",
+      "space/2F_S05/wall/1": "Z04_W2",
+      "space/2F_S05/wall/2": "Z04_W3",
+      "space/2F_S05/wall/3": "Z04_W4",
+      "space/2F_S06/ceiling": "Z08_Ceiling",
+      "space/2F_S06/floor": "Z08_Floor",
+      "space/2F_S06/wall/0": "Z08_W5",
+      "space/2F_S06/wall/1": "Z08_W6",
+      "space/2F_S06/wall/2": "Z08_W1",
+      "space/2F_S06/wall/3": "Z08_W2",
+      "space/2F_S06/wall/4": "Z08_W3",
+      "space/2F_S06/wall/5": "Z08_W4",
+      "space/2F_S07/ceiling": "Z05_Ceiling",
+      "space/2F_S07/floor": "Z05_Floor",
+      "space/2F_S07/wall/0": "Z05_W1",
+      "space/2F_S07/wall/1": "Z05_W2",
+      "space/2F_S07/wall/2": "Z05_W3",
+      "space/2F_S07/wall/3": "Z05_W4",
+      "space/2F_S08/ceiling": "Z07_Ceiling",
+      "space/2F_S08/floor": "Z07_Floor",
+      "space/2F_S08/wall/0": "Z07_W1",
+      "space/2F_S08/wall/1": "Z07_W2",
+      "space/2F_S08/wall/2": "Z07_W3",
+      "space/2F_S08/wall/3": "Z07_W4",
+      "space/2F_S09/ceiling": "Z09_Ceiling",
+      "space/2F_S09/floor": "Z09_Floor",
+      "space/2F_S09/wall/0": "Z09_W1",
+      "space/2F_S09/wall/1": "Z09_W2",
+      "space/2F_S09/wall/2": "Z09_W3",
+      "space/2F_S09/wall/3": "Z09_W4",
+      "space/2F_S10/ceiling": "Z10_Ceiling",
+      "space/2F_S10/floor": "Z10_Floor",
+      "space/2F_S10/wall/0": "Z10_W1",
+      "space/2F_S10/wall/1": "Z10_W2",
+      "space/2F_S10/wall/2": "Z10_W3",
+      "space/2F_S10/wall/3": "Z10_W4",
+      "space/2F_S11/ceiling": "Z11_Ceiling",
+      "space/2F_S11/floor": "Z11_Floor",
+      "space/2F_S11/wall/0": "Z11_W1",
+      "space/2F_S11/wall/1": "Z11_W2",
+      "space/2F_S11/wall/2": "Z11_W3",
+      "space/2F_S11/wall/3": "Z11_W4",
+      "space/2F_S11/wall/4": "Z11_W5",
+      "space/2F_S11/wall/5": "Z11_W6",
+      "space/2F_S12/ceiling": "Z12_Ceiling",
+      "space/2F_S12/floor": "Z12_Floor",
+      "space/2F_S12/wall/0": "Z12_W1",
+      "space/2F_S12/wall/1": "Z12_W2",
+      "space/2F_S12/wall/2": "Z12_W3",
+      "space/2F_S12/wall/3": "Z12_W4",
+      "space/2F_S13/ceiling": "Z13_Ceiling",
+      "space/2F_S13/floor": "Z13_Floor",
+      "space/2F_S13/wall/0": "Z13_W1",
+      "space/2F_S13/wall/1": "Z13_W2",
+      "space/2F_S13/wall/2": "Z13_W3",
+      "space/2F_S13/wall/3": "Z13_W4",
+      "space/2F_S14/ceiling": "Z14_Ceiling",
+      "space/2F_S14/floor": "Z14_Floor",
+      "space/2F_S14/wall/0": "Z14_W1",
+      "space/2F_S14/wall/1": "Z14_W2",
+      "space/2F_S14/wall/2": "Z14_W3",
+      "space/2F_S14/wall/3": "Z14_W4",
+      "space/2F_S15/ceiling": "Z15_Ceiling",
+      "space/2F_S15/floor": "Z15_Floor",
+      "space/2F_S15/wall/0": "Z15_W1",
+      "space/2F_S15/wall/1": "Z15_W2",
+      "space/2F_S15/wall/2": "Z15_W3",
+      "space/2F_S15/wall/3": "Z15_W4",
+      "space/2F_S16/ceiling": "Z16_Ceiling",
+      "space/2F_S16/floor": "Z16_Floor",
+      "space/2F_S16/wall/0": "Z16_W1",
+      "space/2F_S16/wall/1": "Z16_W2",
+      "space/2F_S16/wall/2": "Z16_W3",
+      "space/2F_S16/wall/3": "Z16_W4"
+    },
+    "direction_frame": "model XY: +X=E, +Y=N; not a geographic north assertion",
+    "floors": {
+      "2F": "2F"
+    },
+    "opening_sides": {
+      "D_C1": {
+        "space/2F_S11/wall/0": "Z11_W1_Door1",
+        "space/2F_S12/wall/2": "Z12_W3_Door1"
+      },
+      "D_C2": {
+        "space/2F_S11/wall/0": "Z11_W1_Door2",
+        "space/2F_S13/wall/2": "Z13_W3_Door1"
+      },
+      "D_C3": {
+        "space/2F_S11/wall/0": "Z11_W1_Door3",
+        "space/2F_S14/wall/2": "Z14_W3_Door1"
+      },
+      "D_C4": {
+        "space/2F_S11/wall/0": "Z11_W1_Door4",
+        "space/2F_S15/wall/2": "Z15_W3_Door1"
+      },
+      "D_C5": {
+        "space/2F_S11/wall/0": "Z11_W1_Door5",
+        "space/2F_S16/wall/2": "Z16_W3_Door1"
+      },
+      "D_E1": {
+        "space/2F_S04/wall/3": "Z06_W2_Door5",
+        "space/2F_S05/wall/3": "Z04_W4_Door1"
+      },
+      "D_E2": {
+        "space/2F_S04/wall/3": "Z06_W2_Door4",
+        "space/2F_S07/wall/3": "Z05_W4_Door1"
+      },
+      "D_E3": {
+        "space/2F_S04/wall/3": "Z06_W2_Door3",
+        "space/2F_S08/wall/3": "Z07_W4_Door1"
+      },
+      "D_E4": {
+        "space/2F_S04/wall/3": "Z06_W2_Door2",
+        "space/2F_S09/wall/3": "Z09_W4_Door1"
+      },
+      "D_E5": {
+        "space/2F_S04/wall/3": "Z06_W2_Door1",
+        "space/2F_S10/wall/3": "Z10_W4_Door1"
+      },
+      "D_MR1": {
+        "space/2F_S01/wall/0": "Z02_W1_Door1",
+        "space/2F_S04/wall/4": "Z06_W3_Door3"
+      },
+      "D_MR2": {
+        "space/2F_S02/wall/0": "Z03_W1_Door1",
+        "space/2F_S04/wall/4": "Z06_W3_Door2"
+      },
+      "D_MRbig": {
+        "space/2F_S04/wall/1": "Z06_W6_Door1",
+        "space/2F_S06/wall/3": "Z08_W2_Door1"
+      },
+      "D_O1": {
+        "space/2F_S03/wall/0": "Z01_W1_Door1",
+        "space/2F_S04/wall/4": "Z06_W3_Door1"
+      },
+      "O_junction": {
+        "space/2F_S04/wall/2": "Z06_W1_Opening1",
+        "space/2F_S11/wall/4": "Z11_W5_Opening1"
+      },
+      "W2F_E1": {
+        "space/2F_S05/wall/1": "Z04_W2_Win1"
+      },
+      "W2F_E2": {
+        "space/2F_S07/wall/1": "Z05_W2_Win1"
+      },
+      "W2F_E3": {
+        "space/2F_S08/wall/1": "Z07_W2_Win1"
+      },
+      "W2F_E4": {
+        "space/2F_S09/wall/1": "Z09_W2_Win1"
+      },
+      "W2F_E5": {
+        "space/2F_S10/wall/1": "Z10_W2_Win1"
+      },
+      "W2F_N1": {
+        "space/2F_S01/wall/2": "Z02_W3_Win1"
+      },
+      "W2F_N2": {
+        "space/2F_S02/wall/2": "Z03_W3_Win1"
+      },
+      "W2F_N3": {
+        "space/2F_S03/wall/2": "Z01_W3_Win1"
+      },
+      "W2F_S1": {
+        "space/2F_S12/wall/0": "Z12_W1_Win1"
+      },
+      "W2F_S2": {
+        "space/2F_S13/wall/0": "Z13_W1_Win1"
+      },
+      "W2F_S3": {
+        "space/2F_S14/wall/0": "Z14_W1_Win1"
+      },
+      "W2F_S4": {
+        "space/2F_S15/wall/0": "Z15_W1_Win1"
+      },
+      "W2F_S5": {
+        "space/2F_S16/wall/0": "Z16_W1_Win1"
+      },
+      "W2F_Wbig": {
+        "space/2F_S06/wall/1": "Z08_W6_Win1"
+      },
+      "W2F_Wsmall": {
+        "space/2F_S11/wall/5": "Z11_W6_Win1"
+      },
+      "W2F_band": {
+        "space/2F_S11/wall/2": "Z11_W3_Win1"
+      }
+    },
+    "openings": {
+      "D_C1": "Z11_W1_Door1",
+      "D_C2": "Z11_W1_Door2",
+      "D_C3": "Z11_W1_Door3",
+      "D_C4": "Z11_W1_Door4",
+      "D_C5": "Z11_W1_Door5",
+      "D_E1": "Z04_W4_Door1",
+      "D_E2": "Z05_W4_Door1",
+      "D_E3": "Z06_W2_Door3",
+      "D_E4": "Z06_W2_Door2",
+      "D_E5": "Z06_W2_Door1",
+      "D_MR1": "Z02_W1_Door1",
+      "D_MR2": "Z03_W1_Door1",
+      "D_MRbig": "Z06_W6_Door1",
+      "D_O1": "Z01_W1_Door1",
+      "O_junction": "Z06_W1_Opening1",
+      "W2F_E1": "Z04_W2_Win1",
+      "W2F_E2": "Z05_W2_Win1",
+      "W2F_E3": "Z07_W2_Win1",
+      "W2F_E4": "Z09_W2_Win1",
+      "W2F_E5": "Z10_W2_Win1",
+      "W2F_N1": "Z02_W3_Win1",
+      "W2F_N2": "Z03_W3_Win1",
+      "W2F_N3": "Z01_W3_Win1",
+      "W2F_S1": "Z12_W1_Win1",
+      "W2F_S2": "Z13_W1_Win1",
+      "W2F_S3": "Z14_W1_Win1",
+      "W2F_S4": "Z15_W1_Win1",
+      "W2F_S5": "Z16_W1_Win1",
+      "W2F_Wbig": "Z08_W6_Win1",
+      "W2F_Wsmall": "Z11_W6_Win1",
+      "W2F_band": "Z11_W3_Win1"
+    },
+    "scheme_version": "bim_names_v1",
+    "spaces": {
+      "2F_S01": "Z02_2F_Unknown_NW",
+      "2F_S02": "Z03_2F_Unknown_NW",
+      "2F_S03": "Z01_2F_Unknown_N",
+      "2F_S04": "Z06_2F_Unknown_NW",
+      "2F_S05": "Z04_2F_Unknown_N",
+      "2F_S06": "Z08_2F_Unknown_W",
+      "2F_S07": "Z05_2F_Unknown_N",
+      "2F_S08": "Z07_2F_Unknown_N",
+      "2F_S09": "Z09_2F_Unknown_S",
+      "2F_S10": "Z10_2F_Unknown_S",
+      "2F_S11": "Z11_2F_Unknown_SE",
+      "2F_S12": "Z12_2F_Unknown_SW",
+      "2F_S13": "Z13_2F_Unknown_SW",
+      "2F_S14": "Z14_2F_Unknown_SE",
+      "2F_S15": "Z15_2F_Unknown_SE",
+      "2F_S16": "Z16_2F_Unknown_SE"
+    }
+  },
+  "room_type_catalog": {
+    "schema_version": "room_types_v1",
+    "sha256": "06137438aa8cee4e7a008a54dc07a468bee280e50e3a2f65aed5af7321125ee5",
+    "source": {
+      "commit": "83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663",
+      "license": "openstudio/LICENSE.md",
+      "name": "OpenStudio(R) standards — level 1 space types",
+      "path": "lib/openstudio-standards/space_type/data/level_1_space_types.json",
+      "repository": "https://github.com/NatLabRockies/openstudio-standards",
+      "retrieved_on": "2026-09-27",
+      "sha256": "e2a99276bf824fc38a5ae43720c5f447dbcfbccec41cb03c1fad88fb6eb16b25",
+      "url": "https://github.com/NatLabRockies/openstudio-standards/blob/83b1e64c6f130f02b48c8b3ad4eeb3eb4da41663/lib/openstudio-standards/space_type/data/level_1_space_types.json"
+    }
+  },
+  "schema_version": "source_bim_v2",
+  "source_geometry_sha256": "700e0f9f82ee7759820624ce25a87ccfb0006ffc869e81ff9e71ad8038f313ba",
+  "source_model_sha256": "58e1fff8350328a30280b6a01a4c9a14e1d7841032a1d996ababe26407e300b1",
+  "spaces": [
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S01",
+      "polygon": [
+        [
+          0.0,
+          16.095965
+        ],
+        [
+          4.896658,
+          16.095965
+        ],
+        [
+          4.896658,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S01",
+        "image:2f_view.png",
+        "2f_view.png corridor north wall faces 517.5/522.5",
+        "2f_view.png MR1/MR2 divider faces 469.6/475.8"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S02",
+      "polygon": [
+        [
+          4.896658,
+          16.095965
+        ],
+        [
+          9.894459,
+          16.095965
+        ],
+        [
+          9.894459,
+          20.0
+        ],
+        [
+          4.896658,
+          20.0
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S02",
+        "image:2f_view.png",
+        "2f_view.png corridor north wall faces 517.5/522.5",
+        "2f_view.png MR1/MR2 divider faces 469.6/475.8",
+        "2f_view.png MR2 east / O1 west wall, carries D_O1"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S03",
+      "polygon": [
+        [
+          9.894459,
+          16.095965
+        ],
+        [
+          14.929639,
+          16.095965
+        ],
+        [
+          14.929639,
+          20.0
+        ],
+        [
+          9.894459,
+          20.0
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S03",
+        "image:2f_view.png",
+        "2f_view.png corridor north wall faces 517.5/522.5",
+        "2f_view.png MR2 east / O1 west wall, carries D_O1"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S04",
+      "polygon": [
+        [
+          0.0,
+          14.122137
+        ],
+        [
+          8.83905,
+          14.122137
+        ],
+        [
+          8.83905,
+          5.877863
+        ],
+        [
+          10.905893,
+          5.877863
+        ],
+        [
+          10.905893,
+          16.095965
+        ],
+        [
+          0.0,
+          16.095965
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S04",
+        "image:2f_view.png",
+        "2f_view.png corridor north wall faces 517.5/522.5",
+        "profile_027 faces 605/616, carries D_MRbig",
+        "2f_view.png E-column west wall faces 743/748, carries D_E1..D_E5",
+        "profile_025 C01 x 654; big-MR east wall, carries D_MRbig",
+        "profile_025 faces 983/994; hosts O_junction gap x 654-745"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S05",
+      "polygon": [
+        [
+          10.905893,
+          13.958561
+        ],
+        [
+          14.929639,
+          13.958561
+        ],
+        [
+          14.929639,
+          16.095965
+        ],
+        [
+          10.905893,
+          16.095965
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S05",
+        "image:2f_view.png",
+        "2f_view.png corridor north wall faces 517.5/522.5",
+        "2f_view.png E-column west wall faces 743/748, carries D_E1..D_E5",
+        "2f_view.png E1/E2 divider"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S06",
+      "polygon": [
+        [
+          0.0,
+          14.002181
+        ],
+        [
+          4.837291,
+          14.002181
+        ],
+        [
+          4.837291,
+          5.877863
+        ],
+        [
+          8.83905,
+          5.877863
+        ],
+        [
+          8.83905,
+          14.122137
+        ],
+        [
+          0.0,
+          14.122137
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S06",
+        "image:2f_view.png",
+        "profile_027 faces 605/616, carries D_MRbig",
+        "profile_025 faces 983/994; carries O_junction gap 654-745",
+        "profile_025 C01 x 654; big-MR east wall, carries D_MRbig"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S07",
+      "polygon": [
+        [
+          10.905893,
+          11.952017
+        ],
+        [
+          14.929639,
+          11.952017
+        ],
+        [
+          14.929639,
+          13.958561
+        ],
+        [
+          10.905893,
+          13.958561
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S07",
+        "image:2f_view.png",
+        "2f_view.png E-column west wall faces 743/748, carries D_E1..D_E5",
+        "2f_view.png E1/E2 divider",
+        "2f_view.png E2/E3 divider"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S08",
+      "polygon": [
+        [
+          10.905893,
+          9.880044
+        ],
+        [
+          14.929639,
+          9.880044
+        ],
+        [
+          14.929639,
+          11.952017
+        ],
+        [
+          10.905893,
+          11.952017
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S08",
+        "image:2f_view.png",
+        "2f_view.png E-column west wall faces 743/748, carries D_E1..D_E5",
+        "2f_view.png E2/E3 divider",
+        "2f_view.png E3/E4 divider"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S09",
+      "polygon": [
+        [
+          10.905893,
+          7.80807
+        ],
+        [
+          14.929639,
+          7.80807
+        ],
+        [
+          14.929639,
+          9.880044
+        ],
+        [
+          10.905893,
+          9.880044
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S09",
+        "image:2f_view.png",
+        "2f_view.png E-column west wall faces 743/748, carries D_E1..D_E5",
+        "2f_view.png E3/E4 divider",
+        "2f_view.png E4/E5 divider"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S10",
+      "polygon": [
+        [
+          10.905893,
+          5.877863
+        ],
+        [
+          14.929639,
+          5.877863
+        ],
+        [
+          14.929639,
+          7.80807
+        ],
+        [
+          10.905893,
+          7.80807
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S10",
+        "image:2f_view.png",
+        "2f_view.png E-column west wall faces 743/748, carries D_E1..D_E5",
+        "2f_view.png E4/E5 divider",
+        "profile_025; wall between E5 and corridor band",
+        "footprint edges [929,341]-[929,983] and [929,983]-[1387,983]; E-column east wall bottom corner"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S11",
+      "polygon": [
+        [
+          4.837291,
+          3.882225
+        ],
+        [
+          25.0,
+          3.882225
+        ],
+        [
+          25.0,
+          5.997819
+        ],
+        [
+          14.929639,
+          5.997819
+        ],
+        [
+          14.929639,
+          5.877863
+        ],
+        [
+          4.837291,
+          5.877863
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S11",
+        "image:2f_view.png",
+        "profile_025 faces 983/994; carries O_junction gap 654-745",
+        "2f_view.png bottom-row north wall, carries D_C1..D_C5",
+        "profile_025 faces 983/994; hosts O_junction gap x 654-745",
+        "profile_025; wall between E5 and corridor band",
+        "footprint edges [929,341]-[929,983] and [929,983]-[1387,983]; E-column east wall bottom corner"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S12",
+      "polygon": [
+        [
+          4.837291,
+          0.0
+        ],
+        [
+          8.992964,
+          0.0
+        ],
+        [
+          8.992964,
+          3.882225
+        ],
+        [
+          4.837291,
+          3.882225
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S12",
+        "image:2f_view.png",
+        "2f_view.png bottom-row north wall, carries D_C1..D_C5",
+        "view_0029 grey pair x 657-661 below C-row north wall"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S13",
+      "polygon": [
+        [
+          8.992964,
+          0.0
+        ],
+        [
+          12.989226,
+          0.0
+        ],
+        [
+          12.989226,
+          3.882225
+        ],
+        [
+          8.992964,
+          3.882225
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S13",
+        "image:2f_view.png",
+        "2f_view.png bottom-row north wall, carries D_C1..D_C5",
+        "2f_view.png bottom divider world x 13.0",
+        "view_0029 grey pair x 657-661 below C-row north wall"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S14",
+      "polygon": [
+        [
+          12.989226,
+          0.0
+        ],
+        [
+          16.958004,
+          0.0
+        ],
+        [
+          16.958004,
+          3.882225
+        ],
+        [
+          12.989226,
+          3.882225
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S14",
+        "image:2f_view.png",
+        "2f_view.png bottom-row north wall, carries D_C1..D_C5",
+        "2f_view.png bottom divider world x 13.0",
+        "2f_view.png bottom divider world x 16.91"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S15",
+      "polygon": [
+        [
+          16.958004,
+          0.0
+        ],
+        [
+          20.970756,
+          0.0
+        ],
+        [
+          20.970756,
+          3.882225
+        ],
+        [
+          16.958004,
+          3.882225
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S15",
+        "image:2f_view.png",
+        "2f_view.png bottom-row north wall, carries D_C1..D_C5",
+        "2f_view.png bottom divider world x 16.91",
+        "2f_view.png bottom divider world x 20.94"
+      ],
+      "z_floor": 3.6
+    },
+    {
+      "assumptions": [],
+      "floor_id": "2F",
+      "height": 3.6,
+      "id": "2F_S16",
+      "polygon": [
+        [
+          20.970756,
+          0.0
+        ],
+        [
+          25.0,
+          0.0
+        ],
+        [
+          25.0,
+          3.882225
+        ],
+        [
+          20.970756,
+          3.882225
+        ]
+      ],
+      "role": "unknown",
+      "role_evidence": null,
+      "source_refs": [
+        "correction:floor/2F/cell/2F_S16",
+        "image:2f_view.png",
+        "2f_view.png bottom-row north wall, carries D_C1..D_C5",
+        "2f_view.png bottom divider world x 20.94"
+      ],
+      "z_floor": 3.6
+    }
+  ],
+  "unbuilt_openings": [],
+  "unsupported": [],
+  "validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  }
+}

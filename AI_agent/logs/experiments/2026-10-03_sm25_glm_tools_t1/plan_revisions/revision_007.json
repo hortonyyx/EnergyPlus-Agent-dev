@@ -1,0 +1,188 @@
+{
+  "parent_draft_id": "draft_008",
+  "parent_plan_sha256": "9d08524207f74e7791211552f7e75c9484b3fe81e4ffb58330b0d58d68399547",
+  "operations_json": "[{\"collection\":\"partitions\",\"id\":\"P_corrSw\",\"changes\":{\"points\":[[282,582.5],[513,582.5]]},\"op\":\"update\",\"reason\":\"end at footprint corner x 513 so the corner stub can join without a mid-line cut\",\"source_refs\":[\"draft_008 cut edge P_corrSw; footprint corner (513,588)\"]},{\"collection\":\"partitions\",\"op\":\"add\",\"value\":{\"id\":\"P_corrSc\",\"points\":[[513,582.5],[518.5,582.5]],\"source_refs\":[\"draft_008 cut edge report; corridor south wall portion to M-west wall centreline\"]},\"reason\":\"12cm wall-corner portion between footprint face x 513 and P_Mwest centreline 518.5, coincident endpoints\",\"source_refs\":[\"draft_008 cut edge report\"]},{\"collection\":\"partitions\",\"op\":\"add\",\"value\":{\"id\":\"P_wstub\",\"points\":[[513,582.5],[513,588]],\"source_refs\":[\"M-block west wall west face x 513 meets corridor south wall outer face y 588; wall corner\"]},\"reason\":\"wall-corner stub closing the L-shaped wall-thickness sliver between P_corrSw, footprint edges and P_Mwest\",\"source_refs\":[\"draft_008 cut edge report\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "P_corrSw",
+      "before": {
+        "id": "P_corrSw",
+        "points": [
+          [
+            282,
+            582.5
+          ],
+          [
+            518.5,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "draft_006 cut edge; corridor south wall west portion, endpoints on west face and P_Mwest junction"
+        ]
+      },
+      "after": {
+        "id": "P_corrSw",
+        "points": [
+          [
+            282,
+            582.5
+          ],
+          [
+            513,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "draft_006 cut edge; corridor south wall west portion, endpoints on west face and P_Mwest junction"
+        ]
+      },
+      "reason": "end at footprint corner x 513 so the corner stub can join without a mid-line cut",
+      "source_refs": [
+        "draft_008 cut edge P_corrSw; footprint corner (513,588)"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "partitions",
+      "id": "P_corrSc",
+      "before": null,
+      "after": {
+        "id": "P_corrSc",
+        "points": [
+          [
+            513,
+            582.5
+          ],
+          [
+            518.5,
+            582.5
+          ]
+        ],
+        "source_refs": [
+          "draft_008 cut edge report; corridor south wall portion to M-west wall centreline"
+        ]
+      },
+      "reason": "12cm wall-corner portion between footprint face x 513 and P_Mwest centreline 518.5, coincident endpoints",
+      "source_refs": [
+        "draft_008 cut edge report"
+      ]
+    },
+    {
+      "operation_index": 2,
+      "field": "partitions",
+      "id": "P_wstub",
+      "before": null,
+      "after": {
+        "id": "P_wstub",
+        "points": [
+          [
+            513,
+            582.5
+          ],
+          [
+            513,
+            588
+          ]
+        ],
+        "source_refs": [
+          "M-block west wall west face x 513 meets corridor south wall outer face y 588; wall corner"
+        ]
+      },
+      "reason": "wall-corner stub closing the L-shaped wall-thickness sliver between P_corrSw, footprint edges and P_Mwest",
+      "source_refs": [
+        "draft_008 cut edge report"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "P_corrN",
+      "P_Wdiv",
+      "P_WblockE",
+      "P_corrS",
+      "P_Rwest",
+      "P_R1R2",
+      "P_R2R3",
+      "P_R3R4",
+      "P_R4R5",
+      "P_R5R6",
+      "P_R6R7",
+      "P_hallN",
+      "P_Mwest",
+      "P_Meast",
+      "P_Mdiv",
+      "P_Msouth",
+      "P_Bnorth",
+      "P_B1B2",
+      "P_B2E"
+    ],
+    "space_seeds": [
+      "W1",
+      "W2",
+      "corridor",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "M1",
+      "M2",
+      "B1",
+      "B2",
+      "hall"
+    ],
+    "openings": [
+      "D_main",
+      "D_W1",
+      "D_W2",
+      "D_R1",
+      "D_R2",
+      "D_R3",
+      "D_R4",
+      "D_R5",
+      "D_R6",
+      "D_R7",
+      "D_M1",
+      "D_M2",
+      "D_B1n",
+      "D_B2n",
+      "D_B1w",
+      "D_Halle",
+      "W_N1",
+      "W_N2",
+      "W_N3",
+      "W_R1",
+      "W_R2",
+      "W_R3",
+      "W_R4",
+      "W_R5",
+      "W_R6",
+      "W_R7",
+      "W_M1",
+      "W_M2",
+      "W_S1",
+      "W_S2",
+      "W_hallN"
+    ]
+  },
+  "unchanged_fields": [
+    "assumptions",
+    "basis",
+    "ceiling_height",
+    "floor_id",
+    "footprint_pixels",
+    "openings",
+    "space_seeds",
+    "unresolved",
+    "x_anchors",
+    "y_anchors",
+    "z_floor"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}
