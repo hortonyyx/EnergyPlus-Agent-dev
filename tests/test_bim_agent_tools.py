@@ -262,7 +262,7 @@ def test_facade_comparison_stdio_binds_originals_without_building(tmp_path, read
                     "compare_facade_spans", {**args, "observations_json": invalid})
                 assert "finite" in _error_text(rejected)
             rejected = await session.call_tool("compare_facade_spans", {**args, "plan_image": "../plan.png"})
-            assert "exact image name" in _error_text(rejected)
+            assert "Available filenames" in _error_text(rejected)
             observations["plan"]["axis_anchors"][1][0] = 9
             rejected = await session.call_tool("compare_facade_spans", {
                 **args, "observations_json": json.dumps(observations)})
@@ -409,7 +409,7 @@ def test_readonly_stdio_inventory_hash_and_tool_boundary(tmp_path):
                 (run / "images/plan.png").read_bytes()).hexdigest()
             assert (await session.call_tool("view_image", {"name": "plan.png"})).content[0].type == "image"
             for name in ("../outside.png", "ground_truth.png"):
-                assert "exact image name" in _error_text(await session.call_tool("view_image", {"name": name}))
+                assert "Available filenames" in _error_text(await session.call_tool("view_image", {"name": name}))
 
             Image.new("RGB", (12, 8), "black").save(run / "images/plan.png")
             assert "input image changed" in _error_text(await session.call_tool("view_image", {"name": "plan.png"}))
@@ -721,7 +721,7 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
             # The name does not control the orientation: caller pairing stays unverified.
             assert pair_meta["comparison"]["image_facade_binding"] == "caller_selected_not_verified"
             assert pair_meta["drawing_fidelity"] == "not_evaluated"
-            assert [item.type for item in paired.content] == ["image", "image", "text"]
+            assert [item.type for item in paired.content] == ["image", "image", "text", "text"]
             original = Image.open(io.BytesIO(base64.b64decode(paired.content[0].data)))
             assert original.size == (12, 8) and original.getpixel((0, 0)) == (255, 255, 255)
             assert paired.content[1].data == first.content[0].data
@@ -734,7 +734,7 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
             assert pair_meta["opening_heights"][0]["above_floor_m"] == [0.4, 2.2]
             missing = await session.call_tool("view_elevation_candidate", {
                 "candidate": built["candidate"], "facade": "South", "image": "invented.png"})
-            assert "exact image name" in _error_text(missing)
+            assert "Available filenames" in _error_text(missing)
             revised = _json_result(await session.call_tool("revise_bim", {
                 "candidate":built["candidate"], "operations_json":json.dumps([{
                     "op":"update_window", "id":"south_window", "changes":{"z":[1,2.6]},
@@ -775,7 +775,7 @@ def test_calibrated_elevation_stdio_preserves_inputs_and_reuses_original_frame(t
             protected = {p: digest(p) for p in (source_path, image_path)}
             first = await session.call_tool("view_elevation_candidate", {"candidate": built["candidate"], **frame})
             metadata = _json_result(first)
-            assert [item.type for item in first.content] == ["image", "image", "text"]
+            assert [item.type for item in first.content] == ["image", "image", "text", "text"]
             assert metadata["horizontal_axis"] == "y" and metadata["mode"] == "source_elevation_overlay"
             assert min(p[1] for p in metadata["projected_openings"][0]["pixel_vertices"]) == 950
             actual = Image.open(io.BytesIO(base64.b64decode(first.content[1].data))).convert("RGB")

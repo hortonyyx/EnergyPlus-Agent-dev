@@ -35,6 +35,7 @@ from mcp.types import CallToolResult, TextContent
 
 from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide
 from scripts.tool_scripts.bim_agent_inputs import freeze_building_input, freeze_plan_input
+from scripts.tool_scripts.bim_agent_feedback import ImageFilename
 
 
 def dump(path: Path, value):
@@ -294,15 +295,20 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
             env = {**_isolated_env(), "ENABLE_TOOL_SEARCH": "false"}
             if provider == "glm":
                 env.update(GLM_MODEL=routed_model, GLM_SMALL_MODEL=routed_model)
-            process = subprocess.Popen(command, cwd=cwd, env=env,
-                                       stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
-                                       text=True, start_new_session=True)
-            try:
-                process.communicate(prompt, timeout=timeout)
-                record["returncode"] = process.returncode
-            except subprocess.TimeoutExpired:
-                terminate_subscription(process)
-                record["timed_out"] = True
+            deadline = manifest.get("deadline_epoch")
+            if deadline is not None and deadline <= time.time():
+                record.update(timed_out=True, model_process_started=False)
+            else:
+                process = subprocess.Popen(command, cwd=cwd, env=env,
+                                           stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
+                                           text=True, start_new_session=True)
+                try:
+                    available = min(timeout, max(0, deadline - time.time())) if deadline else timeout
+                    process.communicate(prompt, timeout=available)
+                    record["returncode"] = process.returncode
+                except subprocess.TimeoutExpired:
+                    terminate_subscription(process)
+                    record["timed_out"] = True
     for path in (stdout_path, stderr_path):
         path.write_text(_redact_secrets(path.read_text()))
     record["elapsed_seconds"] = round(time.monotonic() - started, 2)
@@ -463,6 +469,9 @@ def delivery_tool_reply(result: dict) -> dict:
     if 'height_coverage' in reply:
         from src.agent.execution.bim_height_coverage import compact_height_coverage
         reply['height_coverage'] = compact_height_coverage(reply['height_coverage'])
+    if 'located_height_coverage' in reply and 'openings' in reply['located_height_coverage']:
+        from scripts.tool_scripts.bim_agent_facade_checks import compact_located_heights
+        reply['located_height_coverage'] = compact_located_heights(reply['located_height_coverage'])
     if fits(reply):
         return reply
     large = {'facade_inventory', 'opening_review_scopes', 'facade_review_scopes',
@@ -527,6 +536,18 @@ def delivery_tool_reply(result: dict) -> dict:
         claims_with_missing_bindings_count=len(compact['current_claim_summary']['claims_with_missing_bindings']),
         failed_claim_application_count=sum(row.get('status') == 'failed'
                                            for row in result.get('claim_applications', [])))
+    if 'floor_completeness' in result:
+        floors = result['floor_completeness']
+        minimal['floor_completeness'] = {key: floors[key] for key in (
+            'complete_building', 'missing_candidate_images', 'floor_scope_source')}
+    if 'located_height_coverage' in result:
+        located = result['located_height_coverage']
+        minimal['located_height_coverage'] = {key: located[key] for key in (
+            'summary', 'unchecked_opening_ids', 'priority_opening_ids', 'delivery_blocked') if key in located}
+    if 'facade_counts' in result:
+        counts = result['facade_counts']
+        minimal['facade_counts'] = {key: counts[key] for key in ('summary', 'delivery_blocked', 'status', 'reason') if key in counts}
+        minimal['facade_counts']['full_scopes'] = 'delivery.json:facade_counts.scopes'
     if height is not None:
         summary = height['summary']
         minimal['height_coverage'] = {'summary': {key: summary[key] for key in
@@ -561,7 +582,12 @@ class Toolkit:
     def record_claim(self, claim_json):
         if self.readonly:
             raise ValueError("only the coordinator may record candidate claims")
-        result = self.claims().record(json.loads(claim_json))
+        data = json.loads(claim_json)
+        if isinstance(data, dict) and data.get("observation_type") == "facade_count":
+            from scripts.tool_scripts.bim_agent_facade_checks import record_facade_count
+            result = record_facade_count(self, data)
+        else:
+            result = self.claims().record(data)
         self.log("record_claim", result)
         return result
 
@@ -584,6 +610,7 @@ class Toolkit:
             raise ValueError("only the coordinator may confirm candidate claims")
         from src.agent.execution.bim_claim_state import confirm
         result = confirm(self.claims(), candidate, json.loads(operations_json))
+        result["located_height_coverage"] = self.located_heights(candidate)
         self.log("confirm_claims", result)
         return result
 
@@ -680,6 +707,7 @@ class Toolkit:
         dump(application_path, application)
         if result.get("candidate"):
             dump(self.candidate_path(result["candidate"]) / "application.json", application)
+            result["located_height_coverage"] = self.located_heights(result["candidate"])
         self.log("claim_application", application)
         result["claim_application"] = application
         return result
@@ -700,6 +728,22 @@ class Toolkit:
     def remaining_seconds(self):
         deadline = self.manifest.get("deadline_epoch")
         return max(0, round(deadline - time.time())) if deadline else None
+
+    def located_heights(self, candidate, current_state=None, *, compact=True):
+        from scripts.tool_scripts.bim_agent_facade_checks import located_height_report, compact_located_heights
+        try:
+            report = located_height_report(self, candidate, current_state)
+            return compact_located_heights(report) if compact else report
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            # Advisory calculations must not turn a successful save into a failed build.
+            return {"status": "unavailable", "reason": str(error), "delivery_blocked": False}
+
+    def facade_counts(self, candidate):
+        from scripts.tool_scripts.bim_agent_facade_checks import facade_count_report
+        try:
+            return facade_count_report(self, candidate)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            return {"status": "unavailable", "reason": str(error), "delivery_blocked": False}
 
     def input_view_status(self):
         """Report direct original-image returns, never inferred visual review."""
@@ -769,6 +813,10 @@ class Toolkit:
         result["current_claim_state"] = current_claims
         from src.agent.execution.bim_height_coverage import height_coverage
         result["height_coverage"] = height_coverage(self.claims(), candidate, current_claims)
+        result["located_height_coverage"] = self.located_heights(candidate, current_claims, compact=False)
+        result["facade_counts"] = self.facade_counts(candidate)
+        from scripts.tool_scripts.bim_agent_budget import saved_floor_status
+        result["floor_completeness"] = saved_floor_status(self, candidate)
         # Keep full claims in their files; summarize unresolved execution in handoff.
         result["claim_applications"] = [{key: row.get(key) for key in
             ("id", "parent_candidate", "candidate", "claim_ids", "status", "error", "parameters_without_claims")}
@@ -798,6 +846,23 @@ class Toolkit:
             '与所报观察一致仍不代表原图保真。</p><table>'
             '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr>'
             f'{facade_rows}</table></details>' if facade_rows else '')
+        count_report = result['facade_counts']
+        count_labels = {'not_counted': '尚未清点', 'conflicting_observations': '清点记录冲突',
+                        'matches_observed_total': '与所报数量一致', 'count_mismatch': '数量不符'}
+        count_rows = ''.join(
+            f'<tr><td>{html.escape(scope["floor_id"])}</td><td>{facades[scope["facade"]]}</td>'
+            f'<td>{kinds[kind]}</td><td>{scope[kind]["built_count"]}</td>'
+            f'<td>{html.escape(str(scope[kind]["observed_counts"]))}</td>'
+            f'<td>{count_labels[scope[kind]["status"]]}</td></tr>'
+            for scope in count_report.get('scopes', []) for kind in ('window', 'door'))
+        facade_table += ('<h2>逐层逐面外墙门窗清点</h2><p>数量来自所报原图观察；相等不证明位置正确。'
+            '未清点、数量不符和冲突均只报告，不阻止交付。</p><table>'
+            '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建</th><th>所报原图数量</th><th>结果</th></tr>'
+            + count_rows + '</table>')
+        if count_report.get('status') == 'unavailable':
+            facade_table += '<p>清点报告暂不可用：' + html.escape(count_report['reason']) + '</p>'
+        if count_report.get('unused_observations') or count_report.get('unsupported_exterior_boundaries'):
+            facade_table += '<p>部分观察无法绑定当前楼层/立面或原图已变化，或外墙方向未确定；详见 delivery.json 的 facade_counts。</p>'
         height_rows = ''.join(
             f'<tr><td>{html.escape(floor["floor_id"])}</td>'
             f'<td>{html.escape(facades.get(scope.get("facade"), "内部/未确定方向"))}</td>'
@@ -811,6 +876,24 @@ class Toolkit:
             '零个已建开口不证明图纸没有开口。</p><table>'
             '<tr><th>楼层</th><th>立面</th><th>已建</th><th>高度图像依据已关联</th>'
             f'<th>高度尚未关联图像依据</th></tr>{height_rows}</table>')
+        located = result['located_height_coverage']
+        located_labels = {'no_height_observation': '没有当前高度图证',
+                          'no_elevation_calibration': '缺少本立面标定，无法核对位置',
+                          'whole_image_only': '只有整图引用，未定位到此开口',
+                          'outside_source_region': '开口不在高度依据框内',
+                          'source_image_changed': '原图已变化'}
+        located_rows = ''.join(
+            f'<tr><td>{html.escape(row["opening_id"])}</td><td>{html.escape(str(row["facade"]))}</td>'
+            f'<td>{html.escape(", ".join(row["floor_ids"]))}</td><td>{row["width_m"]}</td>'
+            f'<td>{located_labels.get(row["status"], row["status"])}</td>'
+            f'<td>{"同一高度套到不同窗宽，请重点核对" if row["shared_height_across_widths"] else "窗宽与同面其他窗明显不同" if row.get("distinct_width_on_facade") else "—"}</td></tr>'
+            for row in located.get('openings', []) if row['status'] != 'covered')
+        height_table += ('<h2>逐扇高度依据定位</h2><p>只报告待核范围，不断言高度有误，也不阻止交付。'
+                         '需要本立面标定和覆盖该开口的局部高度依据框；整图引用不能证明逐扇核对。</p>'
+                         '<table><tr><th>开口</th><th>立面</th><th>楼层</th><th>宽度（米）</th><th>待核原因</th><th>重点</th></tr>'
+                         + located_rows + '</table>')
+        if located.get('status') == 'unavailable':
+            height_table += '<p>定位报告暂不可用：' + html.escape(located['reason']) + '</p>'
         view_labels = {"full_view_returned": "已返回整图", "crop_only_returned": "仅返回局部",
                        "no_direct_view_record": "无直接看图记录"}
         input_rows = ''.join(
@@ -849,6 +932,13 @@ class Toolkit:
             run_note = "本次由代码应用已保存的局部观察，未调用模型生成整案；不代表自主冷启动完成。"
         if run_status.get("error"):
             run_note += " " + html.escape(run_status["error"])
+        floor_status = result["floor_completeness"]
+        if floor_status["complete_building"] is False:
+            run_note += " 本稿不完整：尚缺楼层图 " + html.escape(", ".join(floor_status["missing_candidate_images"])) + "。"
+        elif floor_status["complete_building"] is True:
+            run_note += " 已覆盖预期楼层图；这不证明房间、门窗或高度正确。"
+        else:
+            run_note += " 未声明可核对的楼层图范围，全楼完整性未判定。"
         feedback = result["source_image_feedback"]
         wall_report = result.get("wall_dimension_report") or {}
         wall_findings = wall_report.get("findings", [])
@@ -1274,6 +1364,8 @@ class Toolkit:
             from src.agent.roles import room_use_review
             source = json.loads(source_path.read_text())
             result["room_use_review"] = room_use_review(source, include_next_action=False)
+            result["located_height_coverage"] = self.located_heights(candidate)
+            result["facade_counts"] = self.facade_counts(candidate)
             result["opening_inventory"] = opening_inventory(source)
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
             if calibration is not None:
@@ -1313,8 +1405,8 @@ class Toolkit:
         return Image(data=image_path.read_bytes(), format="png"), metadata
 
     def image_path(self, name):
-        if name not in self.manifest["images"]:
-            raise ValueError("choose an exact image name from input inventory")
+        from scripts.tool_scripts.bim_agent_feedback import resolve_image_name
+        name = resolve_image_name(self.manifest["images"], name)
         path = self.run / "images" / name
         if digest(path) != self.manifest["images"][name]["sha256"]:
             raise ValueError("input image changed")
@@ -1756,8 +1848,12 @@ class Toolkit:
     def view(self, name, box=None, coordinate_grid=True, display_scale=1.0):
         from mcp.server.fastmcp import Image
         if (not isinstance(display_scale, (int, float)) or isinstance(display_scale, bool)
-                or not 1 <= display_scale <= 8):
-            raise ValueError("display_scale must be a number from 1 through 8")
+                or not math.isfinite(display_scale)):
+            raise ValueError("display_scale must be a finite number; allowed range is 1 through 8")
+        # GLM sm24 requested 0.7x. Preserve intent within the display-only limits.
+        requested_scale = display_scale
+        display_scale = max(1, min(8, display_scale))
+        name = self.image_path(name).name
         with PILImage.open(self.image_path(name)) as raw:
             pic = raw.convert("RGB")
             original_size = list(pic.size)
@@ -1786,7 +1882,8 @@ class Toolkit:
         metadata = {"name": name, "image_sha256": digest(self.image_path(name)),
                     "original_size": original_size, "coordinate_grid": grid,
                     "box_original_pixels": region, "returned_size": list(pic.size),
-                    "display_scale_requested": display_scale,
+                    "display_scale_requested": requested_scale,
+                    "display_scale_used": display_scale,
                     "display_scale_actual": actual_scale,
                     "original_pixels_per_returned_pixel": [
                         (region[2] - region[0]) / pic.width,
@@ -1794,6 +1891,8 @@ class Toolkit:
                     "coordinate_note": ("Grid labels show ORIGINAL pixels. Original pixel = crop origin + returned "
                                         "pixel * original_pixels_per_returned_pixel. Use ORIGINAL pixels for the next "
                                         "crop or measurement.")}
+        if requested_scale != display_scale:
+            metadata["display_scale_note"] = f"Requested {requested_scale}x; clamped to allowed [1, 8]: {display_scale}x."
         if display_scale > 1 and min(actual_scale) < display_scale - 0.05:
             # run94 asked 1.5-2x for 1100-1500 px strips and got 1.08-1.43x without noticing.
             metadata["magnification_note"] = (
@@ -2121,9 +2220,10 @@ class Toolkit:
 
 
 def serve(run: Path, readonly=False):
-    from mcp.server.fastmcp import FastMCP, Image
+    from mcp.server.fastmcp import Image
+    from scripts.tool_scripts.bim_agent_feedback import FeedbackMCP
     toolkit = Toolkit(run, readonly)
-    server = FastMCP("bim", log_level="WARNING")
+    server = FeedbackMCP(toolkit, "bim", log_level="WARNING")
     from scripts.tool_scripts.bim_agent_mesh import register_mesh_tools
     register_mesh_tools(server, toolkit)
     from scripts.tool_scripts.bim_agent_inference import register_inference_tools
@@ -2153,9 +2253,9 @@ def serve(run: Path, readonly=False):
                 "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
-    def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True,
+    def view_image(name: ImageFilename, box: list[int] | None = None, coordinate_grid: bool = True,
                    display_scale: float = 1.0):
-        """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
+        """name is an input image filename from inputs(). View all or crop [left,top,right,bottom] in ORIGINAL pixels.
         Returned images are at most 1600 px on their long side; grid labels keep original
         coordinates. display_scale enlarges up to that limit, so a box whose longest side
         is under ~500 px can be shown 3x or more; coordinates stay original pixels.
@@ -2166,18 +2266,18 @@ def serve(run: Path, readonly=False):
         return toolkit.view(name, box, coordinate_grid, display_scale)
 
     @server.tool()
-    def pixel_profile(name: str, box: list[int], axis: str,
+    def pixel_profile(name: ImageFilename, box: list[int], axis: str,
                       rgb: list[int], tolerance: float = 70) -> dict:
-        """Measure colored ink runs along x or y in an original-pixel crop.
+        """name is an input image filename from inputs(), not a measurement label. Measure colored ink runs along x or y.
         You select RGB/tolerance; results have no wall/door semantic labels.
         """
         return toolkit.profile(name, box, axis, rgb, tolerance)
 
     @server.tool()
-    def view_pixel_profile(name: str, box: list[int], axis: str,
+    def view_pixel_profile(name: ImageFilename, box: list[int], axis: str,
                            rgb: list[int], tolerance: float = 70,
                            min_fraction: float = 0.1):
-        """Show a numbered, thresholded color profile in ORIGINAL pixels.
+        """name is an input image filename from inputs(), not a measurement label. Show a color profile in ORIGINAL pixels.
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
@@ -2189,7 +2289,7 @@ def serve(run: Path, readonly=False):
         return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
 
     @server.tool()
-    def view_pixel_region_overview(name: str, background_rgb: list[int], tolerance: float = 60,
+    def view_pixel_region_overview(name: ImageFilename, background_rgb: list[int], tolerance: float = 60,
                                    min_pixels: int = 500, max_regions: int = 40,
                                    include_border: bool = False):
         """Locate numbered colour-connected candidates in the full original image.
@@ -2203,7 +2303,7 @@ def serve(run: Path, readonly=False):
         return toolkit.pixel_region_overview(name, background_rgb, tolerance, min_pixels, max_regions, include_border)
 
     @server.tool()
-    def view_pixel_region(name: str, seed_pixel: list[int], background_rgb: list[int],
+    def view_pixel_region(name: ImageFilename, seed_pixel: list[int], background_rgb: list[int],
                           tolerance: float = 60, simplify_pixels: float = 1.5):
         """Display the complete 4-connected target-colour region at a selected pixel.
         background_rgb names the target colour, including ink or clear floor.
@@ -2218,7 +2318,7 @@ def serve(run: Path, readonly=False):
         return toolkit.pixel_region(name, seed_pixel, background_rgb, tolerance, simplify_pixels)
 
     @server.tool()
-    def preview_space_trace(name: str, polygon_pixels: list[list[float]], openings: list[dict],
+    def preview_space_trace(name: ImageFilename, polygon_pixels: list[list[float]], openings: list[dict],
                             x_anchors: list[list[float]], y_anchors: list[list[float]], basis: str):
         """Draw your COMPLETE ordered room contour on its original image before building.
         Include interior and exterior boundaries; close logically across apertures.
@@ -2257,7 +2357,7 @@ def serve(run: Path, readonly=False):
         return result
 
     @server.tool()
-    def compare_facade_spans(plan_image: str, elevation_image: str, observations_json: str,
+    def compare_facade_spans(plan_image: ImageFilename, elevation_image: ImageFilename, observations_json: str,
                              plan_axis: str = "y", elevation_axis: str = "x",
                              ambiguity_tolerance_m: float = 0.05) -> dict:
         """Compare complete independently observed opening lists in BOTH axis directions.
@@ -2382,6 +2482,8 @@ def serve(run: Path, readonly=False):
             return toolkit.plan_wall_support(draft_id, rgb, tolerance, radius_pixels, minimum_ink_pixels)
 
         def claim_result(row) -> CallToolResult:
+            if row.get("observation_type") == "facade_count":
+                return CallToolResult(content=[TextContent(type="text", text=json.dumps(row))], structuredContent=row)
             content, previews = [], []
             for index in range(min(3, len(row["sources"]))):
                 result = toolkit.view_claim_evidence(row["id"], index)
@@ -2401,10 +2503,10 @@ def serve(run: Path, readonly=False):
 
         @server.tool()
         def record_claim(claim_json: str) -> CallToolResult:
-            """Record a located interpretation and computable values for an existing candidate.
-            Returns actual clean crops of up to three saved source regions;
-            view_claim_evidence shows remaining sources or magnifies them.
-            Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
+            """Record located values for a candidate, or one image/floor/facade count.
+            observation_type=facade_count can precede BIM; read get_bim_reference('claims').
+            Geometric claims return up to three clean source crops; view_claim_evidence
+            shows more. Counts are observations, not geometry edits or verified image truth.
             """
             return claim_result(toolkit.record_claim(claim_json))
 
@@ -2588,7 +2690,7 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
-        def check_source_space_relation(candidate: str, image: str, floor_id: str,
+        def check_source_space_relation(candidate: str, image: ImageFilename, floor_id: str,
                                         observations_json: str) -> dict:
             """Compare original-plan observations with actual source space ownership.
             observations_json is a list of {id, points:[[original_px_x,original_px_y],
@@ -2636,6 +2738,8 @@ def serve(run: Path, readonly=False):
                 dump(target, {**result, "observations": observations})
             result["remaining_seconds"] = toolkit.remaining_seconds()
             result["input_view_status"] = toolkit.input_view_status()
+            result["located_height_coverage"] = toolkit.located_heights(candidate)
+            result["facade_counts"] = toolkit.facade_counts(candidate)
             toolkit.log("check_openings", result)
             return result
 
@@ -2663,7 +2767,7 @@ def serve(run: Path, readonly=False):
                     "remaining_seconds": toolkit.remaining_seconds()}
 
         @server.tool()
-        def overlay_candidate(candidate: str, image: str, floor_id: str,
+        def overlay_candidate(candidate: str, image: ImageFilename, floor_id: str,
                               x_anchors: list[list[float]], y_anchors: list[list[float]],
                               basis: str, box: list[int] | None = None,
                               reuse_on_revision: bool = True):
@@ -2727,7 +2831,7 @@ def serve(run: Path, readonly=False):
             return response
 
         @server.tool()
-        def build_plan_bim(image: str, plan_json: str) -> CallToolResult:
+        def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
             """Build one floor from observed pixel wall paths, apertures and calibration.
             Read get_bim_reference('plan_partition') for the JSON contract. Code
             closes faces and finds opening hosts; it never fills wall-path gaps,
@@ -2801,7 +2905,7 @@ def serve(run: Path, readonly=False):
             return candidate_result(toolkit.build(json.loads(proposal_json)))
 
         @server.tool()
-        def view_elevation_candidate(candidate: str, facade: str, image: str = "",
+        def view_elevation_candidate(candidate: str, facade: str, image: ImageFilename = "",
                                      horizontal_anchors: list[list[float]] | None = None,
                                      z_anchors: list[list[float]] | None = None,
                                      basis: str = "") -> CallToolResult:
@@ -2840,6 +2944,10 @@ def serve(run: Path, readonly=False):
 
 
 def run_experiment(args):
+    if getattr(args, "timeout", None) is None:
+        args.timeout = 6000 if getattr(args, "provider", "claude") == "glm" else 900
+    if isinstance(args.timeout, bool) or not isinstance(args.timeout, (int, float)) or not math.isfinite(args.timeout) or args.timeout <= 0:
+        raise ValueError("timeout must be positive finite seconds")
     max_candidates = getattr(args, "max_candidates", 24)
     if type(max_candidates) is not int or max_candidates <= 0:
         raise ValueError("max_candidates must be a positive integer")
@@ -2897,7 +3005,19 @@ def run_experiment(args):
             generation_mode = 'native_mesh_agent_experiment'
     image_kind = (getattr(args, "image_kind", None) or ("unknown" if mesh_path is not None else "drawings")
                   if images else None)
+    floor_images = getattr(args, "floor_plan_images", None)
+    if floor_images is not None and any(image not in images for image in floor_images):
+        raise ValueError("floor_plan_images must use admitted input filenames")
+    # File names are only an explicit, visible scope hint, never a hidden floor count.
+    floor_scope_source = "explicit_input_filenames" if floor_images is not None else "input_filename_hint"
+    if floor_images is None:
+        floor_images = sorted(name for name in images if re.fullmatch(r"\d+f(?:_view)?\.png", name, re.I)) if image_kind == "drawings" else []
+    started_epoch = None if getattr(args, "prepare_only", False) else time.time()
     manifest = {"images":images,"image_kind":image_kind,"scope":args.scope,"provider":provider,
+                             "floor_plan_images": floor_images,
+                             "floor_scope_source": floor_scope_source if floor_images else "not_declared",
+                             "started_epoch": started_epoch,
+                             "time_budget_seconds": args.timeout,
                              "max_candidates":max_candidates,
                              "continuation_rounds": continuation_rounds,
                              "input_mode": generation_mode,
@@ -2909,9 +3029,11 @@ def run_experiment(args):
                                  "saved_generated_proposal": {"included": bool(seed_path)},
                                  "ground_truth_or_evaluation": {"included": False},
                              },
-                             "deadline_epoch": (None if getattr(args, "prepare_only", False)
-                                                else time.time() + args.timeout),
+                             "deadline_epoch": (started_epoch + args.timeout if started_epoch is not None else None),
                              "implementation_sha256": {
+                                 "scripts/tool_scripts/bim_agent_facade_checks.py":digest(ROOT/"scripts/tool_scripts/bim_agent_facade_checks.py"),
+                                 "scripts/tool_scripts/bim_agent_feedback.py":digest(ROOT/"scripts/tool_scripts/bim_agent_feedback.py"),
+                                 "scripts/tool_scripts/bim_agent_budget.py":digest(ROOT/"scripts/tool_scripts/bim_agent_budget.py"),
                                  "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),
                                  "src/agent/geometry/source_model.py":digest(ROOT/"src/agent/geometry/source_model.py"),
                                  "src/agent/roles.py":digest(ROOT/"src/agent/roles.py"),
@@ -3050,11 +3172,17 @@ def run_experiment(args):
     total_elapsed = round(sum(row["elapsed_seconds"] for row in records), 2)
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
-        report = json.loads(path.read_text())
+        try:
+            report = json.loads(path.read_text())
+        except (OSError, ValueError) as error:
+            # A hard stop may leave the newest export unfinished. Preserve the
+            # failure and continue to the last readable saved building.
+            report = {"status": "unreadable_after_interruption", "error": str(error)}
         candidates.append({"candidate":path.parent.name,"status":report.get("status"),
                            "source_geometry_ready":report.get("source_geometry_ready"),
                            "viewer_exists":(path.parent/"viewer.html").is_file(),
-                           "counts":report.get("counts")})
+                           "counts":report.get("counts"),
+                           **({"error": report["error"]} if report.get("error") else {})})
     selection = run / "delivery_selection.json"
     delivery = None
     response_completed = completed(record)
@@ -3068,16 +3196,14 @@ def run_experiment(args):
         generation_status["error"] = str(record["result"].get("result", "Model invocation failed"))[:1000]
     if record.get("routing_error"):
         generation_status["error"] = record["routing_error"]
-    if selection.exists():
+    if selection.exists() and not record.get("timed_out"):
         chosen = json.loads(selection.read_text())["candidate"]
         delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected", generation_status=generation_status)
     else:
-        saved = sorted(run.glob("candidate_*/source_model.json"))
-        if not saved and (run / "seed/source_model.json").exists():
-            saved = [run / "seed/source_model.json"]
-        if saved:
-            delivery = Toolkit(run).delivery(saved[-1].parent.name,
-                selection_origin="latest_saved_fallback_not_agent_selected", generation_status=generation_status)
+        from scripts.tool_scripts.bim_agent_budget import fallback_selection
+        chosen, origin = fallback_selection(Toolkit(run))
+        if chosen:
+            delivery = Toolkit(run).delivery(chosen, selection_origin=origin, generation_status=generation_status)
     receipts, cost_summary = cost_receipt_summary(run)
     summary = {"input_mode":manifest["input_mode"],
                "source_input_mode": manifest["source_input_mode"],
@@ -3111,7 +3237,9 @@ def main():
                      help="Explicit user building declaration JSON; omitted runs remain PNG-only")
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
-    run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--timeout",type=int,default=None, help="Seconds; default 6000 for GLM, 900 for Claude")
+    run.add_argument("--floor-plan-image", dest="floor_plan_images", action="append",
+                     help="Explicit expected floor-plan filename (repeat for all floors); otherwise numeric F filenames are shown as hints")
     run.add_argument("--prepare-only", action="store_true",
                      help="Freeze admitted inputs and instructions without a model call or ticking deadline")
     run.add_argument("--max-candidates", type=int, default=24,
