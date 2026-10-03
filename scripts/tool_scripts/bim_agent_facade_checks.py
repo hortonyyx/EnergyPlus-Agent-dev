@@ -144,3 +144,137 @@ def compact_located_heights(report):
         "opening_id", "facade", "floor_ids", "width_m", "status", "shared_height_across_widths")}
         for row in report["openings"] if row["status"] != "covered"]
     return result
+
+
+_COUNT_EXAMPLE = {"observation_type": "facade_count", "image": "West_view.png",
+    "floor_id": "F1", "facade": "West", "window_count": 2,
+    "reason": "Two distinct windows observed on this floor of this facade"}
+
+
+def record_facade_count(toolkit, observation):
+    """GLM sm25 missed two west windows: save one image/floor/facade total.
+
+    Counts describe the drawing, so can precede any candidate. Separate immutable
+    files avoid confusing observational totals with adopted geometric parameters.
+    A new record for the same image/scope supersedes its earlier count; counts
+    from different images stay separate and conflicts are reported, never added.
+    """
+    import os
+    import tempfile
+    import time
+    import uuid
+    from scripts.tool_scripts.bim_agent_feedback import resolve_image_name
+
+    def reject(reason):
+        example = {**_COUNT_EXAMPLE, "image": next(iter(toolkit.manifest["images"]), "West_view.png")}
+        raise ValueError("facade_count: " + reason + "; minimal example: " + json.dumps(example))
+
+    allowed = {"observation_type", "image", "floor_id", "floor_plan_image", "facade",
+               "window_count", "door_count", "box", "reason"}
+    if set(observation) - allowed:
+        reject("unknown fields " + str(sorted(set(observation) - allowed)))
+    if not isinstance(observation.get("facade"), str) or observation["facade"] not in {"North", "South", "East", "West"}:
+        reject("facade must be North/South/East/West")
+    if ("floor_id" in observation) == ("floor_plan_image" in observation):
+        reject("give exactly one of floor_id or floor_plan_image")
+    scope_key = "floor_id" if "floor_id" in observation else "floor_plan_image"
+    if not isinstance(observation[scope_key], str) or not observation[scope_key].strip():
+        reject(scope_key + " must be a nonempty string")
+    for key in ("window_count", "door_count"):
+        if key == "door_count" and key not in observation:
+            continue
+        if type(observation.get(key)) is not int or observation[key] < 0:
+            reject(key + " must be a nonnegative integer; zero is an explicit observation")
+    if not isinstance(observation.get("reason"), str) or not observation["reason"].strip():
+        reject("reason must describe the observed scope")
+    image = resolve_image_name(toolkit.manifest["images"], observation.get("image"))
+    toolkit.image_path(image)
+    info = toolkit.manifest["images"][image]
+    box = observation.get("box", [0, 0, *info["size"]])
+    if (not isinstance(box, list) or len(box) != 4 or
+            not all(type(v) in (int, float) and math.isfinite(v) for v in box) or
+            not (0 <= box[0] < box[2] <= info["size"][0] and 0 <= box[1] < box[3] <= info["size"][1])):
+        reject("box must be [left,top,right,bottom] within the original image")
+    scope = observation[scope_key]
+    if scope_key == "floor_plan_image":
+        scope = resolve_image_name(toolkit.manifest["images"], scope)
+        toolkit.image_path(scope)
+    row = {**observation, "image": image, scope_key: scope, "box": box,
+           "image_sha256": info["sha256"], "image_size": info["size"],
+           "schema_version": "facade_count_observation_v1",
+           "id": f"count_{time.time_ns():020d}_{uuid.uuid4().hex[:12]}",
+           "drawing_fidelity": "not_evaluated",
+           "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."}
+    if scope_key == "floor_plan_image":
+        row["floor_plan_sha256"] = toolkit.manifest["images"][scope]["sha256"]
+    folder = toolkit.run / "facade_counts"
+    folder.mkdir(exist_ok=True)
+    # Publish complete records atomically; independent wall/floor calls share no latch.
+    with tempfile.NamedTemporaryFile(mode="w", dir=folder, suffix=".tmp", delete=False) as output:
+        json.dump(row, output, ensure_ascii=False, indent=2)
+        temporary = output.name
+    os.replace(temporary, folder / (row["id"] + ".json"))
+    return row
+
+
+def facade_count_report(toolkit, candidate):
+    from scripts.tool_scripts.bim_agent_budget import candidate_floor_images
+    from src.agent.geometry.opening_review import facade_inventory
+
+    _, source = toolkit.claims().candidate(candidate)
+    inventory = facade_inventory(source)
+    floor_ids = {row["id"] for row in source["floors"]}
+    mapping = candidate_floor_images(toolkit.run, candidate)
+    latest = {}
+    for path in sorted((toolkit.run / "facade_counts").glob("count_*.json")):
+        observation = json.loads(path.read_text())
+        key = (observation["image"], observation["facade"],
+               observation.get("floor_id"), observation.get("floor_plan_image"))
+        latest[key] = observation
+    observations, unused = defaultdict(list), []
+    for observation in latest.values():
+        problem = None
+        images = [(observation["image"], observation["image_sha256"])]
+        if observation.get("floor_plan_image"):
+            images.append((observation["floor_plan_image"], observation["floor_plan_sha256"]))
+        for image, expected_hash in images:
+            try:
+                toolkit.image_path(image)
+                if toolkit.manifest["images"][image]["sha256"] != expected_hash:
+                    problem = "source_image_changed"
+            except (OSError, ValueError, KeyError):
+                problem = "source_image_changed"
+        matches = ([observation["floor_id"]] if "floor_id" in observation
+                   else mapping.get(observation["floor_plan_image"], []))
+        if len(matches) != 1 or matches[0] not in floor_ids:
+            problem = problem or "floor_not_resolved_in_candidate"
+        if problem:
+            unused.append(dict(id=observation["id"], reason=problem))
+            continue
+        observations[(matches[0], observation["facade"])].append(observation)
+    rows = []
+    classifications = inventory["opening_classifications"]
+    for floor in inventory["floors"]:
+        for facade in floor["facades"]:
+            scope = floor["floor_id"], facade["facade"]
+            records = observations.pop(scope, [])
+            row = dict(floor_id=scope[0], facade=scope[1], observation_ids=[r["id"] for r in records])
+            for kind in ("window", "door"):
+                actual = [identity for identity in facade["opening_ids"] if classifications[identity]["kind"] == kind]
+                totals = sorted({record[kind + "_count"] for record in records if kind + "_count" in record})
+                status = ("not_counted" if not totals else "conflicting_observations" if len(totals) > 1
+                          else "matches_observed_total" if totals[0] == len(actual) else "count_mismatch")
+                row[kind] = dict(status=status, built_count=len(actual), observed_counts=totals,
+                    built_opening_ids=actual, missing_count=(totals[0] - len(actual)) if len(totals) == 1 else None)
+            rows.append(row)
+    for scope, records in observations.items():
+        unused.extend(dict(id=record["id"], reason="facade_not_present_in_candidate", floor_id=scope[0], facade=scope[1])
+                      for record in records)
+    summary = dict(floor_facade_count=len(rows), window_status_counts=dict(Counter(r["window"]["status"] for r in rows)),
+                   door_status_counts=dict(Counter(r["door"]["status"] for r in rows)), unused_observation_count=len(unused))
+    return dict(schema_version="facade_count_report_v1", candidate=candidate,
+        source_model_sha256=source["source_model_sha256"], delivery_blocked=False,
+        summary=summary, scopes=rows, unused_observations=unused,
+        unsupported_exterior_boundaries=[dict(floor_id=floor["floor_id"], boundaries=floor["unsupported_exterior_boundaries"])
+            for floor in inventory["floors"] if floor["unsupported_exterior_boundaries"]],
+        note="Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only.")

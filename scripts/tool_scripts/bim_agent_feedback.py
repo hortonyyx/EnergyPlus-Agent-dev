@@ -53,7 +53,7 @@ def normalize_images(toolkit, tool, arguments):
             return value
         result = {}
         for key, item in value.items():
-            if key in {"image", "plan_image", "elevation_image"} and isinstance(item, str) and item:
+            if key in {"image", "plan_image", "floor_plan_image", "elevation_image"} and isinstance(item, str) and item:
                 result[key] = image(item)
             elif key == "images" and isinstance(item, list):
                 result[key] = [image(name) for name in item]

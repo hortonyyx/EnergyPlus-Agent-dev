@@ -544,6 +544,10 @@ def delivery_tool_reply(result: dict) -> dict:
         located = result['located_height_coverage']
         minimal['located_height_coverage'] = {key: located[key] for key in (
             'summary', 'unchecked_opening_ids', 'priority_opening_ids', 'delivery_blocked') if key in located}
+    if 'facade_counts' in result:
+        counts = result['facade_counts']
+        minimal['facade_counts'] = {key: counts[key] for key in ('summary', 'delivery_blocked', 'status', 'reason') if key in counts}
+        minimal['facade_counts']['full_scopes'] = 'delivery.json:facade_counts.scopes'
     if height is not None:
         summary = height['summary']
         minimal['height_coverage'] = {'summary': {key: summary[key] for key in
@@ -578,7 +582,12 @@ class Toolkit:
     def record_claim(self, claim_json):
         if self.readonly:
             raise ValueError("only the coordinator may record candidate claims")
-        result = self.claims().record(json.loads(claim_json))
+        data = json.loads(claim_json)
+        if isinstance(data, dict) and data.get("observation_type") == "facade_count":
+            from scripts.tool_scripts.bim_agent_facade_checks import record_facade_count
+            result = record_facade_count(self, data)
+        else:
+            result = self.claims().record(data)
         self.log("record_claim", result)
         return result
 
@@ -729,6 +738,13 @@ class Toolkit:
             # Advisory calculations must not turn a successful save into a failed build.
             return {"status": "unavailable", "reason": str(error), "delivery_blocked": False}
 
+    def facade_counts(self, candidate):
+        from scripts.tool_scripts.bim_agent_facade_checks import facade_count_report
+        try:
+            return facade_count_report(self, candidate)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            return {"status": "unavailable", "reason": str(error), "delivery_blocked": False}
+
     def input_view_status(self):
         """Report direct original-image returns, never inferred visual review."""
         images = self.manifest.get("images", {})
@@ -798,6 +814,7 @@ class Toolkit:
         from src.agent.execution.bim_height_coverage import height_coverage
         result["height_coverage"] = height_coverage(self.claims(), candidate, current_claims)
         result["located_height_coverage"] = self.located_heights(candidate, current_claims, compact=False)
+        result["facade_counts"] = self.facade_counts(candidate)
         from scripts.tool_scripts.bim_agent_budget import saved_floor_status
         result["floor_completeness"] = saved_floor_status(self, candidate)
         # Keep full claims in their files; summarize unresolved execution in handoff.
@@ -829,6 +846,23 @@ class Toolkit:
             '与所报观察一致仍不代表原图保真。</p><table>'
             '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr>'
             f'{facade_rows}</table></details>' if facade_rows else '')
+        count_report = result['facade_counts']
+        count_labels = {'not_counted': '尚未清点', 'conflicting_observations': '清点记录冲突',
+                        'matches_observed_total': '与所报数量一致', 'count_mismatch': '数量不符'}
+        count_rows = ''.join(
+            f'<tr><td>{html.escape(scope["floor_id"])}</td><td>{facades[scope["facade"]]}</td>'
+            f'<td>{kinds[kind]}</td><td>{scope[kind]["built_count"]}</td>'
+            f'<td>{html.escape(str(scope[kind]["observed_counts"]))}</td>'
+            f'<td>{count_labels[scope[kind]["status"]]}</td></tr>'
+            for scope in count_report.get('scopes', []) for kind in ('window', 'door'))
+        facade_table += ('<h2>逐层逐面外墙门窗清点</h2><p>数量来自所报原图观察；相等不证明位置正确。'
+            '未清点、数量不符和冲突均只报告，不阻止交付。</p><table>'
+            '<tr><th>楼层</th><th>立面</th><th>类别</th><th>已建</th><th>所报原图数量</th><th>结果</th></tr>'
+            + count_rows + '</table>')
+        if count_report.get('status') == 'unavailable':
+            facade_table += '<p>清点报告暂不可用：' + html.escape(count_report['reason']) + '</p>'
+        if count_report.get('unused_observations') or count_report.get('unsupported_exterior_boundaries'):
+            facade_table += '<p>部分观察无法绑定当前楼层/立面或原图已变化，或外墙方向未确定；详见 delivery.json 的 facade_counts。</p>'
         height_rows = ''.join(
             f'<tr><td>{html.escape(floor["floor_id"])}</td>'
             f'<td>{html.escape(facades.get(scope.get("facade"), "内部/未确定方向"))}</td>'
@@ -1331,6 +1365,7 @@ class Toolkit:
             source = json.loads(source_path.read_text())
             result["room_use_review"] = room_use_review(source, include_next_action=False)
             result["located_height_coverage"] = self.located_heights(candidate)
+            result["facade_counts"] = self.facade_counts(candidate)
             result["opening_inventory"] = opening_inventory(source)
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
             if calibration is not None:
@@ -2447,6 +2482,8 @@ def serve(run: Path, readonly=False):
             return toolkit.plan_wall_support(draft_id, rgb, tolerance, radius_pixels, minimum_ink_pixels)
 
         def claim_result(row) -> CallToolResult:
+            if row.get("observation_type") == "facade_count":
+                return CallToolResult(content=[TextContent(type="text", text=json.dumps(row))], structuredContent=row)
             content, previews = [], []
             for index in range(min(3, len(row["sources"]))):
                 result = toolkit.view_claim_evidence(row["id"], index)
@@ -2466,10 +2503,10 @@ def serve(run: Path, readonly=False):
 
         @server.tool()
         def record_claim(claim_json: str) -> CallToolResult:
-            """Record a located interpretation and computable values for an existing candidate.
-            Returns actual clean crops of up to three saved source regions;
-            view_claim_evidence shows remaining sources or magnifies them.
-            Read get_bim_reference('claims'). Does not modify BIM or prove drawing truth.
+            """Record located values for a candidate, or one image/floor/facade count.
+            observation_type=facade_count can precede BIM; read get_bim_reference('claims').
+            Geometric claims return up to three clean source crops; view_claim_evidence
+            shows more. Counts are observations, not geometry edits or verified image truth.
             """
             return claim_result(toolkit.record_claim(claim_json))
 
@@ -2702,6 +2739,7 @@ def serve(run: Path, readonly=False):
             result["remaining_seconds"] = toolkit.remaining_seconds()
             result["input_view_status"] = toolkit.input_view_status()
             result["located_height_coverage"] = toolkit.located_heights(candidate)
+            result["facade_counts"] = toolkit.facade_counts(candidate)
             toolkit.log("check_openings", result)
             return result
 

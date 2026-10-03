@@ -91,7 +91,9 @@ bare numbers mean metres.
 
 4. DRAFT EVERY FLOOR. Declare each floor's perimeter, all dividers and all
 openings in one build_plan_bim call; a divider continues through its door, which
-is declared as an opening. Aim for a checkable draft of every floor before
+is declared as an opening. Use record_claim's facade_count form (claims reference)
+to record each floor/facade's observed window total, including zero; facade_counts
+compares these totals after saves and lists uncounted facades. Draft every floor before
 refining any one floor in detail; local looks needed to declare or compile a
 draft can happen at any time. Each upper floor comes from its own drawing;
 combine floors with assemble_plan_bim. A room count, seed or use never justifies
@@ -1014,7 +1016,21 @@ A failed expansion is saved as parametric_drafts; a failed source build retains
 its candidate. Return feedback is a geometric check, not input fidelity approval.
 """
 
-REFERENCES['claims'] = """Located observations that actually supply local revision parameters.
+# T1 replaces the single candidate-only introduction: GLM sm25 omitted two west
+# windows. A drawing count must exist independently of whatever BIM was built.
+REFERENCES['claims'] = """Located observations: drawing counts or candidate revision parameters.
+
+For one entire floor/facade, record_claim accepts this count before or after BIM:
+{"observation_type":"facade_count","image":"West_view.png","floor_id":"F1",
+ "facade":"West","window_count":2,"reason":"Two distinct windows on this storey"}
+Use the input image filename. Replace floor_id with floor_plan_image if the floor
+is not built yet; that image maps through the saved plan/assembly. Optional box
+is an original-pixel source region, door_count is an independent door total.
+Include explicit zero where observed. Counts always cover the entire named
+floor/facade, not just the crop. Re-record the same image/scope to correct its
+count; different images are compared, not summed. No decide/confirm is needed.
+facade_counts lists missing counts, conflicts, unresolved scope and differences
+on saves, check_openings and delivery; it never blocks or certifies the drawing.
 
 1. inspect_candidate identifies exact existing window/opening/space IDs.
 2. record_claim(claim_json) stores a candidate-bound observation:
