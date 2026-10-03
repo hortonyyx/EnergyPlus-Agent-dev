@@ -77,6 +77,8 @@ def normalize_images(toolkit, tool, arguments):
 
 def repair_hint(toolkit, tool, arguments, message):
     """Explain the rejected operation without guessing geometry or evidence."""
+    if "Run deadline reached" in message:
+        return ""
     if "input image filename" in message or "Claim kinds use proposal collections" in message:
         return ""  # Already includes exact available choices and the next step.
     if "crop outside" in message:
@@ -142,12 +144,17 @@ class FeedbackMCP(FastMCP):
     async def call_tool(self, name, arguments):
         notes = []
         try:
+            from scripts.tool_scripts.bim_agent_budget import time_status
+            before = time_status(self.toolkit)
+            if before["active"] and before["remaining_seconds"] <= 0:
+                raise ValueError("Run deadline reached; no further tool actions. Saved output will be handed off.")
             normalized, notes = normalize_images(self.toolkit, name, arguments)
             result = await super().call_tool(name, normalized)
         except Exception as error:
             message = str(error)
             hint = repair_hint(self.toolkit, name, arguments, message)
             result = CallToolResult(isError=True, content=[TextContent(type="text", text=message + ("\n" + hint if hint else ""))])
+        notes.append(time_status(self.toolkit)["line"])
         if notes:
             extra = [TextContent(type="text", text="\n".join(notes))]
             if isinstance(result, CallToolResult):

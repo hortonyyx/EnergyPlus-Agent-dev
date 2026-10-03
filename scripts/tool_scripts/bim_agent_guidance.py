@@ -390,13 +390,15 @@ already give. Image names are the exact names listed by inputs.
 
 # 09-30. Failure targeted: run94 listed "2F needs a magnified check" as unresolved and
 # delivered with 1,824 s left; run93 did the same with door estimates. Shared with
-# continuation turns so both use one finishing rule.
+# continuation turns so both use one finishing rule. T1 replaces the open-ended
+# look-again instruction: GLM sm25 reached the cap with only one saved floor.
 FINISHING = """Before finishing, work through what the saved candidate still leaves open:
 settle on the delivered candidate every unresolved item and drawing difference
-that the supplied inputs can settle. Stop an item only when the inputs lack the
-information, a reasonable look cannot determine it, or the budget is truly
-exhausted, and say which. Reporting an item as unexamined does not replace a
-check you can still do."""
+that the supplied inputs and remaining time can settle. Each tool reports used
+and remaining minutes. After halfway, save any still-missing floor drafts before
+refining; below 15% remaining, stop new image reading, fix listed issues and
+deliver. State whether any item lacks information, remains indeterminate after
+a reasonable look, or ran out of time."""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
 DELIVERY = "Delivery. " + FINISHING + """

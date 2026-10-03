@@ -721,7 +721,7 @@ def test_source_elevation_stdio_returns_actual_source_and_changed_height(tmp_pat
             # The name does not control the orientation: caller pairing stays unverified.
             assert pair_meta["comparison"]["image_facade_binding"] == "caller_selected_not_verified"
             assert pair_meta["drawing_fidelity"] == "not_evaluated"
-            assert [item.type for item in paired.content] == ["image", "image", "text"]
+            assert [item.type for item in paired.content] == ["image", "image", "text", "text"]
             original = Image.open(io.BytesIO(base64.b64decode(paired.content[0].data)))
             assert original.size == (12, 8) and original.getpixel((0, 0)) == (255, 255, 255)
             assert paired.content[1].data == first.content[0].data
@@ -775,7 +775,7 @@ def test_calibrated_elevation_stdio_preserves_inputs_and_reuses_original_frame(t
             protected = {p: digest(p) for p in (source_path, image_path)}
             first = await session.call_tool("view_elevation_candidate", {"candidate": built["candidate"], **frame})
             metadata = _json_result(first)
-            assert [item.type for item in first.content] == ["image", "image", "text"]
+            assert [item.type for item in first.content] == ["image", "image", "text", "text"]
             assert metadata["horizontal_axis"] == "y" and metadata["mode"] == "source_elevation_overlay"
             assert min(p[1] for p in metadata["projected_openings"][0]["pixel_vertices"]) == 950
             actual = Image.open(io.BytesIO(base64.b64decode(first.content[1].data))).convert("RGB")

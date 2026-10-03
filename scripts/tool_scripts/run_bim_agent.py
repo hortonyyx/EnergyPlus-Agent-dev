@@ -295,15 +295,20 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
             env = {**_isolated_env(), "ENABLE_TOOL_SEARCH": "false"}
             if provider == "glm":
                 env.update(GLM_MODEL=routed_model, GLM_SMALL_MODEL=routed_model)
-            process = subprocess.Popen(command, cwd=cwd, env=env,
-                                       stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
-                                       text=True, start_new_session=True)
-            try:
-                process.communicate(prompt, timeout=timeout)
-                record["returncode"] = process.returncode
-            except subprocess.TimeoutExpired:
-                terminate_subscription(process)
-                record["timed_out"] = True
+            deadline = manifest.get("deadline_epoch")
+            if deadline is not None and deadline <= time.time():
+                record.update(timed_out=True, model_process_started=False)
+            else:
+                process = subprocess.Popen(command, cwd=cwd, env=env,
+                                           stdin=subprocess.PIPE, stdout=stdout, stderr=stderr,
+                                           text=True, start_new_session=True)
+                try:
+                    available = min(timeout, max(0, deadline - time.time())) if deadline else timeout
+                    process.communicate(prompt, timeout=available)
+                    record["returncode"] = process.returncode
+                except subprocess.TimeoutExpired:
+                    terminate_subscription(process)
+                    record["timed_out"] = True
     for path in (stdout_path, stderr_path):
         path.write_text(_redact_secrets(path.read_text()))
     record["elapsed_seconds"] = round(time.monotonic() - started, 2)
@@ -528,6 +533,10 @@ def delivery_tool_reply(result: dict) -> dict:
         claims_with_missing_bindings_count=len(compact['current_claim_summary']['claims_with_missing_bindings']),
         failed_claim_application_count=sum(row.get('status') == 'failed'
                                            for row in result.get('claim_applications', [])))
+    if 'floor_completeness' in result:
+        floors = result['floor_completeness']
+        minimal['floor_completeness'] = {key: floors[key] for key in (
+            'complete_building', 'missing_candidate_images', 'floor_scope_source')}
     if height is not None:
         summary = height['summary']
         minimal['height_coverage'] = {'summary': {key: summary[key] for key in
@@ -770,6 +779,8 @@ class Toolkit:
         result["current_claim_state"] = current_claims
         from src.agent.execution.bim_height_coverage import height_coverage
         result["height_coverage"] = height_coverage(self.claims(), candidate, current_claims)
+        from scripts.tool_scripts.bim_agent_budget import saved_floor_status
+        result["floor_completeness"] = saved_floor_status(self, candidate)
         # Keep full claims in their files; summarize unresolved execution in handoff.
         result["claim_applications"] = [{key: row.get(key) for key in
             ("id", "parent_candidate", "candidate", "claim_ids", "status", "error", "parameters_without_claims")}
@@ -850,6 +861,13 @@ class Toolkit:
             run_note = "本次由代码应用已保存的局部观察，未调用模型生成整案；不代表自主冷启动完成。"
         if run_status.get("error"):
             run_note += " " + html.escape(run_status["error"])
+        floor_status = result["floor_completeness"]
+        if floor_status["complete_building"] is False:
+            run_note += " 本稿不完整：尚缺楼层图 " + html.escape(", ".join(floor_status["missing_candidate_images"])) + "。"
+        elif floor_status["complete_building"] is True:
+            run_note += " 已覆盖预期楼层图；这不证明房间、门窗或高度正确。"
+        else:
+            run_note += " 未声明可核对的楼层图范围，全楼完整性未判定。"
         feedback = result["source_image_feedback"]
         wall_report = result.get("wall_dimension_report") or {}
         wall_findings = wall_report.get("findings", [])
@@ -2849,6 +2867,10 @@ def serve(run: Path, readonly=False):
 
 
 def run_experiment(args):
+    if getattr(args, "timeout", None) is None:
+        args.timeout = 6000 if getattr(args, "provider", "claude") == "glm" else 900
+    if isinstance(args.timeout, bool) or not isinstance(args.timeout, (int, float)) or not math.isfinite(args.timeout) or args.timeout <= 0:
+        raise ValueError("timeout must be positive finite seconds")
     max_candidates = getattr(args, "max_candidates", 24)
     if type(max_candidates) is not int or max_candidates <= 0:
         raise ValueError("max_candidates must be a positive integer")
@@ -2906,7 +2928,19 @@ def run_experiment(args):
             generation_mode = 'native_mesh_agent_experiment'
     image_kind = (getattr(args, "image_kind", None) or ("unknown" if mesh_path is not None else "drawings")
                   if images else None)
+    floor_images = getattr(args, "floor_plan_images", None)
+    if floor_images is not None and any(image not in images for image in floor_images):
+        raise ValueError("floor_plan_images must use admitted input filenames")
+    # File names are only an explicit, visible scope hint, never a hidden floor count.
+    floor_scope_source = "explicit_input_filenames" if floor_images is not None else "input_filename_hint"
+    if floor_images is None:
+        floor_images = sorted(name for name in images if re.fullmatch(r"\d+f(?:_view)?\.png", name, re.I)) if image_kind == "drawings" else []
+    started_epoch = None if getattr(args, "prepare_only", False) else time.time()
     manifest = {"images":images,"image_kind":image_kind,"scope":args.scope,"provider":provider,
+                             "floor_plan_images": floor_images,
+                             "floor_scope_source": floor_scope_source if floor_images else "not_declared",
+                             "started_epoch": started_epoch,
+                             "time_budget_seconds": args.timeout,
                              "max_candidates":max_candidates,
                              "continuation_rounds": continuation_rounds,
                              "input_mode": generation_mode,
@@ -2918,9 +2952,10 @@ def run_experiment(args):
                                  "saved_generated_proposal": {"included": bool(seed_path)},
                                  "ground_truth_or_evaluation": {"included": False},
                              },
-                             "deadline_epoch": (None if getattr(args, "prepare_only", False)
-                                                else time.time() + args.timeout),
+                             "deadline_epoch": (started_epoch + args.timeout if started_epoch is not None else None),
                              "implementation_sha256": {
+                                 "scripts/tool_scripts/bim_agent_feedback.py":digest(ROOT/"scripts/tool_scripts/bim_agent_feedback.py"),
+                                 "scripts/tool_scripts/bim_agent_budget.py":digest(ROOT/"scripts/tool_scripts/bim_agent_budget.py"),
                                  "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),
                                  "src/agent/geometry/source_model.py":digest(ROOT/"src/agent/geometry/source_model.py"),
                                  "src/agent/roles.py":digest(ROOT/"src/agent/roles.py"),
@@ -3077,16 +3112,14 @@ def run_experiment(args):
         generation_status["error"] = str(record["result"].get("result", "Model invocation failed"))[:1000]
     if record.get("routing_error"):
         generation_status["error"] = record["routing_error"]
-    if selection.exists():
+    if selection.exists() and not record.get("timed_out"):
         chosen = json.loads(selection.read_text())["candidate"]
         delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected", generation_status=generation_status)
     else:
-        saved = sorted(run.glob("candidate_*/source_model.json"))
-        if not saved and (run / "seed/source_model.json").exists():
-            saved = [run / "seed/source_model.json"]
-        if saved:
-            delivery = Toolkit(run).delivery(saved[-1].parent.name,
-                selection_origin="latest_saved_fallback_not_agent_selected", generation_status=generation_status)
+        from scripts.tool_scripts.bim_agent_budget import fallback_selection
+        chosen, origin = fallback_selection(Toolkit(run))
+        if chosen:
+            delivery = Toolkit(run).delivery(chosen, selection_origin=origin, generation_status=generation_status)
     receipts, cost_summary = cost_receipt_summary(run)
     summary = {"input_mode":manifest["input_mode"],
                "source_input_mode": manifest["source_input_mode"],
@@ -3120,7 +3153,9 @@ def main():
                      help="Explicit user building declaration JSON; omitted runs remain PNG-only")
     run.add_argument("--out",type=Path,required=True)
     run.add_argument("--scope",default="Reconstruct the building shown in all supplied drawings.")
-    run.add_argument("--timeout",type=int,default=900)
+    run.add_argument("--timeout",type=int,default=None, help="Seconds; default 6000 for GLM, 900 for Claude")
+    run.add_argument("--floor-plan-image", dest="floor_plan_images", action="append",
+                     help="Explicit expected floor-plan filename (repeat for all floors); otherwise numeric F filenames are shown as hints")
     run.add_argument("--prepare-only", action="store_true",
                      help="Freeze admitted inputs and instructions without a model call or ticking deadline")
     run.add_argument("--max-candidates", type=int, default=24,
