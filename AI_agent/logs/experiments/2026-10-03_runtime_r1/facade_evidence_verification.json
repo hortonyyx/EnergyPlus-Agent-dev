@@ -1,0 +1,165 @@
+{
+  "archive": "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_evidence.compact.tar.xz",
+  "archive_sha256": "b59a98b33d02105478cbd253acbc18ade303efbc83dbe6bb61ec33dfe4b3fbd2",
+  "archive_bytes": 464716,
+  "blobs": {
+    "blobs": 205,
+    "bytes": 6213150
+  },
+  "events": {
+    "runs": 2,
+    "events": 179,
+    "blob_references": 403,
+    "root_identities": [
+      {
+        "archive_root": "facade_experiment/concurrent/coordinator",
+        "raw_run_id": "coordinator"
+      },
+      {
+        "archive_root": "facade_experiment/sequential/coordinator",
+        "raw_run_id": "coordinator"
+      }
+    ],
+    "duplicate_raw_ids_across_independent_roots": {
+      "coordinator": [
+        "facade_experiment/concurrent/coordinator",
+        "facade_experiment/sequential/coordinator"
+      ]
+    },
+    "identity_scope": "archive root plus original run_id; no raw evidence was rewritten"
+  },
+  "parentage_and_budget": {
+    "tasks": 10,
+    "child_tasks": 8,
+    "root_ledger_reservations": 9,
+    "root_ledger_settlements": 9
+  },
+  "wire_requests_and_images": {
+    "adapter_requests": 9,
+    "injections": 37,
+    "images": 9
+  },
+  "external_operations": {
+    "operations_or_dispatches": 24,
+    "matched_returns": 24,
+    "outer_missing_markers": 64,
+    "outer_model_request": "missing",
+    "outer_model_usage": "missing"
+  },
+  "child_packages": {
+    "packages": 8,
+    "localized_results": 8,
+    "budget_stops_before_request": 0,
+    "localized_boxes": 30
+  },
+  "fixed_facade_protocol": {
+    "concurrent": {
+      "requests_per_task": {
+        "concurrent_north": 2,
+        "concurrent_south": 1,
+        "concurrent_east": 1,
+        "concurrent_west": 1
+      },
+      "peak_requests_in_flight": 4,
+      "repair_requests": 1,
+      "repair_results": 1,
+      "accepted_repairs": 1,
+      "evaluation_recomputed_from_original_results": true
+    },
+    "sequential": {
+      "requests_per_task": {
+        "sequential_north": 1,
+        "sequential_south": 1,
+        "sequential_east": 1,
+        "sequential_west": 1
+      },
+      "peak_requests_in_flight": 1,
+      "repair_requests": 0,
+      "repair_results": 0,
+      "accepted_repairs": 0,
+      "evaluation_recomputed_from_original_results": true
+    }
+  },
+  "glm_calibration": {
+    "attempts": 5,
+    "limit": 5,
+    "reported_usage": {
+      "prompt_tokens": 6286,
+      "completion_tokens": 73,
+      "total_tokens": 6359
+    },
+    "input_upper_bounds_cover_all": true,
+    "total_request_estimates_cover_all": false,
+    "rows": [
+      {
+        "case": "text_control",
+        "input_upper_bound": 46,
+        "reported_input": 31,
+        "requested_output_limit": 8,
+        "reported_completion": 24,
+        "reasoning_tokens": 22,
+        "reservation_tokens": 54,
+        "reported_total": 55,
+        "total_exceeds_reservation": true
+      },
+      {
+        "case": "text_long",
+        "input_upper_bound": 4379,
+        "reported_input": 3756,
+        "requested_output_limit": 8,
+        "reported_completion": 37,
+        "reasoning_tokens": 28,
+        "reservation_tokens": 4387,
+        "reported_total": 3793,
+        "total_exceeds_reservation": false
+      },
+      {
+        "case": "image_224x224",
+        "input_upper_bound": 112,
+        "reported_input": 97,
+        "requested_output_limit": 8,
+        "reported_completion": 8,
+        "reasoning_tokens": 6,
+        "reservation_tokens": 120,
+        "reported_total": 105,
+        "total_exceeds_reservation": false
+      },
+      {
+        "case": "image_896x896",
+        "input_upper_bound": 1072,
+        "reported_input": 1057,
+        "requested_output_limit": 8,
+        "reported_completion": 2,
+        "reasoning_tokens": 0,
+        "reservation_tokens": 1080,
+        "reported_total": 1059,
+        "total_exceeds_reservation": false
+      },
+      {
+        "case": "image_1600x1200",
+        "input_upper_bound": 2499,
+        "reported_input": 1345,
+        "requested_output_limit": 8,
+        "reported_completion": 2,
+        "reasoning_tokens": 0,
+        "reservation_tokens": 2507,
+        "reported_total": 1347,
+        "total_exceeds_reservation": false
+      }
+    ],
+    "limitation": "The endpoint reported reasoning plus visible output above max_tokens in two responses. One total exceeded the present reservation; input calibration is not a total-request guarantee."
+  },
+  "semantic_correctness": "evaluated separately against withheld facade references",
+  "quota": {
+    "attempts": 9,
+    "limit": 20,
+    "failures": 0,
+    "reported_usage": {
+      "prompt_tokens": 70026,
+      "completion_tokens": 56951,
+      "total_tokens": 126977
+    },
+    "attempts_without_usage": 0
+  },
+  "status": "passed"
+}
