@@ -1,8 +1,8 @@
 {
   "baseline": "543beae3",
-  "audited_head": "2a1822607a1a1fe5349b53850f1a5fa336052ee3",
+  "audited_head": "26226af19d6c2aeeed88ea43a7d11597fa8b265b",
   "branch": "dev/astra-r2-20261003",
-  "generated_utc": "2026-10-03T12:57:00.035992+00:00",
+  "generated_utc": "2026-10-03T12:59:52.929464+00:00",
   "note": "Includes committed and pending delivery files. The subsequent metadata closure commit is intentionally outside this snapshot's commit list.",
   "commits": [
     {
@@ -60,6 +60,10 @@
     {
       "commit": "2a1822607a1a1fe5349b53850f1a5fa336052ee3",
       "subject": "Complete Qwen image billing calibration"
+    },
+    {
+      "commit": "26226af19d6c2aeeed88ea43a7d11597fa8b265b",
+      "subject": "Finalize R2 validation and delivery report"
     }
   ],
   "files": [
@@ -74,9 +78,14 @@
       "sha256": "c13076aaf677e13aa1c092986436a71f62d5e614b849aa506e46c98029a4bdaa"
     },
     {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/.gitattributes",
+      "bytes": 138,
+      "sha256": "68b1039e2f4b6eb1905868937a72c1ae451109197a8d8395dcf6676929f0612b"
+    },
+    {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/.gitignore",
-      "bytes": 60,
-      "sha256": "f7e33ec8ee613820d58adceb7434e2ae7a658f71c13501e19f1537a5e45999fd"
+      "bytes": 78,
+      "sha256": "c97038e68c27197560e82c35b20e2865a5f4ab85e2c283a0bbf57e7e9ee2ab22"
     },
     {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/README.md",
@@ -90,8 +99,8 @@
     },
     {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/audit_scope.py",
-      "bytes": 3166,
-      "sha256": "f528352acaa18e2d6b954ec39e09dccd2128c5822f5174a8a1f6a6452ce8fa74"
+      "bytes": 3161,
+      "sha256": "e8da01db816194ebb0b68d9cf45efafcd8e2d080c9f672b0ee3e36b49905d565"
     },
     {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/calibrate_image_accounting.py",
@@ -185,6 +194,11 @@
       "sha256": "7d4115fb4ef07de3e402a16d00478c97139436ce163f3beb0f361ee7fd82903d"
     },
     {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/frozen-final.log",
+      "bytes": 325,
+      "sha256": "81a484646b07d9740d2e7a0723e077f59782da9eb431d1a25e8fde3a7424fe47"
+    },
+    {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/frozen-final.xml",
       "bytes": 659,
       "sha256": "86480bc25e0eb75bf803294f69d8e67350ac63c678f2b4ac834a3cd491c9b9ab"
@@ -193,6 +207,11 @@
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/frozen.json",
       "bytes": 4183,
       "sha256": "e0e82437af9052d468f0ffcd1fcc9621654f190ca236d62d07ff37ca0ca0f3cc"
+    },
+    {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/frozen.log",
+      "bytes": 5753,
+      "sha256": "4e9f003ce316cbaefeaf4a2aed61e58ffdfd160867fb5e9c559130589ff31684"
     },
     {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/frozen.xml",
@@ -205,6 +224,11 @@
       "sha256": "cd0540101a0d9c1090841b813369e2a6fe12ce997f096dcd7a1d01ef511b4f41"
     },
     {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/long-final.log",
+      "bytes": 334,
+      "sha256": "5d39fd402ebf2a6b329a39e55b1981857090bea3f23a000ce78bb3a0324615ac"
+    },
+    {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/long-final.xml",
       "bytes": 1693,
       "sha256": "ead04bf9cb982e218c6c1eebe6993b4c0236f89043428d9d91906a7d98479138"
@@ -215,9 +239,19 @@
       "sha256": "f04880b4ccaf48ad0c1bf4c4477470643ff9c117fa81635990b0404eb3cd3d19"
     },
     {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/long.log",
+      "bytes": 5967,
+      "sha256": "4f1093f7a50cdee3ff5610324f544c78fce4691c9027f2b7a209e19c7a65d65b"
+    },
+    {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/long.xml",
       "bytes": 6488,
       "sha256": "70497421effb369994f6534425ad0844640db9fdaa2dae5cfdf5fb3c45ac1261"
+    },
+    {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/registry-final.log",
+      "bytes": 390,
+      "sha256": "60793496f4e8c6c773c5111b330197a42d2a1ddcdffbcd019d0eb5b724f7229e"
     },
     {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/registry-final.xml",
@@ -230,14 +264,29 @@
       "sha256": "51a1cc9292c99e9ca0d7f4c56d9e00aea68e1af20c9b7b5f3185732a8326c968"
     },
     {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/short.log",
+      "bytes": 626,
+      "sha256": "2325692f69e89fe36c18321c410755c718b41f8adbdb7bb4d6f5536a6cfc1113"
+    },
+    {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/short.xml",
       "bytes": 45430,
       "sha256": "9c566dd65ec645c8a61a57e0333f0e42485c8f369c898bf488d9476769fc86d6"
     },
     {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/truncation-final.log",
+      "bytes": 7813,
+      "sha256": "e44d6393859ac29861062732477a203923a031de183d6c4ca223d03cbf0562e5"
+    },
+    {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/truncation-final.xml",
       "bytes": 9500,
       "sha256": "a5dcecf8f9c9176fb75c1c83add2b25029894494b50a959b210322400381abb1"
+    },
+    {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/truncation-verified.log",
+      "bytes": 390,
+      "sha256": "9662129c52c05e2cb0382ce20362740ba5ee8654b15d27a6123c74119bad8bee"
     },
     {
       "path": "AI_agent/logs/experiments/2026-10-03_runtime_r2/validation/truncation-verified.xml",
@@ -256,8 +305,8 @@
     },
     {
       "path": "AI_agent/logs/worklog/2026-10-03_astra_runtime_r2.md",
-      "bytes": 3980,
-      "sha256": "90028ee8ce685a6fd5d33bdfcf298497afd3655c1bf9b44d35750cdf2c409a21"
+      "bytes": 4251,
+      "sha256": "e5bf0a67f035e9b5c7871eb146c76827fd3d860068a17b06b9fdddaf1e96b520"
     },
     {
       "path": "src/agent/runtime_coordinator.py",

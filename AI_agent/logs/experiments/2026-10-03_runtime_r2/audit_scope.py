@@ -1,4 +1,4 @@
-"""Audit the R2 worktree against its assigned baseline; no repository mutation."""
+"""Record the R2 scope audit without changing source files or Git history."""
 
 from datetime import UTC, datetime
 import hashlib
