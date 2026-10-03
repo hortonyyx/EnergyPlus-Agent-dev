@@ -65,6 +65,12 @@ def test_scripted_model_timeout_delivers_latest_complete_even_after_partial_sele
         full = toolkit.assemble_plans(json.dumps(rows))
         partial = toolkit.build_plan("plan.png", json.dumps(plan))
         runner.dump(run / "delivery_selection.json", {"candidate": partial["candidate"]})
+        # Simulate a process killed halfway through its next save; older complete
+        # building and the failure must both survive final handoff.
+        torn = run / "candidate_05"
+        torn.mkdir()
+        (torn / "source_model.json").write_text('{"floors":')
+        (torn / "report.json").write_text('{"status":')
         assert saved_floor_status(toolkit)["missing_draft_images"] == []
         assert fallback_selection(toolkit)[0] == full["candidate"]
         events.append((full["candidate"], partial["candidate"]))
@@ -80,6 +86,7 @@ def test_scripted_model_timeout_delivers_latest_complete_even_after_partial_sele
     assert delivery["selection_origin"] == "latest_complete_fallback_not_agent_selected"
     assert delivery["floor_completeness"]["complete_building"]
     assert delivery["generation_status"]["timed_out"]
+    assert delivery["floor_completeness"]["unreadable_saved_candidates"][0]["candidate"] == "candidate_05"
 
 
 def test_single_floor_fallback_reports_missing_upper_floor(tmp_path):
@@ -89,6 +96,22 @@ def test_single_floor_fallback_reports_missing_upper_floor(tmp_path):
     toolkit.manifest.update(floor_plan_images=["plan.png", "upstairs.png"])
     assert fallback_selection(toolkit) == ("seed", "latest_saved_fallback_not_agent_selected")
     assert saved_floor_status(toolkit, "seed")["complete_building"] is False
+
+
+def test_no_complete_candidate_still_delivers_latest_viewable_severe_draft(tmp_path):
+    from tests.test_source_proposal import _proposal
+    toolkit = runner.Toolkit(_run_with_one_image(tmp_path))
+    toolkit.manifest.update(floor_plan_images=["plan.png"])
+    proposal = _proposal()
+    proposal["geometry"]["openings"][0]["other_space_id"] = "missing-room"
+    result = toolkit.build(proposal)
+    assert not result["source_geometry_ready"]
+    candidate, origin = fallback_selection(toolkit)
+    assert candidate == result["candidate"] and origin == "latest_saved_fallback_not_agent_selected"
+    delivery = toolkit.delivery(candidate, selection_origin=origin)
+    assert delivery["viewer_exists"]
+    assert delivery["floor_completeness"]["complete_building"] is False
+    assert delivery["floor_completeness"]["candidate_source_geometry_ready"] is False
 
 
 def test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry(tmp_path, monkeypatch):

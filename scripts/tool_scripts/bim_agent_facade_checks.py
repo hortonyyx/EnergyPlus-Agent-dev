@@ -146,9 +146,9 @@ def compact_located_heights(report):
     return result
 
 
-_COUNT_EXAMPLE = {"observation_type": "facade_count", "image": "West_view.png",
-    "floor_id": "F1", "facade": "West", "window_count": 2,
-    "reason": "Two distinct windows observed on this floor of this facade"}
+_COUNT_EXAMPLE = {"observation_type": "facade_count", "image": "elevation.png",
+    "floor_id": "L1", "facade": "South", "window_count": 4,
+    "reason": "Synthetic format only; replace with your own observed facade total"}
 
 
 def record_facade_count(toolkit, observation):
@@ -166,7 +166,7 @@ def record_facade_count(toolkit, observation):
     from scripts.tool_scripts.bim_agent_feedback import resolve_image_name
 
     def reject(reason):
-        example = {**_COUNT_EXAMPLE, "image": next(iter(toolkit.manifest["images"]), "West_view.png")}
+        example = {**_COUNT_EXAMPLE, "image": next(iter(toolkit.manifest["images"]), "elevation.png")}
         raise ValueError("facade_count: " + reason + "; minimal example: " + json.dumps(example))
 
     allowed = {"observation_type", "image", "floor_id", "floor_plan_image", "facade",

@@ -3172,11 +3172,17 @@ def run_experiment(args):
     total_elapsed = round(sum(row["elapsed_seconds"] for row in records), 2)
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
-        report = json.loads(path.read_text())
+        try:
+            report = json.loads(path.read_text())
+        except (OSError, ValueError) as error:
+            # A hard stop may leave the newest export unfinished. Preserve the
+            # failure and continue to the last readable saved building.
+            report = {"status": "unreadable_after_interruption", "error": str(error)}
         candidates.append({"candidate":path.parent.name,"status":report.get("status"),
                            "source_geometry_ready":report.get("source_geometry_ready"),
                            "viewer_exists":(path.parent/"viewer.html").is_file(),
-                           "counts":report.get("counts")})
+                           "counts":report.get("counts"),
+                           **({"error": report["error"]} if report.get("error") else {})})
     selection = run / "delivery_selection.json"
     delivery = None
     response_completed = completed(record)

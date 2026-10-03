@@ -47,25 +47,47 @@ def candidate_floor_images(run, candidate, seen=None):
 
 def saved_floor_status(toolkit, candidate=None):
     expected = toolkit.manifest.get("floor_plan_images", [])
-    saved = []
+    saved, ready, mappings, unreadable = [], set(), {}, []
     for path in sorted(toolkit.run.glob("candidate_*/source_model.json")):
         report = path.with_name("report.json")
-        if report.is_file() and _read(report).get("source_geometry_ready"):
-            saved.append(path.parent.name)
+        try:
+            if not report.is_file():
+                continue
+            report_data = _read(report)
+            # A deadline can interrupt file writes. Never let a torn last save
+            # prevent handing off an earlier complete candidate (sm25 hard stop).
+            _read(path.with_name("proposal.json"))
+            mapping = candidate_floor_images(toolkit.run, path.parent.name)
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+            unreadable.append(dict(candidate=path.parent.name, reason=str(error)))
+            continue
+        saved.append(path.parent.name)
+        mappings[path.parent.name] = mapping
+        if report_data.get("source_geometry_ready"):
+            ready.add(path.parent.name)
     if (toolkit.run / "seed/source_model.json").is_file():
-        saved.insert(0, "seed")
-    mappings = {name: candidate_floor_images(toolkit.run, name) for name in saved}
-    covered = set().union(*(set(value) for value in mappings.values())) if mappings else set()
-    complete = [name for name in saved if expected and set(expected) <= set(mappings[name])]
+        try:
+            _read(toolkit.run / "seed/proposal.json")
+            mappings["seed"] = candidate_floor_images(toolkit.run, "seed")
+            saved.insert(0, "seed")
+            seed_report = toolkit.run / "seed/report.json"
+            if seed_report.is_file() and _read(seed_report).get("source_geometry_ready"):
+                ready.add("seed")
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+            unreadable.append(dict(candidate="seed", reason=str(error)))
+    covered = set().union(*(set(mappings[name]) for name in ready)) if ready else set()
+    complete = [name for name in saved if name in ready and expected and set(expected) <= set(mappings[name])]
     chosen_images = set(candidate_floor_images(toolkit.run, candidate)) if candidate else set()
     return dict(expected_floor_plan_images=expected,
         floor_scope_source=toolkit.manifest.get("floor_scope_source", "not_declared"),
         saved_draft_images=sorted(covered), missing_draft_images=sorted(set(expected) - covered),
         latest_saved_candidate=saved[-1] if saved else None,
         latest_complete_candidate=complete[-1] if complete else None,
+        unreadable_saved_candidates=unreadable,
         candidate=candidate, candidate_floor_images=sorted(chosen_images),
         missing_candidate_images=sorted(set(expected) - chosen_images) if candidate else [],
-        complete_building=(set(expected) <= chosen_images if expected and candidate else None),
+        candidate_source_geometry_ready=candidate in ready if candidate else None,
+        complete_building=(candidate in ready and set(expected) <= chosen_images if expected and candidate else None),
         note="Floor coverage only; rooms, openings and drawing fidelity are not certified. Unspecified floor scope remains unknown.")
 
 

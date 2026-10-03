@@ -1,0 +1,27 @@
+{
+  "frozen_baseline": "5bb10538",
+  "changed_guarded_files": {
+    "scripts/tool_scripts/run_bim_agent.py": {
+      "frozen_sha256": "4a7bce020b22d54a115452493bc9bade1aeb1b1adf02dc69a4949981b2510b5d",
+      "current_sha256": "df4aba526d5b84d6682a3fd6449b8a7eb48f354fbc55f3118d04b9f81e42dc69"
+    },
+    "scripts/tool_scripts/bim_agent_guidance.py": {
+      "frozen_sha256": "d2378190c83645d53a97863f2d6d7c35b1034043b57891774a1019b05e86eda3",
+      "current_sha256": "a5a4a0b358e60436fd99c38fa6703ae0a8c8f5bd9dcbc5c5475f356b5cba2d31"
+    }
+  },
+  "expected_guard_rejections": [
+    "tests/test_runtime_frozen_tools.py::test_real_frozen_server_catalogs_roles_and_materials",
+    "tests/test_runtime_frozen_tools.py::test_real_mesh_input_adds_exact_frozen_mesh_catalog_variants",
+    "tests/test_runtime_frozen_tools.py::test_real_readonly_call_preserves_sent_and_original_image_metadata",
+    "tests/test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps",
+    "tests/test_runtime_stage2_integration.py::test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again"
+  ],
+  "tests_executed": false,
+  "guards": [
+    "src/agent/runtime_tools.py:frozen_bim_client source byte verification",
+    "src/agent/runtime_tools.py:write_frozen_materials source byte verification",
+    "src/agent/runtime_tools.py:validate_frozen_catalog definition hashes (coordinator, readonly, mesh variants)"
+  ],
+  "note": "Expected incompatibility on this isolated T1 branch. Runtime files, tests, frozen source/material hashes and catalogs were not changed or bypassed. The separate changed-description rejection test should still pass."
+}

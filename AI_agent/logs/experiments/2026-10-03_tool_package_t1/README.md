@@ -46,4 +46,55 @@
 
 ## 最终核对
 
-四项已实现；接下来完成整体工具检查、指引体积统计、冻结差异清单与最终零调用 prepare。
+四项均已实现并分别提交：① `cdcf568f`，④ `37836d41`，② `62740db4`，③ `22c78e5d`。最后另补硬停写文件中断时的交付保护与本页验收证据。没有改几何/校正内核、运行底座或其测试，没有合入 main，也没有 push。
+
+完整工具检查 `python -m pytest -n 2 -s tests/test_bim*.py`：215 通过，206.59 秒。最后复核硬停边界：新稿 JSON 写到一半不能破坏之前完整稿的交付；没有完整稿时，即使最近可查看源有严重检查结果，也应保留并如实标明不完整，不能因过滤失败稿而静默丢掉它。补充后时间、续查、GLM 路由、候选预算共 34 项定向检查通过，24.16 秒。合计 216 个不同检查通过，定向复测没有重复计数；命令和测试 ID 见 `validation.json`。
+
+现有断言仅在 `tests/test_bim_agent_tools.py` 改了 3 处文件名错误文字（涉及 4 个参数化测试实例）及 2 处返回内容块数：现在多一条时间提示。没有放宽几何、原图、坐标、来源或只读权限断言。所有测试显式 2 worker、`PYTHONPATH` 指向本工作树；临时文件均放本树，交付前清理。
+
+### 指引体积
+
+`measure_instructions.py` 直接读取基准提交和当前 MCP 暴露定义，用相同口径核对；结果见 `instruction_volume_final.json`。字符数不是 token 数。
+
+| 项目 | 改前 | 改后 | 增量 |
+|---|---:|---:|---:|
+| 图纸系统提示 | 9,179 | 9,668 | +489 |
+| 工具说明正文 | 17,429 | 17,590 | +161 |
+| 上述两项合计 | 26,608 | 27,258 | +650 |
+| 工具数量 | 42 | 42 | 0 |
+| 输入参数结构 JSON（含全部字段） | 14,014 | 16,318 | +2,304 |
+
+按需资料中，`reconstruction` 3,613→4,003，`claims` 10,590→11,478，其余不变。参数结构增长主要是图片字段明确说明文件名、唯一别名；原始统计文件把该字段叫 `tool_schema_description_chars`，最终文件澄清它其实是完整参数结构 JSON 长度。
+
+文字替换对应关系：图片/报错反馈针对 GLM 三例及角色小测的文件名标签混用、sm24 缩放和确认、sm25 修改格式；收尾段替换为时间与全楼草稿规则，针对 sm25；高度段替换为局部定位依据，针对 sm24；草稿段和原有 `record_claim`/`claims` 入口扩展清点格式，针对 sm25 西面漏窗。没有增加独立检查工具、固定调用轮次或交付硬门。
+
+生产清点示例使用虚构的 `elevation.png`、L1/South/4，明确要求替换为实际观察，避免把 sm25 验收答案当成格式范例给工作模型。最后文字调整后清点与指引 18 项再次通过；不增加不同测试总数。
+
+### GLM 交接
+
+最终 `glm_tests.py prepare` 三例通过：0 次模型调用、0 个模型进程启动；在进程边界拦住后另起本地 MCP 进程核对工具暴露。三例均为 6000 秒、42 工具；原图哈希、scope、medium、24 候选、无委派、无续查与基准保持，用户提示只改预算。sm21 的基准沿用 10-02 脚本所指定的 09-30 GLM trial01。每例 `preflight_*.json` 固定最终实现与输入哈希。
+
+Opus 在本分支工作树执行，先核对后逐例手动启动（本次只执行 prepare）：
+
+```bash
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-03_tool_package_t1/glm_tests.py prepare
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-03_tool_package_t1/glm_tests.py run --run sm24
+```
+
+后两例把参数改为 `sm25`、`sm21`。目标为独立 `2026-10-03_<case>_glm_tools_t1` 目录；已有目录不覆盖，失败不自动重试或启动下一例，源码变动需重新 prepare；显式 `--timeout` 可调整时限。
+
+### 冻结底座与未决项
+
+冻结的源码与工具定义检查保留。本分支 `run_bim_agent.py`、`bim_agent_guidance.py` 与冻结哈希不同，以下 5 项入口预计会被原有校验拒绝，按派工要求只列出、不改测试或冻结基准：
+
+- `test_runtime_frozen_tools.py::test_real_frozen_server_catalogs_roles_and_materials`
+- `test_runtime_frozen_tools.py::test_real_mesh_input_adds_exact_frozen_mesh_catalog_variants`
+- `test_runtime_frozen_tools.py::test_real_readonly_call_preserves_sent_and_original_image_metadata`
+- `test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps`
+- `test_runtime_stage2_integration.py::test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again`
+
+详情及源码哈希在 `frozen_compatibility.json`。这些不是本次离线工具测试的失败，也没有运行冻结底座的整套测试。
+
+代码与离线回放已完成；真实 GLM 整案试跑及质量验收由 Opus 进行，本次没有启动，也不宣称恢复工作模型质量或已证明 100 分钟能完成全楼。高度提示在正确历史源上较多，已完整报告 195/195 待定位与 6 个重点提示，需在新记录上观察提示负担。窗数正确对照零误报基于提供正确清点，不能代替评价模型自己能否数对。未迁移新底座。
+
+本次子代理 0；外部模型/API/订阅调用 0，相关费用 0。本开发会话自身 token 数没有可用精确回执，不作估计。开始时间为 2026-10-03 05:41:44 UTC；在约 100 分钟收尾目标内完成。

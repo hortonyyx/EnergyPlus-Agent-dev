@@ -1021,8 +1021,8 @@ its candidate. Return feedback is a geometric check, not input fidelity approval
 REFERENCES['claims'] = """Located observations: drawing counts or candidate revision parameters.
 
 For one entire floor/facade, record_claim accepts this count before or after BIM:
-{"observation_type":"facade_count","image":"West_view.png","floor_id":"F1",
- "facade":"West","window_count":2,"reason":"Two distinct windows on this storey"}
+{"observation_type":"facade_count","image":"elevation.png","floor_id":"L1",
+ "facade":"South","window_count":4,"reason":"Synthetic example; use your own observed total"}
 Use the input image filename. Replace floor_id with floor_plan_image if the floor
 is not built yet; that image maps through the saved plan/assembly. Optional box
 is an original-pixel source region, door_count is an independent door total.
