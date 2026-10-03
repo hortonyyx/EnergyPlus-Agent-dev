@@ -1,0 +1,464 @@
+{
+  "schema_version": "stage3-human-review-v1",
+  "results": [
+    {
+      "run_id": "final_02_27b",
+      "case_id": "drawing_sm24_west_window_levels",
+      "model": "Qwen3.8-27B",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "invalid_observation",
+      "batch": "roles_final",
+      "verdict": "invalid_result",
+      "semantic_verdict": "pass",
+      "reason": "原始答案尾部多出一个闭括号，严格JSON解析拒收；评价侧只读解析第一个JSON值后逐框复核，不修改原始字节。人工按原图核五窗宽1500/1200/1500/1500/4800 mm，窗台均1000 mm，前四窗顶2800、末窗3400，左右尺寸链对应与各窗像素框均正确。局部数值与定位通过，但整体返回未被运行器采用，不计成功交付。",
+      "evaluation_boundary": "只评价问题要求的五窗尺寸、尺寸链与原图定位。诊断读取不改变invalid_observation状态，不代表结构已经修复或源BIM已应用。",
+      "diagnostic_answer": {
+        "directly_seen": [
+          {
+            "observation_id": "obs_w1",
+            "statement": "青色矩形窗1（最左）：左右竖边位于原图 x≈400 与 x≈542，上下横边位于 y≈414 与 y≈584（青色像素扫描确认四条边）。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              397,
+              411,
+              545,
+              587
+            ]
+          },
+          {
+            "observation_id": "obs_w2",
+            "statement": "青色矩形窗2：左竖边 x≈767、右竖边 x≈880（右缘未在本次青色扫描中检出，按图面判读），上下横边 y≈414 与 y≈584。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              764,
+              411,
+              883,
+              587
+            ]
+          },
+          {
+            "observation_id": "obs_w3",
+            "statement": "青色矩形窗3：左右竖边 x≈1045 与 x≈1187，上下横边 y≈414 与 y≈584。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              1042,
+              411,
+              1190,
+              587
+            ]
+          },
+          {
+            "observation_id": "obs_w4",
+            "statement": "青色矩形窗4：左右竖边 x≈1302 与 x≈1444，上下横边 y≈414 与 y≈584。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              1299,
+              411,
+              1447,
+              587
+            ]
+          },
+          {
+            "observation_id": "obs_w5",
+            "statement": "青色矩形窗5（最右、最大）：左右竖边 x≈1735 与 x≈2189，上横边 y≈357，下横边 y≈584（与窗1–4 同窗台标高）。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              1732,
+              354,
+              2192,
+              587
+            ]
+          },
+          {
+            "observation_id": "obs_left_chain",
+            "statement": "左侧竖向尺寸链（绿色）：自下而上标注 1000、1800、1700，总高 4500；其 1000/1800 分界与窗1–4 的窗台/窗顶水平线齐平。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              70,
+              238,
+              350,
+              697
+            ]
+          },
+          {
+            "observation_id": "obs_right_chain",
+            "statement": "右侧竖向尺寸链（绿色）：自下而上标注 1000、2400、1100，总高 4500；其 1000/2400 分界与窗5 的窗台/窗顶水平线齐平。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              2246,
+              238,
+              2470,
+              697
+            ]
+          },
+          {
+            "observation_id": "obs_bottom_chain",
+            "statement": "底部水平尺寸链（绿色）自左至右标注 540、1500、2380、1200、1740、1500、1220、1500、3080、4800、540，总长 20000；其中 1500、1200、1500、1500、4800 各段对应窗1–5 的宽度。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              336,
+              706,
+              2244,
+              810
+            ]
+          },
+          {
+            "observation_id": "obs_top_dim",
+            "statement": "顶部总尺寸标注 20000（绿色），横跨整个立面宽度。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              336,
+              94,
+              2244,
+              164
+            ]
+          },
+          {
+            "observation_id": "obs_bottom_dim",
+            "statement": "底部总尺寸标注 20000（绿色），与底部分段链闭合一致（540+1500+2380+1200+1740+1500+1220+1500+3080+4800+540=20000）。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              336,
+              827,
+              2244,
+              898
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "interpretation_id": "int_w1",
+            "statement": "窗1（最左）：宽 1500 mm（底部链第2段），窗台 1000 mm、窗顶 2800 mm（=1000+1800），窗高 1800 mm；采用左侧竖向尺寸链（1000/1800/1700）。",
+            "based_on_observation_ids": [
+              "obs_w1",
+              "obs_bottom_chain",
+              "obs_left_chain"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_w2",
+            "statement": "窗2：宽 1200 mm（底部链第4段），窗台 1000 mm、窗顶 2800 mm，窗高 1800 mm；采用左侧竖向尺寸链。",
+            "based_on_observation_ids": [
+              "obs_w2",
+              "obs_bottom_chain",
+              "obs_left_chain"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_w3",
+            "statement": "窗3：宽 1500 mm（底部链第6段），窗台 1000 mm、窗顶 2800 mm，窗高 1800 mm；采用左侧竖向尺寸链。",
+            "based_on_observation_ids": [
+              "obs_w3",
+              "obs_bottom_chain",
+              "obs_left_chain"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_w4",
+            "statement": "窗4：宽 1500 mm（底部链第8段），窗台 1000 mm、窗顶 2800 mm，窗高 1800 mm；采用左侧竖向尺寸链。",
+            "based_on_observation_ids": [
+              "obs_w4",
+              "obs_bottom_chain",
+              "obs_left_chain"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_w5",
+            "statement": "窗5（最右大窗）：宽 4800 mm（底部链第10段），窗台 1000 mm、窗顶 3400 mm（=1000+2400），窗高 2400 mm；采用右侧竖向尺寸链（1000/2400/1100）。",
+            "based_on_observation_ids": [
+              "obs_w5",
+              "obs_bottom_chain",
+              "obs_right_chain"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_chain_assignment",
+            "statement": "窗1–4 的窗台/窗顶水平延伸线与左侧竖向链的 1000/1800 分界对齐，故用左链；窗5 的窗台/窗顶与右侧链的 1000/2400 分界对齐，故用右链；两条链总高均为 4500 mm，与立面墙高一致。",
+            "based_on_observation_ids": [
+              "obs_left_chain",
+              "obs_right_chain",
+              "obs_w1",
+              "obs_w2",
+              "obs_w3",
+              "obs_w4",
+              "obs_w5"
+            ],
+            "confidence": "medium"
+          }
+        ],
+        "uncertain": [
+          {
+            "uncertainty_id": "unc_w2_right_edge",
+            "statement": "窗2 右竖边未能在青色像素扫描中检出（仅检出左缘 x≈767），右缘 x≈880 为图面判读；其宽度 1200 mm 依据底部尺寸标注而非直接量测。",
+            "related_observation_ids": [
+              "obs_w2",
+              "obs_bottom_chain"
+            ]
+          },
+          {
+            "uncertainty_id": "unc_alignment",
+            "statement": "尺寸链分界线与窗台/窗顶的齐平关系为目视判读（延伸线对齐），未做逐像素对齐验证；窗顶标高 2800/3400 由链段相加得出。",
+            "related_observation_ids": [
+              "obs_left_chain",
+              "obs_right_chain"
+            ]
+          },
+          {
+            "uncertainty_id": "unc_source",
+            "statement": "本图为未建成模型的 BIM 立面图（非照片），所列尺寸均为图面标注值，不代表实测建筑。",
+            "related_observation_ids": []
+          }
+        ]
+      },
+      "diagnostic_capture": {
+        "kind": "evaluation_only_json_prefix",
+        "source": "role_case.json#/outcome/runtime/answer",
+        "original_utf8_sha256": "e83002fc70f0ca1dfbd0b48344f27a85baba4231032014c2eae32609b2fe8999",
+        "trailing_characters": 1,
+        "runtime_accepted": false
+      }
+    },
+    {
+      "run_id": "final_02_flash",
+      "case_id": "drawing_sm24_west_window_levels",
+      "model": "Qwen3.8-Flash",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "invalid_observation",
+      "batch": "roles_final",
+      "verdict": "invalid_result",
+      "semantic_verdict": "pass",
+      "reason": "答案将int_chain_left、int_chain_right两个解释编号写入based_on_observation_ids，契约只允许直接观察编号，因此拒收；不自动改写引用关系。人工按原图核五窗宽1500/1200/1500/1500/4800 mm，窗台均1000 mm，前四窗顶2800、末窗3400，左右尺寸链对应与各窗像素框均正确。局部数值与定位通过，但整体返回未被运行器采用，不计成功交付。",
+      "evaluation_boundary": "只评价问题要求的五窗尺寸、尺寸链与原图定位。诊断读取不改变invalid_observation状态，不代表结构已经修复或源BIM已应用。",
+      "diagnostic_answer": {
+        "directly_seen": [
+          {
+            "observation_id": "obs_W1",
+            "statement": "西立面最左侧窗 W1：青色窗轮廓，竖向边 x=400 与 x=542，横向边 y=414（顶）与 y=584（底）；像素框内宽 142 px。按底部尺寸链该位置段标注为 1500 mm，即宽 1500 mm。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              396,
+              410,
+              546,
+              588
+            ]
+          },
+          {
+            "observation_id": "obs_W2",
+            "statement": "左起第二窗 W2：竖向边 x=767 与 x=880–881，横向边 y=414（顶）与 y=584（底）；宽 113 px。底部尺寸链对应段标注 1200 mm，即宽 1200 mm。其右边与底边线色较暗，需放大颜色容差才测得。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              763,
+              410,
+              885,
+              588
+            ]
+          },
+          {
+            "observation_id": "obs_W3",
+            "statement": "左起第三窗 W3：竖向边 x=1045 与 x=1187，横向边 y=414（顶）与 y=584（底）；宽 142 px。底部尺寸链对应段标注 1500 mm，即宽 1500 mm。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              1041,
+              410,
+              1191,
+              588
+            ]
+          },
+          {
+            "observation_id": "obs_W4",
+            "statement": "左起第四窗 W4：竖向边 x=1302 与 x=1444，横向边 y=414（顶）与 y=584（底）；宽 142 px。底部尺寸链对应段标注 1500 mm，即宽 1500 mm。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              1298,
+              410,
+              1448,
+              588
+            ]
+          },
+          {
+            "observation_id": "obs_W5",
+            "statement": "最右侧大窗 W5：竖向边 x=1735 与 x=2189，横向边 y=357（顶）与 y=584（底）；宽 454 px、高 227 px。底部尺寸链对应段标注 4800 mm，即宽 4800 mm。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              1731,
+              353,
+              2193,
+              588
+            ]
+          },
+          {
+            "observation_id": "obs_sill_line",
+            "statement": "在 y=584 处青色水平支撑计数 998 px（≈4×142+454），即五扇窗的底边全部落在同一水平线上；该线同时与左、右两条竖向链的同一刻度 y=584 对齐。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              396,
+              580,
+              2193,
+              589
+            ]
+          },
+          {
+            "observation_id": "obs_head_lines",
+            "statement": "青色水平线只有两处窗顶高度：y=414（支撑 545 px，对应 W1–W4 四扇小窗顶）与 y=357（支撑 455 px，对应 W5 大窗顶）。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              396,
+              353,
+              2193,
+              418
+            ]
+          },
+          {
+            "observation_id": "obs_left_chain",
+            "statement": "左侧竖向尺寸链（绿色）刻度在 y=253、414、584、678；文字标注自上而下 1700、1800、1000，外侧合计 4500。其中 1800 段的两侧刻度线恰为 y=414 与 y=584，与小窗顶/窗台同高；y=414 刻度在右侧链上不存在。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              60,
+              230,
+              345,
+              700
+            ]
+          },
+          {
+            "observation_id": "obs_right_chain",
+            "statement": "右侧竖向尺寸链（绿色）刻度在 y=253、357、584、678；文字标注自上而下 1100、2400、1000，外侧合计 4500。其中 2400 段两侧刻度线恰为 y=357 与 y=584，与大窗 W5 顶/窗台同高；y=357 刻度在左侧链上不存在。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              2265,
+              230,
+              2560,
+              700
+            ]
+          },
+          {
+            "observation_id": "obs_bottom_chain",
+            "statement": "底部水平尺寸链自左到右标注：540、1500、2380、1200、1740、1500、1220、1500、3080、4800、540，合计 20000；上、下两条 20000 总尺寸线对应建筑外轮廓左右边（约 x=345 与 x=2230）。",
+            "view_id": "view_0001",
+            "box_original_pixels": [
+              335,
+              715,
+              2255,
+              790
+            ]
+          }
+        ],
+        "interpretations": [
+          {
+            "interpretation_id": "int_chain_left",
+            "statement": "W1、W2、W3、W4 取左侧竖向链：窗台 = 1000 mm（左链底段），窗高 = 1800 mm（左链中段，其刻度线 y=414/584 与四扇小窗顶底重合），窗顶 = 1000+1800 = 2800 mm。",
+            "based_on_observation_ids": [
+              "obs_left_chain",
+              "obs_head_lines",
+              "obs_sill_line",
+              "obs_W1",
+              "obs_W2",
+              "obs_W3",
+              "obs_W4"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_chain_right",
+            "statement": "W5（大窗）取右侧竖向链：窗台 = 1000 mm（右链底段），窗高 = 2400 mm（右链中段，刻度线 y=357/584 与该窗顶底重合），窗顶 = 1000+2400 = 3400 mm。",
+            "based_on_observation_ids": [
+              "obs_right_chain",
+              "obs_head_lines",
+              "obs_sill_line",
+              "obs_W5"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_scale_check",
+            "statement": "像素—标注一致性校核：以轮廓 y=678（地面线）至 y=253 为 4500 mm，得约 10.59 mm/px；据此 W1–W4 顶 y=414 → 2790 mm（≈2800），W5 顶 y=357 → 3397 mm（≈3400），窗台 y=584 → 995 mm（≈1000）。横向以 x=345→2230 为 20000 mm（约 10.61 mm/px），得 142 px≈1506 mm、113 px≈1200 mm、454 px≈4817 mm，与底部链 1500/1200/1500/1500/4800 相符。",
+            "based_on_observation_ids": [
+              "obs_left_chain",
+              "obs_right_chain",
+              "obs_bottom_chain",
+              "obs_W1",
+              "obs_W2",
+              "obs_W3",
+              "obs_W4",
+              "obs_W5"
+            ],
+            "confidence": "high"
+          },
+          {
+            "interpretation_id": "int_answer_table",
+            "statement": "自左到右汇总（宽 × 窗台 / 窗顶，mm）：W1 1500，台 1000，顶 2800（左链）；W2 1200，台 1000，顶 2800（左链）；W3 1500，台 1000，顶 2800（左链）；W4 1500，台 1000，顶 2800（左链）；W5 4800，台 1000，顶 3400（右链）。共 5 扇窗。",
+            "based_on_observation_ids": [
+              "obs_W1",
+              "obs_W2",
+              "obs_W3",
+              "obs_W4",
+              "obs_W5",
+              "int_chain_left",
+              "int_chain_right"
+            ],
+            "confidence": "high"
+          }
+        ],
+        "uncertain": [
+          {
+            "uncertainty_id": "unc_no_tags",
+            "statement": "图上没有窗编号或标签，W1–W5 只是我按“从左到右”临时命名的顺序，不对应任何图纸标记。",
+            "related_observation_ids": [
+              "obs_W1",
+              "obs_W2",
+              "obs_W3",
+              "obs_W4",
+              "obs_W5"
+            ]
+          },
+          {
+            "uncertainty_id": "unc_datum",
+            "statement": "标高以底部白色轮廓线（y≈678）作为 ±0.000 地面假定；图纸未给出绝对标高或楼层号，因此“窗台/窗顶”只能相对该线，无法确定所在楼层或绝对标高。",
+            "related_observation_ids": [
+              "obs_left_chain",
+              "obs_right_chain"
+            ]
+          },
+          {
+            "uncertainty_id": "unc_window_detail",
+            "statement": "此立面图仅给出窗洞轮廓，未表达玻璃分格、开启方式、窗框断面、幕墙或窗下墙构造，也无法判断窗台 1000 mm 处是结构台还是建筑完成面（未注明 finishes 以上/以下）。",
+            "related_observation_ids": [
+              "obs_W1",
+              "obs_W5"
+            ]
+          },
+          {
+            "uncertainty_id": "unc_w2_line",
+            "statement": "W2 的右边与底边线条明显比其它窗暗（颜色偏离标准青色），我用放大容差才捕捉到 x=880–881；若按标准容差会误判该边缺失，宽度 1200 mm 的结论依赖底部尺寸链对应段。",
+            "related_observation_ids": [
+              "obs_W2",
+              "obs_bottom_chain"
+            ]
+          },
+          {
+            "uncertainty_id": "unc_side",
+            "statement": "“西立面”这一方位来自任务说明（coordinator note），图中无朝向符号或图名可独立验证；左右顺序按图像左到右陈述。",
+            "related_observation_ids": [
+              "obs_bottom_chain"
+            ]
+          }
+        ]
+      },
+      "diagnostic_capture": {
+        "kind": "evaluation_only_valid_json",
+        "source": "role_case.json#/outcome/runtime/answer",
+        "original_utf8_sha256": "7dd0427bac016a658b386df45efabae4be9fdd129ab769dbd5b3f177e1ddf08c",
+        "trailing_characters": 0,
+        "runtime_accepted": false
+      }
+    }
+  ]
+}

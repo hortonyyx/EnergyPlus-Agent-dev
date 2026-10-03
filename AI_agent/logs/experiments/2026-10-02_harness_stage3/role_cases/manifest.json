@@ -1,0 +1,264 @@
+{
+  "schema_version": "local_observer_role_cases_v1",
+  "suite_id": "harness-stage3-local-observer-2026-10-02",
+  "purpose": "只读局部观察角色小测；运行侧材料不含参照答案",
+  "coordinate_convention": {
+    "pixel_origin": "top_left",
+    "box_order": [
+      "left",
+      "top",
+      "right",
+      "bottom"
+    ],
+    "box_space": "original_image_pixels",
+    "right_bottom_exclusive": true
+  },
+  "response_contract": {
+    "schema": "localized_evidence_result_v1",
+    "required_sections": [
+      "directly_seen",
+      "interpretations",
+      "uncertain"
+    ],
+    "localization_rule": "每条 directly_seen 必须引用本题下发图片并给出原图像素 bbox；解释只能引用 directly_seen；看不出的量必须放入 uncertain。"
+  },
+  "evaluation": {
+    "mode": "human_structured_rubric",
+    "reference_file": "references.json",
+    "helper": "evaluate.py",
+    "automatic_correctness": false,
+    "note": "JSON 合法、出现关键词或表达自信均不算答对。"
+  },
+  "cases": [
+    {
+      "case_id": "drawing_sm24_east_window_levels",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "photo_surrogate": false,
+      "source_context_id": "sm24-anchor-raw-drawings",
+      "question": "逐扇列出东立面上的窗，从左到右给出宽度、窗台和窗顶。说明所用标注，并给每扇窗的原图像素框。",
+      "images": [
+        {
+          "view_id": "role_view_sm24_east",
+          "path": "case_tests/e2e_tests/sm24_anchor/case_data/East_view.png",
+          "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+          "media_type": "image/png",
+          "width_px": 2639,
+          "height_px": 931,
+          "available_bbox_px": [0, 0, 2639, 931],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "sm24 原始东立面图",
+          "coordinate_source": "原图像素；立面局部 x 沿图左到右，z 自地面向上；标注单位 mm"
+        }
+      ]
+    },
+    {
+      "case_id": "drawing_sm24_west_window_levels",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "photo_surrogate": false,
+      "source_context_id": "sm24-anchor-raw-drawings",
+      "question": "逐扇列出西立面上的窗，从左到右给出宽度、窗台和窗顶。说明各窗用了哪一侧的竖向尺寸链，并给原图像素框。",
+      "images": [
+        {
+          "view_id": "role_view_sm24_west",
+          "path": "case_tests/e2e_tests/sm24_anchor/case_data/West_view.png",
+          "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+          "media_type": "image/png",
+          "width_px": 2580,
+          "height_px": 993,
+          "available_bbox_px": [0, 0, 2580, 993],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "sm24 原始西立面图",
+          "coordinate_source": "原图像素；立面局部 x 沿图左到右，z 自地面向上；标注单位 mm"
+        }
+      ]
+    },
+    {
+      "case_id": "drawing_sm24_plan_outer_chain",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "photo_surrogate": false,
+      "source_context_id": "sm24-anchor-raw-drawings",
+      "question": "从总尺寸链读出建筑外轮廓的东西向宽度和南北向长度，再读出南侧中部门洞宽度。分别指出对应标注所在区域并给原图像素框。",
+      "images": [
+        {
+          "view_id": "role_view_sm24_plan",
+          "path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+          "media_type": "image/png",
+          "width_px": 790,
+          "height_px": 1111,
+          "available_bbox_px": [0, 0, 790, 1111],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "sm24 原始一层平面图",
+          "coordinate_source": "原图像素；平面局部 x 向右、y 向上；标注单位 mm"
+        }
+      ]
+    },
+    {
+      "case_id": "mesh_voimatalo_west_distinct_bay",
+      "test_group": "mesh_render",
+      "input_kind": "mesh_render",
+      "information_sufficiency": "partially_sufficient",
+      "photo_surrogate": false,
+      "source_context_id": "voimatalo-textured-mesh-input",
+      "question": "标出西侧长立面中与重复窗格明显不同的竖向区域。只描述可见差异；若解释其用途，须单列为解释并说明不确定性。",
+      "images": [
+        {
+          "view_id": "role_view_voimatalo_west",
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/west.png",
+          "sha256": "5c9db98c8f3877bc09faaa070db733b45cfbbf7f31efade49b5a1c7f1b28b82b",
+          "media_type": "image/png",
+          "width_px": 1600,
+          "height_px": 1200,
+          "available_bbox_px": [0, 0, 1600, 1200],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "Voimatalo 既有带贴图三维网格 west 正交渲染",
+          "coordinate_source": "capture.json：模型局部 u 沿短立面向东、v 沿长翼、y 为高度；本题定位仍用原图像素"
+        }
+      ]
+    },
+    {
+      "case_id": "mesh_voimatalo_courtyard_annex",
+      "test_group": "mesh_render",
+      "input_kind": "mesh_render",
+      "information_sufficiency": "partially_sufficient",
+      "photo_surrogate": false,
+      "source_context_id": "voimatalo-textured-mesh-input",
+      "question": "标出内院前景的低层附属体，判断其可见立面有一排还是多排水平开口带；同时说明仅凭此图不能确定的室内信息。",
+      "images": [
+        {
+          "view_id": "role_view_voimatalo_courtyard",
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/courtyard.png",
+          "sha256": "8ea9877f5048c2da3854cec057fea9917c4f63be5ea33250db5454a3c5bad6e8",
+          "media_type": "image/png",
+          "width_px": 1600,
+          "height_px": 1200,
+          "available_bbox_px": [0, 0, 1600, 1200],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "Voimatalo 既有带贴图三维网格 courtyard 透视渲染",
+          "coordinate_source": "capture.json：相机 position=[90,62,95]、target=[0,15,0]；本题定位用原图像素"
+        }
+      ]
+    },
+    {
+      "case_id": "mesh_voimatalo_top_mass_arrangement",
+      "test_group": "mesh_render",
+      "input_kind": "mesh_render",
+      "information_sufficiency": "partially_sufficient",
+      "photo_surrogate": false,
+      "source_context_id": "voimatalo-textured-mesh-input",
+      "question": "概括俯视图中主体翼楼和中部大块平坦区域的相对布置，并分别框出它们。不要从屋面纹理推断室内房间。",
+      "images": [
+        {
+          "view_id": "role_view_voimatalo_top",
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/input_views/top.png",
+          "sha256": "56f3d8d027a031a7190ea4a980f22adca4669bb1e3a4141253b90316f99a3baa",
+          "media_type": "image/png",
+          "width_px": 1600,
+          "height_px": 1200,
+          "available_bbox_px": [0, 0, 1600, 1200],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "Voimatalo 既有带贴图三维网格 top 正交渲染",
+          "coordinate_source": "capture.json：相机 position=[0,150,0.01]、target=[0,15,0]，正交画幅 96×72 m；本题定位用原图像素"
+        }
+      ]
+    },
+    {
+      "case_id": "photo_surrogate_voimatalo_front_fragment",
+      "test_group": "photo_surrogate",
+      "input_kind": "photo",
+      "information_sufficiency": "insufficient",
+      "photo_surrogate": true,
+      "source_context_id": "voimatalo-render-as-photo-surrogate",
+      "question": "把这张图当作单张建筑照片输入：列出稳妥可见的立面或屋顶线索，并说明哪些深色痕迹不能可靠计作窗或楼层。给出定位框。",
+      "images": [
+        {
+          "view_id": "role_view_photo_surrogate_front",
+          "path": "AI_agent/logs/experiments/2026-10-01_partial_inference_developer_tests/run_61sol/images/parent_detail_front.png",
+          "sha256": "2d5e9aae867986311b3a9e9f8b28e58070dae5de1c1a4b8e08697b75b6a5de09",
+          "media_type": "image/png",
+          "width_px": 700,
+          "height_px": 1700,
+          "available_bbox_px": [0, 0, 700, 1700],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "历史贴图/扫描三维网格局部渲染；照片代替品，不是真实照片",
+          "coordinate_source": "原图像素；无可靠米制换算"
+        }
+      ]
+    },
+    {
+      "case_id": "photo_surrogate_voimatalo_side_fragment",
+      "test_group": "photo_surrogate",
+      "input_kind": "photo",
+      "information_sufficiency": "insufficient",
+      "photo_surrogate": true,
+      "source_context_id": "voimatalo-render-as-photo-surrogate",
+      "question": "把这张窄侧视图当作单张建筑照片输入：描述稳妥可见的轮廓和色块，并判断它能否支持精确建筑进深、楼层数或窗清单。给出定位框。",
+      "images": [
+        {
+          "view_id": "role_view_photo_surrogate_side",
+          "path": "AI_agent/logs/experiments/2026-10-01_partial_inference_developer_tests/run_61sol/images/parent_detail_side.png",
+          "sha256": "d331065fd6ab2db34d099872ddd3a05f59d56896c12318dba83633599bc4fd16",
+          "media_type": "image/png",
+          "width_px": 700,
+          "height_px": 1700,
+          "available_bbox_px": [0, 0, 700, 1700],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "历史贴图/扫描三维网格局部渲染；照片代替品，不是真实照片",
+          "coordinate_source": "原图像素；无可靠米制换算"
+        }
+      ]
+    },
+    {
+      "case_id": "insufficient_voimatalo_hidden_end_windows",
+      "test_group": "information_insufficient",
+      "input_kind": "mesh_render",
+      "information_sufficiency": "insufficient",
+      "photo_surrogate": false,
+      "source_context_id": "voimatalo-neighbour-context-render",
+      "question": "仅凭这张邻楼与内院上下文图，能否断定前景被遮挡或贴邻的端墙没有窗？框出相关区域，写出可见依据和仍可能成立的其他解释。",
+      "images": [
+        {
+          "view_id": "role_view_voimatalo_neighbour_context",
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_voimatalo_revision/context/courtyard.png",
+          "sha256": "d00430598b72d78125fc20fc4b6b978daad57c7291e84a5ceaaabe6e9691b49e",
+          "media_type": "image/png",
+          "width_px": 1500,
+          "height_px": 1100,
+          "available_bbox_px": [0, 0, 1500, 1100],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "Voimatalo 修订使用的邻楼/内院上下文既有渲染",
+          "coordinate_source": "原图像素；该上下文图未保存可靠米制投影"
+        }
+      ]
+    },
+    {
+      "case_id": "insufficient_voimatalo_annex_fragment_count",
+      "test_group": "information_insufficient",
+      "input_kind": "mesh_render",
+      "information_sufficiency": "insufficient",
+      "photo_surrogate": false,
+      "source_context_id": "voimatalo-metric-facade-fragment",
+      "question": "这张片段能否支持精确的层数和开口数量？先框出实际有纹理的区域，再分别写出可直接观察、最多可作何解释、以及必须保留的不确定项。",
+      "images": [
+        {
+          "view_id": "role_view_voimatalo_annex_east_fragment",
+          "path": "AI_agent/logs/experiments/2026-09-10_showcase_textured_mass/facade_views/annex_east.png",
+          "sha256": "d40a4645a5a29288bfd4e7872805fc8df94dbe4f7c8dae08674543c073d94fd5",
+          "media_type": "image/png",
+          "width_px": 1043,
+          "height_px": 1088,
+          "available_bbox_px": [0, 0, 1043, 1088],
+          "coordinate_relation": {"original_space": "original_image_pixels", "referenced_space": "original_image_pixels", "relation": "identity"},
+          "view_source": "Voimatalo 既有网格的 annex_east 米制正投影渲染",
+          "coordinate_source": "measurements.json：投影宽 32.6 m、高 34 m、z=-1..33 m；网格缺面导致有效纹理只占局部，本题定位用原图像素"
+        }
+      ]
+    }
+  ]
+}

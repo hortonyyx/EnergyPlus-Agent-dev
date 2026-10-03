@@ -11,7 +11,7 @@ from pathlib import Path
 
 from src.harness_contracts import (
     BlobCapture, BudgetAmounts, EventEnvelope, EventLog, HashedBlobRef,
-    InlineCapture, KnownTimestamp, RootTask, SourceRef,
+    InlineCapture, KnownParentTask, KnownTimestamp, RootTask, SourceRef,
 )
 
 
@@ -30,10 +30,13 @@ class EventStore:
 
     def __init__(self, directory: Path, *, run_id: str, task_id: str,
                  budget_limit: BudgetAmounts, recover_tail: bool = False):
+        self._root = self
         self.directory = Path(directory).resolve()
+        self.task_directory = self.directory
         self.directory.mkdir(parents=True, exist_ok=True)
         (self.directory / "blobs").mkdir(exist_ok=True)
         self.run_id, self.task_id = run_id, task_id
+        self.root_task_id, self.parent_task_id = task_id, None
         self.budget_limit = budget_limit
         self.path = self.directory / "events.jsonl"
         self._lock = (self.directory / "writer.lock").open("a+b")
@@ -45,11 +48,11 @@ class EventStore:
             if path.exists() and json.loads(path.read_bytes()) != metadata:
                 raise ValueError("journal limits/identity cannot change on resume")
             repair = self._repair_tail() if recover_tail else None
-            self.events = self.read_events(self.path)
-            if self.events:
+            self._all_events = self.read_events(self.path)
+            if self._all_events:
                 self.validate()
-                if any(e.run_id != run_id or e.task_id != task_id for e in self.events):
-                    raise ValueError("journal identity differs from requested run/task")
+                if any(e.run_id != run_id for e in self._all_events):
+                    raise ValueError("journal identity differs from requested run")
             if not path.exists():
                 self.write_json("journal.json", metadata)
             if repair:
@@ -60,6 +63,59 @@ class EventStore:
         except BaseException:
             self.close()
             raise
+
+    @property
+    def events(self) -> list[EventEnvelope]:
+        """Events belonging to this task facade, in global journal order."""
+
+        return [event for event in self._root._all_events if event.task_id == self.task_id]
+
+    @property
+    def all_events(self) -> list[EventEnvelope]:
+        """All events in the run, shared by every task facade."""
+
+        return list(self._root._all_events)
+
+    @property
+    def is_root_task(self) -> bool:
+        return self.task_id == self.root_task_id
+
+    def for_task(self, task_id: str, parent_task_id: str) -> EventStore:
+        """Return a task-scoped facade over this run's journal and blobs."""
+
+        root = self._root
+        if task_id == root.root_task_id:
+            if parent_task_id != root.root_task_id:
+                raise ValueError("root task cannot have a parent")
+            return root
+        if task_id == parent_task_id:
+            raise ValueError("task cannot be its own parent")
+        known_tasks = {root.root_task_id, *(event.task_id for event in root._all_events)}
+        if parent_task_id not in known_tasks:
+            raise ValueError("parent task does not exist in this run")
+        existing = [event for event in root._all_events if event.task_id == task_id]
+        if existing and any(
+            event.parent_task.kind != "known"
+            or event.parent_task.task_id != parent_task_id
+            for event in existing
+        ):
+            raise ValueError("task parent differs from persisted ancestry")
+
+        child = object.__new__(EventStore)
+        child._root = root
+        child.directory = root.directory
+        child.task_directory = root.directory / "tasks" / hashlib.sha256(
+            task_id.encode("utf-8")
+        ).hexdigest()
+        child.task_directory.mkdir(parents=True, exist_ok=True)
+        child.run_id = root.run_id
+        child.task_id = task_id
+        child.root_task_id = root.root_task_id
+        child.parent_task_id = parent_task_id
+        child.budget_limit = root.budget_limit
+        child.path = root.path
+        child._lock = root._lock
+        return child
 
     @staticmethod
     def read_events(path: Path) -> list[EventEnvelope]:
@@ -80,10 +136,10 @@ class EventStore:
         prefix, tail = raw[:boundary], raw[boundary:]
         # Verify every completed record before changing even the partial tail.
         events = [EventEnvelope.model_validate_json(line) for line in prefix.splitlines()]
-        if any(e.run_id != self.run_id or e.task_id != self.task_id for e in events):
-            raise ValueError("journal identity differs from requested run/task")
+        if any(e.run_id != self.run_id for e in events):
+            raise ValueError("journal identity differs from requested run")
         if events:
-            EventLog(mode="complete", events=tuple(events), budget_limit=self.budget_limit)
+            self._validate_events(events)
         saved = self.put_bytes(tail)
         record = {"original_sha256": hashlib.sha256(raw).hexdigest(),
                   "prefix_sha256": hashlib.sha256(prefix).hexdigest(),
@@ -95,8 +151,8 @@ class EventStore:
         except ValueError:
             repaired, record["action"] = prefix, "archive_incomplete_tail"
         else:
-            if last.run_id != self.run_id or last.task_id != self.task_id:
-                raise ValueError("journal identity differs from requested run/task")
+            if last.run_id != self.run_id:
+                raise ValueError("journal identity differs from requested run")
             repaired, record["action"] = raw + b"\n", "complete_newline"
         # The repair intent and removed bytes are durable before replacing JSONL.
         self.write_json("tail_repair.json", record)
@@ -114,7 +170,7 @@ class EventStore:
             if event.payload.event_type == "checkpoint":
                 # Verify the blob now; never silently fall back past corruption.
                 return event.payload.state, json.loads(self.get_bytes(event.payload.state)), event.sequence
-        pointer = self.directory / "checkpoint.json"
+        pointer = self.task_directory / "checkpoint.json"
         if not pointer.exists():
             return None
         ref = HashedBlobRef.model_validate_json(pointer.read_bytes())
@@ -123,6 +179,8 @@ class EventStore:
         return ref, snapshot, sequence
 
     def close(self):
+        if self is not self._root:
+            return
         if not self._lock.closed:
             fcntl.flock(self._lock.fileno(), fcntl.LOCK_UN)
             self._lock.close()
@@ -180,32 +238,83 @@ class EventStore:
         return SourceRef(source_id=name, source_kind=kind, locator=name,
                          blob=self.put_json(value))
 
-    def append(self, payload, *, source_refs=()) -> EventEnvelope:
+    def append(self, payload, *, source_refs=(), task_id: str | None = None,
+               parent_task_id: str | None = None) -> EventEnvelope:
         if self._lock.closed:
             raise ValueError("journal is closed")
-        seq = self.events[-1].sequence + 1 if self.events else 0
+        if self is not self._root and (task_id is not None or parent_task_id is not None):
+            raise ValueError("task facade cannot append for another task")
+        effective_task = task_id or self.task_id
+        if effective_task == self.root_task_id:
+            if parent_task_id is not None:
+                raise ValueError("root task cannot have a parent")
+            parent = RootTask()
+        else:
+            effective_parent = parent_task_id or self.parent_task_id
+            if effective_parent is None:
+                raise ValueError("child task append requires a known parent")
+            parent = KnownParentTask(task_id=effective_parent)
+        all_events = self._root._all_events
+        seq = all_events[-1].sequence + 1 if all_events else 0
         event = EventEnvelope(event_id=f"event-{seq:06d}", run_id=self.run_id,
-            task_id=self.task_id, parent_task=RootTask(), sequence=seq,
+            task_id=effective_task, parent_task=parent, sequence=seq,
             occurred_at=KnownTimestamp(value=datetime.now(UTC)),
             source_refs=tuple(source_refs), payload=payload)
         # Validate before appending. Prefixes with an in-flight request are valid.
-        EventLog(mode="complete", events=tuple([*self.events, event]),
-                 budget_limit=self.budget_limit)
+        self._validate_events([*all_events, event])
         with self.path.open("ab") as output:
             output.write(event.model_dump_json().encode("utf-8") + b"\n")
             output.flush()
             os.fsync(output.fileno())
         self._sync_directory(self.directory)
-        self.events.append(event)
+        all_events.append(event)
         return event
 
     def validate(self) -> EventLog:
-        return EventLog(mode="complete", events=tuple(self.events),
-                        budget_limit=self.budget_limit)
+        return self._validate_events(self._root._all_events)
+
+    def _validate_events(self, events: list[EventEnvelope]) -> EventLog:
+        log = EventLog(mode="complete", events=tuple(events),
+                       budget_limit=self.budget_limit)
+        parents: dict[str, str | None] = {self.root_task_id: None}
+        for event in events:
+            if event.task_id == self.root_task_id:
+                if event.parent_task.kind != "root":
+                    raise ValueError("root task events must use root ancestry")
+                continue
+            if event.parent_task.kind != "known":
+                raise ValueError("child task events require a known parent")
+            previous = parents.setdefault(event.task_id, event.parent_task.task_id)
+            if previous != event.parent_task.task_id:
+                raise ValueError("task parent changed within a run")
+        for task_id, parent_id in parents.items():
+            if parent_id is not None and parent_id not in parents:
+                raise ValueError("parent task does not exist in this run")
+            seen = {task_id}
+            cursor = parent_id
+            while cursor is not None:
+                if cursor in seen:
+                    raise ValueError("task ancestry contains a cycle")
+                seen.add(cursor)
+                cursor = parents.get(cursor)
+        return log
+
+    def reservation_id(self, ordinal: int) -> str:
+        if type(ordinal) is not int or ordinal < 1:
+            raise ValueError("reservation ordinal must be a positive integer")
+        return f"{self.task_id}:request-{ordinal}"
+
+    def next_reservation_id(self) -> str:
+        count = sum(
+            event.payload.event_type == "budget"
+            and event.payload.action == "reserve"
+            for event in self.events
+        )
+        return self.reservation_id(count + 1)
 
     def write_json(self, name: str, value):
-        path = (self.directory / name).resolve()
-        if not path.is_relative_to(self.directory):
+        path = (self.task_directory / name).resolve()
+        if not path.is_relative_to(self.task_directory):
             raise ValueError("output path escapes run")
         path.parent.mkdir(parents=True, exist_ok=True)
         temp = path.with_name(path.name + f".{os.getpid()}.tmp")

@@ -1,0 +1,140 @@
+{
+  "status": "passed",
+  "code_commit": "dd4bc0b9",
+  "code_identity": "validation/final_code_identity.json",
+  "distinct_passed": 241,
+  "groups": [
+    {
+      "group": "short",
+      "passed": 228,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 117.477,
+      "command": [
+        "/opt/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-n",
+        "2",
+        "-s",
+        "tests/test_harness_core_contracts.py",
+        "tests/test_building_contracts.py",
+        "tests/test_harness_stage0_samples.py",
+        "tests/test_harness_stage0_history.py",
+        "tests/test_harness_stage0_provenance.py",
+        "tests/test_harness_stage0_boundaries.py",
+        "tests/test_agent_runtime.py",
+        "tests/test_runtime_snapshot.py",
+        "tests/test_runtime_frozen_tools.py",
+        "tests/test_stage1_behaviour.py",
+        "tests/test_runtime_context.py",
+        "tests/test_runtime_budget.py",
+        "tests/test_runtime_budget_integration.py",
+        "tests/test_runtime_recovery_edges.py",
+        "tests/test_runtime_stage2_integration.py",
+        "tests/test_runtime_compact_evidence.py",
+        "tests/test_runtime_estimation.py",
+        "tests/test_runtime_delegation.py",
+        "tests/test_runtime_call_quota.py",
+        "tests/test_runtime_child_tasks.py",
+        "tests/test_runtime_role_cases.py",
+        "tests/test_runtime_stage3_evidence.py",
+        "tests/test_runtime_time_settlement.py",
+        "tests/test_runtime_coordinator_root_limits.py",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/short-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/short.xml",
+        "-o",
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/cache-short"
+      ],
+      "returncode": 0,
+      "log": "validation/final_short.log",
+      "junit": "validation/final_short.xml"
+    },
+    {
+      "group": "long",
+      "passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 612.88,
+      "command": [
+        "/opt/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-n",
+        "2",
+        "-s",
+        "tests/test_runtime_long_task.py",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/long-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/long.xml",
+        "-o",
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/cache-long"
+      ],
+      "returncode": 0,
+      "log": "validation/final_long.log",
+      "junit": "validation/final_long.xml"
+    },
+    {
+      "group": "frozen",
+      "passed": 3,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 416.398,
+      "command": [
+        "/opt/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-n",
+        "2",
+        "-s",
+        "tests/test_runtime_frozen_long_task.py",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/frozen-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/frozen.xml",
+        "-o",
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/validation_20261003/cache-frozen"
+      ],
+      "returncode": 0,
+      "log": "validation/final_frozen.log",
+      "junit": "validation/final_frozen.xml"
+    }
+  ],
+  "real_provider_calls_in_validation": 0,
+  "environment": {
+    "PYTHONPATH": "$PWD:$PWD/tests",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "TMPDIR": "$PWD/.stage3-work/tmp",
+    "pytest_capture": "disabled (-s) due filesystem anonymous temporary-file issue",
+    "pytest_workers": 2
+  },
+  "reused_evidence": "None: all three groups rerun on the final runtime source on 2026-10-03.",
+  "earlier_failures": [
+    {
+      "issue": "Old frozen replay assertion assumed byte/pixel token formula",
+      "resolution": "Test now checks logged input upper bound plus output reservation; final 3/3 passed.",
+      "evidence": "validation/frozen_old_assertion_failed.log"
+    },
+    {
+      "issue": "Observer remaining-budget second update reused revision 1",
+      "resolution": "State revision now increments. Two new tests first failed; complete delegation11 and final short225 passed.",
+      "evidence": "validation/delegation_revision_red.log"
+    },
+    {
+      "issue": "New time-settlement branch called uninitialized wall-clock fields in existing direct _settle test",
+      "resolution": "Uses persisted root/task budget comparison; raw violation and observed time retained. Targeted16 and final short225 passed."
+    },
+    {
+      "issue": "Child tools bypassed root tool cap; direct coordinator frozen calls had no root timeout",
+      "resolution": "Root global invocation checks at response and pending execution; direct tools bounded by remaining root time; original two failures now pass.",
+      "red": "validation/root_limits_red.log",
+      "green": "validation/root_limits_green.log"
+    },
+    {
+      "issue": "Added resume counterexample exposed sibling reservations being compared with task-local requests",
+      "resolution": "Resume checks current-task reservation ledger; recovered pending call rechecks shared root cap. Three root-limit tests pass.",
+      "red": "validation/root_limits_recovery_red.log",
+      "green": "validation/root_limits_green.log"
+    }
+  ]
+}

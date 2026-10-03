@@ -1,0 +1,77 @@
+COMMAND: PYTHONPATH=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3 PYTHONDONTWRITEBYTECODE=1 TMPDIR=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/tmp pytest -s -n0 tests/test_runtime_delegation.py -k 'two_tools_in_one_response or across_two_tool_rounds' --basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/pytest-budget-revision-red-log -o cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/pytest-cache-budget-revision-red-log
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+cachedir: .stage3-work/pytest-cache-budget-revision-red-log
+rootdir: /workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+collected 11 items / 9 deselected / 2 selected
+
+tests/test_runtime_delegation.py FF
+
+=================================== FAILURES ===================================
+___ test_run_observer_updates_budget_revision_for_two_tools_in_one_response ____
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/pytest-budget-revision-red-log/test_run_observer_updates_budg0')
+
+    def test_run_observer_updates_budget_revision_for_two_tools_in_one_response(tmp_path):
+        limits = RunLimits(
+            model_calls=2,
+            tool_calls=3,
+            seconds=60.0,
+            tokens=100_000,
+        )
+        outcome, adapter, frozen, executions = _run_scripted_observer(
+            tmp_path,
+            task_id="observer-two-tools-one-turn",
+            limits=limits,
+            responses=[
+                _response(calls=(
+                    _profile_call("profile-left"),
+                    _profile_call("profile-right", box=(40, 30, 60, 50)),
+                )),
+                _response(text=_answer()),
+            ],
+        )
+    
+>       assert outcome["status"] == "completed"
+E       AssertionError: assert 'failed' == 'completed'
+E         
+E         - completed
+E         + failed
+
+tests/test_runtime_delegation.py:411: AssertionError
+_______ test_run_observer_updates_budget_revision_across_two_tool_rounds _______
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/pytest-budget-revision-red-log/test_run_observer_updates_budg1')
+
+    def test_run_observer_updates_budget_revision_across_two_tool_rounds(tmp_path):
+        limits = RunLimits(
+            model_calls=3,
+            tool_calls=3,
+            seconds=60.0,
+            tokens=100_000,
+        )
+        outcome, adapter, frozen, executions = _run_scripted_observer(
+            tmp_path,
+            task_id="observer-two-tool-rounds",
+            limits=limits,
+            responses=[
+                _response(calls=(_profile_call("profile-first"),)),
+                _response(calls=(_profile_call("profile-second", box=(40, 30, 60, 50)),)),
+                _response(text=_answer()),
+            ],
+        )
+    
+>       assert outcome["status"] == "completed"
+E       AssertionError: assert 'failed' == 'completed'
+E         
+E         - completed
+E         + failed
+
+tests/test_runtime_delegation.py:439: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_delegation.py::test_run_observer_updates_budget_revision_for_two_tools_in_one_response
+FAILED tests/test_runtime_delegation.py::test_run_observer_updates_budget_revision_across_two_tool_rounds
+======================= 2 failed, 9 deselected in 7.95s ========================

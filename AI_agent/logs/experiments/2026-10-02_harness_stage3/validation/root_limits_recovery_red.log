@@ -1,0 +1,42 @@
+..F
+=================================== FAILURES ===================================
+___ test_resumed_child_rechecks_root_tool_allowance_before_pending_execution ___
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/root-limit-green-final-tmp/test_resumed_child_rechecks_ro0')
+
+    def test_resumed_child_rechecks_root_tool_allowance_before_pending_execution(tmp_path):
+        class Crash(BaseException):
+            pass
+    
+        limits = RunLimits(model_calls=6, tool_calls=1, seconds=120, tokens=300_000)
+        with _store(tmp_path, limits) as store:
+            child = _child(store, tmp_path, "interrupted", [response(("pending", "view", {}))])
+            child.root_tool_calls = 1
+    
+            def interrupt(boundary, _engine):
+                if boundary == "before_tool":
+                    raise Crash()
+    
+            child.fault_hook = interrupt
+            with pytest.raises(Crash):
+                asyncio.run(child.run(MESSAGES))
+            assert child.tools.calls == []
+    
+            other = _child(store, tmp_path, "other", [response(("consume", "view", {})), response(text="done")])
+            other.root_tool_calls = 1
+            assert asyncio.run(other.run(MESSAGES))["status"] == "completed"
+    
+            resumed = _child(store, tmp_path, "interrupted", [], tools=child.tools)
+            resumed.root_tool_calls = 1
+            receipt = asyncio.run(resumed.run(MESSAGES, resume=True))
+>           assert receipt["status"] == "root_tool_budget_exhausted"
+E           AssertionError: assert 'resume_unche...t_reservation' == 'root_tool_budget_exhausted'
+E             
+E             - root_tool_budget_exhausted
+E             + resume_uncheckpointed_budget_reservation
+
+tests/test_runtime_coordinator_root_limits.py:214: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_coordinator_root_limits.py::test_resumed_child_rechecks_root_tool_allowance_before_pending_execution
+1 failed, 2 passed in 7.76s

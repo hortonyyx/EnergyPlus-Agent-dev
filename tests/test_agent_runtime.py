@@ -5,6 +5,7 @@ import base64
 import hashlib
 import io
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import httpx
@@ -224,6 +225,43 @@ def test_resume_completed_run_does_not_append_duplicate_stop_or_usage(tmp_path):
         result = asyncio.run(resumed.run(MESSAGES, resume=True))
         assert result["resume_status"] == "already_completed"
         assert resumed.store.path.read_bytes() == before
+
+
+def test_resume_rejects_changed_model_profile(tmp_path, monkeypatch):
+    engine = runtime(tmp_path, [response(text="Done")])
+    with engine.store:
+        assert asyncio.run(engine.run(MESSAGES))["status"] == "completed"
+
+    from src.agent_runtime import loop as runtime_loop
+    original = runtime_loop.get_model_profile("test")
+    monkeypatch.setattr(runtime_loop, "get_model_profile", lambda *args, **kwargs:
+                        replace(original, text_fixed_margin=original.text_fixed_margin + 1))
+    resumed = runtime(tmp_path, [], tools=engine.tools)
+    with resumed.store:
+        result = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert result["status"] == "resume_configuration_changed"
+
+
+@pytest.mark.parametrize(
+    ("model", "configured_limit", "output_tokens", "expected"),
+    [
+        ("test", 200, 256, "configured_context_limit_exhausted"),
+        ("Qwen3.8-27B", None, 262_144, "model_profile_context_limit_exhausted"),
+    ],
+)
+def test_context_limits_stop_before_adapter_send(
+        tmp_path, model, configured_limit, output_tokens, expected):
+    limits = RunLimits(model_calls=1, tool_calls=0, seconds=30.0,
+                       tokens=1_000_000, context_tokens=configured_limit)
+    engine = runtime(tmp_path, [], limits=limits)
+    engine.model = model
+    engine.parameters["max_tokens"] = output_tokens
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == expected
+        assert engine.adapter.requests == []
+        assert not [event for event in engine.store.events
+                    if event.payload.event_type == "adapter_request"]
 
 
 def test_actual_over_reservation_preserves_receipt_without_fabricated_settlement(tmp_path):

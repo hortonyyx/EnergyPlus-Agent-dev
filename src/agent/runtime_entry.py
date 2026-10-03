@@ -30,12 +30,19 @@ from src.agent.runtime_context import update_building_context
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.context import ContextPolicy
+from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
 
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def runtime_model_profile(provider: str, model: str):
+    """Select the compatibility or reviewed profile for this CLI route."""
+    strict = provider == "paratera"
+    return get_model_profile(model if strict else "scripted-model", strict=strict)
 
 
 def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
@@ -88,6 +95,9 @@ async def execute(args) -> dict:
     output = args.out.resolve()
     if not output.is_relative_to(ROOT):
         raise ValueError("this development entry writes only inside its own worktree")
+    strict_model_profile = args.provider == "paratera"
+    # Reject an unreviewed real route before creating a run or reading credentials.
+    runtime_model_profile(args.provider, args.model)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
         seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
         near_limit=args.near_limit, min_output_tokens=args.min_output_tokens,
@@ -171,7 +181,8 @@ async def execute(args) -> dict:
                     context_policy=context_policy, pricing=pricing,
                     context_update=update_building_context,
                     required_view_ids=tuple(args.keep_view_id),
-                    retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image))
+                    retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image),
+                    strict_model_profile=strict_model_profile)
                 result = await engine.run(messages, image_originals=originals, resume=args.resume)
         from src.agent.runtime_behaviour import write_behaviour_report
         write_behaviour_report(output / "events.jsonl", output / "behaviour")
@@ -204,7 +215,7 @@ def parser():
     p.add_argument("--min-output-tokens", type=int, default=1)
     p.add_argument("--model-retries", type=int, default=0)
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
-    p.add_argument("--context-tokens", type=int, help="conservative local wire/image estimate ceiling, not a verified service context limit")
+    p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
     p.add_argument("--context-window", type=int, default=16)
     p.add_argument("--large-result-bytes", type=int, default=8192)
     p.add_argument("--max-images", type=int, default=12)
@@ -227,7 +238,7 @@ def main():
     args = parser().parse_args()
     result = asyncio.run(execute(args))
     print(json.dumps({key: result[key] for key in ("status", "model_calls", "tool_calls", "reported_tokens", "billing_usd")}, ensure_ascii=False))
-    raise SystemExit(0 if result["status"] in {"completed", "model_budget_exhausted", "tool_budget_exhausted", "time_budget_exhausted", "token_budget_exhausted", "money_budget_exhausted", "context_budget_exhausted"} else 1)
+    raise SystemExit(0 if result["status"] in {"completed", "model_budget_exhausted", "tool_budget_exhausted", "time_budget_exhausted", "token_budget_exhausted", "money_budget_exhausted", "model_profile_context_limit_exhausted", "configured_context_limit_exhausted"} else 1)
 
 
 if __name__ == "__main__":

@@ -5,14 +5,12 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
-import io
 import json
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
 
 import httpx
-from PIL import Image
 
 from src.harness_contracts import (
     AdapterRequestPayload, BlobCapture, ImageTransmission, InjectedContent,
@@ -21,6 +19,7 @@ from src.harness_contracts import (
     ThinkingSummary, ThinkingTokenCount, ThinkingUnavailable, UsageMissing,
     UsageReported,
 )
+from .estimation import ModelProfile, RequestTokenEstimate, estimate_chat_request
 from .store import EventStore, json_bytes
 
 
@@ -28,8 +27,12 @@ from .store import EventStore, json_bytes
 class PreparedRequest:
     body: dict
     wire_bytes: bytes
-    token_reservation_estimate: int
+    token_estimate: RequestTokenEstimate
     event_payload: AdapterRequestPayload
+
+    @property
+    def token_reservation_estimate(self) -> int:
+        return self.token_estimate.reservation_tokens
 
     @property
     def output_token_limit(self) -> int:
@@ -37,7 +40,15 @@ class PreparedRequest:
 
     @property
     def input_token_upper_bound(self) -> int:
-        return self.token_reservation_estimate - self.output_token_limit
+        return self.token_estimate.input_tokens_upper_bound
+
+    @property
+    def context_window_tokens(self) -> int | None:
+        return self.token_estimate.context_window_tokens
+
+    @property
+    def estimate_source(self) -> str:
+        return self.token_estimate.source
 
 
 @dataclass(frozen=True)
@@ -57,7 +68,9 @@ def decode_image_url(url: str) -> tuple[bytes, str]:
 
 def prepare_request(*, store: EventStore, model: str, messages: list[dict],
                     message_sources: list, tools: list[dict], tool_source,
-                    parameters: dict, versions, image_originals: dict | None = None):
+                    parameters: dict, versions, image_originals: dict | None = None,
+                    model_profile: ModelProfile | None = None,
+                    strict_model_profile: bool = False):
     forbidden = {"model", "messages", "tools", "stream", "n"} & parameters.keys()
     if forbidden:
         raise ValueError("request parameters cannot override model, messages, tools, stream or n")
@@ -74,7 +87,7 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
     if tools:
         injections.append(InjectedContent(request_location="/tools",
             content=store.capture(tools), source=tool_source))
-    images, image_estimate = [], 0
+    images = []
     for i, message in enumerate(body["messages"]):
         content = message.get("content")
         if not isinstance(content, list):
@@ -85,10 +98,6 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
             data, mime = decode_image_url(block["image_url"]["url"])
             sent = store.put_bytes(data, mime)
             original = (image_originals or {}).get(sent.sha256, sent)
-            # Conservative pixel allowance as well as wire bytes. This is an
-            # estimate, not a service tokenizer or a billing claim.
-            with Image.open(io.BytesIO(data)) as image:
-                image_estimate += image.width * image.height
             images.append(ImageTransmission(original=original, sent=sent,
                 request_reference=f"/messages/{i}/content/{j}/image_url/url"))
     wire = json_bytes(body)
@@ -115,7 +124,9 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
     output_limit = parameters.get("max_tokens", parameters.get("max_completion_tokens"))
     if type(output_limit) is not int or output_limit <= 0:
         raise ValueError("explicit positive output token cap required")
-    return PreparedRequest(body, wire, len(wire) + image_estimate + output_limit, payload)
+    token_estimate = estimate_chat_request(body, profile=model_profile,
+                                           strict=strict_model_profile)
+    return PreparedRequest(body, wire, token_estimate, payload)
 
 
 class HttpChatAdapter:

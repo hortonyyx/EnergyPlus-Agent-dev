@@ -1,0 +1,107 @@
+FF
+=================================== FAILURES ===================================
+____ test_child_model_may_answer_but_child_tool_cannot_exceed_root_tool_cap ____
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/pytest-root-limits/test_child_model_may_answer_bu0')
+
+    def test_child_model_may_answer_but_child_tool_cannot_exceed_root_tool_cap(tmp_path):
+        limits = RunLimits(
+            model_calls=4,
+            tool_calls=1,
+            seconds=120.0,
+            tokens=300_000,
+        )
+        coordinator_tools = _CoordinatorTools(_inputs(tmp_path))
+        observer_tools = _MeasuringObserverFrozenTools(tmp_path / "observer-tools")
+        adapter = ScriptedAdapter([
+            _response(calls=(_profile_call("profile-after-root-cap"),)),
+            _response(text=_answer()),
+        ])
+    
+        with _store(tmp_path, limits) as store:
+            session = _session(store, coordinator_tools, observer_tools, adapter, limits)
+            asyncio.run(session.initialize())
+            view = _registered_view(store)
+            session.views[view.view_id] = view
+    
+            consumed = asyncio.run(session.call_tool(
+                "revise_bim", {"revision_note": "Consume the one root tool allowance."}
+            ))
+            assert consumed["isError"] is False
+    
+            delegated = asyncio.run(session.call_tool("delegate_to_role", {
+                "task_id": "observer-after-root-cap",
+                "question": "Use the supplied view only if a root tool allowance remains.",
+                "view_ids": [view.view_id],
+                "budget": {
+                    "model_calls": 2,
+                    "tool_calls": 2,
+                    "tokens": 100_000,
+                    "seconds": 60,
+                },
+            }))
+    
+            # The first child request is allowed: a direct answer would consume no
+            # tool. Its requested tool must stop before the backing client runs.
+            assert delegated["isError"] is False
+>           assert delegated["structuredContent"]["status"] == "root_tool_budget_exhausted"
+E           AssertionError: assert 'completed' == 'root_tool_budget_exhausted'
+E             
+E             - root_tool_budget_exhausted
+E             + completed
+
+tests/test_runtime_coordinator_root_limits.py:94: AssertionError
+___ test_frozen_write_uses_root_deadline_and_restores_unknown_without_replay ___
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-stage3/.stage3-work/pytest-root-limits/test_frozen_write_uses_root_de0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d959f41e000>
+
+    def test_frozen_write_uses_root_deadline_and_restores_unknown_without_replay(
+        tmp_path, monkeypatch
+    ):
+        limits = RunLimits(
+            model_calls=2,
+            tool_calls=2,
+            seconds=1.0,
+            tokens=100_000,
+        )
+        monkeypatch.setattr(runtime_coordinator.time, "time", lambda: 100.0)
+        coordinator_tools = _CoordinatorTools(_inputs(tmp_path))
+    
+        with _store(tmp_path, limits) as store:
+            session = _session(
+                store,
+                coordinator_tools,
+                _MeasuringObserverFrozenTools(tmp_path / "observer-tools"),
+                ScriptedAdapter([]),
+                limits,
+            )
+            asyncio.run(session.initialize())
+            monkeypatch.setattr(runtime_coordinator.time, "time", lambda: 100.25)
+            admitted_timeouts = []
+    
+            async def cross_deadline(awaitable, timeout):
+                admitted_timeouts.append(timeout)
+                # The backing write completed at the boundary, but the coordinator
+                # did not receive a result before its own deadline. Treating that
+                # application as known would be unsafe.
+                await awaitable
+                raise TimeoutError("deterministic root deadline")
+    
+            monkeypatch.setattr(runtime_coordinator.asyncio, "wait_for", cross_deadline)
+            first = asyncio.run(session.call_tool(
+                "revise_bim", {"revision_note": "Cross the root deadline."}
+            ))
+    
+>           assert admitted_timeouts == [0.75]
+E           assert [] == [0.75]
+E             
+E             Right contains one more item: 0.75
+E             Use -v to get more diff
+
+tests/test_runtime_coordinator_root_limits.py:143: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_coordinator_root_limits.py::test_child_model_may_answer_but_child_tool_cannot_exceed_root_tool_cap
+FAILED tests/test_runtime_coordinator_root_limits.py::test_frozen_write_uses_root_deadline_and_restores_unknown_without_replay
+2 failed in 4.86s

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "requests": 12,
+  "retries": 0,
+  "fallbacks": 0,
+  "reported_usage": {
+    "prompt_tokens": 15674,
+    "completion_tokens": 34,
+    "total_tokens": 15708
+  },
+  "calibrated_result": {
+    "maximum_absolute_point_error_percent": 9.45,
+    "minimum_upper_bound_headroom_percent": 1.14,
+    "upper_bound_covered_requests": 12,
+    "image_token_exact_matches": 6,
+    "image_token_cases": [66, 786, 1902]
+  },
+  "rows": [
+    {"index": 1, "model": "Qwen3.8-27B", "case": "text_short", "actual_input": 35, "estimate": 36, "upper_bound": 51, "point_error_percent": 2.86},
+    {"index": 2, "model": "Qwen3.8-27B", "case": "text_medium", "actual_input": 804, "estimate": 880, "upper_bound": 963, "point_error_percent": 9.45},
+    {"index": 3, "model": "Qwen3.8-27B", "case": "text_long", "actual_input": 4139, "estimate": 4048, "upper_bound": 4384, "point_error_percent": -2.20},
+    {"index": 4, "model": "Qwen3.8-27B", "case": "image_224", "actual_input": 88, "estimate": 95, "upper_bound": 110, "reported_image": 66, "estimated_image": 66, "point_error_percent": 7.95},
+    {"index": 5, "model": "Qwen3.8-27B", "case": "image_896", "actual_input": 808, "estimate": 815, "upper_bound": 830, "reported_image": 786, "estimated_image": 786, "point_error_percent": 0.87},
+    {"index": 6, "model": "Qwen3.8-27B", "case": "image_1600x1200", "actual_input": 1924, "estimate": 1931, "upper_bound": 1946, "reported_image": 1902, "estimated_image": 1902, "point_error_percent": 0.36},
+    {"index": 7, "model": "Qwen3.8-Flash", "case": "text_short", "actual_input": 48, "estimate": 49, "upper_bound": 65, "point_error_percent": 2.08},
+    {"index": 8, "model": "Qwen3.8-Flash", "case": "text_medium", "actual_input": 817, "estimate": 893, "upper_bound": 977, "point_error_percent": 9.30},
+    {"index": 9, "model": "Qwen3.8-Flash", "case": "text_long", "actual_input": 4152, "estimate": 4061, "upper_bound": 4398, "point_error_percent": -2.19},
+    {"index": 10, "model": "Qwen3.8-Flash", "case": "image_224", "actual_input": 101, "estimate": 108, "upper_bound": 124, "reported_image": 66, "estimated_image": 66, "point_error_percent": 6.93},
+    {"index": 11, "model": "Qwen3.8-Flash", "case": "image_896", "actual_input": 821, "estimate": 828, "upper_bound": 844, "reported_image": 786, "estimated_image": 786, "point_error_percent": 0.85},
+    {"index": 12, "model": "Qwen3.8-Flash", "case": "image_1600x1200", "actual_input": 1937, "estimate": 1944, "upper_bound": 1960, "reported_image": 1902, "estimated_image": 1902, "point_error_percent": 0.36}
+  ],
+  "notes": [
+    "Point error is (estimate - provider prompt_tokens) / provider prompt_tokens.",
+    "The upper bound is used for budget reservation; point estimates are retained for calibration reporting.",
+    "The two long-text responses ended with the provider length finish reason because max_tokens was 8. Their input usage is complete and valid for request calibration.",
+    "Provider usage is evidence about this Paratera deployment, not an upstream model identity attestation or bill."
+  ]
+}

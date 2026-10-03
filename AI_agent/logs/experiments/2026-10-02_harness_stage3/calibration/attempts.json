@@ -1,0 +1,450 @@
+{
+  "schema_version": 1,
+  "maximum_attempts": 12,
+  "attempts_reserved": 12,
+  "automatic_retries": 0,
+  "automatic_fallback": false,
+  "attempts": [
+    {
+      "index": 1,
+      "model": "Qwen3.8-27B",
+      "case": "text_short",
+      "image": null,
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 35,
+            "total_tokens": 37,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 35
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 39,
+          "image_tokens": 0,
+          "input_tokens_estimate": 39,
+          "input_tokens_upper_bound": 61,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-27B; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://huggingface.co/Qwen/Qwen3.8-27B#model-overview; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/01_Qwen3.8-27B_text_short/events.jsonl"
+      }
+    },
+    {
+      "index": 2,
+      "model": "Qwen3.8-27B",
+      "case": "text_medium",
+      "image": null,
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 804,
+            "total_tokens": 806,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 804
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 1120,
+          "image_tokens": 0,
+          "input_tokens_estimate": 1120,
+          "input_tokens_upper_bound": 1304,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-27B; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://huggingface.co/Qwen/Qwen3.8-27B#model-overview; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/02_Qwen3.8-27B_text_medium/events.jsonl"
+      }
+    },
+    {
+      "index": 3,
+      "model": "Qwen3.8-27B",
+      "case": "text_long",
+      "image": null,
+      "state": "finished",
+      "result": {
+        "status": "incomplete_response",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 4139,
+            "total_tokens": 4147,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 4139
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 3928,
+          "image_tokens": 0,
+          "input_tokens_estimate": 3928,
+          "input_tokens_upper_bound": 4534,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-27B; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://huggingface.co/Qwen/Qwen3.8-27B#model-overview; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/03_Qwen3.8-27B_text_long/events.jsonl"
+      }
+    },
+    {
+      "index": 4,
+      "model": "Qwen3.8-27B",
+      "case": "image_224",
+      "image": {
+        "width": 224,
+        "height": 224,
+        "sha256": "05b8b37f01b8721a5c74cfc9a61cea924773cd09968aefac376cd6964856654b",
+        "kind": "synthetic calibration image"
+      },
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 88,
+            "total_tokens": 90,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 22,
+              "image_tokens": 66
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 32,
+          "image_tokens": 66,
+          "input_tokens_estimate": 98,
+          "input_tokens_upper_bound": 119,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-27B; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://huggingface.co/Qwen/Qwen3.8-27B#model-overview; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/04_Qwen3.8-27B_image_224/events.jsonl"
+      }
+    },
+    {
+      "index": 5,
+      "model": "Qwen3.8-27B",
+      "case": "image_896",
+      "image": {
+        "width": 896,
+        "height": 896,
+        "sha256": "f9eba6c4b59876481b21145b82ebd3fce751a09c626b72e1fbf5f261b6fd0dfc",
+        "kind": "synthetic calibration image"
+      },
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 808,
+            "total_tokens": 810,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 22,
+              "image_tokens": 786
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 32,
+          "image_tokens": 786,
+          "input_tokens_estimate": 818,
+          "input_tokens_upper_bound": 839,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-27B; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://huggingface.co/Qwen/Qwen3.8-27B#model-overview; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/05_Qwen3.8-27B_image_896/events.jsonl"
+      }
+    },
+    {
+      "index": 6,
+      "model": "Qwen3.8-27B",
+      "case": "image_1600x1200",
+      "image": {
+        "width": 1600,
+        "height": 1200,
+        "sha256": "b86d45a6144592874b3c6c5787134c854dcb9104348558493d1e440fb715e6fe",
+        "kind": "synthetic calibration image"
+      },
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 1924,
+            "total_tokens": 1926,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 22,
+              "image_tokens": 1902
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 32,
+          "image_tokens": 1902,
+          "input_tokens_estimate": 1934,
+          "input_tokens_upper_bound": 1955,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-27B; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://huggingface.co/Qwen/Qwen3.8-27B#model-overview; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/06_Qwen3.8-27B_image_1600x1200/events.jsonl"
+      }
+    },
+    {
+      "index": 7,
+      "model": "Qwen3.8-Flash",
+      "case": "text_short",
+      "image": null,
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 1,
+            "prompt_tokens": 48,
+            "total_tokens": 49,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 48
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 39,
+          "image_tokens": 0,
+          "input_tokens_estimate": 39,
+          "input_tokens_upper_bound": 61,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-Flash; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://docs.qwencloud.com/developer-guides/getting-started/latest-model; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/07_Qwen3.8-Flash_text_short/events.jsonl"
+      }
+    },
+    {
+      "index": 8,
+      "model": "Qwen3.8-Flash",
+      "case": "text_medium",
+      "image": null,
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 1,
+            "prompt_tokens": 817,
+            "total_tokens": 818,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 817
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 1120,
+          "image_tokens": 0,
+          "input_tokens_estimate": 1120,
+          "input_tokens_upper_bound": 1304,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-Flash; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://docs.qwencloud.com/developer-guides/getting-started/latest-model; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/08_Qwen3.8-Flash_text_medium/events.jsonl"
+      }
+    },
+    {
+      "index": 9,
+      "model": "Qwen3.8-Flash",
+      "case": "text_long",
+      "image": null,
+      "state": "finished",
+      "result": {
+        "status": "incomplete_response",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 8,
+            "prompt_tokens": 4152,
+            "total_tokens": 4160,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 4152
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 3928,
+          "image_tokens": 0,
+          "input_tokens_estimate": 3928,
+          "input_tokens_upper_bound": 4534,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-Flash; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://docs.qwencloud.com/developer-guides/getting-started/latest-model; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/09_Qwen3.8-Flash_text_long/events.jsonl"
+      }
+    },
+    {
+      "index": 10,
+      "model": "Qwen3.8-Flash",
+      "case": "image_224",
+      "image": {
+        "width": 224,
+        "height": 224,
+        "sha256": "05b8b37f01b8721a5c74cfc9a61cea924773cd09968aefac376cd6964856654b",
+        "kind": "synthetic calibration image"
+      },
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 101,
+            "total_tokens": 103,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 35,
+              "image_tokens": 66
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 32,
+          "image_tokens": 66,
+          "input_tokens_estimate": 98,
+          "input_tokens_upper_bound": 119,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-Flash; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://docs.qwencloud.com/developer-guides/getting-started/latest-model; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/10_Qwen3.8-Flash_image_224/events.jsonl"
+      }
+    },
+    {
+      "index": 11,
+      "model": "Qwen3.8-Flash",
+      "case": "image_896",
+      "image": {
+        "width": 896,
+        "height": 896,
+        "sha256": "f9eba6c4b59876481b21145b82ebd3fce751a09c626b72e1fbf5f261b6fd0dfc",
+        "kind": "synthetic calibration image"
+      },
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 821,
+            "total_tokens": 823,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 35,
+              "image_tokens": 786
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 32,
+          "image_tokens": 786,
+          "input_tokens_estimate": 818,
+          "input_tokens_upper_bound": 839,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-Flash; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://docs.qwencloud.com/developer-guides/getting-started/latest-model; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/11_Qwen3.8-Flash_image_896/events.jsonl"
+      }
+    },
+    {
+      "index": 12,
+      "model": "Qwen3.8-Flash",
+      "case": "image_1600x1200",
+      "image": {
+        "width": 1600,
+        "height": 1200,
+        "sha256": "b86d45a6144592874b3c6c5787134c854dcb9104348558493d1e440fb715e6fe",
+        "kind": "synthetic calibration image"
+      },
+      "state": "finished",
+      "result": {
+        "status": "completed",
+        "requests_logged": 1,
+        "responses_logged": 1,
+        "reported_usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "completion_tokens": 2,
+            "prompt_tokens": 1937,
+            "total_tokens": 1939,
+            "completion_tokens_details": {},
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "text_tokens": 35,
+              "image_tokens": 1902
+            }
+          }
+        },
+        "estimate": {
+          "text_tokens": 32,
+          "image_tokens": 1902,
+          "input_tokens_estimate": 1934,
+          "input_tokens_upper_bound": 1955,
+          "output_token_limit": 8,
+          "source": "profile=Qwen3.8-Flash; text=unicode_chars_v1; image=qwen_vl_patch32_v1; context=https://docs.qwencloud.com/developer-guides/getting-started/latest-model; status=sourced_with_deployment_uncertainty"
+        },
+        "event_log": "runs/12_Qwen3.8-Flash_image_1600x1200/events.jsonl"
+      }
+    }
+  ]
+}
