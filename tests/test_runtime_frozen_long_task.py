@@ -1,4 +1,10 @@
-"""Run the 75 historical run99 calls against real, unchanged BIM tools."""
+"""Run the unchanged 75-call run99 trace against the registered Agent.
+
+R3 executes the real T1 tools. Historical arguments, expected errors, source
+versions, evidence hashes, state coverage and compaction assertions stay fixed;
+the model's responses and reported usage are scripted. T1's extra feedback is
+allowed only insofar as every existing semantic assertion still holds.
+"""
 
 from __future__ import annotations
 

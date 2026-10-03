@@ -11,6 +11,8 @@ import base64
 import hashlib
 import io
 import json
+import time
+from contextlib import AsyncExitStack
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -256,7 +258,41 @@ def update_observer_budget(engine, event, raw):
 
 async def run_observer(*, store, frozen_tools, adapter, model, parameters, limits: RunLimits,
                        package: EvidencePackage, views, notes, root: Path, route, resume=False,
-                       root_tool_calls: int | None = None, low_output_limit_reason: str | None = None):
+                       root_tool_calls: int | None = None, low_output_limit_reason: str | None = None,
+                       parent_deadline_epoch: float | None = None):
+    timing_path = store.task_directory / "observer_timing.json"
+    if timing_path.is_file():
+        timing = json.loads(timing_path.read_bytes())
+        if parent_deadline_epoch is not None and timing["deadline_epoch"] > parent_deadline_epoch:
+            raise ValueError("observer deadline exceeds the parent deadline on resume")
+    else:
+        start = time.time()
+        deadline = min(start + limits.seconds, parent_deadline_epoch) if parent_deadline_epoch is not None else start + limits.seconds
+        if deadline <= start:
+            return {"status": "root_time_budget_exhausted", "result": None, "runtime": None,
+                "validation_error": None, "package": package.model_dump(mode="json"),
+                "views": [v.as_json() for v in views], "model": model}
+        timing = {"started_epoch": start, "deadline_epoch": deadline,
+                  "time_budget_seconds": min(limits.seconds, deadline - start)}
+        store.write_json("observer_timing.json", timing)
+    limits = limits.model_copy(update={"seconds": timing["time_budget_seconds"]})
+    async with AsyncExitStack() as stack:
+        # Test doubles can implement only the tool protocol. The real BIM
+        # dispatcher always supplies task_session and starts a scoped service.
+        if hasattr(frozen_tools, "task_session"):
+            images = {view.image_name: (store.get_bytes(view.original), view.original_size) for view in views}
+            frozen_tools = await stack.enter_async_context(frozen_tools.task_session(
+                directory=store.task_directory / "bim", root=root,
+                role=local_observer_role(limits.ledger_limit()), timing=timing, images=images))
+        return await _run_observer(store=store, frozen_tools=frozen_tools, adapter=adapter,
+            model=model, parameters=parameters, limits=limits, package=package, views=views,
+            notes=notes, root=root, route=route, resume=resume, root_tool_calls=root_tool_calls,
+            low_output_limit_reason=low_output_limit_reason, start_epoch=timing["started_epoch"])
+
+
+async def _run_observer(*, store, frozen_tools, adapter, model, parameters, limits,
+                        package, views, notes, root, route, resume, root_tool_calls,
+                        low_output_limit_reason, start_epoch):
     role = local_observer_role(limits.ledger_limit())
     role = role.model_copy(update={"tool_whitelist": tuple(
         grant for grant in role.tool_whitelist if grant.tool_name in EvidenceTools.names)})
@@ -284,6 +320,7 @@ async def run_observer(*, store, frozen_tools, adapter, model, parameters, limit
         parameters=parameters, versions=versions, limits=limits,
         strict_model_profile=route["route_id"] in {"paratera", "glm-subscription"},
         root_tool_calls=root_tool_calls,
+        start_epoch=start_epoch,
         low_output_limit_reason=low_output_limit_reason,
         answer_validator=lambda text: hydrate_observation(text, package, views),
         max_answer_repairs=1,

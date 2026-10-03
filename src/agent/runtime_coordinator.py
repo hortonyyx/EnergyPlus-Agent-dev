@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from contextlib import asynccontextmanager
 import hashlib
 import json
 import re
@@ -23,6 +24,7 @@ from mcp.server.stdio import stdio_server
 from src.agent.contracts import EvidencePackage, LocalizedEvidenceResult, assert_result_applicable
 from src.agent.runtime_delegation import RegisteredView, run_observer, views_from_tool_return
 from src.agent.runtime_entry import ROOT, paratera_credentials, prepare_inputs
+from src.agent.runtime_delivery import finalize_building
 from src.agent.runtime_tools import (FrozenBimTools, coordinator_role, frozen_bim_client,
     local_observer_role, write_frozen_materials, write_frozen_tool_catalog)
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
@@ -114,11 +116,21 @@ class SerializedToolAccess:
         async with self._lock:
             return await self._tools.call_tool(name, arguments)
 
+    @asynccontextmanager
+    async def task_session(self, **kwargs):
+        if not hasattr(self._tools, "task_session"):
+            yield self
+            return
+        async with self._tools.task_session(**kwargs) as tools:
+            # Keep the R1 serialization guarantee for tool execution, while
+            # each observer service holds its own immutable deadline.
+            yield SerializedToolAccess(tools, self._lock)
+
 
 class CoordinatorSession:
     def __init__(self, *, store, tools, observer_tools, adapter_factory, model, parameters,
                  root=ROOT, route_id="scripted", guide="", limits=None,
-                 max_concurrent_observers=4, low_output_limit_reason=None):
+                 max_concurrent_observers=4, low_output_limit_reason=None, start_epoch=None):
         if type(max_concurrent_observers) is not int or max_concurrent_observers < 1:
             raise ValueError("max_concurrent_observers must be a positive integer")
         self.max_concurrent_observers = max_concurrent_observers
@@ -133,7 +145,7 @@ class CoordinatorSession:
         self.lock = asyncio.Lock()
         self.views, self.children, self.applied = {}, {}, set()
         self.catalog = []
-        self.started_epoch = time.time()
+        self.started_epoch = time.time() if start_epoch is None else start_epoch
         self.unknown_write = False
         self._restore_indexes()
 
@@ -177,13 +189,14 @@ class CoordinatorSession:
         from src.agent_runtime.estimation import get_model_profile
         source_files = [*sorted((self.root / "src/agent_runtime").glob("*.py")),
             self.root / "src/agent/runtime_coordinator.py",
+            self.root / "src/agent/runtime_delivery.py",
             self.root / "src/agent/runtime_delegation.py"]
         configuration = {"model": self.model, "route_id": self.route_id,
             "agent_version": self.agent_version,
             "parameters": self.parameters,
             "low_output_limit_reason": self.low_output_limit_reason,
             "max_concurrent_observers": self.max_concurrent_observers,
-            "frozen_tool_scheduling": "serialized_shared_service",
+            "frozen_tool_scheduling": "serialized_tools_with_child_scoped_services",
             "limits": self.limits.model_dump(mode="json") if self.limits else None,
             "model_profile": asdict(get_model_profile(self.model)),
             "guide_sha256": hashlib.sha256(self.guide.encode()).hexdigest(),
@@ -253,7 +266,7 @@ class CoordinatorSession:
             "budget": budget.ledger.model_dump(mode="json"), "unknown_write": self.unknown_write,
             "external_model_request": "未获取", "external_model_usage": "未获取",
             "max_concurrent_observers": self.max_concurrent_observers,
-            "frozen_tool_scheduling": "serialized_shared_service"}
+            "frozen_tool_scheduling": "serialized_tools_with_child_scoped_services"}
 
     async def call_tool(self, name, arguments):
         async with self.lock:
@@ -362,7 +375,20 @@ class CoordinatorSession:
         results = await asyncio.gather(*(dispatch(item) for item in tasks))
         return {"status": "completed", "results": results,
                 "max_concurrent_observers": self.max_concurrent_observers,
-                "frozen_tool_scheduling": "serialized_shared_service"}
+                "frozen_tool_scheduling": "serialized_tools_with_child_scoped_services"}
+
+    def finalize(self, reason):
+        """Hand off saved work when the external MCP session ends or expires."""
+        receipt = {"status": reason, "agent_version": self.agent_version["version_id"],
+            "started_epoch": self.started_epoch,
+            "deadline_epoch": self.started_epoch + self.limits.seconds if self.limits else None,
+            "finalization": finalize_building(self.tools.run_directory, reason=reason,
+                elapsed_seconds=max(0.0, time.time() - self.started_epoch)),
+            "external_model_completion": "not_captured"}
+        self.store.write_json("receipt.json", receipt)
+        self.store.append(RunLifecyclePayload(action="stop", reason=reason),
+            source_refs=(self.store.source("coordinator-receipt", receipt),))
+        return receipt
 
     async def delegate(self, arguments):
         task_id = arguments["task_id"]
@@ -406,6 +432,7 @@ class CoordinatorSession:
                 notes=arguments.get("notes", []), root=self.root,
                 root_tool_calls=self.limits.tool_calls if self.limits else None,
                 low_output_limit_reason=self.low_output_limit_reason,
+                parent_deadline_epoch=self.started_epoch + self.limits.seconds if self.limits else None,
                 route={"route_id": self.route_id, "model": self.model}, resume=bool(child.events))
             outcome = await asyncio.wait_for(running, timeout=remaining) if self.limits else await running
         except Exception as exc:
@@ -470,7 +497,9 @@ async def serve(args):
     else:
         out.mkdir(parents=True, exist_ok=False)
         run, guide, _ = prepare_inputs(out, images=args.images, mesh=args.mesh,
-            building_input=None, scope=args.scope, image_kind=args.image_kind, max_candidates=24)
+            building_input=None, scope=args.scope, image_kind=args.image_kind, max_candidates=24,
+            floor_plan_images=args.floor_plan_images, started_epoch=time.time(), seconds=limits.seconds)
+    started_epoch = json.loads((run / "inputs.json").read_bytes()).get("started_epoch")
     adapter = None
     if args.provider in LIVE_PROVIDERS:
         from src.agent_runtime.estimation import get_model_profile
@@ -500,6 +529,7 @@ async def serve(args):
                         adapter_factory=factory, model=model, route_id=args.provider, guide=guide, limits=limits,
                         max_concurrent_observers=args.max_concurrent_observers,
                         low_output_limit_reason=args.low_output_limit_reason,
+                        start_epoch=started_epoch,
                         parameters=parameters).initialize()
                     if not args.resume:
                         write_frozen_materials(out / "frozen", repository_root=ROOT)
@@ -515,7 +545,15 @@ async def serve(args):
                         return types.CallToolResult.model_validate(await session.call_tool(name, arguments))
 
                     async with stdio_server() as (reader, writer):
-                        await server.run(reader, writer, server.create_initialization_options())
+                        reason = "coordinator_disconnected"
+                        try:
+                            remaining = max(0.0, session.started_epoch + limits.seconds - time.time())
+                            await asyncio.wait_for(server.run(reader, writer,
+                                server.create_initialization_options()), timeout=remaining)
+                        except asyncio.TimeoutError:
+                            reason = "time_budget_exhausted"
+                        finally:
+                            session.finalize(reason)
     finally:
         if adapter:
             await adapter.close()
@@ -525,6 +563,7 @@ def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--images", type=Path)
+    p.add_argument("--floor-plan-image", dest="floor_plan_images", action="append")
     p.add_argument("--mesh", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
     p.add_argument("--scope", default="Local observation and coordinator operations; no whole-case run authorized.")

@@ -7,6 +7,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
 
 import pytest
 from pydantic import ValidationError
@@ -71,11 +72,19 @@ def test_six_samples_validate_and_reach_exact_saved_objects(case):
             area = abs(sum(p[0]*q[1]-p[1]*q[0] for p,q in zip(polygon,polygon[1:]+polygon[:1]))) / 2
             assert values["area_m2"] == area > 0
         # Every content-addressed reference in these complete specimens resolves.
+        pinned_code = {}
+        for event in (example["events"] or {}).get("events", []):
+            if event["payload"]["event_type"] == "adapter_request":
+                version = event["payload"]["versions"]["code_commit"]
+                reference = version["evidence"]["blob"]
+                pinned_code[reference["uri"]] = version["identifier"]
         for row in walk(example):
             if isinstance(row,dict) and row.get("kind") == "sha256":
                 path = (ROOT / row["uri"]).resolve()
                 assert path.is_relative_to(ROOT)
-                assert hashlib.sha256(path.read_bytes()).hexdigest() == row["sha256"]
+                raw = (subprocess.check_output(["git", "show", f"{pinned_code[row['uri']]}:{row['uri']}"], cwd=ROOT)
+                       if row["uri"] in pinned_code else path.read_bytes())
+                assert hashlib.sha256(raw).hexdigest() == row["sha256"]
 
 
 def test_adapter_image_bytes_and_recovery_state_are_the_recorded_bytes():

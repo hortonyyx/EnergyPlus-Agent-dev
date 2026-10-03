@@ -66,6 +66,11 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
                 raise ValueError(f"{key} escapes the worktree")
             if key == "input" and not target.exists():
                 raise ValueError(f"input does not exist: {target}")
+        floors = case.get("floor_plan_images")
+        if floors is not None and (not isinstance(floors, list) or any(
+                not isinstance(name, str) or Path(name).name != name
+                or not (ROOT / case["input"] / name).is_file() for name in floors)):
+            raise ValueError("floor_plan_images must use admitted input filenames")
         if Path(case["credentials_file"]) != Path("/workspaces/EnergyPlus-Agent-dev/.env"):
             raise ValueError("credentials must remain a read-only reference to the main-tree .env")
     return value
@@ -96,6 +101,8 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
         if name in limits:
             argv += ["--" + name.replace("_", "-"), str(limits[name])]
     argv += [source_flag, str(ROOT / case["input"])]
+    for name in case.get("floor_plan_images", []):
+        argv += ["--floor-plan-image", name]
     if case["mode"] == "single_model":
         argv += ["--max-candidates", str(case["max_candidates"]),
                  "--context-tokens", str(case["context_tokens"]),

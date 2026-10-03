@@ -13,7 +13,9 @@ import base64
 import hashlib
 import json
 import os
+import re
 import shutil
+import time
 from decimal import Decimal
 from pathlib import Path
 
@@ -27,6 +29,7 @@ from src.agent.runtime_tools import (
     write_frozen_materials, write_frozen_tool_catalog,
 )
 from src.agent.runtime_context import update_building_context
+from src.agent.runtime_delivery import finalize_runtime_building
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.context import ContextPolicy
@@ -51,7 +54,9 @@ def runtime_model_profile(provider: str, model: str):
 
 def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
                    building_input: Path | None, scope: str, image_kind: str,
-                   max_candidates: int) -> tuple[Path, str, str]:
+                   max_candidates: int, floor_plan_images: list[str] | None = None,
+                   started_epoch: float | None = None,
+                   seconds: float | None = None) -> tuple[Path, str, str]:
     """Freeze originals in a fresh run, using the unchanged existing input helpers."""
     run = output / "bim"
     run.mkdir(parents=True, exist_ok=False)
@@ -65,8 +70,20 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
         inventory[source.name] = {"size": size, "sha256": hashlib.sha256(target.read_bytes()).hexdigest()}
     if not inventory and mesh is None:
         raise ValueError("provide original PNG images or a GLB mesh")
+    if floor_plan_images is not None and any(name not in inventory for name in floor_plan_images):
+        raise ValueError("floor_plan_images must use admitted input filenames")
+    floor_scope_source = "explicit_input_filenames" if floor_plan_images is not None else "input_filename_hint"
+    if floor_plan_images is None:
+        floor_plan_images = sorted(name for name in inventory
+            if re.fullmatch(r"\d+f(?:_view)?\.png", name, re.I)) if image_kind == "drawings" else []
+    if (started_epoch is None) != (seconds is None):
+        raise ValueError("started_epoch and seconds must be supplied together")
     manifest = {"images": inventory, "image_kind": image_kind if inventory else None,
-        "scope": scope, "max_candidates": max_candidates, "deadline_epoch": None,
+        "scope": scope, "max_candidates": max_candidates,
+        "started_epoch": started_epoch, "time_budget_seconds": seconds,
+        "deadline_epoch": started_epoch + seconds if started_epoch is not None else None,
+        "floor_plan_images": floor_plan_images,
+        "floor_scope_source": floor_scope_source if floor_plan_images else "not_declared",
         "provider": "runtime", "input_mode": "runtime_original_inputs",
         "only_input": "admitted original images/mesh, user scope and optional building brief; no GT/evaluation"}
     if mesh:
@@ -129,9 +146,13 @@ async def execute(args) -> dict:
         guide, task = (output / "guide.txt").read_text(), (output / "task.txt").read_text()
     else:
         output.mkdir(parents=True, exist_ok=False)
+        started_epoch = time.time()
         run, guide, task = prepare_inputs(output, images=args.images, mesh=args.mesh,
             building_input=args.building_input, scope=args.scope, image_kind=args.image_kind,
-            max_candidates=args.max_candidates)
+            max_candidates=args.max_candidates, floor_plan_images=args.floor_plan_images,
+            started_epoch=started_epoch, seconds=limits.seconds)
+    manifest = json.loads((run / "inputs.json").read_bytes())
+    started_epoch = manifest.get("started_epoch")
     role = (local_observer_role if args.role == "local_observer" else coordinator_role)(limits.ledger_limit())
     adapter = None
     try:
@@ -161,6 +182,7 @@ async def execute(args) -> dict:
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
                     parameters=parameters, route=route, code_paths=("src/agent/runtime_entry.py",
+                        "src/agent/runtime_delivery.py",
                         "src/agent/runtime_tools.py", "scripts/tool_scripts", "src/agent/geometry",
                         "src/agent/runtime_context.py", "src/agent/runtime_behaviour.py",
                         "src/agent/correction", "src/agent/execution"))
@@ -195,6 +217,8 @@ async def execute(args) -> dict:
                     context_update=update_building_context,
                     required_view_ids=tuple(args.keep_view_id),
                     retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image),
+                    start_epoch=started_epoch,
+                    finalize_run=finalize_runtime_building,
                     strict_model_profile=strict_model_profile)
                 engine.low_output_limit_reason = args.low_output_limit_reason
                 result = await engine.run(messages, image_originals=originals, resume=args.resume)
@@ -210,6 +234,8 @@ def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--images", type=Path)
+    p.add_argument("--floor-plan-image", dest="floor_plan_images", action="append",
+                   help="Explicit expected floor-plan filename; repeat for all floors (same as Claude Code)")
     p.add_argument("--mesh", type=Path)
     p.add_argument("--building-input", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")

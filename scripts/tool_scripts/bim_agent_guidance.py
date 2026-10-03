@@ -55,6 +55,8 @@ original_pixels_per_returned_pixel. Keep object IDs stable.
 # (no crops, 29/29 positions); its whole-row crops could not magnify under the 1600 px
 # limit (run94 1.08x); drawn dividers read as absent (run94 1F south); heights taken
 # from a chain measuring another opening (run94 claims 0001/0003).
+# T1 replaces the height-feedback sentence after GLM sm24 cited a whole facade
+# and applied the ordinary-window chain to both 4800 mm windows.
 DRAWING_METHOD = """Drawing method, for measured plans and elevations. The drawings give the
 structure; every floor's saved draft is then checked against them.
 
@@ -89,7 +91,9 @@ bare numbers mean metres.
 
 4. DRAFT EVERY FLOOR. Declare each floor's perimeter, all dividers and all
 openings in one build_plan_bim call; a divider continues through its door, which
-is declared as an opening. Aim for a checkable draft of every floor before
+is declared as an opening. Use record_claim's facade_count form (claims reference)
+to record each floor/facade's observed window total, including zero; facade_counts
+compares these totals after saves and lists uncounted facades. Draft every floor before
 refining any one floor in detail; local looks needed to declare or compile a
 draft can happen at any time. Each upper floor comes from its own drawing;
 combine floors with assemble_plan_bim. A room count, seed or use never justifies
@@ -109,8 +113,11 @@ its sill and head from the dimension chain that measures that opening, in order
 from the chain's datum; a chain can add up while its segments are swapped, and
 a chain measuring one opening does not measure another. Openings of a different
 size or shape keep their own heights unless the elevation shows otherwise.
-record_claim returns facts on which floors, walls and widths a value is applied
-to. Internal door heights without a drawing are assumptions.
+Use view_elevation_candidate with observed anchors to locate the source openings;
+claim source boxes must cover those openings, not only an adjacent dimension chain.
+located_height_coverage reports unlocated heights and shared heights on different
+widths; a whole-image citation is unlocalized. Internal door heights without a
+drawing are assumptions.
 """
 
 # For image inputs of unknown kind (they may be prepared mesh views). Text from the
@@ -390,13 +397,15 @@ already give. Image names are the exact names listed by inputs.
 
 # 09-30. Failure targeted: run94 listed "2F needs a magnified check" as unresolved and
 # delivered with 1,824 s left; run93 did the same with door estimates. Shared with
-# continuation turns so both use one finishing rule.
+# continuation turns so both use one finishing rule. T1 replaces the open-ended
+# look-again instruction: GLM sm25 reached the cap with only one saved floor.
 FINISHING = """Before finishing, work through what the saved candidate still leaves open:
 settle on the delivered candidate every unresolved item and drawing difference
-that the supplied inputs can settle. Stop an item only when the inputs lack the
-information, a reasonable look cannot determine it, or the budget is truly
-exhausted, and say which. Reporting an item as unexamined does not replace a
-check you can still do."""
+that the supplied inputs and remaining time can settle. Each tool reports used
+and remaining minutes. After halfway, save any still-missing floor drafts before
+refining; below 15% remaining, stop new image reading, fix listed issues and
+deliver. State whether any item lacks information, remains indeterminate after
+a reasonable look, or ran out of time."""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
 DELIVERY = "Delivery. " + FINISHING + """
@@ -1007,7 +1016,21 @@ A failed expansion is saved as parametric_drafts; a failed source build retains
 its candidate. Return feedback is a geometric check, not input fidelity approval.
 """
 
-REFERENCES['claims'] = """Located observations that actually supply local revision parameters.
+# T1 replaces the single candidate-only introduction: GLM sm25 omitted two west
+# windows. A drawing count must exist independently of whatever BIM was built.
+REFERENCES['claims'] = """Located observations: drawing counts or candidate revision parameters.
+
+For one entire floor/facade, record_claim accepts this count before or after BIM:
+{"observation_type":"facade_count","image":"elevation.png","floor_id":"L1",
+ "facade":"South","window_count":4,"reason":"Synthetic example; use your own observed total"}
+Use the input image filename. Replace floor_id with floor_plan_image if the floor
+is not built yet; that image maps through the saved plan/assembly. Optional box
+is an original-pixel source region, door_count is an independent door total.
+Include explicit zero where observed. Counts always cover the entire named
+floor/facade, not just the crop. Re-record the same image/scope to correct its
+count; different images are compared, not summed. No decide/confirm is needed.
+facade_counts lists missing counts, conflicts, unresolved scope and differences
+on saves, check_openings and delivery; it never blocks or certifies the drawing.
 
 1. inspect_candidate identifies exact existing window/opening/space IDs.
 2. record_claim(claim_json) stores a candidate-bound observation:

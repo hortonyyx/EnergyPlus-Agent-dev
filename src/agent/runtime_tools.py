@@ -10,6 +10,7 @@ audits, selections, and candidates are conservatively non-idempotent writes.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from contextlib import asynccontextmanager
 import base64
 import hashlib
 import json
@@ -290,6 +291,39 @@ class FrozenBimTools:
         manifest_path = self.run_directory / "inputs.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.mesh = bool(manifest.get("mesh_input"))
+
+    @asynccontextmanager
+    async def task_session(self, *, directory, root, role, timing, images):
+        """Give a read-only child its own T1 clock and measurement sidecars.
+
+        Copies only the originals supplied in the evidence package. The
+        EvidenceTools wrapper still enforces the supplied crop boundaries.
+        Parent inputs and concurrently running siblings are never rewritten.
+        """
+        directory = Path(directory)
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "images").mkdir(exist_ok=True)
+        parent = json.loads((self.run_directory / "inputs.json").read_bytes())
+        inventory = {}
+        for name, (raw, size) in images.items():
+            if Path(name).name != name:
+                raise ValueError("observer image must be an admitted filename")
+            target = directory / "images" / name
+            if target.exists() and target.read_bytes() != raw:
+                raise ValueError("observer original image changed on resume")
+            if not target.exists():
+                target.write_bytes(raw)
+            inventory[name] = {"size": list(size), "sha256": hashlib.sha256(raw).hexdigest()}
+        manifest = {"images": inventory, "image_kind": parent.get("image_kind"),
+            "input_mode": "runtime_local_observation", "scope": "supplied local evidence only",
+            "floor_plan_images": [], "floor_scope_source": "not_declared", **timing}
+        path = directory / "inputs.json"
+        if path.exists() and json.loads(path.read_bytes()) != manifest:
+            raise ValueError("observer inputs or time budget changed on resume")
+        if not path.exists():
+            path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        async with frozen_bim_client(directory, readonly=True, repository_root=root) as client:
+            yield FrozenBimTools(client, role, run_directory=directory)
 
     async def list_tools(self) -> list[dict[str, Any]]:
         tools = await self.client.list_tools()

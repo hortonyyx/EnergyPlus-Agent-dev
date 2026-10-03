@@ -1,0 +1,5598 @@
+{
+  "model_calls": 0,
+  "replay_kind": "developer_supplied_count_observations",
+  "expected_totals": {
+    "sm21": [
+      [
+        [
+          3,
+          0
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      [
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ]
+    ],
+    "sm24": [
+      [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          5,
+          0
+        ]
+      ]
+    ],
+    "sm25": [
+      [
+        [
+          4,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          7,
+          1
+        ],
+        [
+          2,
+          2
+        ]
+      ],
+      [
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ]
+    ]
+  },
+  "reference_sources": {
+    "sm21": {
+      "path": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-tools-t1/AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/candidate_04/source_model.json",
+      "sha256": "15ee6e680adc2c38e4fa41d5cfc39104ce097204e9677b39ce0662cd05214eba"
+    },
+    "sm24": {
+      "path": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-tools-t1/AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/candidate_02/source_model.json",
+      "sha256": "82b1c2f5bbd47ae595fe12d4203e0a53940eefd647ea276a906e54b6d4684915"
+    },
+    "sm25": {
+      "path": "/workspaces/EnergyPlus-Agent-dev/.worktrees/opus-tools-t1/AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/candidate_04/source_model.json",
+      "sha256": "bbd8f6991261178fea8ef09b2fd4c1dfc4d1a90fdaf1ea527c9234630a8471a4"
+    }
+  },
+  "summary": {
+    "correct_count_control_runs": 9,
+    "control_floor_facade_count": 60,
+    "control_false_alert_count": 0
+  },
+  "runs": [
+    {
+      "run": "2026-09-26_sm21_whole_building_claude_run57",
+      "candidate": "candidate_04",
+      "correct_count_control": true,
+      "source_file_sha256": "410cc53f91a1bbe19503a0592167db2be7d0da995da6eb4ce2a8c87b52e154f0",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "cf3f986c4584a6700f24797dab940a350ddadf5cf409aa990ac77e2b7ae16ffb",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "not_counted": 8
+          },
+          "door_status_counts": {
+            "not_counted": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W-N1",
+                "F1:W-N2",
+                "F1:W-N3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W-S1",
+                "F1:W-S2",
+                "F1:W-S3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D-SW"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W-E"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D-W"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W-N1",
+                "F2:W-N2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W-S1",
+                "F2:W-S2",
+                "F2:W-S3",
+                "F2:W-S4"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W-E"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W-W"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 3,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1354,
+            812
+          ],
+          "image_sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+          "image_size": [
+            1354,
+            812
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903477634178_c6dfdd9f158a",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 3,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1423,
+            794
+          ],
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "image_size": [
+            1423,
+            794
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903513157404_adc49af60eb4",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            945,
+            741
+          ],
+          "image_sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+          "image_size": [
+            945,
+            741
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903552025402_2830c6b08150",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 0,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1077,
+            773
+          ],
+          "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+          "image_size": [
+            1077,
+            773
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903585465636_bf9a514180c6",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F2",
+          "facade": "North",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1354,
+            812
+          ],
+          "image_sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+          "image_size": [
+            1354,
+            812
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903628681194_64733bf128f1",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F2",
+          "facade": "South",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1423,
+            794
+          ],
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "image_size": [
+            1423,
+            794
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903660391871_bc7609584696",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F2",
+          "facade": "East",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            945,
+            741
+          ],
+          "image_sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+          "image_size": [
+            945,
+            741
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903697170697_91109698e8ad",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F2",
+          "facade": "West",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1077,
+            773
+          ],
+          "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+          "image_size": [
+            1077,
+            773
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008903737471852_8b1f23791b2a",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "cf3f986c4584a6700f24797dab940a350ddadf5cf409aa990ac77e2b7ae16ffb",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "matches_observed_total": 8
+          },
+          "door_status_counts": {
+            "matches_observed_total": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008903477634178_c6dfdd9f158a"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "F1:W-N1",
+                "F1:W-N2",
+                "F1:W-N3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008903513157404_adc49af60eb4"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "F1:W-S1",
+                "F1:W-S2",
+                "F1:W-S3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D-SW"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008903552025402_2830c6b08150"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:W-E"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008903585465636_bf9a514180c6"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D-W"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008903628681194_64733bf128f1"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F2:W-N1",
+                "F2:W-N2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008903660391871_bc7609584696"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F2:W-S1",
+                "F2:W-S2",
+                "F2:W-S3",
+                "F2:W-S4"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008903697170697_91109698e8ad"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F2:W-E"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008903737471852_8b1f23791b2a"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F2:W-W"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-09-26_sm24_whole_building_claude_run55",
+      "candidate": "candidate_01",
+      "correct_count_control": true,
+      "source_file_sha256": "d43ef2e763e24a9d0fbe33353ffc6dad86c99957e712ba71a4c3d45b194fcde8",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_01",
+        "source_model_sha256": "293dcf3ed9437ce6431f97d2932b5c57575d69e04fef558c19c323e7de2d5898",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "not_counted": 4
+          },
+          "door_status_counts": {
+            "not_counted": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_N"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_N"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_S1",
+                "W_S2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_S"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_E1",
+                "W_E2",
+                "W_E3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_E"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_W1",
+                "W_W2",
+                "W_W3",
+                "W_W4",
+                "W_W5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 1,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2890,
+            1651
+          ],
+          "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+          "image_size": [
+            2890,
+            1651
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008905328919439_f0909f11479e",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2434,
+            1457
+          ],
+          "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+          "image_size": [
+            2434,
+            1457
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008905341527120_dcdbc7027021",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 3,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2639,
+            931
+          ],
+          "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+          "image_size": [
+            2639,
+            931
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008905353502215_73fd53035af9",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2580,
+            993
+          ],
+          "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+          "image_size": [
+            2580,
+            993
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008905366053758_51134c3c7311",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_01",
+        "source_model_sha256": "293dcf3ed9437ce6431f97d2932b5c57575d69e04fef558c19c323e7de2d5898",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "matches_observed_total": 4
+          },
+          "door_status_counts": {
+            "matches_observed_total": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008905328919439_f0909f11479e"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "W_N"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_N"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008905341527120_dcdbc7027021"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "W_S1",
+                "W_S2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_S"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008905353502215_73fd53035af9"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "W_E1",
+                "W_E2",
+                "W_E3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_E"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008905366053758_51134c3c7311"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "W_W1",
+                "W_W2",
+                "W_W3",
+                "W_W4",
+                "W_W5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-09-26_sm24_whole_building_repeat_claude_run56",
+      "candidate": "candidate_02",
+      "correct_count_control": true,
+      "source_file_sha256": "e51c31ace6f8a633cd624ed289698362230805159a15752432bfea68dc9e57e6",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_02",
+        "source_model_sha256": "10278c9b51fd2bcbb85f5cd762b0036cc860191d5c72201c258719419971ac5f",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "not_counted": 4
+          },
+          "door_status_counts": {
+            "not_counted": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "WN"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "XD_N"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "WS1",
+                "WS2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "XD_S"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "WE1",
+                "WE2",
+                "WE3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "XD_E"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "WW1",
+                "WW2",
+                "WW3",
+                "WW4",
+                "WW5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 1,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2890,
+            1651
+          ],
+          "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+          "image_size": [
+            2890,
+            1651
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008906668039939_77ba5ef8b5fb",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2434,
+            1457
+          ],
+          "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+          "image_size": [
+            2434,
+            1457
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008906685989958_f94171c8c010",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 3,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2639,
+            931
+          ],
+          "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+          "image_size": [
+            2639,
+            931
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008906704258517_588ef33581d0",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2580,
+            993
+          ],
+          "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+          "image_size": [
+            2580,
+            993
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008906716285917_89c48528fb73",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_02",
+        "source_model_sha256": "10278c9b51fd2bcbb85f5cd762b0036cc860191d5c72201c258719419971ac5f",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "matches_observed_total": 4
+          },
+          "door_status_counts": {
+            "matches_observed_total": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008906668039939_77ba5ef8b5fb"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "WN"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "XD_N"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008906685989958_f94171c8c010"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "WS1",
+                "WS2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "XD_S"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008906704258517_588ef33581d0"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "WE1",
+                "WE2",
+                "WE3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "XD_E"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008906716285917_89c48528fb73"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "WW1",
+                "WW2",
+                "WW3",
+                "WW4",
+                "WW5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-09-26_sm25_height_cold_claude_run53",
+      "candidate": "candidate_04",
+      "correct_count_control": true,
+      "source_file_sha256": "5e33edaee22579c1072ddfb9d95d890cdcf6d655933c983029bf2318feb1d2d1",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "39e12859f456c1211a4406f88a70c3953684212877e79f869a2e4ea81192aa63",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "not_counted": 8
+          },
+          "door_status_counts": {
+            "not_counted": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_n1",
+                "F1:W_n2",
+                "F1:W_n3",
+                "F1:W_n4"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_s1",
+                "F1:W_s2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 7,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_e1",
+                "F1:W_e2",
+                "F1:W_e3",
+                "F1:W_e4",
+                "F1:W_e5",
+                "F1:W_e6",
+                "F1:W_e7"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_east"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_w1",
+                "F1:W_w2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_west1",
+                "F1:D_west2"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W2_n1",
+                "F2:W2_n2",
+                "F2:W2_n3",
+                "F2:W2_n4"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W2_s1",
+                "F2:W2_s2",
+                "F2:W2_s3",
+                "F2:W2_s4",
+                "F2:W2_s5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W2_e1",
+                "F2:W2_e2",
+                "F2:W2_e3",
+                "F2:W2_e4",
+                "F2:W2_e5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W2_w1",
+                "F2:W2_w2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908221127735_1c8deeb6747d",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908245371345_a0fda0a32a30",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 7,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908269326427_88d4b81e783e",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 2,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908286619556_7377d8eabfa6",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F2",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908302931758_8775acf7bc98",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F2",
+          "facade": "South",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908320736658_31e82a14ae3b",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F2",
+          "facade": "East",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908336780046_cb2c861b7309",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F2",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008908352736168_fa9f4fc3cbaa",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "39e12859f456c1211a4406f88a70c3953684212877e79f869a2e4ea81192aa63",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "matches_observed_total": 8
+          },
+          "door_status_counts": {
+            "matches_observed_total": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008908221127735_1c8deeb6747d"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F1:W_n1",
+                "F1:W_n2",
+                "F1:W_n3",
+                "F1:W_n4"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008908245371345_a0fda0a32a30"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:W_s1",
+                "F1:W_s2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008908269326427_88d4b81e783e"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 7,
+              "observed_counts": [
+                7
+              ],
+              "built_opening_ids": [
+                "F1:W_e1",
+                "F1:W_e2",
+                "F1:W_e3",
+                "F1:W_e4",
+                "F1:W_e5",
+                "F1:W_e6",
+                "F1:W_e7"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_east"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008908286619556_7377d8eabfa6"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:W_w1",
+                "F1:W_w2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:D_west1",
+                "F1:D_west2"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008908302931758_8775acf7bc98"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F2:W2_n1",
+                "F2:W2_n2",
+                "F2:W2_n3",
+                "F2:W2_n4"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008908320736658_31e82a14ae3b"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "F2:W2_s1",
+                "F2:W2_s2",
+                "F2:W2_s3",
+                "F2:W2_s4",
+                "F2:W2_s5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008908336780046_cb2c861b7309"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "F2:W2_e1",
+                "F2:W2_e2",
+                "F2:W2_e3",
+                "F2:W2_e4",
+                "F2:W2_e5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008908352736168_fa9f4fc3cbaa"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F2:W2_w1",
+                "F2:W2_w2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-09-26_sm25_height_repeat_claude_run54",
+      "candidate": "candidate_05",
+      "correct_count_control": true,
+      "source_file_sha256": "d78798955abf91f3a7dfce879955d1395a17920db398c015a7dd20037d65bd0d",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_05",
+        "source_model_sha256": "4c86948b6a14489a57099406f679b21d11e1ef6ab00b09a49593b3eb58875ea9",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "not_counted": 8
+          },
+          "door_status_counts": {
+            "not_counted": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_long",
+                "F1:W_top1",
+                "F1:W_top2",
+                "F1:W_top3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_b1",
+                "F1:W_b2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 7,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_r1",
+                "F1:W_r2",
+                "F1:W_r3",
+                "F1:W_r4",
+                "F1:W_r5",
+                "F1:W_r6",
+                "F1:W_r7"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_exit_e"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_mid1",
+                "F1:W_mid2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_exit_w",
+                "F1:D_nw_w"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_long",
+                "F2:W_top1",
+                "F2:W_top2",
+                "F2:W_top3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_b1",
+                "F2:W_b2",
+                "F2:W_b3",
+                "F2:W_b4",
+                "F2:W_b5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_r1",
+                "F2:W_r2",
+                "F2:W_r3",
+                "F2:W_r4",
+                "F2:W_r5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_band",
+                "F2:W_conf"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910031958186_3eedf27dcd62",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910044056921_cb40e6b27ae2",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 7,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910053581642_2a20049bb6db",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 2,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910063817562_821f6f23daa0",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F2",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910073659956_f9f4da055755",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F2",
+          "facade": "South",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910083047897_8c194d2ecb74",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F2",
+          "facade": "East",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910096486603_6105f462ff89",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F2",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008910108267169_9440011c3587",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_05",
+        "source_model_sha256": "4c86948b6a14489a57099406f679b21d11e1ef6ab00b09a49593b3eb58875ea9",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "matches_observed_total": 8
+          },
+          "door_status_counts": {
+            "matches_observed_total": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008910031958186_3eedf27dcd62"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F1:W_long",
+                "F1:W_top1",
+                "F1:W_top2",
+                "F1:W_top3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008910044056921_cb40e6b27ae2"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:W_b1",
+                "F1:W_b2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008910053581642_2a20049bb6db"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 7,
+              "observed_counts": [
+                7
+              ],
+              "built_opening_ids": [
+                "F1:W_r1",
+                "F1:W_r2",
+                "F1:W_r3",
+                "F1:W_r4",
+                "F1:W_r5",
+                "F1:W_r6",
+                "F1:W_r7"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_exit_e"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008910063817562_821f6f23daa0"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:W_mid1",
+                "F1:W_mid2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:D_exit_w",
+                "F1:D_nw_w"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008910073659956_f9f4da055755"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F2:W_long",
+                "F2:W_top1",
+                "F2:W_top2",
+                "F2:W_top3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008910083047897_8c194d2ecb74"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "F2:W_b1",
+                "F2:W_b2",
+                "F2:W_b3",
+                "F2:W_b4",
+                "F2:W_b5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008910096486603_6105f462ff89"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "F2:W_r1",
+                "F2:W_r2",
+                "F2:W_r3",
+                "F2:W_r4",
+                "F2:W_r5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008910108267169_9440011c3587"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F2:W_band",
+                "F2:W_conf"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+      "candidate": "candidate_04",
+      "correct_count_control": true,
+      "source_file_sha256": "99a416a9253a56af69611fe38c130c523389b4ed8c1dc0ce3988a67f52ab4053",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "7d3a8d8f0a05a94847feea709d967a855840f7105ba67f668ec622c540296b61",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "not_counted": 8
+          },
+          "door_status_counts": {
+            "not_counted": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_N1",
+                "F1:W_N2",
+                "F1:W_N3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_S1",
+                "F1:W_S2",
+                "F1:W_S3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_SW"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_E"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_W"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_N1",
+                "F2:W_N2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_S1",
+                "F2:W_S2",
+                "F2:W_S3",
+                "F2:W_S4"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_E"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_W"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 3,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1354,
+            812
+          ],
+          "image_sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+          "image_size": [
+            1354,
+            812
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911825160545_03148ebe8eb5",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 3,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1423,
+            794
+          ],
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "image_size": [
+            1423,
+            794
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911841043289_9e2567ed6bc0",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            945,
+            741
+          ],
+          "image_sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+          "image_size": [
+            945,
+            741
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911852158044_1062fd91c175",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 0,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1077,
+            773
+          ],
+          "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+          "image_size": [
+            1077,
+            773
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911861681871_d3bafe44d946",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F2",
+          "facade": "North",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1354,
+            812
+          ],
+          "image_sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+          "image_size": [
+            1354,
+            812
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911871597327_854cc92e4858",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F2",
+          "facade": "South",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1423,
+            794
+          ],
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "image_size": [
+            1423,
+            794
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911883436720_4141f7b9fb8e",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F2",
+          "facade": "East",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            945,
+            741
+          ],
+          "image_sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+          "image_size": [
+            945,
+            741
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911894459845_13ce13876e43",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F2",
+          "facade": "West",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1077,
+            773
+          ],
+          "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+          "image_size": [
+            1077,
+            773
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008911904391350_2d80e8126066",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "7d3a8d8f0a05a94847feea709d967a855840f7105ba67f668ec622c540296b61",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "matches_observed_total": 8
+          },
+          "door_status_counts": {
+            "matches_observed_total": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008911825160545_03148ebe8eb5"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "F1:W_N1",
+                "F1:W_N2",
+                "F1:W_N3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008911841043289_9e2567ed6bc0"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "F1:W_S1",
+                "F1:W_S2",
+                "F1:W_S3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_SW"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008911852158044_1062fd91c175"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:W_E"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008911861681871_d3bafe44d946"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_W"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008911871597327_854cc92e4858"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F2:W_N1",
+                "F2:W_N2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008911883436720_4141f7b9fb8e"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F2:W_S1",
+                "F2:W_S2",
+                "F2:W_S3",
+                "F2:W_S4"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008911894459845_13ce13876e43"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F2:W_E"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008911904391350_2d80e8126066"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F2:W_W"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-10-01_opus_dev_sm21",
+      "candidate": "candidate_04",
+      "correct_count_control": true,
+      "source_file_sha256": "15ee6e680adc2c38e4fa41d5cfc39104ce097204e9677b39ce0662cd05214eba",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "750f996c0968cab6c11269957cf301c5b5c337e579bd3bdd9511f700ce91f331",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "not_counted": 8
+          },
+          "door_status_counts": {
+            "not_counted": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_N1",
+                "F1:W_N2",
+                "F1:W_N3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_S1",
+                "F1:W_S2",
+                "F1:W_S3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_S"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_E"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_W"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_N1",
+                "F2:W_N2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_S1",
+                "F2:W_S2",
+                "F2:W_S3",
+                "F2:W_S4"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_E"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_W"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 3,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1354,
+            812
+          ],
+          "image_sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+          "image_size": [
+            1354,
+            812
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914490779979_9aac88455986",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 3,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1423,
+            794
+          ],
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "image_size": [
+            1423,
+            794
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914505861813_e581219e194b",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            945,
+            741
+          ],
+          "image_sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+          "image_size": [
+            945,
+            741
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914519903212_fe07027b0430",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 0,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1077,
+            773
+          ],
+          "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+          "image_size": [
+            1077,
+            773
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914535054370_aa03b016f22e",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F2",
+          "facade": "North",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1354,
+            812
+          ],
+          "image_sha256": "3eea6a31223f0cee7b03707c01de48a12d6d610ff16d02edc660473a269fbaa0",
+          "image_size": [
+            1354,
+            812
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914552379616_2c907fedf8a8",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F2",
+          "facade": "South",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1423,
+            794
+          ],
+          "image_sha256": "6c69efe4699b0a534ce885299861796b9cd316f152b49bdd42e6877abaedcff4",
+          "image_size": [
+            1423,
+            794
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914570053592_13054ade300b",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F2",
+          "facade": "East",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            945,
+            741
+          ],
+          "image_sha256": "d09983ef9bdd42971d940c74ce58da54ea3b4f6369b2a13a4680b00ad710939c",
+          "image_size": [
+            945,
+            741
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914589151194_0421ed9ce286",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F2",
+          "facade": "West",
+          "window_count": 1,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            1077,
+            773
+          ],
+          "image_sha256": "88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2",
+          "image_size": [
+            1077,
+            773
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008914606391074_5faf2bd1c387",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "750f996c0968cab6c11269957cf301c5b5c337e579bd3bdd9511f700ce91f331",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "matches_observed_total": 8
+          },
+          "door_status_counts": {
+            "matches_observed_total": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008914490779979_9aac88455986"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "F1:W_N1",
+                "F1:W_N2",
+                "F1:W_N3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008914505861813_e581219e194b"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "F1:W_S1",
+                "F1:W_S2",
+                "F1:W_S3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_S"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008914519903212_fe07027b0430"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:W_E"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008914535054370_aa03b016f22e"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_W"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008914552379616_2c907fedf8a8"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F2:W_N1",
+                "F2:W_N2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008914570053592_13054ade300b"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F2:W_S1",
+                "F2:W_S2",
+                "F2:W_S3",
+                "F2:W_S4"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008914589151194_0421ed9ce286"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F2:W_E"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008914606391074_5faf2bd1c387"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F2:W_W"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-10-01_opus_dev_sm24",
+      "candidate": "candidate_02",
+      "correct_count_control": true,
+      "source_file_sha256": "82b1c2f5bbd47ae595fe12d4203e0a53940eefd647ea276a906e54b6d4684915",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_02",
+        "source_model_sha256": "fadbf80623ee9413efee91a212fdbc564aa0b01f5f359bd00e3c779aa252fe0c",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "not_counted": 4
+          },
+          "door_status_counts": {
+            "not_counted": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_N"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_N"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_S1",
+                "W_S2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_S"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 3,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_E1",
+                "W_E2",
+                "W_E3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_E"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "W_W1",
+                "W_W2",
+                "W_W3",
+                "W_W4",
+                "W_W5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 1,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2890,
+            1651
+          ],
+          "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+          "image_size": [
+            2890,
+            1651
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008921090129983_118bebdd98ee",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2434,
+            1457
+          ],
+          "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+          "image_size": [
+            2434,
+            1457
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008921142634579_2ffbd8c42381",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 3,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2639,
+            931
+          ],
+          "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+          "image_size": [
+            2639,
+            931
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008921194291577_39395bfc0ce8",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2580,
+            993
+          ],
+          "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+          "image_size": [
+            2580,
+            993
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008921247009055_f468f4fbc088",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_02",
+        "source_model_sha256": "fadbf80623ee9413efee91a212fdbc564aa0b01f5f359bd00e3c779aa252fe0c",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "matches_observed_total": 4
+          },
+          "door_status_counts": {
+            "matches_observed_total": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008921090129983_118bebdd98ee"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "W_N"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_N"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008921142634579_2ffbd8c42381"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "W_S1",
+                "W_S2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_S"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008921194291577_39395bfc0ce8"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 3,
+              "observed_counts": [
+                3
+              ],
+              "built_opening_ids": [
+                "W_E1",
+                "W_E2",
+                "W_E3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_E"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008921247009055_f468f4fbc088"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "W_W1",
+                "W_W2",
+                "W_W3",
+                "W_W4",
+                "W_W5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-10-01_opus_dev_sm25",
+      "candidate": "candidate_04",
+      "correct_count_control": true,
+      "source_file_sha256": "bbd8f6991261178fea8ef09b2fd4c1dfc4d1a90fdaf1ea527c9234630a8471a4",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "c6332d98abc986b26dd501eba65dd4bdfa9f0083da2f32474615afa5ca726a76",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "not_counted": 8
+          },
+          "door_status_counts": {
+            "not_counted": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_BN",
+                "F1:W_N1",
+                "F1:W_N2",
+                "F1:W_N3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_S1",
+                "F1:W_S2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 7,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_E1",
+                "F1:W_E2",
+                "F1:W_E3",
+                "F1:W_E4",
+                "F1:W_E5",
+                "F1:W_E6",
+                "F1:W_E7"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_E"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:W_W1",
+                "F1:W_W2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F1:D_W1",
+                "F1:D_W2"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_BN",
+                "F2:W_N1",
+                "F2:W_N2",
+                "F2:W_N3"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_S1",
+                "F2:W_S2",
+                "F2:W_S3",
+                "F2:W_S4",
+                "F2:W_S5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 5,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_E1",
+                "F2:W_E2",
+                "F2:W_E3",
+                "F2:W_E4",
+                "F2:W_E5"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "F2:W_W1",
+                "F2:W_W2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927134741137_3b17000124c1",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927148813524_b9d4e36d378d",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 7,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927162403490_8f92eab8fda2",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 2,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927175329566_5fdd7f2a41af",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F2",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927188428263_6ed6755cc115",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F2",
+          "facade": "South",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927207809641_7d83684828aa",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F2",
+          "facade": "East",
+          "window_count": 5,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927219809069_5e47f7f5c89d",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F2",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008927232069591_7263871912fe",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_04",
+        "source_model_sha256": "c6332d98abc986b26dd501eba65dd4bdfa9f0083da2f32474615afa5ca726a76",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 8,
+          "window_status_counts": {
+            "matches_observed_total": 8
+          },
+          "door_status_counts": {
+            "matches_observed_total": 8
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008927134741137_3b17000124c1"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F1:W_BN",
+                "F1:W_N1",
+                "F1:W_N2",
+                "F1:W_N3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008927148813524_b9d4e36d378d"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:W_S1",
+                "F1:W_S2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008927162403490_8f92eab8fda2"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 7,
+              "observed_counts": [
+                7
+              ],
+              "built_opening_ids": [
+                "F1:W_E1",
+                "F1:W_E2",
+                "F1:W_E3",
+                "F1:W_E4",
+                "F1:W_E5",
+                "F1:W_E6",
+                "F1:W_E7"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "F1:D_E"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008927175329566_5fdd7f2a41af"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:W_W1",
+                "F1:W_W2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F1:D_W1",
+                "F1:D_W2"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008927188428263_6ed6755cc115"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "F2:W_BN",
+                "F2:W_N1",
+                "F2:W_N2",
+                "F2:W_N3"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008927207809641_7d83684828aa"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "F2:W_S1",
+                "F2:W_S2",
+                "F2:W_S3",
+                "F2:W_S4",
+                "F2:W_S5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008927219809069_5e47f7f5c89d"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 5,
+              "observed_counts": [
+                5
+              ],
+              "built_opening_ids": [
+                "F2:W_E1",
+                "F2:W_E2",
+                "F2:W_E3",
+                "F2:W_E4",
+                "F2:W_E5"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F2",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008927232069591_7263871912fe"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "F2:W_W1",
+                "F2:W_W2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [],
+      "false_alert_count": 0
+    },
+    {
+      "run": "2026-10-02_sm25_glm_baseline",
+      "candidate": "candidate_01",
+      "correct_count_control": false,
+      "source_file_sha256": "fef22fb225b226e8da0dcd4f87412fdeac98995865a26f8e2b7d49ea80db5027",
+      "report_before_fixture": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_01",
+        "source_model_sha256": "773012c0e1ad07d16fb9b6cf6cabcb484a1d0da812b4f9f7215245ed6e64a482",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "not_counted": 4
+          },
+          "door_status_counts": {
+            "not_counted": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 4,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "Wn1",
+                "Wn2",
+                "Wn3",
+                "Wr01"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "Ws1",
+                "Ws2"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 7,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "We1",
+                "We2",
+                "We3",
+                "We4",
+                "We5",
+                "We6",
+                "We7"
+              ],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 1,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_east"
+              ],
+              "missing_count": null
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [],
+            "window": {
+              "status": "not_counted",
+              "built_count": 0,
+              "observed_counts": [],
+              "built_opening_ids": [],
+              "missing_count": null
+            },
+            "door": {
+              "status": "not_counted",
+              "built_count": 2,
+              "observed_counts": [],
+              "built_opening_ids": [
+                "D_stub",
+                "D_west"
+              ],
+              "missing_count": null
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "supplied_fixture_records": [
+        {
+          "observation_type": "facade_count",
+          "image": "North_view.png",
+          "floor_id": "F1",
+          "facade": "North",
+          "window_count": 4,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2690,
+            1276
+          ],
+          "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+          "image_size": [
+            2690,
+            1276
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008929154809092_23516a246cfd",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "South_view.png",
+          "floor_id": "F1",
+          "facade": "South",
+          "window_count": 2,
+          "door_count": 0,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2437,
+            1263
+          ],
+          "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+          "image_size": [
+            2437,
+            1263
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008929167562352_fa3be28f527c",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "East_view.png",
+          "floor_id": "F1",
+          "facade": "East",
+          "window_count": 7,
+          "door_count": 1,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2059,
+            1232
+          ],
+          "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+          "image_size": [
+            2059,
+            1232
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008929180182289_4160f0f60e1f",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        },
+        {
+          "observation_type": "facade_count",
+          "image": "West_view.png",
+          "floor_id": "F1",
+          "facade": "West",
+          "window_count": 2,
+          "door_count": 2,
+          "reason": "Developer-supplied offline replay count, independently fixed from the accepted reference; not an original model observation.",
+          "box": [
+            0,
+            0,
+            2353,
+            1295
+          ],
+          "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+          "image_size": [
+            2353,
+            1295
+          ],
+          "schema_version": "facade_count_observation_v1",
+          "id": "count_01791008929192149675_3f64c92d1124",
+          "drawing_fidelity": "not_evaluated",
+          "note": "Observer-reported total for the entire named floor/facade, not a verified count. Re-record this image/scope to correct it; no adoption or geometry confirmation is needed."
+        }
+      ],
+      "report": {
+        "schema_version": "facade_count_report_v1",
+        "candidate": "candidate_01",
+        "source_model_sha256": "773012c0e1ad07d16fb9b6cf6cabcb484a1d0da812b4f9f7215245ed6e64a482",
+        "delivery_blocked": false,
+        "summary": {
+          "floor_facade_count": 4,
+          "window_status_counts": {
+            "matches_observed_total": 3,
+            "count_mismatch": 1
+          },
+          "door_status_counts": {
+            "matches_observed_total": 4
+          },
+          "unused_observation_count": 0
+        },
+        "scopes": [
+          {
+            "floor_id": "F1",
+            "facade": "North",
+            "observation_ids": [
+              "count_01791008929154809092_23516a246cfd"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 4,
+              "observed_counts": [
+                4
+              ],
+              "built_opening_ids": [
+                "Wn1",
+                "Wn2",
+                "Wn3",
+                "Wr01"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "South",
+            "observation_ids": [
+              "count_01791008929167562352_fa3be28f527c"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "Ws1",
+                "Ws2"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 0,
+              "observed_counts": [
+                0
+              ],
+              "built_opening_ids": [],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "East",
+            "observation_ids": [
+              "count_01791008929180182289_4160f0f60e1f"
+            ],
+            "window": {
+              "status": "matches_observed_total",
+              "built_count": 7,
+              "observed_counts": [
+                7
+              ],
+              "built_opening_ids": [
+                "We1",
+                "We2",
+                "We3",
+                "We4",
+                "We5",
+                "We6",
+                "We7"
+              ],
+              "missing_count": 0
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 1,
+              "observed_counts": [
+                1
+              ],
+              "built_opening_ids": [
+                "D_east"
+              ],
+              "missing_count": 0
+            }
+          },
+          {
+            "floor_id": "F1",
+            "facade": "West",
+            "observation_ids": [
+              "count_01791008929192149675_3f64c92d1124"
+            ],
+            "window": {
+              "status": "count_mismatch",
+              "built_count": 0,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [],
+              "missing_count": 2
+            },
+            "door": {
+              "status": "matches_observed_total",
+              "built_count": 2,
+              "observed_counts": [
+                2
+              ],
+              "built_opening_ids": [
+                "D_stub",
+                "D_west"
+              ],
+              "missing_count": 0
+            }
+          }
+        ],
+        "unused_observations": [],
+        "unsupported_exterior_boundaries": [],
+        "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+      },
+      "mismatches": [
+        {
+          "floor_id": "F1",
+          "facade": "West",
+          "kind": "window",
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            2
+          ],
+          "built_opening_ids": [],
+          "missing_count": 2
+        }
+      ],
+      "false_alert_count": null
+    }
+  ],
+  "limitation": "This tests comparison against correct supplied counts, not model counting skill. No historical geometry, calibration or original observation is changed."
+}

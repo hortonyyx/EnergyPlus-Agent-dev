@@ -71,14 +71,19 @@ class Runtime:
     answer_validator: object | None = None
     max_answer_repairs: int = 0
     low_output_limit_reason: str | None = None
+    # An entrypoint may start the clock before preparing its tool service.
+    # Resume still restores the original persisted start; it never buys time.
+    start_epoch: float | None = None
+    finalize_run: object | None = None
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
         validate_output_limit(self.model, self.parameters.get("max_tokens",
             self.parameters.get("max_completion_tokens")), reason=self.low_output_limit_reason)
         self.started = time.monotonic()
-        self.started_epoch = time.time()
-        self.elapsed_before = 0.0
+        now = time.time()
+        self.started_epoch = now if self.start_epoch is None else self.start_epoch
+        self.elapsed_before = max(0.0, now - self.started_epoch)
         self.messages, self.sources = [], []
         self.originals = dict(image_originals or {})
         self.used_ids = set()
@@ -1101,6 +1106,10 @@ class Runtime:
     def _stop(self, reason):
         self._load_budget()
         self._refresh_counts()
+        # Domain finalization reuses already saved artifacts; it must run before
+        # their hashes and the final receipt are recorded. No new model request.
+        finalization = (self.finalize_run(self, reason) if self.finalize_run
+                        and not reason.startswith("resume_") else None)
         artifacts, paths = [], []
         for path in self.tools.artifacts():
             if path.is_file():
@@ -1113,6 +1122,9 @@ class Runtime:
         task_accounting = summarize_request_accounting(
             row for row in accounting_records if row.task_id == self.store.task_id)
         receipt = {"status": reason, "answer": self.answer,
+            **({"finalization": finalization} if finalization is not None else {}),
+            "started_epoch": self.started_epoch,
+            "deadline_epoch": self.started_epoch + self.limits.seconds,
             "agent_version": self.versions.agent_version.identifier if self.versions.agent_version else None,
             "output_limit_policy": validate_output_limit(self.model,
                 self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),

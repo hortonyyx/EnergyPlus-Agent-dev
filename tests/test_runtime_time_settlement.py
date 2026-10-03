@@ -71,6 +71,7 @@ def _runtime_with_reservation(
         limits=child_limits,
     )
     engine.started = time.monotonic()
+    engine.started_epoch = time.time()
     engine.elapsed_before = 0.0
     engine.answer = None
     engine._load_budget()
