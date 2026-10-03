@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**10-03 晚用量（Opus 任项目经理）：** GLM 订阅：sm24 整案 3 次（新底座，实报 1,316,963／1,788,983／254,864 token），思考档校准 12 次（348,200 token），Claude Code 抓包 1 次、探测 1 次（极小）。新底座订阅线路改为接受 `reasoning_effort` low／medium／high／max：订阅端点默认接近最高档，Claude Code 发 `effort: medium` 加自适应思考，同条件对照应写明 medium（见[迁移对照记录](../logs/experiments/2026-10-03_migration_comparison/README.md)）。ChatGPT 订阅（Astra，`gpt-6-astra`／max）：R3 约 60 分钟，输入 14,548,271（缓存 13,986,944）、输出 78,113；首次审查约 44 分钟，输入 8,074,209（缓存 7,660,544）、输出 50,413，子代理 0；C1／C2 进行中。Claude：Opus 空白上下文审查子代理约 39 分钟、45.5 万 token。Paratera 0，DeepSeek 0。见[工作记录](../logs/worklog/2026-10-03_opus_migration_close_and_first_review.md)。
+
 **10-03 新底座直接接 GLM 订阅（用户决定）：** 用户：“你别管条款，先说能不能接”，随后定“直接接（新底座接GLM订阅）”。这一决定覆盖下方 10-02“智谱文档限定订阅只用于官方支持工具，未获许可不用”的口径，条款风险由用户承担。接法：使用 `.env` 的 `GLM_API_KEY` 和 `GLM_BASE_URL`（`https://open.bigmodel.cn/api/coding/paas/v4`，Coding Plan 的 OpenAI 兼容端点），型号 `glm-5.3-flash`，与 Claude Code 线共用同一份订阅额度。起因是迁移对照里同一型号经 Paratera 每轮思考量是订阅线路的 3–5 倍，接上订阅才能做“同一服务、只换底座”的对照。
 
 **10-03 Paratera 开发期额度与单价（用户批准）：** 用户导出后台账单并给出[官方文档](https://ai.paratera.com/document)，“我先批准50块吧，这部分你可以自由调度测试”。执行口径：自批准起新增花费累计不超过 50 元，额度内 Opus 按需安排 Paratera 测试（含整案），不再逐批申请，事后报实际用量与金额；用满或要扩大时再请用户定。DeepSeek 专项许可不变，订阅授权也不因此扩展到其他付费服务。官方[计费页](https://ai.paratera.com/document/llm/billing/billing)只列旧型号（后付费、按小时结算），下表单价由 10-03 实际账单反推（元／百万 token）：
