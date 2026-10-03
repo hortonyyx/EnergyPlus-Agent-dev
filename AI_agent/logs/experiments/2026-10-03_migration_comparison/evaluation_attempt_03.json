@@ -1,0 +1,419 @@
+{
+  "attempt": "attempt_03",
+  "run": "AI_agent/logs/experiments/2026-10-03_migration_comparison/runs/attempt_03_6000s",
+  "delivered_candidate": "candidate_05",
+  "selection_origin": "agent_selected",
+  "runtime": {
+    "status": "completed",
+    "answer_present": true,
+    "receipt_elapsed_seconds": 2512.7461351899983,
+    "event_span_seconds": 2512.6,
+    "model_calls": 36,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "GLM-5.3-Flash": 36
+    },
+    "usage": {
+      "prompt": 3166091,
+      "completion": 104008,
+      "total": 3270099,
+      "cached": 574976,
+      "reasoning": 82512,
+      "responses_without_usage": 0
+    },
+    "request_image_attachments": 188,
+    "estimated_yuan_text_only": 2.824,
+    "yuan_note": "Reported tokens only; the Paratera bill also charges image tokens the usage omits.",
+    "tool_calls": {
+      "inputs": 2,
+      "view_image": 14,
+      "view_pixel_profile": 5,
+      "get_bim_reference": 7,
+      "build_plan_bim": 1,
+      "revise_plan_bim": 2,
+      "record_claim": 9,
+      "decide_claim": 6,
+      "revise_bim": 2,
+      "inspect_candidate": 1,
+      "build_bim": 2,
+      "confirm_claims": 2,
+      "claim_status": 1,
+      "finish_bim": 1
+    },
+    "tool_outcomes": {
+      "succeeded": 48,
+      "failed": 7
+    },
+    "tool_failures": [
+      {
+        "tool": "view_pixel_profile",
+        "outcome": "failed"
+      },
+      {
+        "tool": "view_pixel_profile",
+        "outcome": "failed"
+      },
+      {
+        "tool": "build_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 36,
+      "settle": 36
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 163,
+      "budget": 72,
+      "adapter_request": 36,
+      "model_response": 36,
+      "tool_invocation": 55,
+      "tool_execution": 55,
+      "tool_presentation": 55,
+      "context": 861,
+      "run_usage_summary": 1
+    }
+  },
+  "migration": {
+    "rooms_one_to_one": true,
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "positions": 19,
+    "hosts": 21,
+    "door_connections": 10,
+    "reference_openings": 21,
+    "heights_within": 14,
+    "heights_expected": 14,
+    "height_mismatches": []
+  },
+  "baseline_10_02": {
+    "rooms_one_to_one": true,
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "positions": 20,
+    "hosts": 21,
+    "door_connections": 10,
+    "reference_openings": 21,
+    "heights_within": 12,
+    "heights_expected": 14,
+    "height_mismatches": [
+      "W-east-3",
+      "W-west-5"
+    ]
+  },
+  "baseline_seconds": 1442.03,
+  "full_quality": {
+    "run": "attempt_03_6000s",
+    "case": "sm24",
+    "candidate": "candidate_05",
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "spaces_one_to_one": {
+      "pass_": true,
+      "reference_rooms": 8,
+      "findings": []
+    },
+    "original_openings": {
+      "reference_count": 21,
+      "matched": 21,
+      "positions": 19,
+      "hosts": 21,
+      "door_connections": 10,
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    },
+    "strict_heights": {
+      "tolerance_m": 0.05,
+      "expected": 14,
+      "matched": 14,
+      "within": 14,
+      "pass_": true,
+      "mismatches": [],
+      "unmatched_reference": [],
+      "unmatched_built_exterior": [],
+      "unclassified_exterior": [],
+      "all": [
+        {
+          "opening_id": "D2",
+          "reference_id": "op_ac9",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "D1",
+          "reference_id": "op_ac3",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "D3",
+          "reference_id": "op_ade",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W9",
+          "reference_id": "op_aff",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W8",
+          "reference_id": "op_afc",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W7",
+          "reference_id": "op_aea",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W1",
+          "reference_id": "op_ae1",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W10",
+          "reference_id": "op_af6",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W11",
+          "reference_id": "op_af9",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W6",
+          "reference_id": "op_ae4",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W5",
+          "reference_id": "op_af3",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W4",
+          "reference_id": "op_af0",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W3",
+          "reference_id": "op_aed",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W2",
+          "reference_id": "op_ae7",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        }
+      ]
+    }
+  }
+}

@@ -23,10 +23,12 @@ ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT))
 PREFIX = "AI_agent.logs.experiments."
 RUNS = {"attempt_01": HERE.parent / "2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera",
-        "attempt_02": HERE / "runs/attempt_02_output_32000"}
+        "attempt_02": HERE / "runs/attempt_02_output_32000",
+        "attempt_03": HERE / "runs/attempt_03_6000s"}
 BASELINE = HERE.parent / "2026-10-02_sm24_glm_baseline"
 TASK_SHA256 = "a05ae6d543fdd14076a46859c8b4e2fa781f560a0ddfcce6d1948597632fa795"
 GUIDE_SHA256 = "9ca4fdcda8b446a58fd97466f4849628a54e6a2966b4db480407bb7131516b34"
+BUDGET_SECONDS = {"attempt_01": 3000, "attempt_02": 3000, "attempt_03": 6000}
 # Yuan per million tokens, derived from the 10-03 Paratera bill (AI_agent/workflow/models.md).
 PRICE = {"GLM-5.3-Flash": {"input": 0.8, "output": 2.8}}
 
@@ -91,10 +93,18 @@ def runtime_facts(run):
         event_types=dict(Counter(p.get("event_type") for p in payloads)))
 
 
-def compat_view(run, target, facts):
+def expected_task(seconds):
+    """The 10-02 baseline task text; attempt 03 changes only its budget sentence."""
+    prompt = load(HERE.parent / "2026-10-02_glm_baseline/preflight_glm_sm24.json")["prompt"]
+    assert hashlib.sha256(prompt.encode()).hexdigest() == TASK_SHA256
+    return prompt.replace("Budget: 3000 seconds.", f"Budget: {seconds} seconds.")
+
+
+def compat_view(run, target, facts, seconds):
     """Copy bim/ and add only the runner fields the unchanged audits read, marked as adapter-written."""
     from scripts.tool_scripts.run_bim_agent import Toolkit
-    assert digest(run / "task.txt") == TASK_SHA256 and digest(run / "guide.txt") == GUIDE_SHA256
+    assert (run / "task.txt").read_text() == expected_task(seconds)
+    assert digest(run / "guide.txt") == GUIDE_SHA256
     baseline = load(BASELINE / "inputs.json")
     implementation = baseline["implementation_sha256"]
     changed = [name for name, sha in implementation.items() if digest(ROOT / name) != sha]
@@ -132,7 +142,7 @@ def evaluate(name):
     run = RUNS[name]
     facts = runtime_facts(run)
     with tempfile.TemporaryDirectory(prefix="migration-eval-") as tmp:
-        view, chosen, origin = compat_view(run, Path(tmp), facts)
+        view, chosen, origin = compat_view(run, Path(tmp), facts, BUDGET_SECONDS[name])
         quality = None
         if chosen:
             importlib.import_module(PREFIX + "2026-09-23_sm24_cold_plan_setup.audit_run").audit(view)
