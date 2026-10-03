@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="6" time="779.742" timestamp="2026-10-03T12:12:44.382963+00:00" hostname="d5136ba15fc0"><testcase classname="tests.test_runtime_long_task" name="test_run99_fixture_recovers_exact_ordered_calls_results_and_image_bytes" time="0.664" /><testcase classname="tests.test_runtime_long_task" name="test_long_run_recovers_across_request_boundaries[before_request-&lt;lambda&gt;]" time="392.661"><failure message="AssertionError: assert (True and 'token_budget_exhausted' == 'completed'&#10; +  where True = &lt;test_runtime_long_task.FaultOnce object at 0x72e96795c4a0&gt;.triggered&#10;  &#10;  - completed&#10;  + token_budget_exhausted)">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/long/tmp/popen-gw1/test_long_run_recovers_across_0')
+hook_name = 'before_request', predicate = &lt;function &lt;lambda&gt; at 0x72e967830360&gt;
+
+    @pytest.mark.parametrize(
+        ("hook_name", "predicate"),
+        [
+            ("before_request", lambda engine: engine.counts["model_calls"] == 20),
+            ("after_request", lambda engine: engine.counts["model_calls"] == 20),
+            ("after_response", lambda engine: engine.counts["model_calls"] == 20),
+        ],
+    )
+    def test_long_run_recovers_across_request_boundaries(tmp_path, hook_name, predicate):
+        fault = FaultOnce(hook_name, predicate)
+        receipt, _, backend, _, _, _ = _crash_then_resume(tmp_path, fault=fault)
+&gt;       assert fault.triggered and receipt["status"] == "completed"
+E       AssertionError: assert (True and 'token_budget_exhausted' == 'completed'
+E        +  where True = &lt;test_runtime_long_task.FaultOnce object at 0x72e96795c4a0&gt;.triggered
+E         
+E         - completed
+E         + token_budget_exhausted)
+
+tests/test_runtime_long_task.py:577: AssertionError</failure></testcase><testcase classname="tests.test_runtime_long_task" name="test_simulated_backend_keeps_writes_in_copy_and_counts_each_once" time="1.705" /><testcase classname="tests.test_runtime_long_task" name="test_long_run_recovers_across_request_boundaries[after_response-&lt;lambda&gt;]" time="388.215"><failure message="AssertionError: assert (True and 'token_budget_exhausted' == 'completed'&#10; +  where True = &lt;test_runtime_long_task.FaultOnce object at 0x7dfd0bb1b2c0&gt;.triggered&#10;  &#10;  - completed&#10;  + token_budget_exhausted)">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/long/tmp/popen-gw0/test_long_run_recovers_across_0')
+hook_name = 'after_response', predicate = &lt;function &lt;lambda&gt; at 0x7dfd0bb104a0&gt;
+
+    @pytest.mark.parametrize(
+        ("hook_name", "predicate"),
+        [
+            ("before_request", lambda engine: engine.counts["model_calls"] == 20),
+            ("after_request", lambda engine: engine.counts["model_calls"] == 20),
+            ("after_response", lambda engine: engine.counts["model_calls"] == 20),
+        ],
+    )
+    def test_long_run_recovers_across_request_boundaries(tmp_path, hook_name, predicate):
+        fault = FaultOnce(hook_name, predicate)
+        receipt, _, backend, _, _, _ = _crash_then_resume(tmp_path, fault=fault)
+&gt;       assert fault.triggered and receipt["status"] == "completed"
+E       AssertionError: assert (True and 'token_budget_exhausted' == 'completed'
+E        +  where True = &lt;test_runtime_long_task.FaultOnce object at 0x7dfd0bb1b2c0&gt;.triggered
+E         
+E         - completed
+E         + token_budget_exhausted)
+
+tests/test_runtime_long_task.py:577: AssertionError</failure></testcase><testcase classname="tests.test_runtime_long_task" name="test_long_run_recovers_write_interrupted_before_intent" time="296.105"><failure message="AssertionError: assert 'token_budget_exhausted' == 'completed'&#10;  &#10;  - completed&#10;  + token_budget_exhausted">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/long/tmp/popen-gw0/test_long_run_recovers_write_i0')
+
+    def test_long_run_recovers_write_interrupted_before_intent(tmp_path):
+        fault = FaultOnce(
+            "before_tool",
+            lambda engine: engine.counts["model_calls"] == 46,
+        )
+        receipt, _, backend, _, _, ledger_at_crash = _crash_then_resume(tmp_path, fault=fault)
+&gt;       assert receipt["status"] == "completed"
+E       AssertionError: assert 'token_budget_exhausted' == 'completed'
+E         
+E         - completed
+E         + token_budget_exhausted
+
+tests/test_runtime_long_task.py:589: AssertionError</failure></testcase><testcase classname="tests.test_runtime_long_task" name="test_long_run_recovers_across_request_boundaries[after_request-&lt;lambda&gt;]" time="234.601"><failure message="AssertionError: assert (True and 'token_budget_exhausted' == 'completed'&#10; +  where True = &lt;test_runtime_long_task.FaultOnce object at 0x72e9678ba8a0&gt;.triggered&#10;  &#10;  - completed&#10;  + token_budget_exhausted)">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/long/tmp/popen-gw1/test_long_run_recovers_across_1')
+hook_name = 'after_request', predicate = &lt;function &lt;lambda&gt; at 0x72e967830400&gt;
+
+    @pytest.mark.parametrize(
+        ("hook_name", "predicate"),
+        [
+            ("before_request", lambda engine: engine.counts["model_calls"] == 20),
+            ("after_request", lambda engine: engine.counts["model_calls"] == 20),
+            ("after_response", lambda engine: engine.counts["model_calls"] == 20),
+        ],
+    )
+    def test_long_run_recovers_across_request_boundaries(tmp_path, hook_name, predicate):
+        fault = FaultOnce(hook_name, predicate)
+        receipt, _, backend, _, _, _ = _crash_then_resume(tmp_path, fault=fault)
+&gt;       assert fault.triggered and receipt["status"] == "completed"
+E       AssertionError: assert (True and 'token_budget_exhausted' == 'completed'
+E        +  where True = &lt;test_runtime_long_task.FaultOnce object at 0x72e9678ba8a0&gt;.triggered
+E         
+E         - completed
+E         + token_budget_exhausted)
+
+tests/test_runtime_long_task.py:577: AssertionError</failure></testcase><testcase time="0.012" /><testcase time="0.011" /></testsuite></testsuites>

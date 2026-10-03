@@ -8,9 +8,9 @@
 | --- | --- | --- |
 | A 截断补救 | 原始回复全额结算，整条截断回复不执行任何工具调用；记独立事件，用短提示继续。默认每任务连续补救最多 2 次、根运行累计最多 3 次，子角色和摘要请求均计入；超出仍为 `incomplete_response`。实现通过定向反例。 | `tests/test_runtime_r2_truncation.py`；[真实小测](truncation_probe_result.json)、[逐请求核验](truncation_evidence_audit.json) |
 | B 输出上限 | GLM 建议 32,000，Qwen 两档建议 16,384；低于建议值先拒绝，只有非空理由可显式放行。理由写入配置与回执，R1 历史配置字节不变。 | `model_profiles.json`、`output_limits.py`；`tests/test_runtime_r2_output_limits.py` |
-| C 图片记账 | 实报、图片估算、人民币估算分列，缺失用量保留预留。图片计入根账与子账；有完整等式证明实报已包含图片时不重复相加。实现与可匹配部分通过；原验收前提存在下述反证，剩余账单和 GLM 单价未核实。 | [校准说明](image_accounting_calibration.md)、[摘要](image_accounting_calibration.json)、[脚本复算](image_accounting_recomputed.json)；`tests/test_runtime_image_accounting.py` |
+| C 图片记账 | 实报、图片估算、人民币估算分列，缺失用量保留预留。图片计入根账与子账；有完整等式证明实报已包含图片时不重复相加。实现及全部 Qwen 图片账单匹配通过；原验收前提存在下述反证，GLM 计费口径和单价未核实。 | [校准说明](image_accounting_calibration.md)、[摘要](image_accounting_calibration.json)、[脚本复算](image_accounting_recomputed.json)；`tests/test_runtime_image_accounting.py` |
 | D Agent 版本 | 登记 45 个工具、指引与任务说明依赖，核验四种 MCP 目录。运行记录当前版本；未经登记的修改被拒，登记后可用，历史 `5bb10538` 保留。 | [交付细节与命令](agent_version_registry_delivery.md)；`tests/test_runtime_agent_registry.py`、`tests/test_runtime_frozen_tools.py` |
-| E 范围与回归 | 冻结工具、指引、几何、原执行模块、项目管理文件、派工单与历史配置不改。最终回归结果以 [最终汇总](validation_final.json) 为准；初次失败及修正理由保留。 | `validation/`、[范围核验](scope_audit.json)、[改动与提交清单](change_manifest.json) |
+| E 范围与回归 | 冻结工具、指引、几何、原执行模块、项目管理文件、派工单与历史配置不改。最终去重 319 项全部通过，源码在各回归组期间不变；初次失败及修正理由保留。 | [最终汇总](validation_final.json)、`validation/`、[范围核验](scope_audit.json)、[改动与提交清单](change_manifest.json) |
 
 运行设计：[截断与上限](../../../design/runtime_r2_recovery.md)、[图片记账](../../../design/runtime_image_accounting.md)。
 
@@ -40,11 +40,12 @@ GLM-5.3-Flash / Paratera，纯文本、无工具，故意把输出上限设为 1
 `tokens=(缩放宽/f)×(缩放高/f)+2`。Qwen `f=32`，像素范围 65,536–16,777,216；
 GLM `f=28`，范围 12,544–6,272,000。读取实际发送字节的尺寸，恢复运行可按相同证据重算。
 
-58 次 Qwen 回复、8 个型号/小时账单桶匹配 62,620 图片 token，占账单 72,406 的 86.48%；
-逐请求公式、实报图片分项和已匹配账单三者误差均为 0。余下 9,786（北京时间 00:00 两桶各 4,893）缺对应事件；
-另有一次 877-token 图片请求没有回复，均保留未知。
+62 次有完整回复的 Qwen 历史请求、10 个型号/小时账单桶匹配全部 72,406 图片 token，覆盖 100%；
+逐请求公式、实报图片分项和账单三者误差均为 0。首次从事件归档核出 62,620，随后补查早期立面探针，
+其四次请求保存的图片路径、SHA、尺寸、回复时间与余下 9,786（北京时间 00:00 两桶各 4,893）精确对应。
+另有一次估算 877-token 的图片请求没有回复，不在匹配账单中，仍保留未知，不能算作实付。
 
-这些 58 次回复全部满足 `prompt_tokens=text_tokens+image_tokens`，反证“顶层实报总是漏图片”的旧推断。
+这些 62 次回复全部满足 `prompt_tokens=text_tokens+image_tokens`，反证“顶层实报总是漏图片”的旧推断。
 实现保留原始 usage，仅当这条非负整数等式成立时不重复补记；分项不完整时另加图片估算作保守预算。
 这是对证据前提的纠正，没有放宽预算或修改历史记录，需 Opus 在维护全局说明时复核。
 
@@ -68,12 +69,14 @@ PYTHONPATH="$PWD" python -m src.agent_runtime.agent_registry verify --root .
 初次短联合 302 项通过。长故障矩阵与真实工具回放暴露旧离线假模型的额度不适配：
 未知模型按解码像素估算图片，新增结算后在第 71 次左右耗尽原 8,000 万额度。
 两处离线 75 步回放额度改为 1.2 亿；生产上限、调用次数和 900 秒限制未改，独立调用预算耗尽反例保留。
-重跑记录带 `-final` 后缀；首次结果没有覆盖。D 后补当前登记测试 9 项通过，摘要补救在 A 定向 15 项中通过。
-最终汇总按测试 ID 去重，重复定向检查不累加计数。
+重跑记录带 `-final` 后缀；首次结果没有覆盖。长故障矩阵 10 项通过（1,416.7 秒），真实冻结工具 75 步 3 项通过（703.1 秒）。
+D 后补当前登记测试 9 项通过（38.6 秒），摘要补救在 A 定向 15 项中通过（9.1 秒）。
+短联合初轮 302 项用时 264.9 秒；补测覆盖其中重复项，并新增 1 个登记反例和 3 个摘要反例。
+最终短检查去重 306 项，加长矩阵 10、真实工具 3，共 **319 项全部通过**。重复定向检查不累加计数。
 
 ## 交接与未决
 
-- 技术未核实：9,786 个图片账单 token 缺请求事件；GLM 图片包含关系、另计费及图片/缓存单价；大图缩放服务行为。
+- 技术未核实：GLM 图片包含关系、另计费及图片/缓存单价；大图缩放服务行为；无回复的 877-token 估值对应请求是否计费。
 - 需 Opus 复核：C 的旧账单解释与新分项证据冲突；本包不自行修改 `AI_agent/project/` 或 `models.md`。
 - 用户拍板：本包没有新增产品取舍或外部调用申请；后续整案和工具改进包合入按原安排办理。
 - 本包不实施 T1 合入，不改 Claude Code 运行器，不评价 Opus 正在进行的迁移第 2 次。

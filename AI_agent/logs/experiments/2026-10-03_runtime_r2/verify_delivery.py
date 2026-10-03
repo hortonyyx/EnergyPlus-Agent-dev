@@ -26,6 +26,17 @@ def read_json(name):
     return json.loads((DELIVERY / name).read_bytes())
 
 
+def source_references(value):
+    if isinstance(value, dict):
+        if isinstance(value.get("path"), str) and isinstance(value.get("sha256"), str):
+            yield value
+        for child in value.values():
+            yield from source_references(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from source_references(child)
+
+
 def main():
     manifest = read_json("live_truncation_probe_manifest.json")
     archive_path = DELIVERY / "live_truncation_probe.tar.xz"
@@ -85,16 +96,18 @@ def main():
     assert digest((ROOT / fixture["path"]).read_bytes()) == fixture["sha256"]
 
     calibration = read_json("image_accounting_calibration.json")
-    for reference in [calibration["bill"], *calibration["evidence"].values()]:
+    for reference in source_references(calibration):
         assert digest((ROOT / reference["path"]).read_bytes()) == reference["sha256"]
     env = {**os.environ, "PYTHONPATH": str(ROOT), "PYTHONDONTWRITEBYTECODE": "1"}
     recomputed = json.loads(subprocess.check_output(
         [sys.executable, str(DELIVERY / "calibrate_image_accounting.py")], cwd=ROOT, env=env))
     qwen = recomputed["qwen_event_calibration"]
-    assert qwen["classifications"]["top_level_includes_image"]["requests"] == 58
-    assert qwen["bill_tokens_covered"] == qwen["formula_tokens_for_covered_buckets"] == 62_620
+    assert recomputed["sources"]["historical_elevation_probe"] == calibration["evidence"]["historical_elevation_probe"]
+    assert qwen["classifications"]["top_level_includes_image"]["requests"] == 62
+    assert qwen["bill_tokens_covered"] == qwen["formula_tokens_for_covered_buckets"] == 72_406
     assert qwen["covered_difference"] == qwen["formula_max_absolute_token_error_when_reported"] == 0
-    assert qwen["bill_coverage_percent"] == 86.48
+    assert qwen["bill_coverage_percent"] == 100.0
+    assert len(qwen["matched_bill_buckets"]) == 10 and qwen["unmatched_bill_buckets"] == []
     assert recomputed["bill"]["image_tokens"] == 72_406
     assert recomputed["glm_formula_calibration"]["large_image_overestimate_tokens"] == 1_139
     assert recomputed["external_requests_made"] == 0
@@ -104,7 +117,7 @@ def main():
     assert current["version_id"] == "5bb10538" and len(current["files"]) == 45
     report = {"status": "passed", "archive_stored_files": len(stored), "resolved_files": len(files), "live_events": len(events),
         "live_requests": len(requests), "live_usage": totals, "current_agent_version": current["version_id"],
-        "registered_files_verified": len(current["files"]), "qwen_matched_bill_tokens": 62_620,
+        "registered_files_verified": len(current["files"]), "qwen_matched_bill_tokens": 72_406,
         "qwen_maximum_absolute_error": 0, "new_external_requests": 0,
         "note": "Archive captures the earlier live probe revision; final code is covered by offline validation."}
     (DELIVERY / "evidence_verification.json").write_text(json.dumps(report, indent=2) + "\n")
