@@ -44,6 +44,7 @@ class RequestEstimate(ContractModel):
     task_id: NonEmptyStr
     input_token_upper_bound: int = Field(ge=0)
     output_token_limit: int = Field(ge=1)
+    reasoning_token_allowance: int = Field(default=0, ge=0)
     seconds: Decimal = Field(gt=0)
     calls: int = Field(default=1, ge=1)
     money_usd_upper_bound: Decimal | None = Field(default=None, ge=0)
@@ -59,6 +60,7 @@ class RequestEstimate(ContractModel):
         task_id: str,
         input_token_upper_bound: int,
         output_token_limit: int,
+        reasoning_token_allowance: int = 0,
         seconds: Decimal,
         estimate_source: str,
         pricing: PriceSchedule | None = None,
@@ -67,13 +69,14 @@ class RequestEstimate(ContractModel):
         if pricing is not None:
             money = pricing.upper_bound(
                 input_tokens=input_token_upper_bound,
-                output_tokens=output_token_limit,
+                output_tokens=output_token_limit + reasoning_token_allowance,
             )
         return cls(
             purpose=purpose,
             task_id=task_id,
             input_token_upper_bound=input_token_upper_bound,
             output_token_limit=output_token_limit,
+            reasoning_token_allowance=reasoning_token_allowance,
             seconds=seconds,
             money_usd_upper_bound=money,
             estimate_source=estimate_source,
@@ -82,7 +85,7 @@ class RequestEstimate(ContractModel):
     @property
     def amounts(self) -> BudgetAmounts:
         return BudgetAmounts(
-            tokens=self.input_token_upper_bound + self.output_token_limit,
+            tokens=self.input_token_upper_bound + self.output_token_limit + self.reasoning_token_allowance,
             money_usd=self.money_usd_upper_bound,
             seconds=self.seconds,
             calls=self.calls,
@@ -99,7 +102,7 @@ class RequestEstimate(ContractModel):
                 "money_usd_upper_bound": (
                     pricing.upper_bound(
                         input_tokens=self.input_token_upper_bound,
-                        output_tokens=output_token_limit,
+                        output_tokens=output_token_limit + self.reasoning_token_allowance,
                     )
                     if pricing is not None
                     else None
@@ -257,7 +260,8 @@ class RuntimeBudget:
             self._fatal_reason = "reservation_settled_twice"
             return self._stop(self._fatal_reason, reservation=reservation)
 
-        exceeded = _exceeded_reservation(actual, reservation.amounts)
+        exceeded = tuple(name for name in _exceeded_reservation(actual, reservation.amounts)
+                         if name != "tokens")
         if exceeded:
             self._fatal_reason = "actual_usage_exceeds_reservation"
             return self._stop(
@@ -294,6 +298,7 @@ class RuntimeBudget:
                 actual=actual,
                 usage=usage,
                 cost=cost,
+                token_overrun=max(0, (actual.tokens or 0) - (reservation.amounts.tokens or 0)),
             )
             BudgetLedger(
                 total_limit=self.total_limit,
@@ -304,6 +309,13 @@ class RuntimeBudget:
             self._fatal_reason = "invalid_settlement_evidence"
             return self._stop(self._fatal_reason, reservation=reservation)
         self._settlements.append(settlement)
+        if self._fatal_reason == "unsettled_reported_usage":
+            self._fatal_reason = None
+        if (self.total_limit.tokens is not None
+                and (self.ledger.committed.tokens or 0) > self.total_limit.tokens):
+            return BudgetDecision(action="stop", reason="token_budget_exhausted",
+                available=self.available, reservation=reservation, settlement=settlement,
+                exceeded_dimensions=("tokens",))
         return BudgetDecision(
             action="allow",
             reason="reservation_settled",
@@ -322,7 +334,7 @@ class RuntimeBudget:
         min_output_tokens: int = 1,
         pricing: PriceSchedule | None = None,
     ) -> RuntimeBudget:
-        """Recover a ledger and fatal token overruns from recorded event order."""
+        """Recover full settled charges and conservative outstanding holds."""
 
         budget = cls(
             total_limit,
@@ -336,6 +348,8 @@ class RuntimeBudget:
             if not isinstance(payload, BudgetEventPayload):
                 continue
             if payload.reservation is not None:
+                if not _fits(payload.reservation.amounts, budget.available):
+                    raise ValueError("recorded reservation exceeds available budget")
                 candidate = [*budget._reservations, payload.reservation]
                 BudgetLedger(
                     total_limit=total_limit,
@@ -405,7 +419,10 @@ class RuntimeBudget:
                 and reservation.amounts.tokens is not None
                 and tokens > reservation.amounts.tokens
             ):
-                self._fatal_reason = "actual_usage_exceeds_reservation"
+                # A durable response must be settled by Runtime recovery before
+                # admitting more requests. Exceeding its estimate is not itself
+                # a permanent failure once that full charge is journaled.
+                self._fatal_reason = "unsettled_reported_usage"
                 return
 
     def _stop(

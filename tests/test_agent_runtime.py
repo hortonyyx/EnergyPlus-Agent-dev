@@ -264,15 +264,21 @@ def test_context_limits_stop_before_adapter_send(
                     if event.payload.event_type == "adapter_request"]
 
 
-def test_actual_over_reservation_preserves_receipt_without_fabricated_settlement(tmp_path):
+def test_actual_token_overrun_preserves_full_settlement_and_exhausts_root(tmp_path):
     raw = response(text="Done")
     raw["usage"]["total_tokens"] = 1_000_000
     engine = runtime(tmp_path, [raw])
     with engine.store:
         receipt = asyncio.run(engine.run(MESSAGES))
-        assert receipt["status"] == "token_reservation_exceeded"
+        assert receipt["status"] == "token_budget_exhausted"
         assert receipt["reported_tokens"] == 1_000_000
-        assert not [e for e in engine.store.events if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        settlements = [e.payload.settlement for e in engine.store.events
+                       if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        assert len(settlements) == 1
+        assert settlements[0].actual.tokens == 1_000_000
+        assert settlements[0].token_overrun > 0
+        assert engine.budget.ledger.charged.tokens == 1_000_000
+        assert receipt["root_budget_available"]["tokens"] == 0
 
 
 def test_crash_at_safe_checkpoint_resumes_without_repeating_completed_write(tmp_path):

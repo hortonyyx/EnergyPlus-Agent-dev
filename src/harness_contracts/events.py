@@ -374,6 +374,28 @@ class BudgetEventPayload(ContractModel):
         return self
 
 
+class BudgetOverrunPayload(ContractModel):
+    """Auditable explanation for a reported token use above its reservation."""
+
+    event_type: Literal["budget_overrun"] = "budget_overrun"
+    model: NonEmptyStr
+    reservation_id: NonEmptyStr
+    reserved_tokens: int = Field(ge=0)
+    actual_tokens: int = Field(ge=0)
+    overrun_tokens: int = Field(gt=0)
+    reasoning_token_allowance: int = Field(ge=0)
+    completion_over_max_tokens: int | None
+    within_profile_allowance: bool | None
+    root_limit_exceeded: bool
+    task_limit_exceeded: bool
+
+    @model_validator(mode="after")
+    def overrun_matches_amounts(self) -> BudgetOverrunPayload:
+        if self.overrun_tokens != self.actual_tokens - self.reserved_tokens:
+            raise ValueError("overrun_tokens must equal actual_tokens minus reserved_tokens")
+        return self
+
+
 class ContextEventPayload(ContractModel):
     event_type: Literal["context"] = "context"
     action: Literal["compact", "retain_image", "remove_image", "retrieve_image"]
@@ -439,6 +461,7 @@ EventPayload = Annotated[
     | StateInspectionPayload
     | RunLifecyclePayload
     | BudgetEventPayload
+    | BudgetOverrunPayload
     | ContextEventPayload
     | CheckpointPayload
     | ExternalCoordinatorMcpPayload

@@ -12,6 +12,7 @@ from .events import (
     AdapterRequestPayload,
     AnswerRepairPayload,
     BudgetEventPayload,
+    BudgetOverrunPayload,
     ContextEventPayload,
     CheckpointPayload,
     EventEnvelope,
@@ -390,13 +391,54 @@ class EventLog(ContractModel):
         reservations = []
         settlements = []
         reservation_events: dict[str, EventEnvelope] = {}
+        settlement_events: dict[str, EventEnvelope] = {}
+        overrun_reservations: set[str] = set()
         for event in self.events:
             payload = event.payload
+            if isinstance(payload, BudgetOverrunPayload):
+                reservation_event = reservation_events.get(payload.reservation_id)
+                settlement_event = settlement_events.get(payload.reservation_id)
+                if reservation_event is None or settlement_event is None:
+                    raise ValueError(
+                        "budget overrun must follow its reservation and settlement"
+                    )
+                if (
+                    reservation_event.task_id != event.task_id
+                    or settlement_event.task_id != event.task_id
+                ):
+                    raise ValueError(
+                        "budget overrun must remain in the reservation task"
+                    )
+                if payload.reservation_id in overrun_reservations:
+                    raise ValueError("a settlement can have only one budget overrun event")
+                overrun_reservations.add(payload.reservation_id)
+                reservation = reservation_event.payload.reservation
+                settlement = settlement_event.payload.settlement
+                assert reservation is not None and settlement is not None
+                if (
+                    payload.reserved_tokens != reservation.amounts.tokens
+                    or payload.actual_tokens != settlement.actual.tokens
+                    or payload.overrun_tokens != settlement.token_overrun
+                ):
+                    raise ValueError(
+                        "budget overrun amounts differ from reservation or settlement"
+                    )
+                continue
             if not isinstance(payload, BudgetEventPayload):
                 continue
+            if self.budget_limit is None:
+                raise ValueError("budget events require the run's total budget limit")
             if payload.reservation is not None:
                 if payload.reservation.task_id != event.task_id:
                     raise ValueError("budget reservation task must match event task")
+                current = BudgetLedger(
+                    total_limit=self.budget_limit,
+                    reservations=tuple(reservations),
+                    settlements=tuple(settlements),
+                )
+                _require_available_for_reservation(
+                    payload.reservation.amounts, current.available
+                )
                 reservations.append(payload.reservation)
                 reservation_events[payload.reservation.reservation_id] = event
             if payload.settlement is not None:
@@ -408,8 +450,7 @@ class EventLog(ContractModel):
                 if reservation_event.task_id != event.task_id:
                     raise ValueError("budget settlement task must match reservation task")
                 settlements.append(payload.settlement)
-            if self.budget_limit is None:
-                raise ValueError("budget events require the run's total budget limit")
+                settlement_events[payload.settlement.reservation_id] = event
             # Validate every journal prefix. A later settlement may release a
             # conservative hold, but it cannot erase evidence that an earlier
             # reservation was admitted over the configured total.
@@ -442,6 +483,18 @@ def validate_event_log(events: tuple[EventEnvelope, ...], **kwargs: object) -> E
     """Convenience helper for callers that already accumulated event envelopes."""
 
     return EventLog(events=events, **kwargs)
+
+
+def _require_available_for_reservation(
+    requested: BudgetAmounts, available: BudgetAmounts
+) -> None:
+    """Reject a new hold against the actual capacity remaining at that event."""
+
+    for name in ("tokens", "money_usd", "seconds", "calls"):
+        amount = getattr(requested, name)
+        remaining = getattr(available, name)
+        if amount is not None and remaining is not None and amount > remaining:
+            raise ValueError(f"budget reservation exceeds available budget ({name})")
 
 
 def _require_prior_event(

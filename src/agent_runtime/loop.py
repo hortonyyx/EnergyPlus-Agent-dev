@@ -13,7 +13,7 @@ from typing import Literal
 from pydantic import Field
 
 from src.harness_contracts import (
-    AnswerRepairPayload, BudgetAmounts, BudgetEventPayload, CheckpointPayload, HashedBlobRef,
+    AnswerRepairPayload, BudgetAmounts, BudgetEventPayload, BudgetOverrunPayload, CheckpointPayload, HashedBlobRef,
     MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
     StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload,
     ToolPresentationPayload, UsageMissing, UsageReported, authorize_tool_call,
@@ -265,6 +265,7 @@ class Runtime:
             estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
                 input_token_upper_bound=prepared.input_token_upper_bound,
                 output_token_limit=prepared.output_token_limit, seconds=seconds,
+                reasoning_token_allowance=prepared.token_estimate.reasoning_token_allowance,
                 estimate_source=prepared.estimate_source,
                 pricing=self.pricing)
             reservation_id = self.store.next_reservation_id()
@@ -359,12 +360,22 @@ class Runtime:
         # in flight. Rebuild both ledgers from the shared durable journal.
         self._load_budget()
         if any(s.reservation_id == reservation_id for s in self.budget.ledger.settlements):
-            return None
+            self._record_token_overrun(reservation_id, usage)
+            return self._settled_token_stop()
         charged_seconds = Decimal(str(max(0.0, seconds))) if seconds is not None else None
         actual = BudgetAmounts(tokens=reported_tokens(usage), calls=1, seconds=charged_seconds)
         task_decision = self.task_budget.settle(reservation_id,
             actual=actual, usage=usage)
-        if task_decision.action == "stop":
+        # Even when the task cannot afford the observed charge, record the full
+        # amount in the root ledger. A child's limit is not a root-wide failure.
+        if task_decision.settlement is not None:
+            root_decision = self.budget.settle(reservation_id, actual=actual, usage=usage)
+            if root_decision.settlement is not None:
+                self.store.append(BudgetEventPayload(action="settle", settlement=root_decision.settlement))
+                self._record_token_overrun(reservation_id, usage)
+                return self._settled_token_stop()
+            decision = root_decision
+        elif task_decision.action == "stop":
             decision = task_decision
         else:
             decision = self.budget.settle(reservation_id,
@@ -383,6 +394,50 @@ class Runtime:
             return "token_reservation_exceeded" if "tokens" in decision.exceeded_dimensions else decision.reason
         self.store.append(BudgetEventPayload(action="settle", settlement=decision.settlement))
         return None
+
+    def _settled_token_stop(self):
+        root_tokens = self.budget.ledger.committed.tokens or 0
+        task_tokens = self.task_budget.ledger.committed.tokens or 0
+        if self.budget.total_limit.tokens is not None and root_tokens > self.budget.total_limit.tokens:
+            return self._scoped_budget_reason("token")
+        if self.task_budget.total_limit.tokens is not None and task_tokens > self.task_budget.total_limit.tokens:
+            return self._scoped_budget_reason("token", task=True)
+        return None
+
+    def _record_token_overrun(self, reservation_id, usage):
+        reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
+        actual_tokens = reported_tokens(usage)
+        reserved_tokens = reservation.amounts.tokens
+        if actual_tokens is None or reserved_tokens is None or actual_tokens <= reserved_tokens:
+            return
+        if any(e.payload.event_type == "budget_overrun" and e.payload.reservation_id == reservation_id
+               for e in self.store.events):
+            return
+        # Read the original request's profile margin, not a later configuration.
+        evidence = next((e for e in self.store.events if e.payload.event_type == "budget"
+                         and e.payload.reservation is not None
+                         and e.payload.reservation.reservation_id == reservation_id), None)
+        estimate = {}
+        if evidence is not None:
+            ref = next((s.blob for s in evidence.source_refs if s.source_id == "request-budget-decision"), None)
+            if ref:
+                estimate = json.loads(self.store.get_bytes(ref)).get("token_estimate", {})
+        allowance = estimate.get("reasoning_token_allowance", 0)
+        request = next((e for e in self.store.events if e.payload.event_type == "adapter_request"
+                        and e.payload.reservation_id == reservation_id), None)
+        body = self.store.resolve(request.payload.final_request_body) if request else {}
+        limit = body.get("max_tokens", body.get("max_completion_tokens"))
+        completion = usage.raw_usage.get("completion_tokens", usage.raw_usage.get("output_tokens"))
+        completion_over = max(0, completion - limit) if type(completion) is int and type(limit) is int else None
+        self.store.append(BudgetOverrunPayload(model=body.get("model", self.model),
+            reservation_id=reservation_id, reserved_tokens=reserved_tokens, actual_tokens=actual_tokens,
+            overrun_tokens=actual_tokens - reserved_tokens, reasoning_token_allowance=allowance,
+            completion_over_max_tokens=completion_over,
+            within_profile_allowance=(completion_over <= allowance if completion_over is not None else None),
+            root_limit_exceeded=(self.budget.total_limit.tokens is not None and
+                (self.budget.ledger.committed.tokens or 0) > self.budget.total_limit.tokens),
+            task_limit_exceeded=(self.task_budget.total_limit.tokens is not None and
+                (self.task_budget.ledger.committed.tokens or 0) > self.task_budget.total_limit.tokens)))
 
     def _present_tools(self, body, sources, request, response, context_event_id):
         delivered = {e.payload.tool_execution_event_id for e in self.store.events if e.payload.event_type == "tool_presentation"}
