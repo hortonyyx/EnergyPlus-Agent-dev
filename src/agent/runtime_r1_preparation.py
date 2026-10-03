@@ -71,8 +71,8 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
                 not isinstance(name, str) or Path(name).name != name
                 or not (ROOT / case["input"] / name).is_file() for name in floors)):
             raise ValueError("floor_plan_images must use admitted input filenames")
-        if Path(case["credentials_file"]) != Path("/workspaces/EnergyPlus-Agent-dev/.env"):
-            raise ValueError("credentials must remain a read-only reference to the main-tree .env")
+        if not isinstance(case.get("credentials_file"), str) or not case["credentials_file"].strip():
+            raise ValueError("each case requires an explicit read-only credentials_file")
     return value
 
 
@@ -106,7 +106,9 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     if case["mode"] == "single_model":
         argv += ["--max-candidates", str(case["max_candidates"]),
                  "--context-tokens", str(case["context_tokens"]),
-                 "--model-retries", "0"]
+                 "--compact-at-tokens", str(case.get("compact_at_tokens", 150_000)),
+                 "--model-retries", str(limits.get("model_retries", 2)),
+                 "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
         for name in ("temperature", "reasoning_effort"):
             if case.get(name) is not None:
                 argv += ["--" + name.replace("_", "-"), str(case[name])]

@@ -259,6 +259,11 @@ def request_accounting_from_store(
             None,
         )
         usage = None if response is None else response.payload.usage
+        if usage is None:
+            settlement = next((event.payload.settlement for event in store.all_events
+                if event.payload.event_type == "budget" and event.payload.action == "settle"
+                and event.payload.settlement.reservation_id == request.payload.reservation_id), None)
+            usage = None if settlement is None else settlement.usage
     pricing = get_cny_price_schedule(
         identity.remote_alias, route_id=identity.route_id
     )

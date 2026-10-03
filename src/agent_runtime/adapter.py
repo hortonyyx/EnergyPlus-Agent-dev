@@ -155,7 +155,9 @@ class HttpChatAdapter:
         response = await self.client.post(self.endpoint, content=request.wire_bytes,
             headers={"Authorization": f"Bearer {self._key}",
                      "Content-Type": "application/json"}, timeout=timeout)
-        response.raise_for_status()
+        if not response.is_success:
+            from .failures import http_failure
+            raise http_failure(response, secret=self._key)
         return response.json()
 
 
@@ -283,15 +285,51 @@ def convert_tool_result(call_id: str, raw: dict, store: EventStore):
             data = base64.b64decode(part["data"], validate=True)
             ref = store.put_bytes(data, part["mimeType"])
             image_refs.append(ref)
-            pictures += [{"type": "text", "text": f"Tool image: tool_call_id={call_id}; sha256={ref.sha256}."},
+            pictures += [{"type": "text", "text": f"Tool image: tool_call_id={call_id}."},
                 {"type": "image_url", "image_url": {"url": f"data:{part['mimeType']};base64,{part['data']}"}}]
         else:
             raise ValueError(f"unsupported MCP content type: {part.get('type')}")
-    content = {"isError": bool(raw.get("isError", False)), "text": texts,
-               "structuredContent": raw.get("structuredContent"),
-               "images": [ref.model_dump(mode="json") for ref in image_refs]}
+    # MCP commonly supplies the same object as both JSON text and structured
+    # content. Keep the original text (including any trailing time notice), and
+    # supplement only fields it does not already contain. Audit metadata belongs
+    # to the presentation record, not an escaped JSON wrapper sent to the model.
+    texts = list(dict.fromkeys(texts))
+    structured = raw.get("structuredContent")
+    missing = structured
+    for text in texts:
+        try:
+            decoded, _ = json.JSONDecoder().raw_decode(text.lstrip())
+        except ValueError:
+            continue
+        missing = _unrepresented(missing, decoded)
+    if missing is not _COVERED and structured is not None:
+        texts.append(json.dumps(missing, ensure_ascii=False, separators=(",", ":")))
+    if raw.get("isError"):
+        texts.insert(0, "Tool error (isError=true):")
+    if not texts:
+        texts.append("Tool returned images below." if pictures else "Tool completed with no text result.")
     message = {"role": "tool", "tool_call_id": call_id,
-               "content": json_bytes(content).decode("utf-8")}
+               "content": "\n".join(texts)}
     presentation = {"tool_message": message, "image_blocks": pictures,
+        "images": [ref.model_dump(mode="json") for ref in image_refs],
         "conversion": "MCP image blocks moved to a user message after all tool-call replies; bytes unchanged"}
     return message, pictures, presentation, image_refs
+
+
+_COVERED = object()
+
+
+def _unrepresented(value, represented):
+    """Only remove provably identical JSON values, never approximate prose."""
+    if value is _COVERED:
+        return value
+    if json_bytes(value) == json_bytes(represented):
+        return _COVERED
+    if isinstance(value, dict) and isinstance(represented, dict):
+        remaining = {}
+        for key, item in value.items():
+            rest = _unrepresented(item, represented[key]) if key in represented else item
+            if rest is not _COVERED:
+                remaining[key] = rest
+        return remaining if remaining else _COVERED
+    return value

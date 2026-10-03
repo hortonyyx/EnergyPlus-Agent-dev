@@ -267,6 +267,11 @@ class EventLog(ContractModel):
             payload = event.payload
             if not isinstance(payload, RunLifecyclePayload):
                 continue
+            if payload.model_failure is not None:
+                request = _require_prior_event(payload.model_failure.request_event_id,
+                    event, event_by_id, missing_ids, "model failure request")
+                if request is not None and not isinstance(request.payload, AdapterRequestPayload):
+                    raise ValueError("model failure must reference an adapter request")
             if payload.action == "retry":
                 original = _require_prior_event(
                     payload.retry_of_event_id,

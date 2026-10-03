@@ -11,7 +11,9 @@ from src.agent.runtime_tools import FrozenBimTools, frozen_bim_client, local_obs
 from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
+from src.agent_runtime.failures import ModelServiceError
 from src.agent_runtime.store import EventStore
+from src.harness_contracts import UsageMissing
 from test_runtime_delegation import (
     ROOT, _CoordinatorTools, _MeasuringObserverFrozenTools, _answer, _application,
     _registered_view, _response,
@@ -35,7 +37,10 @@ class OverlapAdapter:
         await asyncio.sleep(0.03)
         self.activity["active"] -= 1
         if self.fail:
-            raise ConnectionError("injected child failure")
+            # This fixture isolates a permanent child failure. Transient model
+            # faults now retry by default and have their own C1 coverage.
+            raise ModelServiceError({"category": "permission_denied", "retryable": False,
+                "http_status": 403, "usage_received": False}, UsageMissing(reason="injected child failure"))
         return _response(text=_answer())
 
 
@@ -69,7 +74,7 @@ def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_pa
             assert not result["isError"]
             rows = result["structuredContent"]["results"]
             assert [r["status"] for r in rows] == [
-                "completed", "child_token_budget_exhausted", "failed", "completed"]
+                "completed", "child_token_budget_exhausted", "permission_denied", "completed"]
             assert activity["peak"] == expected_peak
             assert [r["package"]["task_id"] for r in rows] == [t["task_id"] for t in tasks]
             ledger = RuntimeBudget.from_events(store.budget_limit, store.all_events).ledger
