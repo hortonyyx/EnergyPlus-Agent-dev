@@ -697,7 +697,7 @@ class Toolkit:
                 for _, _, field, _, _ in parameter_slots(operation)
                 if (index, field) not in bound_slots]
             result = self.build(updated, action="revise_bim", parent=candidate, operations=operations,
-                                claim_application={"file": str(application_path.relative_to(self.run))})
+                                claim_application={"file": str(application_path.relative_to(self.run)), **evidence})
             application.update(candidate=result.get("candidate"), source_model_sha256=result.get("source_model_sha256"),
                 status="applied" if result.get("source_geometry_ready") else "failed",
                 source_geometry_ready=result.get("source_geometry_ready", False),
@@ -713,6 +713,10 @@ class Toolkit:
             result["located_height_coverage"] = self.located_heights(result["candidate"])
         self.log("claim_application", application)
         result["claim_application"] = application
+        # Keep the saved provenance and its source digest unchanged. Only the
+        # model-facing copy drops evidence already in the application file.
+        result["provenance"] = {**result["provenance"],
+            "claim_application": {"file": str(application_path.relative_to(self.run))}}
         return result
 
     def log(self, action, data):
@@ -3232,6 +3236,8 @@ def run_experiment(args):
                "not_evaluated":["independent GT comparison","human approval","EnergyPlus"],
                "estimated_cost_note":"CLI estimates are not subscription bills"}
     dump(run/"summary.json",summary)
+    from src.agent.runtime_behaviour import write_behaviour_report
+    write_behaviour_report(run, run / "behaviour")
     print(json.dumps(summary,ensure_ascii=False,indent=2))
 
 

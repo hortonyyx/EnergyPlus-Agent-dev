@@ -50,6 +50,7 @@ def test_real_parameter_application_and_candidate_provenance_survive_reload(tmp_
     result = toolkit.revise("seed", json.dumps([edit(row["id"])]))
     assert result["source_geometry_ready"]
     app = result["claim_application"]
+    assert result["provenance"]["claim_application"] == {"file": "claims/application_0001.json"}
     assert app["status"] == "applied" and app["outside_declared_scope"] == []
     assert app["parameters_without_claims"] == []
     assert app["resolved_operations"][0]["changes"]["z"] == [.3, 2.1]
