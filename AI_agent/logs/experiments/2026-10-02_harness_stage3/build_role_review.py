@@ -51,12 +51,14 @@ function rect(box, cls, text){const [x,y,x1,y1]=box;return `<rect class="${cls}"
 function section(title, rows){return `<h3>${title}</h3><ul>${(rows||[]).map(x=>`<li>${esc(x.statement)}</li>`).join('')||'<li>未提供</li>'}</ul>`;}
 function draw(){const runs=D.runs.filter(r=>['case','model','batch'].every(k=>!$(k).value||r[k==='case'?'case_id':k]===$(k).value));
 $('count').textContent=`显示 ${runs.length} / ${D.runs.length} 个运行。`;
-$('main').innerHTML=runs.map(r=>{const c=D.cases.find(c=>c.case_id===r.case_id), ref=D.references.find(x=>x.case_id===r.case_id), source=c.images[0], result=r.outcome.result;
-const refs=$('reference').checked?(ref.expected_localizations||[]).map(b=>rect(b.bbox_px,'ref',b.label)).join(''):'';
-const obs=$('observation').checked&&result?(result.directly_seen||[]).map(b=>rect(b.location.box_original_pixels,'obs',b.observation_id+': '+b.statement)).join(''):'';
+$('main').innerHTML=runs.map(r=>{const c=D.cases.find(c=>c.case_id===r.case_id), ref=D.references.find(x=>x.case_id===r.case_id), source=c.images[0];
 const review=(D.evaluation.results||[]).find(x=>x.batch===r.batch&&x.run_id===r.run_id);
+const result=r.outcome.result||review?.diagnostic_answer, diagnostic=!r.outcome.result&&!!review?.diagnostic_answer;
+const refs=$('reference').checked?(ref.expected_localizations||[]).map(b=>rect(b.bbox_px,'ref',b.label)).join(''):'';
+const obs=$('observation').checked&&result?(result.directly_seen||[]).map(b=>rect(b.location?.box_original_pixels||b.box_original_pixels,'obs',b.observation_id+': '+b.statement)).join(''):'';
 const usage=(r.usage||[]).filter(u=>u.kind==='reported').map(u=>u.raw_usage);const tokens=usage.reduce((s,u)=>s+(u.total_tokens||0),0);
-const body=result?section('直接看到',result.directly_seen)+section('解释',result.interpretations)+section('不确定',result.uncertain):`<pre>${esc(r.outcome.validation_error||r.outcome.runtime?.answer||'没有返回可采用的局部观察结果。')}</pre>`;
+const rejected=diagnostic?`<p class="status">以下是评价侧读取的原始答案与定位，仅供诊断；运行器已拒收，未自动修复或采用。</p><pre>${esc(r.outcome.validation_error)}</pre>`:'';
+const body=result?rejected+section('直接看到',result.directly_seen)+section('解释',result.interpretations)+section('不确定',result.uncertain):`<pre>${esc(r.outcome.validation_error||r.outcome.runtime?.answer||'没有返回可采用的局部观察结果。')}</pre>`;
 return `<article><h2>${esc(r.batch)} · ${esc(r.model)} · ${esc(c.case_id)}</h2><p>${esc(c.question)}</p><p class="facts">题组 ${esc(c.test_group)} · 输入 ${esc(c.input_kind)} · 信息 ${esc(c.information_sufficiency)} · 照片代替品 ${c.photo_surrogate?'是':'否'}</p><p class="status">运行状态：${esc(r.status)}${review?' · 人工结论：'+esc(review.verdict):''}</p>${review?`<p>${esc(review.reason)}</p>`:''}<div class="row"><div><svg class="visual" viewBox="0 0 ${source.width_px} ${source.height_px}" xmlns="http://www.w3.org/2000/svg"><image href="${esc(source.href)}" width="${source.width_px}" height="${source.height_px}"/>${refs}${obs}</svg><small>原图 ${source.width_px} × ${source.height_px} · <a href="${esc(source.href)}">打开原图</a><br>SHA-256 ${esc(source.sha256)}</small></div><div>${body}<p class="facts">模型请求 ${r.model_requests} · 实报 token ${tokens} · 收到用量 ${usage.length}/${r.model_requests} 条</p></div></div></article>`;}).join('');}
 for(const id of ['case','model','batch','reference','observation'])$(id).addEventListener('change',draw);draw();
 </script></html>'''

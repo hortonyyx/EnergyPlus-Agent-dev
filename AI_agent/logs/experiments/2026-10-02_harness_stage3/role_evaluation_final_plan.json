@@ -1,0 +1,38 @@
+{
+  "schema_version": "stage3-human-review-v1",
+  "review_method": "人工查看原始790×1111平面图；逐项核对返回框与实际总尺寸/900分段位置。",
+  "results": [
+    {
+      "run_id": "final_03_27b",
+      "case_id": "drawing_sm24_plan_outer_chain",
+      "model": "Qwen3.8-27B",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "completed",
+      "batch": "roles_final",
+      "verdict": "pass",
+      "numeric_correct": true,
+      "evidence_localization": "pass",
+      "interface_accepted": true,
+      "reason": "原图790×1111逐框复核：东西向10000 mm、南北向20000 mm、南侧中部门洞900 mm均正确。上/下总宽链、左侧总长链和南侧900分段标注均框在对应区域，门洞/开启弧线位置正确；没有用像素估尺替代尺寸标注，图面未独立给出真实朝向与门框细节的边界也有保留。",
+      "evaluation_boundary": "只评价图面总尺寸、门洞标注宽和对应原图像素位置；不确认真实朝向、实测尺寸、建筑完工状态或门扇净宽。"
+    },
+    {
+      "run_id": "final_03_flash",
+      "case_id": "drawing_sm24_plan_outer_chain",
+      "model": "Qwen3.8-Flash",
+      "test_group": "drawing",
+      "input_kind": "drawing",
+      "information_sufficiency": "locally_sufficient",
+      "status": "completed",
+      "batch": "roles_final",
+      "verdict": "pass",
+      "numeric_correct": true,
+      "evidence_localization": "pass",
+      "interface_accepted": true,
+      "reason": "原图790×1111逐框复核：东西向10000 mm、南北向20000 mm、南侧中部门洞900 mm均正确。上/下总宽链、左侧总长链和南侧900分段标注均框在对应区域，门洞/开启弧线位置正确；没有用像素估尺替代尺寸标注，图面未独立给出真实朝向与门框细节的边界也有保留。",
+      "evaluation_boundary": "只评价图面总尺寸、门洞标注宽和对应原图像素位置；不确认真实朝向、实测尺寸、建筑完工状态或门扇净宽。"
+    }
+  ]
+}
