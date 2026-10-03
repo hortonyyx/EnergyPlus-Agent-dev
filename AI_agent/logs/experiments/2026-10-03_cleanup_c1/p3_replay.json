@@ -1,0 +1,133 @@
+{
+  "source": {
+    "branch": "evidence/migration-2026-10-03",
+    "archive": "attempt_03_run.tar.xz",
+    "archive_sha256": "814cc29932fa3918fdcc22b4a47a0b9408f6039edcd3ecf60e30e4523ee1b867",
+    "events_sha256": "8429a71a6531f0f19c09e3007886543c63d3fe726b11005d0f10e7c44b245db7"
+  },
+  "scope": "Offline fixed-trajectory replay of 36 model responses and 55 exact MCP returns; no new inference or geometry execution.",
+  "model_requests": 0,
+  "status": "completed",
+  "raw_tool_results_unchanged": true,
+  "state_characters": {
+    "before": {
+      "total": 966376,
+      "max": 49201,
+      "count": 36
+    },
+    "after": {
+      "total": 22512,
+      "max": 900,
+      "count": 35
+    }
+  },
+  "tool_result_characters_once_each": {
+    "before": {
+      "total": 856686,
+      "max": 186732,
+      "count": 55
+    },
+    "after": {
+      "total": 515431,
+      "max": 92026,
+      "count": 55
+    }
+  },
+  "tool_characters_same_historical_positions": {
+    "before": {
+      "total": 4218725,
+      "max": 186732,
+      "count": 290
+    },
+    "after": {
+      "total": 2525617,
+      "max": 92026,
+      "count": 290
+    }
+  },
+  "context_events": {
+    "before": {
+      "retain_image": 188,
+      "compact": 30,
+      "remove_image": 643
+    },
+    "after": {
+      "compact": 3,
+      "remove_image": 41,
+      "retrieve_image": 19
+    },
+    "before_total": 861,
+    "after_total": 63
+  },
+  "append_only_transitions_checked": 32,
+  "compaction_before_requests": [
+    17,
+    23,
+    33
+  ],
+  "policy": {
+    "active_window_messages": null,
+    "compact_at_tokens": 150000,
+    "compact_to_ratio": 0.6,
+    "large_result_bytes": 8192,
+    "pinned_tags": [],
+    "preserve_initial_messages": 2,
+    "max_images": null,
+    "max_image_bytes": 32000000
+  },
+  "current_candidate": "candidate_05",
+  "selected_candidate": "candidate_05",
+  "final_audited_state_entries": 31,
+  "final_model_state": [
+    {
+      "key": "context-retrieval",
+      "value": [
+        "Original images: view_image(name=<filename from initial input list>, box=<optional original-pixel crop>).",
+        "Saved evidence: claim_status(candidate='candidate_05'); full history: claim_status().",
+        "Current saved model: inspect_candidate(candidate='candidate_05', include_geometry=True)."
+      ],
+      "epistemic_status": "computed"
+    },
+    {
+      "key": "current-source-bim",
+      "value": {
+        "candidate": "candidate_05"
+      },
+      "epistemic_status": "computed"
+    },
+    {
+      "key": "selected-source-bim",
+      "value": {
+        "candidate": "candidate_05"
+      },
+      "epistemic_status": "computed"
+    },
+    {
+      "key": "source-bim-unresolved",
+      "value": [
+        "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+      ],
+      "epistemic_status": "unresolved"
+    }
+  ],
+  "implementation_sha256": {
+    "src/agent_runtime/accounting.py": "59a03a8414e6800b9c010d104bfccb6f8d5a5dd8c569acfcb47e11d8ecbbe452",
+    "src/agent_runtime/adapter.py": "3480d863a208952c6658dba090ff11fd2c03bf7c8d991a90531f217410d88601",
+    "src/agent_runtime/agent_registry.py": "61a47fbba58d93d01096175a6b305508761c3388953d990efb1809de29d10496",
+    "src/agent_runtime/budget.py": "9ff6815ae975e3576fbd6d49332ac908e1ca8c61e18ea85483eb5ecda47baebe",
+    "src/agent_runtime/call_quota.py": "b95de8881e99addd8162ad84c0a5e2ee7af9c539f88f3e5b0f2562d2c040aebb",
+    "src/agent_runtime/context.py": "02007ef3378d38bfe98c1062af99cf9269249558401452bf35a9e1767401fd64",
+    "src/agent_runtime/estimation.py": "b4f2933d8e499f613b1eca7522936c8c5baa4d552ce00ba1dd798c67a6f79ea7",
+    "src/agent_runtime/failures.py": "f5c1d5a227719c21ee00db63faebf391c6869b86cf6fa9ee1259c408653e5aee",
+    "src/agent_runtime/loop.py": "81a79bee8d842fc7e7cfd8e2106bf210e178f37e1a4f24b1b8ae288d4c583bd3",
+    "src/agent_runtime/mcp_tools.py": "4715d25a52aa2db8b09d3342ca602ad3356c9c9cf5703e3f71ca9903912c3a75",
+    "src/agent_runtime/output_limits.py": "04ebd9b7081f2ede28ba45f5d61415c624ea51c86f3db40dfc89ec6d17e47541",
+    "src/agent_runtime/providers.py": "f3eb8e7aa76ba109e1d83398cf6feb227d485b59b6f798ab987b824d0d84fdcb",
+    "src/agent_runtime/store.py": "2bc9142187789ccb4a59215825a2eb79c3260388c0edb60204c5d9e7cc3eb125",
+    "src/agent_runtime/versions.py": "252f855bbe94ec0230d6513a6ddd6fcdc072856ba2918b041c8ced5eb21edee2",
+    "src/agent_runtime/__init__.py": "4918215bfac9a0974a2600798d987f7cf83c5b9bd4c6dc64d2b814ddde1bb8bc",
+    "src/agent/runtime_context.py": "3b670158ce8ca901ebec3244e5a0de7ba9903439949a9ca0c7bc1d6e6bc83fd3",
+    "AI_agent/logs/experiments/2026-10-03_cleanup_c1/replay_p3.py": "e0df76b9f2c178896b2a1d5b6c4b606bd8a1f35148e346587e413150a1fd3378"
+  },
+  "final_audit_events_sha256": "657e2a4aaeed5b8d9bcc4c347ef8bc35585587be8091a4909dab9d6d81c3ee04"
+}
