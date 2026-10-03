@@ -1,0 +1,407 @@
+{
+  "attempt": "subscription_01",
+  "run": "AI_agent/logs/experiments/2026-10-03_migration_comparison/runs/subscription_01",
+  "delivered_candidate": "candidate_01",
+  "selection_origin": "latest_saved_fallback_not_agent_selected",
+  "runtime": {
+    "status": "empty_response",
+    "answer_present": false,
+    "receipt_elapsed_seconds": 2918.776087759994,
+    "event_span_seconds": 2917.8,
+    "model_calls": 19,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "glm-5.3-flash": 19
+    },
+    "usage": {
+      "prompt": 1201760,
+      "completion": 115203,
+      "total": 1316963,
+      "cached": 119296,
+      "reasoning": 106193,
+      "responses_without_usage": 0
+    },
+    "request_image_attachments": 94,
+    "estimated_yuan_text_only": null,
+    "yuan_note": "Subscription: no usage-based price.",
+    "per_round": {
+      "output_tokens": 6063,
+      "seconds": 153.6
+    },
+    "tool_calls": {
+      "inputs": 2,
+      "view_image": 11,
+      "view_pixel_region_overview": 1,
+      "view_pixel_profile": 4,
+      "get_bim_reference": 5,
+      "build_plan_bim": 1,
+      "revise_plan_bim": 2,
+      "record_claim": 5,
+      "decide_claim": 5,
+      "confirm_claims": 2
+    },
+    "tool_outcomes": {
+      "succeeded": 34,
+      "failed": 4
+    },
+    "tool_failures": [
+      {
+        "tool": "view_pixel_region_overview",
+        "outcome": "failed"
+      },
+      {
+        "tool": "revise_plan_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "empty_response",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 19,
+      "settle": 19
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 94,
+      "budget": 38,
+      "adapter_request": 19,
+      "model_response": 19,
+      "tool_invocation": 38,
+      "tool_execution": 38,
+      "tool_presentation": 38,
+      "context": 256,
+      "run_usage_summary": 1
+    }
+  },
+  "migration": {
+    "rooms_one_to_one": true,
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "positions": 14,
+    "hosts": 21,
+    "door_connections": 10,
+    "reference_openings": 21,
+    "heights_within": 14,
+    "heights_expected": 14,
+    "height_mismatches": []
+  },
+  "baseline_10_02": {
+    "rooms_one_to_one": true,
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "positions": 20,
+    "hosts": 21,
+    "door_connections": 10,
+    "reference_openings": 21,
+    "heights_within": 12,
+    "heights_expected": 14,
+    "height_mismatches": [
+      "W-east-3",
+      "W-west-5"
+    ]
+  },
+  "baseline_seconds": 1442.03,
+  "full_quality": {
+    "run": "subscription_01",
+    "case": "sm24",
+    "candidate": "candidate_01",
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "spaces_one_to_one": {
+      "pass_": true,
+      "reference_rooms": 8,
+      "findings": []
+    },
+    "original_openings": {
+      "reference_count": 21,
+      "matched": 21,
+      "positions": 14,
+      "hosts": 21,
+      "door_connections": 10,
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    },
+    "strict_heights": {
+      "tolerance_m": 0.05,
+      "expected": 14,
+      "matched": 14,
+      "within": 14,
+      "pass_": true,
+      "mismatches": [],
+      "unmatched_reference": [],
+      "unmatched_built_exterior": [],
+      "unclassified_exterior": [],
+      "all": [
+        {
+          "opening_id": "d-east",
+          "reference_id": "op_ac9",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "d-north",
+          "reference_id": "op_ac3",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "d-south",
+          "reference_id": "op_ade",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-e3",
+          "reference_id": "op_aff",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-e2",
+          "reference_id": "op_afc",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-e1",
+          "reference_id": "op_aea",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-north",
+          "reference_id": "op_ae1",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-s1",
+          "reference_id": "op_af6",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-s2",
+          "reference_id": "op_af9",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-w5",
+          "reference_id": "op_ae4",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-w4",
+          "reference_id": "op_af3",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-w3",
+          "reference_id": "op_af0",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-w2",
+          "reference_id": "op_aed",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "w-w1",
+          "reference_id": "op_ae7",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        }
+      ]
+    }
+  }
+}

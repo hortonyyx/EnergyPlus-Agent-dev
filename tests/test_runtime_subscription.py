@@ -52,9 +52,14 @@ def test_cli_route_and_service_defaults_are_explicit():
     assert provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000) == {"max_tokens": 32000}
     with pytest.raises(ValueError, match="requires model"):
         runtime_model_profile(GLM_SUBSCRIPTION, "Qwen3.8-27B")
-    for kwargs in ({"thinking": False}, {"reasoning_effort": "high"}):
-        with pytest.raises(ValueError, match="unverified"):
-            provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000, **kwargs)
+    with pytest.raises(ValueError, match="cannot be disabled"):
+        provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000, thinking=False)
+    with pytest.raises(ValueError, match="unverified"):
+        provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000, reasoning_effort="minimal")
+    assert provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000, reasoning_effort="medium") == {
+        "max_tokens": 32000, "reasoning_effort": "medium"}
+    with pytest.raises(ValueError, match="does not offer"):
+        provider_parameters("paratera", output_tokens=32000, reasoning_effort="medium")
     assert provider_parameters("paratera", output_tokens=32000) == {
         "max_tokens": 32000, "temperature": 0.0, "enable_thinking": True}
 

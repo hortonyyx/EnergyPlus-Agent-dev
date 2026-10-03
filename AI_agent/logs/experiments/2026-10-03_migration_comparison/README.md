@@ -113,3 +113,40 @@
    - 介于两者之间 → 记为“两边都有份”，不强行归因。
 3. **质量**照前次口径记录（房间一一对应、挂墙、门连通、位置、外部高度），只作对照，不据单次下稳定性结论；明显变差的要按行为记录找原因。
 4. **次数：** 先跑 2 次，依次进行，前一次真实回执核过再启动下一次。两次在第 2 条的结论不一致，或有一次没正常结束，再跑第 3 次。遇到 429 或额度限制即停，不重试，如实记录。
+
+### 订阅第 1 次（14:54–15:43 UTC，不发思考档，服务默认）
+
+评分见 [`evaluation_subscription_01.json`](evaluation_subscription_01.json)。完整运行记录压缩后 11.9 MB，放证据分支 `evidence/migration-2026-10-03`（提交 `eb0a1263`，文件 `subscription_01_run.tar.xz`），主线保留哈希 [`subscription_01_manifest.json`](evidence/subscription_01_manifest.json)。
+
+| sm24 | 10-02 基线（Claude Code＋订阅） | 订阅第 1 次（新底座） |
+|---|---|---|
+| 结束方式 | 正常交付，1442 秒 | 2918 秒时服务返回空回复，停跑；没有最终回答，评分用最后保存的候选稿 |
+| 房间一一对应 | 8/8 | 8/8 |
+| 挂墙／门连通 | 21/21、10/10 | 21/21、10/10 |
+| 门窗位置 | 20/21 | 14/21 |
+| 外部高度 ≤5 cm | 12/14 | 14/14 |
+| 轮数／每轮输出／每轮用时 | 44／约 1.5k／约 33 秒 | 19／约 6.1k／约 154 秒 |
+
+- **空回复是服务端的问题：** 第 19 次请求 29 秒后返回 `finish_reason=stop`，可见内容为空，思考写到半句，用量全为 0；当时离时限还有约 80 秒，不是我方超时。新底座按配置（不重试）停跑，Claude Code 遇到同样的空回复也会结束。记为服务端故障；“用量为 0 的空回复按临时故障重试一次”列入首次完整审查清单。
+- **按判定口径第 2 条：** 每轮输出是基线的 4.1 倍（≥2.5 倍），判定慢主要来自新底座这一侧，需要另查。服务没有返回缓存命中（19 次中 3 次有），基线缓存读取约 237 万。
+
+### 另查：思考档在订阅端点上有效，默认接近最高档（15:44–15:51 UTC，12 次请求）
+
+[`calibrate_subscription_effort.py`](calibrate_subscription_effort.py) 把第 1 次的第 3、4 次请求原样重发，只改 `reasoning_effort`，结果见 [`subscription_effort_calibration.json`](subscription_effort_calibration.json)。
+
+| 设置 | 第 3 次请求的输出 | 第 4 次请求的输出 | 平均 |
+|---|---|---|---|
+| 不发（新底座现状） | 原记录 6,430；重发 11,177、5,050 | 原记录 8,655；重发 7,690、3,785 | 约 7.1k |
+| high | 5,308 | 5,989 | 约 5.6k |
+| medium | 2,912 | 3,586 | 约 3.2k |
+| low | 72、1,369 | 2,392、3,478 | 约 1.8k |
+
+同一设置重发波动仍大，但顺序一致：订阅端点上这个参数有效（Paratera 上无效），不发时接近最高档。
+
+### 另查：Claude Code 实际发了什么（15:55 UTC，1 次请求）
+
+[`capture_claude_code_request.py`](capture_claude_code_request.py) 在本机起一个只记录、原样转发的中继，用基线同样的 `--effort medium` 让 Claude Code 发一句“回答 OK”。记录（不含凭据）见 [`evidence/claude_code_request_capture/`](evidence/claude_code_request_capture/)：主请求带 `output_config.effort: "medium"`、`thinking: {"type": "adaptive"}`（模型每轮自己决定想不想），以及保留全部旧思考的上下文设置。这解释了基线为什么将近一半轮次不思考。
+
+### 第 2、3 次改为 medium（开跑前决定，偏离原口径，理由如下）
+
+原口径假定“不发参数、用服务默认”最接近基线。抓包证明基线明确发了 medium，默认值反而离基线最远，所以第 2、3 次加上 `reasoning_effort: medium`，其余不变，配置 [`configs/migration_sm24_glm_subscription_medium.json`](configs/migration_sm24_glm_subscription_medium.json)。订阅线路原先拒绝思考参数，现改为接受 low／medium／high／max（关思考仍拒绝，智谱说明此型号不能关），短检查 319 项通过。仍有一处已知差异：OpenAI 兼容端点没有“自适应思考”开关。第 2、3 次依次跑；判定口径第 1、3 条不变，第 2 条改为看 medium 下每轮输出与用时是否回到基线的 1.5 倍以内。
