@@ -17,13 +17,13 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 
 
-def source_hashes():
+def source_hashes(group):
     registry = json.loads((ROOT / "src/agent_runtime/agent_versions.json").read_bytes())
     paths = set(registry["versions"][registry["current_version"]]["files"])
     paths.update(str(p.relative_to(ROOT)) for pattern in (
         "src/agent_runtime/*.py", "src/agent/runtime_*.py", "src/harness_contracts/*.py",
-        "src/agent/contracts/*.py", "tests/test_runtime*.py", "tests/test_harness*.py",
-        "tests/test_bim*.py") for p in ROOT.glob(pattern))
+        "src/agent/contracts/*.py") for p in ROOT.glob(pattern))
+    paths.update(files_for(group))
     paths.add("src/agent_runtime/agent_versions.json")
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sorted(paths)}
 
@@ -50,14 +50,14 @@ def main():
     command = [sys.executable, "-m", "pytest", "-q", "-n", "2", "-s", *files_for(args.group),
         "--basetemp=" + str(work / "pytest"), "--junitxml=" + str(target / (args.group + ".xml")),
         "-o", "cache_dir=" + str(work / "cache")]
-    before = source_hashes()
+    before = source_hashes(args.group)
     started = datetime.now(timezone.utc).isoformat()
     clock = time.monotonic()
     with (target / (args.group + ".log")).open("w") as stream:
         result = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT,
             env={**os.environ, "PYTHONPATH": str(ROOT), "PYTHONDONTWRITEBYTECODE": "1",
                  "TMPDIR": str(work), "R3_EVIDENCE_OUT": str(HERE / "counterexamples")})
-    after = source_hashes()
+    after = source_hashes(args.group)
     suites = ET.parse(target / (args.group + ".xml")).getroot().findall("testsuite")
     counts = {name: sum(int(s.get(name, 0)) for s in suites)
               for name in ("tests", "failures", "errors", "skipped")}
