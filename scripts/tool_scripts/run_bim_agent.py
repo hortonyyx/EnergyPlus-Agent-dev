@@ -35,6 +35,7 @@ from mcp.types import CallToolResult, TextContent
 
 from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide
 from scripts.tool_scripts.bim_agent_inputs import freeze_building_input, freeze_plan_input
+from scripts.tool_scripts.bim_agent_feedback import ImageFilename
 
 
 def dump(path: Path, value):
@@ -1313,8 +1314,8 @@ class Toolkit:
         return Image(data=image_path.read_bytes(), format="png"), metadata
 
     def image_path(self, name):
-        if name not in self.manifest["images"]:
-            raise ValueError("choose an exact image name from input inventory")
+        from scripts.tool_scripts.bim_agent_feedback import resolve_image_name
+        name = resolve_image_name(self.manifest["images"], name)
         path = self.run / "images" / name
         if digest(path) != self.manifest["images"][name]["sha256"]:
             raise ValueError("input image changed")
@@ -1756,8 +1757,12 @@ class Toolkit:
     def view(self, name, box=None, coordinate_grid=True, display_scale=1.0):
         from mcp.server.fastmcp import Image
         if (not isinstance(display_scale, (int, float)) or isinstance(display_scale, bool)
-                or not 1 <= display_scale <= 8):
-            raise ValueError("display_scale must be a number from 1 through 8")
+                or not math.isfinite(display_scale)):
+            raise ValueError("display_scale must be a finite number; allowed range is 1 through 8")
+        # GLM sm24 requested 0.7x. Preserve intent within the display-only limits.
+        requested_scale = display_scale
+        display_scale = max(1, min(8, display_scale))
+        name = self.image_path(name).name
         with PILImage.open(self.image_path(name)) as raw:
             pic = raw.convert("RGB")
             original_size = list(pic.size)
@@ -1786,7 +1791,8 @@ class Toolkit:
         metadata = {"name": name, "image_sha256": digest(self.image_path(name)),
                     "original_size": original_size, "coordinate_grid": grid,
                     "box_original_pixels": region, "returned_size": list(pic.size),
-                    "display_scale_requested": display_scale,
+                    "display_scale_requested": requested_scale,
+                    "display_scale_used": display_scale,
                     "display_scale_actual": actual_scale,
                     "original_pixels_per_returned_pixel": [
                         (region[2] - region[0]) / pic.width,
@@ -1794,6 +1800,8 @@ class Toolkit:
                     "coordinate_note": ("Grid labels show ORIGINAL pixels. Original pixel = crop origin + returned "
                                         "pixel * original_pixels_per_returned_pixel. Use ORIGINAL pixels for the next "
                                         "crop or measurement.")}
+        if requested_scale != display_scale:
+            metadata["display_scale_note"] = f"Requested {requested_scale}x; clamped to allowed [1, 8]: {display_scale}x."
         if display_scale > 1 and min(actual_scale) < display_scale - 0.05:
             # run94 asked 1.5-2x for 1100-1500 px strips and got 1.08-1.43x without noticing.
             metadata["magnification_note"] = (
@@ -2121,9 +2129,10 @@ class Toolkit:
 
 
 def serve(run: Path, readonly=False):
-    from mcp.server.fastmcp import FastMCP, Image
+    from mcp.server.fastmcp import Image
+    from scripts.tool_scripts.bim_agent_feedback import FeedbackMCP
     toolkit = Toolkit(run, readonly)
-    server = FastMCP("bim", log_level="WARNING")
+    server = FeedbackMCP(toolkit, "bim", log_level="WARNING")
     from scripts.tool_scripts.bim_agent_mesh import register_mesh_tools
     register_mesh_tools(server, toolkit)
     from scripts.tool_scripts.bim_agent_inference import register_inference_tools
@@ -2153,9 +2162,9 @@ def serve(run: Path, readonly=False):
                 "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
-    def view_image(name: str, box: list[int] | None = None, coordinate_grid: bool = True,
+    def view_image(name: ImageFilename, box: list[int] | None = None, coordinate_grid: bool = True,
                    display_scale: float = 1.0):
-        """View a drawing or crop [left,top,right,bottom] in ORIGINAL pixels.
+        """name is an input image filename from inputs(). View all or crop [left,top,right,bottom] in ORIGINAL pixels.
         Returned images are at most 1600 px on their long side; grid labels keep original
         coordinates. display_scale enlarges up to that limit, so a box whose longest side
         is under ~500 px can be shown 3x or more; coordinates stay original pixels.
@@ -2166,18 +2175,18 @@ def serve(run: Path, readonly=False):
         return toolkit.view(name, box, coordinate_grid, display_scale)
 
     @server.tool()
-    def pixel_profile(name: str, box: list[int], axis: str,
+    def pixel_profile(name: ImageFilename, box: list[int], axis: str,
                       rgb: list[int], tolerance: float = 70) -> dict:
-        """Measure colored ink runs along x or y in an original-pixel crop.
+        """name is an input image filename from inputs(), not a measurement label. Measure colored ink runs along x or y.
         You select RGB/tolerance; results have no wall/door semantic labels.
         """
         return toolkit.profile(name, box, axis, rgb, tolerance)
 
     @server.tool()
-    def view_pixel_profile(name: str, box: list[int], axis: str,
+    def view_pixel_profile(name: ImageFilename, box: list[int], axis: str,
                            rgb: list[int], tolerance: float = 70,
                            min_fraction: float = 0.1):
-        """Show a numbered, thresholded color profile in ORIGINAL pixels.
+        """name is an input image filename from inputs(), not a measurement label. Show a color profile in ORIGINAL pixels.
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
@@ -2189,7 +2198,7 @@ def serve(run: Path, readonly=False):
         return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
 
     @server.tool()
-    def view_pixel_region_overview(name: str, background_rgb: list[int], tolerance: float = 60,
+    def view_pixel_region_overview(name: ImageFilename, background_rgb: list[int], tolerance: float = 60,
                                    min_pixels: int = 500, max_regions: int = 40,
                                    include_border: bool = False):
         """Locate numbered colour-connected candidates in the full original image.
@@ -2203,7 +2212,7 @@ def serve(run: Path, readonly=False):
         return toolkit.pixel_region_overview(name, background_rgb, tolerance, min_pixels, max_regions, include_border)
 
     @server.tool()
-    def view_pixel_region(name: str, seed_pixel: list[int], background_rgb: list[int],
+    def view_pixel_region(name: ImageFilename, seed_pixel: list[int], background_rgb: list[int],
                           tolerance: float = 60, simplify_pixels: float = 1.5):
         """Display the complete 4-connected target-colour region at a selected pixel.
         background_rgb names the target colour, including ink or clear floor.
@@ -2218,7 +2227,7 @@ def serve(run: Path, readonly=False):
         return toolkit.pixel_region(name, seed_pixel, background_rgb, tolerance, simplify_pixels)
 
     @server.tool()
-    def preview_space_trace(name: str, polygon_pixels: list[list[float]], openings: list[dict],
+    def preview_space_trace(name: ImageFilename, polygon_pixels: list[list[float]], openings: list[dict],
                             x_anchors: list[list[float]], y_anchors: list[list[float]], basis: str):
         """Draw your COMPLETE ordered room contour on its original image before building.
         Include interior and exterior boundaries; close logically across apertures.
@@ -2257,7 +2266,7 @@ def serve(run: Path, readonly=False):
         return result
 
     @server.tool()
-    def compare_facade_spans(plan_image: str, elevation_image: str, observations_json: str,
+    def compare_facade_spans(plan_image: ImageFilename, elevation_image: ImageFilename, observations_json: str,
                              plan_axis: str = "y", elevation_axis: str = "x",
                              ambiguity_tolerance_m: float = 0.05) -> dict:
         """Compare complete independently observed opening lists in BOTH axis directions.
@@ -2588,7 +2597,7 @@ def serve(run: Path, readonly=False):
             return result
 
         @server.tool()
-        def check_source_space_relation(candidate: str, image: str, floor_id: str,
+        def check_source_space_relation(candidate: str, image: ImageFilename, floor_id: str,
                                         observations_json: str) -> dict:
             """Compare original-plan observations with actual source space ownership.
             observations_json is a list of {id, points:[[original_px_x,original_px_y],
@@ -2663,7 +2672,7 @@ def serve(run: Path, readonly=False):
                     "remaining_seconds": toolkit.remaining_seconds()}
 
         @server.tool()
-        def overlay_candidate(candidate: str, image: str, floor_id: str,
+        def overlay_candidate(candidate: str, image: ImageFilename, floor_id: str,
                               x_anchors: list[list[float]], y_anchors: list[list[float]],
                               basis: str, box: list[int] | None = None,
                               reuse_on_revision: bool = True):
@@ -2727,7 +2736,7 @@ def serve(run: Path, readonly=False):
             return response
 
         @server.tool()
-        def build_plan_bim(image: str, plan_json: str) -> CallToolResult:
+        def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
             """Build one floor from observed pixel wall paths, apertures and calibration.
             Read get_bim_reference('plan_partition') for the JSON contract. Code
             closes faces and finds opening hosts; it never fills wall-path gaps,
@@ -2801,7 +2810,7 @@ def serve(run: Path, readonly=False):
             return candidate_result(toolkit.build(json.loads(proposal_json)))
 
         @server.tool()
-        def view_elevation_candidate(candidate: str, facade: str, image: str = "",
+        def view_elevation_candidate(candidate: str, facade: str, image: ImageFilename = "",
                                      horizontal_anchors: list[list[float]] | None = None,
                                      z_anchors: list[list[float]] | None = None,
                                      basis: str = "") -> CallToolResult:

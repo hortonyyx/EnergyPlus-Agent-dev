@@ -1,0 +1,992 @@
+{
+  "summary": {
+    "model_calls": 0,
+    "runs": 12,
+    "errors": 50,
+    "accepted": 1,
+    "rejected": 49
+  },
+  "runs": [
+    {
+      "run": "2026-09-26_sm21_whole_building_claude_run57",
+      "record_sha256": "095fc991f44e3b48ce90ebd287e59feea84ce41ce806822127b8fa094324bc53",
+      "historical_tool_calls": 38,
+      "error_count": 0,
+      "replay": []
+    },
+    {
+      "run": "2026-09-26_sm24_whole_building_claude_run55",
+      "record_sha256": "4a7878ff8371d16a1d756afa21abd2b64d4fa30bb1dd84c03a183008bf5b2fa4",
+      "historical_tool_calls": 40,
+      "error_count": 6,
+      "replay": [
+        {
+          "index": 13,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"W_S1\"},{\"kind\":\"opening\",\"id\":\"W_S2\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"South elevation vertical chain from ground line: 1000 sill, 1800 window, 1700 above; total 4500. Origin z=0 at ground/floor level; segment 1 is the window.\",\"sources\":[{\"image\":\"South_view.png\",\"box\":[80,310,430,1010]}],\"values\":{\"z\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,1700],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_S1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_S1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 15,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"W_N\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"North elevation chain from ground: 1000 sill, 2400 large window, 1100 above; total 4500.\",\"sources\":[{\"image\":\"North_view.png\",\"box\":[120,385,380,1160]}],\"values\":{\"z\":{\"type\":\"dimension_chain\",\"lengths\":[1000,2400,1100],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_N\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_N\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 17,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"W_E1\"},{\"kind\":\"opening\",\"id\":\"W_E2\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"East elevation right-side chain from ground: 1000 sill, 1800 window, 1700 above; total 4500.\",\"sources\":[{\"image\":\"East_view.png\",\"box\":[2290,225,2530,660]}],\"values\":{\"z\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,1700],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"observation_mode\":\"candidate_review\",\"unresolved\":[\"East small-window 1200-wide window drawn with same height band as 1500 windows; chain read from adjacent dimension\"]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_E1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_E1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 18,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"W_E3\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"East elevation chain beside large window: 1000 sill, 2400 window, 1100 above; total 4500.\",\"sources\":[{\"image\":\"East_view.png\",\"box\":[1120,225,1170,660]}],\"values\":{\"z\":{\"type\":\"dimension_chain\",\"lengths\":[1000,2400,1100],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_E3\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_E3\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 20,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"W_W1\"},{\"kind\":\"opening\",\"id\":\"W_W2\"},{\"kind\":\"opening\",\"id\":\"W_W3\"},{\"kind\":\"opening\",\"id\":\"W_W4\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"West elevation left chain: 1000 sill, 1800 window, 1700 above; total 4500.\",\"sources\":[{\"image\":\"West_view.png\",\"box\":[110,250,330,690]}],\"values\":{\"z\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,1700],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_W1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_W1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 21,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"W_W5\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"West elevation right chain: 1000 sill, 2400 large window, 1100 above; total 4500.\",\"sources\":[{\"image\":\"West_view.png\",\"box\":[2270,250,2470,690]}],\"values\":{\"z\":{\"type\":\"dimension_chain\",\"lengths\":[1000,2400,1100],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"W_W5\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"W_W5\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-26_sm24_whole_building_repeat_claude_run56",
+      "record_sha256": "c5201b94f0f9d91e0e42aadbd959c69e5da18e92d62e77f661d275149778ca7f",
+      "historical_tool_calls": 29,
+      "error_count": 4,
+      "replay": [
+        {
+          "index": 13,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"WS1\"},{\"kind\":\"opening\",\"id\":\"WS2\"},{\"kind\":\"opening\",\"id\":\"XD_S\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"South_view vertical dimension chains (ground 0 upward): window 1000 sill,1800 height,1700 above; door 200,2400,1900 to 4500 top.\",\"sources\":[{\"image\":\"South_view.png\",\"box\":[0,280,2434,1020]}],\"values\":{\"small\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,1700],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1},\"door\":{\"type\":\"dimension_chain\",\"lengths\":[200,2400,1900],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"value_targets\":{\"small\":[{\"kind\":\"opening\",\"id\":\"WS1\"},{\"kind\":\"opening\",\"id\":\"WS2\"}],\"door\":[{\"kind\":\"opening\",\"id\":\"XD_S\"}]},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"WS1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"WS1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 14,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"WN\"},{\"kind\":\"opening\",\"id\":\"XD_N\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"North_view vertical chains from ground: window 1000,2400,1100; door 200,2400,1900.\",\"sources\":[{\"image\":\"North_view.png\",\"box\":[0,300,2890,1200]}],\"values\":{\"large\":{\"type\":\"dimension_chain\",\"lengths\":[1000,2400,1100],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1},\"door\":{\"type\":\"dimension_chain\",\"lengths\":[200,2400,1900],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"value_targets\":{\"large\":[{\"kind\":\"opening\",\"id\":\"WN\"}],\"door\":[{\"kind\":\"opening\",\"id\":\"XD_N\"}]},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"WN\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"WN\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 15,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"WW1\"},{\"kind\":\"opening\",\"id\":\"WW2\"},{\"kind\":\"opening\",\"id\":\"WW3\"},{\"kind\":\"opening\",\"id\":\"WW4\"},{\"kind\":\"opening\",\"id\":\"WW5\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"West_view vertical chains from ground: small windows 1000,1800,1700; large 1000,2400,1100.\",\"sources\":[{\"image\":\"West_view.png\",\"box\":[0,200,2580,700]}],\"values\":{\"small\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,1700],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1},\"large\":{\"type\":\"dimension_chain\",\"lengths\":[1000,2400,1100],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"value_targets\":{\"small\":[{\"kind\":\"opening\",\"id\":\"WW1\"},{\"kind\":\"opening\",\"id\":\"WW2\"},{\"kind\":\"opening\",\"id\":\"WW3\"},{\"kind\":\"opening\",\"id\":\"WW4\"}],\"large\":[{\"kind\":\"opening\",\"id\":\"WW5\"}]},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"WW1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"WW1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 16,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_01\",\"objects\":[{\"kind\":\"opening\",\"id\":\"WE1\"},{\"kind\":\"opening\",\"id\":\"WE2\"},{\"kind\":\"opening\",\"id\":\"WE3\"},{\"kind\":\"opening\",\"id\":\"XD_E\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"East_view vertical chains from ground: small 1000,1800,1700; large 1000,2400,1100; door 200,2400,1900.\",\"sources\":[{\"image\":\"East_view.png\",\"box\":[0,200,2639,700]}],\"values\":{\"small\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,1700],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1},\"large\":{\"type\":\"dimension_chain\",\"lengths\":[1000,2400,1100],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1},\"door\":{\"type\":\"dimension_chain\",\"lengths\":[200,2400,1900],\"unit\":\"mm\",\"origin_m\":0,\"direction\":1,\"segment\":1}},\"value_targets\":{\"small\":[{\"kind\":\"opening\",\"id\":\"WE1\"},{\"kind\":\"opening\",\"id\":\"WE2\"}],\"large\":[{\"kind\":\"opening\",\"id\":\"WE3\"}],\"door\":[{\"kind\":\"opening\",\"id\":\"XD_E\"}]},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_01': {\"kind\": \"opening\", \"id\": \"WE1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"WE1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-26_sm25_height_cold_claude_run53",
+      "record_sha256": "9c54d4383905641a93341dc7a034944040978d9f44824ecd8e554409fd68af02",
+      "historical_tool_calls": 33,
+      "error_count": 1,
+      "replay": [
+        {
+          "index": 16,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_04\",\"objects\":[{\"kind\":\"opening\",\"id\":\"F1:W_n1\"},{\"kind\":\"opening\",\"id\":\"F1:W_n2\"},{\"kind\":\"opening\",\"id\":\"F1:W_n3\"},{\"kind\":\"opening\",\"id\":\"F1:W_e1\"},{\"kind\":\"opening\",\"id\":\"F1:W_e2\"},{\"kind\":\"opening\",\"id\":\"F1:W_e3\"},{\"kind\":\"opening\",\"id\":\"F1:W_e4\"},{\"kind\":\"opening\",\"id\":\"F1:W_e5\"},{\"kind\":\"opening\",\"id\":\"F1:W_e6\"},{\"kind\":\"opening\",\"id\":\"F1:W_e7\"},{\"kind\":\"opening\",\"id\":\"F1:W_w1\"},{\"kind\":\"opening\",\"id\":\"F1:W_w2\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"Elevation vertical dimension chains 1000/1600/1000 on North, East, West views for the lower storey (ground floor z=0 at bottom of the 3600 lower band): sill 1.0 m, head 2.6 m absolute.\",\"sources\":[{\"image\":\"East_view.png\",\"box\":[1400,250,1600,800]},{\"image\":\"West_view.png\",\"box\":[1400,250,1600,800]},{\"image\":\"North_view.png\",\"box\":[2200,250,2690,850]}],\"values\":{\"z\":{\"type\":\"literal\",\"value\":[1.0,2.6],\"unit\":\"m\"}},\"observation_mode\":\"candidate_review\",\"unresolved\":[\"Exact sill/head pixel edges not profiled; relies on annotated dimension chain\"]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"F1:W_n1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"F1:W_n1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-26_sm25_height_repeat_claude_run54",
+      "record_sha256": "54a47b27b54aa8642d78d191d88c3b9d0f03df2b446e5d59445da68ed9a94c7f",
+      "historical_tool_calls": 35,
+      "error_count": 5,
+      "replay": [
+        {
+          "index": 17,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_05\",\"objects\":[{\"kind\":\"opening\",\"id\":\"F1:W_top1\"},{\"kind\":\"opening\",\"id\":\"F1:W_top2\"},{\"kind\":\"opening\",\"id\":\"F1:W_top3\"},{\"kind\":\"opening\",\"id\":\"F1:W_r1\"},{\"kind\":\"opening\",\"id\":\"F1:W_r2\"},{\"kind\":\"opening\",\"id\":\"F1:W_r3\"},{\"kind\":\"opening\",\"id\":\"F1:W_r4\"},{\"kind\":\"opening\",\"id\":\"F1:W_r5\"},{\"kind\":\"opening\",\"id\":\"F1:W_r6\"},{\"kind\":\"opening\",\"id\":\"F1:W_r7\"},{\"kind\":\"opening\",\"id\":\"F1:W_mid1\"},{\"kind\":\"opening\",\"id\":\"F1:W_mid2\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"Ground-floor windows on North/East/West elevations carry vertical dimension labels 1000/1600/1000 mm above floor level 0 (ground at z=0; storey 3600): sill 1.0 m, head 2.6 m.\",\"sources\":[{\"image\":\"East_view.png\",\"box\":[300,600,1800,820]},{\"image\":\"North_view.png\",\"box\":[1300,250,2300,850]},{\"image\":\"West_view.png\",\"box\":[1000,600,1800,860]}],\"values\":{\"z\":{\"type\":\"literal\",\"value\":[1.0,2.6],\"unit\":\"m\"}},\"observation_mode\":\"candidate_review\",\"unresolved\":[\"Each individual window height read from family dimension chain, not per-window.\"]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_05': {\"kind\": \"opening\", \"id\": \"F1:W_top1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"F1:W_top1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 18,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_05\",\"objects\":[{\"kind\":\"opening\",\"id\":\"F1:W_long\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"North elevation ground-floor long window: labels 1000 below, 2200 high, 400 above within 3600 storey: z 1.0 to 3.2 m (ground z=0).\",\"sources\":[{\"image\":\"North_view.png\",\"box\":[300,550,1200,850]}],\"values\":{\"z\":{\"type\":\"literal\",\"value\":[1.0,3.2],\"unit\":\"m\"}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_05': {\"kind\": \"opening\", \"id\": \"F1:W_long\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"F1:W_long\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 19,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_05\",\"objects\":[{\"kind\":\"opening\",\"id\":\"F1:W_b1\"},{\"kind\":\"opening\",\"id\":\"F1:W_b2\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"South elevation ground-floor large windows: labels 800 above, 1800 high, 1000 below within 3600 storey: z 1.0 to 2.8 m.\",\"sources\":[{\"image\":\"South_view.png\",\"box\":[950,600,1700,830]}],\"values\":{\"z\":{\"type\":\"literal\",\"value\":[1.0,2.8],\"unit\":\"m\"}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_05': {\"kind\": \"opening\", \"id\": \"F1:W_b1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"F1:W_b1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 21,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_05\",\"objects\":[{\"kind\":\"opening\",\"id\":\"F2:W_top1\"},{\"kind\":\"opening\",\"id\":\"F2:W_top2\"},{\"kind\":\"opening\",\"id\":\"F2:W_top3\"},{\"kind\":\"opening\",\"id\":\"F2:W_r1\"},{\"kind\":\"opening\",\"id\":\"F2:W_r2\"},{\"kind\":\"opening\",\"id\":\"F2:W_r3\"},{\"kind\":\"opening\",\"id\":\"F2:W_r4\"},{\"kind\":\"opening\",\"id\":\"F2:W_r5\"},{\"kind\":\"opening\",\"id\":\"F2:W_band\"},{\"kind\":\"opening\",\"id\":\"F2:W_b1\"},{\"kind\":\"opening\",\"id\":\"F2:W_b2\"},{\"kind\":\"opening\",\"id\":\"F2:W_b3\"},{\"kind\":\"opening\",\"id\":\"F2:W_b4\"},{\"kind\":\"opening\",\"id\":\"F2:W_b5\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"Upper-floor elevation windows: labels 1000/1600/1000 below the 7200 top; second floor level at z=3.6 (elevation 3600+3600), so sill 4.6 m, head 6.2 m absolute.\",\"sources\":[{\"image\":\"East_view.png\",\"box\":[300,250,1800,560]},{\"image\":\"South_view.png\",\"box\":[350,250,2224,560]},{\"image\":\"North_view.png\",\"box\":[1300,250,2300,600]},{\"image\":\"West_view.png\",\"box\":[1500,330,1800,600]}],\"values\":{\"z\":{\"type\":\"literal\",\"value\":[4.6,6.2],\"unit\":\"m\"}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_05': {\"kind\": \"opening\", \"id\": \"F2:W_top1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"F2:W_top1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 22,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\"candidate\":\"candidate_05\",\"objects\":[{\"kind\":\"opening\",\"id\":\"F2:W_conf\"},{\"kind\":\"opening\",\"id\":\"F2:W_long\"}],\"basis\":\"annotation_and_pixels\",\"reason\":\"Upper-floor large windows on West (4320 wide) and North (8000 wide): labels 400 top, 2200 high, 1000 sill relative to floor level z=3.6: absolute 4.6 to 6.8 m.\",\"sources\":[{\"image\":\"West_view.png\",\"box\":[1000,330,1500,600]},{\"image\":\"North_view.png\",\"box\":[300,250,1200,600]}],\"values\":{\"z\":{\"type\":\"literal\",\"value\":[4.6,6.8],\"unit\":\"m\"}},\"observation_mode\":\"candidate_review\",\"unresolved\":[]}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_05': {\"kind\": \"opening\", \"id\": \"F2:W_conf\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"F2:W_conf\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+      "record_sha256": "7c66f4db544a2e20cb68d34ff6b3ad6a4bd892f9427da94f7f1c18c9e74d56b0",
+      "historical_tool_calls": 44,
+      "error_count": 0,
+      "replay": []
+    },
+    {
+      "run": "2026-09-30_sm21_instruction_fix_glm_trial01",
+      "record_sha256": "bf22a4f617179018dab5ba5c3bfbe3f10c74447deab15e2207ee72b816d40d2c",
+      "historical_tool_calls": 103,
+      "error_count": 10,
+      "replay": [
+        {
+          "index": 10,
+          "tool": "pixel_profile",
+          "arguments": {
+            "axis": "x",
+            "box": [
+              380,
+              250,
+              1400,
+              285
+            ],
+            "name": "pf_1f_north_cyan",
+            "rgb": [
+              0,
+              190,
+              190
+            ],
+            "tolerance": 90
+          },
+          "old_error": "Error executing tool pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'pf_1f_north_cyan'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 11,
+          "tool": "pixel_profile",
+          "arguments": {
+            "axis": "x",
+            "box": [
+              380,
+              250,
+              1400,
+              285
+            ],
+            "name": "pf_1f_north_grey",
+            "rgb": [
+              128,
+              128,
+              128
+            ],
+            "tolerance": 60
+          },
+          "old_error": "Error executing tool pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'pf_1f_north_grey'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 53,
+          "tool": "revise_plan_bim",
+          "arguments": {
+            "draft_id": "draft_001",
+            "expected_plan_sha256": "fc9809338a627caa963de113a2647d4abfb5b7676734aa41000da2543684b1a5",
+            "operations_json": "[\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"P_div_x5000\",\"changes\":{\"points\":[[889,344],[889,623.5]],\"source_refs\":[\"1f_view.png look_box 814,545,964,888: divider is a T-junction ending at the corridor north wall; corridor is one continuous space, no wall across it\"]},\"reason\":\"drawing shows divider terminated at corridor wall, not full depth\",\"source_refs\":[\"1f_view.png: view of divider/corridor junction\"]},\n{\"op\":\"add\",\"collection\":\"partitions\",\"value\":{\"id\":\"P_div_x5000_s\",\"points\":[[889,809.5],[889,1087]],\"source_refs\":[\"1f_view.png: lower-room portion of the x~5000 divider, T-junction at corridor south wall\"]}},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"P_div_x10000\",\"changes\":{\"points\":[[1351.5,344],[1351.5,623.5]]},\"reason\":\"divider terminated at corridor north wall per original\",\"source_refs\":[\"1f_view.png: same junction detail at x~1352\"]},\n{\"op\":\"add\",\"collection\":\"partitions\",\"value\":{\"id\":\"P_div_x10000_s\",\"points\":[[1351.5,809.5],[1351.5,1087]],\"source_refs\":[\"1f_view.png: lower-room portion of the x~10000 divider\"]}},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_N1\",\"changes\":{\"p1\":[540,344],\"p2\":[763,344]},\"reason\":\"exterior opening must lie on the declared outer-face ring\",\"source_refs\":[\"1f_view.png: north window cyan 540-763\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_N2\",\"changes\":{\"p1\":[1010,344],\"p2\":[1230,344]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_N3\",\"changes\":{\"p1\":[1479,344],\"p2\":[1699,344]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_S1\",\"changes\":{\"p1\":[745,1087],\"p2\":[854,1087]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_S2\",\"changes\":{\"p1\":[1010,1087],\"p2\":[1230,1087]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_S3\",\"changes\":{\"p1\":[1478,1087],\"p2\":[1701,1087]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_S_entrance\",\"changes\":{\"p1\":[475,1087],\"p2\":[557,1087]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"W_E_corridor\",\"changes\":{\"p1\":[1816,661],\"p2\":[1816,772]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]},\n{\"op\":\"update\",\"collection\":\"openings\",\"id\":\"D_W_entrance\",\"changes\":{\"p1\":[426,645],\"p2\":[426,786]},\"reason\":\"move onto outer ring\",\"source_refs\":[\"1f_view.png\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_plan_bim: operation 1 fields: missing reason, source_refs",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_plan_bim: operation 1 fields: missing reason, source_refs\nMinimum operation format (replace evidence placeholders): [{\"op\": \"add\", \"reason\": \"explain the observed correction\", \"source_refs\": [\"input filename: observed region\"], \"collection\": \"partitions\", \"value\": {\"id\": \"P_div_x5000_s\", \"points\": [[889, 809.5], [889, 1087]], \"source_refs\": [\"1f_view.png: lower-room portion of the x~5000 divider, T-junction at corridor south wall\"]}}]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 83,
+          "tool": "confirm_claims",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[{\"op\":\"update_window\",\"id\":\"F1:W_N1\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F1:W_N2\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F1:W_N3\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F1:W_S2\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F1:W_S3\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F1:W_S1\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F1:W_E_corridor\",\"changes\":{\"z\":{\"claim\":\"claim_0003\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_N1\",\"changes\":{\"z\":{\"claim\":\"claim_0004\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_N2\",\"changes\":{\"z\":{\"claim\":\"claim_0004\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_S1\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_S2\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_S3\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_S4\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_E_corridor\",\"changes\":{\"z\":{\"claim\":\"claim_0006\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_window\",\"id\":\"F2:W_W_corridor\",\"changes\":{\"z\":{\"claim\":\"claim_0006\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived window height already present in geometry\"},{\"op\":\"update_opening\",\"id\":\"F1:D_S_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0007\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived door height already present in geometry\"},{\"op\":\"update_opening\",\"id\":\"F1:D_W_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0008\",\"value\":\"z\"}},\"reason\":\"Confirm elevation-derived door height already present in geometry\"}]"
+          },
+          "old_error": "Error executing tool confirm_claims: claim differs from current geometry; revise or defer instead of confirming unchanged",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool confirm_claims: claim differs from current geometry; revise or defer instead of confirming unchanged\nNext: send these operations to revise_bim to apply the observed values, or decide_claim(..., disposition=\"deferred\", reason=...)."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 85,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[{\"op\":\"update_opening\",\"id\":\"F1:D_S_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0007\",\"value\":\"z\"}},\"reason\":\"Apply the door head measured on South_view.png (drawn frame top y=448 against ground y=569 and storey line y=396, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm\",\"source_refs\":[\"image:South_view.png: entrance door frame at x 344-395, ground line y=569, storey line y=396\",\"profile:profile_001\"]},{\"op\":\"update_opening\",\"id\":\"F1:D_W_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0008\",\"value\":\"z\"}},\"reason\":\"Apply the door head measured on West_view.png (drawn frame top y=440 against ground y=561 and storey line y=388, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm\",\"source_refs\":[\"image:West_view.png: entrance door frame at x 566-652, ground line y=561, storey line y=388\",\"profile:profile_002\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_corridor\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"Long continuous space between the two room rows with doors from every room and entrances at both ends; no furniture drawn in it\"],\"reason\":\"Layout and connectivity identify a circulation corridor; no printed use label exists on the plan\",\"source_refs\":[\"image:1f_view.png: continuous furniture-free strip between corridor wall lines y=623-810 with 7 doors onto it\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NW\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs facing the north window\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-west room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NM\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-middle room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NE\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SW\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks; also hosts the south entrance door\"],\"reason\":\"Enclosed room with desk furniture reads as an office despite the secondary entrance; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks drawn inside the south-west room, south entrance door D_S_entrance on its south wall\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SM\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the south-middle room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SE\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: square table with four chairs around it, unlike the desks elsewhere\"],\"reason\":\"Table-and-chairs furniture reads as a small meeting room; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: 4-seat square table drawn inside the south-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_meet_W\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: large oval conference table with about ten chairs\"],\"reason\":\"Conference-table furniture reads as a meeting room; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: oval conference table with ~10 chairs in the north-west second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_meet_E\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: large oval conference table with about ten chairs\"],\"reason\":\"Conference-table furniture reads as a meeting room; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: oval conference table with ~10 chairs in the north-east second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_A\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in south-west second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_B\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in the second bottom-row room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_C\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in the third bottom-row room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_D\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in south-east second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_corridor\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"Long continuous space between the two room rows with doors from every room and windows at both ends; no furniture drawn in it\"],\"reason\":\"Layout and connectivity identify a circulation corridor; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: continuous furniture-free strip between corridor wall lines y=601-795 with 6 doors onto it\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.\",\"replacement\":[],\"reason\":\"Duplicate of the identical assumption already saved for the 1F draft; both floors use the same orientation convention\"},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Interior partitions declared on the midplane of their drawn line pairs.\",\"replacement\":[],\"reason\":\"Duplicate of the 1F assumption which already states the midplane convention (with the corridor-wall caveat)\"},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\",\"replacement\":[],\"reason\":\"Duplicate of the identical compiler note already saved from the 1F draft\"},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.\",\"replacement\":[\"Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1:D_C1-D_C6, F2:D_A-D_D, F2:D_M1-D_M2). Entrance door heights were measured on the elevations and applied via claim_0007 (south) and claim_0008 (west).\"],\"reason\":\"Entrance door heights are no longer assumptions: they were measured on South_view.png and West_view.png and applied from claims\"},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.\",\"replacement\":[],\"reason\":\"Covered by the consolidated 1F assumption about interior door heights\"},{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Pixel-to-world calibration was supplied by the caller and was not independently verified.\",\"replacement\":[],\"reason\":\"Duplicate note from the two separate floor drafts; the identical calibration caveat is already saved once\"},{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.\",\"replacement\":[\"2F divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its exact position carries about +/-10 px (~110 mm) uncertainty. The compiled draft shows no drawing_differences there.\"],\"reason\":\"State the residual uncertainty and that the draft compiled without differences at this divider\"}]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: source_refs must be a nonempty list of nonblank strings",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: source_refs must be a nonempty list of nonblank strings\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 86,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[{\"op\":\"update_opening\",\"id\":\"F1:D_S_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0007\",\"value\":\"z\"}},\"reason\":\"Apply the door head measured on South_view.png (drawn frame top y=448 against ground y=569 and storey line y=396, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm\",\"source_refs\":[\"image:South_view.png: entrance door frame at x 344-395, ground line y=569, storey line y=396\",\"profile:profile_001\"]},{\"op\":\"update_opening\",\"id\":\"F1:D_W_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0008\",\"value\":\"z\"}},\"reason\":\"Apply the door head measured on West_view.png (drawn frame top y=440 against ground y=561 and storey line y=388, 3.0 m chain) replacing the assumed 2100 with the observed 2098 mm\",\"source_refs\":[\"image:West_view.png: entrance door frame at x 566-652, ground line y=561, storey line y=388\",\"profile:profile_002\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_corridor\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"Long continuous space between the two room rows with doors from every room and entrances at both ends; no furniture drawn in it\"],\"reason\":\"Layout and connectivity identify a circulation corridor; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: continuous furniture-free strip between corridor wall lines y=623-810 with 7 doors onto it\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NW\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs facing the north window\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-west room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NM\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-middle room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NE\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SW\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks; also hosts the south entrance door\"],\"reason\":\"Enclosed room with desk furniture reads as an office despite the secondary entrance; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks drawn inside the south-west room, south entrance door D_S_entrance on its south wall\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SM\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the south-middle room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SE\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: square table with four chairs around it, unlike the desks elsewhere\"],\"reason\":\"Table-and-chairs furniture reads as a small meeting room; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: 4-seat square table drawn inside the south-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_meet_W\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: large oval conference table with about ten chairs\"],\"reason\":\"Conference-table furniture reads as a meeting room; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: oval conference table with ~10 chairs in the north-west second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_meet_E\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: large oval conference table with about ten chairs\"],\"reason\":\"Conference-table furniture reads as a meeting room; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: oval conference table with ~10 chairs in the north-east second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_A\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in south-west second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_B\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in the second bottom-row room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_C\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in the third bottom-row room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_D\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet drawn in south-east second-floor room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_corridor\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"Long continuous space between the two room rows with doors from every room and windows at both ends; no furniture drawn in it\"],\"reason\":\"Layout and connectivity identify a circulation corridor; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: continuous furniture-free strip between corridor wall lines y=601-795 with 6 doors onto it\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.\",\"replacement\":[],\"reason\":\"Duplicate of the identical assumption already saved for the 1F draft; both floors use the same orientation convention\",\"source_refs\":[\"image:2f_view.png: same sheet orientation convention as 1f_view.png\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Interior partitions declared on the midplane of their drawn line pairs.\",\"replacement\":[],\"reason\":\"Duplicate of the 1F assumption which already states the midplane convention with the corridor-wall caveat\",\"source_refs\":[\"image:2f_view.png: divider line pairs read on their centre lines\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\",\"replacement\":[],\"reason\":\"Duplicate of the identical compiler note already saved from the 1F draft\",\"source_refs\":[\"image:2f_view.png: compiled plan draft_003\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.\",\"replacement\":[\"Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1:D_C1-D_C6, F2:D_A-D_D, F2:D_M1-D_M2). Entrance door heights were measured on the elevations and applied via claim_0007 (south) and claim_0008 (west).\"],\"reason\":\"Entrance door heights are no longer assumptions: they were measured on South_view.png and West_view.png and applied from claims\",\"source_refs\":[\"image:South_view.png: door frame top y=448 against 3.0 m storey chain\",\"image:West_view.png: door frame top y=440 against 3.0 m storey chain\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.\",\"replacement\":[],\"reason\":\"Covered by the consolidated interior-door-height assumption\",\"source_refs\":[\"image:2f_view.png: door apertures without height marks\"]},{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Pixel-to-world calibration was supplied by the caller and was not independently verified.\",\"replacement\":[],\"reason\":\"Duplicate note from the two separate floor drafts; the identical calibration caveat is already saved once\",\"source_refs\":[\"image:1f_view.png: caller-supplied anchors [[426,0],[1816,15]]/[[1087,0],[344,8]]\"]},{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.\",\"replacement\":[\"2F divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its position carries about +/-10 px (~110 mm) uncertainty. The compiled draft shows no drawing_differences there.\"],\"reason\":\"State the residual uncertainty and that the draft compiled without differences at this divider\",\"source_refs\":[\"image:2f_view.png: divider ink ~1455-1473 at corridor south wall\"]}]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: old must exactly match one current note",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: old must exactly match one current note\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 88,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[{\"op\":\"update_opening\",\"id\":\"F1:D_S_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0007\",\"value\":\"z\"}},\"reason\":\"Apply the door head measured on South_view.png (frame top y=448 against ground y=569 and storey line y=396, 3.0 m chain), replacing the assumed 2100 with the observed 2098 mm\",\"source_refs\":[\"image:South_view.png: entrance door frame x 344-395, ground line y=569, storey line y=396\",\"profile:profile_001\"]},{\"op\":\"update_opening\",\"id\":\"F1:D_W_entrance\",\"changes\":{\"z\":{\"claim\":\"claim_0008\",\"value\":\"z\"}},\"reason\":\"Apply the door head measured on West_view.png (frame top y=440 against ground y=561 and storey line y=388, 3.0 m chain), replacing the assumed 2100 with the observed 2098 mm\",\"source_refs\":[\"image:West_view.png: entrance door frame x 566-652, ground line y=561, storey line y=388\",\"profile:profile_002\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_corridor\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"Long continuous space between the two room rows with doors from every room and entrances at both ends; no furniture drawn in it\"],\"reason\":\"Layout and connectivity identify a circulation corridor; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: continuous furniture-free strip between corridor wall lines y=623-810 with 7 doors onto it\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NW\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-west room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NM\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-middle room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_NE\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the north-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SW\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks; also hosts the south entrance door\"],\"reason\":\"Enclosed room with desk furniture reads as an office despite the secondary entrance; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks drawn inside the south-west room, south entrance door on its south wall\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SM\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: desks with office chairs\"],\"reason\":\"Enclosed room with desk furniture reads as an office; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: desks and chairs drawn inside the south-middle room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F1:R_SE\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: square table with four chairs around it, unlike the desks elsewhere\"],\"reason\":\"Table-and-chairs furniture reads as a small meeting room; no printed use label exists\",\"source_refs\":[\"image:1f_view.png: 4-seat square table drawn inside the south-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_meet_W\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: large oval conference table with about ten chairs\"],\"reason\":\"Conference-table furniture reads as a meeting room; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: oval conference table with about 10 chairs in the north-west room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_meet_E\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: large oval conference table with about ten chairs\"],\"reason\":\"Conference-table furniture reads as a meeting room; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: oval conference table with about 10 chairs in the north-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_A\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet in the south-west room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_B\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet in the second bottom-row room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_C\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet in the third bottom-row room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_D\",\"role\":\"office/enclosed\",\"basis\":\"inferred\",\"assumptions\":[\"Drawn furniture: single desk with task chair and cabinet\"],\"reason\":\"Enclosed room with single-workstation furniture reads as an enclosed office; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: desk, chair and cabinet in the south-east room\"]},{\"op\":\"set_space_role\",\"space_id\":\"F2:R2_corridor\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"Long continuous space between the two room rows with doors from every room and windows at both ends; no furniture drawn in it\"],\"reason\":\"Layout and connectivity identify a circulation corridor; no printed use label exists\",\"source_refs\":[\"image:2f_view.png: continuous furniture-free strip between corridor wall lines y=601-795 with 6 doors onto it\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"North = up on the plan sheet (no printed north arrow seen); world y grows north from the south outer face.\",\"replacement\":[],\"reason\":\"Duplicate of the identical 1F orientation assumption\",\"source_refs\":[\"image:2f_view.png: same sheet orientation as 1f_view.png\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Interior partitions declared on the midplane of their drawn line pairs.\",\"replacement\":[],\"reason\":\"Duplicate of the 1F midplane-convention assumption which also carries the corridor-wall caveat\",\"source_refs\":[\"image:2f_view.png: divider line pairs read on centre lines\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\",\"replacement\":[],\"reason\":\"Duplicate of the identical compiler note saved from the 1F draft\",\"source_refs\":[\"image:2f_view.png: compiled plan draft_003\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior and entrance doors except where an elevation chain gives a height.\",\"replacement\":[\"Internal door leaf heights are not drawn on any plan; 2100 mm assumed for all interior doors (F1:D_C1-D_C6, F2:D_A-D_D, F2:D_M1-D_M2). Entrance door heights were measured on the elevations and applied via claim_0007 (south) and claim_0008 (west).\"],\"reason\":\"Entrance door heights are no longer assumptions: measured on South_view.png and West_view.png and applied from claims\",\"source_refs\":[\"image:South_view.png: door frame top y=448 against 3.0 m storey chain\",\"image:West_view.png: door frame top y=440 against 3.0 m storey chain\"]},{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Internal door heights are not drawn; 2100 mm assumed for all 2F interior doors.\",\"replacement\":[],\"reason\":\"Covered by the consolidated interior-door-height assumption\",\"source_refs\":[\"image:2f_view.png: door apertures without height marks\"]},{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Pixel-to-world calibration was supplied by the caller and was not independently verified.\",\"replacement\":[],\"reason\":\"Duplicate calibration caveat saved by the two separate floor drafts; one instance remains\",\"source_refs\":[\"image:1f_view.png: caller-supplied anchors 426/1816 and 1087/344\"]},{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Divider between bottom rooms C and D read at pixels ~1455-1473 (centre 1466); line pair partially merged with door jamb ink in the profile.\",\"replacement\":[\"2F divider between bottom rooms C and D read at pixels about 1455-1473 (centre 1466); its drawn line pair partially merges with the adjacent door jamb ink, so its position carries about 110 mm uncertainty. The compiled draft shows no drawing_differences there.\"],\"reason\":\"State the residual uncertainty and that the draft compiled without differences at this divider\",\"source_refs\":[\"image:2f_view.png: divider ink about 1455-1473 at the corridor south wall\"]}]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: old must exactly match one current note",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: old must exactly match one current note\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 90,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_04",
+            "operations_json": "[{\"op\": \"update_opening\", \"id\": \"F1:D_S_entrance\", \"changes\": {\"z\": {\"claim\": \"claim_0007\", \"value\": \"z\"}}, \"reason\": \"Apply the door head measured on South_view.png (frame top y=448, ground y=569, storey line y=396, 3.0 m chain)\", \"source_refs\": [\"image:South_view.png: entrance door frame x 344-395\", \"profile:profile_001\"]}, {\"op\": \"update_opening\", \"id\": \"F1:D_W_entrance\", \"changes\": {\"z\": {\"claim\": \"claim_0008\", \"value\": \"z\"}}, \"reason\": \"Apply the door head measured on West_view.png (frame top y=440, ground y=561, storey line y=388, 3.0 m chain)\", \"source_refs\": [\"image:West_view.png: entrance door frame x 566-652\", \"profile:profile_002\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_corridor\", \"role\": \"corridor\", \"basis\": \"inferred\", \"assumptions\": [\"Continuous furniture-free strip with doors from every room and entrances at both ends\"], \"reason\": \"Layout and connectivity identify a circulation corridor; no printed use label\", \"source_refs\": [\"image:1f_view.png: furniture-free strip y 623-810 with 7 doors\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_NW\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn desks with office chairs\"], \"reason\": \"Enclosed room with desk furniture; no printed use label\", \"source_refs\": [\"image:1f_view.png: desks and chairs in north-west room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_NM\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn desks with office chairs\"], \"reason\": \"Enclosed room with desk furniture; no printed use label\", \"source_refs\": [\"image:1f_view.png: desks and chairs in north-middle room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_NE\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn desks with office chairs\"], \"reason\": \"Enclosed room with desk furniture; no printed use label\", \"source_refs\": [\"image:1f_view.png: desks and chairs in north-east room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_SW\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn desks; hosts the south entrance door\"], \"reason\": \"Enclosed room with desk furniture despite secondary entrance; no printed use label\", \"source_refs\": [\"image:1f_view.png: desks in south-west room, south entrance on its south wall\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_SM\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn desks with office chairs\"], \"reason\": \"Enclosed room with desk furniture; no printed use label\", \"source_refs\": [\"image:1f_view.png: desks and chairs in south-middle room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F1:R_SE\", \"role\": \"conference/meeting/multipurpose\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn square table with four chairs, unlike the desks elsewhere\"], \"reason\": \"Table-and-chairs furniture reads as a small meeting room; no printed use label\", \"source_refs\": [\"image:1f_view.png: 4-seat square table in south-east room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_meet_W\", \"role\": \"conference/meeting/multipurpose\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn large oval conference table with about ten chairs\"], \"reason\": \"Conference-table furniture reads as a meeting room; no printed use label\", \"source_refs\": [\"image:2f_view.png: oval table with about 10 chairs in north-west room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_meet_E\", \"role\": \"conference/meeting/multipurpose\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn large oval conference table with about ten chairs\"], \"reason\": \"Conference-table furniture reads as a meeting room; no printed use label\", \"source_refs\": [\"image:2f_view.png: oval table with about 10 chairs in north-east room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_A\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn single desk with task chair and cabinet\"], \"reason\": \"Single-workstation enclosed room reads as an office; no printed use label\", \"source_refs\": [\"image:2f_view.png: desk, chair, cabinet in south-west room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_B\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn single desk with task chair and cabinet\"], \"reason\": \"Single-workstation enclosed room reads as an office; no printed use label\", \"source_refs\": [\"image:2f_view.png: desk, chair, cabinet in second bottom-row room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_C\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn single desk with task chair and cabinet\"], \"reason\": \"Single-workstation enclosed room reads as an office; no printed use label\", \"source_refs\": [\"image:2f_view.png: desk, chair, cabinet in third bottom-row room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_D\", \"role\": \"office/enclosed\", \"basis\": \"inferred\", \"assumptions\": [\"Drawn single desk with task chair and cabinet\"], \"reason\": \"Single-workstation enclosed room reads as an office; no printed use label\", \"source_refs\": [\"image:2f_view.png: desk, chair, cabinet in south-east room\"]}, {\"op\": \"set_space_role\", \"space_id\": \"F2:R2_corridor\", \"role\": \"corridor\", \"basis\": \"inferred\", \"assumptions\": [\"Continuous furniture-free strip with doors from every room and windows at both ends\"], \"reason\": \"Layout and connectivity identify a circulation corridor; no printed use label\", \"source_refs\": [\"image:2f_view.png: furniture-free strip y 601-795 with 6 doors\"]}]"
+          },
+          "old_error": "Error executing tool revise_bim: claim is stale for this parent proposal; record a new claim",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: claim is stale for this parent proposal; record a new claim\nNext: record_claim on the current candidate, decide_claim adopted, then retry with the new claim ID."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 99,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_08",
+            "operations_json": "[{\"op\": \"replace_note\", \"field\": \"unresolved\", \"old\": \"Pixel-to-world calibration was supplied by the caller and was not independently verified.\", \"replacement\": [], \"reason\": \"Exact duplicate: one identical calibration caveat already remains; removing the second copy.\", \"source_refs\": [\"image:1f_view.png\", \"image:2f_view.png\"]}]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: old must exactly match one current note",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: old must exactly match one current note\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 100,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_08",
+            "operations_json": "[{\"op\": \"replace_note\", \"field\": \"assumptions\", \"old\": \"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\", \"replacement\": [], \"reason\": \"Exact duplicate: one identical note already remains; removing the second copy.\", \"source_refs\": [\"image:1f_view.png\", \"image:2f_view.png\"]}]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: old must exactly match one current note",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: old must exactly match one current note\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-30_sm21_instruction_fix_run98",
+      "record_sha256": "e57beb59565384bbf14d29ac7d7626bc43e9f977efca28a821716bb5ce950b70",
+      "historical_tool_calls": 115,
+      "error_count": 6,
+      "replay": [
+        {
+          "index": 22,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "name": "west_wall_y_profile",
+            "box": [
+              420,
+              300,
+              480,
+              1100
+            ],
+            "axis": "y",
+            "rgb": [
+              140,
+              140,
+              140
+            ],
+            "tolerance": 60
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'west_wall_y_profile'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 23,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "name": "south_wall_x_profile",
+            "box": [
+              330,
+              1060,
+              1830,
+              1100
+            ],
+            "axis": "x",
+            "rgb": [
+              140,
+              140,
+              140
+            ],
+            "tolerance": 60
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'south_wall_x_profile'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 69,
+          "tool": "view_image",
+          "arguments": {
+            "name": "South_view.png",
+            "box": [
+              270,
+              720,
+              400,
+              800
+            ],
+            "display_scale": 4
+          },
+          "old_error": "Error executing tool view_image: crop outside original image bounds",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool view_image: crop outside original image bounds\nUse ORIGINAL pixels for 'South_view.png', size [1423, 794]; omit box for the whole image, or use 0 <= left < right <= width and 0 <= top < bottom <= height."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 92,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-N-WIN1\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"South/North elevation dimension chain (800,1800,1000 upper; 400,1600,1000 lower on office rows) gives F1 office window sill=1.0m, head=2.6m, height=1.6m, not the provisional 1.2m.\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046, dimension chain 400/1600/1000 below F2 floor line\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-N-WIN2\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"Same North elevation dimension chain applies to all three F1 office windows (uniform family).\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-N-WIN3\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"Same North elevation dimension chain applies to all three F1 office windows (uniform family).\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-S-WIN2\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"South elevation right-side dimension chain (400,1600,1000) matches this window's family (room_store, same width/type as F1 office windows).\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-S-WIN3\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"South elevation right-side dimension chain (400,1600,1000) matches this window's family (room_meeting).\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-S-WIN1\",\"changes\":{\"z\":[1.5,2.4]},\"reason\":\"South elevation left-side dimension chain below the door (600,900,1500) gives this small room_wc window sill=1.5m, head=2.4m, height=0.9m.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_opening\",\"id\":\"F1:EXT-E-WIN\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"East elevation dimension chain (200,1800,1000 below F2 floor line) gives F1 corridor window sill=1.0m, head=2.8m, height=1.8m, not the provisional 1.2m.\",\"source_refs\":[\"East_view.png: calibrated overlay view_0056\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-W-WIN\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"West elevation dimension chain (800,1800,1000 above F2 floor line) gives F2 corridor window sill=4.0m, head=5.8m, height=1.8m, not the provisional 1.2m.\",\"source_refs\":[\"West_view.png: calibrated overlay view_0051\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-E-WIN\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"East elevation dimension chain (800,1800,1000 above F2 floor line) matches, height 1.8m.\",\"source_refs\":[\"East_view.png: calibrated overlay view_0056\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-N-WIN1\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"North elevation dimension chain (800,1800,1000 above F2 floor line) gives F2 meeting-room window sill=4.0m, head=5.8m, height=1.8m.\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-N-WIN2\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same North elevation chain applies to both F2 meeting-room windows.\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-S-WIN1\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"South elevation dimension chain (800,1800,1000 above F2 floor line) gives F2 office window sill=4.0m, head=5.8m, height=1.8m.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-S-WIN2\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same South elevation chain applies to all four F2 office windows.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-S-WIN3\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same South elevation chain applies to all four F2 office windows.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_opening\",\"id\":\"F2:EXT-S-WIN4\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same South elevation chain applies to all four F2 office windows.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Window sill/head heights are provisional; to be set from North/South/East/West elevation dimension chains.\",\"replacement\":[],\"reason\":\"All exterior window and door heights have now been read from calibrated North/South/East/West elevation dimension chains and applied as located claims (see recorded claims); no window heights remain provisional.\",\"source_refs\":[\"South_view.png, North_view.png, East_view.png, West_view.png: calibrated overlays\"]},\n{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Interior door heights unconfirmed by any drawing.\",\"replacement\":[\"Interior door heights (D-N1..3, D-S1..4 on F1; D-N1..2, D-S1..4 on F2) remain an explicit assumption of 2.1m: no plan or elevation drawing shows interior door heights.\"],\"reason\":\"Clarify which heights remain assumed after elevation-based exterior corrections.\",\"source_refs\":[\"1f_view.png, 2f_view.png: no interior door height dimension shown\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_bim: update_opening: expected exactly one existing id 'F1:EXT-N-WIN1', found 0",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: update_opening: expected exactly one existing id 'F1:EXT-N-WIN1', found 0\nNext: inspect_candidate(candidate) for exact IDs; update_window edits windows and update_opening edits doors/passages."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 95,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[\n{\"op\":\"update_window\",\"id\":\"F1:EXT-N-WIN1\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"North elevation dimension chain (800,1800,1000 upper; 400,1600,1000 lower on office rows) gives F1 office window sill=1.0m, head=2.6m, height=1.6m, not the provisional 1.2m.\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046, dimension chain 400/1600/1000 below F2 floor line\"]},\n{\"op\":\"update_window\",\"id\":\"F1:EXT-N-WIN2\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"Same North elevation dimension chain applies to all three F1 office windows (uniform family).\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_window\",\"id\":\"F1:EXT-N-WIN3\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"Same North elevation dimension chain applies to all three F1 office windows (uniform family).\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_window\",\"id\":\"F1:EXT-S-WIN2\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"South elevation right-side dimension chain (400,1600,1000) matches this window's family (room_store, same width/type as F1 office windows).\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_window\",\"id\":\"F1:EXT-S-WIN3\",\"changes\":{\"z\":[1.0,2.6]},\"reason\":\"South elevation right-side dimension chain (400,1600,1000) matches this window's family (room_meeting).\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_window\",\"id\":\"F1:EXT-S-WIN1\",\"changes\":{\"z\":[1.5,2.4]},\"reason\":\"South elevation left-side dimension chain below the door (600,900,1500) gives this small room_wc window sill=1.5m, head=2.4m, height=0.9m.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_window\",\"id\":\"F1:EXT-E-WIN\",\"changes\":{\"z\":[1.0,2.8]},\"reason\":\"East elevation dimension chain (200,1800,1000 below F2 floor line) gives F1 corridor window sill=1.0m, head=2.8m, height=1.8m, not the provisional 1.2m.\",\"source_refs\":[\"East_view.png: calibrated overlay view_0056\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-W-WIN\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"West elevation dimension chain (800,1800,1000 above F2 floor line) gives F2 corridor window sill=4.0m, head=5.8m, height=1.8m, not the provisional 1.2m.\",\"source_refs\":[\"West_view.png: calibrated overlay view_0051\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-E-WIN\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"East elevation dimension chain (800,1800,1000 above F2 floor line) matches, height 1.8m.\",\"source_refs\":[\"East_view.png: calibrated overlay view_0056\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-N-WIN1\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"North elevation dimension chain (800,1800,1000 above F2 floor line) gives F2 meeting-room window sill=4.0m, head=5.8m, height=1.8m.\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-N-WIN2\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same North elevation chain applies to both F2 meeting-room windows.\",\"source_refs\":[\"North_view.png: calibrated overlay view_0046\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-S-WIN1\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"South elevation dimension chain (800,1800,1000 above F2 floor line) gives F2 office window sill=4.0m, head=5.8m, height=1.8m.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-S-WIN2\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same South elevation chain applies to all four F2 office windows.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-S-WIN3\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same South elevation chain applies to all four F2 office windows.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"update_window\",\"id\":\"F2:EXT-S-WIN4\",\"changes\":{\"z\":[4.0,5.8]},\"reason\":\"Same South elevation chain applies to all four F2 office windows.\",\"source_refs\":[\"South_view.png: calibrated overlay view_0042\"]},\n{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Window sill/head heights are provisional; to be set from North/South/East/West elevation dimension chains.\",\"replacement\":[],\"reason\":\"All exterior window and door heights have now been read from calibrated North/South/East/West elevation dimension chains and applied; no window heights remain provisional.\",\"source_refs\":[\"South_view.png, North_view.png, East_view.png, West_view.png: calibrated overlays\"]},\n{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Interior door heights unconfirmed by any drawing.\",\"replacement\":[\"Interior door heights (D-N1..3, D-S1..4 on F1; D-N1..2, D-S1..4 on F2) remain an explicit assumption of 2.1m: no plan or elevation drawing shows interior door heights.\"],\"reason\":\"Clarify which heights remain assumed after elevation-based exterior corrections.\",\"source_refs\":[\"1f_view.png, 2f_view.png: no interior door height dimension shown\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: old must exactly match one current note",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: old must exactly match one current note\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 98,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_04",
+            "operations_json": "[{\"op\":\"set_notes\",\"assumptions\":[\"Floor-to-floor heights: 1F ceiling_height=3.0m, 2F z_floor=3.0m/ceiling_height=3.6m, taken from the North/South elevation overall 6600mm dimension chain (3000mm lower band + 3600mm upper band), confirmed by calibrated elevation overlays (roof/ground/floor-line pixel positions matched the chain to within rounding).\",\"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\",\"Interior door heights (all F1 D-N/D-S and F2 D-N/D-S doors) are assumed 2.1m: no plan or elevation drawing dimensions an interior door height.\"],\"unresolved\":[\"Pixel-to-world calibration for each plan/elevation image was supplied by the agent from the drawings' own dimension chains and outer wall faces; it was cross-checked between plan and elevation (independent chains agree to within ~1%) but not independently verified by a third source.\",\"F1:EXT-S-WIN1 (room_wc) and F1 corridor E/W windows use dimension chains adjacent to, but not unambiguously labelled as, those specific openings; assignment is by position and is the most consistent reading found, but remains a judgment call rather than a directly labelled chain.\"],\"reason\":\"Consolidate and update notes after applying elevation-derived exterior opening heights (window/door z values) via calibrated overlay dimension-chain reads on North/South/East/West elevations; remove now-resolved provisional-height notes and duplicate entries from floor assembly.\",\"source_refs\":[\"South_view.png, North_view.png, East_view.png, West_view.png: calibrated overlays view_0042/0046/0051/0056\"]}]"
+          },
+          "old_error": "Error executing tool revise_bim: set_notes: unknown fields ['reason', 'source_refs']",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: set_notes: unknown fields ['reason', 'source_refs']\nMinimum: [{\"op\":\"set_notes\",\"assumptions\":[\"complete intended assumptions\"],\"unresolved\":[]}]; omit reason/source_refs for set_notes."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-30_sm21_instruction_fix_run99",
+      "record_sha256": "1c097930eb4597746898fd82d420c284f829b647c89ce9788f23c23a5e4c1305",
+      "historical_tool_calls": 75,
+      "error_count": 7,
+      "replay": [
+        {
+          "index": 18,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "name": "top_partition1",
+            "box": [
+              800,
+              400,
+              1000,
+              410
+            ],
+            "axis": "x",
+            "rgb": [
+              200,
+              200,
+              200
+            ],
+            "tolerance": 80
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'top_partition1'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 19,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "name": "top_partition2",
+            "box": [
+              1200,
+              400,
+              1400,
+              410
+            ],
+            "axis": "x",
+            "rgb": [
+              200,
+              200,
+              200
+            ],
+            "tolerance": 80
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'top_partition2'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 56,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S01\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[\"Desk pair furniture drawn in room, matches an open-plan office bay\"],\"reason\":\"Furniture (two desks+chairs) shown in 1f_view.png matches open office use\",\"source_refs\":[\"1f_view.png: desk/chair furniture in room\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S02\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[\"Desk pair furniture\"],\"reason\":\"Same furniture pattern as 1F_S01\",\"source_refs\":[\"1f_view.png: desk/chair furniture in room\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S03\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[\"Desk pair furniture\"],\"reason\":\"Same furniture pattern as 1F_S01\",\"source_refs\":[\"1f_view.png: desk/chair furniture in room\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S04\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Long central space connecting all rooms and both exterior doors; classic corridor geometry\",\"source_refs\":[\"1f_view.png: central full-length passage with multiple doors\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S05\",\"role\":\"reception\",\"basis\":\"inferred\",\"assumptions\":[\"Wardrobe/closet furniture plus the building's main south entrance door suggest a reception/entry room\"],\"reason\":\"Contains the exterior south entrance door and an L-shaped wardrobe furniture item\",\"source_refs\":[\"1f_view.png: entrance door and wardrobe furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S06\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[\"L-shaped desk furniture\"],\"reason\":\"Furniture indicates office use\",\"source_refs\":[\"1f_view.png: L-shaped desk furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S07\",\"role\":\"meeting_room\",\"basis\":\"inferred\",\"assumptions\":[\"Round table with 4 chairs suggests small meeting/break room\"],\"reason\":\"Round table and chairs furniture arrangement\",\"source_refs\":[\"1f_view.png: round table with chairs\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S01\",\"role\":\"meeting_room\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Oval conference table with many chairs\",\"source_refs\":[\"2f_view.png: large oval table with chairs\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S02\",\"role\":\"meeting_room\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Oval conference table with many chairs\",\"source_refs\":[\"2f_view.png: large oval table with chairs\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S03\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Long central space connecting all rooms, both exterior windows and all interior doors\",\"source_refs\":[\"2f_view.png: central full-length passage\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S04\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S05\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S06\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S07\",\"role\":\"office_open_plan\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, room role 'office_open_plan' is not in the room_types catalog; read get_bim_reference('room_types') and choose a listed code, prefer a plausible inferred use over unknown. Do not suffix types with '_inferred'. [type=value_error, input_value={'role': 'office_open_pla... open-plan office bay']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, room role 'office_open_plan' is not in the room_types catalog; read get_bim_reference('room_types') and choose a listed code, prefer a plausible inferred use over unknown. Do not suffix types with '_inferred'. [type=value_error, input_value={'role': 'office_open_pla... open-plan office bay']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nNext: get_bim_reference(topic=\"room_types\") and choose a listed role; inferred uses also need assumptions."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 58,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_03",
+            "operations_json": "[\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S01\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"Desk pair furniture drawn in room matches open-plan office use\"],\"reason\":\"Furniture (two desks+chairs) shown in 1f_view.png matches office use\",\"source_refs\":[\"1f_view.png: desk/chair furniture in room\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S02\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"Desk pair furniture\"],\"reason\":\"Same furniture pattern as 1F_S01\",\"source_refs\":[\"1f_view.png: desk/chair furniture in room\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S03\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"Desk pair furniture\"],\"reason\":\"Same furniture pattern as 1F_S01\",\"source_refs\":[\"1f_view.png: desk/chair furniture in room\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S04\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Long central space connecting all rooms and both exterior doors; classic corridor geometry\",\"source_refs\":[\"1f_view.png: central full-length passage with multiple doors\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S05\",\"role\":\"lobby\",\"basis\":\"inferred\",\"assumptions\":[\"Wardrobe/closet furniture plus the building's main south entrance door suggest a reception/entry room\"],\"reason\":\"Contains the exterior south entrance door and an L-shaped wardrobe furniture item\",\"source_refs\":[\"1f_view.png: entrance door and wardrobe furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S06\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"L-shaped desk furniture\"],\"reason\":\"Furniture indicates office use\",\"source_refs\":[\"1f_view.png: L-shaped desk furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"1F:1F_S07\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[\"Round table with 4 chairs suggests small meeting/break room\"],\"reason\":\"Round table and chairs furniture arrangement\",\"source_refs\":[\"1f_view.png: round table with chairs\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S01\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Oval conference table with many chairs\",\"source_refs\":[\"2f_view.png: large oval table with chairs\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S02\",\"role\":\"conference/meeting/multipurpose\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Oval conference table with many chairs\",\"source_refs\":[\"2f_view.png: large oval table with chairs\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S03\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Long central space connecting all rooms, both exterior windows and all interior doors\",\"source_refs\":[\"2f_view.png: central full-length passage\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S04\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S05\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S06\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]},\n {\"op\":\"set_space_role\",\"space_id\":\"2F:2F_S07\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[],\"reason\":\"Desk with monitor and chairs furniture\",\"source_refs\":[\"2f_view.png: desk/monitor furniture\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, inferred room role requires an explicit assumption [type=value_error, input_value={'role': 'corridor', 'bas...rs'], 'assumptions': []}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, inferred room role requires an explicit assumption [type=value_error, input_value={'role': 'corridor', 'bas...rs'], 'assumptions': []}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nMinimum: {\"op\":\"set_space_role\",\"space_id\":\"existing-id\",\"role\":\"corridor\",\"basis\":\"inferred\",\"assumptions\":[\"explain the inferred use\"],\"reason\":\"why\",\"source_refs\":[\"input filename: region\"]}."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 62,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\n\"candidate\":\"candidate_04\",\n\"objects\":[\n {\"kind\":\"opening\",\"id\":\"1F:W_N1\"},{\"kind\":\"opening\",\"id\":\"1F:W_N2\"},{\"kind\":\"opening\",\"id\":\"1F:W_N3\"},\n {\"kind\":\"opening\",\"id\":\"1F:W_S1\"},{\"kind\":\"opening\",\"id\":\"1F:W_S2\"},{\"kind\":\"opening\",\"id\":\"1F:W_S3\"},\n {\"kind\":\"opening\",\"id\":\"1F:W_E1\"}\n],\n\"basis\":\"annotation_and_pixels\",\n\"reason\":\"East_view.png ground-floor vertical dimension chain (left of the window column) reads, from the upper floor slab downward: 200 (slab/lintel gap), 1800 (window height), 1000 (sill to ground-floor level). World z origin is the 1F floor at z=0 (dimension chain's own datum is the 2F slab at absolute z=3.0, confirmed by the chain's total of 3000mm matching 1F's 3.0m floor-to-floor). Using origin_m=3.0 and direction=-1, segment index 1 (the 1800mm window-height segment) yields the window's absolute sill/head span. Identical sill(1.0m)/head(2.8m) proportions are independently confirmed by the matching 200/1800/1000 bottom chain visible on South_view.png.\",\n\"sources\":[{\"view_id\":\"view_0008\"}],\n\"values\":{\"height\":{\"type\":\"dimension_chain\",\"lengths\":[200,1800,1000],\"unit\":\"mm\",\"origin_m\":3.0,\"direction\":-1,\"segment\":1}},\n\"observation_mode\":\"candidate_review\",\n\"unresolved\":[]\n}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"1F:W_N1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"1F:W_N1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings.",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"1F:W_N1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"1F:W_N1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 63,
+          "tool": "record_claim",
+          "arguments": {
+            "claim_json": "{\n\"candidate\":\"candidate_04\",\n\"objects\":[\n {\"kind\":\"opening\",\"id\":\"2F:WN1\"},{\"kind\":\"opening\",\"id\":\"2F:WN2\"},\n {\"kind\":\"opening\",\"id\":\"2F:WS1\"},{\"kind\":\"opening\",\"id\":\"2F:WS2\"},{\"kind\":\"opening\",\"id\":\"2F:WS3\"},{\"kind\":\"opening\",\"id\":\"2F:WS4\"},\n {\"kind\":\"opening\",\"id\":\"2F:WE1\"},{\"kind\":\"opening\",\"id\":\"2F:WW1\"}\n],\n\"basis\":\"annotation_and_pixels\",\n\"reason\":\"East_view.png upper-floor vertical dimension chain (top of the window column) reads, from the roof/parapet line downward: 800 (parapet gap), 1800 (window height), 1000 (sill to 2F floor level). World z origin is the 2F floor at absolute z=3.0. Reordering bottom-up as [1000,1800,800] with origin_m=3.0 and direction=1, segment index 1 (the 1800mm window-height segment) yields absolute sill=4.0m, head=5.8m, matching the declared opening z=[4.0,5.8]. The same 800/1800/1000 proportions are independently confirmed on South_view.png and North_view.png upper-floor chains.\",\n\"sources\":[{\"view_id\":\"view_0008\"}],\n\"values\":{\"height\":{\"type\":\"dimension_chain\",\"lengths\":[1000,1800,800],\"unit\":\"mm\",\"origin_m\":3.0,\"direction\":1,\"segment\":1}},\n\"observation_mode\":\"candidate_review\",\n\"unresolved\":[]\n}"
+          },
+          "old_error": "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"2F:WN1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"2F:WN1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings.",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool record_claim: claim object does not exist in candidate 'candidate_04': {\"kind\": \"opening\", \"id\": \"2F:WN1\"}. The same exact id exists as [{\"kind\": \"window\", \"id\": \"2F:WN1\"}]. Use the matching kind/id explicitly; no automatic rebinding. Claim kinds use proposal collections: window for geometry.windows; opening for geometry.openings (doors/passages), even though the source BIM lists both in openings."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 73,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_05",
+            "operations_json": "[\n {\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Interior door heights (D1-D6, rooms/offices to corridor) assumed 2.1m; not dimensioned on any supplied drawing.\",\"replacement\":[],\"reason\":\"Duplicate of the consolidated interior-door-height assumption note already present\",\"source_refs\":[\"1f_view.png\",\"2f_view.png\"]},\n {\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\",\"replacement\":[\"Plan spaces for both floors were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.\"],\"reason\":\"Merge the duplicate per-floor compiler note from 1F and 2F builds into a single statement\",\"source_refs\":[\"1f_view.png\",\"2f_view.png\"]},\n {\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Pixel-to-world calibration was supplied by the caller and was not independently verified.\",\"replacement\":[],\"reason\":\"Duplicate of the unresolved calibration note already present once\",\"source_refs\":[\"1f_view.png\",\"2f_view.png\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_bim: replace_note: old must exactly match one current note",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: replace_note: old must exactly match one current note\nRead inspect_candidate(candidate, include_geometry=false) for current notes; old must match one exact saved note, once per batch. Minimum: [{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"exact current note\",\"replacement\":[],\"reason\":\"why resolved\",\"source_refs\":[\"input filename: observed evidence\"]}]."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-09-30_sm24_instruction_fix_run100",
+      "record_sha256": "7fe1b6736d0be3544691bb9e7fecd3857ce33b776ff11a0f8d9ff4cbfc1d3984",
+      "historical_tool_calls": 75,
+      "error_count": 2,
+      "replay": [
+        {
+          "index": 24,
+          "tool": "view_image",
+          "arguments": {
+            "name": "1f_view.png",
+            "box": [
+              380,
+              300,
+              820,
+              420
+            ],
+            "display_scale": 2
+          },
+          "old_error": "Error executing tool view_image: crop outside original image bounds",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool view_image: crop outside original image bounds\nUse ORIGINAL pixels for '1f_view.png', size [790, 1111]; omit box for the whole image, or use 0 <= left < right <= width and 0 <= top < bottom <= height."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 70,
+          "tool": "revise_bim",
+          "arguments": {
+            "candidate": "candidate_02",
+            "operations_json": "[\n{\"op\":\"set_space_role\",\"space_id\":\"L1_reception\",\"role\":\"living\",\"basis\":\"inferred\",\"assumptions\":[\"Sofa and open layout with main entrance, north window and east/west windows suggest a living/reception room\"],\"reason\":\"Furniture (sofa set) and position at main entry.\",\"source_refs\":[\"1f_view.png: sofa furniture in top room\"]},\n{\"op\":\"set_space_role\",\"space_id\":\"WestRoomA\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"Desk with two chairs suggests a small office/workstation\"],\"reason\":\"Furniture layout.\",\"source_refs\":[\"1f_view.png: desk+2 chairs in this cell\"]},\n{\"op\":\"set_space_role\",\"space_id\":\"WestRoomB\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"Desk, computer (X-mark) and chairs suggest a private office\"],\"reason\":\"Furniture layout.\",\"source_refs\":[\"1f_view.png: desk+computer+2 chairs in this cell\"]},\n{\"op\":\"set_space_role\",\"space_id\":\"WestRoomC\",\"role\":\"meeting\",\"basis\":\"inferred\",\"assumptions\":[\"Large oval table with many chairs suggests a meeting/dining room\"],\"reason\":\"Furniture layout.\",\"source_refs\":[\"1f_view.png: oval table with 8+ chairs\"]},\n{\"op\":\"set_space_role\",\"space_id\":\"NE_small_room\",\"role\":\"storage\",\"basis\":\"inferred\",\"assumptions\":[\"Small room with only a credenza/sideboard, no desk, suggests storage or pantry use\"],\"reason\":\"Furniture layout (sideboard only).\",\"source_refs\":[\"1f_view.png: two-cell credenza furniture only\"]},\n{\"op\":\"set_space_role\",\"space_id\":\"MidEastRoom\",\"role\":\"meeting\",\"basis\":\"inferred\",\"assumptions\":[\"Two round tables with 4 chairs each suggest a meeting/break room\"],\"reason\":\"Furniture layout.\",\"source_refs\":[\"1f_view.png: two round tables with 4 chairs each\"]},\n{\"op\":\"set_space_role\",\"space_id\":\"SE_room\",\"role\":\"office\",\"basis\":\"inferred\",\"assumptions\":[\"Desk with 2 chairs and computer suggests an office\"],\"reason\":\"Furniture layout.\",\"source_refs\":[\"1f_view.png: desk+2 chairs\"]},\n{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Small nook/stub wall near px(456,298)-(456,325) with a secondary door arc in the NE small room was simplified away; the NE small room is modeled with a single door (DoorA) only - look again if this detail matters.\",\"replacement\":[\"NE small room connectivity was corrected using measured ink gaps on P2 and P3 (drawing_differences): it connects to L1 via Dtop and to MidEastRoom via DoorE; no direct opening to the west rooms was found in the ink.\"],\"reason\":\"Draft_002 resolved this with direct evidence from drawing_differences; the earlier simplification note is obsolete.\",\"source_refs\":[\"drawing_differences draft_001->draft_002, P2/P3 gap resolution\"]},\n{\"op\":\"replace_note\",\"field\":\"unresolved\",\"old\":\"Pixel-to-world calibration was supplied by the caller and was not independently verified.\",\"replacement\":[\"Calibration cross-axis check reports x=36.5 px/m vs y=36 px/m (1.38% deviation) and small residuals (~0.11m over 10m in x, ~0.055m over 20m in y) against the supplied anchors. This is within ordinary drawing/rounding tolerance for this plan but was not re-measured at the extension-line ticks; absolute positions may carry up to ~1-2% error.\"],\"reason\":\"Record the actual overlay calibration warning returned by the tool instead of a generic unverified note.\",\"source_refs\":[\"build_plan_bim/geometry overlay calibration warnings, candidate_02\"]},\n{\"op\":\"replace_note\",\"field\":\"assumptions\",\"old\":\"A small square mark near the East_view.png door, within its 5700mm wall segment, is unresolved: no corresponding window was found on the matching plan wall (SE room east wall is drawn solid); left unassigned.\",\"replacement\":[\"EW1 and EW2 (east-wall small windows, L1 and NE_small_room) use the same 1.0-2.8m height as the matching west/south small windows by analogy; East_view.png's own dimension chain only labels the door and the large window, not these small squares, so this height is an assumption, not a direct East_view reading.\",\"A small square mark on East_view.png near the left (south) end of its 5700mm wall segment, before the door, was not matched to any plan opening: the plan's corresponding south-east room east wall is drawn solid with no window ink. Left unassigned/unresolved.\"],\"reason\":\"Clarify which opening heights are directly observed per facade versus assumed by analogy, and keep the unmatched elevation mark explicit.\",\"source_refs\":[\"East_view.png full view; 1f_view.png SE room east wall crop (580,850)-(620,890)\"]}\n]"
+          },
+          "old_error": "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, room role 'living' is not in the room_types catalog; read get_bim_reference('room_types') and choose a listed code, prefer a plausible inferred use over unknown. Do not suffix types with '_inferred'. [type=value_error, input_value={'role': 'living', 'basis...living/reception room']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_bim: 1 validation error for RoomRoleEvidence\n  Value error, room role 'living' is not in the room_types catalog; read get_bim_reference('room_types') and choose a listed code, prefer a plausible inferred use over unknown. Do not suffix types with '_inferred'. [type=value_error, input_value={'role': 'living', 'basis...living/reception room']}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error\nNext: get_bim_reference(topic=\"room_types\") and choose a listed role; inferred uses also need assumptions."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-10-02_sm24_glm_baseline",
+      "record_sha256": "c3ce1f24df10f0a021c0d7e8d4937f7d71e10a733ab67abff469654a6b7c96ee",
+      "historical_tool_calls": 42,
+      "error_count": 5,
+      "replay": [
+        {
+          "index": 8,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "axis": "x",
+            "box": [
+              230,
+              140,
+              640,
+              895
+            ],
+            "min_fraction": 0.25,
+            "name": "plan_cols",
+            "rgb": [
+              110,
+              110,
+              110
+            ],
+            "tolerance": 80
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'plan_cols'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 9,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "axis": "y",
+            "box": [
+              230,
+              140,
+              640,
+              895
+            ],
+            "min_fraction": 0.25,
+            "name": "plan_rows",
+            "rgb": [
+              110,
+              110,
+              110
+            ],
+            "tolerance": 80
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'plan_rows'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 20,
+          "tool": "view_image",
+          "arguments": {
+            "box": [
+              385,
+              730,
+              475,
+              775
+            ],
+            "display_scale": 10,
+            "name": "1f_view.png"
+          },
+          "old_error": "Error executing tool view_image: display_scale must be a number from 1 through 8",
+          "new_is_error": false,
+          "new_text": [
+            "{\"name\": \"1f_view.png\", \"image_sha256\": \"47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350\", \"original_size\": [790, 1111], \"coordinate_grid\": {\"shown\": true, \"units\": \"original image pixels\", \"ticks\": {\"x\": [{\"original_pixel\": 400, \"display_pixel\": 120}], \"y\": []}, \"note\": \"Blue dotted grid/white labels are viewing aids, not drawing evidence.\"}, \"box_original_pixels\": [385, 730, 475, 775], \"returned_size\": [720, 360], \"display_scale_requested\": 10.0, \"display_scale_used\": 8, \"display_scale_actual\": [8.0, 8.0], \"original_pixels_per_returned_pixel\": [0.125, 0.125], \"coordinate_note\": \"Grid labels show ORIGINAL pixels. Original pixel = crop origin + returned pixel * original_pixels_per_returned_pixel. Use ORIGINAL pixels for the next crop or measurement.\", \"display_scale_note\": \"Requested 10.0x; clamped to allowed [1, 8]: 8x.\", \"remaining_seconds\": 0, \"view_id\": \"view_0020\", \"source_reference\": {\"view_id\": \"view_0020\"}, \"returned_png_sha256\": \"250896335bb8b55a7c8a5bfff6091cab71b39db4940ada059de2ecb5dcb2d774\", \"view_record_sha256\": \"e50a15efd40b1ddf2ce726b9c8dbf15ed293791d624f65648ca600244957dc1e\"}"
+          ],
+          "new_structured": null,
+          "disposition": "accepted"
+        },
+        {
+          "index": 30,
+          "tool": "confirm_claims",
+          "arguments": {
+            "candidate": "candidate_01",
+            "operations_json": "[\n{\"op\":\"update_opening\",\"id\":\"W-west-1\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm elevation-observed west window sill/head already present in the built geometry\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-2\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-3\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-4\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-5\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-east-1\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"window_z\"}},\"reason\":\"Confirm east window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-east-2\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"window_z\"}},\"reason\":\"Confirm east window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-east-3\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"window_z\"}},\"reason\":\"Confirm east window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-south-1\",\"changes\":{\"z\":{\"claim\":\"claim_0003\",\"value\":\"window_z\"}},\"reason\":\"Confirm south window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-south-2\",\"changes\":{\"z\":{\"claim\":\"claim_0003\",\"value\":\"window_z\"}},\"reason\":\"Confirm south window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-north\",\"changes\":{\"z\":{\"claim\":\"claim_0004\",\"value\":\"window_z\"}},\"reason\":\"Confirm north window height\"},\n{\"op\":\"update_opening\",\"id\":\"D-north-entry\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"door_z\"}},\"reason\":\"Confirm exterior door height\"},\n{\"op\":\"update_opening\",\"id\":\"D-east\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"door_z\"}},\"reason\":\"Confirm exterior door height\"},\n{\"op\":\"update_opening\",\"id\":\"D-south\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"door_z\"}},\"reason\":\"Confirm exterior door height\"}\n]"
+          },
+          "old_error": "Error executing tool confirm_claims: claim must be explicitly adopted before application",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool confirm_claims: claim must be explicitly adopted before application\nMissing step: decide_claim(claim_id, disposition=\"adopted\", reason=\"your evidence-based decision\"); then retry confirm_claims if values are unchanged, or revise_bim to change them."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 37,
+          "tool": "confirm_claims",
+          "arguments": {
+            "candidate": "candidate_01",
+            "operations_json": "[\n{\"op\":\"update_opening\",\"id\":\"W-west-1\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm elevation-observed west window sill/head already present in the built geometry\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-2\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-3\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-4\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-west-5\",\"changes\":{\"z\":{\"claim\":\"claim_0001\",\"value\":\"window_z\"}},\"reason\":\"Confirm west window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-east-1\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"window_z\"}},\"reason\":\"Confirm east window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-east-2\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"window_z\"}},\"reason\":\"Confirm east window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-east-3\",\"changes\":{\"z\":{\"claim\":\"claim_0002\",\"value\":\"window_z\"}},\"reason\":\"Confirm east window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-south-1\",\"changes\":{\"z\":{\"claim\":\"claim_0003\",\"value\":\"window_z\"}},\"reason\":\"Confirm south window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-south-2\",\"changes\":{\"z\":{\"claim\":\"claim_0003\",\"value\":\"window_z\"}},\"reason\":\"Confirm south window heights\"},\n{\"op\":\"update_opening\",\"id\":\"W-north\",\"changes\":{\"z\":{\"claim\":\"claim_0004\",\"value\":\"window_z\"}},\"reason\":\"Confirm north window height\"},\n{\"op\":\"update_opening\",\"id\":\"D-north-entry\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"door_z\"}},\"reason\":\"Confirm exterior door height\"},\n{\"op\":\"update_opening\",\"id\":\"D-east\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"door_z\"}},\"reason\":\"Confirm exterior door height\"},\n{\"op\":\"update_opening\",\"id\":\"D-south\",\"changes\":{\"z\":{\"claim\":\"claim_0005\",\"value\":\"door_z\"}},\"reason\":\"Confirm exterior door height\"}\n]"
+          },
+          "old_error": "Error executing tool confirm_claims: claim does not refer to the operation targets",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool confirm_claims: claim does not refer to the operation targets\nRead claim_status(candidate) for exact objects/value_targets; use update_window for kind=window and update_opening for kind=opening. Record a new claim if its actual target differs."
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    },
+    {
+      "run": "2026-10-02_sm25_glm_baseline",
+      "record_sha256": "86bc2f1a317a3827178cd40ebfd565006326adf79fad7f0af8f5aa84714dfbc1",
+      "historical_tool_calls": 51,
+      "error_count": 4,
+      "replay": [
+        {
+          "index": 10,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "axis": "x",
+            "box": [
+              250,
+              380,
+              1450,
+              440
+            ],
+            "min_fraction": 0.3,
+            "name": "1f_xprof_top_rooms",
+            "rgb": [
+              255,
+              255,
+              255
+            ],
+            "tolerance": 60
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename '1f_xprof_top_rooms'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 11,
+          "tool": "view_pixel_profile",
+          "arguments": {
+            "axis": "y",
+            "box": [
+              300,
+              300,
+              400,
+              1300
+            ],
+            "min_fraction": 0.3,
+            "name": "1f_yprof_left",
+            "rgb": [
+              255,
+              255,
+              255
+            ],
+            "tolerance": 60
+          },
+          "old_error": "Error executing tool view_pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename '1f_yprof_left'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 12,
+          "tool": "pixel_profile",
+          "arguments": {
+            "axis": "x",
+            "box": [
+              250,
+              380,
+              1450,
+              440
+            ],
+            "name": "p1",
+            "rgb": [
+              255,
+              255,
+              255
+            ]
+          },
+          "old_error": "Error executing tool pixel_profile: choose an exact image name from input inventory",
+          "new_is_error": true,
+          "new_text": [
+            "unknown input image filename 'p1'; here fill the input image filename, not a measurement label. Available filenames: [\"1f_view.png\", \"2f_view.png\", \"East_view.png\", \"North_view.png\", \"South_view.png\", \"West_view.png\"]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        },
+        {
+          "index": 51,
+          "tool": "revise_plan_bim",
+          "arguments": {
+            "draft_id": "draft_004",
+            "expected_plan_sha256": "914e812cc561758f459f76e2e1c1bdbe6b120e0a06dea0d674bd322b3e67b01b",
+            "operations_json": "[\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PA2\",\"points\":[[241,521],[697,521]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PB2\",\"points\":[[470,521],[470,341]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PC2\",\"points\":[[697,521],[697,341]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PS3\",\"points\":[[697,521],[929,521]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PM2\",\"points\":[[241,616],[658,616]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PD2\",\"points\":[[658,616],[658,983]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PK2\",\"points\":[[470,983],[658,983]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PL2\",\"points\":[[748,983],[929,983]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PG2\",\"points\":[[748,521],[748,983]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PDV14\",\"points\":[[748,616],[929,616]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PDV12\",\"points\":[[748,708],[929,708]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PDV10\",\"points\":[[748,799],[929,799]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PDV8\",\"points\":[[748,891],[929,891]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PE2\",\"points\":[[470,1077],[1387,1077]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PR09\",\"points\":[[658,1077],[658,1258]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PR13\",\"points\":[[837,1077],[837,1258]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PR169\",\"points\":[[1016,1077],[1016,1258]]},\n{\"op\":\"update\",\"collection\":\"partitions\",\"id\":\"PR209\",\"points\":[[1203,1077],[1203,1258]]}\n]"
+          },
+          "old_error": "Error executing tool revise_plan_bim: operation 0 fields: missing changes, reason, source_refs; unknown points",
+          "new_is_error": true,
+          "new_text": [
+            "Error executing tool revise_plan_bim: operation 0 fields: missing changes, reason, source_refs; unknown points\nMinimum operation format (replace evidence placeholders): [{\"op\": \"update\", \"reason\": \"explain the observed correction\", \"source_refs\": [\"input filename: observed region\"], \"collection\": \"partitions\", \"id\": \"PA2\", \"changes\": {\"points\": [[241, 521], [697, 521]]}}]"
+          ],
+          "new_structured": null,
+          "disposition": "actionable_rejection"
+        }
+      ]
+    }
+  ]
+}
