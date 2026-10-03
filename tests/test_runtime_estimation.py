@@ -4,6 +4,7 @@ import base64
 import hashlib
 import io
 import json
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -33,15 +34,16 @@ def _image_url(width: int, height: int) -> str:
 
 @pytest.mark.parametrize(
     ("model", "context"),
-    [("Qwen3.8-27B", 262_144), ("qwen3.8-flash", 262_144)],
+    [("Qwen3.8-27B", 262_144), ("qwen3.8-flash", 262_144),
+     ("GLM-5.3-Flash", 1_048_576)],
 )
 def test_registered_profiles_have_sourced_context_limits(model, context):
     profile = get_model_profile(model, strict=True)
     assert profile.context_window_tokens == context
     assert profile.context_source.startswith("https://")
     assert "Paratera" in profile.context_uncertainty
-    assert profile.native_context_window_tokens == 262_144
-    assert profile.extended_context_window_tokens == 1_000_000
+    assert profile.native_context_window_tokens == context
+    assert profile.extended_context_window_tokens == (1_000_000 if "Qwen" in profile.canonical_name else None)
     assert profile.endpoint_context_window_tokens is None
     assert "calibration/summary.json" in profile.safety_margin_source
 
@@ -85,6 +87,15 @@ def test_qwen_image_estimate_matches_existing_paratera_elevation_usage():
     assert qwen_image_tokens(2580, 993, profile) == (2513, 2592, 992)
 
 
+def test_glm_image_profile_matches_two_calibration_points_and_is_safe_on_large_image():
+    profile = get_model_profile("glm-5.3-flash", strict=True)
+    assert qwen_image_tokens(224, 224, profile) == (66, 224, 224)
+    assert qwen_image_tokens(896, 896, profile) == (1026, 896, 896)
+    # Paratera reported 1,314 image tokens for this synthetic request. The
+    # official upstream patch grid is retained as a conservative upper estimate.
+    assert qwen_image_tokens(1600, 1200, profile) == (2453, 1596, 1204)
+
+
 def test_request_estimate_separates_text_image_output_and_context():
     body = {
         "model": "Qwen3.8-Flash",
@@ -101,10 +112,36 @@ def test_request_estimate_separates_text_image_output_and_context():
     assert estimate.image_tokens == 66
     assert estimate.input_tokens_estimate == estimate.text_tokens + 66
     assert estimate.input_tokens_upper_bound >= estimate.input_tokens_estimate
-    assert estimate.reservation_tokens == estimate.input_tokens_upper_bound + 64
+    assert estimate.reservation_tokens == (
+        estimate.input_tokens_upper_bound + 64 + estimate.reasoning_token_allowance
+    )
     assert estimate.context_window_tokens == 262_144
     assert estimate.fits_context is True
     assert estimate.images[0].request_reference.endswith("/image_url/url")
+
+
+def test_glm_reasoning_allowance_enters_reservation_and_context_fit():
+    profile = get_model_profile("GLM-5.3-Flash", strict=True)
+    assert profile.reasoning_may_exceed_max_tokens is True
+    assert profile.reasoning_token_allowance == 32
+    assert "maximum completion_tokens - max_tokens = 29" in profile.reasoning_allowance_source
+    body = {
+        "model": "GLM-5.3-Flash",
+        "messages": [{"role": "user", "content": "Reply only OK."}],
+        "max_tokens": 64,
+    }
+    estimate = estimate_chat_request(body, profile=profile, strict=True)
+    assert estimate.reasoning_token_allowance == 32
+    assert estimate.reservation_tokens == estimate.input_tokens_upper_bound + 64 + 32
+
+    just_too_small = replace(
+        profile, context_window_tokens=estimate.input_tokens_upper_bound + 64 + 31
+    )
+    assert estimate_chat_request(body, profile=just_too_small).fits_context is False
+    exact_fit = replace(
+        profile, context_window_tokens=estimate.input_tokens_upper_bound + 64 + 32
+    )
+    assert estimate_chat_request(body, profile=exact_fit).fits_context is True
 
 
 def test_unknown_model_estimate_does_not_claim_a_context_limit():

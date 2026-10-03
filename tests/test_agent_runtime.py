@@ -264,15 +264,21 @@ def test_context_limits_stop_before_adapter_send(
                     if event.payload.event_type == "adapter_request"]
 
 
-def test_actual_over_reservation_preserves_receipt_without_fabricated_settlement(tmp_path):
+def test_actual_token_overrun_preserves_full_settlement_and_exhausts_root(tmp_path):
     raw = response(text="Done")
     raw["usage"]["total_tokens"] = 1_000_000
     engine = runtime(tmp_path, [raw])
     with engine.store:
         receipt = asyncio.run(engine.run(MESSAGES))
-        assert receipt["status"] == "token_reservation_exceeded"
+        assert receipt["status"] == "token_budget_exhausted"
         assert receipt["reported_tokens"] == 1_000_000
-        assert not [e for e in engine.store.events if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        settlements = [e.payload.settlement for e in engine.store.events
+                       if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        assert len(settlements) == 1
+        assert settlements[0].actual.tokens == 1_000_000
+        assert settlements[0].token_overrun > 0
+        assert engine.budget.ledger.charged.tokens == 1_000_000
+        assert receipt["root_budget_available"]["tokens"] == 0
 
 
 def test_crash_at_safe_checkpoint_resumes_without_repeating_completed_write(tmp_path):
@@ -298,6 +304,78 @@ def test_crash_at_safe_checkpoint_resumes_without_repeating_completed_write(tmp_
         assert receipt["model_calls"] == 2 and len(engine.tools.calls) == 1
         assert any(e.payload.event_type == "run_lifecycle" and e.payload.action == "resume"
                    for e in resumed.store.events)
+
+
+def test_answer_repair_response_replays_without_duplicate_request_or_event(tmp_path):
+    class Crash(BaseException):
+        pass
+
+    invalid = '{"answer": 7})'
+    corrected = '{"answer": 7}'
+    engine = runtime(tmp_path, [response(text=invalid), response(text=corrected)])
+    engine.answer_validator = json.loads
+    engine.max_answer_repairs = 1
+
+    def crash_after_repair_response(name, running):
+        if name == "after_response" and running.counts["model_calls"] == 2:
+            raise Crash()
+
+    engine.fault_hook = crash_after_repair_response
+    with engine.store:
+        with pytest.raises(Crash):
+            asyncio.run(engine.run(MESSAGES))
+
+    resumed = runtime(tmp_path, [])
+    resumed.answer_validator = json.loads
+    resumed.max_answer_repairs = 1
+    with resumed.store:
+        receipt = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert receipt["status"] == "completed"
+        assert receipt["answer"] == corrected
+        assert resumed.adapter.requests == []
+        repairs = [event.payload for event in resumed.store.events
+                   if event.payload.event_type == "answer_repair"]
+        assert [repair.phase for repair in repairs] == ["request", "result"]
+        assert repairs[-1].accepted is True
+        assert len([event for event in resumed.store.events
+                    if event.payload.event_type == "adapter_request"]) == 2
+
+
+def test_interrupted_answer_repair_request_is_never_retried_on_resume(tmp_path):
+    class Crash(BaseException):
+        pass
+
+    limits = RunLimits(model_calls=3, tool_calls=0, seconds=30.0,
+                       tokens=100_000, max_model_retries=1)
+    engine = runtime(tmp_path,
+        [response(text='{"answer": 7}}'), response(text='{"answer": 7}')],
+        limits=limits)
+    engine.answer_validator = json.loads
+    engine.max_answer_repairs = 1
+
+    def crash_after_durable_repair_request(name, running):
+        if name == "after_request" and running.counts["model_calls"] == 2:
+            raise Crash()
+
+    engine.fault_hook = crash_after_durable_repair_request
+    with engine.store:
+        with pytest.raises(Crash):
+            asyncio.run(engine.run(MESSAGES))
+        assert len(engine.adapter.requests) == 1
+
+    resumed = runtime(tmp_path, [response(text='{"answer": 7}')],
+                      limits=limits)
+    resumed.answer_validator = json.loads
+    resumed.max_answer_repairs = 1
+    with resumed.store:
+        receipt = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert receipt["status"] == "resume_request_outcome_unknown"
+        assert resumed.adapter.requests == []
+        assert len([event for event in resumed.store.events
+                    if event.payload.event_type == "adapter_request"]) == 2
+        repairs = [event.payload for event in resumed.store.events
+                   if event.payload.event_type == "answer_repair"]
+        assert [repair.phase for repair in repairs] == ["request"]
 
 
 def test_resume_rejects_changed_saved_state(tmp_path):

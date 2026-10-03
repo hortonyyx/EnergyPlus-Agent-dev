@@ -139,7 +139,7 @@ def test_event_log_rejects_a_transient_overallocation_even_if_later_settlement_f
         usage=UsageReported(raw_usage={"total_tokens": 50}),
         cost=CostUnavailable(reason="no money limit or bill"),
     )
-    with pytest.raises(ValidationError, match="effective charges and outstanding"):
+    with pytest.raises(ValidationError, match="budget reservation exceeds available budget"):
         EventLog(
             mode="complete",
             events=(
@@ -254,26 +254,40 @@ def test_all_request_purposes_share_one_root_ledger():
     assert budget.available.calls == 0
 
 
-@pytest.mark.parametrize(
-    "actual,dimension",
-    [
-        (BudgetAmounts(tokens=101, seconds=Decimal("10"), calls=1), "tokens"),
-        (BudgetAmounts(tokens=80, seconds=Decimal("31"), calls=1), "seconds"),
-    ],
-)
-def test_actual_over_reservation_keeps_the_hold_and_returns_a_fatal_stop(actual, dimension):
+def test_reported_token_over_reservation_settles_full_actual_when_total_budget_allows():
     budget = RuntimeBudget(
         BudgetAmounts(tokens=500, seconds=Decimal("100"), calls=4)
     )
     budget.reserve("a", estimate())
     decision = budget.settle(
         "a",
-        actual=actual,
-        usage=UsageReported(raw_usage={"total_tokens": actual.tokens}),
+        actual=BudgetAmounts(tokens=101, seconds=Decimal("10"), calls=1),
+        usage=UsageReported(raw_usage={"total_tokens": 101}),
+    )
+    assert decision.action == "allow"
+    assert decision.reason == "reservation_settled"
+    assert decision.settlement.token_overrun == 1
+    assert budget.ledger.settlements == (decision.settlement,)
+    assert budget.ledger.charged.tokens == 101
+    assert budget.ledger.outstanding.tokens is None
+    assert budget.available.tokens == 399
+    assert budget.reserve("b", estimate()).action == "allow"
+
+
+def test_non_token_over_reservation_keeps_the_hold_and_returns_a_fatal_stop():
+    budget = RuntimeBudget(
+        BudgetAmounts(tokens=500, seconds=Decimal("100"), calls=4)
+    )
+    budget.reserve("a", estimate())
+    decision = budget.settle(
+        "a",
+        actual=BudgetAmounts(tokens=80, seconds=Decimal("31"), calls=1),
+        usage=UsageReported(raw_usage={"total_tokens": 80}),
     )
     assert decision.action == "stop"
     assert decision.reason == "actual_usage_exceeds_reservation"
-    assert decision.exceeded_dimensions == (dimension,)
+    assert decision.exceeded_dimensions == ("seconds",)
+    assert decision.settlement is None
     assert budget.ledger.settlements == ()
     assert budget.ledger.outstanding.tokens == 100
     assert budget.reserve("b", estimate()).action == "stop"
@@ -302,7 +316,7 @@ def test_runtime_budget_recovers_settled_and_outstanding_state_from_events():
     assert recovered.available.tokens == 170
 
 
-def test_event_recovery_detects_reported_overrun_left_without_a_false_settlement():
+def test_event_recovery_detects_reported_overrun_left_unsettled():
     reservation = BudgetReservation(
         reservation_id="request-1",
         purpose="primary_task",
@@ -329,8 +343,19 @@ def test_event_recovery_detects_reported_overrun_left_without_a_false_settlement
     recovered = RuntimeBudget.from_events(
         BudgetAmounts(tokens=500, calls=3), records
     )
-    assert recovered.fatal_reason == "actual_usage_exceeds_reservation"
+    assert recovered.fatal_reason == "unsettled_reported_usage"
     assert recovered.reserve("next", estimate()).action == "stop"
+    settled = recovered.settle(
+        "request-1",
+        actual=BudgetAmounts(tokens=120, calls=1),
+        usage=UsageReported(raw_usage={"total_tokens": 120}),
+    )
+    assert settled.action == "allow"
+    assert settled.settlement.token_overrun == 20
+    assert recovered.fatal_reason is None
+    assert recovered.ledger.charged.tokens == 120
+    assert recovered.available.tokens == 380
+    assert recovered.reserve("next", estimate()).action == "allow"
 
 
 def test_price_configuration_never_turns_an_estimate_into_reported_cost():

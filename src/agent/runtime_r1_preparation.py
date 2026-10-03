@@ -1,0 +1,125 @@
+"""Validate or start an approved R1 whole-case configuration.
+
+This module performs no model call for ``check`` or ``command``.  ``launch``
+execs the reviewed runtime entry exactly once and is intended only after the
+separate whole-case approval recorded by the project lead.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shlex
+import sys
+from pathlib import Path
+
+from src.agent.runtime_entry import ROOT
+from src.agent_runtime.estimation import get_model_profile
+
+
+ALLOWED_ENTRYPOINTS = {
+    "single_model": "src.agent.runtime_entry",
+    "external_coordinator_mcp": "src.agent.runtime_coordinator",
+}
+
+
+def load_configuration(path: Path) -> dict:
+    value = json.loads(path.read_bytes())
+    if value.get("schema_version") != 1:
+        raise ValueError("unsupported R1 run configuration schema")
+    if not value.get("approval_required_before_launch"):
+        raise ValueError("whole-case configuration must retain its approval gate")
+    cases = value.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise ValueError("configuration needs at least one case")
+    identities = [case.get("case_id") for case in cases]
+    if len(set(identities)) != len(identities) or not all(identities):
+        raise ValueError("case IDs must be present and unique")
+    for case in cases:
+        mode = case.get("mode")
+        if mode not in ALLOWED_ENTRYPOINTS:
+            raise ValueError(f"unsupported run mode {mode!r}")
+        if case.get("provider") != "paratera":
+            raise ValueError("R1 live configurations are fixed to Paratera")
+        model = case.get("model")
+        get_model_profile(model, strict=True)
+        if "deepseek" in model.casefold():
+            raise ValueError("DeepSeek is outside this approved batch")
+        seconds = case.get("limits", {}).get("seconds")
+        if type(seconds) not in {int, float} or seconds <= 0:
+            raise ValueError("each case needs a positive time ceiling")
+        if seconds > value["maximum_seconds_per_case"]:
+            raise ValueError("case exceeds the configuration's time ceiling")
+        for key in ("input", "output"):
+            target = (ROOT / case[key]).resolve()
+            if not target.is_relative_to(ROOT):
+                raise ValueError(f"{key} escapes the worktree")
+            if key == "input" and not target.exists():
+                raise ValueError(f"input does not exist: {target}")
+        if Path(case["credentials_file"]) != Path("/workspaces/EnergyPlus-Agent-dev/.env"):
+            raise ValueError("credentials must remain a read-only reference to the main-tree .env")
+    return value
+
+
+def selected_case(configuration: dict, case_id: str) -> dict:
+    matches = [case for case in configuration["cases"] if case["case_id"] == case_id]
+    if not matches:
+        raise ValueError(f"unknown case {case_id!r}")
+    return matches[0]
+
+
+def argv_for(case: dict, *, resume: bool = False) -> list[str]:
+    limits = case["limits"]
+    argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
+            "--out", str(ROOT / case["output"]), "--provider", case["provider"],
+            "--model", case["model"], "--credentials-file", case["credentials_file"],
+            "--scope", case["scope"], "--image-kind", case["image_kind"],
+            "--model-calls", str(limits["model_calls"]),
+            "--tool-calls", str(limits["tool_calls"]),
+            "--tokens", str(limits["tokens"]), "--seconds", str(limits["seconds"]),
+            "--output-tokens", str(case["output_tokens"])]
+    source_flag = "--mesh" if case["input_kind"] == "mesh" else "--images"
+    argv += [source_flag, str(ROOT / case["input"])]
+    if case["mode"] == "single_model":
+        argv += ["--max-candidates", str(case["max_candidates"]),
+                 "--context-tokens", str(case["context_tokens"]),
+                 "--temperature", str(case["temperature"]),
+                 "--reasoning-effort", case["reasoning_effort"],
+                 "--model-retries", "0"]
+    else:
+        argv += ["--quota-journal", str(ROOT / case["quota_journal"]),
+                 "--quota-limit", str(case["quota_limit"]),
+                 "--max-concurrent-observers", str(case["max_concurrent_observers"])]
+        argv.append("--thinking" if case.get("thinking", True) else "--no-thinking")
+    if resume:
+        argv.append("--resume")
+    return argv
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=("check", "command", "launch"))
+    parser.add_argument("configuration", type=Path)
+    parser.add_argument("--case")
+    parser.add_argument("--resume", action="store_true")
+    args = parser.parse_args()
+    configuration = load_configuration(args.configuration.resolve())
+    if args.action == "check":
+        print(json.dumps({"status": "ready", "batch_id": configuration["batch_id"],
+                          "cases": [case["case_id"] for case in configuration["cases"]]},
+                         ensure_ascii=False))
+        return
+    if not args.case:
+        parser.error("--case is required for command or launch")
+    case = selected_case(configuration, args.case)
+    command = argv_for(case, resume=args.resume)
+    if args.action == "command":
+        print(shlex.join(command))
+        return
+    os.execvpe(command[0], command, {**os.environ, "PYTHONPATH": str(ROOT),
+                                     "PYTHONDONTWRITEBYTECODE": "1"})
+
+
+if __name__ == "__main__":
+    main()

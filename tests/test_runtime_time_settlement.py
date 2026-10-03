@@ -153,7 +153,7 @@ def test_root_time_cap_wins_when_root_remaining_time_is_tighter(tmp_path):
         assert receipt["budget"]["settlements"] == []
 
 
-def test_token_overrun_keeps_existing_token_reservation_classification(tmp_path):
+def test_token_overrun_settles_when_root_and_child_totals_still_fit(tmp_path):
     root, engine, reservation = _runtime_with_reservation(
         tmp_path,
         root_seconds=20.0,
@@ -166,9 +166,14 @@ def test_token_overrun_keeps_existing_token_reservation_classification(tmp_path)
             seconds=0.500,
         )
 
-        assert reason == "token_reservation_exceeded"
-        evidence = _violation(engine)
-        assert evidence["decision"]["reason"] == "actual_usage_exceeds_reservation"
-        assert evidence["decision"]["exceeded_dimensions"] == ["tokens"]
-        assert evidence["observed"]["tokens"] == 51
-        assert engine._stop(reason)["status"] == "token_reservation_exceeded"
+        assert reason is None
+        settlement = engine.task_budget.ledger.settlements[0]
+        assert settlement.actual.tokens == 51
+        assert settlement.token_overrun == 1
+        assert engine.task_budget.ledger.charged.tokens == 51
+        assert engine.task_budget.available.tokens == 49
+        assert engine.budget.ledger.charged.tokens == 51
+        assert engine.budget.available.tokens == 149
+        assert not [event for event in engine.store.events
+                    if event.payload.event_type == "run_lifecycle"
+                    and event.payload.failure_stage == "budget_settlement"]

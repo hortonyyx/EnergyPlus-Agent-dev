@@ -108,6 +108,7 @@ class BudgetSettlement(ContractModel):
     actual: BudgetAmounts
     usage: UsageEvidence
     cost: CostEvidence
+    token_overrun: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def missing_usage_requires_estimated_cost(self) -> BudgetSettlement:
@@ -125,6 +126,18 @@ class BudgetSettlement(ContractModel):
             raise ValueError(
                 "an estimated cost upper bound must not be stored as actual.money_usd"
             )
+        if self.token_overrun:
+            if self.usage.kind != "reported":
+                raise ValueError("a token overrun requires reported usage")
+            reported_tokens = _reported_total_tokens(self.usage.raw_usage)
+            if reported_tokens is None:
+                raise ValueError(
+                    "a token overrun requires raw total token usage or input/output usage"
+                )
+            if self.actual.tokens != reported_tokens:
+                raise ValueError(
+                    "reported raw token usage must equal actual.tokens for an overrun"
+                )
         return self
 
 
@@ -151,10 +164,23 @@ class BudgetLedger(ContractModel):
             reservation = reservation_by_id.get(item.reservation_id)
             if reservation is None:
                 raise ValueError(f"settlement has no reservation: {item.reservation_id}")
+            reserved_tokens = reservation.amounts.tokens
+            actual_tokens = item.actual.tokens
+            expected_overrun = (
+                max(actual_tokens - reserved_tokens, 0)
+                if actual_tokens is not None and reserved_tokens is not None
+                else 0
+            )
+            if item.token_overrun != expected_overrun:
+                raise ValueError(
+                    f"settlement token_overrun differs from actual minus reservation: "
+                    f"{item.reservation_id}"
+                )
             _ensure_within_reservation(
                 item.actual,
                 reservation.amounts,
                 f"settlement exceeds reservation: {item.reservation_id}",
+                allow_token_overrun=bool(item.token_overrun),
             )
             if item.cost.kind == "unavailable":
                 if reservation.amounts.money_usd is not None:
@@ -168,8 +194,18 @@ class BudgetLedger(ContractModel):
                 raise ValueError(
                     f"settlement cost exceeds reservation: {item.reservation_id}"
                 )
+        committed_for_limit = self.committed.model_copy(
+            update={
+                "tokens": (
+                    None
+                    if self.committed.tokens is None
+                    else self.committed.tokens
+                    - sum(item.token_overrun for item in self.settlements)
+                )
+            }
+        )
         _ensure_within_limit(
-            self.committed,
+            committed_for_limit,
             self.total_limit,
             "effective charges and outstanding reservations exceed total budget",
         )
@@ -210,7 +246,16 @@ class BudgetLedger(ContractModel):
     def available(self) -> BudgetAmounts:
         """Remaining configured capacity; None continues to mean unbounded."""
 
-        return self.total_limit.subtract(self.committed)
+        committed = self.committed
+        if (
+            self.total_limit.tokens is not None
+            and committed.tokens is not None
+            and committed.tokens > self.total_limit.tokens
+        ):
+            committed = committed.model_copy(
+                update={"tokens": self.total_limit.tokens}
+            )
+        return self.total_limit.subtract(committed)
 
 
 def _effective_charge(
@@ -237,11 +282,17 @@ def _effective_charge(
 
 
 def _ensure_within_reservation(
-    actual: BudgetAmounts, limit: BudgetAmounts, message: str
+    actual: BudgetAmounts,
+    limit: BudgetAmounts,
+    message: str,
+    *,
+    allow_token_overrun: bool = False,
 ) -> None:
     for name in ("tokens", "money_usd", "seconds", "calls"):
         value = getattr(actual, name)
         ceiling = getattr(limit, name)
+        if name == "tokens" and allow_token_overrun and ceiling is not None:
+            continue
         if value is not None and (ceiling is None or value > ceiling):
             raise ValueError(f"{message} ({name})")
 
@@ -266,3 +317,27 @@ def _has_positive_dimension(amounts: BudgetAmounts) -> bool:
             amounts.calls,
         )
     )
+
+
+def _reported_total_tokens(raw_usage: dict[str, JsonValue]) -> int | None:
+    """Extract a provider's original total without estimating missing usage."""
+
+    total = raw_usage.get("total_tokens")
+    if isinstance(total, int) and not isinstance(total, bool) and total >= 0:
+        return total
+    for input_name, output_name in (
+        ("input_tokens", "output_tokens"),
+        ("prompt_tokens", "completion_tokens"),
+    ):
+        input_tokens = raw_usage.get(input_name)
+        output_tokens = raw_usage.get(output_name)
+        if (
+            isinstance(input_tokens, int)
+            and not isinstance(input_tokens, bool)
+            and input_tokens >= 0
+            and isinstance(output_tokens, int)
+            and not isinstance(output_tokens, bool)
+            and output_tokens >= 0
+        ):
+            return input_tokens + output_tokens
+    return None

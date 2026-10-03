@@ -1,7 +1,10 @@
 import asyncio
+import hashlib
 import io
 import json
+import tarfile
 from decimal import Decimal
+from functools import lru_cache
 from pathlib import Path
 
 import pytest
@@ -59,6 +62,32 @@ def _registered_view(store):
         original_size=(100, 100),
         sent_size=(80, 60),
         image_name="plan.png",
+        tool_event_id="event-view-source",
+    )
+
+
+def _registered_west_view(store):
+    original_bytes = _png_bytes((2639, 931), "white")
+    original = store.put_bytes(original_bytes, "image/png")
+    sent = store.put_bytes(_png_bytes((263, 93), "gray"), "image/png")
+    relation = CoordinateRelation(
+        referenced_space="view_pixels",
+        relation="crop_and_affine",
+        crop_original_pixels=(0.0, 0.0, 2639.0, 931.0),
+        original_to_referenced_affine=(263 / 2639, 0.0, 0.0, 0.0, 93 / 931, 0.0),
+    )
+    return RegisteredView(
+        reference=RunQualifiedEvidenceRef(
+            run_id=store.run_id,
+            reference=ExistingEvidenceRef(scheme="view_id", value="view_0001"),
+            original_sha256=original.sha256,
+            coordinate_relation=relation,
+        ),
+        original=original,
+        sent=sent,
+        original_size=(2639, 931),
+        sent_size=(263, 93),
+        image_name="west.png",
         tool_event_id="event-view-source",
     )
 
@@ -371,6 +400,155 @@ def _run_scripted_observer(tmp_path, *, task_id, limits, responses):
             if event.payload.event_type == "tool_execution"
         ]
     return outcome, adapter, frozen, executions
+
+
+@lru_cache
+def _stage3_west_answer(run_id):
+    expected = {
+        "final_02_27b": (
+            "role_final/final_02_27b/role_case.json",
+            "e83002fc70f0ca1dfbd0b48344f27a85baba4231032014c2eae32609b2fe8999",
+        ),
+        "final_02_flash": (
+            "role_final/final_02_flash/role_case.json",
+            "7dd0427bac016a658b386df45efabae4be9fdd129ab769dbd5b3f177e1ddf08c",
+        ),
+    }
+    archived_path, answer_sha256 = expected[run_id]
+    archive = (ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage3"
+        / "evidence_all.compact.tar.xz")
+    with tarfile.open(archive) as bundle:
+        manifest = json.loads(bundle.extractfile("manifest.json").read())
+        entry = manifest["files"][archived_path]
+        raw = bundle.extractfile(entry["object"]).read()
+    assert hashlib.sha256(raw).hexdigest() == entry["sha256"]
+    role_case = json.loads(raw)
+    assert role_case["run_id"] == run_id
+    answer = role_case["outcome"]["runtime"]["answer"]
+    assert hashlib.sha256(answer.encode("utf-8")).hexdigest() == answer_sha256
+    return answer
+
+
+def _correct_stage3_reference_answer(answer):
+    corrected = json.loads(json.dumps(answer))
+    replacements = {
+        "int_chain_left": "obs_left_chain",
+        "int_chain_right": "obs_right_chain",
+    }
+    for row in corrected["interpretations"]:
+        row["based_on_observation_ids"] = [
+            replacements.get(reference, reference)
+            for reference in row["based_on_observation_ids"]
+        ]
+    return corrected
+
+
+def _run_west_format_repair(tmp_path, *, task_id, first, second, model_calls=2):
+    adapter = ScriptedAdapter([
+        _response(text=first),
+        second if isinstance(second, dict) else _response(text=second),
+    ])
+    limits = RunLimits(model_calls=model_calls, tool_calls=0, seconds=60.0, tokens=1_000_000)
+    with EventStore(tmp_path / "observer-run", run_id=task_id + "-run",
+            task_id="coordinator", budget_limit=BudgetAmounts(
+                tokens=2_000_000, calls=4, seconds=Decimal("120"))) as root_store:
+        store = root_store.for_task(task_id, parent_task_id="coordinator")
+        view = _registered_west_view(store)
+        outcome = asyncio.run(run_observer(store=store,
+            frozen_tools=_MeasuringObserverFrozenTools(tmp_path), adapter=adapter,
+            model="scripted-observer", parameters={"max_tokens": 4096, "temperature": 0.0},
+            limits=limits, package=_package(view, task_id=task_id), views=[view],
+            notes=["stage-3 final west answer format-repair counterexample"], root=ROOT,
+            route={"route_id": "offline-test", "model": "scripted-observer"}))
+        repairs = [event.payload for event in store.events
+                   if event.payload.event_type == "answer_repair"]
+        resolved = [{**row.model_dump(mode="json"),
+                     "original_answer_value": store.resolve(row.original_answer),
+                     "repaired_answer_value": (store.resolve(row.repaired_answer)
+                         if row.repaired_answer else None)} for row in repairs]
+        root_store.validate()
+    return outcome, adapter, resolved
+
+
+@pytest.mark.parametrize("failure", ["extra_closing_bracket", "interpretation_ids"])
+def test_stage3_real_format_failures_are_repaired_once_and_recorded(tmp_path, failure):
+    if failure == "extra_closing_bracket":
+        invalid = _stage3_west_answer("final_02_27b")
+        _, valid_prefix_end = json.JSONDecoder().raw_decode(invalid)
+        assert invalid[valid_prefix_end:] == "}"
+        corrected = invalid[:valid_prefix_end]
+    else:
+        invalid = _stage3_west_answer("final_02_flash")
+        corrected = json.dumps(_correct_stage3_reference_answer(json.loads(invalid)), ensure_ascii=False)
+
+    outcome, adapter, repairs = _run_west_format_repair(tmp_path,
+        task_id="repair-" + failure, first=invalid, second=corrected)
+
+    assert outcome["status"] == "completed"
+    assert outcome["runtime"]["model_calls"] == 2
+    assert len(outcome["runtime"]["task_budget"]["reservations"]) == 2
+    assert len(outcome["runtime"]["task_budget"]["settlements"]) == 2
+    assert len(adapter.requests) == 2
+    assert [row["phase"] for row in repairs] == ["request", "result"]
+    assert repairs[0]["original_answer_value"] == invalid
+    assert repairs[1]["original_answer_value"] == invalid
+    assert repairs[1]["repaired_answer_value"] == corrected
+    assert repairs[1]["accepted"] is True
+    repair_wire = json.loads(adapter.requests[1])
+    repair_messages = [message["content"] for message in repair_wire["messages"]
+                       if isinstance(message.get("content"), str)
+                       and "single allowed repair" in message["content"]]
+    assert len(repair_messages) == 1
+    assert repairs[0]["validation_error"] in repair_messages[0]
+
+
+@pytest.mark.parametrize("failure", ["extra_closing_bracket", "interpretation_ids"])
+def test_stage3_real_format_failures_still_wrong_are_rejected_after_one_repair(tmp_path, failure):
+    if failure == "extra_closing_bracket":
+        answer = _stage3_west_answer("final_02_27b")
+    else:
+        answer = _stage3_west_answer("final_02_flash")
+
+    outcome, adapter, repairs = _run_west_format_repair(tmp_path,
+        task_id="reject-" + failure, first=answer, second=answer)
+
+    assert outcome["status"] == "answer_validation_failed"
+    assert outcome["result"] is None
+    assert outcome["runtime"]["model_calls"] == 2
+    assert len(adapter.requests) == 2
+    assert [row["phase"] for row in repairs] == ["request", "result"]
+    assert repairs[1]["accepted"] is False
+    assert repairs[1]["repaired_validation_error"]
+
+
+def test_format_repair_without_remaining_model_budget_records_request_but_does_not_send(tmp_path):
+    invalid = _stage3_west_answer("final_02_27b")
+    outcome, adapter, repairs = _run_west_format_repair(tmp_path,
+        task_id="repair-no-budget", first=invalid, second="unused", model_calls=1)
+
+    assert outcome["status"] == "child_model_budget_exhausted"
+    assert outcome["result"] is None
+    assert outcome["runtime"]["model_calls"] == 1
+    assert len(adapter.requests) == 1
+    assert [row["phase"] for row in repairs] == ["request"]
+    assert repairs[0]["original_answer_value"] == invalid
+
+
+def test_format_repair_tool_call_is_rejected_without_execution_or_third_request(tmp_path):
+    invalid = _stage3_west_answer("final_02_27b")
+    outcome, adapter, repairs = _run_west_format_repair(tmp_path,
+        task_id="repair-tool-call", first=invalid,
+        second=_response(calls=(_profile_call("repair-tool"),)), model_calls=3)
+
+    assert outcome["status"] == "answer_validation_failed"
+    assert outcome["runtime"]["tool_calls"] == 0
+    assert len(adapter.requests) == 2
+    assert json.loads(adapter.requests[1]).get("tools", []) == []
+    assert [row["phase"] for row in repairs] == ["request", "result"]
+    assert repairs[-1]["accepted"] is False
+    assert repairs[-1]["repaired_validation_error"] == (
+        "the single answer repair response must not invoke tools"
+    )
 
 
 def _remaining_budget_entry(wire_bytes):

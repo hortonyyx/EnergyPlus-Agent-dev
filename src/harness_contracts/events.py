@@ -213,6 +213,42 @@ class ModelResponsePayload(ContractModel):
         return self
 
 
+class AnswerRepairPayload(ContractModel):
+    """One bounded request to repair a rejected final answer, and its result."""
+
+    event_type: Literal["answer_repair"] = "answer_repair"
+    phase: Literal["request", "result"]
+    attempt: int = Field(ge=1)
+    invalid_response_event_id: NonEmptyStr
+    original_answer: CapturedValue
+    validation_error: NonEmptyStr
+    repair_request_event_id: NonEmptyStr | None = None
+    repaired_response_event_id: NonEmptyStr | None = None
+    repaired_answer: CapturedValue | None = None
+    accepted: bool | None = None
+    repaired_validation_error: NonEmptyStr | None = None
+
+    @model_validator(mode="after")
+    def phase_fields_match(self) -> AnswerRepairPayload:
+        result_fields = (
+            self.repair_request_event_id,
+            self.repaired_response_event_id,
+            self.repaired_answer,
+            self.accepted,
+        )
+        if self.phase == "request":
+            if any(value is not None for value in result_fields) or self.repaired_validation_error is not None:
+                raise ValueError("an answer repair request cannot claim a repair result")
+            return self
+        if any(value is None for value in result_fields):
+            raise ValueError("an answer repair result needs its request, response, answer, and verdict")
+        if self.accepted and self.repaired_validation_error is not None:
+            raise ValueError("an accepted repair cannot retain a validation error")
+        if not self.accepted and self.repaired_validation_error is None:
+            raise ValueError("a rejected repair needs its validation error")
+        return self
+
+
 class ToolExecutionPayload(ContractModel):
     event_type: Literal["tool_execution"] = "tool_execution"
     call_id: NonEmptyStr
@@ -338,6 +374,28 @@ class BudgetEventPayload(ContractModel):
         return self
 
 
+class BudgetOverrunPayload(ContractModel):
+    """Auditable explanation for a reported token use above its reservation."""
+
+    event_type: Literal["budget_overrun"] = "budget_overrun"
+    model: NonEmptyStr
+    reservation_id: NonEmptyStr
+    reserved_tokens: int = Field(ge=0)
+    actual_tokens: int = Field(ge=0)
+    overrun_tokens: int = Field(gt=0)
+    reasoning_token_allowance: int = Field(ge=0)
+    completion_over_max_tokens: int | None
+    within_profile_allowance: bool | None
+    root_limit_exceeded: bool
+    task_limit_exceeded: bool
+
+    @model_validator(mode="after")
+    def overrun_matches_amounts(self) -> BudgetOverrunPayload:
+        if self.overrun_tokens != self.actual_tokens - self.reserved_tokens:
+            raise ValueError("overrun_tokens must equal actual_tokens minus reserved_tokens")
+        return self
+
+
 class ContextEventPayload(ContractModel):
     event_type: Literal["context"] = "context"
     action: Literal["compact", "retain_image", "remove_image", "retrieve_image"]
@@ -396,12 +454,14 @@ class RunAggregateUsagePayload(ContractModel):
 EventPayload = Annotated[
     AdapterRequestPayload
     | ModelResponsePayload
+    | AnswerRepairPayload
     | ToolExecutionPayload
     | ToolInvocationPayload
     | ToolPresentationPayload
     | StateInspectionPayload
     | RunLifecyclePayload
     | BudgetEventPayload
+    | BudgetOverrunPayload
     | ContextEventPayload
     | CheckpointPayload
     | ExternalCoordinatorMcpPayload

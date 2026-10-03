@@ -10,7 +10,9 @@ from .base import ContractModel, NonEmptyStr
 from .budget import BudgetAmounts, BudgetLedger
 from .events import (
     AdapterRequestPayload,
+    AnswerRepairPayload,
     BudgetEventPayload,
+    BudgetOverrunPayload,
     ContextEventPayload,
     CheckpointPayload,
     EventEnvelope,
@@ -80,6 +82,7 @@ class EventLog(ContractModel):
 
         missing_ids = set(self.excerpt.missing_event_ids if self.excerpt else ())
         self._validate_response_requests(event_by_id, missing_ids)
+        self._validate_answer_repairs(event_by_id, missing_ids)
         self._validate_inspections(event_by_id, missing_ids)
         self._validate_recovery(event_by_id, missing_ids)
         self._validate_context(event_by_id, missing_ids)
@@ -92,6 +95,61 @@ class EventLog(ContractModel):
         self._validate_invocations(event_by_id, missing_ids)
         self._validate_presentations(event_by_id, missing_ids)
         return self
+
+    def _validate_answer_repairs(self, event_by_id, missing_ids) -> None:
+        requested_invalid_responses: set[str] = set()
+        requesting_tasks: set[str] = set()
+        results_by_request: set[str] = set()
+        for event in self.events:
+            payload = event.payload
+            if not isinstance(payload, AnswerRepairPayload):
+                continue
+            invalid = _require_prior_event(payload.invalid_response_event_id, event,
+                event_by_id, missing_ids, "invalid answer response")
+            if invalid is not None and not isinstance(invalid.payload, ModelResponsePayload):
+                raise ValueError("invalid_response_event_id must reference a model response")
+            if invalid is not None and invalid.task_id != event.task_id:
+                raise ValueError("answer repair must remain in the same task as the invalid response")
+            if payload.phase == "request":
+                if payload.attempt != 1:
+                    raise ValueError("only one bounded answer repair is supported")
+                if event.task_id in requesting_tasks:
+                    raise ValueError("a task can request only one answer repair")
+                if payload.invalid_response_event_id in requested_invalid_responses:
+                    raise ValueError("an invalid answer can request only one repair")
+                requesting_tasks.add(event.task_id)
+                requested_invalid_responses.add(payload.invalid_response_event_id)
+                continue
+            request = _require_prior_event(payload.repair_request_event_id, event,
+                event_by_id, missing_ids, "answer repair request")
+            repaired = _require_prior_event(payload.repaired_response_event_id, event,
+                event_by_id, missing_ids, "repaired answer response")
+            if request is not None and (
+                not isinstance(request.payload, AnswerRepairPayload)
+                or request.payload.phase != "request"
+            ):
+                raise ValueError("repair_request_event_id must reference an answer repair request")
+            if repaired is not None and not isinstance(repaired.payload, ModelResponsePayload):
+                raise ValueError("repaired_response_event_id must reference a model response")
+            if request is not None and repaired is not None:
+                if request.task_id != event.task_id or repaired.task_id != event.task_id:
+                    raise ValueError("answer repair request and response must stay in one task")
+                if repaired.sequence <= request.sequence:
+                    raise ValueError("a repaired answer response must follow its repair request")
+                adapter_request = event_by_id.get(repaired.payload.request_event_id)
+                if adapter_request is not None:
+                    if adapter_request.task_id != event.task_id:
+                        raise ValueError("the repaired model request must stay in the repair task")
+                    if adapter_request.sequence <= request.sequence:
+                        raise ValueError("the repaired model request must follow the repair request event")
+            if payload.repair_request_event_id in results_by_request:
+                raise ValueError("an answer repair request can have only one result")
+            results_by_request.add(payload.repair_request_event_id)
+            if request is not None:
+                prior = request.payload
+                for field in ("attempt", "invalid_response_event_id", "original_answer", "validation_error"):
+                    if getattr(payload, field) != getattr(prior, field):
+                        raise ValueError(f"answer repair result differs from its request: {field}")
 
     def _validate_presentations(self, event_by_id, missing_ids) -> None:
         for event in self.events:
@@ -333,13 +391,54 @@ class EventLog(ContractModel):
         reservations = []
         settlements = []
         reservation_events: dict[str, EventEnvelope] = {}
+        settlement_events: dict[str, EventEnvelope] = {}
+        overrun_reservations: set[str] = set()
         for event in self.events:
             payload = event.payload
+            if isinstance(payload, BudgetOverrunPayload):
+                reservation_event = reservation_events.get(payload.reservation_id)
+                settlement_event = settlement_events.get(payload.reservation_id)
+                if reservation_event is None or settlement_event is None:
+                    raise ValueError(
+                        "budget overrun must follow its reservation and settlement"
+                    )
+                if (
+                    reservation_event.task_id != event.task_id
+                    or settlement_event.task_id != event.task_id
+                ):
+                    raise ValueError(
+                        "budget overrun must remain in the reservation task"
+                    )
+                if payload.reservation_id in overrun_reservations:
+                    raise ValueError("a settlement can have only one budget overrun event")
+                overrun_reservations.add(payload.reservation_id)
+                reservation = reservation_event.payload.reservation
+                settlement = settlement_event.payload.settlement
+                assert reservation is not None and settlement is not None
+                if (
+                    payload.reserved_tokens != reservation.amounts.tokens
+                    or payload.actual_tokens != settlement.actual.tokens
+                    or payload.overrun_tokens != settlement.token_overrun
+                ):
+                    raise ValueError(
+                        "budget overrun amounts differ from reservation or settlement"
+                    )
+                continue
             if not isinstance(payload, BudgetEventPayload):
                 continue
+            if self.budget_limit is None:
+                raise ValueError("budget events require the run's total budget limit")
             if payload.reservation is not None:
                 if payload.reservation.task_id != event.task_id:
                     raise ValueError("budget reservation task must match event task")
+                current = BudgetLedger(
+                    total_limit=self.budget_limit,
+                    reservations=tuple(reservations),
+                    settlements=tuple(settlements),
+                )
+                _require_available_for_reservation(
+                    payload.reservation.amounts, current.available
+                )
                 reservations.append(payload.reservation)
                 reservation_events[payload.reservation.reservation_id] = event
             if payload.settlement is not None:
@@ -351,8 +450,7 @@ class EventLog(ContractModel):
                 if reservation_event.task_id != event.task_id:
                     raise ValueError("budget settlement task must match reservation task")
                 settlements.append(payload.settlement)
-            if self.budget_limit is None:
-                raise ValueError("budget events require the run's total budget limit")
+                settlement_events[payload.settlement.reservation_id] = event
             # Validate every journal prefix. A later settlement may release a
             # conservative hold, but it cannot erase evidence that an earlier
             # reservation was admitted over the configured total.
@@ -385,6 +483,18 @@ def validate_event_log(events: tuple[EventEnvelope, ...], **kwargs: object) -> E
     """Convenience helper for callers that already accumulated event envelopes."""
 
     return EventLog(events=events, **kwargs)
+
+
+def _require_available_for_reservation(
+    requested: BudgetAmounts, available: BudgetAmounts
+) -> None:
+    """Reject a new hold against the actual capacity remaining at that event."""
+
+    for name in ("tokens", "money_usd", "seconds", "calls"):
+        amount = getattr(requested, name)
+        remaining = getattr(available, name)
+        if amount is not None and remaining is not None and amount > remaining:
+            raise ValueError(f"budget reservation exceeds available budget ({name})")
 
 
 def _require_prior_event(

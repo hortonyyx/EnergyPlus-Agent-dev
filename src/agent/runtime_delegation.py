@@ -284,6 +284,8 @@ async def run_observer(*, store, frozen_tools, adapter, model, parameters, limit
         parameters=parameters, versions=versions, limits=limits,
         strict_model_profile=route["route_id"] == "paratera",
         root_tool_calls=root_tool_calls,
+        answer_validator=lambda text: hydrate_observation(text, package, views),
+        max_answer_repairs=1,
         context_update=update_observer_budget,
         context_policy=ContextPolicy(active_window_messages=16, max_images=max(1, len(views)),
                                      max_image_bytes=32_000_000))

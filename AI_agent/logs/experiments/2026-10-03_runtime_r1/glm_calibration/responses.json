@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "model": "GLM-5.3-Flash",
+  "parameters": {
+    "max_tokens": 8,
+    "temperature": 0.0,
+    "reasoning_effort": "medium"
+  },
+  "rows": [
+    {
+      "case": "text_control",
+      "request": {
+        "model": "GLM-5.3-Flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Reply only OK. Token calibration uses a short English sentence and 中文字符 12345."
+          }
+        ],
+        "stream": false,
+        "n": 1,
+        "max_tokens": 8,
+        "temperature": 0.0,
+        "reasoning_effort": "medium"
+      },
+      "image": null,
+      "response": {
+        "id": "021791006442009ab536ac757ac87e581a3dec38533271777b8f9",
+        "created": 1791006443,
+        "model": "GLM-5.3-Flash",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "OK",
+              "role": "assistant",
+              "reasoning_content": "The user asks to reply only \"OK\". The rest is calibration text. I should just reply \"OK\".",
+              "provider_specific_fields": {
+                "refusal": null,
+                "reasoning_content": "The user asks to reply only \"OK\". The rest is calibration text. I should just reply \"OK\"."
+              }
+            },
+            "provider_specific_fields": {}
+          }
+        ],
+        "usage": {
+          "completion_tokens": 24,
+          "prompt_tokens": 31,
+          "total_tokens": 55,
+          "completion_tokens_details": {
+            "reasoning_tokens": 22
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    },
+    {
+      "case": "text_long",
+      "request": {
+        "model": "GLM-5.3-Flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Calibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\nCalibration record: level=2; object=space; source=view; status=observed; coordinates=[12.5, 18.75]; note=retain evidence and report uncertainty.\n"
+          }
+        ],
+        "stream": false,
+        "n": 1,
+        "max_tokens": 8,
+        "temperature": 0.0,
+        "reasoning_effort": "medium"
+      },
+      "image": null,
+      "response": {
+        "id": "021791006444241ab536ac757ac87e581a3dec3853327172e1dea",
+        "created": 1791006445,
+        "model": "GLM-5.3-Flash",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "finish_reason": "length",
+            "index": 0,
+            "message": {
+              "content": "**Calibration Summary Report**\n\n**Records",
+              "role": "assistant",
+              "reasoning_content": "The user sent many identical calibration records. Likely they want a summary/acknowledgment. Respond with consolidated report, noting redundancy, uncertainty.",
+              "provider_specific_fields": {
+                "refusal": null,
+                "reasoning_content": "The user sent many identical calibration records. Likely they want a summary/acknowledgment. Respond with consolidated report, noting redundancy, uncertainty."
+              }
+            },
+            "provider_specific_fields": {}
+          }
+        ],
+        "usage": {
+          "completion_tokens": 37,
+          "prompt_tokens": 3756,
+          "total_tokens": 3793,
+          "completion_tokens_details": {
+            "reasoning_tokens": 28
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    },
+    {
+      "case": "image_224x224",
+      "request": {
+        "model": "GLM-5.3-Flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Reply only OK. Token calibration uses a short English sentence and 中文字符 12345."
+              },
+              {
+                "type": "image_url",
+                "image_url": {
+                  "url": "<synthetic image sha256=05b8b37f01b8721a5c74cfc9a61cea924773cd09968aefac376cd6964856654b>"
+                }
+              }
+            ]
+          }
+        ],
+        "stream": false,
+        "n": 1,
+        "max_tokens": 8,
+        "temperature": 0.0,
+        "reasoning_effort": "medium"
+      },
+      "image": {
+        "width": 224,
+        "height": 224,
+        "sha256": "05b8b37f01b8721a5c74cfc9a61cea924773cd09968aefac376cd6964856654b"
+      },
+      "response": {
+        "id": "0217910064474953ea4fa82759f0cae4f2ffa723d4f9dd63f59c3",
+        "created": 1791006448,
+        "model": "GLM-5.3-Flash",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "OK",
+              "role": "assistant",
+              "reasoning_content": "User wants only \"OK\".",
+              "provider_specific_fields": {
+                "refusal": null,
+                "reasoning_content": "User wants only \"OK\"."
+              }
+            },
+            "provider_specific_fields": {}
+          }
+        ],
+        "usage": {
+          "completion_tokens": 8,
+          "prompt_tokens": 97,
+          "total_tokens": 105,
+          "completion_tokens_details": {
+            "reasoning_tokens": 6
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    },
+    {
+      "case": "image_896x896",
+      "request": {
+        "model": "GLM-5.3-Flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Reply only OK. Token calibration uses a short English sentence and 中文字符 12345."
+              },
+              {
+                "type": "image_url",
+                "image_url": {
+                  "url": "<synthetic image sha256=f9eba6c4b59876481b21145b82ebd3fce751a09c626b72e1fbf5f261b6fd0dfc>"
+                }
+              }
+            ]
+          }
+        ],
+        "stream": false,
+        "n": 1,
+        "max_tokens": 8,
+        "temperature": 0.0,
+        "reasoning_effort": "medium"
+      },
+      "image": {
+        "width": 896,
+        "height": 896,
+        "sha256": "f9eba6c4b59876481b21145b82ebd3fce751a09c626b72e1fbf5f261b6fd0dfc"
+      },
+      "response": {
+        "id": "0217910064494543ea4fa82759f0cae4f2ffa723d4f9dd6141bf1",
+        "created": 1791006451,
+        "model": "GLM-5.3-Flash",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "OK",
+              "role": "assistant",
+              "reasoning_content": "",
+              "provider_specific_fields": {
+                "refusal": null
+              }
+            },
+            "provider_specific_fields": {}
+          }
+        ],
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 1057,
+          "total_tokens": 1059,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    },
+    {
+      "case": "image_1600x1200",
+      "request": {
+        "model": "GLM-5.3-Flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Reply only OK. Token calibration uses a short English sentence and 中文字符 12345."
+              },
+              {
+                "type": "image_url",
+                "image_url": {
+                  "url": "<synthetic image sha256=b86d45a6144592874b3c6c5787134c854dcb9104348558493d1e440fb715e6fe>"
+                }
+              }
+            ]
+          }
+        ],
+        "stream": false,
+        "n": 1,
+        "max_tokens": 8,
+        "temperature": 0.0,
+        "reasoning_effort": "medium"
+      },
+      "image": {
+        "width": 1600,
+        "height": 1200,
+        "sha256": "b86d45a6144592874b3c6c5787134c854dcb9104348558493d1e440fb715e6fe"
+      },
+      "response": {
+        "id": "0217910064516223ea4fa82759f0cae4f2ffa723d4f9dd6d2c1cb",
+        "created": 1791006453,
+        "model": "GLM-5.3-Flash",
+        "object": "chat.completion",
+        "choices": [
+          {
+            "finish_reason": "stop",
+            "index": 0,
+            "message": {
+              "content": "OK",
+              "role": "assistant",
+              "reasoning_content": "",
+              "provider_specific_fields": {
+                "refusal": null
+              }
+            },
+            "provider_specific_fields": {}
+          }
+        ],
+        "usage": {
+          "completion_tokens": 2,
+          "prompt_tokens": 1345,
+          "total_tokens": 1347,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "service_tier": "default"
+      }
+    }
+  ]
+}

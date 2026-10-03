@@ -1,0 +1,152 @@
+{
+  "status": "passed",
+  "base_commit": "e123046d",
+  "code_commit": "78d60f1d",
+  "distinct_passed": 265,
+  "groups": [
+    {
+      "group": "short",
+      "returncode": 0,
+      "seconds": 123.816,
+      "command": [
+        "/opt/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-n",
+        "2",
+        "-s",
+        "tests/test_harness_core_contracts.py",
+        "tests/test_building_contracts.py",
+        "tests/test_harness_stage0_samples.py",
+        "tests/test_harness_stage0_history.py",
+        "tests/test_harness_stage0_provenance.py",
+        "tests/test_harness_stage0_boundaries.py",
+        "tests/test_agent_runtime.py",
+        "tests/test_runtime_snapshot.py",
+        "tests/test_runtime_frozen_tools.py",
+        "tests/test_stage1_behaviour.py",
+        "tests/test_runtime_context.py",
+        "tests/test_runtime_budget.py",
+        "tests/test_runtime_budget_integration.py",
+        "tests/test_runtime_recovery_edges.py",
+        "tests/test_runtime_stage2_integration.py",
+        "tests/test_runtime_compact_evidence.py",
+        "tests/test_runtime_estimation.py",
+        "tests/test_runtime_delegation.py",
+        "tests/test_runtime_call_quota.py",
+        "tests/test_runtime_child_tasks.py",
+        "tests/test_runtime_role_cases.py",
+        "tests/test_runtime_stage3_evidence.py",
+        "tests/test_runtime_time_settlement.py",
+        "tests/test_runtime_coordinator_root_limits.py",
+        "tests/test_runtime_parallel_delegation.py",
+        "tests/test_runtime_r1_preparation.py",
+        "tests/test_runtime_r1_facade.py",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/.r1-work/validation/final/short-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/AI_agent/logs/experiments/2026-10-03_runtime_r1/validation/short.xml",
+        "-o",
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/.r1-work/validation/final/short-cache"
+      ],
+      "log": "validation/short.log",
+      "junit": "validation/short.xml",
+      "real_provider_calls": 0,
+      "status": "passed",
+      "tests": 252,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 252
+    },
+    {
+      "group": "long",
+      "returncode": 0,
+      "seconds": 695.005,
+      "command": [
+        "/opt/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-n",
+        "2",
+        "-s",
+        "tests/test_runtime_long_task.py",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/.r1-work/validation/final/long-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/AI_agent/logs/experiments/2026-10-03_runtime_r1/validation/long.xml",
+        "-o",
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/.r1-work/validation/final/long-cache"
+      ],
+      "log": "validation/long.log",
+      "junit": "validation/long.xml",
+      "real_provider_calls": 0,
+      "status": "passed",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 10
+    },
+    {
+      "group": "frozen",
+      "returncode": 0,
+      "seconds": 482.478,
+      "command": [
+        "/opt/venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-n",
+        "2",
+        "-s",
+        "tests/test_runtime_frozen_long_task.py",
+        "--basetemp=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/.r1-work/validation/final/frozen-tmp",
+        "--junitxml=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/AI_agent/logs/experiments/2026-10-03_runtime_r1/validation/frozen.xml",
+        "-o",
+        "cache_dir=/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r1/.r1-work/validation/final/frozen-cache"
+      ],
+      "log": "validation/frozen.log",
+      "junit": "validation/frozen.xml",
+      "real_provider_calls": 0,
+      "status": "passed",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 3
+    }
+  ],
+  "source_identity_notes": [
+    {
+      "group": "long",
+      "changed_during_run": [
+        "src/agent/runtime_r1_facade.py"
+      ],
+      "scope_assessment": "The long/frozen groups do not import or execute the experiment evaluator. Runtime, coordinator, contracts and frozen tools remained byte-identical. The final facade module and its tests are covered by the final short group; no unrelated long rerun."
+    },
+    {
+      "group": "frozen",
+      "changed_during_run": [
+        "src/agent/runtime_r1_facade.py"
+      ],
+      "scope_assessment": "The long/frozen groups do not import or execute the experiment evaluator. Runtime, coordinator, contracts and frozen tools remained byte-identical. The final facade module and its tests are covered by the final short group; no unrelated long rerun."
+    }
+  ],
+  "frozen_paths_unchanged": [
+    "scripts/tool_scripts",
+    "src/agent/geometry",
+    "src/agent/correction",
+    "src/agent/execution",
+    "AI_agent/Agent.md",
+    "AI_agent/project",
+    "AI_agent/logs/experiments/2026-10-03_runtime_r1/brief.md"
+  ],
+  "real_provider_calls_in_validation": 0,
+  "environment": {
+    "PYTHONPATH": "$PWD:$PWD/tests",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "workers_per_group": 2,
+    "capture": "disabled (-s)",
+    "test_billing_guard": "pytest conftest blocks paid calls; no failed tests"
+  },
+  "reused_evidence": "All three required groups rerun on the final production runtime sources; targeted tests not added to distinct totals. See source_identity_notes for the unrelated experiment evaluator change during long groups."
+}
