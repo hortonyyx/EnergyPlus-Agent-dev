@@ -61,6 +61,7 @@ class Runtime:
     required_view_ids: tuple[str, ...] = ()
     retrieve_images: tuple[tuple[str, str], ...] = ()
     strict_model_profile: bool = False
+    root_tool_calls: int | None = None
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
@@ -175,6 +176,7 @@ class Runtime:
         return {"model": self.model, "parameters": self.parameters,
             "model_profile": model_profile,
             "strict_model_profile": self.strict_model_profile,
+            "root_tool_calls": self.root_tool_calls,
             "role": self.role.model_dump(mode="json"),
             "versions": self.versions.model_dump(mode="json"),
             "limits": self.limits.model_dump(mode="json"),
@@ -394,9 +396,15 @@ class Runtime:
             return
         calls = parsed.event_payload.tool_calls
         invoked = {e.payload.call_id for e in self.store.events if e.payload.event_type == "tool_invocation"}
-        if self.counts["tool_calls"] + sum(c.call_id not in invoked for c in calls) > self.limits.tool_calls:
+        additional = sum(c.call_id not in invoked for c in calls)
+        if self.counts["tool_calls"] + additional > self.limits.tool_calls:
             self.terminal_reason = "tool_budget_exhausted"
             return
+        if self.root_tool_calls is not None:
+            root_used = sum(e.payload.event_type == "tool_invocation" for e in self.store.all_events)
+            if root_used + additional > self.root_tool_calls:
+                self.terminal_reason = self._scoped_budget_reason("tool")
+                return
         try:
             for call in calls:
                 if call.call_id in self.used_ids or call.tool_name not in self.spec_by_name:
@@ -422,6 +430,12 @@ class Runtime:
                 continue
             if self._remaining() <= 0:
                 return "time_budget_exhausted"
+            # A pending response may survive a process interruption while
+            # another task consumes the root allowance before it resumes.
+            if self.root_tool_calls is not None and sum(
+                    e.payload.event_type == "tool_invocation" for e in self.store.all_events
+            ) >= self.root_tool_calls:
+                return self._scoped_budget_reason("tool")
             self.stage = f"tool:{call.tool_name}"
             self._fault("before_tool")
             repeatability = self.tools.repeatability(call.tool_name)
@@ -577,7 +591,7 @@ class Runtime:
         self.last_summary_at = saved.get("last_summary_at", 0)
         requested_reservations = {e.payload.reservation_id for e in self.store.events
             if e.payload.event_type == "adapter_request" and e.payload.reservation_id}
-        if any(r.reservation_id not in requested_reservations for r in self.budget.ledger.reservations):
+        if any(r.reservation_id not in requested_reservations for r in self.task_budget.ledger.reservations):
             # The durable request always precedes send. A reservation without one
             # was never sent, but no release contract exists yet: keep the hold.
             return "resume_uncheckpointed_budget_reservation"

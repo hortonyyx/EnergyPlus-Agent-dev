@@ -235,7 +235,12 @@ class CoordinatorSession:
         invocation = self.store.append(ToolInvocationPayload(call_id=call_id, tool_name=name,
             full_arguments=arguments, repeatability=repeatability, operation_key=key, state_before=before))
         try:
-            raw = await self.tools.call_tool(name, arguments)
+            running = self.tools.call_tool(name, arguments)
+            if self.limits:
+                remaining = max(0.0, self.limits.seconds - (time.time() - self.started_epoch))
+                raw = await asyncio.wait_for(running, timeout=remaining)
+            else:
+                raw = await running
         except (Exception, asyncio.CancelledError) as exc:
             execution = self.store.append(ToolExecutionPayload(call_id=call_id, tool_name=name,
                 full_arguments=arguments, repeatability=repeatability, operation_key=key,
@@ -310,6 +315,7 @@ class CoordinatorSession:
         running = run_observer(store=child, frozen_tools=self.observer_tools, adapter=adapter,
             model=self.model, parameters=self.parameters, limits=limits, package=package, views=views,
             notes=arguments.get("notes", []), root=self.root,
+            root_tool_calls=self.limits.tool_calls if self.limits else None,
             route={"route_id": self.route_id, "model": self.model}, resume=bool(child.events))
         outcome = await asyncio.wait_for(running, timeout=remaining) if self.limits else await running
         child.write_json("observation.json", outcome)

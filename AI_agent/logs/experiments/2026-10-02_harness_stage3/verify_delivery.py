@@ -28,9 +28,9 @@ DEFAULT_ARCHIVE = HERE / "evidence_all.compact.tar.xz"
 ROLE_MANIFEST = HERE / "role_cases/manifest.json"
 CALIBRATION = HERE / "calibration"
 REQUIRED_ROOTS = {
-    "offline_demo": ".stage3-work/offline_delivery",
+    "offline_demo": ".stage3-work/offline_delivery_20261003",
     "role_tests": ".stage3-work/roles",
-    "offline_driver": ".stage3-work/offline_delivery_driver",
+    "offline_driver": ".stage3-work/offline_delivery_20261003_driver",
     "role_followup": ".stage3-work/roles_followup",
     "role_final": ".stage3-work/roles_final",
 }

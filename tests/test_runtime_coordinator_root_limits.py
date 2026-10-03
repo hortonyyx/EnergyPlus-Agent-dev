@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import pytest
 
 from src.agent import runtime_coordinator
 from src.agent.runtime_coordinator import CoordinatorSession
@@ -19,6 +20,8 @@ from test_runtime_delegation import (
     _registered_view,
     _response,
 )
+from test_agent_runtime import MESSAGES, response
+from test_runtime_child_tasks import _child
 
 
 def _store(tmp_path, limits):
@@ -181,3 +184,34 @@ def test_frozen_write_uses_root_deadline_and_restores_unknown_without_replay(
             for event in store.events
             if event.payload.event_type == "tool_invocation"
         ]) == 1
+
+
+def test_resumed_child_rechecks_root_tool_allowance_before_pending_execution(tmp_path):
+    class Crash(BaseException):
+        pass
+
+    limits = RunLimits(model_calls=6, tool_calls=1, seconds=120, tokens=300_000)
+    with _store(tmp_path, limits) as store:
+        child = _child(store, tmp_path, "interrupted", [response(("pending", "view", {}))])
+        child.root_tool_calls = 1
+
+        def interrupt(boundary, _engine):
+            if boundary == "before_tool":
+                raise Crash()
+
+        child.fault_hook = interrupt
+        with pytest.raises(Crash):
+            asyncio.run(child.run(MESSAGES))
+        assert child.tools.calls == []
+
+        other = _child(store, tmp_path, "other", [response(("consume", "view", {})), response(text="done")])
+        other.root_tool_calls = 1
+        assert asyncio.run(other.run(MESSAGES))["status"] == "completed"
+
+        resumed = _child(store, tmp_path, "interrupted", [], tools=child.tools)
+        resumed.root_tool_calls = 1
+        receipt = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert receipt["status"] == "root_tool_budget_exhausted"
+        assert resumed.tools.calls == []
+        assert resumed.adapter.requests == []
+        assert sum(e.payload.event_type == "tool_invocation" for e in store.all_events) == 1
