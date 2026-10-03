@@ -116,6 +116,22 @@ def test_recovery_consumes_child_and_root_budgets(tmp_path):
         store.validate()
 
 
+def test_total_recovery_cap_is_shared_between_sibling_tasks(tmp_path):
+    root_limits = RunLimits(model_calls=6, tool_calls=0, seconds=30, tokens=200_000,
+        max_total_truncations=1)
+    child_limits = RunLimits(model_calls=3, tool_calls=0, seconds=30, tokens=100_000,
+        max_total_truncations=1)
+    with EventStore(tmp_path / "root", run_id="root", task_id="parent", budget_limit=root_limits.ledger_limit()) as store:
+        first = _child(store, tmp_path, "first", [truncated(), response(text="Done")], limits=child_limits)
+        assert asyncio.run(first.run(MESSAGES))["status"] == "completed"
+        second = _child(store, tmp_path, "second", [truncated(), response(text="forbidden")], limits=child_limits)
+        receipt = asyncio.run(second.run(MESSAGES))
+        assert receipt["status"] == "incomplete_response" and receipt["model_calls"] == 1
+        assert receipt["truncations"] == 1 and receipt["root_truncations"] == 2
+        record = next(e.payload for e in second.store.events if e.payload.event_type == "response_truncation")
+        assert record.consecutive_count == 1 and record.total_count == 2
+
+
 @pytest.mark.parametrize("boundary", ["after_response", "after_checkpoint"])
 def test_resume_reconstructs_one_prompt_and_never_double_settles(tmp_path, boundary):
     engine = runtime(tmp_path, [truncated(calls=True)])

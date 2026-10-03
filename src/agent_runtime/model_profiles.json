@@ -3,7 +3,10 @@
   "profiles": [
     {
       "canonical_name": "Qwen3.8-27B",
-      "aliases": ["qwen3.8-27b", "Qwen/Qwen3.8-27B"],
+      "aliases": [
+        "qwen3.8-27b",
+        "Qwen/Qwen3.8-27B"
+      ],
       "context_window_tokens": 262144,
       "native_context_window_tokens": 262144,
       "extended_context_window_tokens": 1000000,
@@ -27,11 +30,17 @@
       "image_special_tokens": 2,
       "image_source": "https://huggingface.co/Qwen/Qwen3.8-27B/raw/main/preprocessor_config.json",
       "image_uncertainty": "The formula follows the official Qwen processor configuration. Paratera's 2026-10-02 usage split matched it within zero tokens on two repository elevation images.",
-      "profile_status": "sourced_with_deployment_uncertainty"
+      "profile_status": "sourced_with_deployment_uncertainty",
+      "recommended_min_output_tokens": 16384,
+      "output_limit_source": "AI_agent/logs/experiments/2026-10-03_runtime_r1/r1b/profile_evidence.json: observed maximum completion 12,212 and reasoning 11,473 tokens; 16,384 leaves headroom for long reasoning. Small local tasks may record an explicit exception."
     },
     {
       "canonical_name": "Qwen3.8-Flash",
-      "aliases": ["qwen3.8-flash", "Qwen/Qwen3.8-Flash-Next", "qwen3.8-flash-next"],
+      "aliases": [
+        "qwen3.8-flash",
+        "Qwen/Qwen3.8-Flash-Next",
+        "qwen3.8-flash-next"
+      ],
       "context_window_tokens": 262144,
       "native_context_window_tokens": 262144,
       "extended_context_window_tokens": 1000000,
@@ -55,11 +64,16 @@
       "image_special_tokens": 2,
       "image_source": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/raw/main/preprocessor_config.json",
       "image_uncertainty": "The public Flash-Next processor is the closest official disclosed processor for hosted Flash. Paratera's 2026-10-02 usage split matched this formula within zero tokens on two repository elevation images.",
-      "profile_status": "sourced_with_deployment_uncertainty"
+      "profile_status": "sourced_with_deployment_uncertainty",
+      "recommended_min_output_tokens": 16384,
+      "output_limit_source": "AI_agent/logs/experiments/2026-10-03_runtime_r1/r1b/profile_evidence.json: observed maximum completion 8,031 and reasoning 6,797 tokens approached an 8,192 cap; conservative recommendation is 16,384. Small local tasks may record an explicit exception."
     },
     {
       "canonical_name": "GLM-5.3-Flash",
-      "aliases": ["glm-5.3-flash", "zai-org/GLM-5.3-Flash"],
+      "aliases": [
+        "glm-5.3-flash",
+        "zai-org/GLM-5.3-Flash"
+      ],
       "context_window_tokens": 1048576,
       "native_context_window_tokens": 1048576,
       "extended_context_window_tokens": null,
@@ -83,7 +97,9 @@
       "image_special_tokens": 2,
       "image_source": "https://huggingface.co/zai-org/GLM-5.3-Flash/raw/main/processor_config.json",
       "image_uncertainty": "The official 14-pixel patch and 2x merge grid exactly matched Paratera at 224x224 and 896x896. It conservatively overestimated the 1600x1200 synthetic request by 1,139 image tokens; Paratera image preprocessing is not attested.",
-      "profile_status": "sourced_and_paratera_calibrated_with_deployment_uncertainty"
+      "profile_status": "sourced_and_paratera_calibrated_with_deployment_uncertainty",
+      "recommended_min_output_tokens": 32000,
+      "output_limit_source": "AI_agent/logs/experiments/2026-10-03_migration_comparison/README.md: attempt 1 exhausted 16,384 output tokens (16,377 reasoning); Claude Code baseline cap was 32,000 and one baseline turn reasoned for about 19,600 tokens. This is a recommendation, not a guarantee against truncation."
     }
   ]
 }

@@ -16,6 +16,7 @@ from pathlib import Path
 
 from src.agent.runtime_entry import ROOT
 from src.agent_runtime.estimation import get_model_profile
+from src.agent_runtime.output_limits import validate_output_limit
 
 
 ALLOWED_ENTRYPOINTS = {
@@ -24,7 +25,7 @@ ALLOWED_ENTRYPOINTS = {
 }
 
 
-def load_configuration(path: Path) -> dict:
+def load_configuration(path: Path, *, low_output_limit_reason: str | None = None) -> dict:
     value = json.loads(path.read_bytes())
     if value.get("schema_version") != 1:
         raise ValueError("unsupported R1 run configuration schema")
@@ -44,6 +45,9 @@ def load_configuration(path: Path) -> dict:
             raise ValueError("R1 live configurations are fixed to Paratera")
         model = case.get("model")
         get_model_profile(model, strict=True)
+        if low_output_limit_reason is not None:
+            case["low_output_limit_reason"] = low_output_limit_reason
+        validate_output_limit(model, case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
         if "deepseek" in model.casefold():
             raise ValueError("DeepSeek is outside this approved batch")
         seconds = case.get("limits", {}).get("seconds")
@@ -70,6 +74,7 @@ def selected_case(configuration: dict, case_id: str) -> dict:
 
 
 def argv_for(case: dict, *, resume: bool = False) -> list[str]:
+    validate_output_limit(case["model"], case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
     limits = case["limits"]
     argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
             "--out", str(ROOT / case["output"]), "--provider", case["provider"],
@@ -80,6 +85,11 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
             "--tokens", str(limits["tokens"]), "--seconds", str(limits["seconds"]),
             "--output-tokens", str(case["output_tokens"])]
     source_flag = "--mesh" if case["input_kind"] == "mesh" else "--images"
+    if case.get("low_output_limit_reason") is not None:
+        argv += ["--low-output-limit-reason", case["low_output_limit_reason"]]
+    for name in ("max_consecutive_truncations", "max_total_truncations"):
+        if name in limits:
+            argv += ["--" + name.replace("_", "-"), str(limits[name])]
     argv += [source_flag, str(ROOT / case["input"])]
     if case["mode"] == "single_model":
         argv += ["--max-candidates", str(case["max_candidates"]),
@@ -103,8 +113,9 @@ def main() -> None:
     parser.add_argument("configuration", type=Path)
     parser.add_argument("--case")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--low-output-limit-reason", help="record a reason without editing a historical configuration")
     args = parser.parse_args()
-    configuration = load_configuration(args.configuration.resolve())
+    configuration = load_configuration(args.configuration.resolve(), low_output_limit_reason=args.low_output_limit_reason)
     if args.action == "check":
         print(json.dumps({"status": "ready", "batch_id": configuration["batch_id"],
                           "cases": [case["case_id"] for case in configuration["cases"]]},

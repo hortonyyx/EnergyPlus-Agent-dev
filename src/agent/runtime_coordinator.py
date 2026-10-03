@@ -26,9 +26,12 @@ from src.agent.runtime_entry import ROOT, paratera_credentials, prepare_inputs
 from src.agent.runtime_tools import (FrozenBimTools, coordinator_role, frozen_bim_client,
     local_observer_role, write_frozen_materials, write_frozen_tool_catalog)
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
+from src.agent_runtime.agent_registry import agent_version_record
+from src.agent_runtime.accounting import request_accounting_from_store, summarize_request_accounting
 from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
+from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import (ExternalCoordinatorMcpPayload, MissingCapture,
     RunLifecyclePayload, StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload)
@@ -113,7 +116,7 @@ class SerializedToolAccess:
 class CoordinatorSession:
     def __init__(self, *, store, tools, observer_tools, adapter_factory, model, parameters,
                  root=ROOT, route_id="scripted", guide="", limits=None,
-                 max_concurrent_observers=4):
+                 max_concurrent_observers=4, low_output_limit_reason=None):
         if type(max_concurrent_observers) is not int or max_concurrent_observers < 1:
             raise ValueError("max_concurrent_observers must be a positive integer")
         self.max_concurrent_observers = max_concurrent_observers
@@ -124,6 +127,7 @@ class CoordinatorSession:
         self.adapter_factory, self.model, self.parameters = adapter_factory, model, parameters
         self.root, self.route_id, self.guide = Path(root), route_id, guide
         self.limits = limits
+        self.low_output_limit_reason = low_output_limit_reason
         self.lock = asyncio.Lock()
         self.views, self.children, self.applied = {}, {}, set()
         self.catalog = []
@@ -166,13 +170,16 @@ class CoordinatorSession:
 
     async def initialize(self):
         self.catalog = await self.tools.list_tools()
+        self.agent_version = agent_version_record(self.root)
         from dataclasses import asdict
         from src.agent_runtime.estimation import get_model_profile
         source_files = [*sorted((self.root / "src/agent_runtime").glob("*.py")),
             self.root / "src/agent/runtime_coordinator.py",
             self.root / "src/agent/runtime_delegation.py"]
         configuration = {"model": self.model, "route_id": self.route_id,
+            "agent_version": self.agent_version,
             "parameters": self.parameters,
+            "low_output_limit_reason": self.low_output_limit_reason,
             "max_concurrent_observers": self.max_concurrent_observers,
             "frozen_tool_scheduling": "serialized_shared_service",
             "limits": self.limits.model_dump(mode="json") if self.limits else None,
@@ -190,7 +197,8 @@ class CoordinatorSession:
         if not self.store.events:
             self.store.append(RunLifecyclePayload(action="start", reason="external MCP coordinator session"),
                 source_refs=(self.store.source("coordinator-session", {"started_epoch": self.started_epoch,
-                    "model": self.model, "route_id": self.route_id}),))
+                    "model": self.model, "route_id": self.route_id,
+                    "agent_version": self.agent_version}),))
         self.schemas = {v["name"]: v["inputSchema"] for v in [*self.catalog, *EXTRA_TOOLS]}
         return self
 
@@ -236,6 +244,9 @@ class CoordinatorSession:
     def state(self):
         budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events)
         return {"source_bim": self.source_bim(), "views": [v.as_json() for v in self.views.values()],
+            "agent_version": self.agent_version["version_id"],
+            "usage_accounting": summarize_request_accounting(request_accounting_from_store(self.store, e.event_id)
+                for e in self.store.all_events if e.payload.event_type == "adapter_request"),
             "children": {key: row["status"] for key, row in self.children.items()},
             "budget": budget.ledger.model_dump(mode="json"), "unknown_write": self.unknown_write,
             "external_model_request": "未获取", "external_model_usage": "未获取",
@@ -392,6 +403,7 @@ class CoordinatorSession:
                 model=self.model, parameters=self.parameters, limits=limits, package=package, views=views,
                 notes=arguments.get("notes", []), root=self.root,
                 root_tool_calls=self.limits.tool_calls if self.limits else None,
+                low_output_limit_reason=self.low_output_limit_reason,
                 route={"route_id": self.route_id, "model": self.model}, resume=bool(child.events))
             outcome = await asyncio.wait_for(running, timeout=remaining) if self.limits else await running
         except Exception as exc:
@@ -441,6 +453,10 @@ async def serve(args):
     out = args.out.resolve()
     if not out.is_relative_to(ROOT):
         raise ValueError("coordinator output must stay inside this worktree")
+    effective_model = args.model if args.provider == "paratera" else "scripted-model"
+    args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(
+        effective_model, fallback=8192)
+    validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
                        seconds=args.seconds, tokens=args.tokens,
                        max_consecutive_truncations=args.max_consecutive_truncations,
@@ -478,6 +494,7 @@ async def serve(args):
                     session = await CoordinatorSession(store=store, tools=tools, observer_tools=observers,
                         adapter_factory=factory, model=model, route_id=args.provider, guide=guide, limits=limits,
                         max_concurrent_observers=args.max_concurrent_observers,
+                        low_output_limit_reason=args.low_output_limit_reason,
                         parameters={"max_tokens": args.output_tokens, "temperature": 0.0,
                                     "enable_thinking": args.thinking}).initialize()
                     if not args.resume:
@@ -517,7 +534,8 @@ def parser():
     p.add_argument("--tool-calls", type=int, default=100)
     p.add_argument("--tokens", type=int, default=300_000)
     p.add_argument("--seconds", type=float, default=3600)
-    p.add_argument("--output-tokens", type=int, default=8192)
+    p.add_argument("--output-tokens", type=int, help="defaults to the reviewed model recommendation")
+    p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")
     p.add_argument("--max-consecutive-truncations", type=int, default=2)
     p.add_argument("--max-total-truncations", type=int, default=3)
     p.add_argument("--max-concurrent-observers", type=int, default=4)

@@ -31,6 +31,7 @@ from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.estimation import get_model_profile
+from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
@@ -98,6 +99,9 @@ async def execute(args) -> dict:
     strict_model_profile = args.provider == "paratera"
     # Reject an unreviewed real route before creating a run or reading credentials.
     runtime_model_profile(args.provider, args.model)
+    effective_model = args.model if strict_model_profile else "scripted-model"
+    args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(effective_model)
+    validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
         seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
         near_limit=args.near_limit, min_output_tokens=args.min_output_tokens,
@@ -188,6 +192,7 @@ async def execute(args) -> dict:
                     required_view_ids=tuple(args.keep_view_id),
                     retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image),
                     strict_model_profile=strict_model_profile)
+                engine.low_output_limit_reason = args.low_output_limit_reason
                 result = await engine.run(messages, image_originals=originals, resume=args.resume)
         from src.agent.runtime_behaviour import write_behaviour_report
         write_behaviour_report(output / "events.jsonl", output / "behaviour")
@@ -222,7 +227,7 @@ def parser():
     p.add_argument("--max-consecutive-truncations", type=int, default=2,
                    help="maximum consecutive output-limit recoveries; zero disables recovery")
     p.add_argument("--max-total-truncations", type=int, default=3,
-                   help="maximum output-limit recoveries in this task, including summaries")
+                   help="maximum output-limit recoveries across this root run, including children and summaries")
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
     p.add_argument("--context-window", type=int, default=16)
@@ -233,7 +238,8 @@ def parser():
     p.add_argument("--keep-view-id", action="append", default=[])
     p.add_argument("--retrieve-image", nargs=2, action="append", default=[], metavar=("VIEW_ID", "SHA256"))
     p.add_argument("--summary-every", type=int, default=0, help="optional constrained model summary after N tool calls; shares the root budget")
-    p.add_argument("--output-tokens", type=int, default=2048)
+    p.add_argument("--output-tokens", type=int, help="defaults to the reviewed model recommendation")
+    p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")
     p.add_argument("--temperature", type=float, default=0.0)
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--reasoning-effort", choices=("low", "high", "max"),

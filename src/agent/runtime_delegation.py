@@ -256,7 +256,7 @@ def update_observer_budget(engine, event, raw):
 
 async def run_observer(*, store, frozen_tools, adapter, model, parameters, limits: RunLimits,
                        package: EvidencePackage, views, notes, root: Path, route, resume=False,
-                       root_tool_calls: int | None = None):
+                       root_tool_calls: int | None = None, low_output_limit_reason: str | None = None):
     role = local_observer_role(limits.ledger_limit())
     role = role.model_copy(update={"tool_whitelist": tuple(
         grant for grant in role.tool_whitelist if grant.tool_name in EvidenceTools.names)})
@@ -284,6 +284,7 @@ async def run_observer(*, store, frozen_tools, adapter, model, parameters, limit
         parameters=parameters, versions=versions, limits=limits,
         strict_model_profile=route["route_id"] == "paratera",
         root_tool_calls=root_tool_calls,
+        low_output_limit_reason=low_output_limit_reason,
         answer_validator=lambda text: hydrate_observation(text, package, views),
         max_answer_repairs=1,
         context_update=update_observer_budget,

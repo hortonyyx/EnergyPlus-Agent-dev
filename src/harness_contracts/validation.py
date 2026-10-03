@@ -447,7 +447,7 @@ class EventLog(ContractModel):
                 assert reservation is not None and settlement is not None
                 if (
                     payload.reserved_tokens != reservation.amounts.tokens
-                    or payload.actual_tokens != settlement.actual.tokens
+                    or payload.actual_tokens != settlement.effective_tokens
                     or payload.overrun_tokens != settlement.token_overrun
                 ):
                     raise ValueError(
