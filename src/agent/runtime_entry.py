@@ -182,6 +182,7 @@ async def execute(args) -> dict:
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
                     parameters=parameters, route=route, code_paths=("src/agent/runtime_entry.py",
+                        "src/agent/runtime_delivery.py",
                         "src/agent/runtime_tools.py", "scripts/tool_scripts", "src/agent/geometry",
                         "src/agent/runtime_context.py", "src/agent/runtime_behaviour.py",
                         "src/agent/correction", "src/agent/execution"))

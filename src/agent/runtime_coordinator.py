@@ -189,6 +189,7 @@ class CoordinatorSession:
         from src.agent_runtime.estimation import get_model_profile
         source_files = [*sorted((self.root / "src/agent_runtime").glob("*.py")),
             self.root / "src/agent/runtime_coordinator.py",
+            self.root / "src/agent/runtime_delivery.py",
             self.root / "src/agent/runtime_delegation.py"]
         configuration = {"model": self.model, "route_id": self.route_id,
             "agent_version": self.agent_version,

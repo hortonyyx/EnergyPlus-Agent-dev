@@ -63,6 +63,9 @@ def test_historical_frozen_agent_is_a_verified_registry_version():
     "scripts/tool_scripts/bim_agent_inputs.py",
     "scripts/tool_scripts/bim_agent_inference.py",
     "scripts/tool_scripts/bim_agent_mesh.py",
+    "scripts/tool_scripts/bim_agent_budget.py",
+    "scripts/tool_scripts/bim_agent_facade_checks.py",
+    "scripts/tool_scripts/bim_agent_feedback.py",
 ])
 def test_each_registered_file_change_fails_until_a_new_version_is_registered(
     tmp_path: Path, changed_relative: str,
