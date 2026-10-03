@@ -428,7 +428,10 @@ def _limits(*, model_calls: int = 90) -> RunLimits:
         model_calls=model_calls,
         tool_calls=80,
         seconds=900.0,
-        tokens=80_000_000,
+        # Unknown scripted models use the decoded-pixel image bound. R2 now
+        # settles that bound on every call; keep this state-replay allowance
+        # above 75 calls while the separate model-call exhaustion test remains.
+        tokens=120_000_000,
         context_tokens=12_000_000,
         max_model_retries=1,
     )

@@ -210,7 +210,9 @@ async def replay_frozen_run99(output):
     manifest = json.loads((HISTORY / "inputs.json").read_bytes())
     run, guide, task = prepare_inputs(output, images=HISTORY / "images", mesh=None,
         building_input=None, scope=manifest["scope"], image_kind="drawings", max_candidates=24)
-    limits = RunLimits(model_calls=80, tool_calls=80, seconds=900, tokens=80_000_000,
+    # Synthetic usage omits images; R2 charges the unknown-model pixel bound
+    # per request. This allowance is only for the offline 75-step state replay.
+    limits = RunLimits(model_calls=80, tool_calls=80, seconds=900, tokens=120_000_000,
                        context_tokens=12_000_000)
     role = coordinator_role(limits.ledger_limit())
     observer = ObserveReplay(output)
