@@ -18,6 +18,8 @@ ROOT = HERE.parents[3]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("group", choices=("short", "long", "frozen"))
+    parser.add_argument("--revision", choices=("r1", "r1b"), default="r1")
+    parser.add_argument("--attempt", choices=("final", "final-runtime"), default="final")
     args = parser.parse_args()
     accepted = json.loads((HERE.parent / "2026-10-02_harness_stage3/validation.json").read_text())
     prior = next(row for row in accepted["groups"] if row["group"] == args.group)
@@ -25,10 +27,14 @@ def main():
     if args.group == "short":
         tests += ["tests/test_runtime_parallel_delegation.py",
                   "tests/test_runtime_r1_preparation.py", "tests/test_runtime_r1_facade.py"]
-    work = ROOT / ".r1-work/validation/final"
+        if args.revision == "r1b":
+            tests.append("tests/test_runtime_r1b_budget.py")
+    work = ROOT / f".{args.revision}-work/validation/{args.attempt}"
     work.mkdir(parents=True, exist_ok=True)
-    output = HERE / "validation"
-    output.mkdir(exist_ok=True)
+    output = HERE / ("validation" if args.revision == "r1" else "r1b/validation")
+    if args.attempt != "final":
+        output /= args.attempt
+    output.mkdir(parents=True, exist_ok=True)
     junit = output / f"{args.group}.xml"
     log = output / f"{args.group}.log"
     command = [sys.executable, "-m", "pytest", "-q", "-n", "2", "-s", *tests,

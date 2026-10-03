@@ -19,7 +19,7 @@
 `prepare_request` 自动调用估算器。`PreparedRequest.input_token_upper_bound` 和
 `token_reservation_estimate` 保持旧接口语义，另增加 `token_estimate`、
 `context_window_tokens` 与 `estimate_source`。主循环应把 `estimate_source` 写入预算事件，并以
-`input upper bound + output limit` 对模型档案的上下文长度做请求前检查。用户另设的本地上限可与
+`input upper bound + output limit + reasoning allowance` 对模型档案的上下文长度做请求前检查。用户另设的本地上限可与
 模型上限取较小值；模型档案没有上限时，只能执行显式用户上限，不能虚构一个模型上限。
 
 ## 文字与图片算法
@@ -91,3 +91,22 @@ Paratera 五次有界校准为两条文字、三种图片尺寸，总计 6,359 t
 官方网格高估 84.68%。当前预算估算保留这个保守高估，因为服务端未说明预处理，
 不能为了贴合单点引入可能低估长宽图的经验截断。具体原回执、票据和偏差见
 `AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/`。
+
+## R1b：思考余量与超预留结算
+
+模型档案新增 `reasoning_may_exceed_max_tokens`、`reasoning_token_allowance` 和
+证据来源；旧档案默认 false／0。GLM 实报显示 max_tokens=8 时 completion
+最高为 37，余量设 32；Qwen 两档已知实报未超，余量为 0。请求前预算、上下文
+检查、输出降级和有价格时的费用预留均保留这项余量，不修改实际发送的 max_tokens。
+
+请求预留是入场估算，服务端原 usage 是结算证据。token 超预留时完整结算并产生
+独立 `budget_overrun` 事件；`BudgetSettlement.token_overrun` 必须精确等于
+实际减预留的正差，并由原 usage 证明。根账/子账总量允许保留服务已经实报的超额，
+可用余额最低为零，新预留仍逐事件严格核对实际剩余额度，不能借历史超额放大上限。
+只有子额度不足时，子任务返回明确停止，根账完整计费，兄弟继续。
+
+恢复先结算已持久响应再准入；已有结算不会重复计费，缺失的超额事件可由原请求和
+原用量补回。事件记录的是发送时的档案余量；旧请求未记录则为 0，缺失 request
+或 completion usage 时，余量覆盖判断为未知。超额判断不依据之后修改的模型档案。
+
+校准及 Qwen 复核见 [R1b 输出余量证据](../logs/experiments/2026-10-03_runtime_r1/r1b/README.md)。

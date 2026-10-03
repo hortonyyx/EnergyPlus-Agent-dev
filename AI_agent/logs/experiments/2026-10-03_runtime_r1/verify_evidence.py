@@ -9,12 +9,44 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
 import sys
 
 
 ROOT = Path(__file__).resolve().parents[4]
 STAGE3 = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage3"
 HERE = Path(__file__).resolve().parent
+HISTORICAL_COMMIT = "fcbbda75"
+
+
+def historical_file(path):
+    """Read the exact source used by the accepted R1 run from Git history."""
+
+    return subprocess.run(
+        ["git", "show", f"{HISTORICAL_COMMIT}:{path}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
+def historical_model_profile(model):
+    from src.agent_runtime.estimation import _profile_from_dict
+
+    document = json.loads(historical_file("src/agent_runtime/model_profiles.json"))
+    folded = model.casefold()
+    row = next(
+        row
+        for row in document["profiles"]
+        if folded
+        in {
+            row["canonical_name"].casefold(),
+            *(alias.casefold() for alias in row.get("aliases", ())),
+        }
+    )
+    # R1b's loader supplies the new reasoning allowance fields with their
+    # compatibility default of zero when reading this pre-R1b profile.
+    return _profile_from_dict(row)
 
 
 def load_module(name, path):
@@ -50,7 +82,7 @@ def verify_facade_protocol(view, runs):
     manifest_path = HERE / "facade_cases.json"
     assert protocol["manifest_sha256"] == hashlib.sha256(manifest_path.read_bytes()).hexdigest()
     for path, expected in protocol["source_sha256"].items():
-        assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == expected, path
+        assert hashlib.sha256(historical_file(path)).hexdigest() == expected, path
     cases = {row["case_id"]: row for row in json.loads(manifest_path.read_bytes())["cases"]}
     assert validate_protocol(ROOT, manifest_path, HERE / "facade_references.json")["ok"]
     batches = view.json("facade_experiment/batch_results.json")
@@ -122,6 +154,7 @@ def verify_glm_calibration():
     assert all(r["limit"] == 5 for r in rows)
     verified = []
     totals = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    profile = historical_model_profile(source.MODEL)
     for case, record, response in zip(source.cases(), saved, responses, strict=True):
         body = {"model": source.MODEL, "messages": case["messages"],
                 "stream": False, "n": 1, **source.PARAMETERS}
@@ -129,7 +162,7 @@ def verify_glm_calibration():
         assert record["image"] == case.get("image")
         usage = record["response"]["usage"]
         assert usage == response["usage"]
-        estimate = estimate_chat_request(body, strict=True)
+        estimate = estimate_chat_request(body, profile=profile, strict=True)
         assert estimate.input_tokens_upper_bound >= usage["prompt_tokens"]
         for key in totals:
             totals[key] += usage[key]

@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "historical_commit": "fcbbda75",
+  "verification": [
+    {
+      "command": [
+        "PYTHONPATH=$PWD",
+        "python",
+        "AI_agent/logs/experiments/2026-10-03_runtime_r1/verify_evidence.py",
+        "--archive",
+        "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_evidence.compact.tar.xz",
+        "--out",
+        ".r1b-work/facade_evidence_verification.json"
+      ],
+      "original": "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_evidence_verification.json",
+      "output_sha256": "841565ee220b77eb181772f6d8caaaaf9f767b12ca3cb8e15e2dcecf824c4993",
+      "byte_identical": true
+    },
+    {
+      "command": [
+        "PYTHONPATH=$PWD",
+        "python",
+        "AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/verify_calibration.py",
+        "--out",
+        ".r1b-work/glm_calibration_summary.json"
+      ],
+      "original": "AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/summary.json",
+      "output_sha256": "4c685e1303ea6dfc16e22db241cfe1cedfe35dab9ad9114d6f52d5406e2c27f5",
+      "byte_identical": true
+    }
+  ],
+  "migration_configuration": {
+    "offline_check": {
+      "status": "ready",
+      "batch_id": "r1-migration-comparison-sm24",
+      "cases": [
+        "sm24_glm_paratera"
+      ]
+    },
+    "only_added_field": "cases[0].token_accounting",
+    "all_previous_values_identical": true,
+    "reasoning_token_allowance": 32
+  },
+  "real_provider_calls": 0
+}

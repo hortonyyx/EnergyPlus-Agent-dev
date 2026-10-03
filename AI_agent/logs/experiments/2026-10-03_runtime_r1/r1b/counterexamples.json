@@ -1,0 +1,313 @@
+{
+  "status": "passed",
+  "source": "R1 glm_calibration/responses.json rows[0] (original request/response)",
+  "original_reservation": 54,
+  "actual_tokens": 55,
+  "cases": [
+    {
+      "case": "child-isolation/run/events.jsonl",
+      "events_sha256": "a05c6d84a83b0a3d53ae55045c3a71326aeefc9ef4cef65eff31c07cced929d2",
+      "charged_tokens": 55,
+      "settlements": [
+        {
+          "reservation_id": "observer-a:request-1",
+          "actual": {
+            "tokens": 55,
+            "money_usd": null,
+            "seconds": "1.0",
+            "calls": 1
+          },
+          "usage": {
+            "kind": "reported",
+            "raw_usage": {
+              "completion_tokens": 24,
+              "prompt_tokens": 31,
+              "total_tokens": 55,
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            }
+          },
+          "cost": {
+            "kind": "unavailable",
+            "reason": "no configured price estimate or provider bill was supplied"
+          },
+          "token_overrun": 1
+        }
+      ],
+      "overruns": [
+        {
+          "event_type": "budget_overrun",
+          "model": "GLM-5.3-Flash",
+          "reservation_id": "observer-a:request-1",
+          "reserved_tokens": 54,
+          "actual_tokens": 55,
+          "overrun_tokens": 1,
+          "reasoning_token_allowance": 0,
+          "completion_over_max_tokens": null,
+          "within_profile_allowance": null,
+          "root_limit_exceeded": false,
+          "task_limit_exceeded": true
+        }
+      ]
+    },
+    {
+      "case": "late-response/token-and-time-overrun/events.jsonl",
+      "events_sha256": "0e5b3a9eec0b8bcfc48a8c5fc4dd989d3aade5806cea0e6d2cf068c75a4a00c3",
+      "charged_tokens": 55,
+      "settlements": [
+        {
+          "reservation_id": "coordinator:request-1",
+          "actual": {
+            "tokens": 55,
+            "money_usd": null,
+            "seconds": null,
+            "calls": 1
+          },
+          "usage": {
+            "kind": "reported",
+            "raw_usage": {
+              "completion_tokens": 24,
+              "prompt_tokens": 31,
+              "total_tokens": 55,
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            }
+          },
+          "cost": {
+            "kind": "unavailable",
+            "reason": "no configured price estimate or provider bill was supplied"
+          },
+          "token_overrun": 1
+        }
+      ],
+      "overruns": [
+        {
+          "event_type": "budget_overrun",
+          "model": "GLM-5.3-Flash",
+          "reservation_id": "coordinator:request-1",
+          "reserved_tokens": 54,
+          "actual_tokens": 55,
+          "overrun_tokens": 1,
+          "reasoning_token_allowance": 0,
+          "completion_over_max_tokens": null,
+          "within_profile_allowance": null,
+          "root_limit_exceeded": false,
+          "task_limit_exceeded": false
+        }
+      ]
+    },
+    {
+      "case": "root-100-margin-0/root-100-allowance-0/events.jsonl",
+      "events_sha256": "b53e44384f417be32be016bb8e5fc58c3c44e55fa429475d385bca6389ac195b",
+      "charged_tokens": 55,
+      "settlements": [
+        {
+          "reservation_id": "coordinator:request-1",
+          "actual": {
+            "tokens": 55,
+            "money_usd": null,
+            "seconds": "1.0",
+            "calls": 1
+          },
+          "usage": {
+            "kind": "reported",
+            "raw_usage": {
+              "completion_tokens": 24,
+              "prompt_tokens": 31,
+              "total_tokens": 55,
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            }
+          },
+          "cost": {
+            "kind": "unavailable",
+            "reason": "no configured price estimate or provider bill was supplied"
+          },
+          "token_overrun": 1
+        }
+      ],
+      "overruns": [
+        {
+          "event_type": "budget_overrun",
+          "model": "GLM-5.3-Flash",
+          "reservation_id": "coordinator:request-1",
+          "reserved_tokens": 54,
+          "actual_tokens": 55,
+          "overrun_tokens": 1,
+          "reasoning_token_allowance": 0,
+          "completion_over_max_tokens": 16,
+          "within_profile_allowance": false,
+          "root_limit_exceeded": false,
+          "task_limit_exceeded": false
+        }
+      ]
+    },
+    {
+      "case": "root-100-margin-32/root-100-allowance-32/events.jsonl",
+      "events_sha256": "f448df21ffdde75b0e5b120ad9d898755b5890e53a29758c93b2db7538133a4d",
+      "charged_tokens": 55,
+      "settlements": [
+        {
+          "reservation_id": "coordinator:request-1",
+          "actual": {
+            "tokens": 55,
+            "money_usd": null,
+            "seconds": "1.0",
+            "calls": 1
+          },
+          "usage": {
+            "kind": "reported",
+            "raw_usage": {
+              "completion_tokens": 24,
+              "prompt_tokens": 31,
+              "total_tokens": 55,
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            }
+          },
+          "cost": {
+            "kind": "unavailable",
+            "reason": "no configured price estimate or provider bill was supplied"
+          },
+          "token_overrun": 1
+        }
+      ],
+      "overruns": [
+        {
+          "event_type": "budget_overrun",
+          "model": "GLM-5.3-Flash",
+          "reservation_id": "coordinator:request-1",
+          "reserved_tokens": 54,
+          "actual_tokens": 55,
+          "overrun_tokens": 1,
+          "reasoning_token_allowance": 32,
+          "completion_over_max_tokens": 16,
+          "within_profile_allowance": true,
+          "root_limit_exceeded": false,
+          "task_limit_exceeded": false
+        }
+      ]
+    },
+    {
+      "case": "root-54-margin-0/root-54-allowance-0/events.jsonl",
+      "events_sha256": "d8cf9baba8a0169f01d3e6494353f904598d7a600e298c16e33d6b3a5c587ef0",
+      "charged_tokens": 55,
+      "settlements": [
+        {
+          "reservation_id": "coordinator:request-1",
+          "actual": {
+            "tokens": 55,
+            "money_usd": null,
+            "seconds": "1.0",
+            "calls": 1
+          },
+          "usage": {
+            "kind": "reported",
+            "raw_usage": {
+              "completion_tokens": 24,
+              "prompt_tokens": 31,
+              "total_tokens": 55,
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            }
+          },
+          "cost": {
+            "kind": "unavailable",
+            "reason": "no configured price estimate or provider bill was supplied"
+          },
+          "token_overrun": 1
+        }
+      ],
+      "overruns": [
+        {
+          "event_type": "budget_overrun",
+          "model": "GLM-5.3-Flash",
+          "reservation_id": "coordinator:request-1",
+          "reserved_tokens": 54,
+          "actual_tokens": 55,
+          "overrun_tokens": 1,
+          "reasoning_token_allowance": 0,
+          "completion_over_max_tokens": 16,
+          "within_profile_allowance": false,
+          "root_limit_exceeded": true,
+          "task_limit_exceeded": true
+        }
+      ]
+    },
+    {
+      "case": "root-54-margin-32/root-54-allowance-32/events.jsonl",
+      "events_sha256": "3b7f716f8c7c4be76665f7da55f8d375f5a0deb55a50816de2d3db4aed1a5cb6",
+      "charged_tokens": 55,
+      "settlements": [
+        {
+          "reservation_id": "coordinator:request-1",
+          "actual": {
+            "tokens": 55,
+            "money_usd": null,
+            "seconds": "1.0",
+            "calls": 1
+          },
+          "usage": {
+            "kind": "reported",
+            "raw_usage": {
+              "completion_tokens": 24,
+              "prompt_tokens": 31,
+              "total_tokens": 55,
+              "completion_tokens_details": {
+                "reasoning_tokens": 22
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              }
+            }
+          },
+          "cost": {
+            "kind": "unavailable",
+            "reason": "no configured price estimate or provider bill was supplied"
+          },
+          "token_overrun": 1
+        }
+      ],
+      "overruns": [
+        {
+          "event_type": "budget_overrun",
+          "model": "GLM-5.3-Flash",
+          "reservation_id": "coordinator:request-1",
+          "reserved_tokens": 54,
+          "actual_tokens": 55,
+          "overrun_tokens": 1,
+          "reasoning_token_allowance": 32,
+          "completion_over_max_tokens": 16,
+          "within_profile_allowance": true,
+          "root_limit_exceeded": true,
+          "task_limit_exceeded": true
+        }
+      ]
+    }
+  ],
+  "recovery": "Every root and late-response case reopens its EventStore and re-settles without duplicating charge/overrun; child case reconstructs root/child ledgers and admits sibling.",
+  "new_allowance_cases": "Allowance 32 paired with legacy reservation 54 is explicit offline under-reservation fault injection, not a historical live run.",
+  "archive": "counterexamples.tar.xz",
+  "archive_sha256": "92c82071595fbbfe0b9804e8d91ab4af779f967ac96cd1d52c6a44ac9533ff3f",
+  "real_provider_calls": 0
+}
