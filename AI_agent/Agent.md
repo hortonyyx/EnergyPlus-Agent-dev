@@ -26,7 +26,7 @@ Codex、Claude 及其他开发助手共用本文件。用户当前指令优先�
 - 09-29 最新选模安排：用户要求更新Claude Code后，继续固定Sonnet5恢复质量，恢复后再考虑是否切换。Sonnet5.5不因CLI升级自动采用；09-28因额度提出的非Claude工作模型迁移留作恢复后的候选方向。按功能角色配置、27B本地主力与低成本Flash辅助方向保持，不将选模安排当作新增整案实验批准。具体见[模型与费用](workflow/models.md)。
 - 09-30 用户要求 Astra 续接 Claude，并先独立试一次 GLMFlash，明确不替代主开发。本次选择现有 GLM 订阅 `glm-5.3-flash`，按 run98 同条件冷启动 sm21 一次；主线仍为 Sonnet5 质量恢复，B/C 段原审批保持，试跑不表示切换默认模型。
 - 10-02 用户决定（覆盖上述先在 Sonnet 上恢复质量的顺序）：工作模型现在就换，不再等 Sonnet 恢复；运行底座先调研 Claude Code、Codex、pi、DeepSeek Harness 等再设计轻量自有底座，暂不实跑，初期可由开发模型调度 27B。见[决策](project/decisions.md)。
-- 10-02 收工时用户安排统一 Agent 开发：主体开发交 GPT 侧，具体分工由 Astra 决定；Opus 负责总主导、验收和质量。用户 GPT 为 20x、Claude 为 Plus，Claude 用量集中于验收、关键设计审查和质量判断。计划与阶段见[统一 Agent 开发计划](project/unified_agent_harness_plan.md)。
+- 10-02 收工时用户安排统一 Agent 开发：主体开发交 GPT 侧，具体分工由 Astra 决定；Opus 负责总主导、验收和质量。用户 GPT 为 20x、Claude 为 Plus，Claude 用量集中于验收、关键设计审查和质量判断。计划与阶段见[统一 Agent 开发计划](project/unified_agent_harness_plan.md)。10-03 用户明确“你来做项目经理”，由 Opus 灵活统筹并在大节点汇报，按量计费整案、DeepSeek 与产品取舍仍由用户定，见[决策](project/decisions.md)。
 - 10-02 用户补充：底座开发期间由 Opus 用 Claude Code 接 GLM Flash 推进建模 Agent，结合历史案例测试；Opus 可从 Claude Code 内以完全访问启动 Astra 派工（容器跑不了 codex 沙箱）。10-03 用户定：新底座开发期间 Opus 继续在 Claude Code 上开发测试（工具改进包 T1，边测边改），之后的改进等迁移后在新底座上做；主线迁到新底座后先用 GLM-5.3-Flash，稳定后切 27B 档；Claude Code 保留作对照，两边 Agent 保持一致。见[开发计划](project/unified_agent_harness_plan.md)第七之二节。进度见[当前任务](project/roadmap.md)。
 
 - 09-28 用户补充授权：若当前修复耗时过长，可从旧基线开始逐步加回能力包，由主助手综合判断；保留当前有效成果，不把旧版本自动当成已恢复的稳定基线。用户另明确安排Opus 5.5最高思考档独立调查质量退步，属于开发调查，不改变产品先单Sonnet的顺序。
