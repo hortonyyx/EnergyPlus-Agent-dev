@@ -22,7 +22,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT))
 PREFIX = "AI_agent.logs.experiments."
-RUN = HERE.parent / "2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera"
+RUNS = {"attempt_01": HERE.parent / "2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera",
+        "attempt_02": HERE / "runs/attempt_02_output_32000"}
 BASELINE = HERE.parent / "2026-10-02_sm24_glm_baseline"
 TASK_SHA256 = "a05ae6d543fdd14076a46859c8b4e2fa781f560a0ddfcce6d1948597632fa795"
 GUIDE_SHA256 = "9ca4fdcda8b446a58fd97466f4849628a54e6a2966b4db480407bb7131516b34"
@@ -127,7 +128,8 @@ def compat_view(run, target, facts):
     return view, chosen, origin
 
 
-def evaluate(run=RUN):
+def evaluate(name):
+    run = RUNS[name]
     facts = runtime_facts(run)
     with tempfile.TemporaryDirectory(prefix="migration-eval-") as tmp:
         view, chosen, origin = compat_view(run, Path(tmp), facts)
@@ -142,8 +144,8 @@ def evaluate(run=RUN):
             dump(view / "evaluation/exterior_opening_diagnostic.json", opening)
             cross = importlib.import_module(PREFIX + "2026-09-30_instruction_fix.evaluate_cross_case")
             quality = cross.assess_saved(view, "sm24")
-            evidence = HERE / "evaluation"
-            evidence.mkdir(exist_ok=True)
+            evidence = HERE / "evaluation" / name
+            evidence.mkdir(parents=True, exist_ok=True)
             for path in [view / "postrun_audit.json", *sorted((view / "evaluation").glob("*.json"))]:
                 shutil.copyfile(path, evidence / path.name)
     baseline = load(BASELINE / "cross_case_evaluation.json")
@@ -154,14 +156,15 @@ def evaluate(run=RUN):
         reference_openings=r["original_openings"]["reference_count"],
         heights_within=r["strict_heights"]["within"], heights_expected=r["strict_heights"]["expected"],
         height_mismatches=[m["opening_id"] for m in r["strict_heights"]["mismatches"]])
-    result = dict(run=str(run.relative_to(ROOT)), delivered_candidate=chosen, selection_origin=origin,
+    result = dict(attempt=name, run=str(run.relative_to(ROOT)), delivered_candidate=chosen, selection_origin=origin,
                   runtime=facts, migration=pick(quality), baseline_10_02=pick(baseline),
                   baseline_seconds=load(BASELINE / "agent_receipt.json").get("elapsed_seconds"),
                   full_quality=quality)
-    dump(HERE / "migration_evaluation.json", result)
+    dump(HERE / f"evaluation_{name}.json", result)
     print(json.dumps({k: v for k, v in result.items() if k != "full_quality"}, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
-    argparse.ArgumentParser(description=__doc__).parse_args()
-    evaluate()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("attempt", choices=tuple(RUNS))
+    evaluate(parser.parse_args().attempt)

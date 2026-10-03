@@ -1,0 +1,98 @@
+{
+  "attempt": "attempt_01",
+  "run": "AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera",
+  "delivered_candidate": null,
+  "selection_origin": "no_saved_candidate",
+  "runtime": {
+    "status": "incomplete_response",
+    "answer_present": false,
+    "receipt_elapsed_seconds": 1083.378625813013,
+    "event_span_seconds": 1083.3,
+    "model_calls": 12,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "GLM-5.3-Flash": 12
+    },
+    "usage": {
+      "prompt": 425985,
+      "completion": 52189,
+      "total": 478174,
+      "cached": 86144,
+      "reasoning": 51033,
+      "responses_without_usage": 0
+    },
+    "request_image_attachments": 65,
+    "estimated_yuan_text_only": 0.487,
+    "yuan_note": "Reported tokens only; the Paratera bill also charges image tokens the usage omits.",
+    "tool_calls": {
+      "inputs": 1,
+      "view_image": 13,
+      "view_pixel_profile": 6
+    },
+    "tool_outcomes": {
+      "succeeded": 18,
+      "failed": 2
+    },
+    "tool_failures": [
+      {
+        "tool": "view_pixel_profile",
+        "outcome": "failed"
+      },
+      {
+        "tool": "view_pixel_profile",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "incomplete_response",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 12,
+      "settle": 12
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 55,
+      "budget": 24,
+      "adapter_request": 12,
+      "model_response": 12,
+      "tool_invocation": 20,
+      "tool_execution": 20,
+      "tool_presentation": 20,
+      "context": 98,
+      "run_usage_summary": 1
+    }
+  },
+  "migration": null,
+  "baseline_10_02": {
+    "rooms_one_to_one": true,
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "positions": 20,
+    "hosts": 21,
+    "door_connections": 10,
+    "reference_openings": 21,
+    "heights_within": 12,
+    "heights_expected": 14,
+    "height_mismatches": [
+      "W-east-3",
+      "W-west-5"
+    ]
+  },
+  "baseline_seconds": 1442.03,
+  "full_quality": null
+}
