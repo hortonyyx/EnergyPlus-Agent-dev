@@ -469,6 +469,9 @@ def delivery_tool_reply(result: dict) -> dict:
     if 'height_coverage' in reply:
         from src.agent.execution.bim_height_coverage import compact_height_coverage
         reply['height_coverage'] = compact_height_coverage(reply['height_coverage'])
+    if 'located_height_coverage' in reply and 'openings' in reply['located_height_coverage']:
+        from scripts.tool_scripts.bim_agent_facade_checks import compact_located_heights
+        reply['located_height_coverage'] = compact_located_heights(reply['located_height_coverage'])
     if fits(reply):
         return reply
     large = {'facade_inventory', 'opening_review_scopes', 'facade_review_scopes',
@@ -537,6 +540,10 @@ def delivery_tool_reply(result: dict) -> dict:
         floors = result['floor_completeness']
         minimal['floor_completeness'] = {key: floors[key] for key in (
             'complete_building', 'missing_candidate_images', 'floor_scope_source')}
+    if 'located_height_coverage' in result:
+        located = result['located_height_coverage']
+        minimal['located_height_coverage'] = {key: located[key] for key in (
+            'summary', 'unchecked_opening_ids', 'priority_opening_ids', 'delivery_blocked') if key in located}
     if height is not None:
         summary = height['summary']
         minimal['height_coverage'] = {'summary': {key: summary[key] for key in
@@ -594,6 +601,7 @@ class Toolkit:
             raise ValueError("only the coordinator may confirm candidate claims")
         from src.agent.execution.bim_claim_state import confirm
         result = confirm(self.claims(), candidate, json.loads(operations_json))
+        result["located_height_coverage"] = self.located_heights(candidate)
         self.log("confirm_claims", result)
         return result
 
@@ -690,6 +698,7 @@ class Toolkit:
         dump(application_path, application)
         if result.get("candidate"):
             dump(self.candidate_path(result["candidate"]) / "application.json", application)
+            result["located_height_coverage"] = self.located_heights(result["candidate"])
         self.log("claim_application", application)
         result["claim_application"] = application
         return result
@@ -710,6 +719,15 @@ class Toolkit:
     def remaining_seconds(self):
         deadline = self.manifest.get("deadline_epoch")
         return max(0, round(deadline - time.time())) if deadline else None
+
+    def located_heights(self, candidate, current_state=None, *, compact=True):
+        from scripts.tool_scripts.bim_agent_facade_checks import located_height_report, compact_located_heights
+        try:
+            report = located_height_report(self, candidate, current_state)
+            return compact_located_heights(report) if compact else report
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            # Advisory calculations must not turn a successful save into a failed build.
+            return {"status": "unavailable", "reason": str(error), "delivery_blocked": False}
 
     def input_view_status(self):
         """Report direct original-image returns, never inferred visual review."""
@@ -779,6 +797,7 @@ class Toolkit:
         result["current_claim_state"] = current_claims
         from src.agent.execution.bim_height_coverage import height_coverage
         result["height_coverage"] = height_coverage(self.claims(), candidate, current_claims)
+        result["located_height_coverage"] = self.located_heights(candidate, current_claims, compact=False)
         from scripts.tool_scripts.bim_agent_budget import saved_floor_status
         result["floor_completeness"] = saved_floor_status(self, candidate)
         # Keep full claims in their files; summarize unresolved execution in handoff.
@@ -823,6 +842,24 @@ class Toolkit:
             '零个已建开口不证明图纸没有开口。</p><table>'
             '<tr><th>楼层</th><th>立面</th><th>已建</th><th>高度图像依据已关联</th>'
             f'<th>高度尚未关联图像依据</th></tr>{height_rows}</table>')
+        located = result['located_height_coverage']
+        located_labels = {'no_height_observation': '没有当前高度图证',
+                          'no_elevation_calibration': '缺少本立面标定，无法核对位置',
+                          'whole_image_only': '只有整图引用，未定位到此开口',
+                          'outside_source_region': '开口不在高度依据框内',
+                          'source_image_changed': '原图已变化'}
+        located_rows = ''.join(
+            f'<tr><td>{html.escape(row["opening_id"])}</td><td>{html.escape(str(row["facade"]))}</td>'
+            f'<td>{html.escape(", ".join(row["floor_ids"]))}</td><td>{row["width_m"]}</td>'
+            f'<td>{located_labels.get(row["status"], row["status"])}</td>'
+            f'<td>{"同一高度套到不同窗宽，请重点核对" if row["shared_height_across_widths"] else "窗宽与同面其他窗明显不同" if row.get("distinct_width_on_facade") else "—"}</td></tr>'
+            for row in located.get('openings', []) if row['status'] != 'covered')
+        height_table += ('<h2>逐扇高度依据定位</h2><p>只报告待核范围，不断言高度有误，也不阻止交付。'
+                         '需要本立面标定和覆盖该开口的局部高度依据框；整图引用不能证明逐扇核对。</p>'
+                         '<table><tr><th>开口</th><th>立面</th><th>楼层</th><th>宽度（米）</th><th>待核原因</th><th>重点</th></tr>'
+                         + located_rows + '</table>')
+        if located.get('status') == 'unavailable':
+            height_table += '<p>定位报告暂不可用：' + html.escape(located['reason']) + '</p>'
         view_labels = {"full_view_returned": "已返回整图", "crop_only_returned": "仅返回局部",
                        "no_direct_view_record": "无直接看图记录"}
         input_rows = ''.join(
@@ -1293,6 +1330,7 @@ class Toolkit:
             from src.agent.roles import room_use_review
             source = json.loads(source_path.read_text())
             result["room_use_review"] = room_use_review(source, include_next_action=False)
+            result["located_height_coverage"] = self.located_heights(candidate)
             result["opening_inventory"] = opening_inventory(source)
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
             if calibration is not None:
@@ -2663,6 +2701,7 @@ def serve(run: Path, readonly=False):
                 dump(target, {**result, "observations": observations})
             result["remaining_seconds"] = toolkit.remaining_seconds()
             result["input_view_status"] = toolkit.input_view_status()
+            result["located_height_coverage"] = toolkit.located_heights(candidate)
             toolkit.log("check_openings", result)
             return result
 
@@ -2954,6 +2993,7 @@ def run_experiment(args):
                              },
                              "deadline_epoch": (started_epoch + args.timeout if started_epoch is not None else None),
                              "implementation_sha256": {
+                                 "scripts/tool_scripts/bim_agent_facade_checks.py":digest(ROOT/"scripts/tool_scripts/bim_agent_facade_checks.py"),
                                  "scripts/tool_scripts/bim_agent_feedback.py":digest(ROOT/"scripts/tool_scripts/bim_agent_feedback.py"),
                                  "scripts/tool_scripts/bim_agent_budget.py":digest(ROOT/"scripts/tool_scripts/bim_agent_budget.py"),
                                  "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),

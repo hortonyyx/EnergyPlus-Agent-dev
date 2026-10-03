@@ -55,6 +55,8 @@ original_pixels_per_returned_pixel. Keep object IDs stable.
 # (no crops, 29/29 positions); its whole-row crops could not magnify under the 1600 px
 # limit (run94 1.08x); drawn dividers read as absent (run94 1F south); heights taken
 # from a chain measuring another opening (run94 claims 0001/0003).
+# T1 replaces the height-feedback sentence after GLM sm24 cited a whole facade
+# and applied the ordinary-window chain to both 4800 mm windows.
 DRAWING_METHOD = """Drawing method, for measured plans and elevations. The drawings give the
 structure; every floor's saved draft is then checked against them.
 
@@ -109,8 +111,11 @@ its sill and head from the dimension chain that measures that opening, in order
 from the chain's datum; a chain can add up while its segments are swapped, and
 a chain measuring one opening does not measure another. Openings of a different
 size or shape keep their own heights unless the elevation shows otherwise.
-record_claim returns facts on which floors, walls and widths a value is applied
-to. Internal door heights without a drawing are assumptions.
+Use view_elevation_candidate with observed anchors to locate the source openings;
+claim source boxes must cover those openings, not only an adjacent dimension chain.
+located_height_coverage reports unlocated heights and shared heights on different
+widths; a whole-image citation is unlocalized. Internal door heights without a
+drawing are assumptions.
 """
 
 # For image inputs of unknown kind (they may be prepared mesh views). Text from the
