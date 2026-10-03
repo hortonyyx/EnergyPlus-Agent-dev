@@ -4,6 +4,7 @@ import base64
 import hashlib
 import io
 import json
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -111,10 +112,36 @@ def test_request_estimate_separates_text_image_output_and_context():
     assert estimate.image_tokens == 66
     assert estimate.input_tokens_estimate == estimate.text_tokens + 66
     assert estimate.input_tokens_upper_bound >= estimate.input_tokens_estimate
-    assert estimate.reservation_tokens == estimate.input_tokens_upper_bound + 64
+    assert estimate.reservation_tokens == (
+        estimate.input_tokens_upper_bound + 64 + estimate.reasoning_token_allowance
+    )
     assert estimate.context_window_tokens == 262_144
     assert estimate.fits_context is True
     assert estimate.images[0].request_reference.endswith("/image_url/url")
+
+
+def test_glm_reasoning_allowance_enters_reservation_and_context_fit():
+    profile = get_model_profile("GLM-5.3-Flash", strict=True)
+    assert profile.reasoning_may_exceed_max_tokens is True
+    assert profile.reasoning_token_allowance == 32
+    assert "maximum completion_tokens - max_tokens = 29" in profile.reasoning_allowance_source
+    body = {
+        "model": "GLM-5.3-Flash",
+        "messages": [{"role": "user", "content": "Reply only OK."}],
+        "max_tokens": 64,
+    }
+    estimate = estimate_chat_request(body, profile=profile, strict=True)
+    assert estimate.reasoning_token_allowance == 32
+    assert estimate.reservation_tokens == estimate.input_tokens_upper_bound + 64 + 32
+
+    just_too_small = replace(
+        profile, context_window_tokens=estimate.input_tokens_upper_bound + 64 + 31
+    )
+    assert estimate_chat_request(body, profile=just_too_small).fits_context is False
+    exact_fit = replace(
+        profile, context_window_tokens=estimate.input_tokens_upper_bound + 64 + 32
+    )
+    assert estimate_chat_request(body, profile=exact_fit).fits_context is True
 
 
 def test_unknown_model_estimate_does_not_claim_a_context_limit():

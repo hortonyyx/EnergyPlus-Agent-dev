@@ -37,6 +37,9 @@ class ModelProfile:
     text_safety_factor: float
     text_fixed_margin: int
     safety_margin_source: str
+    reasoning_may_exceed_max_tokens: bool
+    reasoning_token_allowance: int
+    reasoning_allowance_source: str
     image_estimator: str
     image_patch_size: int
     image_merge_size: int
@@ -68,6 +71,7 @@ class RequestTokenEstimate:
     input_tokens_estimate: int
     input_tokens_upper_bound: int
     output_token_limit: int
+    reasoning_token_allowance: int
     context_window_tokens: int | None
     fits_context: bool | None
     source: str
@@ -76,10 +80,17 @@ class RequestTokenEstimate:
 
     @property
     def reservation_tokens(self) -> int:
-        return self.input_tokens_upper_bound + self.output_token_limit
+        return (self.input_tokens_upper_bound + self.output_token_limit
+                + self.reasoning_token_allowance)
 
 
 def _profile_from_dict(row: Mapping[str, Any]) -> ModelProfile:
+    may_exceed = row.get("reasoning_may_exceed_max_tokens", False)
+    allowance = row.get("reasoning_token_allowance", 0)
+    if type(may_exceed) is not bool:
+        raise ValueError("reasoning_may_exceed_max_tokens must be boolean")
+    if type(allowance) is not int or allowance < 0:
+        raise ValueError("reasoning_token_allowance must be a non-negative integer")
     return ModelProfile(
         canonical_name=row["canonical_name"], aliases=tuple(row.get("aliases", ())),
         context_window_tokens=row.get("context_window_tokens"),
@@ -94,6 +105,10 @@ def _profile_from_dict(row: Mapping[str, Any]) -> ModelProfile:
         text_safety_factor=float(row["text_safety_factor"]),
         text_fixed_margin=int(row["text_fixed_margin"]),
         safety_margin_source=row.get("safety_margin_source", "unverified"),
+        reasoning_may_exceed_max_tokens=may_exceed,
+        reasoning_token_allowance=allowance,
+        reasoning_allowance_source=row.get(
+            "reasoning_allowance_source", "compatibility default: no extra allowance"),
         image_estimator=row["image_estimator"],
         image_patch_size=int(row["image_patch_size"]),
         image_merge_size=int(row["image_merge_size"]),
@@ -125,6 +140,8 @@ def conservative_compatibility_profile(model: str) -> ModelProfile:
         text_safety_factor=1.35,
         text_fixed_margin=32,
         safety_margin_source="unverified compatibility margin, not calibrated for this model",
+        reasoning_may_exceed_max_tokens=False, reasoning_token_allowance=0,
+        reasoning_allowance_source="compatibility default: no model evidence",
         image_estimator="decoded_pixels_v0",
         image_patch_size=16, image_merge_size=2, image_min_pixels=65536,
         image_max_pixels=16777216, image_special_tokens=2,
@@ -258,13 +275,15 @@ def estimate_chat_request(body: Mapping[str, Any], *, profile: ModelProfile | No
     image_tokens = sum(row.tokens for row in images)
     estimate = text_tokens + image_tokens
     upper = math.ceil(text_tokens * selected.text_safety_factor) + selected.text_fixed_margin + image_tokens
-    total_upper = upper + output_limit
+    allowance = selected.reasoning_token_allowance
+    total_upper = upper + output_limit + allowance
     fits = None if selected.context_window_tokens is None else total_upper <= selected.context_window_tokens
     source = (f"profile={selected.canonical_name}; text={selected.text_estimator}; "
               f"image={selected.image_estimator}; context={selected.context_source}; "
               f"context_limit_kind={selected.context_limit_kind}; "
               f"safety_margin={selected.safety_margin_source}; status={selected.profile_status}")
-    uncertainty = f"{selected.context_uncertainty} {selected.image_uncertainty}"
+    uncertainty = (f"{selected.context_uncertainty} {selected.image_uncertainty} "
+                   f"Reasoning allowance: {selected.reasoning_allowance_source}")
     return RequestTokenEstimate(model, selected.canonical_name, text_tokens, image_tokens,
-        estimate, upper, output_limit, selected.context_window_tokens, fits, source,
+        estimate, upper, output_limit, allowance, selected.context_window_tokens, fits, source,
         uncertainty, tuple(images))
