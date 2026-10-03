@@ -20,12 +20,14 @@ def test_system_prompt_carries_only_the_methods_for_the_declared_inputs():
                for kind in ("drawings", "photos", "unknown"))
 
 
-def test_mesh_inputs_keep_the_partial_inference_guide_whole():
-    # The 10-01 partial-inference developer tests ran on this guide; it stays whole
-    # until the two instruction layers are deliberately unified.
+def test_mesh_inputs_keep_the_partial_inference_method_and_filter_capabilities():
+    # C2 changes capability exposure only; full-enabled mesh wording stays intact.
     assert "get_bim_reference('partial_inference')" in MESH_GUIDE and DRAWING_METHOD not in MESH_GUIDE
-    assert all(build_guide(images=kind, mesh=mesh) == MESH_GUIDE
+    assert all(build_guide(images=kind, mesh=mesh, review_detail=True, continuation=True) == MESH_GUIDE
                for kind, mesh in (("mesh_views", False), ("unknown", True), (None, True), ("drawings", True)))
+    disabled = build_guide(mesh=True)
+    assert "review_detail" not in disabled and "does not reset it" not in disabled
+    assert "get_bim_reference('partial_inference')" in disabled
 
 
 def test_run_guide_follows_the_manifest_and_legacy_runs_keep_their_old_meaning(tmp_path):

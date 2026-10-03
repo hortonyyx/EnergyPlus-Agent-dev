@@ -18,6 +18,8 @@ from __future__ import annotations
 # "illegible, equal split assumed" without magnifying (2F); mixed crop/grid
 # coordinate wording (A6). Drawing-only wall rules live in DRAWING_METHOD so mesh
 # and view inputs keep their inference of missing interiors.
+# C2: the first full review found CORE's unconditional look-again instruction
+# contradicted T1's final 15% rule. Use that bounded finishing rule throughout.
 CORE = """Build a viewable lightweight BIM of the target building from the supplied
 inputs. You choose observations, tools and revisions; no tool sequence is fixed.
 
@@ -37,8 +39,8 @@ the geometry. No EnergyPlus objects or materials.
   Unknown door state stays unknown.
 - Keep observed, inferred and assumed content distinct. What you have not yet
   viewed, or viewed but not yet made out, is unresolved, not missing: a draft
-  may carry it with a labelled provisional value, but look again before
-  delivery. Only information the inputs lack, or that stays undeterminable
+  may carry it with a labelled provisional value. Recheck within the finishing
+  budget below. Only information the inputs lack, or that stays undeterminable
   after a reasonable look, becomes an explicit assumption with its reason.
   Centring, equal spacing, symmetry or copying never count as observation.
 - Valid geometry, tool acceptance, your own confirmations and returned images do
@@ -389,9 +391,8 @@ already give. Image names are the exact names listed by inputs.
   read_candidate_items, view_candidate.
 - Located values applied by code: record_claim, view_claim_evidence,
   replace_claim_sources, decide_claim, confirm_claims, claim_status (claims).
-- review_detail asks a local image model one small located visual question.
 - inputs lists admitted inputs, candidate_budget (saves shared by builds,
-  assembly and revisions; a continuation does not reset it) and
+  assembly and revisions) and
   input_view_status (which originals you have viewed; viewing is not review).
 """
 
@@ -399,13 +400,14 @@ already give. Image names are the exact names listed by inputs.
 # delivered with 1,824 s left; run93 did the same with door estimates. Shared with
 # continuation turns so both use one finishing rule. T1 replaces the open-ended
 # look-again instruction: GLM sm25 reached the cap with only one saved floor.
-FINISHING = """Before finishing, work through what the saved candidate still leaves open:
-settle on the delivered candidate every unresolved item and drawing difference
-that the supplied inputs and remaining time can settle. Each tool reports used
-and remaining minutes. After halfway, save any still-missing floor drafts before
-refining; below 15% remaining, stop new image reading, fix listed issues and
-deliver. State whether any item lacks information, remains indeterminate after
-a reasonable look, or ran out of time."""
+# C2: stopping all image reading also barred necessary checks of listed serious
+# errors. Replace it with bounded review, without extending the hard deadline.
+FINISHING = """Resolve saved unresolved items and drawing differences while time permits.
+Tools report used and remaining minutes. After halfway, save missing floor drafts
+before refining. Below 15%, stop exploring new scope; only make bounded necessary
+checks of already-listed serious issues. Deliver within the limit and retain
+anything unfinished as unresolved, distinguishing missing information,
+indeterminate evidence and time exhausted."""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
 DELIVERY = "Delivery. " + FINISHING + """
@@ -423,10 +425,34 @@ assumed and left unexamined. Do not ask the user for routine geometry choices.
 """
 
 
-def build_guide(*, images=None, mesh=False):
+def tool_capabilities(manifest):
+    """Only explicit run configuration enables delegated review or follow-ups."""
+    return {"review_detail": manifest.get("review_detail_enabled") is True,
+            "continuation": bool(manifest.get("continuation_rounds", 0))}
+
+
+def filter_tool_catalog(tools, *, review_detail=False, continuation=False):
+    """Project the complete registered catalog; input modality never removes tools."""
+    disabled = set()
+    if not review_detail:
+        disabled.add("review_detail")
+    if not continuation:
+        disabled.add("record_work_review")
+    return [tool for tool in tools if tool["name"] not in disabled]
+
+
+def build_guide(*, images=None, mesh=False, review_detail=False, continuation=False):
     """System prompt for one run. images is drawings, mesh_views, photos, unknown or None."""
     if mesh or images == "mesh_views":
-        return MESH_GUIDE
+        # C2: keep the mesh method, but do not advertise unavailable capabilities.
+        guide = MESH_GUIDE
+        if not review_detail:
+            start = guide.index("review_detail asks")
+            end = guide.index("Annotation\nplus pixels", start)
+            guide = guide[:start] + guide[end:]
+        if not continuation:
+            guide = guide.replace("; a continuation\ndoes not reset it", "")
+        return guide
     parts = [CORE]
     if images == "unknown":
         parts.append(IMAGE_KINDS)
@@ -436,7 +462,14 @@ def build_guide(*, images=None, mesh=False):
         parts.append(MESH_VIEWS)
     if images in ("photos", "unknown"):
         parts.append(PHOTOS)
-    return "\n".join(parts + [TOOLS, DELIVERY])
+    tools = TOOLS
+    # C2: the review found disabled tools described in every request. Their
+    # catalog entries and these sentences now use the same capability flags.
+    if review_detail:
+        tools = tools.replace("- inputs lists", "- review_detail asks a local image model one small located visual question.\n- inputs lists")
+    if continuation:
+        tools = tools.replace("assembly and revisions)", "assembly and revisions; a continuation does not reset it)")
+    return "\n".join(parts + [tools, DELIVERY])
 
 
 REFERENCES = {
@@ -1018,6 +1051,8 @@ its candidate. Return feedback is a geometric check, not input fidelity approval
 
 # T1 replaces the single candidate-only introduction: GLM sm25 omitted two west
 # windows. A drawing count must exist independently of whatever BIM was built.
+# C2: T1 sm25 used whole-image sources for all 20 geometry claims. Remove the
+# contradictory preference for whole-image references; keep their unlocalized status.
 REFERENCES['claims'] = """Located observations: drawing counts or candidate revision parameters.
 
 For one entire floor/facade, record_claim accepts this count before or after BIM:
@@ -1052,11 +1087,8 @@ origin, which physical extent they measure, and any frame assumptions.
 basis: annotation_and_pixels, pixels, visual_estimate, inference, declared.
 Use original image boxes; code binds actual source hashes. Image-based claims
 require sources; declared/inference may have none but must state the actual basis.
-For a whole-drawing reference, use {"image":"elevation.png"} without box; code
-binds the full original extent and returns that image. Prefer this when dimensions
-and objects are far apart or you are unsure of exact crop coordinates. A narrow
-crop is optional, never a prerequisite for valid evidence. Explain which labels
-and object family support the value; a whole-image reference is not precise localization.
+Whole-image references ({"image":"elevation.png"} without box) are unlocalized;
+locate a height claim with a source region covering that opening and its dimension evidence.
 To cite an image you just viewed, prefer {"view_id":"view_0001"}, using the actual
 ID returned by view_image (including whole-image views). The saved source binds
 that view's original image hash and exact region; grid/scale are presentation only.

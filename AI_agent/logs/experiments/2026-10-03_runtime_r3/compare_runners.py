@@ -19,6 +19,7 @@ from src.agent import runtime_entry
 from src.agent.runtime_tools import frozen_bim_client
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.agent_registry import agent_version_record
+from scripts.tool_scripts.bim_agent_guidance import filter_tool_catalog, tool_capabilities
 
 
 HERE = Path(__file__).resolve().parent
@@ -62,8 +63,10 @@ async def case_report(case, directory, timeout):
     assert len(attempts) == 1
     old = json.loads((old_run / "agent_request.json").read_bytes())
     old_manifest = json.loads((old_run / "inputs.json").read_bytes())
-    async with frozen_bim_client(old_run, repository_root=ROOT) as client:
+    async with frozen_bim_client(old_run, repository_root=ROOT, enabled_only=True) as client:
         old_catalog = await client.list_tools()
+    async with frozen_bim_client(old_run, repository_root=ROOT) as client:
+        old_complete_catalog = await client.list_tools()
 
     captures = []
     class CaptureAdapter(ScriptedAdapter):
@@ -100,7 +103,9 @@ async def case_report(case, directory, timeout):
     system = [message["content"] for message in wire["messages"] if message["role"] == "system"]
     assert len(system) == 1
     task = next(message["content"] for message in wire["messages"] if message["role"] == "user")
-    new_catalog = json.loads((new_run / "frozen/coordinator_tools.json").read_bytes())["tools"]
+    new_complete_catalog = json.loads((new_run / "frozen/coordinator_tools.json").read_bytes())["tools"]
+    assert tool_capabilities(old_manifest) == tool_capabilities(new_manifest)
+    new_catalog = filter_tool_catalog(new_complete_catalog, **tool_capabilities(new_manifest))
     # Compare exactly the name, description and input schema. The wire protocol
     # wraps those bytes differently; record that distinction explicitly.
     old_wire_tools = [{"type": "function", "function": {"name": t["name"],
@@ -110,6 +115,8 @@ async def case_report(case, directory, timeout):
         "agent_version": receipt["agent_version"],
         "system_guidance": compare(old["system_prompt"].encode(), system[0].encode()),
         "tool_catalog": compare(canonical(old_catalog), canonical(new_catalog)),
+        "complete_registered_catalog": compare(canonical(old_complete_catalog), canonical(new_complete_catalog)),
+        "capabilities": tool_capabilities(new_manifest),
         "tool_names_descriptions_parameters": compare(canonical(old_wire_tools), canonical(wire["tools"])),
         "task_body": compare(old["prompt"].encode(), task.encode()),
         "runtime_task_source": {"path": str(reference_path.relative_to(ROOT)),
@@ -123,7 +130,7 @@ async def case_report(case, directory, timeout):
         "differences": [
             {"item": "protocol", "reason": "Claude Code uses Anthropic/MCP namespaces (mcp__bim__*); runtime uses OpenAI function wrappers with bare names. The exact shared MCP catalog and wrapped name/description/schema bytes are checked above."},
             {"item": "runtime_state", "reason": "Runtime adds its existing machine-generated current-state user message, retaining the original task and its provenance; it adds no second clock or contradictory time instruction. Full additional messages are retained here."},
-            {"item": "service_parameters", "reason": "Claude Code effort=medium has an uncaptured service mapping. Live subscription runtime omits unverified thinking parameters and uses max_tokens=32000; this offline capture uses scripted-model and is not a live protocol-equivalence test."},
+            {"item": "service_parameters", "reason": "Claude Code uses effort=medium with adaptive thinking; runtime subscription configuration explicitly uses reasoning_effort=medium and max_tokens=32000. The subscription endpoint has no adaptive-thinking switch. This scripted capture is not a live protocol-equivalence test."},
             {"item": "run_metadata", "reason": "Output paths, timestamps, provider and input_mode are runner-specific. Started/deadline epochs differ between sequential preparations; each runner uses the same configured duration and floor scope."},
         ],
         "boundary": "Prepared model boundary only. Claude Code private HTTP context is not captured; no claim of hidden client or service parameter equality."}
