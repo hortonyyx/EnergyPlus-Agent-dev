@@ -1,0 +1,91 @@
+{
+  "model_requests": 0,
+  "input_commit": "74e27da33d8f957334b6e77c40e788acf015ea55",
+  "repair_hint": {
+    "source": {
+      "path": "AI_agent/logs/experiments/2026-10-01_behaviour_records/records/2026-10-03_sm25_glm_tools_t1/record.json.gz",
+      "sha256": "25eda9c9af69245f19e2ad7bff92aaf0be62df0bb4b09adfae123f8f695a6597"
+    },
+    "replays": [
+      {
+        "step": 63,
+        "tool": "revise_plan_bim",
+        "arguments_sha256": "a955151b79717ee33b0e3a8b4b927ef9194dad1e0797fc4447c7f2eb887350b4",
+        "before": "0",
+        "after": "Error executing tool revise_plan_bim: supply 1 to 100 explicit local operations\noperations_json needs a JSON list of operation objects (需要列表), e.g. [{\"op\":\"update\", ...}], not {\"operations\":[...]}.\n已用 52.0／剩余 48.0 分钟。时间已过半，尚无草稿的楼层图：1f_view.png, 2f_view.png。先按已读信息保存全楼草稿、再细化。"
+      },
+      {
+        "step": 65,
+        "tool": "revise_plan_bim",
+        "arguments_sha256": "5fa0bb9409624f8cb7ca9293f5d5b97180769f92a456a064d38dc80a74e077b1",
+        "before": "0",
+        "after": "Error executing tool revise_plan_bim: supply 1 to 100 explicit local operations\noperations_json needs a JSON list of operation objects (需要列表), e.g. [{\"op\":\"update\", ...}], not {\"operations\":[...]}.\n已用 53.4／剩余 46.6 分钟。时间已过半，尚无草稿的楼层图：1f_view.png, 2f_view.png。先按已读信息保存全楼草稿、再细化。"
+      }
+    ],
+    "execution": "Real MCP/Toolkit with original saved drafts and images; only clock frozen",
+    "restored_files_sha256": {
+      "images/1f_view.png": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "images/2f_view.png": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "images/East_view.png": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "images/North_view.png": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "images/South_view.png": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+      "images/West_view.png": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "inputs.json": "47e1adf3a43f3f1783bc86251ae72ce08f2c66157d6e4a15918dd55eb405f00c",
+      "plan_drafts/draft_004/input.json": "33ed6ca3ed5433b1ed8951c83ccadc474a64f2a7966d85a8e89d6b71e4f49ae7",
+      "plan_drafts/draft_004/plan.json": "698439a588cd300ceb687cae0a56121ec23ed9bf7b2116edf3d1d877b41c39f2",
+      "plan_drafts/draft_005/input.json": "69dde8fbacf82a8c4e343714e8a2a51d9f4208715c6099a20f7f70ed0d7147b7",
+      "plan_drafts/draft_005/plan.json": "b52b8e76893cc54cf2820274a14e0061e4793fad25d48c4af5d2f895cf62297a"
+    }
+  },
+  "revise_bim": {
+    "source": {
+      "path": "AI_agent/logs/experiments/2026-10-01_behaviour_records/records/2026-10-03_sm24_glm_tools_t1/record.json.gz",
+      "sha256": "3aac494131f190b4e53e8ec924c711c84907f946ee3baa52642842ba62156133"
+    },
+    "step": 71,
+    "before_chars": 82050,
+    "after_chars": 58004,
+    "removed_chars": 24046,
+    "measured_surface": "Exact archived CLI JSON, replacing only provenance.claim_application; original number formatting and trailing truncation notice retained. Actual Toolkit replay verifies the new provenance and byte-identical evidence/source/proposal.",
+    "provenance_before_chars": 24085,
+    "provenance_after": {
+      "file": "claims/application_0001.json"
+    },
+    "application_sha256": "f647d645544c678f50e53e6fabcf5f63b055f3264509d25414b7a1a60e2aef60",
+    "application_bytes_equal": true,
+    "source_model_bytes_equal": true,
+    "proposal_bytes_equal": true,
+    "unchanged_result_fields": [
+      "candidate",
+      "remaining_seconds",
+      "mode",
+      "status",
+      "source_geometry_ready",
+      "model_calls",
+      "solver_calls",
+      "scope",
+      "drawing_fidelity",
+      "human_confirmation",
+      "source_geometry_self_consistency",
+      "not_evaluated",
+      "proposal_sha256",
+      "agent_assumptions",
+      "unresolved",
+      "source_validation",
+      "counts",
+      "source_model_sha256",
+      "candidate_budget",
+      "input_view_status",
+      "room_use_review",
+      "located_height_coverage",
+      "facade_counts",
+      "opening_inventory",
+      "opening_review",
+      "source_image_projections",
+      "projection_errors",
+      "source_plan_views",
+      "source_plan_errors",
+      "claim_application"
+    ]
+  }
+}

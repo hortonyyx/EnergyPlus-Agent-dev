@@ -1,0 +1,468 @@
+{
+  "schema_version": "bim.behaviour.v2",
+  "run": "attempt_02_output_32000",
+  "source_format": "event_envelope_jsonl",
+  "model": "GLM-5.3-Flash",
+  "cli": null,
+  "turns": 22,
+  "invocations": 1,
+  "elapsed_seconds": 3001.302253007889,
+  "tool_calls": 60,
+  "tool_capture_missing": false,
+  "call_errors": 9,
+  "domain_failures": 0,
+  "usable_source_drafts": 1,
+  "tool_errors": 9,
+  "tools": {
+    "inputs": 1,
+    "view_image": 35,
+    "view_pixel_profile": 19,
+    "get_bim_reference": 4,
+    "build_plan_bim": 1
+  },
+  "outcome_definitions": {
+    "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
+    "domain_failures": "normal return with status error/failed, error, or source_geometry_ready=false",
+    "usable_source_drafts": "build/edit/assembly returns source_geometry_ready=true; not a fidelity verdict",
+    "tool_errors": "historical alias of call_errors only",
+    "first_draft_s": "first usable source, including one produced by correcting a failed draft",
+    "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"
+  },
+  "prepared_tool_results": 60,
+  "delivered_tool_results": 58,
+  "undelivered_tool_results": 2,
+  "first_draft_s": 2451.449,
+  "calls_before_first_draft": 51,
+  "first_build_attempt_s": 2451.449,
+  "calls_before_first_build_attempt": 51,
+  "full_views_before_first_build_attempt": 5,
+  "crops_before_first_build_attempt": 17,
+  "pixel_tools_before_first_build_attempt": 19,
+  "first_assembly_s": null,
+  "finish_s": null,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 17,
+  "pixel_tools_before_first_draft": 19,
+  "crop_scales": [
+    0.97,
+    0.97,
+    0.97,
+    1.0,
+    1.1,
+    1.1,
+    1.21,
+    1.21,
+    1.24,
+    1.24,
+    1.6,
+    1.61,
+    2.0,
+    2.0,
+    2.0,
+    2.5,
+    3.0,
+    3.0,
+    3.0,
+    3.5,
+    4.0
+  ],
+  "elevation_crops_by_facade": {
+    "west": 3,
+    "east": 2,
+    "north": 5,
+    "south": 2
+  },
+  "elevation_overlays_by_facade": {},
+  "height_provenance_claims": [],
+  "height_provenance_facades": {},
+  "claims_from_saved_files": 0,
+  "cross_facade_height_claims": 0,
+  "plan_builds": 1,
+  "plan_edits": 0,
+  "candidate_revisions": 0,
+  "gaps": [],
+  "outcomes": [
+    {
+      "index": 2,
+      "tool": "view_image",
+      "t_call": 34.146,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 3,
+      "tool": "view_image",
+      "t_call": 34.356,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 4,
+      "tool": "view_image",
+      "t_call": 34.577,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 5,
+      "tool": "view_image",
+      "t_call": 34.746,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 6,
+      "tool": "view_image",
+      "t_call": 34.928,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 15,
+      "tool": "view_pixel_profile",
+      "t_call": 545.166,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 16,
+      "tool": "view_pixel_profile",
+      "t_call": 545.548,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 52,
+      "tool": "build_plan_bim",
+      "t_call": 2451.449,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 55,
+      "tool": "view_image",
+      "t_call": 2717.751,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 56,
+      "tool": "view_image",
+      "t_call": 2719.215,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    }
+  ],
+  "usage": [
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 5,
+        "prompt_tokens": 11159,
+        "total_tokens": 11164,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 98,
+        "prompt_tokens": 12700,
+        "total_tokens": 12798,
+        "completion_tokens_details": {
+          "reasoning_tokens": 24
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 109,
+        "prompt_tokens": 12965,
+        "total_tokens": 13074,
+        "completion_tokens_details": {
+          "reasoning_tokens": 46
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 9464,
+        "prompt_tokens": 27204,
+        "total_tokens": 36668,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9296
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 16612,
+        "prompt_tokens": 40482,
+        "total_tokens": 57094,
+        "completion_tokens_details": {
+          "reasoning_tokens": 16422
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 265,
+        "prompt_tokens": 57164,
+        "total_tokens": 57429,
+        "completion_tokens_details": {
+          "reasoning_tokens": 122
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 13652,
+        "prompt_tokens": 61952,
+        "total_tokens": 75604,
+        "completion_tokens_details": {
+          "reasoning_tokens": 13379
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 12228,
+        "prompt_tokens": 72588,
+        "total_tokens": 84816,
+        "completion_tokens_details": {
+          "reasoning_tokens": 12056
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 4126,
+        "prompt_tokens": 88397,
+        "total_tokens": 92523,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3992
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 43264
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 13349,
+        "prompt_tokens": 65289,
+        "total_tokens": 78638,
+        "completion_tokens_details": {
+          "reasoning_tokens": 13079
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 8960
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1842,
+        "prompt_tokens": 87520,
+        "total_tokens": 89362,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1550
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 6204,
+        "prompt_tokens": 70333,
+        "total_tokens": 76537,
+        "completion_tokens_details": {
+          "reasoning_tokens": 5916
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 7676,
+        "prompt_tokens": 81270,
+        "total_tokens": 88946,
+        "completion_tokens_details": {
+          "reasoning_tokens": 7405
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 43264
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 5016,
+        "prompt_tokens": 91168,
+        "total_tokens": 96184,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4505
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 9369,
+        "prompt_tokens": 65042,
+        "total_tokens": 74411,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9184
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 18363,
+        "prompt_tokens": 67504,
+        "total_tokens": 85867,
+        "completion_tokens_details": {
+          "reasoning_tokens": 18089
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 12814,
+        "prompt_tokens": 77383,
+        "total_tokens": 90197,
+        "completion_tokens_details": {
+          "reasoning_tokens": 10057
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 5864,
+        "prompt_tokens": 135971,
+        "total_tokens": 141835,
+        "completion_tokens_details": {
+          "reasoning_tokens": 5677
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 6225,
+        "prompt_tokens": 132235,
+        "total_tokens": 138460,
+        "completion_tokens_details": {
+          "reasoning_tokens": 6063
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3417,
+        "prompt_tokens": 127003,
+        "total_tokens": 130420,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3302
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 10496
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 8097,
+        "prompt_tokens": 134058,
+        "total_tokens": 142155,
+        "completion_tokens_details": {
+          "reasoning_tokens": 7880
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 8960
+        }
+      }
+    }
+  ],
+  "model_usage": {},
+  "cost_usd_cli": null,
+  "thinking_tokens_estimated": null,
+  "visible_text_chars": 5480,
+  "five_hour_window": null,
+  "seven_day_window": null
+}

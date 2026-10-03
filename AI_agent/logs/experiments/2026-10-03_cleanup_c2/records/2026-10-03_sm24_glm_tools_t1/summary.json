@@ -1,0 +1,700 @@
+{
+  "schema_version": "bim.behaviour.v2",
+  "run": "2026-10-03_sm24_glm_tools_t1",
+  "source_format": "claude_cli_record",
+  "model": "glm-5.3-flash",
+  "cli": "2.1.284",
+  "turns": 98,
+  "invocations": 1,
+  "elapsed_seconds": 2650.79,
+  "tool_calls": 95,
+  "tool_capture_missing": false,
+  "call_errors": 1,
+  "domain_failures": 2,
+  "usable_source_drafts": 4,
+  "tool_errors": 1,
+  "tools": {
+    "inputs": 1,
+    "view_image": 29,
+    "view_pixel_profile": 25,
+    "get_bim_reference": 4,
+    "build_plan_bim": 1,
+    "revise_plan_bim": 2,
+    "inspect_plan_draft": 1,
+    "record_claim": 9,
+    "decide_claim": 7,
+    "revise_bim": 4,
+    "view_elevation_candidate": 6,
+    "claim_status": 3,
+    "check_openings": 1,
+    "replace_claim_sources": 1,
+    "finish_bim": 1
+  },
+  "outcome_definitions": {
+    "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
+    "domain_failures": "normal return with status error/failed, error, or source_geometry_ready=false",
+    "usable_source_drafts": "build/edit/assembly returns source_geometry_ready=true; not a fidelity verdict",
+    "tool_errors": "historical alias of call_errors only",
+    "first_draft_s": "first usable source, including one produced by correcting a failed draft",
+    "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"
+  },
+  "prepared_tool_results": 0,
+  "delivered_tool_results": 95,
+  "undelivered_tool_results": 0,
+  "first_draft_s": 1737.7,
+  "calls_before_first_draft": 51,
+  "first_build_attempt_s": 1481.6,
+  "calls_before_first_build_attempt": 46,
+  "full_views_before_first_build_attempt": 5,
+  "crops_before_first_build_attempt": 17,
+  "pixel_tools_before_first_build_attempt": 22,
+  "first_assembly_s": null,
+  "finish_s": 2603.0,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 19,
+  "pixel_tools_before_first_draft": 22,
+  "crop_scales": [
+    0.61,
+    0.61,
+    1.39,
+    2.0,
+    2.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    4.0,
+    4.0,
+    4.0,
+    4.0,
+    6.0,
+    8.0,
+    8.0,
+    8.0,
+    8.0
+  ],
+  "elevation_crops_by_facade": {
+    "north": 1,
+    "east": 2,
+    "south": 1
+  },
+  "elevation_overlays_by_facade": {
+    "north": 2,
+    "south": 1,
+    "east": 2,
+    "west": 1
+  },
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "W_N_big",
+        "D_N_in"
+      ],
+      "sources": [
+        "North_view.png",
+        "North_view.png"
+      ],
+      "resolved": {
+        "door_ext_z": [
+          0.2,
+          2.6
+        ],
+        "win_big_z": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North elevation chains read from the building top (z=4.5 m, observed 1700+1800+1000 chain): window chain 1100|2400|1000 with the drawn 4800 window occupying the middle 2400 segment -> z 1.0..3.4; entrance door chain 1900|2400|200 with the drawn leaf in the middle -> z 0.2..2.6 (transom rail at 2.2 inside the leaf assembly, no glazing above 2.6).",
+      "t": 2006.9,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0001.json",
+      "saved_sha256": "0e24f15b998460d0e07fa2f5487acedc6e9bae29484be1b5f8c96ee513720cca"
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "W_S1",
+        "W_S2",
+        "D_S_in"
+      ],
+      "sources": [
+        "South_view.png",
+        "South_view.png",
+        "South_view.png"
+      ],
+      "resolved": {
+        "door_ext_z": [
+          0.2,
+          2.6
+        ],
+        "win_small_z": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South elevation chains read from the building top (z=4.5 m): both 1500 windows use the jamb chain 1700|1800|1000 with the drawn window in the middle 1800 segment -> z 1.0..2.8; the 900 door chain 1900|2400|200 -> z 0.2..2.6.",
+      "t": 2011.1,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0002.json",
+      "saved_sha256": "d3a1582d67d273c764c6754a6817b417071754f336cdb07eee2f0c5b636e5577"
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "W_E2",
+        "W_E1",
+        "W_E3",
+        "D_E_in"
+      ],
+      "sources": [
+        "East_view.png",
+        "East_view.png",
+        "East_view.png",
+        "East_view.png"
+      ],
+      "resolved": {
+        "door_ext_z": [
+          0.2,
+          2.6
+        ],
+        "win_big_z": [
+          1.0,
+          3.4
+        ],
+        "win_small_z": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East elevation (left=south) chains read from the building top (z=4.5 m): 4800 window chain 1100|2400|1000 with the drawn window in the middle segment -> z 1.0..3.4; the 1500/1200 windows share the small-window family chain 1700|1800|1000 -> z 1.0..2.8; the 1600 entrance door chain 1900|2400|200 -> z 0.2..2.6.",
+      "t": 2016.5,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0003.json",
+      "saved_sha256": "3984ec165b5b701184ce5e02f0ebdcf9fd0bf3a63a52ed1022115a3313a3906d"
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "W_W_big",
+        "W_W1",
+        "W_W2",
+        "W_W3",
+        "W_W4"
+      ],
+      "sources": [
+        "West_view.png",
+        "West_view.png"
+      ],
+      "resolved": {
+        "win_big_z": [
+          1.0,
+          3.4
+        ],
+        "win_small_z": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West elevation (left=north) chains read from the building top (z=4.5 m): 4800 window chain 1100|2400|1000 with the drawn window in the middle segment -> z 1.0..3.4; the four 1500/1200 windows share the jamb chain 1700|1800|1000 with the drawn windows in the middle 1800 segment -> z 1.0..2.8.",
+      "t": 2020.7,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0004.json",
+      "saved_sha256": "5479a348d481e5603894af923bcb415a2f95495fb88efb3ebc34a0fe1c7f85fa"
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "W_E2",
+        "W_E1",
+        "W_E3",
+        "D_E_in"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "door_ext_z": [
+          0.2,
+          2.6
+        ],
+        "win_big_z": [
+          1.0,
+          3.4
+        ],
+        "win_small_z": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "The saved source crops covered only the door and part of the facade, leaving W_E1/W_E2/W_E3 outside the claim's source regions. Replace with the full original East elevation view so all four declared openings (D_E_in, W_E1, W_E2, W_E3) and their chain-datum heights lie inside the cited evidence; values and targets unchanged.",
+      "t": 2497.2,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0005.json",
+      "saved_sha256": "535f3b7abdd596c8d023d1c30ade3d85af2012c04a8a83e1b361a1407354bab6"
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "W_E2",
+        "W_E1",
+        "W_E3",
+        "D_E_in"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "door_ext_z": [
+          0.2,
+          2.6
+        ],
+        "win_big_z": [
+          1.0,
+          3.4
+        ],
+        "win_small_z": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East elevation (left=south) chains read from the building top (z=4.5 m observed as 1700|1800|1000): the 4800 window chain 1100|2400|1000 with the drawn window in the middle segment gives z 1.0..3.4; the 1500/1200 windows share the small-window family chain 1700|1800|1000 giving z 1.0..2.8; the 1600 entrance door chain 1900|2400|200 gives z 0.2..2.6. Full-facade source so all four openings lie inside the cited evidence; verified against the drawn ink by the calibrated overlay in elevation review review_0005 (overlay_008) with anchors from the drawn chain ticks.",
+      "t": 2571.5,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0006.json",
+      "saved_sha256": "105e9907818aa89f2d7e24bf8bc2a8cdf84fb7a7429c4f2406c8843027b40274"
+    }
+  ],
+  "height_provenance_facades": {
+    "north": 1,
+    "south": 1,
+    "east": 3,
+    "west": 1
+  },
+  "claims_from_saved_files": 6,
+  "cross_facade_height_claims": 0,
+  "plan_builds": 1,
+  "plan_edits": 2,
+  "candidate_revisions": 4,
+  "gaps": [
+    "Provider request is not captured in this historical CLI record."
+  ],
+  "outcomes": [
+    {
+      "index": 47,
+      "tool": "build_plan_bim",
+      "t_call": 1481.6,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": false
+    },
+    {
+      "index": 48,
+      "tool": "revise_plan_bim",
+      "t_call": 1593.1,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": false
+    },
+    {
+      "index": 52,
+      "tool": "revise_plan_bim",
+      "t_call": 1737.7,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 71,
+      "tool": "revise_bim",
+      "t_call": 2047.7,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 72,
+      "tool": "revise_bim",
+      "t_call": 2090.5,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    },
+    {
+      "index": 89,
+      "tool": "revise_bim",
+      "t_call": 2539.1,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": false
+    },
+    {
+      "index": 92,
+      "tool": "revise_bim",
+      "t_call": 2582.1,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": true
+    }
+  ],
+  "usage": [
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 0.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 5.3
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 51.3
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 130.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 166.8
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 226.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 245.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 270.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 371.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 408.4
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 525.5
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 560.9
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 637.5
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 696.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 779.8
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 862.8
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 967.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 985.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1048.5
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1088.8
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1109.9
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1190.2
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1345.5
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1377.9
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1481.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1593.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1682.3
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1704.4
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1737.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1763.9
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1775.4
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1803.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1872.3
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 1942.9
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2020.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2033.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2047.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2090.5
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2105.2
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2148.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2297.3
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2310.4
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2373.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2421.8
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2435.2
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2447.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2457.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2497.2
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2516.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2521.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2528.7
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2539.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2571.5
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2576.4
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2582.1
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2594.9
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2603.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2614.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "t": 2638.2
+    }
+  ],
+  "model_usage": {
+    "glm-5.3-flash": {
+      "inputTokens": 446022,
+      "outputTokens": 127326,
+      "cacheReadInputTokens": 4440192,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 5.218646400000002,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0
+    }
+  },
+  "cost_usd_cli": 5.218646400000002,
+  "thinking_tokens_estimated": 125342,
+  "visible_text_chars": 12226,
+  "five_hour_window": null,
+  "seven_day_window": null
+}
