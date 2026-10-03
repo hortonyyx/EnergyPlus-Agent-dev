@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "generated_by": "calibrate_image_accounting.py",
+  "offline_only": true,
+  "external_requests_made": 0,
+  "bill": {
+    "path": "AI_agent/logs/experiments/2026-10-03_migration_comparison/paratera_bill_2026-10-03.csv",
+    "sha256": "cc7c0baae288a8e2fb8af3305adb93ce3c95e2cf47e02617785103a6d0871687",
+    "image_tokens": 72406
+  },
+  "qwen": {
+    "image_request_events": 59,
+    "complete_usage_breakdown_requests": 58,
+    "requests_without_response": 1,
+    "formula_tokens_with_complete_breakdown": 62620,
+    "reported_image_tokens_with_complete_breakdown": 62620,
+    "maximum_absolute_formula_error_tokens": 0,
+    "matched_bill_model_hour_buckets": 8,
+    "matched_bill_tokens": 62620,
+    "matched_bill_difference_tokens": 0,
+    "bill_coverage_percent": 86.48,
+    "unmatched_bill_tokens": 9786,
+    "unmatched_bill_buckets": [
+      {
+        "bill_start_beijing": "2026-10-03 00:00",
+        "model": "Qwen3.8-27B",
+        "tokens": 4893
+      },
+      {
+        "bill_start_beijing": "2026-10-03 00:00",
+        "model": "Qwen3.8-Flash",
+        "tokens": 4893
+      }
+    ],
+    "conclusion": "All 58 available complete Qwen usage records prove prompt_tokens == text_tokens + image_tokens. Do not add the image estimate again for those records. The remaining bill rows have no checked-in matching events and are not claimed as calibrated."
+  },
+  "glm": {
+    "formula_cases": [
+      {
+        "dimensions": "224x224",
+        "estimated_image_tokens": 66,
+        "observed_image_component_tokens": 66,
+        "difference_tokens": 0
+      },
+      {
+        "dimensions": "896x896",
+        "estimated_image_tokens": 1026,
+        "observed_image_component_tokens": 1026,
+        "difference_tokens": 0
+      },
+      {
+        "dimensions": "1600x1200",
+        "estimated_image_tokens": 2453,
+        "observed_image_component_tokens": 1314,
+        "difference_tokens": 1139,
+        "whole_request_point_error_percent": 84.68
+      }
+    ],
+    "bill_image_price_status": "unknown; the exported bill contains no GLM image_input row",
+    "migration_run": {
+      "events_sha256": "ed51d2a4211fd3e1d71589f9d662841e0b75118bb58b9e2e985a33c672c51553",
+      "image_requests": 10,
+      "estimated_image_tokens": 52238,
+      "complete_usage_breakdown_requests": 0,
+      "classification": "unknown_no_complete_breakdown"
+    }
+  },
+  "evidence": {
+    "stage3_archive": {
+      "path": "AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_all.compact.tar.xz",
+      "sha256": "dfcfed4cbc249fe3c3c0acc2265d7fb154b2d32b87f317e0c5ad668ca9bc2885"
+    },
+    "facade_archive": {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_evidence.compact.tar.xz",
+      "sha256": "b59a98b33d02105478cbd253acbc18ade303efbc83dbe6bb61ec33dfe4b3fbd2"
+    },
+    "glm_summary": {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/summary.json",
+      "sha256": "4c685e1303ea6dfc16e22db241cfe1cedfe35dab9ad9114d6f52d5406e2c27f5"
+    }
+  }
+}
