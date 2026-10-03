@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "batch_id": "r1-first-full-cases",
+  "approval_required_before_launch": true,
+  "maximum_seconds_per_case": 6600,
+  "external_coordinator": "Astra through Codex subscription; its private request and token usage remain unavailable to the MCP log",
+  "child_model": "Qwen3.8-27B through Paratera; read-only local observations only",
+  "shared_child_limit": {"model_calls": 3, "tool_calls": 6, "tokens": 100000, "seconds": 600},
+  "cases": [
+    {
+      "case_id": "sm24_first_full_case",
+      "mode": "external_coordinator_mcp",
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "output": "AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/first_full_sm24",
+      "quota_journal": "AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/first_full_sm24/quota.jsonl",
+      "scope": "Reconstruct the whole sm24 building from the admitted original plan and four elevations. Build, inspect, identify at least one real issue, make an evidence-backed revision, and save an inspectable result. Keep GT and historical answers outside generation. Check spaces, physical partitions, footprint, storeys, every door/window and connection; verify every east/west large and ordinary window sill/head and the plan dimension chains. Preserve uncertainty and stop within 110 minutes.",
+      "outer_coordinator_instruction": "Use this MCP server as the only building/tool route. Local observers are read-only. Each child gets at most 3 model calls, 6 tools, 100000 tokens and 600 seconds. At most 3 evidence-backed revision rounds. Demonstrate one crop delegation and retain one deliberate process interruption/recovery across this two-case batch; never inject GT or accepted BIM into generation.",
+      "limits": {"model_calls": 30, "tool_calls": 120, "tokens": 500000, "seconds": 6600},
+      "expected_usage": {"model_requests": 24, "provider_tokens": 360000, "hard_ceiling_requests": 30, "hard_ceiling_tokens": 500000},
+      "output_tokens": 16384,
+      "quota_limit": 30,
+      "max_concurrent_observers": 4,
+      "thinking": true
+    },
+    {
+      "case_id": "voimatalo_first_full_case",
+      "mode": "external_coordinator_mcp",
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "mesh",
+      "input": "case_tests/textured_mass/single_buildings/voimatalo/input.glb",
+      "image_kind": "mesh_views",
+      "output": "AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/first_full_voimatalo",
+      "quota_journal": "AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/first_full_voimatalo/quota.jsonl",
+      "scope": "Infer an inspectable fine-detail lightweight BIM for the target Voimatalo building from the admitted textured mesh. Build, inspect, identify at least one real issue, make an evidence-backed revision, and save the result. Model only the target building. Preserve the main massing, levels, repeated window bays, doors near their partitions, circulation and space relations; mark internal layout and hidden facades as inference. Prefer a simple reasonable inference where several fit, without omitting physical partitions or inventing subdivisions of visible open space. Stop within 110 minutes.",
+      "outer_coordinator_instruction": "Use this MCP server as the only building/tool route. The accepted 10-01 BIM and all historical measured layouts stay evaluation-only. Local observers are read-only. Each child gets at most 3 model calls, 6 tools, 100000 tokens and 600 seconds. At most 3 evidence-backed revision rounds. Demonstrate one crop delegation and retain one deliberate process interruption/recovery across this two-case batch.",
+      "limits": {"model_calls": 40, "tool_calls": 160, "tokens": 750000, "seconds": 6600},
+      "expected_usage": {"model_requests": 32, "provider_tokens": 520000, "hard_ceiling_requests": 40, "hard_ceiling_tokens": 750000},
+      "output_tokens": 16384,
+      "quota_limit": 40,
+      "max_concurrent_observers": 4,
+      "thinking": true
+    }
+  ]
+}

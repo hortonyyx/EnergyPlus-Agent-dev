@@ -247,7 +247,7 @@ def estimate_chat_request(body: Mapping[str, Any], *, profile: ModelProfile | No
     images: list[ImageTokenEstimate] = []
     for reference, url in image_urls:
         width, height = _data_image_size(url)
-        if selected.image_estimator == "qwen_vl_patch32_v1":
+        if selected.image_estimator in {"qwen_vl_patch32_v1", "glm_vl_patch28_v1"}:
             tokens, resized_w, resized_h = qwen_image_tokens(width, height, selected)
         elif selected.image_estimator == "decoded_pixels_v0":
             tokens, resized_w, resized_h = width * height, width, height

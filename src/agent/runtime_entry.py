@@ -130,8 +130,11 @@ async def execute(args) -> dict:
                 if not args.resume:
                     write_frozen_materials(output / "frozen", repository_root=ROOT)
                     write_frozen_tool_catalog(output / "frozen", catalog, readonly=role.read_only)
-                parameters = {"max_tokens": args.output_tokens, "temperature": args.temperature,
-                              "enable_thinking": args.thinking}
+                parameters = {"max_tokens": args.output_tokens, "temperature": args.temperature}
+                if args.reasoning_effort:
+                    parameters["reasoning_effort"] = args.reasoning_effort
+                else:
+                    parameters["enable_thinking"] = args.thinking
                 if args.provider == "scripted":
                     fixture = args.script.read_bytes()
                     # The local fixture gives one response per request ticket. A
@@ -227,6 +230,8 @@ def parser():
     p.add_argument("--output-tokens", type=int, default=2048)
     p.add_argument("--temperature", type=float, default=0.0)
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
+    p.add_argument("--reasoning-effort", choices=("low", "high", "max"),
+                   help="provider-native reasoning level; when set, omit enable_thinking")
     p.add_argument("--max-candidates", type=int, default=4)
     p.add_argument("--attach-image", action="append", default=[])
     p.add_argument("--resume", action="store_true")

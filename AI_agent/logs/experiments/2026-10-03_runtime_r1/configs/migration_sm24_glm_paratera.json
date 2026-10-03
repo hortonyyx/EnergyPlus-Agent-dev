@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "batch_id": "r1-migration-comparison-sm24",
+  "approval_required_before_launch": true,
+  "maximum_seconds_per_case": 3000,
+  "cases": [
+    {
+      "case_id": "sm24_glm_paratera",
+      "mode": "single_model",
+      "provider": "paratera",
+      "model": "GLM-5.3-Flash",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "output": "AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment constraints: work directly with the deterministic and visual tools, without review_detail or other delegation.\nBudget: 3000 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {"model_calls": 60, "tool_calls": 120, "tokens": 4000000, "seconds": 3000},
+      "expected_usage": {"model_requests": 45, "provider_tokens": 2640000, "basis": "10-02 subscription baseline: 44 rounds and 2,640,187 input+cache-read+output tokens; 60 requests and 4,000,000 tokens are hard stops"},
+      "max_candidates": 24,
+      "context_tokens": 900000,
+      "output_tokens": 16384,
+      "temperature": 1.0,
+      "reasoning_effort": "high",
+      "parameter_difference": "The subscription run used Claude Code effort=medium, whose translation was not captured. GLM's public API accepts low/high/max only. high is the closest explicit supported level; temperature was not reported by the subscription route and is set to the upstream evaluation value 1.0. No retry or fallback."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "model_requested": "GLM-5.3-Flash",
+  "model_returned": "GLM-5.3-Flash",
+  "parameters_requested": {
+    "max_tokens": 8,
+    "temperature": 0.0,
+    "reasoning_effort": "medium"
+  },
+  "parameter_interpretation": "The upstream model card accepts low/high/max only and says any other value defaults to max. The medium request was accepted by Paratera but is not an attestation that medium took effect.",
+  "requests": 5,
+  "retries": 0,
+  "fallbacks": 0,
+  "reported_usage": {
+    "prompt_tokens": 6286,
+    "completion_tokens": 73,
+    "total_tokens": 6359
+  },
+  "rows": [
+    {"case": "text_control", "actual_input": 31, "estimate": 31, "upper_bound": 46, "point_error_percent": 0.0},
+    {"case": "text_long", "actual_input": 3756, "estimate": 4043, "upper_bound": 4379, "point_error_percent": 7.64},
+    {"case": "image_224x224", "actual_input": 97, "estimated_text": 31, "estimated_image": 66, "estimate": 97, "upper_bound": 112, "point_error_percent": 0.0},
+    {"case": "image_896x896", "actual_input": 1057, "estimated_text": 31, "estimated_image": 1026, "estimate": 1057, "upper_bound": 1072, "point_error_percent": 0.0},
+    {"case": "image_1600x1200", "actual_input": 1345, "estimated_text": 31, "estimated_image": 2453, "estimate": 2484, "upper_bound": 2499, "point_error_percent": 84.68}
+  ],
+  "conclusion": "The dependency-free text estimate is within 7.64% on these two points. The official patch grid exactly matches two square-image increments and deliberately over-reserves the larger synthetic image because Paratera does not attest its image preprocessing. All five upper bounds cover reported input usage.",
+  "sources": {
+    "upstream_profile": "https://huggingface.co/zai-org/GLM-5.3-Flash",
+    "upstream_config": "https://huggingface.co/zai-org/GLM-5.3-Flash/raw/main/config.json",
+    "upstream_processor": "https://huggingface.co/zai-org/GLM-5.3-Flash/raw/main/processor_config.json",
+    "paratera_identity_preflight": "AI_agent/logs/experiments/2026-10-02_paratera_elevation_probe/responses/GLM-5.3-Flash_East.json"
+  }
+}
