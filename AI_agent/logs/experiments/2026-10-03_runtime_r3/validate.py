@@ -24,6 +24,8 @@ def source_hashes(group):
         "src/agent_runtime/*.py", "src/agent/runtime_*.py", "src/harness_contracts/*.py",
         "src/agent/contracts/*.py") for p in ROOT.glob(pattern))
     paths.update(files_for(group))
+    if group == "short":
+        paths.add("AI_agent/logs/experiments/2026-10-02_harness_stage0/build_samples.py")
     paths.add("src/agent_runtime/agent_versions.json")
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sorted(paths)}
 

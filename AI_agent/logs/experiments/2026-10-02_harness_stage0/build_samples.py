@@ -6,6 +6,7 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import sys
 from PIL import Image
 
@@ -20,6 +21,8 @@ EXP = "AI_agent/logs/experiments/"
 SM25 = EXP + "2026-10-01_opus_dev_sm25/"
 SOL = EXP + "2026-10-01_partial_inference_developer_tests/run_61sol/"
 ACCEPTED = EXP + "2026-10-01_voimatalo_door_revision/"
+SAMPLE_CODE_COMMIT = "5bb10538"
+SAMPLE_CODE_PATH = "scripts/tool_scripts/run_bim_agent.py"
 
 
 def read(path):
@@ -27,7 +30,12 @@ def read(path):
 
 
 def digest(path):
-    return hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+    # These specimens explicitly identify the frozen code commit. Rebuilding
+    # them after an Agent upgrade must still hash that commit's bytes, never
+    # relabel current tools as historical code or rewrite the original samples.
+    raw = (subprocess.check_output(["git", "show", f"{SAMPLE_CODE_COMMIT}:{path}"], cwd=ROOT)
+           if str(path) == SAMPLE_CODE_PATH else (ROOT / path).read_bytes())
+    return hashlib.sha256(raw).hexdigest()
 
 
 def dump(path, value):
@@ -116,7 +124,7 @@ def demo_events(case, image_path, state_path, result):
     versions = {k:dict(identifier=digest(p), evidence=source(p, source_kind="runtime")) for k,p in {
         "dependency_lock":"uv.lock", "prompt":config_path, "tool_definitions":config_path,
         "inference_parameters":config_path, "model_route":config_path}.items()}
-    versions["code_commit"] = dict(identifier="5bb10538", evidence=source("scripts/tool_scripts/run_bim_agent.py", source_kind="runtime"))
+    versions["code_commit"] = dict(identifier=SAMPLE_CODE_COMMIT, evidence=source(SAMPLE_CODE_PATH, source_kind="runtime"))
     versions["remote_model"] = dict(route_id="offline-fixture", remote_alias="no-model-called", alias_status="unverified")
     events = []
 

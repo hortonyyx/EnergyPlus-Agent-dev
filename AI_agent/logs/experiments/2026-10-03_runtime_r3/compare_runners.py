@@ -78,8 +78,17 @@ async def case_report(case, directory, timeout):
     script.write_text(json.dumps([{"choices": [{"message": {"role": "assistant", "content": "Offline preparation only."},
         "finish_reason": "stop"}], "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20}}]))
     new_run = directory / "runtime"
+    # Derive the runtime task independently from the archived baseline, not
+    # from the Claude request just prepared. A changed task template must fail
+    # the comparison instead of silently feeding itself to both sides.
+    reference_name = ("2026-09-30_sm21_instruction_fix_glm_trial01" if case == "sm21"
+                      else f"2026-10-02_{case}_glm_baseline")
+    reference_path = HERE.parent / reference_name / "agent_request.json"
+    reference_raw = reference_path.read_bytes()
+    runtime_task = json.loads(reference_raw)["prompt"].replace(
+        "Budget: 3000 seconds", f"Budget: {timeout} seconds")
     argv = ["--out", str(new_run), "--images", str(old_args.images), "--provider", "scripted",
-        "--script", str(script), "--scope", old["prompt"], "--seconds", str(timeout),
+        "--script", str(script), "--scope", runtime_task, "--seconds", str(timeout),
         "--max-candidates", "24", "--model-calls", "1", "--tokens", "1000000"]
     for name in old_args.floor_plan_images:
         argv += ["--floor-plan-image", name]
@@ -103,6 +112,8 @@ async def case_report(case, directory, timeout):
         "tool_catalog": compare(canonical(old_catalog), canonical(new_catalog)),
         "tool_names_descriptions_parameters": compare(canonical(old_wire_tools), canonical(wire["tools"])),
         "task_body": compare(old["prompt"].encode(), task.encode()),
+        "runtime_task_source": {"path": str(reference_path.relative_to(ROOT)),
+            "sha256": digest(reference_raw), "change": f"Budget: 3000 seconds -> Budget: {timeout} seconds"},
         "tool_count": len(old_catalog),
         "image_sha256": {name: value["sha256"] for name, value in old_manifest["images"].items()},
         "floor_plan_images": new_manifest["floor_plan_images"],
