@@ -10,7 +10,7 @@ import pytest
 from src.agent.runtime_entry import parser, runtime_model_profile
 from src.agent.runtime_r1_preparation import argv_for, load_configuration
 from src.agent_runtime.loop import RunLimits
-from src.agent_runtime.providers import (GLM_SUBSCRIPTION, MAIN_CREDENTIALS_FILE,
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION,
     GLM_SUBSCRIPTION_BASE_URL, provider_parameters, subscription_credentials)
 from test_agent_runtime import MESSAGES, response, runtime
 
@@ -25,24 +25,35 @@ def subscription_engine(tmp_path, responses, **kwargs):
     return engine
 
 
-def test_credentials_only_read_main_file_without_environment_fallback(monkeypatch):
+def test_credentials_only_read_explicit_file_without_environment_fallback(monkeypatch, tmp_path):
     import dotenv
     monkeypatch.setenv("GLM_API_KEY", "environment-must-not-be-used")
     seen = []
+    credentials = tmp_path / "subscription.env"
+    credentials.touch()
     def read(path, **kwargs):
         seen.append((path, kwargs))
         return {"GLM_BASE_URL": GLM_SUBSCRIPTION_BASE_URL, "GLM_API_KEY": "file-test-key"}
     monkeypatch.setattr(dotenv, "dotenv_values", read)
-    assert subscription_credentials() == (GLM_SUBSCRIPTION_BASE_URL, "file-test-key")
-    assert seen == [(MAIN_CREDENTIALS_FILE, {"interpolate": False})]
-    with pytest.raises(ValueError, match="main-tree"):
-        subscription_credentials(Path("/tmp/other.env"))
+    assert subscription_credentials(credentials) == (GLM_SUBSCRIPTION_BASE_URL, "file-test-key")
+    assert seen == [(credentials, {"interpolate": False})]
+    with pytest.raises(ValueError, match="explicit credentials file"):
+        subscription_credentials()
+    with pytest.raises(ValueError, match="does not exist"):
+        subscription_credentials(tmp_path / "missing.env")
     monkeypatch.setattr(dotenv, "dotenv_values", lambda *a, **kw: {"GLM_BASE_URL": GLM_SUBSCRIPTION_BASE_URL})
     with pytest.raises(ValueError, match="missing"):
-        subscription_credentials()
+        subscription_credentials(credentials)
     monkeypatch.setattr(dotenv, "dotenv_values", lambda *a, **kw: {"GLM_BASE_URL": "https://elsewhere.invalid", "GLM_API_KEY": "private"})
     with pytest.raises(ValueError, match="reviewed Coding Plan"):
-        subscription_credentials()
+        subscription_credentials(credentials)
+
+
+def test_credentials_do_not_interpolate_secrets_or_read_environment(tmp_path, monkeypatch):
+    monkeypatch.setenv("PRIVATE_VALUE", "do-not-expand")
+    credentials = tmp_path / "private.env"
+    credentials.write_text(f"GLM_BASE_URL={GLM_SUBSCRIPTION_BASE_URL}\nGLM_API_KEY=${{PRIVATE_VALUE}}\n")
+    assert subscription_credentials(credentials)[1] == "${PRIVATE_VALUE}"
 
 
 def test_cli_route_and_service_defaults_are_explicit():

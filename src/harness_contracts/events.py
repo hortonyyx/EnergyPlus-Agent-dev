@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import Field, JsonValue, model_validator
+from pydantic import Field, JsonValue, field_validator, model_validator
 
 from .base import ContractModel, EventTimestamp, NonEmptyStr, ParentTaskRef
 from .budget import BudgetReservation, BudgetSettlement, UsageEvidence
@@ -346,6 +346,26 @@ class StateInspectionPayload(ContractModel):
     conclusion: Literal["not_applied", "already_applied", "inconclusive", "safe_to_resume"]
 
 
+class ModelFailureDetails(ContractModel):
+    """Sanitized service diagnostics, independent of the retry decision."""
+
+    request_event_id: NonEmptyStr
+    category: NonEmptyStr
+    retryable: bool
+    http_status: int | None = Field(default=None, ge=100, le=599)
+    service_error_type: str | None = None
+    body_excerpt: str | None = None
+    request_id: str | None = None
+    usage_received: bool
+
+    @field_validator("body_excerpt")
+    @classmethod
+    def bounded_excerpt(cls, value):
+        if value is not None and len(value.encode("utf-8")) > 2048:
+            raise ValueError("model failure excerpt exceeds 2 KB")
+        return value
+
+
 class RunLifecyclePayload(ContractModel):
     event_type: Literal["run_lifecycle"] = "run_lifecycle"
     action: Literal["start", "stop", "retry", "cancel", "timeout", "resume", "failure"]
@@ -355,10 +375,13 @@ class RunLifecyclePayload(ContractModel):
     state_inspection_event_id: NonEmptyStr | None = None
     checkpoint: HashedBlobRef | None = None
     failure_stage: NonEmptyStr | None = None
+    model_failure: ModelFailureDetails | None = None
     partial_artifacts: tuple[BlobRef, ...] = ()
 
     @model_validator(mode="after")
     def validate_action_fields(self) -> RunLifecyclePayload:
+        if self.model_failure is not None and self.action not in {"failure", "timeout", "cancel"}:
+            raise ValueError("model failure details require a failure, timeout or cancel event")
         if self.action == "retry":
             if self.retry_of_event_id is None or self.attempt is None:
                 raise ValueError("retry needs retry_of_event_id and attempt")

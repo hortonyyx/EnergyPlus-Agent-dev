@@ -24,7 +24,9 @@ from .adapter import convert_tool_result, parse_response, prepare_request, repor
 from .accounting import (account_request_usage, bills_images_separately,
     get_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
-from .estimation import get_model_profile
+from .estimation import get_model_profile, estimate_chat_request
+from .failures import ModelServiceError, classify_failure
+from src.harness_contracts.events import ModelFailureDetails
 from .output_limits import validate_output_limit
 from .store import EventStore
 
@@ -38,7 +40,8 @@ class RunLimits(ContractModel):
     near_limit: Literal["stop", "reduce_output"] = "stop"
     min_output_tokens: int = Field(default=1, ge=1)
     context_tokens: int | None = Field(default=None, ge=1)
-    max_model_retries: int = Field(default=0, ge=0)
+    max_model_retries: int = Field(default=2, ge=0)
+    retry_backoff_seconds: float = Field(default=1.0, ge=0)
     max_consecutive_truncations: int = Field(default=2, ge=0)
     max_total_truncations: int = Field(default=3, ge=0)
     summary_every: int = Field(default=0, ge=0)
@@ -227,19 +230,32 @@ class Runtime:
 
     def _refresh_counts(self):
         requests = [e for e in self.store.events if e.payload.event_type == "adapter_request"]
-        responses = [e.payload for e in self.store.events if e.payload.event_type == "model_response"]
+        usages = {e.payload.request_event_id: e.payload.usage for e in self.store.events
+                  if e.payload.event_type == "model_response"}
+        settlements = {s.reservation_id: s for s in self.task_budget.ledger.settlements}
+        for request in requests:
+            settlement = settlements.get(request.payload.reservation_id)
+            if request.event_id not in usages and settlement is not None:
+                # HTTP failures can carry a usage receipt without a successful
+                # chat response; account for each actual request exactly once.
+                usages[request.event_id] = settlement.usage
         self.counts = {"model_calls": len(requests),
             "tool_calls": sum(e.payload.event_type == "tool_invocation" for e in self.store.events),
-            "reported_tokens": sum(reported_tokens(r.usage) or 0 for r in responses),
+            "reported_tokens": sum(reported_tokens(usage) or 0 for usage in usages.values()),
             "reserved_tokens": self.task_budget.ledger.committed.tokens or 0,
-            "usage_complete": len(requests) == len(responses) and all(reported_tokens(r.usage) is not None for r in responses)}
+            "usage_complete": len(requests) == len(usages) and all(reported_tokens(usage) is not None for usage in usages.values())}
 
     def _project(self):
         if self.context is None:
             return self.messages, self.sources, None
         p = self.context.project(required_tags=self.required_context_tags,
-            required_view_ids=self.required_view_ids, consume_retrievals=False)
-        return list(p.messages), list(p.sources), p.decision_event_ids[-1] if p.decision_event_ids else None
+            required_view_ids=self.required_view_ids, consume_retrievals=False,
+            token_estimator=lambda messages: estimate_chat_request({"model": self.model,
+                "messages": messages, "tools": self.specs, **self.parameters},
+                strict=self.strict_model_profile).input_tokens_estimate)
+        last = p.decision_event_ids[-1] if p.decision_event_ids else next((
+            e.event_id for e in reversed(self.store.events) if e.payload.event_type == "context"), None)
+        return list(p.messages), list(p.sources), last
 
     async def _model_call(self, messages, sources, *, purpose, tools, context_event_id=None):
         parameters = dict(self.parameters)
@@ -331,7 +347,7 @@ class Runtime:
             self._fault("after_reservation")
             if self.retry_of:
                 self.store.append(RunLifecyclePayload(action="retry", reason="explicit bounded model retry",
-                    retry_of_event_id=self.retry_of, attempt=self._retry_count() + 2))
+                    retry_of_event_id=self.retry_of, attempt=self._request_retry_count(self.retry_of) + 2))
                 self._fault("after_retry")
             self.stage = "model_request"
             request = self.store.append(prepared.event_payload.model_copy(update={
@@ -346,17 +362,18 @@ class Runtime:
                     timeout=request_timeout,
                 )
             except (Exception, asyncio.CancelledError) as exc:
-                settlement_stop = self._settle(reservation.reservation_id, UsageMissing(reason="request ended without a service usage receipt"),
+                failure = classify_failure(exc, request.event_id)
+                self._record_model_failure(failure)
+                usage = exc.usage if isinstance(exc, ModelServiceError) else UsageMissing(reason="request ended without a service usage receipt")
+                settlement_stop = self._settle(reservation.reservation_id, usage,
                              seconds=time.monotonic() - sent_at)
                 self._refresh_counts()
                 if settlement_stop:
                     return None, settlement_stop
-                if (not isinstance(exc, (asyncio.CancelledError, TimeoutError))
-                        and self.answer_repair_request_id is None
-                        and self._retry_count() < self.limits.max_model_retries):
+                if await self._allow_model_retry(failure):
                     self.retry_of, purpose = request.event_id, "retry"
                     continue
-                return None, self._exception_reason(exc)
+                return None, self._failure_stop_reason(failure)
             self.stage = "model_response"
             parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
             elapsed = time.monotonic() - sent_at
@@ -395,6 +412,15 @@ class Runtime:
                 purpose = logical_purpose
                 continue
             if parsed.protocol_error:
+                if parsed.protocol_error == "empty_response" and reported_tokens(parsed.event_payload.usage) == 0:
+                    failure = ModelFailureDetails(request_event_id=request.event_id,
+                        category="empty_response", retryable=True, usage_received=True,
+                        service_error_type="empty_response", request_id=str(raw.get("id")) if raw.get("id") else None)
+                    self._record_model_failure(failure)
+                    if await self._allow_model_retry(failure):
+                        self.retry_of, purpose = request.event_id, "retry"
+                        continue
+                    return None, self._failure_stop_reason(failure)
                 return None, parsed.protocol_error
             if reported_tokens(parsed.event_payload.usage) is None:
                 return None, "token_usage_unavailable"
@@ -777,7 +803,10 @@ class Runtime:
         if shown["image_blocks"]:
             self.pending_picture_events.append(event.event_id)
         origins = getattr(self.tools, "image_origins", lambda _: {})(raw)
-        for ref_dict in json.loads(shown["tool_message"]["content"]).get("images", []):
+        image_refs = shown.get("images")
+        if image_refs is None:  # Saved pre-C1 presentations remain resumable.
+            image_refs = json.loads(shown["tool_message"]["content"]).get("images", [])
+        for ref_dict in image_refs:
             ref = HashedBlobRef.model_validate_json(json.dumps(ref_dict))
             origin = origins.get(ref.sha256, {})
             path = origin.get("original_path") if isinstance(origin, dict) else origin
@@ -918,6 +947,16 @@ class Runtime:
                         continue
                     if reason:
                         return reason
+                    if parsed.protocol_error == "empty_response" and reported_tokens(p.usage) == 0:
+                        # Rejected empty replies never become assistant history,
+                        # including when a crash happens before retry/stop.
+                        if not any(e.payload.event_type == "run_lifecycle" and e.payload.model_failure
+                                   and e.payload.model_failure.request_event_id == p.request_event_id
+                                   for e in self.store.events):
+                            self._record_model_failure(ModelFailureDetails(request_event_id=p.request_event_id,
+                                category="empty_response", retryable=True, usage_received=True,
+                                service_error_type="empty_response"))
+                        continue
                     if reported_tokens(p.usage) is None:
                         return "token_usage_unavailable"
                     reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
@@ -959,19 +998,25 @@ class Runtime:
             conclusion="safe_to_resume" if safe else "inconclusive"))
         if not safe:
             return "resume_state_changed"
-        responded = {e.payload.request_event_id for e in self.store.events if e.payload.event_type == "model_response"}
+        failures = {e.payload.model_failure.request_event_id: e.payload.model_failure
+                    for e in self.store.events if e.payload.event_type == "run_lifecycle" and e.payload.model_failure}
+        responded = {e.payload.request_event_id for e in self.store.events if e.payload.event_type == "model_response"
+                     and e.payload.request_event_id not in failures}
         retried = {e.payload.retry_of_event_id for e in self.store.events
             if e.payload.event_type == "run_lifecycle" and e.payload.action == "retry"}
         dangling = [e for e in self.store.events if e.payload.event_type == "adapter_request"
                     and e.event_id not in responded and e.event_id not in retried]
         if dangling:
             request = dangling[-1]
+            failure = failures.get(request.event_id)
+            if failure and not failure.retryable:
+                return failure.category
             if request.payload.reservation_id:
                 self._settle(request.payload.reservation_id, UsageMissing(reason="process interrupted with request outcome unknown"), seconds=None)
             if self.answer_repair_request_id is not None:
                 return "resume_request_outcome_unknown"
-            if self._retry_count() >= self.limits.max_model_retries:
-                return "resume_request_outcome_unknown"
+            if self._request_retry_count(request.event_id) >= self.limits.max_model_retries:
+                return self._failure_stop_reason(failure) if failure else "resume_request_outcome_unknown"
             if request.payload.logical_purpose == "context_summary":
                 return "resume_request_outcome_unknown"
             self.retry_of = request.event_id
@@ -1081,6 +1126,46 @@ class Runtime:
 
     def _retry_count(self):
         return sum(e.payload.event_type == "run_lifecycle" and e.payload.action == "retry" for e in self.store.events)
+
+    def _request_retry_count(self, request_id):
+        """Count the current failed-request chain, not unrelated prior retries."""
+        count = 0
+        while request_id:
+            request = next(e for e in self.store.events if e.event_id == request_id)
+            prior = [e for e in self.store.events if e.sequence < request.sequence
+                     and (e.payload.event_type == "adapter_request" or
+                          e.payload.event_type == "run_lifecycle" and e.payload.action == "retry")]
+            if not prior or prior[-1].payload.event_type != "run_lifecycle":
+                break
+            count += 1
+            request_id = prior[-1].payload.retry_of_event_id
+        return count
+
+    def _record_model_failure(self, failure):
+        self.store.append(RunLifecyclePayload(action="failure", failure_stage="model_request",
+            reason=failure.category, model_failure=failure))
+
+    async def _allow_model_retry(self, failure):
+        attempt = self._request_retry_count(failure.request_event_id)
+        if (not failure.retryable or self.answer_repair_request_id is not None
+                or attempt >= self.limits.max_model_retries or self._budget_stop()):
+            return False
+        delay = self.limits.retry_backoff_seconds * 2 ** attempt
+        if delay >= self._remaining():
+            return False
+        await asyncio.sleep(delay)
+        return self._budget_stop() is None
+
+    def _failure_stop_reason(self, failure):
+        budget = self._budget_stop()
+        if budget:
+            return budget
+        if failure.retryable and self._request_retry_count(failure.request_event_id) >= self.limits.max_model_retries:
+            return "model_retries_exhausted:" + failure.category
+        if failure.retryable and self.limits.retry_backoff_seconds * 2 ** self._request_retry_count(
+                failure.request_event_id) >= self._remaining():
+            return self._scoped_budget_reason("time", task=True)
+        return failure.category
 
     def _fault(self, name):
         if self.fault_hook:

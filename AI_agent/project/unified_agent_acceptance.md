@@ -449,7 +449,7 @@ Astra 交付于分支 `dev/astra-r3-20261003`，末提交 `de484893`，约 60 �
 
 ## 清理包 C1：底座呈现与稳健性（首次完整审查后，10-03 晚派出，Astra）
 
-**状态：派出，待交付。** 依据[首次完整审查汇总](../logs/reviews/2026-10-03_first_full_review/summary.md)第三节。两边审查一致认为：复杂度主要堆在“模型每轮看到什么”和运行记录的重复处理上，先减负、补故障处理，再进吸收包和 27B 摸底。派工单见 [C1 brief](../logs/experiments/2026-10-03_cleanup_c1/brief.md)。文件范围：`src/agent_runtime/`、`src/harness_contracts/`、`src/agent/runtime_entry.py`、`src/agent/runtime_context.py`、`src/agent/runtime_r1_preparation.py`、`src/agent_runtime/providers.py` 及对应测试；不碰 `scripts/tool_scripts/`、`src/agent/runtime_tools.py`、`src/agent/runtime_behaviour.py`（归 C2）。
+**状态：10-03 晚验收通过，合入主线。** 依据[首次完整审查汇总](../logs/reviews/2026-10-03_first_full_review/summary.md)第三节。两边审查一致认为：复杂度主要堆在“模型每轮看到什么”和运行记录的重复处理上，先减负、补故障处理，再进吸收包和 27B 摸底。派工单见 [C1 brief](../logs/experiments/2026-10-03_cleanup_c1/brief.md)。文件范围：`src/agent_runtime/`、`src/harness_contracts/`、`src/agent/runtime_entry.py`、`src/agent/runtime_context.py`、`src/agent/runtime_r1_preparation.py`、`src/agent_runtime/providers.py` 及对应测试；不碰 `scripts/tool_scripts/`、`src/agent/runtime_tools.py`、`src/agent/runtime_behaviour.py`（归 C2）。
 
 ### 通过条件
 
@@ -466,6 +466,18 @@ Astra 交付于分支 `dev/astra-r3-20261003`，末提交 `de484893`，约 60 �
 **F. 订阅凭据路径显式配置。** 不再写死主工作树路径；仍只读指定文件、不插值、不记录凭据、拒绝非 Coding Plan 端点。
 
 **G. 检查与范围。** 阶段 0–3、R1、R2、R3 的检查全部通过；改动消息格式的断言逐条说明换成了什么，不得放宽保护性断言。R3 的两底座核对脚本补一项“上下文策略”：阈值以下两边都不裁剪。允许最多 4 次 GLM 订阅小请求，只用于确认新的工具消息格式和重试路径能被端点接受；不跑整案，Paratera 与 DeepSeek 为 0。
+
+### 验收结论（10-03 晚，Opus）
+
+Astra 交付于分支 `dev/astra-c1-20261003`，末提交 `adeb2346`，约 80 分钟；交付报告见 [C1 README](../logs/experiments/2026-10-03_cleanup_c1/README.md)。**通过。**
+
+- 改动只在 C1 范围内，没有碰工具、指引、`runtime_tools.py`、`runtime_behaviour.py`。
+- **A：** 默认不再按条数裁剪，按估算 150,000 token 压缩，启动器显式传参；脚本模型 12 次与 40 次连续请求、P3 真实轨迹 32 次非压缩转换都核对了前缀不变。图片条数上限也一并取消，与 Claude Code 一样留到压缩时处理；端点能否接受很多图的请求未经真跑验证，记为节点回归要看的风险。
+- **B／C／E（P3 离线重放）：** 最长状态消息 49,201 → 900 字符；55 份工具返回发给模型的文字 856,686 → 515,431 字符，原始 MCP 返回不变；上下文事件 861 → 63。
+- **D：** 我逐行看了失败分类：额度、权限、参数错误和判不清的 429 都停；超时、5xx、明确的临时限流、用量为 0 的空回复有限重试（默认 2 次，间隔 1、2 秒，间隔超过剩余时间就不等）；空回复不进历史；错误正文去掉密钥后存前 2 KB。智谱“请求过多、请稍后重试”一类措辞目前会被当作判不清的 429 而停，偏保守，真跑若遇到再加。
+- **F：** 凭据路径不再写死，订阅必须显式给文件。
+- **G：** 我在工作树重跑短联合加 R3、C1 共 360 项，全部通过（453 秒）；长任务 10 项、75 步回放 3 项沿用 Astra 的同代码结果。GLM 订阅小请求 2 次。
+- **留给以后：** 旧局部委派入口仍显式用 16 条窗口，等委派真正启用时统一。
 
 ## 清理包 C2：Agent 与量具（首次完整审查后，10-03 晚派出，Astra）
 

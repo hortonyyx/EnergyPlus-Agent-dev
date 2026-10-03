@@ -225,7 +225,7 @@ def test_incomplete_tool_batch_is_rejected_instead_of_sending_invalid_history(tm
             manager.project()
 
 
-def test_image_policy_records_every_decision_and_retrieves_exact_identity(tmp_path):
+def test_image_policy_records_only_transitions_and_retrieves_exact_identity(tmp_path):
     with _store(tmp_path) as store:
         manager = ContextManager(
             store,
@@ -250,11 +250,14 @@ def test_image_policy_records_every_decision_and_retrieves_exact_identity(tmp_pa
             event for event in store.events
             if event.payload.event_type == "context" and event.payload.action in {"retain_image", "remove_image"}
         ]
-        assert {event.payload.action for event in decisions[-2:]} == {"retain_image", "remove_image"}
-        assert {event.payload.view_id for event in decisions[-2:]} == {"view-old", "view-current"}
+        assert [(event.payload.action, event.payload.view_id) for event in decisions] == [("remove_image", "view-old")]
+        assert next(image for image in manager.images if image.key == current_key).active
         assert all(event.payload.before and event.payload.after and event.payload.details
                    for event in decisions[-2:])
         assert len(projection.decision_event_ids) >= 2
+        count = len(store.events)
+        assert manager.project(required_tags=("current_floor",)).messages == projection.messages
+        assert len(store.events) == count
         assert base64.b64encode(old_bytes).decode("ascii") not in json.dumps(projection.messages)
         checkpoint = manager.dump()
         assert base64.b64encode(old_bytes).decode("ascii") not in json.dumps(checkpoint)

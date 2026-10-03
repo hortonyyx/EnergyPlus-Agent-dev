@@ -130,10 +130,12 @@ async def execute(args) -> dict:
         seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
         near_limit=args.near_limit, min_output_tokens=args.min_output_tokens,
         context_tokens=args.context_tokens, max_model_retries=args.model_retries,
+        retry_backoff_seconds=args.retry_backoff_seconds,
         max_consecutive_truncations=args.max_consecutive_truncations,
         max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
     context_policy = ContextPolicy(active_window_messages=args.context_window,
+        compact_at_tokens=args.compact_at_tokens,
         large_result_bytes=args.large_result_bytes, max_images=args.max_images,
         max_image_bytes=args.max_image_bytes, pinned_tags=tuple(args.pin_tag)) if args.context else None
     pricing = PriceSchedule.model_validate_json(args.price_schedule.read_bytes()) if args.price_schedule else None
@@ -244,7 +246,7 @@ def parser():
     p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)
     p.add_argument("--script", type=Path, help="explicit offline Chat Completions response fixture")
     p.add_argument("--model", default="Qwen3.8-27B")
-    p.add_argument("--credentials-file", type=Path, help="read provider-specific keys; GLM subscription requires main-tree .env")
+    p.add_argument("--credentials-file", type=Path, help="read only this provider credentials file; required for GLM subscription")
     p.add_argument("--model-calls", type=int, default=6)
     p.add_argument("--tool-calls", type=int, default=12)
     p.add_argument("--seconds", type=float, default=180.0)
@@ -253,16 +255,19 @@ def parser():
     p.add_argument("--price-schedule", type=Path, help="PriceSchedule JSON; estimates are not provider bills")
     p.add_argument("--near-limit", choices=("stop", "reduce_output"), default="stop")
     p.add_argument("--min-output-tokens", type=int, default=1)
-    p.add_argument("--model-retries", type=int, default=0)
+    p.add_argument("--model-retries", type=int, default=2)
+    p.add_argument("--retry-backoff-seconds", type=float, default=1.0)
     p.add_argument("--max-consecutive-truncations", type=int, default=2,
                    help="maximum consecutive output-limit recoveries; zero disables recovery")
     p.add_argument("--max-total-truncations", type=int, default=3,
                    help="maximum output-limit recoveries across this root run, including children and summaries")
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
-    p.add_argument("--context-window", type=int, default=16)
+    p.add_argument("--context-window", type=int, help="explicit legacy message-window replay; production defaults to token compaction")
+    p.add_argument("--compact-at-tokens", type=int, default=150_000,
+                   help="compact only when estimated input tokens reach this threshold")
     p.add_argument("--large-result-bytes", type=int, default=8192)
-    p.add_argument("--max-images", type=int, default=12)
+    p.add_argument("--max-images", type=int, help="optional image count target at compaction; unset by default")
     p.add_argument("--max-image-bytes", type=int, default=32_000_000)
     p.add_argument("--pin-tag", action="append", default=[])
     p.add_argument("--keep-view-id", action="append", default=[])

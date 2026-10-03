@@ -18,13 +18,14 @@ def update_building_context(engine, event, raw_result):
     run = Path(engine.tools.run_directory).resolve()
     context, store = engine.context, engine.store
 
-    def save(key, category, value, status, source):
+    def save(key, category, value, status, source, *, active=True):
         sources = source if isinstance(source, tuple) else (source,)
         old = next((s for s in context.state if s.key == key), None)
-        if old and (old.value, old.epistemic_status, old.source_refs) == (value, status, sources):
+        if old and (old.value, old.epistemic_status, old.source_refs, old.active) == (value, status, sources, active):
             return
         context.set_state(StateEntry(key=key, category=category, value=value,
-            epistemic_status=status, source_refs=sources, revision=old.revision + 1 if old else 1))
+            epistemic_status=status, source_refs=sources, active=active,
+            revision=old.revision + 1 if old else 1))
 
     def source_for(path):
         path = path.resolve()
@@ -67,23 +68,35 @@ def update_building_context(engine, event, raw_result):
             "observed", engine._event_source(event))
     for folder, pattern, status in (("claims", "claim_*.json", "inferred"),
                                     ("inferences", "inference_*.json", "inferred")):
+        decisions = {}
+        for decision_path in sorted((run / folder).glob("decision_*.json")):
+            decision = json.loads(decision_path.read_bytes())
+            if decision.get("claim_id"):
+                decisions[decision["claim_id"]] = (decision, source_for(decision_path))
         for path in sorted((run / folder).glob(pattern)):
             source = source_for(path)
             value = json.loads(path.read_bytes())
+            disposition, decision_source = decisions.get(path.stem, ({}, None))
+            active = disposition.get("disposition", value.get("status")) not in {
+                "retracted", "withdrawn", "resolved", "superseded"}
+            sources = (source, decision_source) if decision_source else (source,)
             save(folder + ":" + path.stem, "evidence_reference",
                 {"id": path.stem, "record": source.blob.model_dump(mode="json"),
-                 "interpretation_status": "model interpretation; not independently verified"}, status, source)
+                 "interpretation_status": "model interpretation; not independently verified"}, status, sources,
+                 active=active)
             claim = value.get("claim", value.get("declaration", value))
             for field in ("unresolved", "uncertain"):
-                if isinstance(claim, dict) and claim.get(field):
-                    save(path.stem + ":" + field, "unresolved", claim[field], "unresolved", source)
+                items = claim.get(field, []) if isinstance(claim, dict) else []
+                if items or any(s.key == path.stem + ":" + field for s in context.state):
+                    save(path.stem + ":" + field, "unresolved", items, "unresolved", sources,
+                         active=active and bool(items))
     reviews = sorted((run / "work_reviews").glob("review_*.json"))
     if reviews:
         review_source = source_for(reviews[-1])
         review = json.loads(reviews[-1].read_bytes())
         save("current-work-review", "todo", {"record": review,
             "basis": "latest explicitly saved model review; planned action is not proof of completion"},
-            "inferred", review_source)
+            "inferred", review_source, active=bool(review.get("next_action")))
     candidates = sorted(p for p in run.glob("candidate_*/source_model.json") if p.is_file())
     old = next((s for s in context.state if s.key == "current-source-bim"), None)
     selected = old.value["candidate"] if old else None
@@ -126,6 +139,34 @@ def update_building_context(engine, event, raw_result):
             unresolved["report_unresolved"] = report.get("unresolved", [])
         else:
             unresolved["report_status"] = "not available"
-        save("source-bim-unresolved", "unresolved", unresolved, "unresolved", unresolved_sources)
+        has_unresolved = any(unresolved.get(name) for name in (
+            "conflicts", "unbuilt_openings", "unsupported", "report_unresolved"))
+        save("source-bim-unresolved", "unresolved", unresolved, "unresolved", unresolved_sources,
+             active=has_unresolved)
         save("source-bim-todo", "todo", {"unresolved": unresolved,
-            "status": "open items from saved artifacts; empty does not certify whole-case quality"}, "unresolved", unresolved_sources)
+            "status": "open items from saved artifacts; empty does not certify whole-case quality"}, "unresolved", unresolved_sources,
+             active=has_unresolved)
+        # Explicitly superseded notes retire from the current checklist, even
+        # when the older claim record remains immutable in the audit archive.
+        proposal_path = path.parent / "proposal.json"
+        if proposal_path.is_file():
+            proposal = json.loads(proposal_path.read_bytes())
+            retired = {row["before"] for row in proposal.get("geometry", {}).get("corrections", [])
+                       if row.get("operation") == "replace_note" and row.get("field") == "unresolved"
+                       and row.get("before") not in proposal.get("unresolved", [])}
+            if retired:
+                correction_source = source_for(proposal_path)
+                for entry in context.state:
+                    if entry.active and entry.category == "unresolved" and isinstance(entry.value, list):
+                        remaining = [item for item in entry.value if not isinstance(item, str) or item not in retired]
+                        if remaining != entry.value:
+                            save(entry.key, entry.category, remaining, entry.epistemic_status,
+                                 (*entry.source_refs, correction_source), active=bool(remaining))
+    current = next((s.value.get("candidate") for s in context.state
+                    if s.active and s.key == "current-source-bim"), None)
+    save("context-retrieval", "general", [
+        "Original images: view_image(name=<filename from initial input list>, box=<optional original-pixel crop>).",
+        f"Saved evidence: claim_status(candidate={current!r}); full history: claim_status().",
+        f"Current saved model: inspect_candidate(candidate={current!r}, include_geometry=True)." if current
+            else "No saved model yet; inspect_candidate(candidate=<saved candidate>, include_geometry=True) after creating one.",
+    ], "computed", engine._event_source(event))

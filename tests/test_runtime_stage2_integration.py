@@ -15,7 +15,7 @@ from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import BudgetAmounts, HashedBlobRef
 
-from test_agent_runtime import MESSAGES, response, runtime
+from test_agent_runtime import MESSAGES, Tools, response, runtime
 from test_runtime_recovery_edges import _summary_response
 
 
@@ -50,8 +50,14 @@ def test_exact_image_retrieval_survives_paid_summary_and_multiple_preflights(tmp
 
 
 def test_context_projection_keeps_frozen_guidance_and_exact_sent_tool_envelopes(tmp_path):
+    class RepeatedLargeResult(Tools):
+        async def call_tool(self, name, arguments):
+            raw = await super().call_tool(name, arguments)
+            raw["content"].insert(0, {"type": "text", "text": "exact repeated result " * 8})
+            return raw
+
     engine = runtime(tmp_path, [response(("a", "view", {}), ("b", "view", {})),
-        response(("c", "error", {})), response(text="Done")])
+        response(("c", "error", {})), response(text="Done")], tools=RepeatedLargeResult(tmp_path / "tools"))
     engine.context_policy = ContextPolicy(active_window_messages=1, max_images=1,
         large_result_bytes=30)
     with engine.store:
@@ -180,8 +186,16 @@ def test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_ag
             first_request = next(e.payload for e in store.events if e.payload.event_type == "adapter_request")
             assert "Do not merge the two physical rooms" in json.dumps(store.resolve(first_request.final_request_body))
             for category in ("user_requirement", "constraint", "evidence_reference", "artifact_version",
-                             "unresolved", "todo", "dimension", "object_id", "geometry"):
+                             "dimension", "object_id", "geometry"):
                 assert checklist.entries(category), category
+            # This fixture has no open items. C1 retires empty placeholders,
+            # while preserving the exact saved report and source references.
+            assert not checklist.entries("unresolved") and not checklist.entries("todo")
+            states = {entry.key: entry for entry in manager.state}
+            unresolved = states["source-bim-unresolved"]
+            assert not unresolved.active and unresolved.source_refs
+            assert all(not value for value in unresolved.value.values())
+            assert not states["source-bim-todo"].active
             manifest = json.loads((output / "versions.json").read_bytes())
             assert len(manifest["dependency_lock"]["identifier"]) == 64
         args.resume = True

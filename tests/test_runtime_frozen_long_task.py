@@ -133,8 +133,18 @@ class ObserveReplay:
             transmitted_state = [json.loads(m["content"][len(state_prefix):])
                 for m in json.loads(raw)["messages"]
                 if isinstance(m.get("content"), str) and m["content"].startswith(state_prefix)]
-            assert transmitted_state == [[entry.model_dump(mode="json")
-                                          for entry in engine.context.state if entry.active]]
+            # C1 separates the small model tail from the complete audited
+            # checklist. The next capture_state assertions still verify every
+            # view/claim hash, saved geometry and current/selected version.
+            model_state = engine.context.model_state()
+            assert transmitted_state == ([model_state] if model_state else [])
+            rendered = json.dumps(transmitted_state, ensure_ascii=False)
+            assert "blobs/" not in rendered and "sha256" not in rendered
+            if engine.context.checklist().entries("evidence_reference"):
+                assert "claim_status" in rendered and "view_image" in rendered
+            current = next((s for s in engine.context.state if s.key == "current-source-bim"), None)
+            if current:
+                assert current.value["candidate"] in rendered
             self.requests.append({"request": len(self.requests) + 1, "after_step": step,
                 "event_id": event.event_id, "reservation_event_id": reservation_event.event_id,
                 "wire_bytes": len(raw), "image_pixels": pixels,
@@ -290,14 +300,18 @@ def test_saved_claim_view_is_indexed_without_top_level_view_id(tmp_path):
                     budget_limit=BudgetAmounts(tokens=1000, calls=2)) as store:
         context = ContextManager(store)
         engine = SimpleNamespace(tools=SimpleNamespace(run_directory=run),
-                                 context=context, store=store)
+            context=context, store=store,
+            _event_source=lambda event: store.source("context-index-test", {"tool": event.payload.tool_name}))
         event = SimpleNamespace(payload=SimpleNamespace(tool_name="record_claim"))
         update_building_context(engine, event, {"structuredContent": {"claim_id": "claim_0001"}})
         view = next(entry for entry in context.state if entry.key == "view:view_0024")
         assert view.value["returned_png_sha256"] == "claim-crop-hash"
         assert store.get_bytes(view.source_refs[0].blob) == path.read_bytes()
+        saved = context.state
+        assert {entry.key for entry in saved} == {"view:view_0024", "context-retrieval"}
+        assert "claim_status" in json.dumps(context.model_state())
         update_building_context(engine, event, {})
-        assert context.state == (view,)
+        assert context.state == saved
 
 
 def test_claim_preview_image_keeps_its_original_view_id(tmp_path):
