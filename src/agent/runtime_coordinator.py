@@ -378,6 +378,9 @@ class CoordinatorSession:
                                                  "views": [v.as_json() for v in views]})
         limits = RunLimits(**arguments["budget"])
         if self.limits:
+            limits = limits.model_copy(update={
+                "max_consecutive_truncations": self.limits.max_consecutive_truncations,
+                "max_total_truncations": self.limits.max_total_truncations})
             remaining = self.limits.seconds - (time.time() - self.started_epoch)
             if remaining <= 0:
                 return {"status": "time_budget_exhausted", "package": package.model_dump(mode="json")}
@@ -439,7 +442,9 @@ async def serve(args):
     if not out.is_relative_to(ROOT):
         raise ValueError("coordinator output must stay inside this worktree")
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
-                       seconds=args.seconds, tokens=args.tokens)
+                       seconds=args.seconds, tokens=args.tokens,
+                       max_consecutive_truncations=args.max_consecutive_truncations,
+                       max_total_truncations=args.max_total_truncations)
     if args.resume:
         run, guide = out / "bim", (out / "guide.txt").read_text()
     else:
@@ -513,6 +518,8 @@ def parser():
     p.add_argument("--tokens", type=int, default=300_000)
     p.add_argument("--seconds", type=float, default=3600)
     p.add_argument("--output-tokens", type=int, default=8192)
+    p.add_argument("--max-consecutive-truncations", type=int, default=2)
+    p.add_argument("--max-total-truncations", type=int, default=3)
     p.add_argument("--max-concurrent-observers", type=int, default=4)
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--resume", action="store_true")

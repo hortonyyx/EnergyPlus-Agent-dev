@@ -11,6 +11,7 @@ from .budget import BudgetAmounts, BudgetLedger
 from .events import (
     AdapterRequestPayload,
     AnswerRepairPayload,
+    TruncationPayload,
     BudgetEventPayload,
     BudgetOverrunPayload,
     ContextEventPayload,
@@ -83,6 +84,7 @@ class EventLog(ContractModel):
         missing_ids = set(self.excerpt.missing_event_ids if self.excerpt else ())
         self._validate_response_requests(event_by_id, missing_ids)
         self._validate_answer_repairs(event_by_id, missing_ids)
+        self._validate_truncations(event_by_id, missing_ids)
         self._validate_inspections(event_by_id, missing_ids)
         self._validate_recovery(event_by_id, missing_ids)
         self._validate_context(event_by_id, missing_ids)
@@ -95,6 +97,34 @@ class EventLog(ContractModel):
         self._validate_invocations(event_by_id, missing_ids)
         self._validate_presentations(event_by_id, missing_ids)
         return self
+
+    def _validate_truncations(self, event_by_id, missing_ids) -> None:
+        recorded = set()
+        for event in self.events:
+            p = event.payload
+            if not isinstance(p, TruncationPayload):
+                continue
+            request = _require_prior_event(p.request_event_id, event,
+                event_by_id, missing_ids, "truncated request")
+            response = _require_prior_event(p.response_event_id, event,
+                event_by_id, missing_ids, "truncated response")
+            if request is not None and not isinstance(request.payload, AdapterRequestPayload):
+                raise ValueError("truncation must reference an adapter request")
+            if response is not None:
+                if not isinstance(response.payload, ModelResponsePayload):
+                    raise ValueError("truncation must reference a model response")
+                if response.payload.request_event_id != p.request_event_id:
+                    raise ValueError("truncation request and response do not match")
+                if response.payload.tool_calls:
+                    raise ValueError("truncated calls must not be exposed as executable")
+            if any(e is not None and e.task_id != event.task_id for e in (request, response)):
+                raise ValueError("truncation must remain in its original task")
+            if p.response_event_id in recorded:
+                raise ValueError("a truncated response can be recorded only once")
+            recorded.add(p.response_event_id)
+            if p.action == "continue" and (p.consecutive_count > p.max_consecutive_recoveries
+                    or p.total_count > p.max_total_recoveries):
+                raise ValueError("truncation recovery exceeds its configured bound")
 
     def _validate_answer_repairs(self, event_by_id, missing_ids) -> None:
         requested_invalid_responses: set[str] = set()

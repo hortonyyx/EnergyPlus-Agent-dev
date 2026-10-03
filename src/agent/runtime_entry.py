@@ -102,6 +102,8 @@ async def execute(args) -> dict:
         seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
         near_limit=args.near_limit, min_output_tokens=args.min_output_tokens,
         context_tokens=args.context_tokens, max_model_retries=args.model_retries,
+        max_consecutive_truncations=args.max_consecutive_truncations,
+        max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
     context_policy = ContextPolicy(active_window_messages=args.context_window,
         large_result_bytes=args.large_result_bytes, max_images=args.max_images,
@@ -217,6 +219,10 @@ def parser():
     p.add_argument("--near-limit", choices=("stop", "reduce_output"), default="stop")
     p.add_argument("--min-output-tokens", type=int, default=1)
     p.add_argument("--model-retries", type=int, default=0)
+    p.add_argument("--max-consecutive-truncations", type=int, default=2,
+                   help="maximum consecutive output-limit recoveries; zero disables recovery")
+    p.add_argument("--max-total-truncations", type=int, default=3,
+                   help="maximum output-limit recoveries in this task, including summaries")
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
     p.add_argument("--context-window", type=int, default=16)

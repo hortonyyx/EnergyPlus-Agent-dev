@@ -17,6 +17,7 @@ from src.harness_contracts import (
     MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
     StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload,
     ToolPresentationPayload, UsageMissing, UsageReported, authorize_tool_call,
+    TruncationPayload,
 )
 from src.harness_contracts.base import ContractModel
 from .adapter import convert_tool_result, parse_response, prepare_request, reported_tokens
@@ -35,6 +36,8 @@ class RunLimits(ContractModel):
     min_output_tokens: int = Field(default=1, ge=1)
     context_tokens: int | None = Field(default=None, ge=1)
     max_model_retries: int = Field(default=0, ge=0)
+    max_consecutive_truncations: int = Field(default=2, ge=0)
+    max_total_truncations: int = Field(default=3, ge=0)
     summary_every: int = Field(default=0, ge=0)
 
     def ledger_limit(self):
@@ -344,9 +347,33 @@ class Runtime:
                                   seconds=elapsed)
             self._refresh_counts()
             self._present_tools(prepared.body, sources, request, response, context_event_id)
+            truncation = None
+            if parsed.finish_reason == "length":
+                blocked = reason
+                if reported_tokens(parsed.event_payload.usage) is None:
+                    blocked = blocked or "token_usage_unavailable"
+                if self._remaining() <= 0:
+                    blocked = blocked or self._scoped_budget_reason("time", task=True)
+                truncation = self._record_truncation(response, blocked=blocked)
             self._fault("after_response")
             if reason:
                 return None, reason
+            if truncation is not None:
+                if truncation.payload.action == "stop":
+                    return None, truncation.payload.reason
+                message = self._truncation_prompt()
+                source = self._event_source(truncation)
+                self.retry_of = None
+                if logical_purpose == "primary_task":
+                    self._append_truncation_prompt(truncation)
+                    messages, sources, context_event_id = self._project()
+                else:
+                    messages, sources = [*messages, message], [*sources, source]
+                self._checkpoint()
+                # This is another paid request under the same task's remaining
+                # budget and deadline, not a free protocol or transport retry.
+                purpose = logical_purpose
+                continue
             if parsed.protocol_error:
                 return None, parsed.protocol_error
             if reported_tokens(parsed.event_payload.usage) is None:
@@ -354,6 +381,61 @@ class Runtime:
             if self._remaining() <= 0:
                 return None, "time_budget_exhausted"
             return response, None
+
+    @staticmethod
+    def _truncation_prompt():
+        return {"role": "user", "content": (
+            "The previous response exceeded the output limit and was discarded. "
+            "Its thinking was not retained and none of its tool calls ran. "
+            "Please directly issue the next complete tool call or give a brief answer."
+        )}
+
+    def _append_truncation_prompt(self, event):
+        if not any(source.event_id == event.event_id for source in self.sources):
+            self._append_message(self._truncation_prompt(), self._event_source(event))
+
+    def _record_truncation(self, response, *, blocked=None):
+        existing = next((e for e in self.store.events
+            if e.payload.event_type == "response_truncation"
+            and e.payload.response_event_id == response.event_id), None)
+        if existing is not None:
+            return existing
+        total, consecutive = 0, 0
+        for event in self.store.events:
+            if event.sequence > response.sequence:
+                break
+            if event.payload.event_type != "model_response":
+                continue
+            raw = self.store.resolve(event.payload.raw_response)
+            choices = raw.get("choices", []) if isinstance(raw, dict) else []
+            truncated = (len(choices) == 1 and isinstance(choices[0], dict)
+                and choices[0].get("finish_reason") == "length")
+            total += int(truncated)
+            consecutive = consecutive + 1 if truncated else 0
+        raw = self.store.resolve(response.payload.raw_response)
+        message = raw["choices"][0].get("message")
+        message = message if isinstance(message, dict) else {}
+        thinking = message.get("reasoning_content", message.get("reasoning", ""))
+        visible, calls = message.get("content"), message.get("tool_calls")
+        usage = response.payload.usage
+        details = usage.raw_usage if usage.kind == "reported" else {}
+        completion_details = details.get("completion_tokens_details") or {}
+        count = completion_details.get("reasoning_tokens", details.get("reasoning_tokens"))
+        exceeded = (consecutive > self.limits.max_consecutive_truncations
+            or total > self.limits.max_total_truncations)
+        reason = "incomplete_response" if exceeded else blocked
+        return self.store.append(TruncationPayload(
+            request_event_id=response.payload.request_event_id,
+            response_event_id=response.event_id,
+            thinking_characters=len(thinking) if isinstance(thinking, str) else 0,
+            visible_characters=len(visible) if isinstance(visible, str) else 0,
+            reported_reasoning_tokens=count if type(count) is int and count >= 0 else None,
+            has_tool_calls=bool(calls), tool_call_count=len(calls) if isinstance(calls, list) else None,
+            consecutive_count=consecutive, total_count=total,
+            max_consecutive_recoveries=self.limits.max_consecutive_truncations,
+            max_total_recoveries=self.limits.max_total_truncations,
+            action="stop" if reason else "continue",
+            reason=reason or "discard truncated output and request a concise continuation"))
 
     def _settle(self, reservation_id, usage, *, seconds):
         # Other children may reserve or settle root budget while this request is
@@ -785,6 +867,19 @@ class Runtime:
                     timing = next((s.blob for s in event.source_refs if s.source_id == "request-duration"), None)
                     elapsed = json.loads(self.store.get_bytes(timing))["elapsed_seconds"] if timing else None
                     reason = self._settle(reservation_id, p.usage, seconds=elapsed)
+                    parsed = parse_response(self.store.resolve(p.raw_response), p.request_event_id,
+                        self.store, echo_fields=self.echo_fields)
+                    if parsed.finish_reason == "length":
+                        truncation = self._record_truncation(event, blocked=reason or (
+                            "token_usage_unavailable" if reported_tokens(p.usage) is None else None))
+                        if reason:
+                            return reason
+                        if truncation.payload.action == "stop":
+                            return truncation.payload.reason
+                        if request.payload.logical_purpose != "context_summary":
+                            self._append_truncation_prompt(truncation)
+                        self.retry_of = None
+                        continue
                     if reason:
                         return reason
                     if reported_tokens(p.usage) is None:
@@ -874,6 +969,18 @@ class Runtime:
         messages = [{"role": "system", "content": "Select useful existing state entries for a compact index. Return only the required JSON object; do not add or reinterpret facts."},
                     {"role": "user", "content": json.dumps(content, ensure_ascii=False)}]
         sources = [self.store.source(f"context-summary-request-{i}", m) for i, m in enumerate(messages)]
+        # If interrupted after a truncated summary, reconstruct only the short
+        # recovery instruction. The discarded reasoning never enters history.
+        summary_requests = {e.event_id for e in self.store.events
+            if e.payload.event_type == "adapter_request" and e.payload.logical_purpose == "context_summary"}
+        previous = next((e for e in reversed(self.store.events)
+            if e.payload.event_type == "model_response" and e.payload.request_event_id in summary_requests), None)
+        recovery = next((e for e in reversed(self.store.events)
+            if e.payload.event_type == "response_truncation" and previous is not None
+            and e.payload.response_event_id == previous.event_id), None)
+        if recovery is not None and recovery.payload.action == "continue":
+            messages.append(self._truncation_prompt())
+            sources.append(self._event_source(recovery))
         response, reason = await self._model_call(messages, sources,
             purpose="context_summary", tools=[])
         if reason:
@@ -973,6 +1080,7 @@ class Runtime:
         receipt = {"status": reason, "answer": self.answer,
             **self.counts, "elapsed_seconds": self.limits.seconds - self._remaining(),
             "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
+            "truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.events),
             "billing_usd": str(sum(c.usd for c in costs)) if costs and all(c.kind == "reported" for c in costs) else None,
             "estimated_money_upper_bound_usd": str(estimated) if estimated is not None else None,
             "artifacts": [r.model_dump(mode="json") for r in artifacts], "artifact_paths": paths,
