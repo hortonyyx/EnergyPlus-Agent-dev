@@ -24,11 +24,15 @@ sys.path.insert(0, str(ROOT))
 PREFIX = "AI_agent.logs.experiments."
 RUNS = {"attempt_01": HERE.parent / "2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera",
         "attempt_02": HERE / "runs/attempt_02_output_32000",
-        "attempt_03": HERE / "runs/attempt_03_6000s"}
+        "attempt_03": HERE / "runs/attempt_03_6000s",
+        # Same subscription as the 10-02 baseline, only the runtime changes.
+        **{f"subscription_{i:02d}": HERE / f"runs/subscription_{i:02d}" for i in (1, 2, 3)}}
+SUBSCRIPTION = {name for name in RUNS if name.startswith("subscription_")}
 BASELINE = HERE.parent / "2026-10-02_sm24_glm_baseline"
 TASK_SHA256 = "a05ae6d543fdd14076a46859c8b4e2fa781f560a0ddfcce6d1948597632fa795"
 GUIDE_SHA256 = "9ca4fdcda8b446a58fd97466f4849628a54e6a2966b4db480407bb7131516b34"
-BUDGET_SECONDS = {"attempt_01": 3000, "attempt_02": 3000, "attempt_03": 6000}
+BUDGET_SECONDS = {"attempt_01": 3000, "attempt_02": 3000, "attempt_03": 6000,
+                  **{name: 3000 for name in SUBSCRIPTION}}
 # Yuan per million tokens, derived from the 10-03 Paratera bill (AI_agent/workflow/models.md).
 PRICE = {"GLM-5.3-Flash": {"input": 0.8, "output": 2.8}}
 
@@ -51,7 +55,7 @@ def when(event):
     return datetime.fromisoformat(stamp["value"].replace("Z", "+00:00")) if stamp.get("kind") == "known" else None
 
 
-def runtime_facts(run):
+def runtime_facts(run, subscription=False):
     receipt = load(run / "receipt.json")
     events = [json.loads(line) for line in (run / "events.jsonl").read_text().splitlines()]
     payloads = [e["payload"] for e in events]
@@ -84,8 +88,14 @@ def runtime_facts(run):
         reported_models=dict(models), usage=dict(usage),
         request_image_attachments=sum(len(p.get("images") or []) for p in payloads
                                       if p.get("event_type") == "adapter_request"),
-        estimated_yuan_text_only=round((usage["prompt"] * price["input"] + usage["completion"] * price["output"]) / 1e6, 3),
-        yuan_note="Reported tokens only; the Paratera bill also charges image tokens the usage omits.",
+        estimated_yuan_text_only=None if subscription else
+            round((usage["prompt"] * price["input"] + usage["completion"] * price["output"]) / 1e6, 3),
+        yuan_note="Subscription: no usage-based price." if subscription else
+            "Reported tokens only; the Paratera bill also charges image tokens the usage omits.",
+        per_round=dict(
+            output_tokens=round(usage["completion"] / receipt["model_calls"]) if receipt.get("model_calls") else None,
+            seconds=round(receipt["elapsed_seconds"] / receipt["model_calls"], 1)
+            if receipt.get("model_calls") and receipt.get("elapsed_seconds") else None),
         tool_calls=dict(tools), tool_outcomes=dict(outcomes), tool_failures=failures,
         lifecycle=[{k: p.get(k) for k in ("action", "reason", "failure_stage")}
                    for p in payloads if p.get("event_type") == "run_lifecycle"],
@@ -140,7 +150,7 @@ def compat_view(run, target, facts, seconds):
 
 def evaluate(name):
     run = RUNS[name]
-    facts = runtime_facts(run)
+    facts = runtime_facts(run, subscription=name in SUBSCRIPTION)
     with tempfile.TemporaryDirectory(prefix="migration-eval-") as tmp:
         view, chosen, origin = compat_view(run, Path(tmp), facts, BUDGET_SECONDS[name])
         quality = None
