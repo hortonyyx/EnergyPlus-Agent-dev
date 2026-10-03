@@ -26,9 +26,14 @@ from src.agent.runtime_entry import ROOT, paratera_credentials, prepare_inputs
 from src.agent.runtime_tools import (FrozenBimTools, coordinator_role, frozen_bim_client,
     local_observer_role, write_frozen_materials, write_frozen_tool_catalog)
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
+from src.agent_runtime.agent_registry import agent_version_record
+from src.agent_runtime.accounting import request_accounting_from_store, summarize_request_accounting
 from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
+from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION, LIVE_PROVIDERS,
+    provider_parameters, subscription_credentials, validate_provider_model)
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import (ExternalCoordinatorMcpPayload, MissingCapture,
     RunLifecyclePayload, StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload)
@@ -113,7 +118,7 @@ class SerializedToolAccess:
 class CoordinatorSession:
     def __init__(self, *, store, tools, observer_tools, adapter_factory, model, parameters,
                  root=ROOT, route_id="scripted", guide="", limits=None,
-                 max_concurrent_observers=4):
+                 max_concurrent_observers=4, low_output_limit_reason=None):
         if type(max_concurrent_observers) is not int or max_concurrent_observers < 1:
             raise ValueError("max_concurrent_observers must be a positive integer")
         self.max_concurrent_observers = max_concurrent_observers
@@ -124,6 +129,7 @@ class CoordinatorSession:
         self.adapter_factory, self.model, self.parameters = adapter_factory, model, parameters
         self.root, self.route_id, self.guide = Path(root), route_id, guide
         self.limits = limits
+        self.low_output_limit_reason = low_output_limit_reason
         self.lock = asyncio.Lock()
         self.views, self.children, self.applied = {}, {}, set()
         self.catalog = []
@@ -166,13 +172,16 @@ class CoordinatorSession:
 
     async def initialize(self):
         self.catalog = await self.tools.list_tools()
+        self.agent_version = agent_version_record(self.root)
         from dataclasses import asdict
         from src.agent_runtime.estimation import get_model_profile
         source_files = [*sorted((self.root / "src/agent_runtime").glob("*.py")),
             self.root / "src/agent/runtime_coordinator.py",
             self.root / "src/agent/runtime_delegation.py"]
         configuration = {"model": self.model, "route_id": self.route_id,
+            "agent_version": self.agent_version,
             "parameters": self.parameters,
+            "low_output_limit_reason": self.low_output_limit_reason,
             "max_concurrent_observers": self.max_concurrent_observers,
             "frozen_tool_scheduling": "serialized_shared_service",
             "limits": self.limits.model_dump(mode="json") if self.limits else None,
@@ -190,7 +199,8 @@ class CoordinatorSession:
         if not self.store.events:
             self.store.append(RunLifecyclePayload(action="start", reason="external MCP coordinator session"),
                 source_refs=(self.store.source("coordinator-session", {"started_epoch": self.started_epoch,
-                    "model": self.model, "route_id": self.route_id}),))
+                    "model": self.model, "route_id": self.route_id,
+                    "agent_version": self.agent_version}),))
         self.schemas = {v["name"]: v["inputSchema"] for v in [*self.catalog, *EXTRA_TOOLS]}
         return self
 
@@ -236,6 +246,9 @@ class CoordinatorSession:
     def state(self):
         budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events)
         return {"source_bim": self.source_bim(), "views": [v.as_json() for v in self.views.values()],
+            "agent_version": self.agent_version["version_id"],
+            "usage_accounting": summarize_request_accounting(request_accounting_from_store(self.store, e.event_id)
+                for e in self.store.all_events if e.payload.event_type == "adapter_request"),
             "children": {key: row["status"] for key, row in self.children.items()},
             "budget": budget.ledger.model_dump(mode="json"), "unknown_write": self.unknown_write,
             "external_model_request": "未获取", "external_model_usage": "未获取",
@@ -378,6 +391,9 @@ class CoordinatorSession:
                                                  "views": [v.as_json() for v in views]})
         limits = RunLimits(**arguments["budget"])
         if self.limits:
+            limits = limits.model_copy(update={
+                "max_consecutive_truncations": self.limits.max_consecutive_truncations,
+                "max_total_truncations": self.limits.max_total_truncations})
             remaining = self.limits.seconds - (time.time() - self.started_epoch)
             if remaining <= 0:
                 return {"status": "time_budget_exhausted", "package": package.model_dump(mode="json")}
@@ -389,6 +405,7 @@ class CoordinatorSession:
                 model=self.model, parameters=self.parameters, limits=limits, package=package, views=views,
                 notes=arguments.get("notes", []), root=self.root,
                 root_tool_calls=self.limits.tool_calls if self.limits else None,
+                low_output_limit_reason=self.low_output_limit_reason,
                 route={"route_id": self.route_id, "model": self.model}, resume=bool(child.events))
             outcome = await asyncio.wait_for(running, timeout=remaining) if self.limits else await running
         except Exception as exc:
@@ -438,8 +455,16 @@ async def serve(args):
     out = args.out.resolve()
     if not out.is_relative_to(ROOT):
         raise ValueError("coordinator output must stay inside this worktree")
+    validate_provider_model(args.provider, args.model)
+    effective_model = args.model if args.provider in LIVE_PROVIDERS else "scripted-model"
+    args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(
+        effective_model, fallback=8192)
+    validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
+    parameters = provider_parameters(args.provider, output_tokens=args.output_tokens, thinking=args.thinking)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
-                       seconds=args.seconds, tokens=args.tokens)
+                       seconds=args.seconds, tokens=args.tokens,
+                       max_consecutive_truncations=args.max_consecutive_truncations,
+                       max_total_truncations=args.max_total_truncations)
     if args.resume:
         run, guide = out / "bim", (out / "guide.txt").read_text()
     else:
@@ -447,10 +472,11 @@ async def serve(args):
         run, guide, _ = prepare_inputs(out, images=args.images, mesh=args.mesh,
             building_input=None, scope=args.scope, image_kind=args.image_kind, max_candidates=24)
     adapter = None
-    if args.provider == "paratera":
+    if args.provider in LIVE_PROVIDERS:
         from src.agent_runtime.estimation import get_model_profile
         get_model_profile(args.model, strict=True)
-        base_url, key = paratera_credentials(args.credentials_file)
+        credentials = subscription_credentials if args.provider == GLM_SUBSCRIPTION else paratera_credentials
+        base_url, key = credentials(args.credentials_file)
         adapter = HttpChatAdapter(base_url=base_url, api_key=key)
         if args.quota_journal is None or not args.quota_journal.resolve().is_relative_to(ROOT):
             raise ValueError("live coordinator needs a persistent --quota-journal inside this worktree")
@@ -473,8 +499,8 @@ async def serve(args):
                     session = await CoordinatorSession(store=store, tools=tools, observer_tools=observers,
                         adapter_factory=factory, model=model, route_id=args.provider, guide=guide, limits=limits,
                         max_concurrent_observers=args.max_concurrent_observers,
-                        parameters={"max_tokens": args.output_tokens, "temperature": 0.0,
-                                    "enable_thinking": args.thinking}).initialize()
+                        low_output_limit_reason=args.low_output_limit_reason,
+                        parameters=parameters).initialize()
                     if not args.resume:
                         write_frozen_materials(out / "frozen", repository_root=ROOT)
                         write_frozen_tool_catalog(out / "frozen", session.catalog, readonly=False)
@@ -502,7 +528,7 @@ def parser():
     p.add_argument("--mesh", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
     p.add_argument("--scope", default="Local observation and coordinator operations; no whole-case run authorized.")
-    p.add_argument("--provider", choices=("scripted", "paratera"), required=True)
+    p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)
     p.add_argument("--model", default="Qwen3.8-27B")
     p.add_argument("--credentials-file", type=Path)
     p.add_argument("--script", type=Path)
@@ -512,7 +538,10 @@ def parser():
     p.add_argument("--tool-calls", type=int, default=100)
     p.add_argument("--tokens", type=int, default=300_000)
     p.add_argument("--seconds", type=float, default=3600)
-    p.add_argument("--output-tokens", type=int, default=8192)
+    p.add_argument("--output-tokens", type=int, help="defaults to the reviewed model recommendation")
+    p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")
+    p.add_argument("--max-consecutive-truncations", type=int, default=2)
+    p.add_argument("--max-total-truncations", type=int, default=3)
     p.add_argument("--max-concurrent-observers", type=int, default=4)
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--resume", action="store_true")

@@ -43,12 +43,22 @@ class RequestEstimate(ContractModel):
     purpose: Literal["primary_task", "child_task", "context_summary", "retry"]
     task_id: NonEmptyStr
     input_token_upper_bound: int = Field(ge=0)
+    image_input_tokens_estimate: int = Field(default=0, ge=0)
+    additional_image_tokens_estimate: int = Field(default=0, ge=0)
     output_token_limit: int = Field(ge=1)
     reasoning_token_allowance: int = Field(default=0, ge=0)
     seconds: Decimal = Field(gt=0)
     calls: int = Field(default=1, ge=1)
     money_usd_upper_bound: Decimal | None = Field(default=None, ge=0)
     estimate_source: NonEmptyStr
+
+    @model_validator(mode="after")
+    def image_estimate_is_part_of_input_hold(self) -> RequestEstimate:
+        if self.image_input_tokens_estimate > self.input_token_upper_bound:
+            raise ValueError(
+                "image_input_tokens_estimate cannot exceed the input token upper bound"
+            )
+        return self
 
     @classmethod
     def for_model_call(
@@ -59,6 +69,8 @@ class RequestEstimate(ContractModel):
         ],
         task_id: str,
         input_token_upper_bound: int,
+        image_input_tokens_estimate: int = 0,
+        additional_image_tokens_estimate: int = 0,
         output_token_limit: int,
         reasoning_token_allowance: int = 0,
         seconds: Decimal,
@@ -75,6 +87,8 @@ class RequestEstimate(ContractModel):
             purpose=purpose,
             task_id=task_id,
             input_token_upper_bound=input_token_upper_bound,
+            image_input_tokens_estimate=image_input_tokens_estimate,
+            additional_image_tokens_estimate=additional_image_tokens_estimate,
             output_token_limit=output_token_limit,
             reasoning_token_allowance=reasoning_token_allowance,
             seconds=seconds,
@@ -85,7 +99,7 @@ class RequestEstimate(ContractModel):
     @property
     def amounts(self) -> BudgetAmounts:
         return BudgetAmounts(
-            tokens=self.input_token_upper_bound + self.output_token_limit + self.reasoning_token_allowance,
+            tokens=self.input_token_upper_bound + self.additional_image_tokens_estimate + self.output_token_limit + self.reasoning_token_allowance,
             money_usd=self.money_usd_upper_bound,
             seconds=self.seconds,
             calls=self.calls,
@@ -242,6 +256,9 @@ class RuntimeBudget:
         actual: BudgetAmounts,
         usage: UsageEvidence,
         cost: CostEvidence | None = None,
+        image_tokens_estimate: int = 0,
+        reported_usage_includes_image_tokens: bool = False,
+        additional_image_tokens: int | None = None,
     ) -> BudgetDecision:
         reservation = next(
             (
@@ -260,7 +277,17 @@ class RuntimeBudget:
             self._fatal_reason = "reservation_settled_twice"
             return self._stop(self._fatal_reason, reservation=reservation)
 
-        exceeded = tuple(name for name in _exceeded_reservation(actual, reservation.amounts)
+        effective_actual = actual.model_copy(update={
+            "tokens": (
+                None
+                if actual.tokens is None
+                else actual.tokens + (
+                    additional_image_tokens if additional_image_tokens is not None
+                    else 0 if reported_usage_includes_image_tokens else image_tokens_estimate
+                )
+            )
+        })
+        exceeded = tuple(name for name in _exceeded_reservation(effective_actual, reservation.amounts)
                          if name != "tokens")
         if exceeded:
             self._fatal_reason = "actual_usage_exceeds_reservation"
@@ -298,7 +325,16 @@ class RuntimeBudget:
                 actual=actual,
                 usage=usage,
                 cost=cost,
-                token_overrun=max(0, (actual.tokens or 0) - (reservation.amounts.tokens or 0)),
+                image_tokens_estimate=image_tokens_estimate,
+                additional_image_tokens=additional_image_tokens,
+                reported_usage_includes_image_tokens=(
+                    reported_usage_includes_image_tokens
+                ),
+                token_overrun=max(
+                    0,
+                    (effective_actual.tokens or 0)
+                    - (reservation.amounts.tokens or 0),
+                ),
             )
             BudgetLedger(
                 total_limit=self.total_limit,

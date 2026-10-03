@@ -17,11 +17,15 @@ from src.harness_contracts import (
     MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
     StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload,
     ToolPresentationPayload, UsageMissing, UsageReported, authorize_tool_call,
+    TruncationPayload,
 )
 from src.harness_contracts.base import ContractModel
 from .adapter import convert_tool_result, parse_response, prepare_request, reported_tokens
+from .accounting import (account_request_usage, bills_images_separately,
+    get_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
 from .estimation import get_model_profile
+from .output_limits import validate_output_limit
 from .store import EventStore
 
 
@@ -35,6 +39,8 @@ class RunLimits(ContractModel):
     min_output_tokens: int = Field(default=1, ge=1)
     context_tokens: int | None = Field(default=None, ge=1)
     max_model_retries: int = Field(default=0, ge=0)
+    max_consecutive_truncations: int = Field(default=2, ge=0)
+    max_total_truncations: int = Field(default=3, ge=0)
     summary_every: int = Field(default=0, ge=0)
 
     def ledger_limit(self):
@@ -64,9 +70,12 @@ class Runtime:
     root_tool_calls: int | None = None
     answer_validator: object | None = None
     max_answer_repairs: int = 0
+    low_output_limit_reason: str | None = None
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
+        validate_output_limit(self.model, self.parameters.get("max_tokens",
+            self.parameters.get("max_completion_tokens")), reason=self.low_output_limit_reason)
         self.started = time.monotonic()
         self.started_epoch = time.time()
         self.elapsed_before = 0.0
@@ -195,15 +204,20 @@ class Runtime:
             "echo_fields": list(self.echo_fields),
             "answer_validation_enabled": self.answer_validator is not None,
             "max_answer_repairs": self.max_answer_repairs,
+            "low_output_limit_reason": self.low_output_limit_reason,
             "required_context_tags": list(self.required_context_tags),
             "required_view_ids": list(self.required_view_ids)}
 
     def _load_budget(self):
+        profile_minimum = get_model_profile(self.model).recommended_min_output_tokens or 1
+        minimum = self.limits.min_output_tokens
+        if self.low_output_limit_reason is None:
+            minimum = max(minimum, profile_minimum)
         self.budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events,
-            near_limit_policy=self.limits.near_limit, min_output_tokens=self.limits.min_output_tokens,
+            near_limit_policy=self.limits.near_limit, min_output_tokens=minimum,
             pricing=self.pricing)
         self.task_budget = RuntimeBudget.from_events(self.limits.ledger_limit(), self.store.events,
-            near_limit_policy=self.limits.near_limit, min_output_tokens=self.limits.min_output_tokens,
+            near_limit_policy=self.limits.near_limit, min_output_tokens=minimum,
             pricing=self.pricing)
 
     def _refresh_counts(self):
@@ -264,6 +278,10 @@ class Runtime:
             )
             estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
                 input_token_upper_bound=prepared.input_token_upper_bound,
+                image_input_tokens_estimate=prepared.token_estimate.image_tokens,
+                additional_image_tokens_estimate=(prepared.token_estimate.image_tokens
+                    if bills_images_separately(get_cny_price_schedule(self.model,
+                        route_id=self.versions.remote_model.route_id)) else 0),
                 output_token_limit=prepared.output_token_limit, seconds=seconds,
                 reasoning_token_allowance=prepared.token_estimate.reasoning_token_allowance,
                 estimate_source=prepared.estimate_source,
@@ -344,9 +362,33 @@ class Runtime:
                                   seconds=elapsed)
             self._refresh_counts()
             self._present_tools(prepared.body, sources, request, response, context_event_id)
+            truncation = None
+            if parsed.finish_reason == "length":
+                blocked = reason
+                if reported_tokens(parsed.event_payload.usage) is None:
+                    blocked = blocked or "token_usage_unavailable"
+                if self._remaining() <= 0:
+                    blocked = blocked or self._scoped_budget_reason("time", task=True)
+                truncation = self._record_truncation(response, blocked=blocked)
             self._fault("after_response")
             if reason:
                 return None, reason
+            if truncation is not None:
+                if truncation.payload.action == "stop":
+                    return None, truncation.payload.reason
+                message = self._truncation_prompt()
+                source = self._event_source(truncation)
+                self.retry_of = None
+                if logical_purpose == "primary_task":
+                    self._append_truncation_prompt(truncation)
+                    messages, sources, context_event_id = self._project()
+                else:
+                    messages, sources = [*messages, message], [*sources, source]
+                self._checkpoint()
+                # This is another paid request under the same task's remaining
+                # budget and deadline, not a free protocol or transport retry.
+                purpose = logical_purpose
+                continue
             if parsed.protocol_error:
                 return None, parsed.protocol_error
             if reported_tokens(parsed.event_payload.usage) is None:
@@ -354,6 +396,62 @@ class Runtime:
             if self._remaining() <= 0:
                 return None, "time_budget_exhausted"
             return response, None
+
+    @staticmethod
+    def _truncation_prompt():
+        return {"role": "user", "content": (
+            "The previous response exceeded the output limit and was discarded. "
+            "Its thinking was not retained and none of its tool calls ran. "
+            "Please directly issue the next complete tool call or give a brief answer."
+        )}
+
+    def _append_truncation_prompt(self, event):
+        if not any(source.event_id == event.event_id for source in self.sources):
+            self._append_message(self._truncation_prompt(), self._event_source(event))
+
+    def _record_truncation(self, response, *, blocked=None):
+        existing = next((e for e in self.store.events
+            if e.payload.event_type == "response_truncation"
+            and e.payload.response_event_id == response.event_id), None)
+        if existing is not None:
+            return existing
+        total, consecutive = 0, 0
+        for event in self.store.all_events:
+            if event.sequence > response.sequence:
+                break
+            if event.payload.event_type != "model_response":
+                continue
+            raw = self.store.resolve(event.payload.raw_response)
+            choices = raw.get("choices", []) if isinstance(raw, dict) else []
+            truncated = (len(choices) == 1 and isinstance(choices[0], dict)
+                and choices[0].get("finish_reason") == "length")
+            total += int(truncated)
+            if event.task_id == self.store.task_id:
+                consecutive = consecutive + 1 if truncated else 0
+        raw = self.store.resolve(response.payload.raw_response)
+        message = raw["choices"][0].get("message")
+        message = message if isinstance(message, dict) else {}
+        thinking = message.get("reasoning_content", message.get("reasoning", ""))
+        visible, calls = message.get("content"), message.get("tool_calls")
+        usage = response.payload.usage
+        details = usage.raw_usage if usage.kind == "reported" else {}
+        completion_details = details.get("completion_tokens_details") or {}
+        count = completion_details.get("reasoning_tokens", details.get("reasoning_tokens"))
+        exceeded = (consecutive > self.limits.max_consecutive_truncations
+            or total > self.limits.max_total_truncations)
+        reason = "incomplete_response" if exceeded else blocked
+        return self.store.append(TruncationPayload(
+            request_event_id=response.payload.request_event_id,
+            response_event_id=response.event_id,
+            thinking_characters=len(thinking) if isinstance(thinking, str) else 0,
+            visible_characters=len(visible) if isinstance(visible, str) else 0,
+            reported_reasoning_tokens=count if type(count) is int and count >= 0 else None,
+            has_tool_calls=bool(calls), tool_call_count=len(calls) if isinstance(calls, list) else None,
+            consecutive_count=consecutive, total_count=total,
+            max_consecutive_recoveries=self.limits.max_consecutive_truncations,
+            max_total_recoveries=self.limits.max_total_truncations,
+            action="stop" if reason else "continue",
+            reason=reason or "discard truncated output and request a concise continuation"))
 
     def _settle(self, reservation_id, usage, *, seconds):
         # Other children may reserve or settle root budget while this request is
@@ -363,15 +461,20 @@ class Runtime:
             self._record_token_overrun(reservation_id, usage)
             return self._recorded_settlement_stop(reservation_id) or self._settled_token_stop()
         charged_seconds = Decimal(str(max(0.0, seconds))) if seconds is not None else None
+        accounting = self._request_accounting(reservation_id, usage)
+        image_charge = {"image_tokens_estimate": accounting.image_tokens_estimate,
+            "additional_image_tokens": accounting.additional_image_tokens,
+            "reported_usage_includes_image_tokens": accounting.reported_usage_includes_image_tokens}
+        sources = (self.store.source("request-usage-accounting", accounting.receipt_dict()),)
         actual = BudgetAmounts(tokens=reported_tokens(usage), calls=1, seconds=charged_seconds)
         task_decision = self.task_budget.settle(reservation_id,
-            actual=actual, usage=usage)
+            actual=actual, usage=usage, **image_charge)
         # Even when the task cannot afford the observed charge, record the full
         # amount in the root ledger. A child's limit is not a root-wide failure.
         if task_decision.settlement is not None:
-            root_decision = self.budget.settle(reservation_id, actual=actual, usage=usage)
+            root_decision = self.budget.settle(reservation_id, actual=actual, usage=usage, **image_charge)
             if root_decision.settlement is not None:
-                self.store.append(BudgetEventPayload(action="settle", settlement=root_decision.settlement))
+                self.store.append(BudgetEventPayload(action="settle", settlement=root_decision.settlement), source_refs=sources)
                 self._record_token_overrun(reservation_id, usage)
                 return self._settled_token_stop()
             decision = root_decision
@@ -379,7 +482,7 @@ class Runtime:
             decision = task_decision
         else:
             decision = self.budget.settle(reservation_id,
-                actual=actual, usage=usage)
+                actual=actual, usage=usage, **image_charge)
         if decision.action == "stop":
             if "seconds" in decision.exceeded_dimensions:
                 task_limited = self.task_budget.available.seconds <= self.budget.available.seconds
@@ -392,19 +495,27 @@ class Runtime:
                     "usage": usage.model_dump(mode="json"), "stop_reason": stop_reason}),))
             if (decision.exceeded_dimensions == ("seconds",)
                     and actual.tokens is not None
-                    and actual.tokens > (decision.reservation.amounts.tokens or 0)):
+                    and accounting.budget_charge_tokens > (decision.reservation.amounts.tokens or 0)):
                 # A late response still incurred its full token charge. The
                 # observed duration remains above in the violation evidence;
                 # leave time unsettled (retain its hold), and keep the time stop.
                 token_charge = actual.model_copy(update={"seconds": None})
-                task_charge = self.task_budget.settle(reservation_id, actual=token_charge, usage=usage)
-                root_charge = self.budget.settle(reservation_id, actual=token_charge, usage=usage)
+                task_charge = self.task_budget.settle(reservation_id, actual=token_charge, usage=usage, **image_charge)
+                root_charge = self.budget.settle(reservation_id, actual=token_charge, usage=usage, **image_charge)
                 if task_charge.settlement is not None and root_charge.settlement is not None:
-                    self.store.append(BudgetEventPayload(action="settle", settlement=root_charge.settlement))
+                    self.store.append(BudgetEventPayload(action="settle", settlement=root_charge.settlement), source_refs=sources)
                     self._record_token_overrun(reservation_id, usage)
             return stop_reason
-        self.store.append(BudgetEventPayload(action="settle", settlement=decision.settlement))
+        self.store.append(BudgetEventPayload(action="settle", settlement=decision.settlement), source_refs=sources)
         return None
+
+    def _request_accounting(self, reservation_id, usage):
+        request = next((e for e in self.store.events if e.payload.event_type == "adapter_request"
+            and e.payload.reservation_id == reservation_id), None)
+        if request is None:
+            # Legacy offline settlement fixtures can predate request captures.
+            return account_request_usage(usage, image_tokens_estimate=0, pricing=None)
+        return request_accounting_from_store(self.store, request.event_id, usage=usage).accounting
 
     def _recorded_settlement_stop(self, reservation_id):
         for event in reversed(self.store.events):
@@ -430,7 +541,8 @@ class Runtime:
 
     def _record_token_overrun(self, reservation_id, usage):
         reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
-        actual_tokens = reported_tokens(usage)
+        accounting = self._request_accounting(reservation_id, usage)
+        actual_tokens = accounting.budget_charge_tokens
         reserved_tokens = reservation.amounts.tokens
         if actual_tokens is None or reserved_tokens is None or actual_tokens <= reserved_tokens:
             return
@@ -461,7 +573,8 @@ class Runtime:
             root_limit_exceeded=(self.budget.total_limit.tokens is not None and
                 (self.budget.ledger.committed.tokens or 0) > self.budget.total_limit.tokens),
             task_limit_exceeded=(self.task_budget.total_limit.tokens is not None and
-                (self.task_budget.ledger.committed.tokens or 0) > self.task_budget.total_limit.tokens)))
+                (self.task_budget.ledger.committed.tokens or 0) > self.task_budget.total_limit.tokens)),
+            source_refs=(self.store.source("request-usage-accounting", accounting.receipt_dict()),))
 
     def _present_tools(self, body, sources, request, response, context_event_id):
         delivered = {e.payload.tool_execution_event_id for e in self.store.events if e.payload.event_type == "tool_presentation"}
@@ -785,6 +898,19 @@ class Runtime:
                     timing = next((s.blob for s in event.source_refs if s.source_id == "request-duration"), None)
                     elapsed = json.loads(self.store.get_bytes(timing))["elapsed_seconds"] if timing else None
                     reason = self._settle(reservation_id, p.usage, seconds=elapsed)
+                    parsed = parse_response(self.store.resolve(p.raw_response), p.request_event_id,
+                        self.store, echo_fields=self.echo_fields)
+                    if parsed.finish_reason == "length":
+                        truncation = self._record_truncation(event, blocked=reason or (
+                            "token_usage_unavailable" if reported_tokens(p.usage) is None else None))
+                        if reason:
+                            return reason
+                        if truncation.payload.action == "stop":
+                            return truncation.payload.reason
+                        if request.payload.logical_purpose != "context_summary":
+                            self._append_truncation_prompt(truncation)
+                        self.retry_of = None
+                        continue
                     if reason:
                         return reason
                     if reported_tokens(p.usage) is None:
@@ -874,6 +1000,18 @@ class Runtime:
         messages = [{"role": "system", "content": "Select useful existing state entries for a compact index. Return only the required JSON object; do not add or reinterpret facts."},
                     {"role": "user", "content": json.dumps(content, ensure_ascii=False)}]
         sources = [self.store.source(f"context-summary-request-{i}", m) for i, m in enumerate(messages)]
+        # If interrupted after a truncated summary, reconstruct only the short
+        # recovery instruction. The discarded reasoning never enters history.
+        summary_requests = {e.event_id for e in self.store.events
+            if e.payload.event_type == "adapter_request" and e.payload.logical_purpose == "context_summary"}
+        previous = next((e for e in reversed(self.store.events)
+            if e.payload.event_type == "model_response" and e.payload.request_event_id in summary_requests), None)
+        recovery = next((e for e in reversed(self.store.events)
+            if e.payload.event_type == "response_truncation" and previous is not None
+            and e.payload.response_event_id == previous.event_id), None)
+        if recovery is not None and recovery.payload.action == "continue":
+            messages.append(self._truncation_prompt())
+            sources.append(self._event_source(recovery))
         response, reason = await self._model_call(messages, sources,
             purpose="context_summary", tools=[])
         if reason:
@@ -970,13 +1108,29 @@ class Runtime:
                 paths.append(str(path))
         costs = [s.cost for s in self.task_budget.ledger.settlements]
         estimated = self.task_budget.ledger.committed.money_usd
+        accounting_records = [request_accounting_from_store(self.store, e.event_id)
+            for e in self.store.all_events if e.payload.event_type == "adapter_request"]
+        task_accounting = summarize_request_accounting(
+            row for row in accounting_records if row.task_id == self.store.task_id)
         receipt = {"status": reason, "answer": self.answer,
+            "agent_version": self.versions.agent_version.identifier if self.versions.agent_version else None,
+            "output_limit_policy": validate_output_limit(self.model,
+                self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
+                reason=self.low_output_limit_reason),
             **self.counts, "elapsed_seconds": self.limits.seconds - self._remaining(),
             "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
+            "truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.events),
+            "root_truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.all_events),
             "billing_usd": str(sum(c.usd for c in costs)) if costs and all(c.kind == "reported" for c in costs) else None,
             "estimated_money_upper_bound_usd": str(estimated) if estimated is not None else None,
             "artifacts": [r.model_dump(mode="json") for r in artifacts], "artifact_paths": paths,
-            "token_accounting": "service token use plus outstanding/unknown holds; estimates are not billing",
+            "token_accounting": "provider-reported usage plus separately estimated images when omitted, and outstanding/unknown holds; estimates are not bills",
+            "image_tokens_estimate": task_accounting["image_tokens_estimate"],
+            "estimated_cost_cny": task_accounting["estimated_cost_cny"],
+            "usage_accounting": task_accounting,
+            "root_usage_accounting": summarize_request_accounting(accounting_records),
+            "request_usage_accounting": [row.receipt_dict() for row in accounting_records
+                if row.task_id == self.store.task_id],
             "budget": self.budget.ledger.model_dump(mode="json"),
             "root_budget_available": self.budget.available.model_dump(mode="json"),
             "task_budget": self.task_budget.ledger.model_dump(mode="json"),

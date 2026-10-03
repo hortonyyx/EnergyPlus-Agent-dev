@@ -141,6 +141,7 @@ class RemoteModelIdentity(ContractModel):
 class VersionManifest(ContractModel):
     code_commit: VersionStamp
     dependency_lock: VersionStamp
+    agent_version: VersionStamp | None = None
     prompt: VersionStamp
     tool_definitions: VersionStamp
     inference_parameters: VersionStamp
@@ -211,6 +212,26 @@ class ModelResponsePayload(ContractModel):
         if len(call_ids) != len(set(call_ids)):
             raise ValueError("response tool call IDs must be unique")
         return self
+
+
+class TruncationPayload(ContractModel):
+    """A discarded output-limit response, with a bounded recovery decision."""
+
+    event_type: Literal["response_truncation"] = "response_truncation"
+    request_event_id: NonEmptyStr
+    response_event_id: NonEmptyStr
+    finish_reason: Literal["length"] = "length"
+    thinking_characters: int = Field(ge=0)
+    visible_characters: int = Field(ge=0)
+    reported_reasoning_tokens: int | None = Field(default=None, ge=0)
+    has_tool_calls: bool
+    tool_call_count: int | None = Field(default=None, ge=0)
+    consecutive_count: int = Field(ge=1)
+    total_count: int = Field(ge=1)
+    max_consecutive_recoveries: int = Field(ge=0)
+    max_total_recoveries: int = Field(ge=0)
+    action: Literal["continue", "stop"]
+    reason: NonEmptyStr
 
 
 class AnswerRepairPayload(ContractModel):
@@ -454,6 +475,7 @@ class RunAggregateUsagePayload(ContractModel):
 EventPayload = Annotated[
     AdapterRequestPayload
     | ModelResponsePayload
+    | TruncationPayload
     | AnswerRepairPayload
     | ToolExecutionPayload
     | ToolInvocationPayload

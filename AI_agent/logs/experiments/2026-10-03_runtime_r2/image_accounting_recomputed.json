@@ -1,0 +1,168 @@
+{
+  "bill": {
+    "image_tokens": 72406,
+    "sha256": "cc7c0baae288a8e2fb8af3305adb93ce3c95e2cf47e02617785103a6d0871687",
+    "source": "AI_agent/logs/experiments/2026-10-03_migration_comparison/paratera_bill_2026-10-03.csv"
+  },
+  "external_requests_made": 0,
+  "glm_formula_calibration": {
+    "billing_status": "unknown; the exported bill has no GLM image_input row",
+    "exact_cases": 2,
+    "large_image_overestimate_tokens": 1139,
+    "rows": [
+      {
+        "actual_input": 97,
+        "case": "image_224x224",
+        "estimate": 97,
+        "estimated_image": 66,
+        "estimated_text": 31,
+        "point_error_percent": 0.0,
+        "upper_bound": 112
+      },
+      {
+        "actual_input": 1057,
+        "case": "image_896x896",
+        "estimate": 1057,
+        "estimated_image": 1026,
+        "estimated_text": 31,
+        "point_error_percent": 0.0,
+        "upper_bound": 1072
+      },
+      {
+        "actual_input": 1345,
+        "case": "image_1600x1200",
+        "estimate": 2484,
+        "estimated_image": 2453,
+        "estimated_text": 31,
+        "point_error_percent": 84.68,
+        "upper_bound": 2499
+      }
+    ]
+  },
+  "offline_only": true,
+  "qwen_event_calibration": {
+    "bill_coverage_percent": 100.0,
+    "bill_tokens_covered": 72406,
+    "classifications": {
+      "top_level_includes_image": {
+        "estimated": 72406,
+        "reported": 72406,
+        "requests": 62
+      },
+      "unknown_no_response": {
+        "estimated": 877,
+        "reported": 0,
+        "requests": 1
+      }
+    },
+    "covered_difference": 0,
+    "formula_max_absolute_token_error_when_reported": 0,
+    "formula_tokens_for_covered_buckets": 72406,
+    "interpretation": "A top-level usage value is treated as image-inclusive only when prompt_tokens == text_tokens + image_tokens. The bill's image rows are separate pricing evidence; they do not prove that every API top-level total omitted images.",
+    "matched_bill_buckets": [
+      {
+        "attested_event_image_tokens": 4893,
+        "bill_start_beijing": "2026-10-03 00:00",
+        "billed_image_tokens": 4893,
+        "difference": 0,
+        "model": "Qwen3.8-27B"
+      },
+      {
+        "attested_event_image_tokens": 4893,
+        "bill_start_beijing": "2026-10-03 00:00",
+        "billed_image_tokens": 4893,
+        "difference": 0,
+        "model": "Qwen3.8-Flash"
+      },
+      {
+        "attested_event_image_tokens": 222,
+        "bill_start_beijing": "2026-10-03 01:00",
+        "billed_image_tokens": 222,
+        "difference": 0,
+        "model": "Qwen3.8-27B"
+      },
+      {
+        "attested_event_image_tokens": 4608,
+        "bill_start_beijing": "2026-10-03 05:00",
+        "billed_image_tokens": 4608,
+        "difference": 0,
+        "model": "Qwen3.8-27B"
+      },
+      {
+        "attested_event_image_tokens": 3656,
+        "bill_start_beijing": "2026-10-03 05:00",
+        "billed_image_tokens": 3656,
+        "difference": 0,
+        "model": "Qwen3.8-Flash"
+      },
+      {
+        "attested_event_image_tokens": 16096,
+        "bill_start_beijing": "2026-10-03 06:00",
+        "billed_image_tokens": 16096,
+        "difference": 0,
+        "model": "Qwen3.8-27B"
+      },
+      {
+        "attested_event_image_tokens": 15971,
+        "bill_start_beijing": "2026-10-03 06:00",
+        "billed_image_tokens": 15971,
+        "difference": 0,
+        "model": "Qwen3.8-Flash"
+      },
+      {
+        "attested_event_image_tokens": 3683,
+        "bill_start_beijing": "2026-10-03 07:00",
+        "billed_image_tokens": 3683,
+        "difference": 0,
+        "model": "Qwen3.8-27B"
+      },
+      {
+        "attested_event_image_tokens": 7316,
+        "bill_start_beijing": "2026-10-03 07:00",
+        "billed_image_tokens": 7316,
+        "difference": 0,
+        "model": "Qwen3.8-Flash"
+      },
+      {
+        "attested_event_image_tokens": 11068,
+        "bill_start_beijing": "2026-10-03 14:00",
+        "billed_image_tokens": 11068,
+        "difference": 0,
+        "model": "Qwen3.8-27B"
+      }
+    ],
+    "request_rows": 63,
+    "unmatched_bill_buckets": []
+  },
+  "schema_version": 1,
+  "sources": {
+    "facade_archive": {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_evidence.compact.tar.xz",
+      "sha256": "b59a98b33d02105478cbd253acbc18ade303efbc83dbe6bb61ec33dfe4b3fbd2"
+    },
+    "glm_summary": {
+      "path": "AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/summary.json",
+      "sha256": "4c685e1303ea6dfc16e22db241cfe1cedfe35dab9ad9114d6f52d5406e2c27f5"
+    },
+    "historical_elevation_probe": {
+      "image_sha256": {
+        "East_view.png": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "West_view.png": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d"
+      },
+      "new_requests_made": 0,
+      "path": "AI_agent/logs/experiments/2026-10-02_paratera_elevation_probe",
+      "probe_sha256": "a3582b4b4c14089b44cef0cf869e70f053ebbbc9c2f7946aa73ef83058411dd8",
+      "response_sha256": {
+        "Qwen3.8-27B_East.json": "d040aae849089bc3e2850536f1f9c28b0df1fed231c672873e496eb477145caa",
+        "Qwen3.8-27B_West.json": "21f8b292e7ad629139472558f2ef157fddbf85fd1a452786e202ace4e216837b",
+        "Qwen3.8-Flash_East.json": "83728f594203bafdb08ff35588e31814fbffc9138e7d21bd5392527dfd50f659",
+        "Qwen3.8-Flash_West.json": "7363c3011e49817a6783b0fd4bbef11798ba71df09e31225dfdea6915f4bbcda"
+      },
+      "usage_sha256": "a917cab6586095d07645d296b09c38ce5e69be3ce612cf29344ed63fe389edef"
+    },
+    "stage3_archive": {
+      "path": "AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_all.compact.tar.xz",
+      "sha256": "dfcfed4cbc249fe3c3c0acc2265d7fb154b2d32b87f317e0c5ad668ca9bc2885"
+    }
+  }
+}

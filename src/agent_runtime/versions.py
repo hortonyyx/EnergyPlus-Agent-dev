@@ -7,6 +7,7 @@ import subprocess
 from pathlib import Path
 
 from src.harness_contracts import RemoteModelIdentity, SourceRef, VersionManifest, VersionStamp
+from .agent_registry import agent_version_record
 from .store import EventStore
 
 
@@ -30,6 +31,8 @@ def make_versions(store: EventStore, *, root: Path, prompt: str,
         evidence = store.source(name, value)
         return VersionStamp(identifier=evidence.blob.sha256, evidence=evidence)
 
+    agent = agent_version_record(root)
+    agent_evidence = store.source("agent-version", agent)
     lock = root / "uv.lock"
     if not lock.is_file():
         raise ValueError("a dependency lock is required for a versioned run")
@@ -39,6 +42,7 @@ def make_versions(store: EventStore, *, root: Path, prompt: str,
         code_commit=VersionStamp(identifier=commit, evidence=code),
         dependency_lock=VersionStamp(identifier=lock_ref.sha256, evidence=SourceRef(
             source_id="dependency-lock", source_kind="runtime", locator="uv.lock", blob=lock_ref)),
+        agent_version=VersionStamp(identifier=agent["version_id"], evidence=agent_evidence),
         prompt=VersionStamp(identifier=prompt_ref.sha256, evidence=SourceRef(
             source_id="system-prompt", source_kind="runtime", locator="system-prompt", blob=prompt_ref)),
         tool_definitions=stamp("tool-definitions", tools),

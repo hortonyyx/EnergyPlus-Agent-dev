@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="15" time="11.711" timestamp="2026-10-03T12:29:48.506881+00:00" hostname="d5136ba15fc0"><testcase classname="tests.test_runtime_r2_truncation" name="test_resume_reconstructs_one_prompt_and_never_double_settles[after_checkpoint]" time="1.411" /><testcase classname="tests.test_runtime_r2_truncation" name="test_total_recovery_cap_is_shared_between_sibling_tasks" time="1.709" /><testcase classname="tests.test_runtime_r2_truncation" name="test_summary_truncation_recovers_with_its_own_prompt_and_budget[after_checkpoint]" time="2.347"><failure message="AssertionError: {'agent_version': None, 'answer': None, 'artifact_paths': [], 'artifacts': [], ...}&#10;assert 'failed' == 'completed'&#10;  &#10;  - completed&#10;  + failed">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/truncation-final/popen-gw14/test_summary_truncation_recove0')
+crash_boundary = 'after_checkpoint'
+
+    @pytest.mark.parametrize("crash_boundary", [None, "after_response", "after_checkpoint"])
+    def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, crash_boundary):
+        limits = RunLimits(model_calls=5, tool_calls=2, seconds=30, tokens=100_000, summary_every=1)
+        policy = ContextPolicy(active_window_messages=16, preserve_initial_messages=2)
+    
+        def repaired_summary(body):
+            assert body["tools"] == []
+            assert body["messages"][-1] == engine._truncation_prompt()
+            assert "reasoning_content" not in json.dumps(body)
+            return _summary_response({**body, "messages": body["messages"][:-1]})
+    
+        engine = runtime(tmp_path, [response(("once", "view", {})), truncated(),
+            repaired_summary, response(text="Done")], limits=limits)
+        engine.context_policy = policy
+        if crash_boundary:
+            def crash(name, current):
+                if name == crash_boundary and any(e.payload.event_type == "response_truncation"
+                                                  for e in current.store.events):
+                    raise InjectedCrash(name)
+            engine.fault_hook = crash
+            with engine.store, pytest.raises(InjectedCrash):
+                asyncio.run(engine.run(MESSAGES))
+            engine = runtime(tmp_path, [repaired_summary, response(text="Done")],
+                limits=limits, tools=engine.tools)
+            engine.context_policy = policy
+        with engine.store:
+            receipt = asyncio.run(engine.run(MESSAGES, resume=bool(crash_boundary)))
+&gt;           assert receipt["status"] == "completed", receipt
+E           AssertionError: {'agent_version': None, 'answer': None, 'artifact_paths': [], 'artifacts': [], ...}
+E           assert 'failed' == 'completed'
+E             
+E             - completed
+E             + failed
+
+tests/test_runtime_r2_truncation.py:201: AssertionError</failure></testcase><testcase classname="tests.test_runtime_r2_truncation" name="test_partial_batch_is_never_exposed_or_executed" time="1.116" /><testcase classname="tests.test_runtime_r2_truncation" name="test_recovery_consumes_child_and_root_budgets" time="1.247" /><testcase classname="tests.test_runtime_r2_truncation" name="test_recovery_limits_stop_with_incomplete_response[0-3-1]" time="0.779" /><testcase classname="tests.test_runtime_r2_truncation" name="test_summary_truncation_recovers_with_its_own_prompt_and_budget[None]" time="1.983"><failure message="AssertionError: {'agent_version': None, 'answer': None, 'artifact_paths': [], 'artifacts': [], ...}&#10;assert 'failed' == 'completed'&#10;  &#10;  - completed&#10;  + failed">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/truncation-final/popen-gw12/test_summary_truncation_recove0')
+crash_boundary = None
+
+    @pytest.mark.parametrize("crash_boundary", [None, "after_response", "after_checkpoint"])
+    def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, crash_boundary):
+        limits = RunLimits(model_calls=5, tool_calls=2, seconds=30, tokens=100_000, summary_every=1)
+        policy = ContextPolicy(active_window_messages=16, preserve_initial_messages=2)
+    
+        def repaired_summary(body):
+            assert body["tools"] == []
+            assert body["messages"][-1] == engine._truncation_prompt()
+            assert "reasoning_content" not in json.dumps(body)
+            return _summary_response({**body, "messages": body["messages"][:-1]})
+    
+        engine = runtime(tmp_path, [response(("once", "view", {})), truncated(),
+            repaired_summary, response(text="Done")], limits=limits)
+        engine.context_policy = policy
+        if crash_boundary:
+            def crash(name, current):
+                if name == crash_boundary and any(e.payload.event_type == "response_truncation"
+                                                  for e in current.store.events):
+                    raise InjectedCrash(name)
+            engine.fault_hook = crash
+            with engine.store, pytest.raises(InjectedCrash):
+                asyncio.run(engine.run(MESSAGES))
+            engine = runtime(tmp_path, [repaired_summary, response(text="Done")],
+                limits=limits, tools=engine.tools)
+            engine.context_policy = policy
+        with engine.store:
+            receipt = asyncio.run(engine.run(MESSAGES, resume=bool(crash_boundary)))
+&gt;           assert receipt["status"] == "completed", receipt
+E           AssertionError: {'agent_version': None, 'answer': None, 'artifact_paths': [], 'artifacts': [], ...}
+E           assert 'failed' == 'completed'
+E             
+E             - completed
+E             + failed
+
+tests/test_runtime_r2_truncation.py:201: AssertionError</failure></testcase><testcase classname="tests.test_runtime_r2_truncation" name="test_resume_reconstructs_one_prompt_and_never_double_settles[after_response]" time="1.342" /><testcase classname="tests.test_runtime_r2_truncation" name="test_real_migration_response_is_settled_and_recovers_without_echo[False]" time="1.904" /><testcase classname="tests.test_runtime_r2_truncation" name="test_recovery_limits_stop_with_incomplete_response[2-1-2]" time="1.109" /><testcase classname="tests.test_runtime_r2_truncation" name="test_real_migration_response_is_settled_and_recovers_without_echo[True]" time="2.076" /><testcase classname="tests.test_runtime_r2_truncation" name="test_recovery_cannot_bypass_call_budget_or_unknown_usage" time="1.519" /><testcase classname="tests.test_runtime_r2_truncation" name="test_successful_turn_resets_consecutive_but_not_total_bound" time="2.358" /><testcase classname="tests.test_runtime_r2_truncation" name="test_recovery_limits_stop_with_incomplete_response[1-3-2]" time="1.123" /><testcase classname="tests.test_runtime_r2_truncation" name="test_summary_truncation_recovers_with_its_own_prompt_and_budget[after_response]" time="2.374"><failure message="AssertionError: {'agent_version': None, 'answer': None, 'artifact_paths': [], 'artifacts': [], ...}&#10;assert 'failed' == 'completed'&#10;  &#10;  - completed&#10;  + failed">tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/truncation-final/popen-gw13/test_summary_truncation_recove0')
+crash_boundary = 'after_response'
+
+    @pytest.mark.parametrize("crash_boundary", [None, "after_response", "after_checkpoint"])
+    def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, crash_boundary):
+        limits = RunLimits(model_calls=5, tool_calls=2, seconds=30, tokens=100_000, summary_every=1)
+        policy = ContextPolicy(active_window_messages=16, preserve_initial_messages=2)
+    
+        def repaired_summary(body):
+            assert body["tools"] == []
+            assert body["messages"][-1] == engine._truncation_prompt()
+            assert "reasoning_content" not in json.dumps(body)
+            return _summary_response({**body, "messages": body["messages"][:-1]})
+    
+        engine = runtime(tmp_path, [response(("once", "view", {})), truncated(),
+            repaired_summary, response(text="Done")], limits=limits)
+        engine.context_policy = policy
+        if crash_boundary:
+            def crash(name, current):
+                if name == crash_boundary and any(e.payload.event_type == "response_truncation"
+                                                  for e in current.store.events):
+                    raise InjectedCrash(name)
+            engine.fault_hook = crash
+            with engine.store, pytest.raises(InjectedCrash):
+                asyncio.run(engine.run(MESSAGES))
+            engine = runtime(tmp_path, [repaired_summary, response(text="Done")],
+                limits=limits, tools=engine.tools)
+            engine.context_policy = policy
+        with engine.store:
+            receipt = asyncio.run(engine.run(MESSAGES, resume=bool(crash_boundary)))
+&gt;           assert receipt["status"] == "completed", receipt
+E           AssertionError: {'agent_version': None, 'answer': None, 'artifact_paths': [], 'artifacts': [], ...}
+E           assert 'failed' == 'completed'
+E             
+E             - completed
+E             + failed
+
+tests/test_runtime_r2_truncation.py:201: AssertionError</failure></testcase></testsuite></testsuites>

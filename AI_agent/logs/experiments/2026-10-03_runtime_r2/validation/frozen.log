@@ -1,0 +1,84 @@
+bringing up nodes...
+bringing up nodes...
+
+.F.
+=================================== FAILURES ===================================
+___________ test_real_frozen_tools_keep_run99_state_across_75_steps ____________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_real_frozen_tools_keep_run99_state_across_75_steps():
+        # Always own a temporary directory inside this worktree, regardless of pytest --basetemp.
+        retained = os.environ.get("STAGE2_FROZEN_REPLAY_OUT")
+        if retained:
+>           asyncio.run(replay_frozen_run99(Path(retained)))
+
+tests/test_runtime_frozen_long_task.py:269: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+output = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2/AI_agent/logs/experiments/2026-10-03_runtime_r2/.r2-work/frozen/replay')
+
+    async def replay_frozen_run99(output):
+        output = output.resolve()
+        assert output.is_relative_to(ROOT)
+        output.mkdir(parents=True, exist_ok=False)
+        sequence = Run99Sequence()
+        manifest = json.loads((HISTORY / "inputs.json").read_bytes())
+        run, guide, task = prepare_inputs(output, images=HISTORY / "images", mesh=None,
+            building_input=None, scope=manifest["scope"], image_kind="drawings", max_candidates=24)
+        limits = RunLimits(model_calls=80, tool_calls=80, seconds=900, tokens=80_000_000,
+                           context_tokens=12_000_000)
+        role = coordinator_role(limits.ledger_limit())
+        observer = ObserveReplay(output)
+        with EventStore(output, run_id="run99-frozen-tools", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            async with frozen_bim_client(run, repository_root=ROOT) as client:
+                tools = ReplayTools(client, role, run_directory=run, sequence=sequence, store=store)
+                catalog = await tools.list_tools()
+                write_frozen_materials(output / "frozen", repository_root=ROOT)
+                write_frozen_tool_catalog(output / "frozen", catalog, readonly=False)
+                specs = [{"type": "function", "function": {"name": t["name"],
+                    "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
+                parameters = {"max_tokens": 64, "temperature": 0.0}
+                versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
+                    parameters=parameters, route={"route_id": "scripted-run99", "model": "offline-run99-fixture"},
+                    code_paths=("src/agent/runtime_context.py", "src/agent/runtime_tools.py",
+                        "src/agent/runtime_entry.py", "scripts/tool_scripts", "src/agent/geometry",
+                        "src/agent/correction", "src/agent/execution", "tests/test_runtime_frozen_long_task.py"))
+                store.write_json("versions.json", versions.model_dump(mode="json"))
+                adapter = ScriptedAdapter(sequence.scripted_responses())
+                engine = Runtime(store=store, adapter=adapter, tools=tools, role=role,
+                    model="offline-run99-fixture", parameters=parameters, versions=versions, limits=limits,
+                    context_policy=ContextPolicy(active_window_messages=8, max_images=2, max_image_bytes=250_000),
+                    context_update=update_building_context, fault_hook=observer)
+                receipt = await engine.run([{"role": "system", "content": guide},
+                                            {"role": "user", "content": task}])
+                report = {"receipt": receipt, "steps": observer.steps, "requests": observer.requests,
+                    "calls": tools.calls, "retrievals": observer.retrievals,
+                    "limits": limits.model_dump(mode="json"),
+                    "source": {"path": str(HISTORY.relative_to(ROOT)),
+                        "inputs_sha256": digest((HISTORY / "inputs.json").read_bytes())},
+                    "boundary": "Real frozen tools; historical arguments unchanged; model responses scripted; "
+                        "usage 20 tokens/response is synthetic, not service usage. No whole-case model run."}
+                store.write_json("frozen_replay_report.json", report)
+>               assert receipt["status"] == "completed", receipt
+E               AssertionError: {'agent_version': '5bb10538', 'answer': None, 'artifact_paths': ['/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-r2...f2cf4cf218081c7cadc25f51', 'uri': 'blobs/6a3c4ea5c89a6f68659821294b766ac9615f03f7f2cf4cf218081c7cadc25f51'}, ...], ...}
+E               assert 'token_budget_exhausted' == 'completed'
+E                 
+E                 - completed
+E                 + token_budget_exhausted
+
+tests/test_runtime_frozen_long_task.py:248: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps
+1 failed, 2 passed in 644.29s (0:10:44)

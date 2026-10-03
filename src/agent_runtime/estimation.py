@@ -40,6 +40,8 @@ class ModelProfile:
     reasoning_may_exceed_max_tokens: bool
     reasoning_token_allowance: int
     reasoning_allowance_source: str
+    recommended_min_output_tokens: int | None
+    output_limit_source: str
     image_estimator: str
     image_patch_size: int
     image_merge_size: int
@@ -91,6 +93,18 @@ def _profile_from_dict(row: Mapping[str, Any]) -> ModelProfile:
         raise ValueError("reasoning_may_exceed_max_tokens must be boolean")
     if type(allowance) is not int or allowance < 0:
         raise ValueError("reasoning_token_allowance must be a non-negative integer")
+    recommended_output = row.get("recommended_min_output_tokens")
+    if recommended_output is not None and (
+        type(recommended_output) is not int or recommended_output < 1
+    ):
+        raise ValueError(
+            "recommended_min_output_tokens must be a positive integer or null"
+        )
+    output_limit_source = row.get(
+        "output_limit_source", "unverified: no reviewed minimum output limit"
+    )
+    if not isinstance(output_limit_source, str) or not output_limit_source.strip():
+        raise ValueError("output_limit_source must be a non-empty string")
     return ModelProfile(
         canonical_name=row["canonical_name"], aliases=tuple(row.get("aliases", ())),
         context_window_tokens=row.get("context_window_tokens"),
@@ -109,6 +123,8 @@ def _profile_from_dict(row: Mapping[str, Any]) -> ModelProfile:
         reasoning_token_allowance=allowance,
         reasoning_allowance_source=row.get(
             "reasoning_allowance_source", "compatibility default: no extra allowance"),
+        recommended_min_output_tokens=recommended_output,
+        output_limit_source=output_limit_source,
         image_estimator=row["image_estimator"],
         image_patch_size=int(row["image_patch_size"]),
         image_merge_size=int(row["image_merge_size"]),
@@ -142,6 +158,8 @@ def conservative_compatibility_profile(model: str) -> ModelProfile:
         safety_margin_source="unverified compatibility margin, not calibrated for this model",
         reasoning_may_exceed_max_tokens=False, reasoning_token_allowance=0,
         reasoning_allowance_source="compatibility default: no model evidence",
+        recommended_min_output_tokens=None,
+        output_limit_source="unverified: no reviewed minimum output limit",
         image_estimator="decoded_pixels_v0",
         image_patch_size=16, image_merge_size=2, image_min_pixels=65536,
         image_max_pixels=16777216, image_special_tokens=2,

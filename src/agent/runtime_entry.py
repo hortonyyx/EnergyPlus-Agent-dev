@@ -1,8 +1,8 @@
 """Run one role on admitted case inputs using the frozen BIM tool service.
 
 CLI: python -m src.agent.runtime_entry --help
-No model call occurs unless --provider paratera or an explicit scripted fixture
-is selected. Tool preparation never starts the historical subscription runner.
+Real requests require an explicit live provider. Tool preparation never starts
+the historical subscription runner.
 """
 
 from __future__ import annotations
@@ -31,6 +31,9 @@ from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.estimation import get_model_profile
+from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION, LIVE_PROVIDERS,
+    provider_parameters, subscription_credentials, validate_provider_model)
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
@@ -41,7 +44,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def runtime_model_profile(provider: str, model: str):
     """Select the compatibility or reviewed profile for this CLI route."""
-    strict = provider == "paratera"
+    validate_provider_model(provider, model)
+    strict = provider in LIVE_PROVIDERS
     return get_model_profile(model if strict else "scripted-model", strict=strict)
 
 
@@ -95,13 +99,22 @@ async def execute(args) -> dict:
     output = args.out.resolve()
     if not output.is_relative_to(ROOT):
         raise ValueError("this development entry writes only inside its own worktree")
-    strict_model_profile = args.provider == "paratera"
+    strict_model_profile = args.provider in LIVE_PROVIDERS
     # Reject an unreviewed real route before creating a run or reading credentials.
     runtime_model_profile(args.provider, args.model)
+    effective_model = args.model if strict_model_profile else "scripted-model"
+    args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(effective_model)
+    validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
+    parameters = provider_parameters(args.provider, output_tokens=args.output_tokens,
+        temperature=args.temperature, thinking=args.thinking, reasoning_effort=args.reasoning_effort)
+    if args.provider == GLM_SUBSCRIPTION and (args.price_schedule or args.money_usd is not None):
+        raise ValueError("subscription route has no usage-based money estimate; use token/time budgets")
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
         seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
         near_limit=args.near_limit, min_output_tokens=args.min_output_tokens,
         context_tokens=args.context_tokens, max_model_retries=args.model_retries,
+        max_consecutive_truncations=args.max_consecutive_truncations,
+        max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
     context_policy = ContextPolicy(active_window_messages=args.context_window,
         large_result_bytes=args.large_result_bytes, max_images=args.max_images,
@@ -130,11 +143,6 @@ async def execute(args) -> dict:
                 if not args.resume:
                     write_frozen_materials(output / "frozen", repository_root=ROOT)
                     write_frozen_tool_catalog(output / "frozen", catalog, readonly=role.read_only)
-                parameters = {"max_tokens": args.output_tokens, "temperature": args.temperature}
-                if args.reasoning_effort:
-                    parameters["reasoning_effort"] = args.reasoning_effort
-                else:
-                    parameters["enable_thinking"] = args.thinking
                 if args.provider == "scripted":
                     fixture = args.script.read_bytes()
                     # The local fixture gives one response per request ticket. A
@@ -144,9 +152,11 @@ async def execute(args) -> dict:
                     route = {"route_id": "offline-scripted", "model": "scripted-model",
                         "fixture_sha256": hashlib.sha256(fixture).hexdigest()}
                 else:
-                    base_url, key = paratera_credentials(args.credentials_file)
+                    credentials = subscription_credentials if args.provider == GLM_SUBSCRIPTION else paratera_credentials
+                    base_url, key = credentials(args.credentials_file)
                     adapter = HttpChatAdapter(base_url=base_url, api_key=key)
-                    route = {"route_id": "paratera", "model": args.model, "base_url": base_url}
+                    route = {"route_id": args.provider, "model": args.model, "base_url": base_url,
+                        "billing_mode": "subscription" if args.provider == GLM_SUBSCRIPTION else "metered"}
                 specs = [{"type": "function", "function": {"name": t["name"],
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
@@ -186,6 +196,7 @@ async def execute(args) -> dict:
                     required_view_ids=tuple(args.keep_view_id),
                     retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image),
                     strict_model_profile=strict_model_profile)
+                engine.low_output_limit_reason = args.low_output_limit_reason
                 result = await engine.run(messages, image_originals=originals, resume=args.resume)
         from src.agent.runtime_behaviour import write_behaviour_report
         write_behaviour_report(output / "events.jsonl", output / "behaviour")
@@ -204,10 +215,10 @@ def parser():
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
     p.add_argument("--scope", default="Build the supplied building at the requested detail; inspect saved results and report limitations.")
     p.add_argument("--role", choices=("coordinator", "local_observer"), default="coordinator")
-    p.add_argument("--provider", choices=("scripted", "paratera"), required=True)
+    p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)
     p.add_argument("--script", type=Path, help="explicit offline Chat Completions response fixture")
     p.add_argument("--model", default="Qwen3.8-27B")
-    p.add_argument("--credentials-file", type=Path, help="read only PARATERA_BASE_URL and PARATERA_API_KEY")
+    p.add_argument("--credentials-file", type=Path, help="read provider-specific keys; GLM subscription requires main-tree .env")
     p.add_argument("--model-calls", type=int, default=6)
     p.add_argument("--tool-calls", type=int, default=12)
     p.add_argument("--seconds", type=float, default=180.0)
@@ -217,6 +228,10 @@ def parser():
     p.add_argument("--near-limit", choices=("stop", "reduce_output"), default="stop")
     p.add_argument("--min-output-tokens", type=int, default=1)
     p.add_argument("--model-retries", type=int, default=0)
+    p.add_argument("--max-consecutive-truncations", type=int, default=2,
+                   help="maximum consecutive output-limit recoveries; zero disables recovery")
+    p.add_argument("--max-total-truncations", type=int, default=3,
+                   help="maximum output-limit recoveries across this root run, including children and summaries")
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
     p.add_argument("--context-window", type=int, default=16)
@@ -227,8 +242,9 @@ def parser():
     p.add_argument("--keep-view-id", action="append", default=[])
     p.add_argument("--retrieve-image", nargs=2, action="append", default=[], metavar=("VIEW_ID", "SHA256"))
     p.add_argument("--summary-every", type=int, default=0, help="optional constrained model summary after N tool calls; shares the root budget")
-    p.add_argument("--output-tokens", type=int, default=2048)
-    p.add_argument("--temperature", type=float, default=0.0)
+    p.add_argument("--output-tokens", type=int, help="defaults to the reviewed model recommendation")
+    p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")
+    p.add_argument("--temperature", type=float, help="default: Paratera 0.0; subscription service default")
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--reasoning-effort", choices=("low", "high", "max"),
                    help="provider-native reasoning level; when set, omit enable_thinking")

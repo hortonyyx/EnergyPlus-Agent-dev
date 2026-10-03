@@ -78,6 +78,13 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
         raise ValueError("every request message needs a recorded source")
     body = {"model": model, "messages": copy.deepcopy(messages),
             "stream": False, "n": 1, **copy.deepcopy(parameters)}
+    if versions.remote_model.route_id == "glm-subscription":
+        # No unverified sampling count on the Coding Plan endpoint. Capture the
+        # resulting body below so the journal remains identical to wire bytes.
+        body.pop("n")
+        unsupported = set(parameters) - {"max_tokens", "temperature"}
+        if unsupported:
+            raise ValueError("unreviewed GLM subscription parameters: " + ", ".join(sorted(unsupported)))
     if tools:
         body["tools"] = copy.deepcopy(tools)
         body.setdefault("tool_choice", "auto")
@@ -219,7 +226,10 @@ def parse_response(raw: Any, request_event_id: str, store: EventStore,
             if type(count) is int and count >= 0:
                 thinking.append(ThinkingTokenCount(tokens=count))
         seen = set()
-        raw_calls = message.get("tool_calls") or []
+        # An output-limit response is an indivisible, rejected batch. Even a
+        # syntactically complete call beside a partial call must not be exposed
+        # as executable. The exact partial bytes remain in raw_response.
+        raw_calls = [] if finish == "length" else message.get("tool_calls") or []
         if not isinstance(raw_calls, list):
             raise ValueError("tool_calls must be an array")
         for call in raw_calls:
@@ -249,7 +259,7 @@ def parse_response(raw: Any, request_event_id: str, store: EventStore,
             error = "empty_response"
     except (KeyError, TypeError, ValueError, AttributeError) as exc:
         # Preserve the full raw object; never execute a partially parsed batch.
-        error = f"malformed_response:{type(exc).__name__}"
+        error = "incomplete_response" if finish == "length" else f"malformed_response:{type(exc).__name__}"
         calls, assistant = [], {}
     if not thinking:
         thinking = [ThinkingUnavailable(reason="service exposed no reasoning content, summary, count or signature")]

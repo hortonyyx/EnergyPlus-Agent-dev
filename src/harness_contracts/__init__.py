@@ -21,6 +21,7 @@ from .budget import (
 from .events import (
     AdapterRequestPayload,
     AnswerRepairPayload,
+    TruncationPayload,
     BlobCapture,
     BudgetEventPayload,
     BudgetOverrunPayload,
@@ -75,6 +76,7 @@ from .validation import EventLog, ExcerptDisclosure, validate_event_log
 __all__ = [
     "AdapterRequestPayload",
     "AnswerRepairPayload",
+    "TruncationPayload",
     "BlobCapture",
     "BudgetAmounts",
     "BudgetEventPayload",

@@ -108,16 +108,29 @@ class BudgetSettlement(ContractModel):
     actual: BudgetAmounts
     usage: UsageEvidence
     cost: CostEvidence
+    image_tokens_estimate: int = Field(default=0, ge=0)
+    reported_usage_includes_image_tokens: bool = False
+    # None preserves historical ledger semantics; new receipts supply the
+    # separately charged amount independently of what raw usage includes.
+    additional_image_tokens: int | None = Field(default=None, ge=0)
     token_overrun: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def missing_usage_requires_estimated_cost(self) -> BudgetSettlement:
+        if self.image_tokens_estimate == 0 and self.reported_usage_includes_image_tokens:
+            raise ValueError(
+                "reported usage cannot include image tokens when the request had none"
+            )
         if self.usage.kind == "missing":
             if self.actual.tokens is not None:
                 raise ValueError("missing token usage must remain None, not zero or an estimate")
             if self.cost.kind == "reported":
                 raise ValueError(
                     "when raw usage is missing, cost must be an explicit estimated upper bound"
+                )
+            if self.reported_usage_includes_image_tokens:
+                raise ValueError(
+                    "missing usage cannot attest that reported usage includes image tokens"
                 )
         if self.cost.kind == "reported":
             if self.actual.money_usd != self.cost.usd:
@@ -126,6 +139,14 @@ class BudgetSettlement(ContractModel):
             raise ValueError(
                 "an estimated cost upper bound must not be stored as actual.money_usd"
             )
+        if self.usage.kind == "reported" and (
+            self.image_tokens_estimate or self.reported_usage_includes_image_tokens or self.additional_image_tokens
+        ):
+            reported_tokens = _reported_total_tokens(self.usage.raw_usage)
+            if reported_tokens is not None and self.actual.tokens != reported_tokens:
+                raise ValueError(
+                    "image accounting must preserve provider-reported token usage"
+                )
         if self.token_overrun:
             if self.usage.kind != "reported":
                 raise ValueError("a token overrun requires reported usage")
@@ -139,6 +160,18 @@ class BudgetSettlement(ContractModel):
                     "reported raw token usage must equal actual.tokens for an overrun"
                 )
         return self
+
+    @property
+    def effective_tokens(self) -> int | None:
+        """Budget charge while keeping provider-reported usage unmodified."""
+
+        if self.actual.tokens is None:
+            return None
+        if self.additional_image_tokens is not None:
+            return self.actual.tokens + self.additional_image_tokens
+        if self.reported_usage_includes_image_tokens:
+            return self.actual.tokens
+        return self.actual.tokens + self.image_tokens_estimate
 
 
 class BudgetLedger(ContractModel):
@@ -165,7 +198,7 @@ class BudgetLedger(ContractModel):
             if reservation is None:
                 raise ValueError(f"settlement has no reservation: {item.reservation_id}")
             reserved_tokens = reservation.amounts.tokens
-            actual_tokens = item.actual.tokens
+            actual_tokens = item.effective_tokens
             expected_overrun = (
                 max(actual_tokens - reserved_tokens, 0)
                 if actual_tokens is not None and reserved_tokens is not None
@@ -176,8 +209,11 @@ class BudgetLedger(ContractModel):
                     f"settlement token_overrun differs from actual minus reservation: "
                     f"{item.reservation_id}"
                 )
+            effective_actual = item.actual.model_copy(
+                update={"tokens": item.effective_tokens}
+            )
             _ensure_within_reservation(
-                item.actual,
+                effective_actual,
                 reservation.amounts,
                 f"settlement exceeds reservation: {item.reservation_id}",
                 allow_token_overrun=bool(item.token_overrun),
@@ -274,7 +310,11 @@ def _effective_charge(
     else:
         money = reservation.amounts.money_usd
     return BudgetAmounts(
-        tokens=actual_or_hold("tokens"),
+        tokens=(
+            reservation.amounts.tokens
+            if settlement.actual.tokens is None
+            else settlement.effective_tokens
+        ),
         money_usd=money,
         seconds=actual_or_hold("seconds"),
         calls=actual_or_hold("calls"),
