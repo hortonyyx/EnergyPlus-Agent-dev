@@ -12,7 +12,7 @@ from src.agent_runtime.store import EventStore
 
 from test_agent_runtime import MESSAGES, response, runtime
 from test_runtime_child_tasks import _child
-from test_runtime_recovery_edges import InjectedCrash
+from test_runtime_recovery_edges import InjectedCrash, _summary_response
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -169,3 +169,41 @@ def test_recovery_cannot_bypass_call_budget_or_unknown_usage(tmp_path):
         receipt = asyncio.run(engine.run(MESSAGES))
         assert receipt["status"] == "token_usage_unavailable" and receipt["model_calls"] == 1
         assert receipt["truncations"] == 1
+
+
+@pytest.mark.parametrize("crash_boundary", [None, "after_response", "after_checkpoint"])
+def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, crash_boundary):
+    limits = RunLimits(model_calls=5, tool_calls=2, seconds=30, tokens=100_000, summary_every=1)
+    policy = ContextPolicy(active_window_messages=16, preserve_initial_messages=2)
+
+    def repaired_summary(body):
+        assert body.get("tools", []) == []
+        assert body["messages"][-1] == engine._truncation_prompt()
+        assert "reasoning_content" not in json.dumps(body)
+        return _summary_response({**body, "messages": body["messages"][:-1]})
+
+    engine = runtime(tmp_path, [response(("once", "view", {})), truncated(),
+        repaired_summary, response(text="Done")], limits=limits)
+    engine.context_policy = policy
+    if crash_boundary:
+        def crash(name, current):
+            if name == crash_boundary and any(e.payload.event_type == "response_truncation"
+                                              for e in current.store.events):
+                raise InjectedCrash(name)
+        engine.fault_hook = crash
+        with engine.store, pytest.raises(InjectedCrash):
+            asyncio.run(engine.run(MESSAGES))
+        engine = runtime(tmp_path, [repaired_summary, response(text="Done")],
+            limits=limits, tools=engine.tools)
+        engine.context_policy = policy
+    with engine.store:
+        receipt = asyncio.run(engine.run(MESSAGES, resume=bool(crash_boundary)))
+        assert receipt["status"] == "completed", receipt
+        assert receipt["model_calls"] == 4 and receipt["truncations"] == 1
+        assert receipt["reported_tokens"] == 120
+        assert engine.tools.calls == [("view", {})]
+        assert [e.payload.logical_purpose for e in engine.store.events
+                if e.payload.event_type == "adapter_request"] == [
+            "primary_task", "context_summary", "context_summary", "primary_task"]
+        assert engine._truncation_prompt() not in engine.messages
+        engine.store.validate()
