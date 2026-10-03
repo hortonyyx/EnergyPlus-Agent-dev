@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import csv
 import hashlib
 import json
@@ -28,6 +28,8 @@ FACADE = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_evidence
 CALIBRATION_RUNS = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage3/calibration/runs"
 STAGE1_PROBE = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage1/paratera_probe_01"
 GLM_SUMMARY = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/summary.json"
+ELEVATION_PROBE = ROOT / "AI_agent/logs/experiments/2026-10-02_paratera_elevation_probe"
+ELEVATION_IMAGES = ROOT / "case_tests/e2e_tests/sm24_anchor/case_data"
 
 
 def sha256(path: Path) -> str:
@@ -135,6 +137,41 @@ def plain_run_rows(directory: Path) -> list[dict]:
     return collect_events(event_path.read_bytes(), dimensions, source)
 
 
+def elevation_probe_rows() -> list[dict]:
+    """Read the four historical Qwen probe requests without replaying them."""
+    rows = []
+    for path in sorted((ELEVATION_PROBE / "responses").glob("Qwen*.json")):
+        record = json.loads(path.read_bytes())
+        model = record["model"]
+        facade = record["facade"]
+        image_path = ELEVATION_IMAGES / facade
+        image_identity = sha256(image_path)
+        if image_identity != record["image_sha256"]:
+            raise ValueError(f"image hash differs from recorded request: {path}")
+        recorded_url = record["request"]["messages"][0]["content"][1]["image_url"]["url"]
+        if f"sha256={image_identity}>" not in recorded_url:
+            raise ValueError(f"recorded request does not attest image hash: {path}")
+        with Image.open(image_path) as image:
+            width, height = image.size
+        estimate = image_tokens(model, width, height)
+        response = record["response"]
+        usage = response["usage"]
+        classification, reported, error = classify_usage(usage, estimate)
+        occurred = datetime.fromtimestamp(response["created"], timezone.utc) + timedelta(hours=8)
+        rows.append({
+            "source": str(path.relative_to(ROOT)),
+            "request_event_id": response["id"],
+            "bill_hour_beijing": occurred.strftime("%Y-%m-%d %H:00"),
+            "model": model,
+            "images": 1,
+            "estimated_image_tokens": estimate,
+            "reported_image_tokens": reported,
+            "estimate_minus_reported": error,
+            "usage_classification": classification,
+        })
+    return rows
+
+
 def billed_images() -> tuple[dict[tuple[str, str], int], int]:
     buckets = defaultdict(int)
     total = 0
@@ -157,6 +194,8 @@ def main() -> None:
     for directory in sorted(CALIBRATION_RUNS.iterdir()):
         rows.extend(plain_run_rows(directory))
     rows.extend(plain_run_rows(STAGE1_PROBE))
+    elevation_rows = elevation_probe_rows()
+    rows.extend(elevation_rows)
     bill, bill_total = billed_images()
 
     classifications = defaultdict(lambda: {"requests": 0, "estimated": 0, "reported": 0})
@@ -232,6 +271,20 @@ def main() -> None:
             "stage3_archive": {"path": str(STAGE3.relative_to(ROOT)), "sha256": sha256(STAGE3)},
             "facade_archive": {"path": str(FACADE.relative_to(ROOT)), "sha256": sha256(FACADE)},
             "glm_summary": {"path": str(GLM_SUMMARY.relative_to(ROOT)), "sha256": sha256(GLM_SUMMARY)},
+            "historical_elevation_probe": {
+                "path": str(ELEVATION_PROBE.relative_to(ROOT)),
+                "new_requests_made": 0,
+                "probe_sha256": sha256(ELEVATION_PROBE / "probe.py"),
+                "usage_sha256": sha256(ELEVATION_PROBE / "usage.json"),
+                "response_sha256": {
+                    str(Path(row["source"]).name): sha256(ROOT / row["source"])
+                    for row in elevation_rows
+                },
+                "image_sha256": {
+                    name: sha256(ELEVATION_IMAGES / name)
+                    for name in ("East_view.png", "West_view.png")
+                },
+            },
         },
     }
     if args.run is not None:
