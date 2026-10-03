@@ -1,9 +1,8 @@
 """Separate provider usage, image estimates, budget charges, and CNY estimates.
 
-Provider usage remains raw evidence.  Image tokens are estimated from the exact
-bytes sent in a request and are only added to the token ledger when the usage
-receipt does not itself contain an image-token breakdown.  Currency values are
-estimates from a checked-in price observation, never provider bills.
+Provider usage remains raw evidence. A separately billed image line is charged
+even when the provider's input total already contains images. Currency values
+are estimates from a checked-in price observation, never provider bills.
 """
 
 from __future__ import annotations
@@ -94,6 +93,9 @@ class RequestUsageAccounting:
     reported_image_tokens: int | None
     image_tokens_estimate: int
     reported_usage_includes_image_tokens: bool
+    additional_image_tokens: int
+    image_charge_source: str
+    billing_mode: str
     budget_charge_tokens: int | None
     estimated_cost_cny: Decimal | None
     known_cost_components_cny: Decimal | None
@@ -133,6 +135,7 @@ def account_request_usage(
     *,
     image_tokens_estimate: int,
     pricing: CnyPriceSchedule | None,
+    billing_mode: str = "metered_or_unknown",
 ) -> RequestUsageAccounting:
     """Reconcile one receipt while preserving reported and estimated quantities."""
 
@@ -144,10 +147,13 @@ def account_request_usage(
         _reported_image_tokens(raw)
     )
     includes_images = image_tokens_estimate > 0 and image_in_total_attested
+    separate_images = bills_images_separately(pricing)
+    image_charge = reported_image if reported_image is not None else image_tokens_estimate
+    additional_images = image_charge if separate_images else (0 if includes_images else image_tokens_estimate)
     budget_tokens = (
         None
         if reported_total is None
-        else reported_total + (0 if includes_images else image_tokens_estimate)
+        else reported_total + additional_images
     )
 
     known_cost, complete = _estimate_cny(
@@ -155,7 +161,7 @@ def account_request_usage(
         image_tokens_estimate=image_tokens_estimate,
         reported_image_tokens=reported_image,
         image_in_total_attested=includes_images,
-        pricing=pricing,
+        pricing=None if billing_mode == "subscription" else pricing,
     )
     estimated_cost = known_cost if complete else None
     if image_tokens_estimate == 0:
@@ -169,6 +175,11 @@ def account_request_usage(
             "Provider usage is unavailable; the ledger retains the conservative "
             "reservation and the image estimate remains separate."
         )
+    elif separate_images and image_charge:
+        note = (
+            "The observed invoice charges the full prompt (including images) and "
+            "a separate image line; the token budget adds that image line again."
+        )
     elif includes_images:
         note = (
             "Provider usage exposes an image-token breakdown, so the image estimate "
@@ -181,11 +192,17 @@ def account_request_usage(
         )
     else:
         note = "This request sent no images."
+    if billing_mode == "subscription":
+        note += " Subscription route: no usage-based currency estimate; token/time budgets still apply."
     return RequestUsageAccounting(
         provider_reported_tokens=reported_total,
         reported_image_tokens=reported_image,
         image_tokens_estimate=image_tokens_estimate,
         reported_usage_includes_image_tokens=includes_images,
+        additional_image_tokens=additional_images,
+        image_charge_source=("provider_reported" if separate_images and reported_image is not None
+                             else "formula_estimate" if additional_images else "none"),
+        billing_mode=billing_mode,
         budget_charge_tokens=budget_tokens,
         estimated_cost_cny=estimated_cost,
         known_cost_components_cny=known_cost,
@@ -254,6 +271,7 @@ def request_accounting_from_store(
             usage,
             image_tokens_estimate=image_tokens,
             pricing=pricing,
+            billing_mode="subscription" if identity.route_id == "glm-subscription" else "metered_or_unknown",
         ),
     )
 
@@ -287,6 +305,8 @@ def summarize_request_accounting(
             "image_tokens_estimate": sum(
                 r.accounting.image_tokens_estimate for r in selected
             ),
+            "additional_image_tokens": sum(r.accounting.additional_image_tokens for r in selected),
+            "billing_modes": sorted({r.accounting.billing_mode for r in selected}),
             "budget_charge_tokens": (
                 sum(value for value in charges if value is not None)
                 if all(value is not None for value in charges)
@@ -310,7 +330,7 @@ def summarize_request_accounting(
             task: summarize(r for r in materialized if r.task_id == task)
             for task in tasks
         },
-        "currency_note": "CNY values are estimates from observed rates, not bills.",
+        "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
     }
 
 
@@ -379,7 +399,7 @@ def _estimate_cny(
     image_in_prompt = (
         (reported_image_tokens or 0) if image_in_total_attested else 0
     )
-    text_input = max(0, prompt - image_in_prompt)
+    text_input = prompt if bills_images_separately(pricing) else max(0, prompt - image_in_prompt)
     cached = 0
     for name in ("prompt_tokens_details", "input_tokens_details"):
         details = raw.get(name)
@@ -400,16 +420,22 @@ def _estimate_cny(
             complete = False
         else:
             known += Decimal(cached) * pricing.cached_input_cny_per_million / million
-    if image_tokens_estimate:
+    image_charge = reported_image_tokens if reported_image_tokens is not None else image_tokens_estimate
+    if image_charge:
         if pricing.image_input_cny_per_million is None:
             complete = False
         else:
             known += (
-                Decimal(image_tokens_estimate)
+                Decimal(image_charge)
                 * pricing.image_input_cny_per_million
                 / million
             )
     return known, complete
+
+
+def bills_images_separately(pricing: CnyPriceSchedule | None) -> bool:
+    """Only the observed Paratera Qwen invoice supports this extra charge."""
+    return pricing is not None and pricing.image_billing_status == "bill_observed_separate_at_text_input_rate"
 
 
 __all__ = [

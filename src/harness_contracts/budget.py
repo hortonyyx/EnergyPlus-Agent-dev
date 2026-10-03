@@ -110,6 +110,9 @@ class BudgetSettlement(ContractModel):
     cost: CostEvidence
     image_tokens_estimate: int = Field(default=0, ge=0)
     reported_usage_includes_image_tokens: bool = False
+    # None preserves historical ledger semantics; new receipts supply the
+    # separately charged amount independently of what raw usage includes.
+    additional_image_tokens: int | None = Field(default=None, ge=0)
     token_overrun: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
@@ -137,7 +140,7 @@ class BudgetSettlement(ContractModel):
                 "an estimated cost upper bound must not be stored as actual.money_usd"
             )
         if self.usage.kind == "reported" and (
-            self.image_tokens_estimate or self.reported_usage_includes_image_tokens
+            self.image_tokens_estimate or self.reported_usage_includes_image_tokens or self.additional_image_tokens
         ):
             reported_tokens = _reported_total_tokens(self.usage.raw_usage)
             if reported_tokens is not None and self.actual.tokens != reported_tokens:
@@ -164,6 +167,8 @@ class BudgetSettlement(ContractModel):
 
         if self.actual.tokens is None:
             return None
+        if self.additional_image_tokens is not None:
+            return self.actual.tokens + self.additional_image_tokens
         if self.reported_usage_includes_image_tokens:
             return self.actual.tokens
         return self.actual.tokens + self.image_tokens_estimate

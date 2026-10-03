@@ -21,7 +21,8 @@ from src.harness_contracts import (
 )
 from src.harness_contracts.base import ContractModel
 from .adapter import convert_tool_result, parse_response, prepare_request, reported_tokens
-from .accounting import account_request_usage, request_accounting_from_store, summarize_request_accounting
+from .accounting import (account_request_usage, bills_images_separately,
+    get_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
 from .estimation import get_model_profile
 from .output_limits import validate_output_limit
@@ -278,6 +279,9 @@ class Runtime:
             estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
                 input_token_upper_bound=prepared.input_token_upper_bound,
                 image_input_tokens_estimate=prepared.token_estimate.image_tokens,
+                additional_image_tokens_estimate=(prepared.token_estimate.image_tokens
+                    if bills_images_separately(get_cny_price_schedule(self.model,
+                        route_id=self.versions.remote_model.route_id)) else 0),
                 output_token_limit=prepared.output_token_limit, seconds=seconds,
                 reasoning_token_allowance=prepared.token_estimate.reasoning_token_allowance,
                 estimate_source=prepared.estimate_source,
@@ -459,6 +463,7 @@ class Runtime:
         charged_seconds = Decimal(str(max(0.0, seconds))) if seconds is not None else None
         accounting = self._request_accounting(reservation_id, usage)
         image_charge = {"image_tokens_estimate": accounting.image_tokens_estimate,
+            "additional_image_tokens": accounting.additional_image_tokens,
             "reported_usage_includes_image_tokens": accounting.reported_usage_includes_image_tokens}
         sources = (self.store.source("request-usage-accounting", accounting.receipt_dict()),)
         actual = BudgetAmounts(tokens=reported_tokens(usage), calls=1, seconds=charged_seconds)

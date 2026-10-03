@@ -5,7 +5,7 @@
 模型请求包含图片时，运行时同时保存三类数，不能互相替代：
 
 1. **服务商实报 token**：原样保存响应中的 usage，是可追溯的上游事实。
-2. **图片 token 估算**：按实际发送图片的解码尺寸和模型档案计算，用于发送前预算，也用于响应缺少可靠图片分项时补足预算消耗。
+2. **图片 token 估算**：按实际发送图片的解码尺寸和模型档案计算，用于发送前预算，也用于响应缺少可靠图片分项时补足预算消耗。账单另列图片的服务，预留和结算都额外计算该图片行。
 3. **人民币估算**：按仓库记录的单价估算，必须标注为 estimate，不能称为账单金额。单价或分项未知时，完整金额为 `null`，同时保留可计算的已知小计。
 
 若没有服务商 usage，预算账本继续保留请求时的保守预留，不用估算值伪造一次实报结算。
@@ -23,7 +23,29 @@ floor(resized_width / f) * floor(resized_height / f) + 2
 
 实现读取持久化 `AdapterRequest.images[].sent` 所指向的实际发送字节，重新解码尺寸，因而恢复运行后仍可重建相同估算。它不使用原始图片尺寸，也不按 base64 字符数计费。
 
-## 避免重复记账
+## R2b 修正：使用量包含关系与账单收费分开
+
+10-03 的 R2 原结论混淆了这两件事：**Qwen 的输入总数已包含图片，但 Paratera 账单又单列图片收费。** 当前口径覆盖此前“实报含图片就不再扣图片”的推断，原核对过程保留在下一节。
+
+仅对已观察到单列图片收费的 Paratera Qwen3.8-27B / Qwen3.8-Flash：
+
+```text
+image_charge = reported_image_tokens（缺失时用公式估算，并标为 formula_estimate）
+budget_tokens = provider_reported_total + image_charge
+CNY = ((prompt_tokens - cached_tokens) * text_rate
+       + cached_tokens * cached_rate + image_charge * image_rate
+       + completion_tokens * output_rate) / 1_000_000
+```
+
+请求前在物理输入估算之外再预留图片行；上下文长度仍只用物理输入，不能把账单图片行当成新增上下文。`additional_image_tokens` 明确记录预算附加量，`reported_usage_includes_image_tokens` 只描述实报事实。历史结算缺少新增字段时沿用原记录语义，不改写历史账本。
+
+北京时间 14:00 只有 R1 立面实验 9 次 Qwen3.8-27B 请求：实报输入 70,026＝文字 58,958＋图片 11,068；输出 56,951。账单文本输入 70,026，图片另列 11,068，输出 56,951。实报总数 126,977，预算应扣 138,045。按账单各行五位小数舍入，金额为 0.21008＋0.68341＋0.03320＝**¥0.92669**；未舍入金额为 ¥0.926694。[逐请求与逐行复算](../logs/experiments/2026-10-03_runtime_r2/r2bc/billing_reconciliation.json)三项 token 和金额误差均为 0。
+
+06:00 账单文本输入＋缓存输入为 187,838＋19,456＝207,294，归档回复输入为 207,095；差 199 来自归档外请求，不伪造精确匹配。全账实报口径合计 778,052 对应账单文本输入、缓存输入和输出，账单总量另加图片 72,406。依据为 [10-03 原始账单 CSV](../logs/experiments/2026-10-03_migration_comparison/paratera_bill_2026-10-03.csv)。
+
+GLM 在 Paratera 的图片是否另收仍未知。新增 `glm-subscription` 属于订阅线路，不产生按量人民币估算，完整金额与已知小计均为 `null`，回执注明 `billing_mode=subscription`。token 与时间预算仍生效；缺少图片包含关系证明时保守补图片估算，不把这个预算上界解释为订阅账单。
+
+## R2 原核对过程（预算推断已由 R2b 修正）
 
 `image_tokens` 分项出现本身不足以证明顶层输入已包含图片。只有响应同时提供非负整数 `text_tokens`、`image_tokens` 和 `prompt_tokens`，且满足：
 
@@ -31,13 +53,13 @@ floor(resized_width / f) * floor(resized_height / f) + 2
 prompt_tokens == text_tokens + image_tokens
 ```
 
-才把顶层 usage 认定为已包含图片，预算消耗直接采用服务商实报总数。其他情形保留实报总数不变，并把发送时的图片估算单独加到预算消耗：
+才把顶层 usage 认定为已包含图片。R2 当时进一步推断预算消耗直接采用服务商实报总数，这是被 R2b 账单反例纠正的部分。原先对其他情形保留实报总数不变，并把发送时的图片估算单独加到预算消耗：
 
 ```text
 effective_budget_tokens = provider_reported_total + image_tokens_estimate
 ```
 
-该规则故意要求完整等式证据。若以后服务商增加明确的“顶层已含图片”结构化声明，可以新增等价的可信判断；不能根据供应商名称或仅有一个分项推断。
+这条完整等式仍用于判定 usage 的包含关系；是否另收费必须独立看账单，不能从包含关系推导。
 
 ## 费用估算
 

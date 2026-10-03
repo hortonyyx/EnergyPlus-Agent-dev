@@ -26,7 +26,7 @@ from src.harness_contracts import (
 )
 
 
-def test_qwen_breakdown_stays_reported_and_does_not_double_charge_images():
+def test_qwen_breakdown_stays_reported_and_invoice_charges_images_again():
     pricing = get_cny_price_schedule("Qwen/Qwen3.8-27B", provider="paratera")
     result = account_request_usage(
         {
@@ -46,8 +46,10 @@ def test_qwen_breakdown_stays_reported_and_does_not_double_charge_images():
     assert result.reported_image_tokens == 30
     assert result.image_tokens_estimate == 30
     assert result.reported_usage_includes_image_tokens is True
-    assert result.budget_charge_tokens == 120
-    assert result.estimated_cost_cny == Decimal("0.000516")
+    assert result.budget_charge_tokens == 150
+    assert result.additional_image_tokens == 30
+    assert result.image_charge_source == "provider_reported"
+    assert result.estimated_cost_cny == Decimal("0.000606")
     assert result.cost_estimate_complete is True
     assert "not bills" not in result.receipt_dict()["note"]
 

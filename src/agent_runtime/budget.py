@@ -44,6 +44,7 @@ class RequestEstimate(ContractModel):
     task_id: NonEmptyStr
     input_token_upper_bound: int = Field(ge=0)
     image_input_tokens_estimate: int = Field(default=0, ge=0)
+    additional_image_tokens_estimate: int = Field(default=0, ge=0)
     output_token_limit: int = Field(ge=1)
     reasoning_token_allowance: int = Field(default=0, ge=0)
     seconds: Decimal = Field(gt=0)
@@ -69,6 +70,7 @@ class RequestEstimate(ContractModel):
         task_id: str,
         input_token_upper_bound: int,
         image_input_tokens_estimate: int = 0,
+        additional_image_tokens_estimate: int = 0,
         output_token_limit: int,
         reasoning_token_allowance: int = 0,
         seconds: Decimal,
@@ -86,6 +88,7 @@ class RequestEstimate(ContractModel):
             task_id=task_id,
             input_token_upper_bound=input_token_upper_bound,
             image_input_tokens_estimate=image_input_tokens_estimate,
+            additional_image_tokens_estimate=additional_image_tokens_estimate,
             output_token_limit=output_token_limit,
             reasoning_token_allowance=reasoning_token_allowance,
             seconds=seconds,
@@ -96,7 +99,7 @@ class RequestEstimate(ContractModel):
     @property
     def amounts(self) -> BudgetAmounts:
         return BudgetAmounts(
-            tokens=self.input_token_upper_bound + self.output_token_limit + self.reasoning_token_allowance,
+            tokens=self.input_token_upper_bound + self.additional_image_tokens_estimate + self.output_token_limit + self.reasoning_token_allowance,
             money_usd=self.money_usd_upper_bound,
             seconds=self.seconds,
             calls=self.calls,
@@ -255,6 +258,7 @@ class RuntimeBudget:
         cost: CostEvidence | None = None,
         image_tokens_estimate: int = 0,
         reported_usage_includes_image_tokens: bool = False,
+        additional_image_tokens: int | None = None,
     ) -> BudgetDecision:
         reservation = next(
             (
@@ -278,9 +282,8 @@ class RuntimeBudget:
                 None
                 if actual.tokens is None
                 else actual.tokens + (
-                    0
-                    if reported_usage_includes_image_tokens
-                    else image_tokens_estimate
+                    additional_image_tokens if additional_image_tokens is not None
+                    else 0 if reported_usage_includes_image_tokens else image_tokens_estimate
                 )
             )
         })
@@ -323,6 +326,7 @@ class RuntimeBudget:
                 usage=usage,
                 cost=cost,
                 image_tokens_estimate=image_tokens_estimate,
+                additional_image_tokens=additional_image_tokens,
                 reported_usage_includes_image_tokens=(
                     reported_usage_includes_image_tokens
                 ),
