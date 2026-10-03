@@ -78,6 +78,13 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
         raise ValueError("every request message needs a recorded source")
     body = {"model": model, "messages": copy.deepcopy(messages),
             "stream": False, "n": 1, **copy.deepcopy(parameters)}
+    if versions.remote_model.route_id == "glm-subscription":
+        # No unverified sampling count on the Coding Plan endpoint. Capture the
+        # resulting body below so the journal remains identical to wire bytes.
+        body.pop("n")
+        unsupported = set(parameters) - {"max_tokens", "temperature"}
+        if unsupported:
+            raise ValueError("unreviewed GLM subscription parameters: " + ", ".join(sorted(unsupported)))
     if tools:
         body["tools"] = copy.deepcopy(tools)
         body.setdefault("tool_choice", "auto")

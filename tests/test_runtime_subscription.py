@@ -1,0 +1,105 @@
+"""Offline routing, credential isolation, wire audit and subscription budgets."""
+
+import asyncio
+import hashlib
+import json
+from pathlib import Path
+
+import pytest
+
+from src.agent.runtime_entry import parser, runtime_model_profile
+from src.agent.runtime_r1_preparation import argv_for, load_configuration
+from src.agent_runtime.loop import RunLimits
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION, MAIN_CREDENTIALS_FILE,
+    GLM_SUBSCRIPTION_BASE_URL, provider_parameters, subscription_credentials)
+from test_agent_runtime import MESSAGES, response, runtime
+
+
+def subscription_engine(tmp_path, responses, **kwargs):
+    engine = runtime(tmp_path, responses, **kwargs)
+    engine.model = "glm-5.3-flash"
+    engine.parameters = provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000)
+    engine.versions = engine.versions.model_copy(update={"remote_model":
+        engine.versions.remote_model.model_copy(update={"route_id": GLM_SUBSCRIPTION,
+            "remote_alias": engine.model})})
+    return engine
+
+
+def test_credentials_only_read_main_file_without_environment_fallback(monkeypatch):
+    import dotenv
+    monkeypatch.setenv("GLM_API_KEY", "environment-must-not-be-used")
+    seen = []
+    def read(path, **kwargs):
+        seen.append((path, kwargs))
+        return {"GLM_BASE_URL": GLM_SUBSCRIPTION_BASE_URL, "GLM_API_KEY": "file-test-key"}
+    monkeypatch.setattr(dotenv, "dotenv_values", read)
+    assert subscription_credentials() == (GLM_SUBSCRIPTION_BASE_URL, "file-test-key")
+    assert seen == [(MAIN_CREDENTIALS_FILE, {"interpolate": False})]
+    with pytest.raises(ValueError, match="main-tree"):
+        subscription_credentials(Path("/tmp/other.env"))
+    monkeypatch.setattr(dotenv, "dotenv_values", lambda *a, **kw: {"GLM_BASE_URL": GLM_SUBSCRIPTION_BASE_URL})
+    with pytest.raises(ValueError, match="missing"):
+        subscription_credentials()
+    monkeypatch.setattr(dotenv, "dotenv_values", lambda *a, **kw: {"GLM_BASE_URL": "https://elsewhere.invalid", "GLM_API_KEY": "private"})
+    with pytest.raises(ValueError, match="reviewed Coding Plan"):
+        subscription_credentials()
+
+
+def test_cli_route_and_service_defaults_are_explicit():
+    args = parser().parse_args(["--out", "unused", "--provider", GLM_SUBSCRIPTION, "--model", "glm-5.3-flash"])
+    assert args.temperature is None and args.output_tokens is None
+    assert runtime_model_profile(args.provider, args.model).recommended_min_output_tokens == 32000
+    assert provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000) == {"max_tokens": 32000}
+    with pytest.raises(ValueError, match="requires model"):
+        runtime_model_profile(GLM_SUBSCRIPTION, "Qwen3.8-27B")
+    for kwargs in ({"thinking": False}, {"reasoning_effort": "high"}):
+        with pytest.raises(ValueError, match="unverified"):
+            provider_parameters(GLM_SUBSCRIPTION, output_tokens=32000, **kwargs)
+    assert provider_parameters("paratera", output_tokens=32000) == {
+        "max_tokens": 32000, "temperature": 0.0, "enable_thinking": True}
+
+
+def test_subscription_tool_image_thinking_audit_and_currency(tmp_path):
+    engine = subscription_engine(tmp_path, [response(("image", "view", {}), reasoning=True), response(text="OK", reasoning=True)])
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed" and result["model_calls"] == 2
+        assert result["billing_usd"] is None and result["estimated_cost_cny"] is None
+        assert result["usage_accounting"]["billing_modes"] == ["subscription"]
+        requests = [e.payload for e in engine.store.events if e.payload.event_type == "adapter_request"]
+        for sent, request in zip(engine.adapter.requests, requests):
+            assert sent == engine.store.get_bytes(request.final_request_body.blob)
+            body = json.loads(sent)
+            assert set(body) == {"model", "messages", "tools", "tool_choice", "stream", "max_tokens"}
+            assert body["model"] == "glm-5.3-flash" and body["max_tokens"] == 32000
+        assert len(requests[1].images) == 1
+        responses = [e.payload for e in engine.store.events if e.payload.event_type == "model_response"]
+        assert any(item.kind == "public_content" for item in responses[0].thinking)
+        assert "reasoning_content" not in json.loads(engine.adapter.requests[1])["messages"][-1]
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("limits,status", [
+    (RunLimits(model_calls=2, tool_calls=0, seconds=30, tokens=1), "token_budget_exhausted"),
+    (RunLimits(model_calls=2, tool_calls=0, seconds=0.000001, tokens=100000), "time_budget_exhausted"),
+])
+def test_subscription_still_stops_before_send_when_budget_exhausted(tmp_path, limits, status):
+    engine = subscription_engine(tmp_path, [response(text="must not send")], limits=limits)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == status and engine.adapter.requests == []
+
+
+def test_migration_configuration_matches_baseline_and_is_only_prepared():
+    root = Path(__file__).resolve().parents[1]
+    config = load_configuration(root / "AI_agent/logs/experiments/2026-10-03_runtime_r2/r2bc/configs/migration_sm24_glm_subscription.json")
+    case = config["cases"][0]
+    baseline = json.loads((root / "AI_agent/logs/experiments/2026-10-02_sm24_glm_baseline/agent_request.json").read_bytes())
+    assert case["scope"].encode() == baseline["prompt"].encode()
+    assert hashlib.sha256(case["scope"].encode()).hexdigest() == case["task_sha256"]
+    assert case["limits"]["seconds"] == 3000 and case["max_candidates"] == 24
+    assert case["output_tokens"] == 32000 and case["expected_usage"]["model_requests"] == 45
+    command = argv_for(case)
+    assert command[command.index("--provider") + 1] == GLM_SUBSCRIPTION
+    assert not {"--temperature", "--reasoning-effort", "--thinking"} & set(command)
+    assert not (root / case["output"]).exists()

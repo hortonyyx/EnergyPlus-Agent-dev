@@ -17,6 +17,7 @@ from pathlib import Path
 from src.agent.runtime_entry import ROOT
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import validate_output_limit
+from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters, validate_provider_model
 
 
 ALLOWED_ENTRYPOINTS = {
@@ -41,9 +42,13 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
-        if case.get("provider") != "paratera":
-            raise ValueError("R1 live configurations are fixed to Paratera")
+        if case.get("provider") not in LIVE_PROVIDERS:
+            raise ValueError("live configuration requires a reviewed provider")
         model = case.get("model")
+        validate_provider_model(case["provider"], model)
+        provider_parameters(case["provider"], output_tokens=case.get("output_tokens"),
+            temperature=case.get("temperature"), thinking=case.get("thinking", True),
+            reasoning_effort=case.get("reasoning_effort"))
         get_model_profile(model, strict=True)
         if low_output_limit_reason is not None:
             case["low_output_limit_reason"] = low_output_limit_reason
@@ -94,9 +99,10 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     if case["mode"] == "single_model":
         argv += ["--max-candidates", str(case["max_candidates"]),
                  "--context-tokens", str(case["context_tokens"]),
-                 "--temperature", str(case["temperature"]),
-                 "--reasoning-effort", case["reasoning_effort"],
                  "--model-retries", "0"]
+        for name in ("temperature", "reasoning_effort"):
+            if case.get(name) is not None:
+                argv += ["--" + name.replace("_", "-"), str(case[name])]
     else:
         argv += ["--quota-journal", str(ROOT / case["quota_journal"]),
                  "--quota-limit", str(case["quota_limit"]),

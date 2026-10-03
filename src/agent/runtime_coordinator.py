@@ -32,6 +32,8 @@ from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION, LIVE_PROVIDERS,
+    provider_parameters, subscription_credentials, validate_provider_model)
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import (ExternalCoordinatorMcpPayload, MissingCapture,
     RunLifecyclePayload, StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload)
@@ -453,10 +455,12 @@ async def serve(args):
     out = args.out.resolve()
     if not out.is_relative_to(ROOT):
         raise ValueError("coordinator output must stay inside this worktree")
-    effective_model = args.model if args.provider == "paratera" else "scripted-model"
+    validate_provider_model(args.provider, args.model)
+    effective_model = args.model if args.provider in LIVE_PROVIDERS else "scripted-model"
     args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(
         effective_model, fallback=8192)
     validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
+    parameters = provider_parameters(args.provider, output_tokens=args.output_tokens, thinking=args.thinking)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
                        seconds=args.seconds, tokens=args.tokens,
                        max_consecutive_truncations=args.max_consecutive_truncations,
@@ -468,10 +472,11 @@ async def serve(args):
         run, guide, _ = prepare_inputs(out, images=args.images, mesh=args.mesh,
             building_input=None, scope=args.scope, image_kind=args.image_kind, max_candidates=24)
     adapter = None
-    if args.provider == "paratera":
+    if args.provider in LIVE_PROVIDERS:
         from src.agent_runtime.estimation import get_model_profile
         get_model_profile(args.model, strict=True)
-        base_url, key = paratera_credentials(args.credentials_file)
+        credentials = subscription_credentials if args.provider == GLM_SUBSCRIPTION else paratera_credentials
+        base_url, key = credentials(args.credentials_file)
         adapter = HttpChatAdapter(base_url=base_url, api_key=key)
         if args.quota_journal is None or not args.quota_journal.resolve().is_relative_to(ROOT):
             raise ValueError("live coordinator needs a persistent --quota-journal inside this worktree")
@@ -495,8 +500,7 @@ async def serve(args):
                         adapter_factory=factory, model=model, route_id=args.provider, guide=guide, limits=limits,
                         max_concurrent_observers=args.max_concurrent_observers,
                         low_output_limit_reason=args.low_output_limit_reason,
-                        parameters={"max_tokens": args.output_tokens, "temperature": 0.0,
-                                    "enable_thinking": args.thinking}).initialize()
+                        parameters=parameters).initialize()
                     if not args.resume:
                         write_frozen_materials(out / "frozen", repository_root=ROOT)
                         write_frozen_tool_catalog(out / "frozen", session.catalog, readonly=False)
@@ -524,7 +528,7 @@ def parser():
     p.add_argument("--mesh", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
     p.add_argument("--scope", default="Local observation and coordinator operations; no whole-case run authorized.")
-    p.add_argument("--provider", choices=("scripted", "paratera"), required=True)
+    p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)
     p.add_argument("--model", default="Qwen3.8-27B")
     p.add_argument("--credentials-file", type=Path)
     p.add_argument("--script", type=Path)

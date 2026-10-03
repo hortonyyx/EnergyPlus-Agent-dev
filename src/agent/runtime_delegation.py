@@ -282,7 +282,7 @@ async def run_observer(*, store, frozen_tools, adapter, model, parameters, limit
             {"type": "image_url", "image_url": {"url": "data:" + view.sent.media_type + ";base64," + base64.b64encode(data).decode()}}]
     engine = Runtime(store=store, adapter=adapter, tools=tools, role=role, model=model,
         parameters=parameters, versions=versions, limits=limits,
-        strict_model_profile=route["route_id"] == "paratera",
+        strict_model_profile=route["route_id"] in {"paratera", "glm-subscription"},
         root_tool_calls=root_tool_calls,
         low_output_limit_reason=low_output_limit_reason,
         answer_validator=lambda text: hydrate_observation(text, package, views),

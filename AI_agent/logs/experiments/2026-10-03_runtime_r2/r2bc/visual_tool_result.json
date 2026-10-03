@@ -1,0 +1,107 @@
+{
+  "phase": "visual_tool",
+  "passed": true,
+  "tools": [
+    {
+      "name": "report_color",
+      "arguments": {
+        "color": "green"
+      }
+    }
+  ],
+  "sent_parameters": [
+    {
+      "max_tokens": 32000,
+      "model": "glm-5.3-flash",
+      "stream": false,
+      "tool_choice": "auto"
+    },
+    {
+      "max_tokens": 32000,
+      "model": "glm-5.3-flash",
+      "stream": false,
+      "tool_choice": "auto"
+    }
+  ],
+  "response_fields": [
+    [
+      "content",
+      "reasoning_content",
+      "role",
+      "tool_calls"
+    ],
+    [
+      "content",
+      "role"
+    ]
+  ],
+  "finish_reasons": [
+    "tool_calls",
+    "stop"
+  ],
+  "thinking_characters": [
+    85,
+    0
+  ],
+  "images_per_request": [
+    1,
+    1
+  ],
+  "status": "completed",
+  "answer": "OK",
+  "model_calls": 2,
+  "tool_calls": 1,
+  "reported_tokens": 743,
+  "image_tokens_estimate": 166,
+  "estimated_cost_cny": null,
+  "usage_accounting": {
+    "requests": 2,
+    "provider_reported_tokens": 743,
+    "image_tokens_estimate": 166,
+    "additional_image_tokens": 166,
+    "billing_modes": [
+      "subscription"
+    ],
+    "budget_charge_tokens": 909,
+    "estimated_cost_cny": null,
+    "known_cost_components_cny": null,
+    "usage_complete": true,
+    "cost_estimate_complete": false,
+    "by_model": {
+      "glm-5.3-flash": {
+        "requests": 2,
+        "provider_reported_tokens": 743,
+        "image_tokens_estimate": 166,
+        "additional_image_tokens": 166,
+        "billing_modes": [
+          "subscription"
+        ],
+        "budget_charge_tokens": 909,
+        "estimated_cost_cny": null,
+        "known_cost_components_cny": null,
+        "usage_complete": true,
+        "cost_estimate_complete": false
+      }
+    },
+    "by_task": {
+      "subscription_probe": {
+        "requests": 2,
+        "provider_reported_tokens": 743,
+        "image_tokens_estimate": 166,
+        "additional_image_tokens": 166,
+        "billing_modes": [
+          "subscription"
+        ],
+        "budget_charge_tokens": 909,
+        "estimated_cost_cny": null,
+        "known_cost_components_cny": null,
+        "usage_complete": true,
+        "cost_estimate_complete": false
+      }
+    },
+    "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate."
+  },
+  "elapsed_seconds": 10.028409677994205,
+  "truncations": 0,
+  "agent_version": "5bb10538"
+}
