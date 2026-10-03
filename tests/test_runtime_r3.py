@@ -147,7 +147,8 @@ def test_half_near_deadline_and_late_tool_refusal_through_runtime(tmp_path, monk
     text = "\n".join(shown)
     assert "已用 0.0／剩余 100.0 分钟" in text
     assert "时间已过半，尚无草稿的楼层图：plan.png, upstairs.png" in text
-    assert "剩余不足15%，停止新的读图，只修已列出的问题并交付。" in text
+    assert "剩余不足15%" in text and "停止新范围探索" in text
+    assert "有界复核已列严重问题" in text and "交付并列未决" in text
     assert receipt["status"] == "time_budget_exhausted"
     assert not list((out / "bim").glob("candidate_*"))
     # The final refusal is recorded even though the expired runtime cannot
@@ -313,7 +314,9 @@ def test_observer_service_uses_own_deadline_and_cannot_extend_parent(tmp_path, m
             assert manifest["deadline_epoch"] == 1000 + actual_seconds <= 1100
             assert manifest["time_budget_seconds"] == actual_seconds
             assert manifest_path.read_bytes() == parent_before
-            assert "剩余不足15%，停止新的读图，返回已有观察与未核项。" in adapter.requests[1].decode()
+            tail = adapter.requests[1].decode()
+            assert "剩余不足15%" in tail and "停止新范围探索" in tail
+            assert "返回已有观察与未核项" in tail
             assert "先按已读信息保存全楼草稿" not in adapter.requests[1].decode()
             store.validate()
             _evidence(f"observer_{child_seconds}", {"model_requests": 0,
