@@ -6,7 +6,6 @@ from pathlib import Path
 GLM_SUBSCRIPTION = "glm-subscription"
 GLM_SUBSCRIPTION_MODEL = "glm-5.3-flash"
 GLM_SUBSCRIPTION_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4"
-MAIN_CREDENTIALS_FILE = Path("/workspaces/EnergyPlus-Agent-dev/.env")
 LIVE_PROVIDERS = ("paratera", GLM_SUBSCRIPTION)
 # Verified 10-03 on the Coding Plan endpoint: omitted behaves like the top level, low/medium cut
 # thinking 2-4x (migration_comparison/subscription_effort_calibration.json). Claude Code sends
@@ -21,15 +20,18 @@ def validate_provider_model(provider: str, model: str) -> None:
 
 def subscription_credentials(path: Path | None = None) -> tuple[str, str]:
     """No environment fallback, interpolation, sourcing, or credential logging."""
-    if path is not None and path.resolve() != MAIN_CREDENTIALS_FILE:
-        raise ValueError("GLM subscription credentials must come from the main-tree .env")
+    if path is None:
+        raise ValueError("GLM subscription requires an explicit credentials file")
+    path = Path(path).resolve()
+    if not path.is_file():
+        raise ValueError("GLM subscription credentials file does not exist")
     from dotenv import dotenv_values
-    private = dotenv_values(MAIN_CREDENTIALS_FILE, interpolate=False)
+    private = dotenv_values(path, interpolate=False)
     base_url, key = private.get("GLM_BASE_URL"), private.get("GLM_API_KEY")
     if base_url != GLM_SUBSCRIPTION_BASE_URL:
         raise ValueError("GLM_BASE_URL must be the reviewed Coding Plan endpoint")
     if not key:
-        raise ValueError("GLM_API_KEY is missing from the main-tree .env")
+        raise ValueError("GLM_API_KEY is missing from the specified credentials file")
     return base_url, key
 
 

@@ -23,7 +23,9 @@ def test_migration_configuration_is_directly_routable_with_glm_native_reasoning(
     assert argv[argv.index("--reasoning-effort") + 1] == "high"
     assert argv[argv.index("--seconds") + 1] == "3000"
     assert argv[argv.index("--max-candidates") + 1] == "24"
-    assert "--model-retries" in argv and argv[argv.index("--model-retries") + 1] == "0"
+    assert argv[argv.index("--model-retries") + 1] == "2"
+    assert argv[argv.index("--compact-at-tokens") + 1] == "150000"
+    assert "--context-window" not in argv
 
 
 def test_first_full_cases_retain_per_case_time_and_durable_request_caps():

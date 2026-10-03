@@ -66,11 +66,17 @@ _CHECKLIST_CATEGORIES: tuple[StateCategory, ...] = (
 class ContextPolicy(ContractModel):
     """Deterministic request projection policy."""
 
-    active_window_messages: int = Field(default=16, ge=1)
+    # Message windows exist only for explicit historical replay. Production
+    # defaults preserve an append-only prefix until this input-token threshold.
+    active_window_messages: int | None = Field(default=None, ge=1)
+    compact_at_tokens: int = Field(default=150_000, ge=1)
+    compact_to_ratio: float = Field(default=0.6, gt=0, lt=1)
     large_result_bytes: int = Field(default=8_192, ge=1)
     pinned_tags: tuple[NonEmptyStr, ...] = ()
     preserve_initial_messages: int = Field(default=2, ge=0)
-    max_images: int | None = Field(default=12, ge=1)
+    max_images: int | None = Field(default=None, ge=1)
+    # In token mode this is a post-compaction retention target, not permission
+    # to rewrite previously sent images on every request below the threshold.
     max_image_bytes: int | None = Field(default=32_000_000, ge=1)
 
     @field_validator("pinned_tags")
@@ -217,7 +223,8 @@ class ContextManager:
         self._state: dict[str, StateEntry] = {}
         self._images: dict[str, ImageRecord] = {}
         self._retrieval_pins: set[str] = set()
-        self._compaction_signatures: set[str] = set()
+        self._archived_history_ids: set[str] = set()
+        self._last_compaction: dict | None = None
         self._next_history = 0
 
     @property
@@ -380,25 +387,9 @@ class ContextManager:
         if record.view_id != view_id or record.image.sha256 != sha256:
             raise ValueError("image identity mismatch")
         data = self.store.get_bytes(record.image)
-        if record.active:
-            before = self._projection_snapshot()
-            details = self.store.put_json(
-                {"decision": "retrieve", "view_id": view_id, "sha256": sha256,
-                 "already_active": True}
-            )
-            event = self.store.append(
-                self._context_payload(
-                    action="retain_image",
-                    reason="explicit exact image retrieval; image already active",
-                    image=record.image,
-                    view_id=view_id,
-                    before=before,
-                    after=before,
-                    details=details,
-                ),
-                source_refs=(record.source, self._blob_source("context-image-retrieve", details)),
-            )
-        else:
+        if record.active and key in self._retrieval_pins:
+            return data
+        if not record.active:
             if record.removal_event_id is None:
                 raise ValueError("removed image lacks its removal event")
             before = self._projection_snapshot()
@@ -424,11 +415,19 @@ class ContextManager:
             self._images[key] = record.model_copy(
                 update={"active": True, "removal_event_id": None}
             )
-        if event.payload.image.sha256 != hashlib.sha256(data).hexdigest():
-            raise ValueError("retrieved image bytes differ from the recorded image")
+            if event.payload.image.sha256 != hashlib.sha256(data).hexdigest():
+                raise ValueError("retrieved image bytes differ from the recorded image")
         # An explicit retrieval is a one-request exact pin.  It survives a
         # checkpoint and is consumed only after a valid projection is built.
         self._retrieval_pins.add(key)
+        if self.policy.active_window_messages is None:
+            # Explicit retrieval appends bytes at the end; it never reinserts
+            # an old tool interaction ahead of the cached conversation prefix.
+            self.append({"role": "user", "content": [
+                {"type": "text", "text": f"Retrieved original image: {view_id}"},
+                {"type": "image_url", "image_url": {"url":
+                    f"data:{record.image.media_type};base64,{base64.b64encode(data).decode('ascii')}"}},
+            ]}, record.source, image_keys=(key,))
         return data
 
     def checklist(self) -> StateChecklist:
@@ -500,6 +499,18 @@ class ContextManager:
             if payload.action != "compact" or payload.details is None:
                 continue
             details = json.loads(self.store.get_bytes(payload.details))
+            if details.get("kind") == "deterministic_compaction":
+                identities = [row["history_id"] for row in details["records"]]
+                message = json.loads(self.store.get_bytes(payload.after))
+                source = SourceRef(source_id=f"context-compaction-{event.event_id}",
+                    source_kind="generated", locator=payload.summary.uri,
+                    blob=payload.summary, event_id=event.event_id)
+                self._last_compaction = {"history_ids": identities, "message": message,
+                    "source": source.model_dump(mode="json"), "event_id": event.event_id}
+                if self.policy.active_window_messages is None:
+                    self._archived_history_ids.update(identities)
+                applied += 1
+                continue
             if details.get("kind") != "validated_model_summary" or event.event_id in represented_events:
                 continue
             candidate = SummaryCandidate.model_validate_json(
@@ -638,7 +649,12 @@ class ContextManager:
         required_tags: tuple[str, ...] = (),
         required_view_ids: tuple[str, ...] = (),
         consume_retrievals: bool = True,
+        token_estimator: Callable[[list[dict]], int] | None = None,
     ) -> ContextProjection:
+        if self.policy.active_window_messages is None:
+            return self._project_by_tokens(required_tags=required_tags,
+                required_view_ids=required_view_ids, consume_retrievals=consume_retrievals,
+                token_estimator=token_estimator)
         required = set(required_tags) | set(self.policy.pinned_tags)
         exact_retrievals = set(self._retrieval_pins)
         selected, omitted = self._select_history(
@@ -690,10 +706,11 @@ class ContextManager:
         compacted = [r for r in omitted if r.source.event_id is not None]
         if compacted:
             event, compact_message, compact_source = self._record_deterministic_compaction(compacted)
-            if event is not None:
-                decision_event_ids.append(event.event_id)
+            if compact_message is not None:
+                if event is not None:
+                    decision_event_ids.append(event.event_id)
                 synthetic = HistoryRecord(
-                    history_id=f"projection-{event.event_id}",
+                    history_id=f"projection-{compact_source.event_id}",
                     message=compact_message,
                     source=compact_source,
                     message_blob=self.store.put_json(compact_message),
@@ -706,12 +723,13 @@ class ContextManager:
                 projected.append(_ProjectedRecord(synthetic, compact_message))
 
         checklist = self.checklist()
-        if any(checklist.categories.values()):
+        model_state = self.model_state()
+        if model_state:
             state_message = {
                 "role": "user",
                 "content": "Current runtime state (machine generated; epistemic status is authoritative): "
                 + json.dumps(
-                    [entry.model_dump(mode="json") for entry in self.state if entry.active],
+                    model_state,
                     ensure_ascii=False,
                     sort_keys=True,
                     separators=(",", ":"),
@@ -746,6 +764,139 @@ class ContextManager:
             omitted_history_ids=tuple(r.history_id for r in omitted),
         )
 
+    def model_state(self) -> list[dict]:
+        """Small mutable tail; the full source-bearing state stays in checkpoints.
+
+        Computed child allowances are retained as operational constraints. The
+        original user task is already in the immutable initial messages.
+        """
+        result, seen = [], set()
+        for entry in sorted(self.state, key=lambda s: (s.category == "todo", s.key)):
+            if not entry.active:
+                continue
+            value = entry.value
+            if entry.category == "artifact_version":
+                if isinstance(value, dict):
+                    value = {k: value[k] for k in ("candidate", "version") if k in value}
+            elif entry.category in {"unresolved", "todo"}:
+                if entry.key == "current-work-review" and isinstance(value, dict):
+                    value = value.get("record", {}).get("next_action")
+                value = _display_issues(value, seen)
+            elif entry.category == "constraint" and entry.epistemic_status == "computed":
+                value = _without_audit_metadata(value)
+            elif entry.key == "context-retrieval":
+                pass
+            else:
+                continue
+            if value:
+                result.append({"key": entry.key, "value": value,
+                               "epistemic_status": entry.epistemic_status,
+                               **({"revision": entry.revision} if entry.category == "constraint" else {})})
+        return result
+
+    def _compaction_notice(self, identities: set[str]) -> str:
+        groups = [i + 1 for i, group in enumerate(_interaction_groups(self._history))
+                  if any(r.history_id in identities for r in group)]
+        ranges = []
+        for number in groups:
+            if ranges and ranges[-1][-1] + 1 == number:
+                ranges[-1].append(number)
+            else:
+                ranges.append([number])
+        turns = ", ".join(str(r[0]) if len(r) == 1 else f"{r[0]}–{r[-1]}" for r in ranges)
+        return (f"Deterministic context compaction: earlier interaction groups {turns} "
+                f"({len(identities)} messages) moved out of this request; original images can be "
+                "viewed again using the input names and image-viewing tools, and saved work/evidence "
+                "can be inspected through the retrieval entries in the current runtime state.")
+
+    def _project_by_tokens(self, *, required_tags, required_view_ids, consume_retrievals, token_estimator):
+        from .estimation import approximate_text_tokens, _text_payload
+
+        def estimate(messages):
+            if token_estimator is not None:
+                return token_estimator(messages)
+            # Standalone/offline callers have no provider profile. Count text
+            # separately from image bytes; runtime supplies its image estimator.
+            text, images = _text_payload({"messages": messages})
+            return approximate_text_tokens(text) + sum(
+                (len(url.split(",", 1)[1]) * 3 // 4 + 3) // 4 for _, url in images)
+
+        required = set(required_tags) | set(self.policy.pinned_tags)
+        views = set(required_view_ids)
+        selected = [r for r in self._history if r.history_id not in self._archived_history_ids]
+        state = self.model_state()
+        state_message = ({"role": "user", "content":
+            "Current runtime state (machine generated; epistemic status is authoritative): "
+            + json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))} if state else None)
+
+        def assemble(records, notice):
+            messages = [copy.deepcopy(r.message) for r in records]
+            sources = [r.source for r in records]
+            if notice:
+                # Keep initial guidance/user input, then a stable compacted
+                # prefix, then the surviving chronological interactions.
+                initial_ids = {r.history_id for r in self._history[:self.policy.preserve_initial_messages]}
+                index = sum(r.history_id in initial_ids for r in records)
+                messages.insert(index, notice["message"])
+                sources.insert(index, SourceRef.model_validate_json(json.dumps(notice["source"])))
+            if state_message:
+                messages.append(state_message)
+                sources.append(self.store.source("context-current-state", state_message, kind="generated"))
+            return messages, sources
+
+        messages, sources = assemble(selected, self._last_compaction)
+        events = []
+        if estimate(messages) >= self.policy.compact_at_tokens:
+            protected = {r.history_id for r in self._history[:self.policy.preserve_initial_messages]}
+            protected.update(r.history_id for r in selected if required & set(r.tags) or any(
+                key in self._retrieval_pins or self._images[key].view_id in views
+                or required & set(self._images[key].tags) for key in r.image_keys))
+            groups = _interaction_groups(selected)
+            if groups:
+                protected.update(r.history_id for r in groups[-1])
+            target = int(self.policy.compact_at_tokens * self.policy.compact_to_ratio)
+            image_bytes = {r.history_id: sum(len(self.store.get_bytes(self._images[k].image))
+                for k in r.image_keys) for r in selected}
+
+            def fits(records):
+                projected, _ = assemble(records, self._last_compaction)
+                image_keys = {key for r in records for key in r.image_keys}
+                return (estimate(projected) <= target
+                    and (self.policy.max_image_bytes is None
+                         or sum(image_bytes[r.history_id] for r in records) <= self.policy.max_image_bytes)
+                    and (self.policy.max_images is None or len(image_keys) <= self.policy.max_images))
+
+            removed = set()
+            for group in groups:
+                if fits(selected):
+                    break
+                if any(r.history_id in protected for r in group):
+                    continue
+                removed.update(r.history_id for r in group)
+                selected = [r for r in selected if r.history_id not in removed]
+            if removed:
+                self._archived_history_ids.update(removed)
+                omitted = [r for r in self._history if r.history_id in self._archived_history_ids]
+                event, _, _ = self._record_deterministic_compaction(omitted)
+                if event:
+                    events.append(event.event_id)
+                messages, sources = assemble(selected, self._last_compaction)
+            # An indivisible/pinned interaction may exceed the retention target.
+            # Preserve it; the actual request's model/context budget is enforced
+            # by Runtime before send, never silently omit required input.
+
+        selected_keys = {k for r in selected for k in r.image_keys}
+        events.extend(self._record_image_decisions({key: (key in selected_keys,
+            "retained history" if key in selected_keys else "token-threshold compaction")
+            for key in self._images}))
+        _validate_projected_tool_protocol(tuple(messages))
+        if consume_retrievals:
+            self.acknowledge_projection()
+        return ContextProjection(messages=messages, sources=sources, checklist=self.checklist(),
+            decision_event_ids=tuple(events), included_history_ids=tuple(r.history_id for r in selected),
+            omitted_history_ids=tuple(r.history_id for r in self._history
+                                      if r.history_id in self._archived_history_ids))
+
     def acknowledge_projection(self) -> tuple[str, ...]:
         """Consume exact-retrieval pins after the primary response is accepted."""
 
@@ -768,7 +919,8 @@ class ContextManager:
             "state": [entry.model_dump(mode="json") for entry in self.state],
             "images": [record.model_dump(mode="json") for record in self.images],
             "retrieval_pins": sorted(self._retrieval_pins),
-            "compaction_signatures": sorted(self._compaction_signatures),
+            "archived_history_ids": sorted(self._archived_history_ids),
+            "last_compaction": self._last_compaction,
             "next_history": self._next_history,
         }
 
@@ -805,7 +957,8 @@ class ContextManager:
                 ImageRecord.model_validate_json(json.dumps(item)) for item in payload["images"]
             )
         }
-        manager._compaction_signatures = set(payload.get("compaction_signatures", ()))
+        manager._archived_history_ids = set(payload.get("archived_history_ids", ()))
+        manager._last_compaction = payload.get("last_compaction")
         manager._retrieval_pins = set(payload.get("retrieval_pins", ()))
         manager._next_history = payload["next_history"]
         if manager._next_history < len(manager._history):
@@ -815,6 +968,24 @@ class ContextManager:
         history_ids = [record.history_id for record in manager._history]
         if len(history_ids) != len(set(history_ids)):
             raise ValueError("context checkpoint contains duplicate history IDs")
+        if not manager._archived_history_ids <= set(history_ids):
+            raise ValueError("context checkpoint archives unknown history")
+        if manager.policy.active_window_messages is None and manager._archived_history_ids != set(
+                (manager._last_compaction or {}).get("history_ids", ())):
+            raise ValueError("context checkpoint archived history differs from its recorded compaction")
+        if manager._last_compaction:
+            saved = manager._last_compaction
+            matching = next((e for e in store.events if e.event_id == saved["event_id"]), None)
+            if (matching is None or matching.payload.event_type != "context"
+                    or matching.payload.action != "compact"
+                    or matching.payload.after is None
+                    or json.loads(store.get_bytes(matching.payload.after)) != saved["message"]
+                    or saved["source"]["blob"] != matching.payload.summary.model_dump(mode="json")
+                    or saved["source"]["event_id"] != matching.event_id):
+                raise ValueError("context checkpoint compaction differs from its recorded source")
+            details = json.loads(store.get_bytes(matching.payload.details))
+            if saved["history_ids"] != [row["history_id"] for row in details["records"]]:
+                raise ValueError("context checkpoint compaction history differs from its recorded source")
         for record in manager._history:
             if (
                 hashlib.sha256(json_bytes(record.message)).hexdigest() != record.content_sha256
@@ -995,6 +1166,8 @@ class ContextManager:
         for key in sorted(decisions):
             keep, reason = decisions[key]
             record = self._images[key]
+            if record.active == keep:
+                continue
             before = self._projection_snapshot()
             details = self.store.put_json(
                 {"decision": "retain" if keep else "remove", "key": key,
@@ -1040,6 +1213,10 @@ class ContextManager:
         return tuple(event_ids)
 
     def _record_deterministic_compaction(self, records: list[HistoryRecord]):
+        identities = [r.history_id for r in records]
+        if self._last_compaction and self._last_compaction["history_ids"] == identities:
+            saved = self._last_compaction
+            return None, saved["message"], SourceRef.model_validate_json(json.dumps(saved["source"]))
         event_ids = self._event_ids(tuple(records))
         if not event_ids:
             return None, None, None
@@ -1052,7 +1229,6 @@ class ContextManager:
             "current_state_keys": [entry.key for entry in self.state if entry.active],
             "note": "Full messages remain in the context checkpoint and event attachments.",
         }
-        signature = hashlib.sha256(json_bytes(description)).hexdigest()
         summary = self.store.put_json(description)
         details = self.store.put_json(
             {"strategy": "exact duplicate/old summary/activity window", **description}
@@ -1060,8 +1236,7 @@ class ContextManager:
         before = self._projection_snapshot()
         compact_message = {
             "role": "system",
-            "content": "Deterministic context compaction: "
-            + json.dumps(description, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+            "content": self._compaction_notice(set(identities)),
         }
         after = self.store.put_json(compact_message)
         event = self.store.append(
@@ -1076,7 +1251,6 @@ class ContextManager:
             ),
             source_refs=tuple([*(r.source for r in records), self._blob_source("context-compaction-details", details)]),
         )
-        self._compaction_signatures.add(signature)
         source = SourceRef(
             source_id=f"context-compaction-{event.event_id}",
             source_kind="generated",
@@ -1084,6 +1258,8 @@ class ContextManager:
             blob=summary,
             event_id=event.event_id,
         )
+        self._last_compaction = {"history_ids": identities, "message": compact_message,
+            "source": source.model_dump(mode="json"), "event_id": event.event_id}
         return event, compact_message, source
 
     def _project_message(
@@ -1218,6 +1394,36 @@ class ContextManager:
         if values.get("action") == "retain_image" and "retain_image" not in _context_actions():
             raise RuntimeError("ContextEventPayload must support retain_image before projection")
         return ContextEventPayload(**filtered)
+
+
+def _without_audit_metadata(value):
+    if isinstance(value, dict):
+        return {key: _without_audit_metadata(item) for key, item in value.items()
+                if key not in {"file", "record", "source_refs", "blob", "locator", "basis"}
+                and not any(part in key.casefold() for part in ("sha256", "hash", "blob"))}
+    if isinstance(value, list):
+        return [_without_audit_metadata(item) for item in value]
+    return value
+
+
+def _display_issues(value, seen):
+    """Deduplicate complete issue values; retain original text and rich objects."""
+    groups = {"unresolved", "uncertain", "conflicts", "unbuilt_openings", "unsupported",
+              "report_unresolved", "report_status", "status", "basis"}
+    if isinstance(value, dict) and set(value) <= groups:
+        values = [item for key, item in value.items() if key not in {"status", "basis", "report_status"}]
+    elif isinstance(value, list):
+        values = value
+    elif value:
+        cleaned = _without_audit_metadata(value)
+        encoded = json_bytes(cleaned)
+        if cleaned and encoded not in seen:
+            seen.add(encoded)
+            return [cleaned]
+        return []
+    else:
+        return []
+    return [issue for item in values for issue in _display_issues(item, seen)]
 
 
 def _context_actions() -> set[str]:
