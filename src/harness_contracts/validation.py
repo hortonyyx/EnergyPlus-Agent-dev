@@ -10,6 +10,7 @@ from .base import ContractModel, NonEmptyStr
 from .budget import BudgetAmounts, BudgetLedger
 from .events import (
     AdapterRequestPayload,
+    AnswerRepairPayload,
     BudgetEventPayload,
     ContextEventPayload,
     CheckpointPayload,
@@ -80,6 +81,7 @@ class EventLog(ContractModel):
 
         missing_ids = set(self.excerpt.missing_event_ids if self.excerpt else ())
         self._validate_response_requests(event_by_id, missing_ids)
+        self._validate_answer_repairs(event_by_id, missing_ids)
         self._validate_inspections(event_by_id, missing_ids)
         self._validate_recovery(event_by_id, missing_ids)
         self._validate_context(event_by_id, missing_ids)
@@ -92,6 +94,61 @@ class EventLog(ContractModel):
         self._validate_invocations(event_by_id, missing_ids)
         self._validate_presentations(event_by_id, missing_ids)
         return self
+
+    def _validate_answer_repairs(self, event_by_id, missing_ids) -> None:
+        requested_invalid_responses: set[str] = set()
+        requesting_tasks: set[str] = set()
+        results_by_request: set[str] = set()
+        for event in self.events:
+            payload = event.payload
+            if not isinstance(payload, AnswerRepairPayload):
+                continue
+            invalid = _require_prior_event(payload.invalid_response_event_id, event,
+                event_by_id, missing_ids, "invalid answer response")
+            if invalid is not None and not isinstance(invalid.payload, ModelResponsePayload):
+                raise ValueError("invalid_response_event_id must reference a model response")
+            if invalid is not None and invalid.task_id != event.task_id:
+                raise ValueError("answer repair must remain in the same task as the invalid response")
+            if payload.phase == "request":
+                if payload.attempt != 1:
+                    raise ValueError("only one bounded answer repair is supported")
+                if event.task_id in requesting_tasks:
+                    raise ValueError("a task can request only one answer repair")
+                if payload.invalid_response_event_id in requested_invalid_responses:
+                    raise ValueError("an invalid answer can request only one repair")
+                requesting_tasks.add(event.task_id)
+                requested_invalid_responses.add(payload.invalid_response_event_id)
+                continue
+            request = _require_prior_event(payload.repair_request_event_id, event,
+                event_by_id, missing_ids, "answer repair request")
+            repaired = _require_prior_event(payload.repaired_response_event_id, event,
+                event_by_id, missing_ids, "repaired answer response")
+            if request is not None and (
+                not isinstance(request.payload, AnswerRepairPayload)
+                or request.payload.phase != "request"
+            ):
+                raise ValueError("repair_request_event_id must reference an answer repair request")
+            if repaired is not None and not isinstance(repaired.payload, ModelResponsePayload):
+                raise ValueError("repaired_response_event_id must reference a model response")
+            if request is not None and repaired is not None:
+                if request.task_id != event.task_id or repaired.task_id != event.task_id:
+                    raise ValueError("answer repair request and response must stay in one task")
+                if repaired.sequence <= request.sequence:
+                    raise ValueError("a repaired answer response must follow its repair request")
+                adapter_request = event_by_id.get(repaired.payload.request_event_id)
+                if adapter_request is not None:
+                    if adapter_request.task_id != event.task_id:
+                        raise ValueError("the repaired model request must stay in the repair task")
+                    if adapter_request.sequence <= request.sequence:
+                        raise ValueError("the repaired model request must follow the repair request event")
+            if payload.repair_request_event_id in results_by_request:
+                raise ValueError("an answer repair request can have only one result")
+            results_by_request.add(payload.repair_request_event_id)
+            if request is not None:
+                prior = request.payload
+                for field in ("attempt", "invalid_response_event_id", "original_answer", "validation_error"):
+                    if getattr(payload, field) != getattr(prior, field):
+                        raise ValueError(f"answer repair result differs from its request: {field}")
 
     def _validate_presentations(self, event_by_id, missing_ids) -> None:
         for event in self.events:
