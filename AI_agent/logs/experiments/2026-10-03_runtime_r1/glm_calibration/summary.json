@@ -16,6 +16,27 @@
     "completion_tokens": 73,
     "total_tokens": 6359
   },
+  "output_limit_observation": {
+    "requested_max_tokens_each": 8,
+    "text_control": {
+      "completion_tokens": 24,
+      "reasoning_tokens": 22,
+      "finish_reason": "stop"
+    },
+    "text_long": {
+      "completion_tokens": 37,
+      "reasoning_tokens": 28,
+      "finish_reason": "length"
+    },
+    "interpretation": "On this endpoint max_tokens is not demonstrated to cap completion usage including reasoning tokens. The calibration therefore covers input estimation only, not the complete request total or output ceiling."
+  },
+  "complete_request_reservation_check": {
+    "formula": "input_tokens_upper_bound + requested max_tokens",
+    "reserved_totals": [54, 4387, 120, 1080, 2507],
+    "reported_totals": [55, 3793, 105, 1059, 1347],
+    "covered": [false, true, true, true, true],
+    "interpretation": "The text_control request exceeded its reservation by one token. The text_long total fit only because input overestimation offset output usage above max_tokens; this is not output calibration evidence."
+  },
   "rows": [
     {"case": "text_control", "actual_input": 31, "estimate": 31, "upper_bound": 46, "point_error_percent": 0.0},
     {"case": "text_long", "actual_input": 3756, "estimate": 4043, "upper_bound": 4379, "point_error_percent": 7.64},
@@ -23,7 +44,9 @@
     {"case": "image_896x896", "actual_input": 1057, "estimated_text": 31, "estimated_image": 1026, "estimate": 1057, "upper_bound": 1072, "point_error_percent": 0.0},
     {"case": "image_1600x1200", "actual_input": 1345, "estimated_text": 31, "estimated_image": 2453, "estimate": 2484, "upper_bound": 2499, "point_error_percent": 84.68}
   ],
-  "conclusion": "The dependency-free text estimate is within 7.64% on these two points. The official patch grid exactly matches two square-image increments and deliberately over-reserves the larger synthetic image because Paratera does not attest its image preprocessing. All five upper bounds cover reported input usage.",
+  "runtime_existing_behavior": "The runtime durably records the raw response and usage before settlement. If reported total usage exceeds the per-request reservation, settlement stops with token_reservation_exceeded; the response is not accepted for the next turn, newly proposed tools are not executed, and resume preserves the fatal stop.",
+  "migration_observation": "Record requested max_tokens, completion tokens, reasoning tokens, visible output and finish_reason for every GLM call, including normal answers and tool calls. Establish a separate model-specific reasoning reserve before claiming a complete-request upper bound.",
+  "conclusion": "The dependency-free text input estimate is within 7.64% on these two points. The official patch grid exactly matches two square-image input increments and deliberately over-reserves the larger synthetic image because Paratera does not attest its image preprocessing. All five input upper bounds cover reported prompt usage. Output and complete-request bounds remain uncalibrated because reported completion usage can exceed requested max_tokens when reasoning is counted.",
   "sources": {
     "upstream_profile": "https://huggingface.co/zai-org/GLM-5.3-Flash",
     "upstream_config": "https://huggingface.co/zai-org/GLM-5.3-Flash/raw/main/config.json",
