@@ -18,6 +18,7 @@ import sys
 from typing import Any, Literal, Protocol
 
 from scripts.tool_scripts.bim_agent_guidance import REFERENCES, build_guide
+from src.agent_runtime.agent_registry import AgentVersionMismatch, agent_version_record
 from src.agent_runtime.mcp_tools import McpToolClient
 from src.harness_contracts.budget import BudgetAmounts
 from src.harness_contracts.roles import (
@@ -31,22 +32,6 @@ from src.harness_contracts.roles import (
 
 FROZEN_BASELINE_COMMIT = "5bb10538"
 Repeatability = Literal["read_only", "idempotent_write", "non_idempotent_write"]
-
-# These digests are of the exact files in the frozen baseline.  Material export
-# refuses to label a changed source file as the frozen baseline.
-FROZEN_SOURCE_SHA256 = {
-    "scripts/tool_scripts/run_bim_agent.py": "4a7bce020b22d54a115452493bc9bade1aeb1b1adf02dc69a4949981b2510b5d",
-    "scripts/tool_scripts/bim_agent_guidance.py": "d2378190c83645d53a97863f2d6d7c35b1034043b57891774a1019b05e86eda3",
-    "scripts/tool_scripts/bim_agent_inputs.py": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15",
-    "scripts/tool_scripts/bim_agent_inference.py": "b24ffacb7099c0b07e4ad200e34ef784b0550b63c2a67fe60bc64f67b01071b4",
-    "scripts/tool_scripts/bim_agent_mesh.py": "de05f7c00241062e82791b3239995ce472c9000527d44f18fac6acb41a623bb7",
-}
-FROZEN_DEFINITIONS_SHA256 = {
-    "coordinator": "34115d43dba5491cf433cd11f24b6c8057601c5db83f4f55a11407aad5293dd7",
-    "readonly": "1deb060d7883298fc291f687b5a9ba7fb9ead63e976eb1680d612a16e6b1e01b",
-    "coordinator_mesh": "b16dacdb8014426c7f721e0f39e36bd0d64dc27fcd819ec40566c1d8192ac778",
-    "readonly_mesh": "532205cbd505f5bd10c51aff87183ecdfaf44e7c99130a8900827a640d718b3e",
-}
 
 MESH_OBSERVER_TOOL_NAMES = (
     "inspect_mesh", "inspect_mesh_directions", "view_mesh", "measure_mesh_pixels",
@@ -108,7 +93,7 @@ PHASE1_FORBIDDEN_TOOLS = frozenset({"review_detail"})
 
 
 class ToolCatalogMismatch(ValueError):
-    """The running service does not expose the frozen 5bb10538 catalog."""
+    """The running service does not match the selected Agent version."""
 
 
 class ToolAccessDenied(PermissionError):
@@ -154,14 +139,10 @@ def frozen_bim_client(
 
     root = (Path(repository_root) if repository_root is not None
             else Path(__file__).resolve().parents[2]).resolve()
-    changed: dict[str, str] = {}
-    for relative, expected in FROZEN_SOURCE_SHA256.items():
-        path = root / relative
-        actual = _sha256(path) if path.is_file() else "missing"
-        if actual != expected:
-            changed[relative] = actual
-    if changed:
-        raise ToolCatalogMismatch(f"frozen BIM MCP source bytes changed: {changed}")
+    try:
+        agent_version_record(root, verify=True)
+    except AgentVersionMismatch as error:
+        raise ToolCatalogMismatch(str(error)) from error
     server = root / "scripts" / "tool_scripts" / "run_bim_agent.py"
     if not server.is_file():
         raise FileNotFoundError(f"frozen BIM MCP server does not exist: {server}")
@@ -181,7 +162,7 @@ def repeatability_for(tool_name: str) -> Repeatability:
     try:
         return FROZEN_TOOL_REPEATABILITY[tool_name]
     except KeyError as error:
-        raise ToolCatalogMismatch(f"tool is not in the frozen 5bb10538 catalog: {tool_name}") from error
+        raise ToolCatalogMismatch(f"tool is not in the registered Agent catalog: {tool_name}") from error
 
 
 def _catalog_mode(*, readonly: bool, mesh: bool) -> str:
@@ -223,10 +204,16 @@ def validate_frozen_catalog(
             f"frozen MCP catalog mismatch; missing={sorted(expected - actual)}, extra={sorted(actual - expected)}"
         )
     mode = _catalog_mode(readonly=readonly, mesh=mesh)
+    root = Path(__file__).resolve().parents[2]
+    try:
+        record = agent_version_record(root, verify=True)
+    except AgentVersionMismatch as error:
+        raise ToolCatalogMismatch(str(error)) from error
     actual_hash = hashlib.sha256(_canonical_json_bytes(tools)).hexdigest()
-    if actual_hash != FROZEN_DEFINITIONS_SHA256[mode]:
+    expected_hash = record["tool_catalog_sha256"][mode]
+    if actual_hash != expected_hash:
         raise ToolCatalogMismatch(
-            f"frozen MCP {mode} definitions changed: {actual_hash}"
+            f"Agent {record['version_id']} MCP {mode} definitions changed: {actual_hash}"
         )
     return mode
 
@@ -512,10 +499,13 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
     root = Path(repository_root).resolve()
     output = Path(output_directory).resolve()
     output.mkdir(parents=True, exist_ok=True)
-    source_hashes = {relative: _sha256(root / relative) for relative in FROZEN_SOURCE_SHA256}
-    changed = {path: digest for path, digest in source_hashes.items() if digest != FROZEN_SOURCE_SHA256[path]}
-    if changed:
-        raise ToolCatalogMismatch(f"cannot export frozen materials from changed baseline files: {changed}")
+    try:
+        version = agent_version_record(root, verify=True)
+    except AgentVersionMismatch as error:
+        raise ToolCatalogMismatch(str(error)) from error
+    source_hashes = {
+        relative: metadata["sha256"] for relative, metadata in version["files"].items()
+    }
     prompts = {
         "drawing_system_prompt.txt": build_guide(images="drawings", mesh=False),
         "mesh_system_prompt.txt": build_guide(images="mesh_views", mesh=True),
@@ -530,7 +520,7 @@ def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> 
         path.write_text(text, encoding="utf-8")
         reference_hashes[topic] = _sha256(path)
     material = {
-        "baseline_commit": FROZEN_BASELINE_COMMIT,
+        "baseline_commit": version["source_commit"],
         "source_sha256": source_hashes,
         "prompts": {
             name: {"sha256": _sha256(output / name), "byte_count": (output / name).stat().st_size}
@@ -555,6 +545,7 @@ def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]
     """Persist exact live definitions plus separate policy and byte evidence."""
 
     mode = validate_frozen_catalog(tools, readonly=readonly)
+    version = agent_version_record(Path(__file__).resolve().parents[2], verify=True)
     output = Path(output_directory).resolve()
     output.mkdir(parents=True, exist_ok=True)
     # Copy through JSON to prevent later mutation of the live client result.
@@ -571,7 +562,7 @@ def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]
         for tool in definitions
     }
     catalog = {
-        "baseline_commit": FROZEN_BASELINE_COMMIT,
+        "baseline_commit": version["source_commit"],
         "server_mode": mode,
         "definition_encoding": "UTF-8 canonical JSON (sorted keys, compact separators)",
         "definitions_sha256": hashlib.sha256(_canonical_json_bytes(definitions)).hexdigest(),
@@ -595,7 +586,7 @@ def write_frozen_tool_catalog(output_directory: Path, tools: list[dict[str, Any]
     }
     manifest_path = output / "tool_catalog_manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else {
-        "baseline_commit": FROZEN_BASELINE_COMMIT,
+        "baseline_commit": version["source_commit"],
         "catalogs": {},
     }
     manifest["catalogs"][catalog["server_mode"]] = {

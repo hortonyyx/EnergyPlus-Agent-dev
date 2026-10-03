@@ -141,6 +141,7 @@ class RemoteModelIdentity(ContractModel):
 class VersionManifest(ContractModel):
     code_commit: VersionStamp
     dependency_lock: VersionStamp
+    agent_version: VersionStamp | None = None
     prompt: VersionStamp
     tool_definitions: VersionStamp
     inference_parameters: VersionStamp
