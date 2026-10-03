@@ -361,7 +361,7 @@ class Runtime:
         self._load_budget()
         if any(s.reservation_id == reservation_id for s in self.budget.ledger.settlements):
             self._record_token_overrun(reservation_id, usage)
-            return self._settled_token_stop()
+            return self._recorded_settlement_stop(reservation_id) or self._settled_token_stop()
         charged_seconds = Decimal(str(max(0.0, seconds))) if seconds is not None else None
         actual = BudgetAmounts(tokens=reported_tokens(usage), calls=1, seconds=charged_seconds)
         task_decision = self.task_budget.settle(reservation_id,
@@ -381,18 +381,42 @@ class Runtime:
             decision = self.budget.settle(reservation_id,
                 actual=actual, usage=usage)
         if decision.action == "stop":
+            if "seconds" in decision.exceeded_dimensions:
+                task_limited = self.task_budget.available.seconds <= self.budget.available.seconds
+                stop_reason = self._scoped_budget_reason("time", task=task_limited)
+            else:
+                stop_reason = "token_reservation_exceeded" if "tokens" in decision.exceeded_dimensions else decision.reason
             self.store.append(RunLifecyclePayload(action="failure", failure_stage="budget_settlement",
                 reason=decision.reason), source_refs=(self.store.source("budget-violation", {
                     "decision": decision.model_dump(mode="json"), "observed": actual.model_dump(mode="json"),
-                    "usage": usage.model_dump(mode="json")}),))
-            if "seconds" in decision.exceeded_dimensions:
-                # Cancellation cleanup can cross the deadline by milliseconds.
-                # Keep the observed duration and conservative hold unchanged,
-                # but identify the exhausted time allowance in the receipt.
-                task_limited = self.task_budget.available.seconds <= self.budget.available.seconds
-                return self._scoped_budget_reason("time", task=task_limited)
-            return "token_reservation_exceeded" if "tokens" in decision.exceeded_dimensions else decision.reason
+                    "usage": usage.model_dump(mode="json"), "stop_reason": stop_reason}),))
+            if (decision.exceeded_dimensions == ("seconds",)
+                    and actual.tokens is not None
+                    and actual.tokens > (decision.reservation.amounts.tokens or 0)):
+                # A late response still incurred its full token charge. The
+                # observed duration remains above in the violation evidence;
+                # leave time unsettled (retain its hold), and keep the time stop.
+                token_charge = actual.model_copy(update={"seconds": None})
+                task_charge = self.task_budget.settle(reservation_id, actual=token_charge, usage=usage)
+                root_charge = self.budget.settle(reservation_id, actual=token_charge, usage=usage)
+                if task_charge.settlement is not None and root_charge.settlement is not None:
+                    self.store.append(BudgetEventPayload(action="settle", settlement=root_charge.settlement))
+                    self._record_token_overrun(reservation_id, usage)
+            return stop_reason
         self.store.append(BudgetEventPayload(action="settle", settlement=decision.settlement))
+        return None
+
+    def _recorded_settlement_stop(self, reservation_id):
+        for event in reversed(self.store.events):
+            if (event.payload.event_type != "run_lifecycle"
+                    or event.payload.failure_stage != "budget_settlement"):
+                continue
+            for source in event.source_refs:
+                if source.source_id == "budget-violation" and source.blob:
+                    saved = json.loads(self.store.get_bytes(source.blob))
+                    reservation = saved.get("decision", {}).get("reservation") or {}
+                    if reservation.get("reservation_id") == reservation_id:
+                        return saved.get("stop_reason")
         return None
 
     def _settled_token_stop(self):

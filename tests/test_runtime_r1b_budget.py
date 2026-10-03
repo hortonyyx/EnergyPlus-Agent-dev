@@ -199,8 +199,9 @@ def test_child_overrun_stops_child_while_root_charges_actual_and_sibling_continu
         (54, "token_budget_exhausted", True),
     ],
 )
+@pytest.mark.parametrize("recorded_allowance", [0, 32])
 def test_glm_overrun_request_evidence_and_recovery_are_durable(
-    tmp_path, token_limit, expected_reason, limit_exceeded
+    tmp_path, token_limit, expected_reason, limit_exceeded, recorded_allowance
 ):
     """Replay the old 54-token reservation with the exact recorded GLM exchange."""
 
@@ -208,10 +209,10 @@ def test_glm_overrun_request_evidence_and_recovery_are_durable(
     limits = RunLimits(
         model_calls=2, tool_calls=0, seconds=60.0, tokens=token_limit
     )
-    directory = tmp_path / f"root-{token_limit}"
+    directory = tmp_path / f"root-{token_limit}-allowance-{recorded_allowance}"
     store = EventStore(
         directory,
-        run_id=f"r1b-glm-request-{token_limit}",
+        run_id=f"r1b-glm-request-{token_limit}-{recorded_allowance}",
         task_id="coordinator",
         budget_limit=limits.ledger_limit(),
     )
@@ -238,9 +239,9 @@ def test_glm_overrun_request_evidence_and_recovery_are_durable(
     )
     assert prepared.token_estimate.reasoning_token_allowance == 32
 
-    # Persist the original reservation from before the reasoning allowance was
-    # incorporated into reservation sizing, while retaining the request-time
-    # profile evidence needed to explain the reported 55-token charge.
+    # Offline fault injection: persist the original 54-token reservation from
+    # before reasoning margins entered reservation sizing. The recorded margin
+    # varies separately to cover both the old evidence (0) and new profile (32).
     reservation = BudgetReservation(
         reservation_id="coordinator:request-1",
         purpose="primary_task",
@@ -252,7 +253,12 @@ def test_glm_overrun_request_evidence_and_recovery_are_durable(
         source_refs=(
             store.source(
                 "request-budget-decision",
-                {"token_estimate": asdict(prepared.token_estimate)},
+                {
+                    "token_estimate": {
+                        **asdict(prepared.token_estimate),
+                        "reasoning_token_allowance": recorded_allowance,
+                    }
+                },
             ),
         ),
     )
@@ -299,9 +305,9 @@ def test_glm_overrun_request_evidence_and_recovery_are_durable(
     assert overrun.reserved_tokens == 54
     assert overrun.actual_tokens == 55
     assert overrun.overrun_tokens == 1
-    assert overrun.reasoning_token_allowance == 32
+    assert overrun.reasoning_token_allowance == recorded_allowance
     assert overrun.completion_over_max_tokens == 16
-    assert overrun.within_profile_allowance is True
+    assert overrun.within_profile_allowance is (recorded_allowance == 32)
     assert overrun.root_limit_exceeded is limit_exceeded
     assert overrun.task_limit_exceeded is limit_exceeded
     assert engine.budget.ledger.charged.tokens == 55
@@ -313,7 +319,7 @@ def test_glm_overrun_request_evidence_and_recovery_are_durable(
     # durable records. Re-settlement neither loses nor duplicates either one.
     reopened = EventStore(
         directory,
-        run_id=f"r1b-glm-request-{token_limit}",
+        run_id=f"r1b-glm-request-{token_limit}-{recorded_allowance}",
         task_id="coordinator",
         budget_limit=limits.ledger_limit(),
     )
@@ -351,6 +357,108 @@ def test_glm_overrun_request_evidence_and_recovery_are_durable(
     ) == 1
     assert sum(
         event.payload.event_type == "model_response" for event in reopened.events
+    ) == 1
+    assert reopened.validate().events == tuple(reopened.events)
+    reopened.close()
+
+
+def test_token_and_time_overrun_preserves_full_tokens_and_time_violation_on_resume(
+    tmp_path,
+):
+    limits = RunLimits(model_calls=2, tool_calls=0, seconds=60.0, tokens=100)
+    directory = tmp_path / "token-and-time-overrun"
+    store = EventStore(
+        directory,
+        run_id="r1b-token-and-time-overrun",
+        task_id="coordinator",
+        budget_limit=limits.ledger_limit(),
+    )
+    store.append(RunLifecyclePayload(action="start", reason="test root started"))
+    reservation = BudgetReservation(
+        reservation_id="coordinator:request-1",
+        purpose="primary_task",
+        task_id="coordinator",
+        amounts=BudgetAmounts(tokens=54, calls=1, seconds=Decimal("10")),
+    )
+    store.append(BudgetEventPayload(action="reserve", reservation=reservation))
+    engine = Runtime(
+        store=store,
+        adapter=ScriptedAdapter([]),
+        tools=Tools(tmp_path / "time-tools"),
+        role=role(limits, readonly=True),
+        model="GLM-5.3-Flash",
+        parameters={"max_tokens": 8, "temperature": 0.0, "reasoning_effort": "medium"},
+        versions=versions(),
+        limits=limits,
+    )
+    engine.started = time.monotonic()
+    engine.elapsed_before = 0.0
+    engine.answer = None
+    engine._load_budget()
+    engine._refresh_counts()
+
+    assert engine._settle(
+        reservation.reservation_id,
+        UsageReported(raw_usage=_glm_usage()),
+        seconds=11.0,
+    ) == "time_budget_exhausted"
+    settlement = next(
+        event.payload.settlement
+        for event in store.events
+        if event.payload.event_type == "budget" and event.payload.action == "settle"
+    )
+    assert settlement.actual.tokens == 55
+    assert settlement.actual.seconds is None
+    assert engine.budget.ledger.charged.tokens == 55
+    assert engine.budget.ledger.committed.seconds == Decimal("10")
+    assert sum(
+        event.payload.event_type == "budget_overrun" for event in store.events
+    ) == 1
+    violation = next(
+        event
+        for event in store.events
+        if event.payload.event_type == "run_lifecycle"
+        and event.payload.action == "failure"
+        and event.payload.failure_stage == "budget_settlement"
+    )
+    evidence_ref = next(
+        ref.blob for ref in violation.source_refs if ref.source_id == "budget-violation"
+    )
+    evidence = json.loads(store.get_bytes(evidence_ref))
+    assert Decimal(evidence["observed"]["seconds"]) == Decimal("11.0")
+    store.close()
+
+    reopened = EventStore(
+        directory,
+        run_id="r1b-token-and-time-overrun",
+        task_id="coordinator",
+        budget_limit=limits.ledger_limit(),
+    )
+    resumed = Runtime(
+        store=reopened,
+        adapter=ScriptedAdapter([]),
+        tools=Tools(tmp_path / "resumed-time-tools"),
+        role=role(limits, readonly=True),
+        model="GLM-5.3-Flash",
+        parameters={"max_tokens": 8, "temperature": 0.0, "reasoning_effort": "medium"},
+        versions=versions(),
+        limits=limits,
+    )
+    resumed._load_budget()
+    assert resumed.budget.ledger.charged.tokens == 55
+    assert resumed.budget.ledger.committed.seconds == Decimal("10")
+    assert resumed._settle(
+        reservation.reservation_id,
+        UsageReported(raw_usage=_glm_usage()),
+        seconds=11.0,
+    ) == "time_budget_exhausted"
+    assert sum(
+        event.payload.event_type == "budget_overrun" for event in reopened.events
+    ) == 1
+    assert sum(
+        event.payload.event_type == "budget"
+        and event.payload.action == "settle"
+        for event in reopened.events
     ) == 1
     assert reopened.validate().events == tuple(reopened.events)
     reopened.close()
