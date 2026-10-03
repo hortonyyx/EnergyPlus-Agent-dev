@@ -1,0 +1,276 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W_E2",
+        "kind": "window"
+      },
+      {
+        "id": "W_E1",
+        "kind": "window"
+      },
+      {
+        "id": "W_E3",
+        "kind": "window"
+      },
+      {
+        "id": "D_E_in",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "The saved source crops covered only the door and part of the facade, leaving W_E1/W_E2/W_E3 outside the claim's source regions. Replace with the full original East elevation view so all four declared openings (D_E_in, W_E1, W_E2, W_E3) and their chain-datum heights lie inside the cited evidence; values and targets unchanged.",
+    "sources": [
+      {
+        "view_id": "view_0044"
+      }
+    ],
+    "unresolved": [
+      "W_E3's drawn head/sill match W_E1's family chain; no separate label chain was read at its own jambs"
+    ],
+    "value_targets": {
+      "door_ext_z": [
+        {
+          "id": "D_E_in",
+          "kind": "opening"
+        }
+      ],
+      "win_big_z": [
+        {
+          "id": "W_E2",
+          "kind": "window"
+        }
+      ],
+      "win_small_z": [
+        {
+          "id": "W_E1",
+          "kind": "window"
+        },
+        {
+          "id": "W_E3",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "door_ext_z": {
+        "direction": -1,
+        "lengths": [
+          1900.0,
+          2400.0,
+          200.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "win_big_z": {
+        "direction": -1,
+        "lengths": [
+          1100.0,
+          2400.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "win_small_z": {
+        "direction": -1,
+        "lengths": [
+          1700.0,
+          1800.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "door_ext_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 0.2,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.2
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "win_big_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 3.4,
+            "index": 0,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 3.4
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "win_small_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.8,
+            "index": 0,
+            "length_m": 1.7,
+            "span_m": [
+              2.8,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 1.8,
+            "span_m": [
+              1.0,
+              2.8
+            ],
+            "start_m": 2.8
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0005",
+  "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+  "replaced_claim_sha256": "3984ec165b5b701184ce5e02f0ebdcf9fd0bf3a63a52ed1022115a3313a3906d",
+  "replaces_claim": "claim_0003",
+  "resolved_values": {
+    "door_ext_z": [
+      0.2,
+      2.6
+    ],
+    "win_big_z": [
+      1.0,
+      3.4
+    ],
+    "win_small_z": [
+      1.0,
+      2.8
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        0,
+        0,
+        2639,
+        931
+      ],
+      "image": "East_view.png",
+      "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+      "size": [
+        2639,
+        931
+      ],
+      "view_id": "view_0044",
+      "view_sha256": "40b88300a920ea3d9470820da9d53886ca41fa5278d27f3d0385b9fb20067e1f"
+    }
+  ],
+  "verification": "not_independently_verified"
+}

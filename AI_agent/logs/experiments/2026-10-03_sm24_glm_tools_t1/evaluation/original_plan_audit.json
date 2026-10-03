@@ -1,0 +1,63 @@
+{
+  "mode": "post_generation_developer_audit",
+  "candidate": "candidate_04",
+  "source_replay_exact": true,
+  "display_replay_exact": true,
+  "runtime_hashes_match": true,
+  "runtime_hash_source": "runtime_snapshot",
+  "input_contents": {
+    "original_png_images": {
+      "included": true,
+      "count": 5
+    },
+    "building_declaration": {
+      "included": false
+    },
+    "saved_generated_proposal": {
+      "included": false
+    },
+    "ground_truth_or_evaluation": {
+      "included": false
+    }
+  },
+  "counts": {
+    "spaces": 8,
+    "openings": {
+      "door": 10,
+      "window": 11
+    },
+    "connections": 10,
+    "unsupported": 0,
+    "unbuilt_openings": 0
+  },
+  "partition_status": "severe",
+  "partition_topology_findings": [
+    {
+      "code": "internal_partition_boundary_changed",
+      "severity": "severe",
+      "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+      "floor_id": "F1",
+      "missing_length_m": 29.310952986,
+      "extra_length_m": 29.35901413952679,
+      "missing_wkt": "MULTILINESTRING ((4.18 8.059999999999999, 4.166040001 8.059999999999999), (4.18 0.020000001, 4.18 3.403336999), (4.18 3.443337001, 4.18 8.059999999999999), (4.18 12.999999999999996, 4.166040001 12.999999999999996), (4.1260399990000005 12.999999999999996, 0.020000001 12.999999999999996), (4.18 8.059999999999999, 4.18 12.999999999999996), (4.18 12.999999999999996, 4.18 15.927099999000001), (5.819999999999997 4.918696999000001, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 5.802453001 3.4400000000000013), (5.819999999999997 8.073451001, 5.819999999999997 13.983305999), (5.819999999999997 14.023306001, 5.819999999999997 15.927099999000001))",
+      "extra_wkt": "MULTILINESTRING ((0.020000001 12.902604, 4.14604 12.902604), (4.14604 12.902604, 4.14604 12.979999998999997), (4.14604 13.020000000999996, 4.14604 15.919999998999995), (4.14604 8.080000000999998, 4.14604 12.902604), (5.782453 15.919999998999995, 5.782453 14.003306), (5.782453 14.003306, 5.799999998999997 14.003306), (4.14604 8.039999998999999, 4.14604 3.423337), (5.801127151526803 8.053451, 5.782453 8.053451), (5.782453 8.053451, 5.782453 14.003306), (4.14604 3.423337, 4.159999999 3.423337), (5.782453 3.4600000010000014, 5.782453 4.938697), (5.782453 4.938697, 5.799999998999997 4.938697), (4.14604 0.020000001, 4.14604 3.423337))"
+    }
+  ],
+  "original_partition_status": "severe",
+  "original_partition_matched_count": 8,
+  "original_aperture_count": 21,
+  "matched_apertures": 21,
+  "position_matches": 19,
+  "host_matches": 21,
+  "door_connections_matched": 10,
+  "max_aperture_endpoint_error_m": 0.07637307692307704,
+  "viewer_has_no_remote_scripts": true,
+  "limits": [
+    "Manual original-image interpretation, not an automatic semantic judge.",
+    "GT diagnosis remains independent, unmodified and post-generation only.",
+    "Original partition comparison uses explicit zero-thickness representative walls; small offsets remain measured.",
+    "All heights, materials, unseen elevations and full-building acceptance excluded.",
+    "One bounded cold start does not establish repeatability or whole-building autonomy.",
+    "No browser WebGL interaction was tested in this audit."
+  ]
+}

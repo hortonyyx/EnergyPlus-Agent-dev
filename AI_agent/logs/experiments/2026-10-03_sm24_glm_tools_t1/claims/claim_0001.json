@@ -1,0 +1,218 @@
+{
+  "claim": {
+    "basis": "annotation_and_pixels",
+    "candidate": "candidate_01",
+    "objects": [
+      {
+        "id": "W_N_big",
+        "kind": "window"
+      },
+      {
+        "id": "D_N_in",
+        "kind": "opening"
+      }
+    ],
+    "observation_mode": "candidate_review",
+    "reason": "North elevation chains read from the building top (z=4.5 m, observed 1700+1800+1000 chain): window chain 1100|2400|1000 with the drawn 4800 window occupying the middle 2400 segment -> z 1.0..3.4; entrance door chain 1900|2400|200 with the drawn leaf in the middle -> z 0.2..2.6 (transom rail at 2.2 inside the leaf assembly, no glazing above 2.6).",
+    "sources": [
+      {
+        "box": [
+          240.0,
+          380.0,
+          1560.0,
+          1160.0
+        ],
+        "image": "North_view.png"
+      },
+      {
+        "box": [
+          1900.0,
+          380.0,
+          2620.0,
+          1160.0
+        ],
+        "image": "North_view.png"
+      }
+    ],
+    "unresolved": [],
+    "value_targets": {
+      "door_ext_z": [
+        {
+          "id": "D_N_in",
+          "kind": "opening"
+        }
+      ],
+      "win_big_z": [
+        {
+          "id": "W_N_big",
+          "kind": "window"
+        }
+      ]
+    },
+    "values": {
+      "door_ext_z": {
+        "direction": -1,
+        "lengths": [
+          1900.0,
+          2400.0,
+          200.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      },
+      "win_big_z": {
+        "direction": -1,
+        "lengths": [
+          1100.0,
+          2400.0,
+          1000.0
+        ],
+        "origin_m": 4.5,
+        "segment": 1,
+        "type": "dimension_chain",
+        "unit": "mm"
+      }
+    }
+  },
+  "computations": {
+    "door_ext_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 2.6,
+            "index": 0,
+            "length_m": 1.9,
+            "span_m": [
+              2.6,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 0.2,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              0.2,
+              2.6
+            ],
+            "start_m": 2.6
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 0.2,
+            "span_m": [
+              0.0,
+              0.2
+            ],
+            "start_m": 0.2
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    },
+    "win_big_z": {
+      "chain": {
+        "closure_error_m": null,
+        "direction": -1,
+        "end_m": 0.0,
+        "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+        "expected_total_m": null,
+        "input_unit": "mm",
+        "origin_m": 4.5,
+        "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+        "segments": [
+          {
+            "end_m": 3.4,
+            "index": 0,
+            "length_m": 1.1,
+            "span_m": [
+              3.4,
+              4.5
+            ],
+            "start_m": 4.5
+          },
+          {
+            "end_m": 1.0,
+            "index": 1,
+            "length_m": 2.4,
+            "span_m": [
+              1.0,
+              3.4
+            ],
+            "start_m": 3.4
+          },
+          {
+            "end_m": 0.0,
+            "index": 2,
+            "length_m": 1.0,
+            "span_m": [
+              0.0,
+              1.0
+            ],
+            "start_m": 1.0
+          }
+        ],
+        "total_m": 4.5
+      },
+      "method": "dimension_chain",
+      "segment": 1
+    }
+  },
+  "id": "claim_0001",
+  "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+  "resolved_values": {
+    "door_ext_z": [
+      0.2,
+      2.6
+    ],
+    "win_big_z": [
+      1.0,
+      3.4
+    ]
+  },
+  "sources": [
+    {
+      "box": [
+        240.0,
+        380.0,
+        1560.0,
+        1160.0
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ]
+    },
+    {
+      "box": [
+        1900.0,
+        380.0,
+        2620.0,
+        1160.0
+      ],
+      "image": "North_view.png",
+      "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+      "size": [
+        2890,
+        1651
+      ]
+    }
+  ],
+  "verification": "not_independently_verified"
+}

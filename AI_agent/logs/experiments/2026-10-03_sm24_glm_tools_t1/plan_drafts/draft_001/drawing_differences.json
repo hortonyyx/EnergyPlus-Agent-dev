@@ -1,0 +1,131 @@
+{
+  "schema": "drawing_differences_v1",
+  "image": "1f_view.png",
+  "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+  "plan_sha256": "822ad560fc5ef96d6bcaf190a7741d36441e83d95a529f1a7654f56003967018",
+  "floor_id": "F1",
+  "meaning": "Places where the original's ink and this declaration disagree, to check in the original (look_box): revise only with evidence, or keep the object and say why. Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.",
+  "scope": "Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; exterior walls, windows, single-line walls and heights are not checked.",
+  "status": "reported",
+  "total": 4,
+  "counts": {
+    "undeclared_wall_line": 1,
+    "opening_on_continuous_ink": 1,
+    "wall_gap_without_opening": 1,
+    "opening_offset_from_gap": 1
+  },
+  "items": [
+    {
+      "type": "undeclared_wall_line",
+      "axis": "vertical",
+      "x_px": 400,
+      "y_px": [
+        755,
+        877
+      ],
+      "x_m": 4.14,
+      "y_m": [
+        0.01,
+        3.38
+      ],
+      "length_m": 3.36,
+      "drawn_thickness_m": 0.12,
+      "look_box": [
+        370,
+        725,
+        429,
+        907
+      ],
+      "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+    },
+    {
+      "type": "opening_on_continuous_ink",
+      "opening": "D_CW",
+      "divider": "wallCW",
+      "axis": "horizontal",
+      "y_px": 585,
+      "x_px": [
+        364,
+        397
+      ],
+      "y_m": 8.05,
+      "x_m": [
+        3.17,
+        4.07
+      ],
+      "ink_fraction": 1.0,
+      "look_box": [
+        335,
+        556,
+        427,
+        615
+      ],
+      "check": "Ink along this declared divider is continuous across the declared opening."
+    },
+    {
+      "type": "wall_gap_without_opening",
+      "divider": "wallVL",
+      "axis": "vertical",
+      "x_px": 400,
+      "y_px": [
+        601,
+        629
+      ],
+      "x_m": 4.15,
+      "y_m": [
+        6.85,
+        7.62
+      ],
+      "gap_m": 0.8,
+      "look_box": [
+        370,
+        571,
+        429,
+        659
+      ],
+      "check": "A stretch of this declared divider without ink that no declared opening occupies."
+    },
+    {
+      "type": "opening_offset_from_gap",
+      "opening": "D_corr_A",
+      "divider": "wallA",
+      "declared": {
+        "axis": "horizontal",
+        "y_px": 299,
+        "x_px": [
+          402,
+          457
+        ],
+        "y_m": 15.95,
+        "x_m": [
+          4.21,
+          5.72
+        ]
+      },
+      "gap": {
+        "axis": "horizontal",
+        "y_px": 299,
+        "x_px": [
+          410,
+          449
+        ],
+        "y_m": 15.95,
+        "x_m": [
+          4.43,
+          5.5
+        ]
+      },
+      "end_offsets_m": [
+        -0.21,
+        0.22
+      ],
+      "look_box": [
+        373,
+        269,
+        487,
+        328
+      ],
+      "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps."
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 6000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 2650.79,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 2618436,
+    "stop_reason": "end_turn",
+    "session_id": "5dcb232f-e44b-4a5c-9314-af45cf156a0c",
+    "total_cost_usd": 5.218646400000002,
+    "usage": {
+      "input_tokens": 430448,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 4132992,
+      "output_tokens": 115277,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 446022,
+        "outputTokens": 127326,
+        "cacheReadInputTokens": 4440192,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 5.218646400000002,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 98,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "**Delivered candidate: `candidate_04`** (viewer: `candidate_04/viewer.html`, source model sha256 `39beb7b6…d8a30`). Single storey, 8 spaces, 54 boundaries, 21 openings (10 doors, 11 windows), 10 door connections; source validation pass; floor completeness complete against the single supplied plan.\n\n## What was observed\n- **Plan (1f_view.png, 10 × 20 m, north up, 27.5 mm/px calibrated from the overall chains):** outer perimeter plus every drawn divider — west wall line with rooms R2 (y 12.9–15.95) and R3 (y 8.05–12.9), meeting room (SW), east wall line with cab (NE), mid room and the SE L-shaped office; the corridor+east lobby is one continuous L-shaped space (no wall across the corridor mouth — verified when the draft compile rejected a separate lobby seed).\n- **All 21 openings placed from their own marks:** 3 exterior doors (N 1600 at x 0.54–2.14, E 1600 at y 5.71–7.32, S 900 at x 4.54–5.44), 11 windows (4800 big: N, E-mid, W-south; small 1500/1200: 2 S, 2 more E, 4 W), 7 interior doors from the drawn jamb gaps. Facade counts recorded per floor/facade — all four \"matches_observed_total\".\n- **Drawing differences resolved during drafting:** extended wallVL to the south facade; removed the phantom D_CW (the arc belongs to a wallVL gap) and declared D_meet there; tightened D_corr_A to its ink gap; corrected W_E2 from a misread 7.55 m to 4.80 m against the East chain.\n- **Heights from the elevations, saved as located claims and applied:** chains read top-down from z = 4.5 m — big windows 1100|2400|1000 → z 1.0–3.4; small windows 1700|1800|1000 → z 1.0–2.8; exterior doors 1900|2400|200 → z 0.2–2.6. All 14 exterior openings carry **applied_current adopted claims** (claim_0001 N, 0002 S, 0004 W, 0006 E), each verified by a calibrated elevation overlay on candidate_04's geometry (reviews review_0002–0006); this session I corrected the North overlay direction (left = east) and re-derived the East anchors from the drawn chain ticks (px 373/911/1062/…, 10.6 mm/px) after the first East overlay misaligned, then confirmed all four facades coincide opening-for-opening.\n\n## What was assumed (explicit in the saved BIM)\n- Interior door heights 2.1 m (no internal heights drawn).\n- Ceiling/storey height 4.5 m, taken as the elevation chains' common datum top; no section supplied.\n- Interior door positions ±30 mm from pixels (no interior dimension chains); interior partitions ~120 mm, exterior 240 mm per \"240\" labels.\n- All 8 room uses are **inferred** from furniture/context (lobby, corridor, offices, conference, etc.) — no printed use labels exist.\n\n## What remains unverified / unresolved\n- The pixel-to-metre calibrations (plan and elevation anchors) are caller-supplied and not independently verified.\n- W_E3 and W_W1–W_W4 share their height family chains with identical drawn extents — no per-window chain is drawn (kept as claim unresolved notes); the East four openings' claim source is a whole-image citation, while the geometric verification for them is the saved calibrated overlay review_0005.\n- Interior door leaf states (swing/leaf) beyond the drawn arcs were not asserted; internal door connectivity is from the drawn gaps.\n- A stale text remnant: wallCW's partition source_ref text still mentions the removed \"door D_CW\"; source_refs aren't editable via replace_note, so it survives only as audit history (the door itself is gone from the model).",
+    "ttft_ms": 5098,
+    "type": "result",
+    "duration_ms": 2643502,
+    "uuid": "2a969588-2811-4e91-93b4-56efcce38319",
+    "ttft_stream_ms": 4800,
+    "time_to_request_ms": 51,
+    "first_content_frame_ms": 4800,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}
