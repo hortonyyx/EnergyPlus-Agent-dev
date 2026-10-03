@@ -1,0 +1,85 @@
+{
+  "live_requests": [
+    {
+      "request_event_id": "event-000003",
+      "response_event_id": "event-000004",
+      "request_sha256": "9da99e1756539f9c49dfe339d6c2c0bf2a6e72a0dd952020985a9e99d531c524",
+      "response_sha256": "f27c728f73e67f2c00de7845f6370ab4201eac9b986dffb1c86487d8094f4438",
+      "requested_output_tokens": 128,
+      "finish_reason": "length",
+      "thinking_characters": 16,
+      "visible_characters": 170,
+      "has_tool_calls": false,
+      "usage": {
+        "completion_tokens": 128,
+        "completion_tokens_details": {
+          "reasoning_tokens": 8
+        },
+        "prompt_tokens": 85,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 213
+      },
+      "recovery_prompt_present": false,
+      "assistant_history_messages": 0
+    },
+    {
+      "request_event_id": "event-000009",
+      "response_event_id": "event-000010",
+      "request_sha256": "3b43d3345d4bdef6b1daaae1cffe4343060afdc6ccbbed085e74de137eb92f5f",
+      "response_sha256": "31c6d9c343cceb58f539f8b6bd8ed75d35591fedd5cfa3bfefa3aa70998b3acf",
+      "requested_output_tokens": 128,
+      "finish_reason": "stop",
+      "thinking_characters": 138,
+      "visible_characters": 2,
+      "has_tool_calls": false,
+      "usage": {
+        "completion_tokens": 32,
+        "completion_tokens_details": {
+          "reasoning_tokens": 29
+        },
+        "prompt_tokens": 124,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 156
+      },
+      "recovery_prompt_present": true,
+      "assistant_history_messages": 0
+    }
+  ],
+  "attempt_tickets": 2,
+  "truncation_events": [
+    {
+      "event_type": "response_truncation",
+      "request_event_id": "event-000003",
+      "response_event_id": "event-000004",
+      "finish_reason": "length",
+      "thinking_characters": 16,
+      "visible_characters": 170,
+      "reported_reasoning_tokens": 8,
+      "has_tool_calls": false,
+      "tool_call_count": null,
+      "consecutive_count": 1,
+      "total_count": 1,
+      "max_consecutive_recoveries": 2,
+      "max_total_recoveries": 2,
+      "action": "continue",
+      "reason": "discard truncated output and request a concise continuation"
+    }
+  ],
+  "tool_invocations": 0,
+  "existing_offline_counterexample": {
+    "path": "AI_agent/logs/experiments/2026-10-03_migration_comparison/evidence/attempt_01_request_12_truncated_response.json",
+    "sha256": "6445e9de731c62afe27ab36c1a71788c63b1ddd399f05e40791a6b07975c4010",
+    "copied_into_delivery": false
+  },
+  "archive_bytes": 8972,
+  "archive_files": 29,
+  "archive_stored_files": 27,
+  "repository_references": [
+    "AI_agent/logs/experiments/2026-10-02_harness_stage3/calibration/runs/12_Qwen3.8-Flash_image_1600x1200/blobs/4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "uv.lock"
+  ]
+}

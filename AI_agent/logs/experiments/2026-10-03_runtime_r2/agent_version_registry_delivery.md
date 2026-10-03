@@ -13,19 +13,19 @@
 核对当前版本：
 
 ```bash
-uv run python -m src.agent_runtime.agent_registry verify --root .
+PYTHONPATH="$PWD" python -m src.agent_runtime.agent_registry verify --root .
 ```
 
 登记只修改既有文件的新版本，并同时离线探测四种真实 MCP 工具目录：
 
 ```bash
-uv run python -m src.agent_runtime.agent_registry register --root . --version <新版本ID>
+PYTHONPATH="$PWD" python -m src.agent_runtime.agent_registry register --root . --version <新版本ID>
 ```
 
 新版本增加了工具、指引或任务说明文件时显式纳入：
 
 ```bash
-uv run python -m src.agent_runtime.agent_registry register --root . \
+PYTHONPATH="$PWD" python -m src.agent_runtime.agent_registry register --root . \
   --version <新版本ID> \
   --add-file tool:scripts/tool_scripts/<新工具文件>.py
 ```

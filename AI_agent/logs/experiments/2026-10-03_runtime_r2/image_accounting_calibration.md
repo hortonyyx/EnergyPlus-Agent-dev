@@ -9,7 +9,7 @@
 - 这 58 次响应都满足 `prompt_tokens = text_tokens + image_tokens`。因此它们直接反证“Qwen 顶层 usage 一律漏掉图片 token”的旧推断：这些事件的顶层输入已经包含图片，运行时不能再次补加。
 - 未覆盖的 **9,786** 个账单 token 分别来自 00:00 的 Qwen3.8-27B 和 Qwen3.8-Flash 桶，各 4,893。仓库没有相应请求事件，无法判断其顶层 usage 是否包含图片，不能用总账差额外推每次请求的行为。
 - 另有一次 Qwen 图片请求估算 877 token，但没有模型响应，而且未进入对应账单桶。它归为 `unknown_no_response`，不参与公式误差和账单覆盖结论。
-- GLM 的 224×224、896×896 两个观察点与公式完全相等；1600×1200 估算 2,453、观察分量 1,314，高估 1,139。旧迁移运行的 10 次 GLM 图片请求合计估算 52,238，但 usage 没有完整文本/图片分项；现有账单也没有 GLM `image_input` 行。GLM 图片顶层包含关系与图片单价仍未知。
+- GLM 的校准量是相对 31-token 文本对照的输入增量，并非接口实报的图片分项。224×224、896×896 两个观察点与公式完全相等；1600×1200 估算 2,453、输入增量 1,314，高估 1,139。旧迁移运行的 10 次 GLM 图片请求合计估算 52,238，但 usage 没有完整文本/图片分项；现有账单也没有 GLM `image_input` 行。GLM 图片顶层包含关系与图片单价仍未知。
 
 ## 运行时判定
 
@@ -20,13 +20,13 @@
 ## 复现
 
 ```bash
-python AI_agent/logs/experiments/2026-10-03_runtime_r2/calibrate_image_accounting.py
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-03_runtime_r2/calibrate_image_accounting.py
 ```
 
 可选地审计未入库的旧 GLM 迁移运行：
 
 ```bash
-python AI_agent/logs/experiments/2026-10-03_runtime_r2/calibrate_image_accounting.py \
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-03_runtime_r2/calibrate_image_accounting.py \
   --run /workspaces/EnergyPlus-Agent-dev/AI_agent/logs/experiments/2026-10-03_runtime_r1/runs/migration_sm24_glm_paratera
 ```
 
