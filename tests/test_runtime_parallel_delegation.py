@@ -13,7 +13,7 @@ from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
 from test_runtime_delegation import (
-    ROOT, _CoordinatorTools, _MeasuringObserverFrozenTools, _answer,
+    ROOT, _CoordinatorTools, _MeasuringObserverFrozenTools, _answer, _application,
     _registered_view, _response,
 )
 from test_runtime_frozen_tools import _prepared_run
@@ -77,6 +77,11 @@ def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_pa
             assert len({r.reservation_id for r in ledger.reservations}) == 3
             assert ledger.committed.tokens <= limits.tokens
             assert ledger.committed.calls == 3
+            last_stop = next(e for e in reversed(store.all_events)
+                if e.payload.event_type == "run_lifecycle" and e.payload.action == "stop")
+            receipt_source = next(ref for ref in last_stop.source_refs if ref.source_id == "run-receipt")
+            final_receipt = json.loads(store.get_bytes(receipt_source.blob))
+            assert final_receipt["root_budget_available"] == ledger.available.model_dump(mode="json")
             assert len([e for e in store.all_events if e.payload.event_type == "adapter_request"]) == 3
             assert store.validate().events == tuple(store.all_events)
             before = len([e for e in store.all_events if e.payload.event_type == "adapter_request"])
@@ -87,6 +92,26 @@ def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_pa
         assert [r["ticket"] for r in tickets if r["event"] == "attempt"] == [1, 2, 3]
         assert len([r for r in tickets if r["event"] == "failure"]) == 1
         assert len([r for r in tickets if r["event"] == "response"]) == 2
+    asyncio.run(scenario())
+
+
+def test_parallel_results_are_rechecked_against_saved_version_before_application(tmp_path):
+    async def scenario():
+        limits = RunLimits(model_calls=4, tool_calls=4, tokens=400_000, seconds=300)
+        activity = {"active": 0, "peak": 0}
+        with EventStore(tmp_path / "audit", run_id="version-test", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)
+            await session.initialize()
+            reply = await session.call_tool("delegate_to_roles", {"tasks": [_task("east"), _task("west")]})
+            assert all(row["status"] == "completed" for row in reply["structuredContent"]["results"])
+            assert session.inspect("west")["applicable"]
+            (tmp_path / "bim/inputs.json").write_text('{"revision": 2}')
+            rejected = await session.call_tool("apply_local_observation", _application("west"))
+            assert rejected["isError"]
+            assert "stale source model version" in rejected["structuredContent"]["reason"]
+            assert session.tools.calls == []
+            store.validate()
     asyncio.run(scenario())
 
 
