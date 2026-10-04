@@ -1,0 +1,504 @@
+{
+  "candidate": "candidate_04",
+  "selection_origin": "agent_selected",
+  "viewer": "candidate_04/viewer.html",
+  "source_model": "candidate_04/source_model.json",
+  "viewer_exists": false,
+  "generation_status": {
+    "state": "in_progress"
+  },
+  "schema_version": "bim_delivery_v1",
+  "source_model_sha256": "39beb7b69893ba41d0269b8a7c3fa62bf9224ed567420b1b8f08a6b5e9fd8a30",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "wall_dimension_report": null,
+  "counts": {
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "unbuilt_openings": [],
+  "assumptions": [
+    "Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.",
+    "Contacts describe adjacency, not traversability or EnergyPlus surface pairing.",
+    "Only explicit openings are represented; absent observations do not establish a solid wall.",
+    "Source boundary identity follows cell identity and ring order; topology edits need identity migration.",
+    "Interior door heights 2.1 m assumed; no internal door heights are drawn. Exterior door openings observed at 0.2..2.6 m on the elevations.",
+    "Ceiling height 4.5 m assumed equal to the observed building height in all four elevation chains (1700+1800+1000 etc.); no section is supplied.",
+    "Interior partitions drawn as ~120 mm line pairs; exterior walls 240 mm per '240' labels.",
+    "Interior door positions measured from pixels (+-30 mm); no interior dimension chain is drawn.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "generation": {
+    "unresolved": [
+      "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+    ]
+  },
+  "drawing_fidelity": "not_evaluated",
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 1,
+        "crop_view_count": 17,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 5,
+        "crop_view_count": 5,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 4,
+        "crop_view_count": 3,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 3,
+        "crop_view_count": 4,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 3,
+        "crop_view_count": 2,
+        "status": "full_view_returned"
+      }
+    ],
+    "no_direct_view_images": [],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound direct original returns from view_image or paired elevation views are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "room_use_review": {
+    "source_model_sha256": "39beb7b69893ba41d0269b8a7c3fa62bf9224ed567420b1b8f08a6b5e9fd8a30",
+    "summary": {
+      "total_count": 8,
+      "recorded_count": 8,
+      "unrecorded_count": 0,
+      "observed_count": 0,
+      "inferred_count": 8,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [],
+    "unknown_ids_truncated": false,
+    "next_action": "Use-basis records saved; unresolved inferences remain explicit.",
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "candidate": "candidate_04",
+    "summary": {
+      "total_count": 21,
+      "image_linked_count": 14,
+      "non_image_linked_count": 0,
+      "unchecked_height_opening_ids": [
+        "D_DR",
+        "D_L1",
+        "D_L2",
+        "D_R1",
+        "D_R2",
+        "D_corr_A",
+        "D_meet"
+      ]
+    },
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Coverage means a current adopted z binding, not proof that the drawing or BIM is correct. Inference and declared values do not count as located-image height evidence.",
+    "floor_facade_summary": [
+      {
+        "floor_id": "F1",
+        "facade": "North",
+        "opening_count": 2,
+        "image_linked_count": 2,
+        "unchecked_count": 0
+      },
+      {
+        "floor_id": "F1",
+        "facade": "South",
+        "opening_count": 3,
+        "image_linked_count": 3,
+        "unchecked_count": 0
+      },
+      {
+        "floor_id": "F1",
+        "facade": "East",
+        "opening_count": 4,
+        "image_linked_count": 4,
+        "unchecked_count": 0
+      },
+      {
+        "floor_id": "F1",
+        "facade": "West",
+        "opening_count": 5,
+        "image_linked_count": 5,
+        "unchecked_count": 0
+      },
+      {
+        "floor_id": "F1",
+        "facade": null,
+        "opening_count": 7,
+        "image_linked_count": 0,
+        "unchecked_count": 7
+      }
+    ]
+  },
+  "located_height_coverage": {
+    "schema_version": "located_opening_heights_v1",
+    "candidate": "candidate_04",
+    "source_model_sha256": "39beb7b69893ba41d0269b8a7c3fa62bf9224ed567420b1b8f08a6b5e9fd8a30",
+    "delivery_blocked": false,
+    "summary": {
+      "exterior_count": 14,
+      "located_count": 10,
+      "status_counts": {
+        "whole_image_only": 4,
+        "covered": 10
+      }
+    },
+    "unchecked_opening_ids": [
+      "D_E_in",
+      "W_E1",
+      "W_E2",
+      "W_E3"
+    ],
+    "priority_opening_ids": [],
+    "distinct_width_opening_ids": [
+      "W_E2",
+      "W_W_big"
+    ],
+    "calibration_problems": [],
+    "note": "No height error is asserted. Each height needs its own source-region coverage in an explicitly calibrated elevation. Whole-image citations and absent calibration remain unverified; a shared height on different widths deserves a local check. Report only.",
+    "unchecked_openings": [
+      {
+        "opening_id": "D_E_in",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "width_m": 1.604,
+        "status": "whole_image_only",
+        "shared_height_across_widths": false
+      },
+      {
+        "opening_id": "W_E1",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "width_m": 1.507,
+        "status": "whole_image_only",
+        "shared_height_across_widths": false
+      },
+      {
+        "opening_id": "W_E2",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "width_m": 4.8,
+        "status": "whole_image_only",
+        "shared_height_across_widths": false
+      },
+      {
+        "opening_id": "W_E3",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "width_m": 1.201,
+        "status": "whole_image_only",
+        "shared_height_across_widths": false
+      }
+    ]
+  },
+  "facade_counts": {
+    "schema_version": "facade_count_report_v1",
+    "candidate": "candidate_04",
+    "source_model_sha256": "39beb7b69893ba41d0269b8a7c3fa62bf9224ed567420b1b8f08a6b5e9fd8a30",
+    "delivery_blocked": false,
+    "summary": {
+      "floor_facade_count": 4,
+      "window_status_counts": {
+        "matches_observed_total": 4
+      },
+      "door_status_counts": {
+        "matches_observed_total": 4
+      },
+      "unused_observation_count": 0
+    },
+    "scopes": [
+      {
+        "floor_id": "F1",
+        "facade": "North",
+        "observation_ids": [
+          "count_01791012507625193746_c20eefe88a67"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "W_N_big"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "D_N_in"
+          ],
+          "missing_count": 0
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "South",
+        "observation_ids": [
+          "count_01791012508386821828_d4857dde68aa"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 2,
+          "observed_counts": [
+            2
+          ],
+          "built_opening_ids": [
+            "W_S1",
+            "W_S2"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "D_S_in"
+          ],
+          "missing_count": 0
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "East",
+        "observation_ids": [
+          "count_01791012509717271903_c5ee5f45e66a"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 3,
+          "observed_counts": [
+            3
+          ],
+          "built_opening_ids": [
+            "W_E1",
+            "W_E2",
+            "W_E3"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "D_E_in"
+          ],
+          "missing_count": 0
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "West",
+        "observation_ids": [
+          "count_01791012510750047772_d7bca5680d1f"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 5,
+          "observed_counts": [
+            5
+          ],
+          "built_opening_ids": [
+            "W_W1",
+            "W_W2",
+            "W_W3",
+            "W_W4",
+            "W_W_big"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 0,
+          "observed_counts": [
+            0
+          ],
+          "built_opening_ids": [],
+          "missing_count": 0
+        }
+      }
+    ],
+    "unused_observations": [],
+    "unsupported_exterior_boundaries": [],
+    "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+  },
+  "floor_completeness": {
+    "expected_floor_plan_images": [
+      "1f_view.png"
+    ],
+    "floor_scope_source": "explicit_input_filenames",
+    "saved_draft_images": [
+      "1f_view.png"
+    ],
+    "missing_draft_images": [],
+    "latest_saved_candidate": "candidate_04",
+    "latest_complete_candidate": "candidate_04",
+    "unreadable_saved_candidates": [],
+    "candidate": "candidate_04",
+    "candidate_floor_images": [
+      "1f_view.png"
+    ],
+    "missing_candidate_images": [],
+    "candidate_source_geometry_ready": true,
+    "complete_building": true,
+    "note": "Floor coverage only; rooms, openings and drawing fidelity are not certified. Unspecified floor scope remains unknown."
+  },
+  "claim_applications": [
+    {
+      "id": "application_0001",
+      "parent_candidate": "candidate_01",
+      "candidate": "candidate_02",
+      "claim_ids": [
+        "claim_0001",
+        "claim_0002",
+        "claim_0003",
+        "claim_0004"
+      ],
+      "status": "applied",
+      "error": null,
+      "parameters_without_claims": []
+    },
+    {
+      "id": "application_0002",
+      "parent_candidate": "candidate_02",
+      "candidate": "candidate_03",
+      "claim_ids": [],
+      "status": "applied",
+      "error": null,
+      "parameters_without_claims": []
+    },
+    {
+      "id": "application_0003",
+      "parent_candidate": "candidate_03",
+      "candidate": null,
+      "claim_ids": [
+        "claim_0005"
+      ],
+      "status": "failed",
+      "error": "claim is stale for this parent proposal; record a new claim",
+      "parameters_without_claims": null
+    },
+    {
+      "id": "application_0004",
+      "parent_candidate": "candidate_03",
+      "candidate": "candidate_04",
+      "claim_ids": [
+        "claim_0006"
+      ],
+      "status": "applied",
+      "error": null,
+      "parameters_without_claims": []
+    }
+  ],
+  "adopted_unapplied_claims": [],
+  "current_claim_summary": {
+    "state_counts": {
+      "applied_current": 4,
+      "retracted": 2
+    },
+    "claims_with_missing_bindings": [
+      "claim_0005"
+    ],
+    "inherited_observation_count": 0,
+    "drawing_fidelity": "not_evaluated"
+  },
+  "source_image_feedback_summary": {
+    "current_source_projections_count": 1,
+    "old_source_projections_count": 3,
+    "projection_errors_count": 0,
+    "registered_calibration_uncovered_floors_count": 0,
+    "floors_without_registered_views_count": 0
+  },
+  "space_relation_review_summary": {
+    "status": "not_reviewed",
+    "sample_count": 0,
+    "conflict_count": 0,
+    "unassessed_count": 0,
+    "stale_review_count": 0,
+    "coverage": "caller_selected_point_pairs_only",
+    "drawing_fidelity": "not_evaluated"
+  },
+  "response_compacted": true,
+  "full_delivery_report": "delivery.json",
+  "omitted_detail_fields": [
+    "current_claim_state",
+    "current_reviews",
+    "facade_inventory",
+    "facade_review_scopes",
+    "opening_inventory",
+    "opening_review_scopes",
+    "source_image_feedback",
+    "space_relation_review",
+    "stale_reviews"
+  ],
+  "detail_note": "Full nested evidence remains in delivery.json. Height endpoints and IDs are available from check_openings(heights_only=true); claim_status(candidate) contains current bindings. Summarized counts are not fidelity approval.",
+  "review_scope_status_counts": {
+    "opening_review_scopes": {
+      "not_reviewed": 3
+    },
+    "facade_review_scopes": {
+      "not_reviewed": 12
+    }
+  },
+  "current_review_count": 0,
+  "stale_review_count": 0,
+  "remaining_seconds": null
+}

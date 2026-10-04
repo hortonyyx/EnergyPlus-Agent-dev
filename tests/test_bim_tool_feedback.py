@@ -43,7 +43,7 @@ def test_alias_error_and_image_results_survive_real_stdio(tmp_path):
             assert "actual filename 'plan.png'" in "\n".join(c.text for c in result.content if c.type == "text")
             bad = await session.call_tool("pixel_profile", dict(name="p1", box=[0, 0, 4, 4], axis="x", rgb=[255, 255, 255]))
             assert bad.isError and "Available filenames: [\"plan.png\"]" in bad.content[0].text
-            assert len((await session.list_tools()).tools) == 42
+            assert len((await session.list_tools()).tools) == 43
     asyncio.run(scenario())
 
 

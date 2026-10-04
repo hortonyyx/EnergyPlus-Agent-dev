@@ -641,6 +641,9 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
         row = json.loads(raw)
         saved[row["id"]] = dict(row, _saved_file=path.relative_to(run).as_posix(),
                                _saved_sha256=hashlib.sha256(raw).hexdigest())
+    transactions = [step for step in steps if step["tool"] == "claim_transaction"]
+    transaction_entries = [entry for step in transactions
+                           for entry in (step.get("result_data") or {}).get("entries", [])]
     for step in steps:
         data = step.get("result_data") or {}
         ready = data.get("source_geometry_ready")
@@ -651,6 +654,7 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
                 ready = json.loads(report.read_bytes()).get("source_geometry_ready")
         call_error = bool(step.get("is_error"))
         domain_failure = not call_error and (data.get("status") in {"error", "failed"}
+                         or step["tool"] == "claim_transaction" and data.get("status") == "partial"
                          or ready is False or bool(data.get("error")))
         step["call_error"] = call_error
         step["domain_failure"] = domain_failure
@@ -671,6 +675,15 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
     claims = [_claim_detail(step, run, saved) for step in steps
               if step["tool"] in {"record_claim", "replace_claim_sources"} and not step.get("is_error")
               and step.get("delivered_to_model", True)]
+    # Entries share the actual transaction call/time; they are not extra tool
+    # calls. Read saved claims just as for the compatibility single-step tools.
+    for step in transactions:
+        if step.get("is_error") or not step.get("delivered_to_model", True):
+            continue
+        for entry in (step.get("result_data") or {}).get("entries", []):
+            if entry.get("recorded") and entry.get("claim_id") in saved:
+                claims.append(_claim_detail({**step, "arguments": {},
+                    "result_data": {"id": entry["claim_id"]}}, run, saved))
     claims = [claim for claim in claims if claim["objects"]]
     height_sources = Counter(name for claim in claims for name in claim["source_facades"])
     invocations = record["invocations"]
@@ -703,6 +716,10 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
         "call_errors": outcome_counts["call_error"], "domain_failures": outcome_counts["domain_failure"],
         "usable_source_drafts": outcome_counts["usable_source_draft"],
         "tool_errors": outcome_counts["call_error"], "tools": dict(tools),
+        "claim_transactions": {"calls": len(transactions), "entries": len(transaction_entries),
+            "status_counts": dict(Counter(entry["status"] for entry in transaction_entries)),
+            "recorded_claims": sum(bool(entry.get("recorded")) for entry in transaction_entries),
+            "applied_entries": sum(entry.get("status") == "applied" for entry in transaction_entries)},
         "outcome_definitions": {
             "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
             "domain_failures": "normal return with status error/failed, error, or source_geometry_ready=false",
@@ -734,7 +751,7 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
         "cross_facade_height_claims": sum(claim["cross_facade"] for claim in claims),
         "plan_builds": sum(tools[name] for name in FIRST_DRAFT_TOOLS),
         "plan_edits": tools["revise_plan_bim"] + tools["edit_plan_bim"],
-        "candidate_revisions": tools["revise_bim"], "gaps": record["gaps"],
+        "candidate_revisions": tools["revise_bim"] + sum(entry.get("status") == "applied" for entry in transaction_entries), "gaps": record["gaps"],
         "outcomes": [{key: s.get(key) for key in ("index", "tool", "t_call", "call_error", "domain_failure",
                      "usable_source_draft")} for s in steps if s["call_error"] or s["domain_failure"] or s["usable_source_draft"]],
         "usage": record.get("usage", [row for inv in invocations for row in inv.get("message_usage", [])]),

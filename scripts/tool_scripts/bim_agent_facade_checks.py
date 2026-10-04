@@ -52,61 +52,97 @@ def _pixel_box(opening, facade, transform):
 
 
 def located_height_report(toolkit, candidate, current_state=None):
+    """One external-opening table: current values, binding, location and limits.
+
+    A2-T replaces the two competing reports. T1 sm24/sm25 counted every opening
+    inside a shared source box as located. A box covering multiple exterior
+    openings now requires individual evidence, even if all numbers match.
+    """
     store = toolkit.claims()
     _, source = store.candidate(candidate)
     coverage = height_coverage(store, candidate, current_state)
-    openings = {o["id"]: o for o in source.get("openings", [])}
+    openings = {o["id"]: o for o in source.get("openings", []) if o.get("exterior")}
+    items = {r["opening_id"]: r for r in coverage["openings"] if r["opening_id"] in openings}
     claims = {row["id"]: row for row in store.status()["claims"]}
     calibrations, calibration_problems = _calibrations(toolkit)
-    rows, groups, binding_widths = [], defaultdict(list), defaultdict(list)
-    for item in coverage["openings"]:
-        identity, facade = item["opening_id"], item.get("facade")
-        opening = openings[identity]
-        if not opening.get("exterior") or opening.get("kind") not in {"window", "door"}:
-            continue
-        vertices = opening["vertices"]
+    rows, groups, binding_widths, checked = [], defaultdict(list), defaultdict(list), {}
+
+    def evidence_current(record):
+        identity = record["id"]
+        if identity not in checked:
+            try:
+                refs = store._sources(record["claim"])
+                values, computations = store._resolve_values(record["claim"], refs)
+                checked[identity] = (refs == record["sources"] and values == record["resolved_values"]
+                                     and computations == record["computations"])
+            except (OSError, ValueError, KeyError, TypeError):
+                checked[identity] = False
+        return checked[identity]
+
+    def covers(box, projected):
+        return (box[0] - 2 <= projected[0] and box[1] - 2 <= projected[1]
+                and box[2] + 2 >= projected[2] and box[3] + 2 >= projected[3])
+
+    for identity, item in items.items():
+        facade = item.get("facade")
+        vertices = openings[identity]["vertices"]
         width = math.hypot(max(v[0] for v in vertices) - min(v[0] for v in vertices),
                            max(v[1] for v in vertices) - min(v[1] for v in vertices))
-        row = dict(opening_id=identity, kind=opening["kind"], facade=facade,
-                   floor_ids=item["floor_ids"], width_m=round(width, 3),
-                   status="no_height_observation", claim_ids=[], covered_by=[])
-        attempts = []
-        for link in item["retained_image_evidence"]:
-            record = claims.get(link["claim_id"])
-            if record is None:
+        row = dict(opening_id=identity, kind=item["kind"], facade=facade, floor_ids=item["floor_ids"],
+                   absolute_z_m=item["absolute_z_m"], width_m=round(width, 3),
+                   status="missing", evidence=[], issues=[])
+        located_kinds, assumptions, attempts = set(), False, set()
+        links = item["retained_image_evidence"] + item["retained_non_image_evidence"]
+        seen = set()
+        for link in links:
+            key = (link["claim_id"], link["value"], link["binding_kind"])
+            if key in seen:
                 continue
-            row["claim_ids"].append(link["claim_id"])
+            seen.add(key)
+            record = claims[link["claim_id"]]
+            entry = dict(claim_id=link["claim_id"], value=link["value"],
+                         binding=link["binding_kind"], views=[])
+            row["evidence"].append(entry)
+            if not evidence_current(record):
+                entry["issue"] = "source_view_or_value_changed"
+                attempts.add(entry["issue"])
+                continue
+            if link["evidence_class"] == "non_image":
+                assumptions = True
+                entry["basis"] = record["claim"]["basis"]
+                continue
             binding_widths[(link["claim_id"], link["value"], facade, tuple(item["floor_ids"]))].append((identity, width))
-            for ref in record["sources"]:
-                # Validate the current bytes against both the input manifest and claim.
-                info = toolkit.manifest.get("images", {}).get(ref["image"], {})
-                if ref.get("sha256") != info.get("sha256"):
-                    attempts.append("source_image_changed")
-                    continue
+            for index, ref in enumerate(record["sources"]):
+                view = dict(image=ref["image"], source_index=index)
+                if "view_id" in ref:
+                    view["view_id"] = ref["view_id"]
                 calibrated = calibrations.get((ref["image"], facade))
-                if calibrated is None:
-                    attempts.append("no_elevation_calibration")
-                    continue
                 box = ref["box"]
-                if box == [0, 0, *ref["size"]]:
-                    attempts.append("whole_image_only")
-                    continue
-                projected = _pixel_box(opening, facade, calibrated["transform"])
-                # Two original pixels absorb drawing/rounding noise, not a facade-wide inference.
-                if (box[0] - 2 <= projected[0] and box[1] - 2 <= projected[1]
-                        and box[2] + 2 >= projected[2] and box[3] + 2 >= projected[3]):
-                    row["covered_by"].append(dict(claim_id=link["claim_id"], image=ref["image"],
-                        source_box=box, opening_box=[round(v, 2) for v in projected],
-                        calibration=calibrated.get("review_file")))
-                    attempts.append("covered")
+                if calibrated is None:
+                    location = "no_elevation_calibration"
+                elif box == [0, 0, *ref["size"]]:
+                    location = "whole_image_only"
+                elif not covers(box, _pixel_box(openings[identity], facade, calibrated["transform"])):
+                    location = "outside_source_region"
                 else:
-                    attempts.append("outside_source_region")
-        if row["covered_by"]:
-            row["status"] = "covered"
-        elif attempts:
-            row["status"] = next((state for state in ("outside_source_region", "whole_image_only", "no_elevation_calibration", "source_image_changed")
-                                  if state in attempts), "no_height_observation")
-        row["claim_ids"] = sorted(set(row["claim_ids"]))
+                    covered = [other for other, other_item in items.items() if other_item.get("facade") == facade
+                               and covers(box, _pixel_box(openings[other], facade, calibrated["transform"]))]
+                    location = "located" if len(covered) == 1 else "needs_per_opening_confirmation"
+                    if len(covered) > 1:
+                        view["covered_opening_ids"] = sorted(covered)
+                view["location"] = location
+                entry["views"].append(view)
+                if location == "located":
+                    located_kinds.add(link["binding_kind"])
+                else:
+                    attempts.add(location)
+        if located_kinds:
+            row["status"] = "located_applied" if "application" in located_kinds else "located_confirmed"
+        elif assumptions:
+            row["status"] = "assumed"
+        row["issues"] = sorted(attempts) if not located_kinds else []
+        if not links:
+            row["issues"] = ["no_current_height_binding"]
         if row["kind"] == "window" and facade:
             groups[(tuple(row["floor_ids"]), facade)].append(row)
         rows.append(row)
@@ -122,28 +158,24 @@ def located_height_report(toolkit, candidate, current_state=None):
         typical = median(row["width_m"] for row in grouped)
         for row in grouped:
             width = row["width_m"]
-            row["distinct_width_on_facade"] = (len(grouped) > 1 and typical > 0 and abs(width - typical) >= .5
-                                                and (width >= typical * 1.5 or width <= typical / 1.5))
+            if (len(grouped) > 1 and typical > 0 and abs(width - typical) >= .5
+                    and (width >= typical * 1.5 or width <= typical / 1.5)):
+                row["issues"].append("distinct_width_on_facade")
     for row in rows:
-        row["shared_height_across_widths"] = row["opening_id"] in shared_risks
-    uncovered = [row for row in rows if row["status"] != "covered"]
-    return dict(schema_version="located_opening_heights_v1", candidate=candidate,
+        if row["opening_id"] in shared_risks:
+            row["issues"].append("shared_height_across_widths")
+    return dict(schema_version="opening_heights_v2", candidate=candidate,
         source_model_sha256=source["source_model_sha256"], delivery_blocked=False,
-        summary=dict(exterior_count=len(rows), located_count=len(rows) - len(uncovered),
+        summary=dict(exterior_count=len(rows),
+                     located_count=sum(row["status"].startswith("located_") for row in rows),
                      status_counts=dict(Counter(row["status"] for row in rows))),
-        openings=rows, unchecked_opening_ids=[row["opening_id"] for row in uncovered],
-        priority_opening_ids=[row["opening_id"] for row in uncovered if row["shared_height_across_widths"]],
-        distinct_width_opening_ids=[row["opening_id"] for row in rows if row.get("distinct_width_on_facade")],
-        calibration_problems=calibration_problems,
-        note="No height error is asserted. Each height needs its own source-region coverage in an explicitly calibrated elevation. Whole-image citations and absent calibration remain unverified; a shared height on different widths deserves a local check. Report only.")
+        openings=rows, calibration_problems=calibration_problems,
+        note="Current values, evidence binding and source location, not drawing correctness. A region containing several openings needs individual evidence. Report only.")
 
 
 def compact_located_heights(report):
-    result = {key: value for key, value in report.items() if key != "openings"}
-    result["unchecked_openings"] = [{key: row[key] for key in (
-        "opening_id", "facade", "floor_ids", "width_m", "status", "shared_height_across_widths")}
-        for row in report["openings"] if row["status"] != "covered"]
-    return result
+    """Compatibility helper: the unified table is already the model presentation."""
+    return report
 
 
 _COUNT_EXAMPLE = {"observation_type": "facade_count", "image": "elevation.png",

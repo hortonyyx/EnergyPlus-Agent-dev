@@ -67,9 +67,11 @@ def test_capability_catalog_and_guidance_agree_without_removing_inference(tmp_pa
             for t in asyncio.run(servers[0].list_tools())]
     actual = [t.model_dump(mode="json", by_alias=True, exclude_none=True)
               for t in asyncio.run(servers[1].list_tools())]
-    assert len(full) == 42
+    assert len(full) == 43
     assert actual == filter_tool_catalog(full, review_detail=review, continuation=continuation)
     names = {t["name"] for t in actual}
+    assert "claim_transaction" in names
+    assert not {"record_claim", "decide_claim", "confirm_claims"} & names
     assert ("review_detail" in names) == review
     assert ("record_work_review" in names) == continuation
     assert {"record_inference", "inspect_inference", "audit_inference_candidate",

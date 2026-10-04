@@ -50,7 +50,7 @@ LOCAL_OBSERVER_TOOL_NAMES = (
 COORDINATOR_ONLY_TOOL_NAMES = (
     "record_inference", "inspect_inference", "audit_inference_candidate",
     "inspect_plan_draft", "revise_plan_bim", "view_plan_wall_support",
-    "record_claim", "replace_claim_sources", "view_claim_evidence", "decide_claim",
+    "claim_transaction", "record_claim", "replace_claim_sources", "view_claim_evidence", "decide_claim",
     "claim_status", "confirm_claims", "check_wall_dimensions", "inspect_candidate",
     "read_candidate_items", "check_source_space_relation", "check_openings",
     "record_work_review", "finish_bim", "overlay_candidate", "revise_bim",
