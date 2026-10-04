@@ -223,6 +223,10 @@ class EventStore:
 
     def capture(self, value, *, force_blob=False):
         data = json_bytes(value)
+        from .image_capture import capture_images
+        referenced = capture_images(value, self, data)
+        if referenced is not None:
+            return referenced
         if force_blob or len(data) > 8192:
             return BlobCapture(blob=self.put_bytes(data, "application/json"))
         return InlineCapture(value=value)
@@ -232,6 +236,19 @@ class EventStore:
             return capture.value
         if capture.kind == "blob":
             return json.loads(self.get_bytes(capture.blob))
+        if capture.kind == "image_references":
+            return json.loads(self.capture_bytes(capture))
+        raise ValueError(f"capture unavailable: {capture.reason}")
+
+    def capture_bytes(self, capture) -> bytes:
+        """Return the exact captured bytes, expanding image references if needed."""
+        if capture.kind == "image_references":
+            from .image_capture import reconstruct_capture
+            return reconstruct_capture(capture, self.get_bytes)
+        if capture.kind == "blob":
+            return self.get_bytes(capture.blob)
+        if capture.kind == "inline":
+            return json_bytes(capture.value)
         raise ValueError(f"capture unavailable: {capture.reason}")
 
     def source(self, name: str, value, *, kind="runtime") -> SourceRef:

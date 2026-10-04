@@ -517,18 +517,8 @@ def _exceeded_reservation(
 
 
 def _reported_tokens(usage: UsageEvidence) -> int | None:
-    if isinstance(usage, UsageMissing):
-        return None
-    raw = usage.raw_usage
-    for name in ("total_tokens", "total_token_count"):
-        value = raw.get(name)
-        if type(value) is int and value >= 0:
-            return value
-    prompt = raw.get("prompt_tokens", raw.get("input_tokens"))
-    completion = raw.get("completion_tokens", raw.get("output_tokens"))
-    if type(prompt) is int and type(completion) is int:
-        return prompt + completion
-    return None
+    from src.harness_contracts.usage import reported_total_tokens
+    return reported_total_tokens(usage.raw_usage) if usage.kind == "reported" else None
 
 
 __all__ = [
