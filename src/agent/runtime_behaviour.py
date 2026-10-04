@@ -492,6 +492,19 @@ def _read_bridge(run: Path) -> dict[str, Any]:
     }
 
 
+def _behaviour_reference_target(target: Path, record: dict, source_root):
+    if record.get("schema_version") != 1:
+        raise ValueError("unsupported behaviour reference version")
+    log = (target.parent / record["event_log"]["uri"]).resolve()
+    if log.name != "events.jsonl":
+        raise ValueError("behaviour reference must point to events.jsonl")
+    if hashlib.sha256(log.read_bytes()).hexdigest() != record["event_log"]["sha256"]:
+        raise ValueError("behaviour event-log hash mismatch; regenerate the report after resume")
+    evidence_root = source_root or ((target.parent / record["source_root"]).resolve()
+                                   if record.get("source_root") else None)
+    return log, evidence_root
+
+
 def load_behaviour(path: str | Path, *, source_root: str | Path | None = None) -> dict[str, Any]:
     """Load a run directory, current ``events.jsonl``, CLI stream, or bridge audit."""
     path = Path(path)
@@ -508,14 +521,7 @@ def load_behaviour(path: str | Path, *, source_root: str | Path | None = None) -
         with gzip.open(target, "rt") as stream:
             record = json.load(stream)
         if record.get("source_format") == "event_envelope_reference":
-            if record.get("schema_version") != 1:
-                raise ValueError("unsupported behaviour reference version")
-            log = (target.parent / record["event_log"]["uri"]).resolve()
-            raw = log.read_bytes()
-            if hashlib.sha256(raw).hexdigest() != record["event_log"]["sha256"]:
-                raise ValueError("behaviour event-log hash mismatch; regenerate the report after resume")
-            evidence_root = source_root or ((target.parent / record["source_root"]).resolve()
-                                           if record.get("source_root") else None)
+            log, evidence_root = _behaviour_reference_target(target, record, source_root)
             return load_behaviour(log, source_root=evidence_root)
         record.setdefault("source_format", "claude_cli_record")
         receipt = record.get("receipt") or {}
@@ -803,14 +809,25 @@ def write_behaviour_report(path: str | Path, out: str | Path, *, source_root: st
     (out / "timeline.md").write_text(render_timeline(record) + "\n")
     saved = record
     if record["source_format"] == "event_envelope_jsonl":
-        log = Path(path) / "events.jsonl" if Path(path).is_dir() else Path(path)
+        source = Path(path)
+        log = source / "events.jsonl" if source.is_dir() else source
+        if log.name != "events.jsonl" or not log.is_file():
+            target = source / "record.json.gz" if source.is_dir() else source
+            with gzip.open(target, "rt") as stream:
+                previous = json.load(stream)
+            if previous.get("source_format") == "event_envelope_reference":
+                log, source_root = _behaviour_reference_target(target, previous, source_root)
+            else:
+                # Old expanded records can be exported without their journal.
+                log = None
         # The immutable event journal and its verified attachments already hold
         # the complete behaviour. Avoid serializing an expanded second copy.
-        saved = {"source_format": "event_envelope_reference", "schema_version": 1,
-                 "event_log": {"uri": os.path.relpath(log.resolve(), out.resolve()),
-                               "sha256": hashlib.sha256(log.read_bytes()).hexdigest()}}
-        if source_root is not None:
-            saved["source_root"] = os.path.relpath(Path(source_root).resolve(), out.resolve())
+        if log is not None:
+            saved = {"source_format": "event_envelope_reference", "schema_version": 1,
+                     "event_log": {"uri": os.path.relpath(log.resolve(), out.resolve()),
+                                   "sha256": hashlib.sha256(log.read_bytes()).hexdigest()}}
+            if source_root is not None:
+                saved["source_root"] = os.path.relpath(Path(source_root).resolve(), out.resolve())
     with (out / "record.json.gz").open("wb") as raw_stream:
         with gzip.GzipFile(filename="", mode="wb", fileobj=raw_stream, mtime=0) as compressed:
             with io.TextIOWrapper(compressed, encoding="utf-8") as stream:

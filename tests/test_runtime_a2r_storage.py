@@ -74,7 +74,8 @@ def test_json_values_cannot_impersonate_storage_nodes_and_references_do_not_alia
         assert restored["a/b~c"][1]["text"] == child["text"]
 
 
-def test_runtime_behaviour_reference_reopens_full_record_and_detects_changes(tmp_path):
+@pytest.mark.parametrize("input_form", ["directory", "file", "old_expanded_record"])
+def test_runtime_behaviour_reference_reopens_full_record_and_detects_changes(tmp_path, input_form):
     engine = runtime(tmp_path, [response(("view", "view", {})), response(text="Done")])
     with engine.store as store:
         assert asyncio.run(engine.run(MESSAGES))["status"] == "completed"
@@ -88,9 +89,22 @@ def test_runtime_behaviour_reference_reopens_full_record_and_detects_changes(tmp
         actual = load_behaviour(report)
         assert actual["summary"] == expected["summary"]
         assert actual["invocations"] == expected["invocations"]
+        if input_form == "old_expanded_record":
+            with gzip.open(report / "record.json.gz", "wt") as stream:
+                json.dump(expected, stream)
+        source = report if input_form == "directory" else report / "record.json.gz"
+        exported = store.directory / "reexported"
+        write_behaviour_report(source, exported)
+        reopened = load_behaviour(exported)
+        assert reopened["invocations"] == expected["invocations"]
+        assert reopened["requests"] == expected["requests"]
+        if input_form != "old_expanded_record":
+            assert (exported / "record.json.gz").stat().st_size < 1024
+        # Regenerate the reference before checking journal mutation, including
+        # the case that deliberately overwrote it with an old expanded record.
+        write_behaviour_report(store.directory, report)
         # No writer changes in this fixture: changing the referenced journal
         # must make the previously saved report explicitly invalid.
         store.path.write_bytes(store.path.read_bytes() + b"\n")
         with pytest.raises(ValueError, match="event-log hash"):
             load_behaviour(report)
-
