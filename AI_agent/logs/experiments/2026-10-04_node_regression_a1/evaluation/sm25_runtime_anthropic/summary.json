@@ -1,0 +1,2809 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "modelling_task": "reconstruction",
+  "reference_scope": "Six original images only, no saved plan/calibration/BIM or error hints; GT loaded only after generation.",
+  "interpretation": "还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。",
+  "input_manifest_sha256": "3729a11b1e8db7a02f09e6beef27748fbb58218d552d3745b7861783b779416b",
+  "reference_case": "sm25-L_anchor",
+  "reference_path": "case_tests/test_baseline/gt/sm25-L_anchor/gt.json",
+  "reference_sha256": "654d94fed8a313f24631f36f7551f1a115f83dc66956538fa49cb40b5ad9b0a9",
+  "candidates": [
+    {
+      "candidate": "candidate_01",
+      "is_recovery_seed": false,
+      "source_sha256": "90504132c85bdb67bda5894c535253425e433737bc5883131ab549dee93dff9a",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 15,
+      "openings": {
+        "door": 16,
+        "open": 1,
+        "window": 15
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 15,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "S_corr"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z0",
+            "candidate_id": "S_corr",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 88.85541946785298,
+            "reference_coverage_fraction": 0.8891374688581004,
+            "candidate_coverage_fraction": 0.9998832086440981,
+            "iou": 0.8890451364531055,
+            "symmetric_difference_area_m2": 11.089359289215013,
+            "boundary_hausdorff_m": 4.021622000000001,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z1"
+          ],
+          "candidate_ids": [
+            "S_A"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z1",
+            "candidate_id": "S_A",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.69999999999999,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9671439109275802,
+            "iou": 0.9671439109275802,
+            "symmetric_difference_area_m2": 0.6692540245700156,
+            "boundary_hausdorff_m": 0.10430103119816461,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z10"
+          ],
+          "candidate_ids": [
+            "S_R3"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z10",
+            "candidate_id": "S_R3",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.623259208190007,
+            "reference_coverage_fraction": 0.9676122036831225,
+            "candidate_coverage_fraction": 0.978142295780423,
+            "iou": 0.9471329193924323,
+            "symmetric_difference_area_m2": 0.42551520573299545,
+            "boundary_hausdorff_m": 0.06446784827338374,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z11"
+          ],
+          "candidate_ids": [
+            "S_R2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z11",
+            "candidate_id": "S_R2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.8803637576,
+            "reference_coverage_fraction": 0.999846192893401,
+            "candidate_coverage_fraction": 0.9389074634271927,
+            "iou": 0.9387718739251413,
+            "symmetric_difference_area_m2": 0.5139692816409979,
+            "boundary_hausdorff_m": 0.06800178122667029,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z12"
+          ],
+          "candidate_ids": [
+            "S_R1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z12",
+            "candidate_id": "S_R1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.6658479967240005,
+            "reference_coverage_fraction": 0.9728233498380708,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.96765108273945,
+            "symmetric_difference_area_m2": 0.2562720044459975,
+            "boundary_hausdorff_m": 0.05405739682966686,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z13"
+          ],
+          "candidate_ids": [
+            "S_L2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z13",
+            "candidate_id": "S_L2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.249487480000006,
+            "reference_coverage_fraction": 0.9989095717884131,
+            "candidate_coverage_fraction": 0.9598692832604834,
+            "iou": 0.9588645743077883,
+            "symmetric_difference_area_m2": 1.3406074273639963,
+            "boundary_hausdorff_m": 0.1587605879461262,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z2"
+          ],
+          "candidate_ids": [
+            "S_B"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z2",
+            "candidate_id": "S_B",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.188312199999988,
+            "reference_coverage_fraction": 0.9858562753036435,
+            "candidate_coverage_fraction": 0.9797042088987968,
+            "iou": 0.9661248762380519,
+            "symmetric_difference_area_m2": 0.6727975508600208,
+            "boundary_hausdorff_m": 0.08162200000000297,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z3"
+          ],
+          "candidate_ids": [
+            "S_L1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z3",
+            "candidate_id": "S_L1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.520000000000003,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9734118243190911,
+            "iou": 0.9734118243190911,
+            "symmetric_difference_area_m2": 0.8609503978940019,
+            "boundary_hausdorff_m": 0.10360539567512883,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z4"
+          ],
+          "candidate_ids": [
+            "S_M2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z4",
+            "candidate_id": "S_M2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.019827239999998,
+            "reference_coverage_fraction": 0.9869040510692003,
+            "candidate_coverage_fraction": 0.989688646512956,
+            "iou": 0.9768596466965712,
+            "symmetric_difference_area_m2": 0.379485899992999,
+            "boundary_hausdorff_m": 0.053954000000000946,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z5"
+          ],
+          "candidate_ids": [
+            "S_M1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z5",
+            "candidate_id": "S_M1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.228934860000006,
+            "reference_coverage_fraction": 0.9997376277274822,
+            "candidate_coverage_fraction": 0.9818277979678056,
+            "iou": 0.9815748736103479,
+            "symmetric_difference_area_m2": 0.3046330789470004,
+            "boundary_hausdorff_m": 0.057910911208510864,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z6"
+          ],
+          "candidate_ids": [
+            "S_R7"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z6",
+            "candidate_id": "S_R7",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 8.09598648819,
+            "reference_coverage_fraction": 0.9692542007698017,
+            "candidate_coverage_fraction": 0.9846935482411844,
+            "iou": 0.9548677275385979,
+            "symmetric_difference_area_m2": 0.3826606109839971,
+            "boundary_hausdorff_m": 0.06486783070983661,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z7"
+          ],
+          "candidate_ids": [
+            "S_R6"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z7",
+            "candidate_id": "S_R6",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.878788000000004,
+            "reference_coverage_fraction": 0.9998461928934012,
+            "candidate_coverage_fraction": 0.9387197194832961,
+            "iou": 0.9385841841968654,
+            "symmetric_difference_area_m2": 0.5155447968409977,
+            "boundary_hausdorff_m": 0.06838109570634214,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z8"
+          ],
+          "candidate_ids": [
+            "S_R5"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z8",
+            "candidate_id": "S_R5",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.410319204914003,
+            "reference_coverage_fraction": 0.940395838187056,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.935561785898638,
+            "symmetric_difference_area_m2": 0.5103967933309947,
+            "boundary_hausdorff_m": 0.06486783070983572,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z9"
+          ],
+          "candidate_ids": [
+            "S_R4"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z9",
+            "candidate_id": "S_R4",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.7510255737920035,
+            "reference_coverage_fraction": 0.9836326870294417,
+            "candidate_coverage_fraction": 0.9627949719142407,
+            "iou": 0.947613651145863,
+            "symmetric_difference_area_m2": 0.42849523030299164,
+            "boundary_hausdorff_m": 0.0683810957063413,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "floor_assignment_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z6"
+          ],
+          "candidate_ids": [
+            "S_C"
+          ],
+          "message": "Matched space moved to a different floor identifier.",
+          "match": {
+            "reference_id": "F2-z6",
+            "candidate_id": "S_C",
+            "reference_floor_id": "F2",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 4.415187639999992,
+            "reference_coverage_fraction": 0.22146363636363606,
+            "candidate_coverage_fraction": 0.9754086387943608,
+            "iou": 0.22023398291838042,
+            "symmetric_difference_area_m2": 15.632525167502006,
+            "boundary_hausdorff_m": 3.939394000000002,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 3.6,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 3.7
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z6"
+          ],
+          "candidate_ids": [
+            "S_C"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F2-z6",
+            "candidate_id": "S_C",
+            "reference_floor_id": "F2",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 4.415187639999992,
+            "reference_coverage_fraction": 0.22146363636363606,
+            "candidate_coverage_fraction": 0.9754086387943608,
+            "iou": 0.22023398291838042,
+            "symmetric_difference_area_m2": 15.632525167502006,
+            "boundary_hausdorff_m": 3.939394000000002,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 3.6,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 3.7
+          }
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z0"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 79.52520000000001
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z1"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 19.69999999999999
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z10"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z11"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 8.116400000000011
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z12"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.405400000000002
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z13"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.878200000000007
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z14"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.996399999999996
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z2"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 19.463599999999992
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z3"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 16.1146
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z4"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 32.46560000000001
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z5"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.405400000000002
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z7"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 8.3528
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z8"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z9"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "source_space_split",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "S_C",
+            "S_corr"
+          ],
+          "message": "Multiple candidate source spaces substantially cover one reference space.",
+          "floor_id": "F1",
+          "overlaps": [
+            {
+              "candidate_id": "S_C",
+              "intersection_area_m2": 4.5046194445699985,
+              "candidate_coverage_fraction": 0.9951660221432038
+            },
+            {
+              "candidate_id": "S_corr",
+              "intersection_area_m2": 88.85541946785298,
+              "candidate_coverage_fraction": 0.9998832086440981
+            }
+          ]
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_02",
+      "is_recovery_seed": false,
+      "source_sha256": "1474a8a82245b9aa1df04a919d5280b16c1a7e7fa1e1803c16483f67722d453f",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 15,
+      "openings": {
+        "door": 16,
+        "open": 1,
+        "window": 15
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 15,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "floor_assignment_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z6"
+          ],
+          "candidate_ids": [
+            "S_C"
+          ],
+          "message": "Matched space moved to a different floor identifier.",
+          "match": {
+            "reference_id": "F2-z6",
+            "candidate_id": "S_C",
+            "reference_floor_id": "F2",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 4.415187639999992,
+            "reference_coverage_fraction": 0.22146363636363606,
+            "candidate_coverage_fraction": 0.9754086387943608,
+            "iou": 0.22023398291838042,
+            "symmetric_difference_area_m2": 15.632525167502006,
+            "boundary_hausdorff_m": 3.939394000000002,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 3.6,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 3.6
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z6"
+          ],
+          "candidate_ids": [
+            "S_C"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F2-z6",
+            "candidate_id": "S_C",
+            "reference_floor_id": "F2",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 4.415187639999992,
+            "reference_coverage_fraction": 0.22146363636363606,
+            "candidate_coverage_fraction": 0.9754086387943608,
+            "iou": 0.22023398291838042,
+            "symmetric_difference_area_m2": 15.632525167502006,
+            "boundary_hausdorff_m": 3.939394000000002,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 3.6,
+            "height_delta_m": 0.0,
+            "z_top_delta_m": 3.6
+          }
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z0"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 79.52520000000001
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z1"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 19.69999999999999
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z10"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z11"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 8.116400000000011
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z12"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.405400000000002
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z13"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.878200000000007
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z14"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.996399999999996
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z2"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 19.463599999999992
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z3"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 16.1146
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z4"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 32.46560000000001
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z5"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 15.405400000000002
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z7"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 8.3528
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z8"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F2-z9"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F2",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "source_space_split",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "S_C",
+            "S_corr"
+          ],
+          "message": "Multiple candidate source spaces substantially cover one reference space.",
+          "floor_id": "F1",
+          "overlaps": [
+            {
+              "candidate_id": "S_C",
+              "intersection_area_m2": 4.5046194445699985,
+              "candidate_coverage_fraction": 0.9951660221432038
+            },
+            {
+              "candidate_id": "S_corr",
+              "intersection_area_m2": 88.85541946785298,
+              "candidate_coverage_fraction": 0.9998832086440981
+            }
+          ]
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_03",
+      "is_recovery_seed": false,
+      "source_sha256": "246e8d0582dc71c7d3e3a3538d10ad77a83ac7e4d0b00e316052b62203c6cd51",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 15,
+      "openings": {
+        "door": 14,
+        "window": 17
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 17,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 99.93440000000004
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z1"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 19.69999999999999
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z10"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.878424000000006
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z11"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.881575999999999
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z12"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z13"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 31.283600000000007
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z2"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 19.463599999999992
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z3"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 31.520000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z4"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 16.232406000000005
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z5"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 16.233194000000008
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z6"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 8.3528
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z7"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z8"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z9"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_04",
+      "is_recovery_seed": false,
+      "source_sha256": "51fda4b9f7d94cf8b47664c8d1eebc31c8c8efeff73a8c778afa03dbfdac9713",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 15,
+      "openings": {
+        "door": 14,
+        "window": 17
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 17,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 99.93440000000004
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z1"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 19.69999999999999
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z10"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.878424000000006
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z11"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.881575999999999
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z12"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z13"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 31.283600000000007
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z2"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 19.463599999999992
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z3"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 31.520000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z4"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 16.232406000000005
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z5"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 16.233194000000008
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z6"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 8.3528
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z7"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z8"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "missing_source_space",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z9"
+          ],
+          "candidate_ids": [],
+          "message": "Reference space has no one-to-one candidate counterpart.",
+          "floor_id": "F1",
+          "area_m2": 7.880000000000003
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_05",
+      "is_recovery_seed": false,
+      "source_sha256": "a72893650af2ac42888927b15b8163b9efb079af6750f70bf4b7fb08264eb105",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 30,
+      "openings": {
+        "door": 30,
+        "open": 1,
+        "window": 32
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 32,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "F1:S_corr"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z0",
+            "candidate_id": "F1:S_corr",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 88.85541946785298,
+            "reference_coverage_fraction": 0.8891374688581004,
+            "candidate_coverage_fraction": 0.9998832086440981,
+            "iou": 0.8890451364531055,
+            "symmetric_difference_area_m2": 11.089359289215013,
+            "boundary_hausdorff_m": 4.021622000000001,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z1"
+          ],
+          "candidate_ids": [
+            "F1:S_A"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z1",
+            "candidate_id": "F1:S_A",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.69999999999999,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9671439109275802,
+            "iou": 0.9671439109275802,
+            "symmetric_difference_area_m2": 0.6692540245700156,
+            "boundary_hausdorff_m": 0.10430103119816461,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z10"
+          ],
+          "candidate_ids": [
+            "F1:S_R3"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z10",
+            "candidate_id": "F1:S_R3",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.623259208190007,
+            "reference_coverage_fraction": 0.9676122036831225,
+            "candidate_coverage_fraction": 0.978142295780423,
+            "iou": 0.9471329193924323,
+            "symmetric_difference_area_m2": 0.42551520573299545,
+            "boundary_hausdorff_m": 0.06446784827338374,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z11"
+          ],
+          "candidate_ids": [
+            "F1:S_R2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z11",
+            "candidate_id": "F1:S_R2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.8803637576,
+            "reference_coverage_fraction": 0.999846192893401,
+            "candidate_coverage_fraction": 0.9389074634271927,
+            "iou": 0.9387718739251413,
+            "symmetric_difference_area_m2": 0.5139692816409979,
+            "boundary_hausdorff_m": 0.06800178122667029,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z12"
+          ],
+          "candidate_ids": [
+            "F1:S_R1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z12",
+            "candidate_id": "F1:S_R1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.6658479967240005,
+            "reference_coverage_fraction": 0.9728233498380708,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.96765108273945,
+            "symmetric_difference_area_m2": 0.2562720044459975,
+            "boundary_hausdorff_m": 0.05405739682966686,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z13"
+          ],
+          "candidate_ids": [
+            "F1:S_L2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z13",
+            "candidate_id": "F1:S_L2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.249487480000006,
+            "reference_coverage_fraction": 0.9989095717884131,
+            "candidate_coverage_fraction": 0.9598692832604834,
+            "iou": 0.9588645743077883,
+            "symmetric_difference_area_m2": 1.3406074273639963,
+            "boundary_hausdorff_m": 0.1587605879461262,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z2"
+          ],
+          "candidate_ids": [
+            "F1:S_B"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z2",
+            "candidate_id": "F1:S_B",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.188312199999988,
+            "reference_coverage_fraction": 0.9858562753036435,
+            "candidate_coverage_fraction": 0.9797042088987968,
+            "iou": 0.9661248762380519,
+            "symmetric_difference_area_m2": 0.6727975508600208,
+            "boundary_hausdorff_m": 0.08162200000000297,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z3"
+          ],
+          "candidate_ids": [
+            "F1:S_L1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z3",
+            "candidate_id": "F1:S_L1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.520000000000003,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9734118243190911,
+            "iou": 0.9734118243190911,
+            "symmetric_difference_area_m2": 0.8609503978940019,
+            "boundary_hausdorff_m": 0.10360539567512883,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z4"
+          ],
+          "candidate_ids": [
+            "F1:S_M2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z4",
+            "candidate_id": "F1:S_M2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.019827239999998,
+            "reference_coverage_fraction": 0.9869040510692003,
+            "candidate_coverage_fraction": 0.989688646512956,
+            "iou": 0.9768596466965712,
+            "symmetric_difference_area_m2": 0.379485899992999,
+            "boundary_hausdorff_m": 0.053954000000000946,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z5"
+          ],
+          "candidate_ids": [
+            "F1:S_M1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z5",
+            "candidate_id": "F1:S_M1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.228934860000006,
+            "reference_coverage_fraction": 0.9997376277274822,
+            "candidate_coverage_fraction": 0.9818277979678056,
+            "iou": 0.9815748736103479,
+            "symmetric_difference_area_m2": 0.3046330789470004,
+            "boundary_hausdorff_m": 0.057910911208510864,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z6"
+          ],
+          "candidate_ids": [
+            "F1:S_R7"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z6",
+            "candidate_id": "F1:S_R7",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 8.09598648819,
+            "reference_coverage_fraction": 0.9692542007698017,
+            "candidate_coverage_fraction": 0.9846935482411844,
+            "iou": 0.9548677275385979,
+            "symmetric_difference_area_m2": 0.3826606109839971,
+            "boundary_hausdorff_m": 0.06486783070983661,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z7"
+          ],
+          "candidate_ids": [
+            "F1:S_R6"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z7",
+            "candidate_id": "F1:S_R6",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.878788000000004,
+            "reference_coverage_fraction": 0.9998461928934012,
+            "candidate_coverage_fraction": 0.9387197194832961,
+            "iou": 0.9385841841968654,
+            "symmetric_difference_area_m2": 0.5155447968409977,
+            "boundary_hausdorff_m": 0.06838109570634214,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z8"
+          ],
+          "candidate_ids": [
+            "F1:S_R5"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z8",
+            "candidate_id": "F1:S_R5",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.410319204914003,
+            "reference_coverage_fraction": 0.940395838187056,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.935561785898638,
+            "symmetric_difference_area_m2": 0.5103967933309947,
+            "boundary_hausdorff_m": 0.06486783070983572,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z9"
+          ],
+          "candidate_ids": [
+            "F1:S_R4"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z9",
+            "candidate_id": "F1:S_R4",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.7510255737920035,
+            "reference_coverage_fraction": 0.9836326870294417,
+            "candidate_coverage_fraction": 0.9627949719142407,
+            "iou": 0.947613651145863,
+            "symmetric_difference_area_m2": 0.42849523030299164,
+            "boundary_hausdorff_m": 0.0683810957063413,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "extra_source_space",
+          "severity": "severe",
+          "reference_ids": [],
+          "candidate_ids": [
+            "F1:S_C"
+          ],
+          "message": "Candidate space has no one-to-one reference counterpart.",
+          "floor_id": "F1",
+          "area_m2": 4.526500447502001
+        },
+        {
+          "code": "source_space_split",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "F1:S_C",
+            "F1:S_corr"
+          ],
+          "message": "Multiple candidate source spaces substantially cover one reference space.",
+          "floor_id": "F1",
+          "overlaps": [
+            {
+              "candidate_id": "F1:S_C",
+              "intersection_area_m2": 4.5046194445699985,
+              "candidate_coverage_fraction": 0.9951660221432038
+            },
+            {
+              "candidate_id": "F1:S_corr",
+              "intersection_area_m2": 88.85541946785298,
+              "candidate_coverage_fraction": 0.9998832086440981
+            }
+          ]
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        },
+        {
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_06",
+      "is_recovery_seed": false,
+      "source_sha256": "f764472a5bb3e1a985877efbab7cd215c71fe63e2136000e39bec807818ba44d",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 30,
+      "openings": {
+        "door": 30,
+        "open": 1,
+        "window": 32
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 32,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "F1:S_corr"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z0",
+            "candidate_id": "F1:S_corr",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 88.85541946785298,
+            "reference_coverage_fraction": 0.8891374688581004,
+            "candidate_coverage_fraction": 0.9998832086440981,
+            "iou": 0.8890451364531055,
+            "symmetric_difference_area_m2": 11.089359289215013,
+            "boundary_hausdorff_m": 4.021622000000001,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z1"
+          ],
+          "candidate_ids": [
+            "F1:S_A"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z1",
+            "candidate_id": "F1:S_A",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.69999999999999,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9671439109275802,
+            "iou": 0.9671439109275802,
+            "symmetric_difference_area_m2": 0.6692540245700156,
+            "boundary_hausdorff_m": 0.10430103119816461,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z10"
+          ],
+          "candidate_ids": [
+            "F1:S_R3"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z10",
+            "candidate_id": "F1:S_R3",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.623259208190007,
+            "reference_coverage_fraction": 0.9676122036831225,
+            "candidate_coverage_fraction": 0.978142295780423,
+            "iou": 0.9471329193924323,
+            "symmetric_difference_area_m2": 0.42551520573299545,
+            "boundary_hausdorff_m": 0.06446784827338374,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z11"
+          ],
+          "candidate_ids": [
+            "F1:S_R2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z11",
+            "candidate_id": "F1:S_R2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.8803637576,
+            "reference_coverage_fraction": 0.999846192893401,
+            "candidate_coverage_fraction": 0.9389074634271927,
+            "iou": 0.9387718739251413,
+            "symmetric_difference_area_m2": 0.5139692816409979,
+            "boundary_hausdorff_m": 0.06800178122667029,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z12"
+          ],
+          "candidate_ids": [
+            "F1:S_R1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z12",
+            "candidate_id": "F1:S_R1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.6658479967240005,
+            "reference_coverage_fraction": 0.9728233498380708,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.96765108273945,
+            "symmetric_difference_area_m2": 0.2562720044459975,
+            "boundary_hausdorff_m": 0.05405739682966686,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z13"
+          ],
+          "candidate_ids": [
+            "F1:S_L2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z13",
+            "candidate_id": "F1:S_L2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.249487480000006,
+            "reference_coverage_fraction": 0.9989095717884131,
+            "candidate_coverage_fraction": 0.9598692832604834,
+            "iou": 0.9588645743077883,
+            "symmetric_difference_area_m2": 1.3406074273639963,
+            "boundary_hausdorff_m": 0.1587605879461262,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z2"
+          ],
+          "candidate_ids": [
+            "F1:S_B"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z2",
+            "candidate_id": "F1:S_B",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.188312199999988,
+            "reference_coverage_fraction": 0.9858562753036435,
+            "candidate_coverage_fraction": 0.9797042088987968,
+            "iou": 0.9661248762380519,
+            "symmetric_difference_area_m2": 0.6727975508600208,
+            "boundary_hausdorff_m": 0.08162200000000297,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z3"
+          ],
+          "candidate_ids": [
+            "F1:S_L1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z3",
+            "candidate_id": "F1:S_L1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.520000000000003,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9734118243190911,
+            "iou": 0.9734118243190911,
+            "symmetric_difference_area_m2": 0.8609503978940019,
+            "boundary_hausdorff_m": 0.10360539567512883,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z4"
+          ],
+          "candidate_ids": [
+            "F1:S_M2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z4",
+            "candidate_id": "F1:S_M2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.019827239999998,
+            "reference_coverage_fraction": 0.9869040510692003,
+            "candidate_coverage_fraction": 0.989688646512956,
+            "iou": 0.9768596466965712,
+            "symmetric_difference_area_m2": 0.379485899992999,
+            "boundary_hausdorff_m": 0.053954000000000946,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z5"
+          ],
+          "candidate_ids": [
+            "F1:S_M1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z5",
+            "candidate_id": "F1:S_M1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.228934860000006,
+            "reference_coverage_fraction": 0.9997376277274822,
+            "candidate_coverage_fraction": 0.9818277979678056,
+            "iou": 0.9815748736103479,
+            "symmetric_difference_area_m2": 0.3046330789470004,
+            "boundary_hausdorff_m": 0.057910911208510864,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z6"
+          ],
+          "candidate_ids": [
+            "F1:S_R7"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z6",
+            "candidate_id": "F1:S_R7",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 8.09598648819,
+            "reference_coverage_fraction": 0.9692542007698017,
+            "candidate_coverage_fraction": 0.9846935482411844,
+            "iou": 0.9548677275385979,
+            "symmetric_difference_area_m2": 0.3826606109839971,
+            "boundary_hausdorff_m": 0.06486783070983661,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z7"
+          ],
+          "candidate_ids": [
+            "F1:S_R6"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z7",
+            "candidate_id": "F1:S_R6",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.878788000000004,
+            "reference_coverage_fraction": 0.9998461928934012,
+            "candidate_coverage_fraction": 0.9387197194832961,
+            "iou": 0.9385841841968654,
+            "symmetric_difference_area_m2": 0.5155447968409977,
+            "boundary_hausdorff_m": 0.06838109570634214,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z8"
+          ],
+          "candidate_ids": [
+            "F1:S_R5"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z8",
+            "candidate_id": "F1:S_R5",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.410319204914003,
+            "reference_coverage_fraction": 0.940395838187056,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.935561785898638,
+            "symmetric_difference_area_m2": 0.5103967933309947,
+            "boundary_hausdorff_m": 0.06486783070983572,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z9"
+          ],
+          "candidate_ids": [
+            "F1:S_R4"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z9",
+            "candidate_id": "F1:S_R4",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.7510255737920035,
+            "reference_coverage_fraction": 0.9836326870294417,
+            "candidate_coverage_fraction": 0.9627949719142407,
+            "iou": 0.947613651145863,
+            "symmetric_difference_area_m2": 0.42849523030299164,
+            "boundary_hausdorff_m": 0.0683810957063413,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "extra_source_space",
+          "severity": "severe",
+          "reference_ids": [],
+          "candidate_ids": [
+            "F1:S_C"
+          ],
+          "message": "Candidate space has no one-to-one reference counterpart.",
+          "floor_id": "F1",
+          "area_m2": 4.526500447502001
+        },
+        {
+          "code": "source_space_split",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "F1:S_C",
+            "F1:S_corr"
+          ],
+          "message": "Multiple candidate source spaces substantially cover one reference space.",
+          "floor_id": "F1",
+          "overlaps": [
+            {
+              "candidate_id": "F1:S_C",
+              "intersection_area_m2": 4.5046194445699985,
+              "candidate_coverage_fraction": 0.9951660221432038
+            },
+            {
+              "candidate_id": "F1:S_corr",
+              "intersection_area_m2": 88.85541946785298,
+              "candidate_coverage_fraction": 0.9998832086440981
+            }
+          ]
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        },
+        {
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_07",
+      "is_recovery_seed": false,
+      "source_sha256": "0a0a9bcd1d4cba269367ba96ad4c550658f04f9b93308ae459fe48d14af22fba",
+      "partition_status": "severe",
+      "reference_spaces": 29,
+      "candidate_spaces": 30,
+      "openings": {
+        "door": 30,
+        "open": 1,
+        "window": 32
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 31,
+        "built_window_count": 32,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "F1:S_corr"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z0",
+            "candidate_id": "F1:S_corr",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 88.85541946785298,
+            "reference_coverage_fraction": 0.8891374688581004,
+            "candidate_coverage_fraction": 0.9998832086440981,
+            "iou": 0.8890451364531055,
+            "symmetric_difference_area_m2": 11.089359289215013,
+            "boundary_hausdorff_m": 4.021622000000001,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z1"
+          ],
+          "candidate_ids": [
+            "F1:S_A"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z1",
+            "candidate_id": "F1:S_A",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.69999999999999,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9671439109275802,
+            "iou": 0.9671439109275802,
+            "symmetric_difference_area_m2": 0.6692540245700156,
+            "boundary_hausdorff_m": 0.10430103119816461,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z10"
+          ],
+          "candidate_ids": [
+            "F1:S_R3"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z10",
+            "candidate_id": "F1:S_R3",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.623259208190007,
+            "reference_coverage_fraction": 0.9676122036831225,
+            "candidate_coverage_fraction": 0.978142295780423,
+            "iou": 0.9471329193924323,
+            "symmetric_difference_area_m2": 0.42551520573299545,
+            "boundary_hausdorff_m": 0.06446784827338374,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z11"
+          ],
+          "candidate_ids": [
+            "F1:S_R2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z11",
+            "candidate_id": "F1:S_R2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.8803637576,
+            "reference_coverage_fraction": 0.999846192893401,
+            "candidate_coverage_fraction": 0.9389074634271927,
+            "iou": 0.9387718739251413,
+            "symmetric_difference_area_m2": 0.5139692816409979,
+            "boundary_hausdorff_m": 0.06800178122667029,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z12"
+          ],
+          "candidate_ids": [
+            "F1:S_R1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z12",
+            "candidate_id": "F1:S_R1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.6658479967240005,
+            "reference_coverage_fraction": 0.9728233498380708,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.96765108273945,
+            "symmetric_difference_area_m2": 0.2562720044459975,
+            "boundary_hausdorff_m": 0.05405739682966686,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z13"
+          ],
+          "candidate_ids": [
+            "F1:S_L2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z13",
+            "candidate_id": "F1:S_L2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.249487480000006,
+            "reference_coverage_fraction": 0.9989095717884131,
+            "candidate_coverage_fraction": 0.9598692832604834,
+            "iou": 0.9588645743077883,
+            "symmetric_difference_area_m2": 1.3406074273639963,
+            "boundary_hausdorff_m": 0.1587605879461262,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z2"
+          ],
+          "candidate_ids": [
+            "F1:S_B"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z2",
+            "candidate_id": "F1:S_B",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 19.188312199999988,
+            "reference_coverage_fraction": 0.9858562753036435,
+            "candidate_coverage_fraction": 0.9797042088987968,
+            "iou": 0.9661248762380519,
+            "symmetric_difference_area_m2": 0.6727975508600208,
+            "boundary_hausdorff_m": 0.08162200000000297,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z3"
+          ],
+          "candidate_ids": [
+            "F1:S_L1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z3",
+            "candidate_id": "F1:S_L1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 31.520000000000003,
+            "reference_coverage_fraction": 1.0,
+            "candidate_coverage_fraction": 0.9734118243190911,
+            "iou": 0.9734118243190911,
+            "symmetric_difference_area_m2": 0.8609503978940019,
+            "boundary_hausdorff_m": 0.10360539567512883,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z4"
+          ],
+          "candidate_ids": [
+            "F1:S_M2"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z4",
+            "candidate_id": "F1:S_M2",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.019827239999998,
+            "reference_coverage_fraction": 0.9869040510692003,
+            "candidate_coverage_fraction": 0.989688646512956,
+            "iou": 0.9768596466965712,
+            "symmetric_difference_area_m2": 0.379485899992999,
+            "boundary_hausdorff_m": 0.053954000000000946,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z5"
+          ],
+          "candidate_ids": [
+            "F1:S_M1"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z5",
+            "candidate_id": "F1:S_M1",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 16.228934860000006,
+            "reference_coverage_fraction": 0.9997376277274822,
+            "candidate_coverage_fraction": 0.9818277979678056,
+            "iou": 0.9815748736103479,
+            "symmetric_difference_area_m2": 0.3046330789470004,
+            "boundary_hausdorff_m": 0.057910911208510864,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z6"
+          ],
+          "candidate_ids": [
+            "F1:S_R7"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z6",
+            "candidate_id": "F1:S_R7",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 8.09598648819,
+            "reference_coverage_fraction": 0.9692542007698017,
+            "candidate_coverage_fraction": 0.9846935482411844,
+            "iou": 0.9548677275385979,
+            "symmetric_difference_area_m2": 0.3826606109839971,
+            "boundary_hausdorff_m": 0.06486783070983661,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z7"
+          ],
+          "candidate_ids": [
+            "F1:S_R6"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z7",
+            "candidate_id": "F1:S_R6",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.878788000000004,
+            "reference_coverage_fraction": 0.9998461928934012,
+            "candidate_coverage_fraction": 0.9387197194832961,
+            "iou": 0.9385841841968654,
+            "symmetric_difference_area_m2": 0.5155447968409977,
+            "boundary_hausdorff_m": 0.06838109570634214,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z8"
+          ],
+          "candidate_ids": [
+            "F1:S_R5"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z8",
+            "candidate_id": "F1:S_R5",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.410319204914003,
+            "reference_coverage_fraction": 0.940395838187056,
+            "candidate_coverage_fraction": 0.9945355246439135,
+            "iou": 0.935561785898638,
+            "symmetric_difference_area_m2": 0.5103967933309947,
+            "boundary_hausdorff_m": 0.06486783070983572,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "vertical_extent_changed",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z9"
+          ],
+          "candidate_ids": [
+            "F1:S_R4"
+          ],
+          "message": "Matched space has a vertical extent change beyond tolerance.",
+          "match": {
+            "reference_id": "F1-z9",
+            "candidate_id": "F1:S_R4",
+            "reference_floor_id": "F1",
+            "candidate_floor_id": "F1",
+            "status": "severe",
+            "intersection_area_m2": 7.7510255737920035,
+            "reference_coverage_fraction": 0.9836326870294417,
+            "candidate_coverage_fraction": 0.9627949719142407,
+            "iou": 0.947613651145863,
+            "symmetric_difference_area_m2": 0.42849523030299164,
+            "boundary_hausdorff_m": 0.0683810957063413,
+            "boundary_within_tolerance": false,
+            "z_floor_delta_m": 0.0,
+            "height_delta_m": 0.10000000000000009,
+            "z_top_delta_m": 0.10000000000000009
+          }
+        },
+        {
+          "code": "extra_source_space",
+          "severity": "severe",
+          "reference_ids": [],
+          "candidate_ids": [
+            "F1:S_C"
+          ],
+          "message": "Candidate space has no one-to-one reference counterpart.",
+          "floor_id": "F1",
+          "area_m2": 4.526500447502001
+        },
+        {
+          "code": "source_space_split",
+          "severity": "severe",
+          "reference_ids": [
+            "F1-z0"
+          ],
+          "candidate_ids": [
+            "F1:S_C",
+            "F1:S_corr"
+          ],
+          "message": "Multiple candidate source spaces substantially cover one reference space.",
+          "floor_id": "F1",
+          "overlaps": [
+            {
+              "candidate_id": "F1:S_C",
+              "intersection_area_m2": 4.5046194445699985,
+              "candidate_coverage_fraction": 0.9951660221432038
+            },
+            {
+              "candidate_id": "F1:S_corr",
+              "intersection_area_m2": 88.85541946785298,
+              "candidate_coverage_fraction": 0.9998832086440981
+            }
+          ]
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        },
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 77.00974197200003,
+          "extra_length_m": 78.634492972,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.028658001 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 0.020000001), (9.915064999 16.060000000000002, 5.084935001 16.060000000000002), (5.0449349990000005 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 12.988657999 3.9400000000000004), (8.940000000000001 9.9999, 8.940000000000001 9.965946000999999), (8.940000000000001 9.925945999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (8.940000000000001 14.098918999, 8.940000000000001 9.9999), (15.000000000000002 5.979999999, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.080606001 5.880000000000001), (5 16.060000000000002, 5 19.979999999), (14.979999999000002 15.999600000000001, 11.080606001 15.999600000000001), (11.080606001 14, 14.979999999000002 14), (14.979999999000002 18, 11.080606001 18), (8.940000000000001 9.9999, 5.020000001 9.9999), (14.979999999000002 8, 11.080606001 8), (14.979999999000002 10, 11.080606001 10), (14.979999999000002 12, 11.080606001 12))",
+          "extra_wkt": "MULTILINESTRING ((5.064935 15.978378, 5.064935 16.039999999000003), (5.064935 16.080000001000002, 5.064935 19.979999999), (0.020000001 15.978378, 5.064935 15.978378), (9.935065 15.978378, 9.935065 16.039999999000003), (5.064935 15.978378, 9.935065 15.978378), (9.935065 15.978378, 11.039999999 15.978378), (13.008658 3.9600000010000005, 13.008658 4.043243), (13.008658 4.043243, 5.020000001 4.043243), (21.060606 0.020000001, 21.060606 4.043243), (21.060606 4.043243, 13.008658 4.043243), (5.020000001 9.945946, 8.919999999000002 9.945946), (8.960000001000001 9.945946, 8.961039 9.945946), (8.961039 9.945946, 8.961039 14.118919), (8.961039 14.118919, 8.960000001000001 14.118919), (5.020000001 5.859459, 8.961039 5.859459), (8.961039 5.859459, 8.961039 9.945946), (11.080000001 18.054054, 14.979999999000002 18.054054), (11.080000001 15.935135, 14.979999999000002 15.935135), (11.080000001 13.967568, 14.979999999000002 13.967568), (11.080000001 11.935135, 14.979999999000002 11.935135), (11.080000001 10.054054, 14.979999999000002 10.054054), (11.080000001 7.935135, 14.979999999000002 7.935135), (11.060606 5.859459, 15.001644999 5.859459), (11.060606 5.859999999000001, 11.060606 5.859459))"
+        },
+        {
+          "floor_id": "F2",
+          "missing_length_m": 78.26987723551161,
+          "extra_length_m": 78.49654896999999,
+          "missing_wkt": "MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5.015637001 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 6.0178190009999994), (8.940000000000001 5.977818999, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.040208999 16.060000000000002, 9.940000000000001 16.060000000000002), (14.988725999 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 5.977829266511602), (5 16.060000000000002, 5 16.119585999), (5 16.159586001, 5 19.979999999), (14.979999999000002 14, 11.080209001 14), (14.979999999000002 16.060000000000002, 11.080209001 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.119585999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.080209001 8), (14.979999999000002 10, 11.080209001 10))",
+          "extra_wkt": "MULTILINESTRING ((4.755672 16.139586, 4.755672 19.979999999), (0.020000001 16.139586, 4.755672 16.139586), (4.755672 16.139586, 4.979999999 16.139586), (5.020000001 16.139586, 9.919999999000002 16.139586), (11.060209 16.139586, 14.979999999000002 16.139586), (9.960000001000001 16.139586, 11.060209 16.139586), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.034896), (9.031414 4.034896, 5.020000001 4.034896), (13.001745 3.9600000010000005, 13.001745 4.034896), (13.001745 4.034896, 9.031414 4.034896), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.034896), (16.972077 4.034896, 13.001745 4.034896), (20.942408 3.9600000010000005, 20.942408 4.034896), (20.942408 4.034896, 16.972077 4.034896), (24.979999999 4.034896, 20.942408 4.034896), (11.080000001 13.93675, 14.979999999000002 13.93675), (11.060209 16.139586, 11.060209 16.080000001000002), (11.080000001 10.054526, 14.979999999000002 10.054526), (11.080000001 7.938931, 14.979999999000002 7.938931), (11.080000001 5.997819, 14.979999999000002 5.997819), (5.020000001 5.997819, 8.919999999000002 5.997819), (8.960000001000001 5.997819, 8.987784 5.997819), (8.987784 5.997819, 8.987784 14.154853), (8.987784 14.154853, 5.015637001 14.154853))"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "Reference completeness and original pixel truth require separate evidence.",
+    "Partition comparison does not verify doors, connectivity, or vertical voids.",
+    "Reference-plane differences retain their existing evaluator interpretation.",
+    "No evaluation feedback supplied to the generating model."
+  ]
+}

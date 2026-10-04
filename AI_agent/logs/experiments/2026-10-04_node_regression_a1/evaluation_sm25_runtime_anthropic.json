@@ -1,0 +1,737 @@
+{
+  "case": "sm25",
+  "run": "AI_agent/logs/experiments/2026-10-04_node_regression_a1/runs/sm25_runtime_anthropic",
+  "delivered_candidate": "candidate_07",
+  "selection_origin": "agent_selected",
+  "runtime": {
+    "status": "completed",
+    "answer_present": true,
+    "receipt_elapsed_seconds": 5651.579441618582,
+    "event_span_seconds": 5644.4,
+    "model_calls": 70,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "glm-5.3-flash": 70
+    },
+    "usage": {
+      "prompt": 5929266,
+      "completion": 228423,
+      "total": 6157689,
+      "cached": 2682304,
+      "reasoning": 0,
+      "responses_without_usage": 0,
+      "cache_write": 0,
+      "format": "anthropic_messages"
+    },
+    "request_image_attachments": 949,
+    "estimated_yuan_text_only": null,
+    "yuan_note": "Subscription: no usage-based price.",
+    "per_round": {
+      "output_tokens": 3263,
+      "seconds": 80.7
+    },
+    "tool_calls": {
+      "inputs": 2,
+      "view_image": 37,
+      "view_pixel_profile": 36,
+      "get_bim_reference": 6,
+      "build_plan_bim": 2,
+      "revise_plan_bim": 11,
+      "claim_status": 1,
+      "revise_bim": 3,
+      "read_candidate_items": 1,
+      "inspect_candidate": 2,
+      "inspect_plan_draft": 3,
+      "assemble_plan_bim": 1,
+      "record_claim": 8,
+      "decide_claim": 4,
+      "finish_bim": 2
+    },
+    "tool_outcomes": {
+      "succeeded": 114,
+      "failed": 5
+    },
+    "tool_failures": [
+      {
+        "tool": "read_candidate_items",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 70,
+      "settle": 70
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 329,
+      "budget": 140,
+      "adapter_request": 70,
+      "model_response": 70,
+      "tool_invocation": 119,
+      "tool_execution": 119,
+      "tool_presentation": 119,
+      "context": 147,
+      "run_usage_summary": 1
+    },
+    "mean_input_per_request": 84704,
+    "cache_share": 0.4524,
+    "agent_version": "t1-20261004-a1t.1",
+    "finalization": {
+      "delivery": {
+        "candidate": "candidate_07",
+        "complete_building": true,
+        "report": "bim/delivery.json",
+        "selection_origin": "agent_selected",
+        "viewer": "bim/delivery.html"
+      },
+      "status": "delivered"
+    },
+    "retries_recovered": []
+  },
+  "quality": {
+    "run": "sm25_runtime_anthropic",
+    "case": "sm25",
+    "candidate": "candidate_07",
+    "counts": {
+      "floors": 2,
+      "spaces": 30,
+      "openings": 63,
+      "connections": 31
+    },
+    "spaces_one_to_one": {
+      "pass_": false,
+      "reference_rooms": 29,
+      "findings": [
+        {
+          "floor": "F1",
+          "candidate_space": "F1:S_C",
+          "issue": "no reference seed"
+        }
+      ]
+    },
+    "original_openings": {
+      "reference_count": 61,
+      "matched": 61,
+      "positions": 48,
+      "hosts": 58,
+      "door_connections": 28,
+      "unmatched_reference": [],
+      "unmatched_actual": [
+        "F1:D_core",
+        "F2:W2_AW"
+      ]
+    },
+    "strict_heights": {
+      "tolerance_m": 0.05,
+      "expected": 34,
+      "matched": 33,
+      "within": 33,
+      "pass_": false,
+      "mismatches": [],
+      "unmatched_reference": [
+        "op_1571"
+      ],
+      "unmatched_built_exterior": [
+        "F1:D_east",
+        "F2:W2_AW"
+      ],
+      "unclassified_exterior": [],
+      "all": [
+        {
+          "opening_id": "F1:D_west",
+          "reference_id": "op_156b",
+          "reference_z_m": [
+            0.2000213815526335,
+            2.3000213815526336
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.3
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:D_wingW",
+          "reference_id": "op_156e",
+          "reference_z_m": [
+            0.2000213815526335,
+            2.3000213815526336
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.3
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E7",
+          "reference_id": "op_159a",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E6",
+          "reference_id": "op_1597",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E5",
+          "reference_id": "op_1594",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E4",
+          "reference_id": "op_1591",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E3",
+          "reference_id": "op_158e",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E2",
+          "reference_id": "op_158b",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_E1",
+          "reference_id": "op_1588",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_A",
+          "reference_id": "op_157f",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_B",
+          "reference_id": "op_1582",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_C",
+          "reference_id": "op_1585",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.6000213815526516
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_N",
+          "reference_id": "op_15d6",
+          "reference_z_m": [
+            1.0000213815526515,
+            3.2000213815526513
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_S1",
+          "reference_id": "op_15be",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.8000213815526513
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_S2",
+          "reference_id": "op_15c1",
+          "reference_z_m": [
+            1.0000213815526515,
+            2.8000213815526513
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_M2",
+          "reference_id": "op_15a0",
+          "reference_z_m": [
+            1.0000213815526338,
+            2.600021381552634
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F1:W_M1",
+          "reference_id": "op_159d",
+          "reference_z_m": [
+            1.0000213815526338,
+            2.600021381552634
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_E5",
+          "reference_id": "op_15b5",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_E4",
+          "reference_id": "op_15b2",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_E3",
+          "reference_id": "op_15af",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_E2",
+          "reference_id": "op_15ac",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_E1",
+          "reference_id": "op_15a9",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_N",
+          "reference_id": "op_15d9",
+          "reference_z_m": [
+            4.600021381552652,
+            6.800021381552652
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_A",
+          "reference_id": "op_15a3",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_B",
+          "reference_id": "op_15a6",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_C",
+          "reference_id": "op_15bb",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_S1",
+          "reference_id": "op_15c4",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_S2",
+          "reference_id": "op_15c7",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_S3",
+          "reference_id": "op_15ca",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_S4",
+          "reference_id": "op_15cd",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_S5",
+          "reference_id": "op_15d0",
+          "reference_z_m": [
+            4.600021381552652,
+            6.200021381552651
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_WW",
+          "reference_id": "op_15d3",
+          "reference_z_m": [
+            4.600021381552634,
+            6.2000213815526335
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.2
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "F2:W2_CM",
+          "reference_id": "op_15b8",
+          "reference_z_m": [
+            4.600021381552634,
+            6.800021381552634
+          ],
+          "candidate_z_m": [
+            4.6,
+            6.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        }
+      ]
+    },
+    "strict_partition": {
+      "status": "severe",
+      "matched_count": 29
+    }
+  }
+}
