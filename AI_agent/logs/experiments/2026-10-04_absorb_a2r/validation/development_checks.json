@@ -1,0 +1,25 @@
+{
+  "initial_compatibility": {
+    "passed": 52,
+    "seconds": 21.72,
+    "log": "first-tests.log"
+  },
+  "initial_targeted": {
+    "passed": 39,
+    "failed": 8,
+    "errors": 1,
+    "seconds": 50.6,
+    "log": "targeted-tests.log",
+    "resolved_by": "Correct strict JSON decoding and relocated imports; advance deterministic clock on adapter completion; locate the actual tagged node in corruption fixtures."
+  },
+  "corrected_targeted": {
+    "passed": 51,
+    "seconds": 83.16,
+    "log": "targeted-tests-2.log"
+  },
+  "storage_verifier_fixes": [
+    "CapturedValue and BudgetAmounts must be decoded with validate_json for strict tuple/Decimal contracts.",
+    "When verifying existing materialization, regenerate derived summary/timeline and compare full semantics instead of comparing to potentially stale originally saved views."
+  ],
+  "scope": "Development checks, not extra independent final coverage. No model requests."
+}

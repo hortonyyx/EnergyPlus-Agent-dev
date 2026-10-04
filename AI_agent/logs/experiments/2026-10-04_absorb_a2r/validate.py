@@ -17,11 +17,18 @@ ROOT = HERE.parents[3]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("group", choices=("all", "short", "long", "frozen"))
+    parser.add_argument("group", choices=("all", "short", "long", "frozen", "followup"))
     args = parser.parse_args()
     previous = json.loads((HERE.parent / "2026-10-03_runtime_r2/r2bc/validation.json").read_bytes())
     files = [a for a in previous["groups"][0]["command"] if a.startswith("tests/")]
-    if args.group in {"short", "all"}:
+    if args.group == "followup":
+        files = ["tests/test_runtime_a2r_storage.py", "tests/test_stage1_behaviour.py"]
+        for case in ET.parse(HERE / "validation/all.xml").iter("testcase"):
+            if case.find("failure") is not None or case.find("error") is not None:
+                module = next(part for part in case.get("classname").split(".")
+                              if part.startswith("test_"))
+                files.append("tests/" + module + ".py")
+    elif args.group in {"short", "all"}:
         files += ["tests/test_runtime_r3.py", "tests/test_runtime_c1.py", "tests/test_runtime_image_references.py", "tests/test_runtime_anthropic.py", "tests/test_runtime_a2r_storage.py", "tests/test_runtime_a2r_failures.py"]
         if args.group == "all":
             files += ["tests/test_runtime_long_task.py", "tests/test_runtime_frozen_long_task.py"]

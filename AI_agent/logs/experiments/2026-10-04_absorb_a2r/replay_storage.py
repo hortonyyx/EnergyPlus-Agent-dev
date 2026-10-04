@@ -44,11 +44,13 @@ def inventory(files):
     return dict(groups)
 
 
-def main(run, scratch, report):
-    if scratch.exists():
+def main(run, scratch, report, verify_existing=False):
+    if scratch.exists() and not verify_existing:
         raise ValueError("scratch already exists; preserve the previous replay")
-    scratch.mkdir(parents=True)
-    (scratch / "blobs").mkdir()
+    if verify_existing and not scratch.is_dir():
+        raise ValueError("verification requires an existing materialized directory")
+    scratch.mkdir(parents=True, exist_ok=verify_existing)
+    (scratch / "blobs").mkdir(exist_ok=verify_existing)
     old, new = object.__new__(ReplayStore), object.__new__(ReplayStore)
     old.directory, new.directory = run.resolve(), scratch.resolve()
     files = {str(p.relative_to(run)): p.read_bytes() for p in run.rglob("*") if p.is_file()}
@@ -149,8 +151,14 @@ def main(run, scratch, report):
         if name in removed:
             continue
         target = scratch / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(raw)
+        if verify_existing:
+            # The two generated views may differ from stale saved views in
+            # the original run. Compare their complete semantics below.
+            if name not in {"behaviour/summary.json", "behaviour/timeline.md"}:
+                assert target.read_bytes() == raw, name
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(raw)
     before_behaviour = load_behaviour(run)
     after_summary = write_behaviour_report(scratch, scratch / "behaviour")
     assert before_behaviour["summary"] == after_summary
@@ -160,7 +168,7 @@ def main(run, scratch, report):
     journal = json.loads(files["journal.json"])
     from src.harness_contracts import BudgetAmounts
     with EventStore(scratch, run_id=journal["run_id"], task_id=journal["task_id"],
-                    budget_limit=BudgetAmounts.model_validate(journal["budget_limit"])) as checked:
+                    budget_limit=BudgetAmounts.model_validate_json(json.dumps(journal["budget_limit"]))) as checked:
         checked.validate()
         assert checked.latest_checkpoint() is not None
         for event in checked.all_events:
@@ -170,12 +178,14 @@ def main(run, scratch, report):
     after = {str(p.relative_to(scratch)): p.read_bytes() for p in scratch.rglob("*") if p.is_file()}
     before_total, after_total = sum(map(len, files.values())), sum(map(len, after.values()))
     result = {"source_run": str(run), "source_events_sha256": hashlib.sha256(files["events.jsonl"]).hexdigest(),
-              "source_files": len(files), "before_bytes": before_total, "after_bytes": after_total,
+              "source_files": len(files), "after_files": len(after),
+              "before_bytes": before_total, "after_bytes": after_total,
               "saved_percent": round(100 * (before_total - after_total) / before_total, 2),
               "before_by_group": inventory(files), "after_by_group": inventory(after),
               "checkpoints": checkpoints, "requests": reconstructed, "capture_conversions": dict(captures),
               "superseded_blobs_removed": len(removed), "superseded_blobs_still_referenced": len(superseded & refs),
               "behaviour_summary_and_full_steps_unchanged": True,
+              "verified_existing_materialization": verify_existing,
               "basis": "Materialized offline conversion; logical bytes, not filesystem blocks; unchanged artifacts and still-referenced old blobs retained. No new whole-case run.",
               "model_requests": 0}
     report.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
@@ -187,5 +197,6 @@ if __name__ == "__main__":
     parser.add_argument("--run", type=Path, required=True)
     parser.add_argument("--scratch", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--verify-existing", action="store_true")
     args = parser.parse_args()
-    main(args.run, args.scratch, args.report)
+    main(args.run, args.scratch, args.report, args.verify_existing)
