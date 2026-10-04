@@ -28,13 +28,14 @@ from src.agent.runtime_delivery import finalize_building
 from src.agent.runtime_tools import (FrozenBimTools, coordinator_role, frozen_bim_client,
     local_observer_role, write_frozen_materials, write_frozen_tool_catalog)
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
+from src.agent_runtime.anthropic import HttpAnthropicAdapter
 from src.agent_runtime.agent_registry import agent_version_record
 from src.agent_runtime.accounting import request_accounting_from_store, summarize_request_accounting
 from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
-from src.agent_runtime.providers import (GLM_SUBSCRIPTION, LIVE_PROVIDERS,
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
     provider_parameters, subscription_credentials, validate_provider_model)
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import (ExternalCoordinatorMcpPayload, MissingCapture,
@@ -487,7 +488,8 @@ async def serve(args):
     args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(
         effective_model, fallback=8192)
     validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
-    parameters = provider_parameters(args.provider, output_tokens=args.output_tokens, thinking=args.thinking)
+    parameters = provider_parameters(args.provider, output_tokens=args.output_tokens, thinking=args.thinking,
+                                     reasoning_effort=args.reasoning_effort)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
                        seconds=args.seconds, tokens=args.tokens,
                        max_consecutive_truncations=args.max_consecutive_truncations,
@@ -504,9 +506,10 @@ async def serve(args):
     if args.provider in LIVE_PROVIDERS:
         from src.agent_runtime.estimation import get_model_profile
         get_model_profile(args.model, strict=True)
-        credentials = subscription_credentials if args.provider == GLM_SUBSCRIPTION else paratera_credentials
-        base_url, key = credentials(args.credentials_file)
-        adapter = HttpChatAdapter(base_url=base_url, api_key=key)
+        base_url, key = (subscription_credentials(args.credentials_file, provider=args.provider)
+            if args.provider in SUBSCRIPTION_PROVIDERS else paratera_credentials(args.credentials_file))
+        adapter_type = HttpAnthropicAdapter if args.provider == GLM_SUBSCRIPTION_ANTHROPIC else HttpChatAdapter
+        adapter = adapter_type(base_url=base_url, api_key=key)
         if args.quota_journal is None or not args.quota_journal.resolve().is_relative_to(ROOT):
             raise ValueError("live coordinator needs a persistent --quota-journal inside this worktree")
         quota = QuotaAdapter(adapter, args.quota_journal, limit=args.quota_limit, category="role_tests")
@@ -583,6 +586,7 @@ def parser():
     p.add_argument("--max-total-truncations", type=int, default=3)
     p.add_argument("--max-concurrent-observers", type=int, default=4)
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
+    p.add_argument("--reasoning-effort", choices=("low", "medium", "high", "max"))
     p.add_argument("--resume", action="store_true")
     return p
 

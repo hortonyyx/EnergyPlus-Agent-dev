@@ -103,6 +103,10 @@ class RequestUsageAccounting:
     image_billing_status: str
     price_source: str | None
     note: str
+    reported_input_tokens: int | None
+    reported_cache_read_tokens: int | None
+    reported_cache_write_tokens: int | None
+    reported_output_tokens: int | None
 
     def receipt_dict(self) -> dict[str, object]:
         result = asdict(self)
@@ -210,7 +214,19 @@ def account_request_usage(
         image_billing_status=image_status,
         price_source=None if pricing is None else pricing.source,
         note=note,
+        reported_input_tokens=_usage_counter(raw, "input_tokens", "prompt_tokens"),
+        reported_cache_read_tokens=_usage_counter(raw, "cache_read_input_tokens"),
+        reported_cache_write_tokens=_usage_counter(raw, "cache_creation_input_tokens"),
+        reported_output_tokens=_usage_counter(raw, "output_tokens", "completion_tokens"),
     )
+
+
+def _usage_counter(raw, *keys):
+    for key in keys:
+        value = (raw or {}).get(key)
+        if type(value) is int and value >= 0:
+            return value
+    return None
 
 
 def request_accounting_from_store(
@@ -276,7 +292,7 @@ def request_accounting_from_store(
             usage,
             image_tokens_estimate=image_tokens,
             pricing=pricing,
-            billing_mode="subscription" if identity.route_id == "glm-subscription" else "metered_or_unknown",
+            billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic"} else "metered_or_unknown",
         ),
     )
 
@@ -302,6 +318,9 @@ def summarize_request_accounting(
         )
         return {
             "requests": len(selected),
+            **{field: (sum(values) if values and all(v is not None for v in values) else None)
+               for field in ("reported_input_tokens", "reported_cache_read_tokens", "reported_cache_write_tokens", "reported_output_tokens")
+               for values in [[getattr(r.accounting, field) for r in selected]]},
             "provider_reported_tokens": (
                 sum(value for value in reported if value is not None)
                 if complete_usage
@@ -350,17 +369,8 @@ def _raw_usage(
 
 
 def _reported_total_tokens(raw: Mapping[str, object] | None) -> int | None:
-    if raw is None:
-        return None
-    for name in ("total_tokens", "total_token_count"):
-        value = raw.get(name)
-        if type(value) is int and value >= 0:
-            return value
-    prompt = raw.get("prompt_tokens", raw.get("input_tokens"))
-    completion = raw.get("completion_tokens", raw.get("output_tokens"))
-    if type(prompt) is int and prompt >= 0 and type(completion) is int and completion >= 0:
-        return prompt + completion
-    return None
+    from src.harness_contracts.usage import reported_total_tokens
+    return reported_total_tokens(dict(raw)) if raw is not None else None
 
 
 def _reported_image_tokens(

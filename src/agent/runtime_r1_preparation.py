@@ -113,6 +113,8 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
             if case.get(name) is not None:
                 argv += ["--" + name.replace("_", "-"), str(case[name])]
     else:
+        if case.get("reasoning_effort") is not None:
+            argv += ["--reasoning-effort", case["reasoning_effort"]]
         argv += ["--quota-journal", str(ROOT / case["quota_journal"]),
                  "--quota-limit", str(case["quota_limit"]),
                  "--max-concurrent-observers", str(case["max_concurrent_observers"])]

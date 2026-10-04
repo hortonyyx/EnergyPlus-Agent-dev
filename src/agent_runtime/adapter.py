@@ -71,6 +71,12 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
                     parameters: dict, versions, image_originals: dict | None = None,
                     model_profile: ModelProfile | None = None,
                     strict_model_profile: bool = False):
+    if versions.remote_model.route_id == "glm-subscription-anthropic":
+        from .anthropic import prepare_anthropic_request
+        return prepare_anthropic_request(store=store, model=model, messages=messages,
+            message_sources=message_sources, tools=tools, tool_source=tool_source,
+            parameters=parameters, versions=versions, image_originals=image_originals,
+            model_profile=model_profile, strict_model_profile=strict_model_profile)
     forbidden = {"model", "messages", "tools", "stream", "n"} & parameters.keys()
     if forbidden:
         raise ValueError("request parameters cannot override model, messages, tools, stream or n")
@@ -182,21 +188,15 @@ class ScriptedAdapter:
 
 
 def reported_tokens(usage) -> int | None:
-    if usage.kind != "reported":
-        return None
-    raw = usage.raw_usage
-    total = raw.get("total_tokens")
-    if type(total) is int and total >= 0:
-        return total
-    left = raw.get("prompt_tokens", raw.get("input_tokens"))
-    right = raw.get("completion_tokens", raw.get("output_tokens"))
-    if all(type(x) is int and x >= 0 for x in (left, right)):
-        return left + right
-    return None
+    from src.harness_contracts.usage import reported_total_tokens
+    return reported_total_tokens(usage.raw_usage) if usage.kind == "reported" else None
 
 
 def parse_response(raw: Any, request_event_id: str, store: EventStore,
                    *, echo_fields=("reasoning_content",)) -> ParsedResponse:
+    if isinstance(raw, dict) and raw.get("type") == "message":
+        from .anthropic import parse_anthropic_response
+        return parse_anthropic_response(raw, request_event_id, store)
     captured = store.capture(raw, force_blob=True)
     usage_raw = raw.get("usage") if isinstance(raw, dict) else None
     usage = UsageReported(raw_usage=usage_raw) if isinstance(usage_raw, dict) and usage_raw else UsageMissing(reason="service omitted per-request usage")

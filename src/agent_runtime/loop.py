@@ -456,18 +456,26 @@ class Runtime:
             choices = raw.get("choices", []) if isinstance(raw, dict) else []
             truncated = (len(choices) == 1 and isinstance(choices[0], dict)
                 and choices[0].get("finish_reason") == "length")
+            if isinstance(raw, dict) and raw.get("type") == "message":
+                truncated = raw.get("stop_reason") == "max_tokens"
             total += int(truncated)
             if event.task_id == self.store.task_id:
                 consecutive = consecutive + 1 if truncated else 0
         raw = self.store.resolve(response.payload.raw_response)
-        message = raw["choices"][0].get("message")
-        message = message if isinstance(message, dict) else {}
-        thinking = message.get("reasoning_content", message.get("reasoning", ""))
-        visible, calls = message.get("content"), message.get("tool_calls")
+        if raw.get("type") == "message":
+            blocks = raw.get("content", [])
+            thinking = "".join(b.get("thinking", "") for b in blocks if b.get("type") == "thinking" and isinstance(b.get("thinking", ""), str))
+            visible = "".join(b.get("text", "") for b in blocks if b.get("type") == "text" and isinstance(b.get("text", ""), str))
+            calls = [b for b in blocks if b.get("type") == "tool_use"]
+        else:
+            message = raw["choices"][0].get("message")
+            message = message if isinstance(message, dict) else {}
+            thinking = message.get("reasoning_content", message.get("reasoning", ""))
+            visible, calls = message.get("content"), message.get("tool_calls")
         usage = response.payload.usage
         details = usage.raw_usage if usage.kind == "reported" else {}
         completion_details = details.get("completion_tokens_details") or {}
-        count = completion_details.get("reasoning_tokens", details.get("reasoning_tokens"))
+        count = completion_details.get("reasoning_tokens", details.get("reasoning_tokens", details.get("thinking_tokens")))
         exceeded = (consecutive > self.limits.max_consecutive_truncations
             or total > self.limits.max_total_truncations)
         reason = "incomplete_response" if exceeded else blocked
@@ -608,6 +616,9 @@ class Runtime:
             source_refs=(self.store.source("request-usage-accounting", accounting.receipt_dict()),))
 
     def _present_tools(self, body, sources, request, response, context_event_id):
+        if request.payload.adapter == "anthropic-messages-http-v1":
+            from .anthropic import present_tools
+            return present_tools(self.store, body, request, response, context_event_id)
         delivered = {e.payload.tool_execution_event_id for e in self.store.events if e.payload.event_type == "tool_presentation"}
         events = {e.event_id: e for e in self.store.events}
         for message, source in zip(body["messages"], sources, strict=True):

@@ -240,6 +240,20 @@ def _text_payload(body: Mapping[str, Any]) -> tuple[str, list[tuple[str, str]]]:
     """Build the tokenizer input approximation without counting base64 bytes."""
     fragments: list[str] = []
     image_urls: list[tuple[str, str]] = []
+    if "system" in body:  # Native Anthropic request; include signatures, not image base64.
+        def text_only(value, pointer):
+            if isinstance(value, dict):
+                if value.get("type") == "image" and isinstance(value.get("source"), dict):
+                    source = value["source"]
+                    image_urls.append((pointer + "/source/data",
+                        "data:" + source["media_type"] + ";base64," + source["data"]))
+                    return {"type": "image", "source": {"type": "base64", "media_type": source["media_type"]}}
+                return {k: text_only(v, pointer + "/" + k) for k, v in value.items()}
+            if isinstance(value, list):
+                return [text_only(v, pointer + f"/{i}") for i, v in enumerate(value)]
+            return value
+        text = text_only({k: body[k] for k in ("system", "messages", "tools") if k in body}, "")
+        return json.dumps(text, ensure_ascii=False, sort_keys=True, separators=(",", ":")), image_urls
     messages = body.get("messages", [])
     for i, message in enumerate(messages):
         fragments.append(f"<|im_start|>{message.get('role', '')}\n")
@@ -256,7 +270,7 @@ def _text_payload(body: Mapping[str, Any]) -> tuple[str, list[tuple[str, str]]]:
                     fragments.append(json.dumps(block, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
         elif content is not None:
             fragments.append(json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
-        for key in ("name", "tool_call_id", "tool_calls", "reasoning_content"):
+        for key in ("name", "tool_call_id", "tool_calls", "reasoning_content", "anthropic_content"):
             if key in message:
                 fragments.append(json.dumps(message[key], ensure_ascii=False, sort_keys=True, separators=(",", ":")))
         fragments.append("<|im_end|>\n")

@@ -244,11 +244,28 @@ def _read_event_log(path: Path) -> dict[str, Any]:
             elif presentation is not None:
                 presentation_event, presentation_payload = presentation
                 visible = _captured(presentation_payload.shown_result, path.parent)
-                if visible != prepared and presentation_payload.context_event_id is None:
+                converted = presentation_payload.protocol_conversion == "anthropic_messages_v1"
+                if converted:
+                    from src.agent_runtime.anthropic import native_blocks, without_cache
+                    request_event = events_by_id.get(presentation_payload.request_event_id)
+                    if request_event is None or request_event.payload.adapter != "anthropic-messages-http-v1":
+                        raise ValueError("Messages presentation lacks its native request")
+                    sent = _captured(request_event.payload.final_request_body, path.parent)
+                    blocks = [b for m in sent["messages"] for b in m["content"]]
+                    tool_result = visible.get("wire_tool_result")
+                    if (tool_result not in blocks or tool_result.get("tool_use_id") != payload.call_id
+                            or any(b not in blocks for b in visible.get("wire_image_blocks", []))):
+                        raise ValueError("Messages tool presentation is absent from the actual request")
+                    if (native_blocks(visible["tool_message"]["content"]) != tool_result["content"]
+                            or native_blocks(visible["image_blocks"]) != [without_cache(b) for b in visible["wire_image_blocks"]]):
+                        raise ValueError("logical tool presentation differs from native content")
+                    if (visible["tool_message"] != prepared["tool_message"] or visible["image_blocks"] != prepared["image_blocks"]) and presentation_payload.context_event_id is None:
+                        raise ValueError("changed logical Messages presentation lacks context evidence")
+                if visible != prepared and presentation_payload.context_event_id is None and not converted:
                     raise ValueError(
                         f"tool presentation {presentation_event.event_id} differs from prepared result {event.event_id}"
                     )
-                if visible != prepared:
+                if visible != prepared and not converted:
                     context_event = events_by_id.get(presentation_payload.context_event_id)
                     request_event = events_by_id.get(presentation_payload.request_event_id)
                     if (context_event is None or context_event.payload.event_type != "context"

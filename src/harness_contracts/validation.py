@@ -202,7 +202,11 @@ class EventLog(ContractModel):
                 raise ValueError("presentation must follow tool execution and its accepted request")
             if p.shown_result.kind == "missing":
                 raise ValueError("presentation differs from prepared tool result")
-            if p.shown_result != execution.payload.shown_result:
+            converted = p.protocol_conversion == "anthropic_messages_v1"
+            if converted and (request.payload.adapter != "anthropic-messages-http-v1" or not any(
+                    injection.source.event_id == execution.event_id for injection in request.payload.injected_content)):
+                raise ValueError("protocol conversion needs its native request and tool-result source")
+            if (p.shown_result != execution.payload.shown_result and not converted) or p.context_event_id is not None:
                 context = _require_prior_event(p.context_event_id, event, event_by_id,
                     missing_ids, "tool context projection")
                 if (context is None or not isinstance(context.payload, ContextEventPayload)

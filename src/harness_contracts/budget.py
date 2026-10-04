@@ -360,24 +360,5 @@ def _has_positive_dimension(amounts: BudgetAmounts) -> bool:
 
 
 def _reported_total_tokens(raw_usage: dict[str, JsonValue]) -> int | None:
-    """Extract a provider's original total without estimating missing usage."""
-
-    total = raw_usage.get("total_tokens")
-    if isinstance(total, int) and not isinstance(total, bool) and total >= 0:
-        return total
-    for input_name, output_name in (
-        ("input_tokens", "output_tokens"),
-        ("prompt_tokens", "completion_tokens"),
-    ):
-        input_tokens = raw_usage.get(input_name)
-        output_tokens = raw_usage.get(output_name)
-        if (
-            isinstance(input_tokens, int)
-            and not isinstance(input_tokens, bool)
-            and input_tokens >= 0
-            and isinstance(output_tokens, int)
-            and not isinstance(output_tokens, bool)
-            and output_tokens >= 0
-        ):
-            return input_tokens + output_tokens
-    return None
+    from .usage import reported_total_tokens
+    return reported_total_tokens(raw_usage)

@@ -66,7 +66,7 @@ def http_failure(response: httpx.Response, *, secret: str) -> ModelServiceError:
     # Preserve reported usage separately, without copying arbitrary service
     # payload fields (which can echo authorization) into the ledger.
     usage_raw = {key: value for key, value in (usage_raw or {}).items()
-                 if key in {"prompt_tokens", "completion_tokens", "total_tokens", "input_tokens", "output_tokens"}
+                 if key in {"prompt_tokens", "completion_tokens", "total_tokens", "input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"}
                  and type(value) is int and value >= 0} if isinstance(usage_raw, dict) else {}
     usage = UsageReported(raw_usage=usage_raw) if usage_raw else UsageMissing(reason="HTTP error omitted token usage")
     request_id = response.headers.get("x-request-id", response.headers.get("request-id"))

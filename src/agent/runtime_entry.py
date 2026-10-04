@@ -31,11 +31,12 @@ from src.agent.runtime_tools import (
 from src.agent.runtime_context import update_building_context
 from src.agent.runtime_delivery import finalize_runtime_building
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
+from src.agent_runtime.anthropic import HttpAnthropicAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
-from src.agent_runtime.providers import (GLM_SUBSCRIPTION, LIVE_PROVIDERS,
+from src.agent_runtime.providers import (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
     provider_parameters, subscription_credentials, validate_provider_model)
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
@@ -124,7 +125,7 @@ async def execute(args) -> dict:
     validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
     parameters = provider_parameters(args.provider, output_tokens=args.output_tokens,
         temperature=args.temperature, thinking=args.thinking, reasoning_effort=args.reasoning_effort)
-    if args.provider == GLM_SUBSCRIPTION and (args.price_schedule or args.money_usd is not None):
+    if args.provider in SUBSCRIPTION_PROVIDERS and (args.price_schedule or args.money_usd is not None):
         raise ValueError("subscription route has no usage-based money estimate; use token/time budgets")
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
         seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
@@ -175,11 +176,12 @@ async def execute(args) -> dict:
                     route = {"route_id": "offline-scripted", "model": "scripted-model",
                         "fixture_sha256": hashlib.sha256(fixture).hexdigest()}
                 else:
-                    credentials = subscription_credentials if args.provider == GLM_SUBSCRIPTION else paratera_credentials
-                    base_url, key = credentials(args.credentials_file)
-                    adapter = HttpChatAdapter(base_url=base_url, api_key=key)
+                    base_url, key = (subscription_credentials(args.credentials_file, provider=args.provider)
+                        if args.provider in SUBSCRIPTION_PROVIDERS else paratera_credentials(args.credentials_file))
+                    adapter_type = HttpAnthropicAdapter if args.provider == GLM_SUBSCRIPTION_ANTHROPIC else HttpChatAdapter
+                    adapter = adapter_type(base_url=base_url, api_key=key)
                     route = {"route_id": args.provider, "model": args.model, "base_url": base_url,
-                        "billing_mode": "subscription" if args.provider == GLM_SUBSCRIPTION else "metered"}
+                        "billing_mode": "subscription" if args.provider in SUBSCRIPTION_PROVIDERS else "metered"}
                 specs = [{"type": "function", "function": {"name": t["name"],
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,

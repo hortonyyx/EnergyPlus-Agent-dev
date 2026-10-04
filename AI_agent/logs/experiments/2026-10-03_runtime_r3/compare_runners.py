@@ -19,6 +19,10 @@ from src.agent import runtime_entry
 from src.agent.runtime_tools import frozen_bim_client
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.agent_registry import agent_version_record
+from src.agent_runtime.anthropic import HttpAnthropicAdapter
+from src.agent_runtime.providers import GLM_SUBSCRIPTION_ANTHROPIC, provider_parameters
+from src.agent_runtime.store import EventStore
+from src.harness_contracts import BudgetAmounts, VersionManifest
 from scripts.tool_scripts.bim_agent_guidance import filter_tool_catalog, tool_capabilities
 
 
@@ -39,6 +43,41 @@ def compare(left, right):
     assert left == right, "prepared Agent content differs"
     return {"identical_bytes": True, "bytes": len(left), "claude_sha256": digest(left),
             "runtime_sha256": digest(right)}
+
+
+def protocol_report(wire, runtime_run, directory):
+    from src.agent_runtime.adapter import prepare_request
+    capture_path = HERE.parent / "2026-10-03_migration_comparison/evidence/claude_code_request_capture/request_02.json"
+    captured = json.loads(capture_path.read_bytes())["body"]
+    parameters = provider_parameters(GLM_SUBSCRIPTION_ANTHROPIC, output_tokens=32000, reasoning_effort="medium")
+    versions = VersionManifest.model_validate_json((runtime_run / "versions.json").read_bytes())
+    versions = versions.model_copy(update={"remote_model": versions.remote_model.model_copy(
+        update={"route_id": GLM_SUBSCRIPTION_ANTHROPIC, "remote_alias": "glm-5.3-flash"})})
+    with EventStore(directory / "native-protocol", run_id="parity", task_id="parity",
+                    budget_limit=BudgetAmounts(calls=0)) as store:
+        prepared = prepare_request(store=store, model="glm-5.3-flash", messages=wire["messages"],
+            message_sources=[store.source(f"logical-message-{i}", m) for i, m in enumerate(wire["messages"])],
+            tools=wire["tools"], tool_source=store.source("tools", wire["tools"]),
+            parameters=parameters, versions=versions)
+        native = prepared.body
+        assert store.capture_bytes(prepared.event_payload.final_request_body) == prepared.wire_bytes
+    return {
+        "capture": str(capture_path.relative_to(ROOT)), "capture_sha256": digest(capture_path.read_bytes()),
+        "settings": compare(canonical({k: captured[k] for k in parameters}), canonical(parameters)),
+        "system_text": compare(wire["messages"][0]["content"].encode(), native["system"][0]["text"].encode()),
+        "tool_payloads": compare(canonical([t["function"] for t in wire["tools"]]), canonical([
+            {"name": t["name"], "description": t["description"], "parameters": t["input_schema"]} for t in native["tools"]])),
+        "native_request_sha256": digest(prepared.wire_bytes),
+        "cache_positions": {"system_last_two_substantive_blocks": [i for i, b in enumerate(native["system"]) if b.get("cache_control")],
+            "latest_message_last_block": native["messages"][-1]["content"][-1]["cache_control"]},
+        "protocol": "Anthropic Messages; logical tool results become native tool_result blocks",
+        "thinking": native["thinking"], "output_config": native["output_config"],
+        "max_tokens": native["max_tokens"], "context_management": native["context_management"],
+        "differences": ["stream=false (CLI capture true)", "one shared Agent guide, no CLI-private system wrappers or client tools",
+            "bare tool names (CLI mcp__bim__ prefix)", "MCP images follow tool_result blocks in the same user turn",
+            "own client identity; no CLI session/device metadata", "shared deterministic token-threshold compaction still applies"],
+        "model_requests": 0,
+    }
 
 
 async def case_report(case, directory, timeout):
@@ -95,7 +134,7 @@ async def case_report(case, directory, timeout):
         "--max-candidates", "24", "--model-calls", "1", "--tokens", "1000000"]
     for name in old_args.floor_plan_images:
         argv += ["--floor-plan-image", name]
-    with patch.object(runtime_entry, "ScriptedAdapter", CaptureAdapter), patch.object(HttpChatAdapter, "send", forbid_live):
+    with patch.object(runtime_entry, "ScriptedAdapter", CaptureAdapter), patch.object(HttpChatAdapter, "send", forbid_live), patch.object(HttpAnthropicAdapter, "send", forbid_live):
         receipt = await runtime_entry.execute(runtime_entry.parser().parse_args(argv))
     assert receipt["status"] == "completed" and len(captures) == 1
     wire = captures[0]
@@ -122,6 +161,7 @@ async def case_report(case, directory, timeout):
         "runtime_task_source": {"path": str(reference_path.relative_to(ROOT)),
             "sha256": digest(reference_raw), "change": f"Budget: 3000 seconds -> Budget: {timeout} seconds"},
         "tool_count": len(old_catalog),
+        "protocol_and_thinking": protocol_report(wire, new_run, directory),
         "image_sha256": {name: value["sha256"] for name, value in old_manifest["images"].items()},
         "floor_plan_images": new_manifest["floor_plan_images"],
         "time_budget_seconds": timeout, "max_candidates": 24,
@@ -130,7 +170,7 @@ async def case_report(case, directory, timeout):
         "differences": [
             {"item": "protocol", "reason": "Claude Code uses Anthropic/MCP namespaces (mcp__bim__*); runtime uses OpenAI function wrappers with bare names. The exact shared MCP catalog and wrapped name/description/schema bytes are checked above."},
             {"item": "runtime_state", "reason": "Runtime adds its existing machine-generated current-state user message, retaining the original task and its provenance; it adds no second clock or contradictory time instruction. Full additional messages are retained here."},
-            {"item": "service_parameters", "reason": "Claude Code uses effort=medium with adaptive thinking; runtime subscription configuration explicitly uses reasoning_effort=medium and max_tokens=32000. The subscription endpoint has no adaptive-thinking switch. This scripted capture is not a live protocol-equivalence test."},
+            {"item": "service_parameters", "reason": "The preserved OpenAI subscription route uses reasoning_effort=medium without adaptive thinking. The new Anthropic subscription route matches the captured adaptive/medium/32000/keep-all settings; see protocol_and_thinking. This check starts no live model."},
             {"item": "run_metadata", "reason": "Output paths, timestamps, provider and input_mode are runner-specific. Started/deadline epochs differ between sequential preparations; each runner uses the same configured duration and floor scope."},
         ],
         "boundary": "Prepared model boundary only. Claude Code private HTTP context is not captured; no claim of hidden client or service parameter equality."}
