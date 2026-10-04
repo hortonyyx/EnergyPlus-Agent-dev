@@ -1,5 +1,6 @@
 """Replay T1 sm25 evidence against original candidates; no model or image inference."""
 from collections import Counter
+import argparse
 import copy
 import gzip
 import hashlib
@@ -46,6 +47,10 @@ def fixture(name, *, before_step):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, default=HERE)
+    args = parser.parse_args()
+    args.output.mkdir(parents=True, exist_ok=True)
     toolkit, steps = fixture("step115", before_step=115)
     step = next(s for s in steps if s["index"] == 115)
     candidate = step["arguments"]["candidate"]
@@ -102,13 +107,15 @@ def main():
     actual = json.loads((bundled.run / final["result_candidate"] / "proposal.json").read_text())
     assert geometry_state(original) == geometry_state(actual)
     # Conservative accounting: retain the eight useful facade-count calls and
-    # both queries. Replace the 11 geometric records, 11 decisions, one retraction,
-    # one height revision and one attempted confirmation with three transactions
-    # (record+adopt; retraction+height apply; confirmations). Keep the mixed
-    # semantic/notes portion of step114 as one ordinary revise_bim call.
+    # both queries. Replace 11 geometric records and 11 decisions (including one
+    # retraction) with one transaction; group the confirmation into another.
+    # Height application adds a third transaction, while the mixed semantic/notes
+    # portion of step114 still needs its original ordinary revise_bim call.
     claim_calls = Counter(s["tool"] for s in steps if s["tool"] in {
         "record_claim", "decide_claim", "confirm_claims", "claim_status"})
-    output = dict(model_requests=0, source_record=str(RECORD.relative_to(ROOT)),
+    from src.agent_runtime.agent_registry import agent_version_record
+    output = dict(model_requests=0, agent_version=agent_version_record(ROOT)["version_id"],
+        source_record=str(RECORD.relative_to(ROOT)),
         source_record_sha256=hashlib.sha256(RECORD.read_bytes()).hexdigest(),
         original_total_calls=len(steps), original_evidence_calls=dict(claim_calls),
         step115=dict(old_error=legacy_error, new_status=result["status"],
@@ -126,12 +133,12 @@ def main():
             historical_evidence_calls=sum(claim_calls.values()),
             after_inheritance_only=sum(claim_calls.values())-28,
             after_transactions=8+2+3,
-            ordinary_revision_extra=1,
+            ordinary_revision_extra=1,  # Beyond the transactions, retained from historical step114.
             total_calls_before=len(steps), total_calls_after=len(steps)-(61-13),
             calls_saved=48,
             caveat="Counterfactual orchestration count, not observed model behavior or a wall-clock speed claim. Mixed step114 still needs one ordinary revise_bim for non-height edits."))
-    dump(HERE / "claim_replay.json", output)
-    dump(HERE / "step115_transaction.json", transaction)
+    dump(args.output / "claim_replay.json", output)
+    dump(args.output / "step115_transaction.json", transaction)
     print(json.dumps({"step115": output["step115"]["new_status"], "bindings":32,
                       "claims":len(grouped), "accounting":output["accounting"]}, ensure_ascii=False))
 
