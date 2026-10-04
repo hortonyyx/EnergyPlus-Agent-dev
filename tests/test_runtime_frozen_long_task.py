@@ -20,11 +20,12 @@ import tempfile
 from types import SimpleNamespace
 
 from PIL import Image
+import pytest
 
 from src.agent.runtime_context import update_building_context
 from src.agent.runtime_entry import prepare_inputs
 from src.agent.runtime_tools import (
-    FrozenBimTools, _result_metadata, coordinator_role, frozen_bim_client,
+    FrozenBimTools, _result_metadata, coordinator_role, frozen_bim_client, local_observer_role,
     write_frozen_materials, write_frozen_tool_catalog,
 )
 from src.agent_runtime.adapter import ScriptedAdapter
@@ -33,6 +34,7 @@ from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore, json_bytes
 from src.agent_runtime.versions import make_versions
 from src.harness_contracts import BudgetAmounts
+from src.harness_contracts.roles import authorize_tool_call
 
 from test_runtime_long_task import Run99Sequence
 
@@ -41,6 +43,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DELIVERY = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage2"
 HISTORY = ROOT / "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99"
 SAMPLE_STEPS = (20, 40, 75)
+HISTORICAL_CLAIM_TOOLS = frozenset({"record_claim", "decide_claim", "confirm_claims"})
 
 
 def digest(data):
@@ -48,18 +51,42 @@ def digest(data):
 
 
 class ReplayTools(FrozenBimTools):
-    """Check historical arguments, then execute the real tool without substitution."""
+    """Execute the unchanged trace, including its explicitly retained legacy API.
+
+    A2-T hides three single-step claim tools from production model catalogs in
+    favor of claim_transaction. Their registered handlers remain for historical
+    replay. Only this scripted test exposes them; roles, exact arguments and
+    real handler results remain checked, and all other disabled tools stay so.
+    """
 
     def __init__(self, *args, sequence, store, **kwargs):
         super().__init__(*args, **kwargs)
         self.sequence, self.store = sequence, store
         self.calls = []
+        self.historical_catalog = {}
+
+    async def list_tools(self):
+        catalog = await super().list_tools()  # Validates the registered Agent.
+        registered = await self.client.list_tools()
+        self.historical_catalog = {tool["name"]: tool for tool in registered
+                                   if tool["name"] in HISTORICAL_CLAIM_TOOLS}
+        present = {tool["name"] for tool in catalog}
+        return catalog + [tool for name, tool in self.historical_catalog.items()
+                          if name not in present]
 
     async def call_tool(self, name, arguments):
         historical = self.sequence.steps[len(self.calls)]
         assert name == historical["tool_name"]
         assert arguments == historical["arguments"]
-        raw = await super().call_tool(name, arguments)
+        if name in HISTORICAL_CLAIM_TOOLS:
+            authorize_tool_call(self.role, name, "write")
+            assert not self.role.read_only
+            if not self._catalog_checked:
+                await self.list_tools()
+            assert name in self.historical_catalog
+            raw = await self.client.call_tool(name, arguments)
+        else:
+            raw = await super().call_tool(name, arguments)
         metadata = _result_metadata(raw)
         images = [base64.b64decode(b["data"], validate=True)
                   for b in raw.get("content", []) if b.get("type") == "image"]
@@ -257,10 +284,12 @@ async def replay_frozen_run99(output):
                                         {"role": "user", "content": task}])
             report = {"receipt": receipt, "steps": observer.steps, "requests": observer.requests,
                 "calls": tools.calls, "retrievals": observer.retrievals,
+                "historical_catalog_additions": sorted(tools.historical_catalog),
                 "limits": limits.model_dump(mode="json"),
                 "source": {"path": str(HISTORY.relative_to(ROOT)),
                     "inputs_sha256": digest((HISTORY / "inputs.json").read_bytes())},
-                "boundary": "Real frozen tools; historical arguments unchanged; model responses scripted; "
+                "boundary": "Real registered tools with three legacy claim APIs exposed only for replay; "
+                    "historical arguments unchanged; model responses scripted; "
                     "usage 20 tokens/response is synthetic, not service usage. No whole-case model run."}
             store.write_json("frozen_replay_report.json", report)
             assert receipt["status"] == "completed", receipt
@@ -288,6 +317,53 @@ def test_real_frozen_tools_keep_run99_state_across_75_steps():
         return
     with tempfile.TemporaryDirectory(prefix=".stage2-frozen-long-", dir=ROOT) as temporary:
         asyncio.run(replay_frozen_run99(Path(temporary) / "run"))
+
+
+def test_historical_replay_exposes_only_legacy_claims_and_preserves_write_grants(tmp_path):
+    async def scenario():
+        run = tmp_path / "bim"
+        run.mkdir()
+        (run / "inputs.json").write_text('{"images": {}}')
+        role = coordinator_role(BudgetAmounts(calls=5))
+        async with frozen_bim_client(run, repository_root=ROOT) as server:
+            registered = await server.list_tools()
+
+        class RecordingClient:
+            calls = []
+
+            async def list_tools(self):
+                return registered
+
+            async def call_tool(self, name, arguments):
+                self.calls.append((name, arguments))
+                return {"content": [], "isError": False}
+
+        client = RecordingClient()
+        sequence = SimpleNamespace(steps=[{"ordinal": 1, "tool_name": "record_claim",
+            "arguments": {"fixture": "unchanged"}, "is_error": False, "result": {"images": []}}])
+        with EventStore(tmp_path / "events", run_id="legacy-boundary", task_id="test",
+                        budget_limit=BudgetAmounts(calls=5)) as store:
+            normal = FrozenBimTools(client, role, run_directory=run)
+            replay = ReplayTools(client, role, run_directory=run, sequence=sequence, store=store)
+            normal_catalog = await normal.list_tools()
+            replay_catalog = await replay.list_tools()
+            normal_names = {tool["name"] for tool in normal_catalog}
+            assert not normal_names & HISTORICAL_CLAIM_TOOLS
+            assert {tool["name"] for tool in replay_catalog} == normal_names | HISTORICAL_CLAIM_TOOLS
+            assert not {"review_detail", "record_work_review"} & {t["name"] for t in replay_catalog}
+            assert all(tool in registered for tool in replay_catalog)
+            assert (await normal.call_tool("record_claim", sequence.steps[0]["arguments"]))["isError"]
+            assert client.calls == []
+            await replay.call_tool("record_claim", sequence.steps[0]["arguments"])
+            assert client.calls == [("record_claim", {"fixture": "unchanged"})]
+            observer = ReplayTools(client, local_observer_role(BudgetAmounts(calls=1)),
+                run_directory=run, sequence=sequence, store=store)
+            with pytest.raises(ValueError, match="not whitelisted"):
+                await observer.call_tool("record_claim", sequence.steps[0]["arguments"])
+            assert len(client.calls) == 1
+            assert observer.calls == []
+
+    asyncio.run(scenario())
 
 
 def test_saved_claim_view_is_indexed_without_top_level_view_id(tmp_path):

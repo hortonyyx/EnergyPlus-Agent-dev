@@ -1,0 +1,52 @@
+{
+  "diagnosed_utc": "2026-10-04T21:07:04.730658+00:00",
+  "original_validation": "validation/all.json",
+  "observed_status": "tool_authorization_failed",
+  "first_historical_call_to_a2t_hidden_tool": {
+    "step": 62,
+    "tool": "record_claim"
+  },
+  "legacy_steps": [
+    {
+      "step": 62,
+      "tool": "record_claim"
+    },
+    {
+      "step": 63,
+      "tool": "record_claim"
+    },
+    {
+      "step": 64,
+      "tool": "record_claim"
+    },
+    {
+      "step": 65,
+      "tool": "record_claim"
+    },
+    {
+      "step": 66,
+      "tool": "record_claim"
+    },
+    {
+      "step": 67,
+      "tool": "decide_claim"
+    },
+    {
+      "step": 68,
+      "tool": "decide_claim"
+    },
+    {
+      "step": 69,
+      "tool": "decide_claim"
+    },
+    {
+      "step": 70,
+      "tool": "confirm_claims"
+    }
+  ],
+  "cause": "A2-T filter_tool_catalog hides three registered legacy claim tools; unchanged historical replay used the production projection. Runtime refuses unknown catalog names before call.",
+  "evidence_limit": "Original failing run temporary directory was automatically removed by existing test. The exact first incompatible step is reconstructed from the immutable fixture and source, not observed from retained runtime events.",
+  "repair_scope": "tests/test_runtime_frozen_long_task.py only; expose three retained registered legacy handlers for scripted replay, preserve grants, exact arguments and all existing semantic assertions.",
+  "production_code_changed": false,
+  "model_requests": 0
+}
