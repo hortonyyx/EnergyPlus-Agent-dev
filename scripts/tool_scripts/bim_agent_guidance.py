@@ -564,7 +564,8 @@ The submitted references/quantities, numeric compiled plan and exact
 bindings are saved separately; numeric-only declarations keep their old format.
 geometry_feedback returns effective footprint bounds/spans, metres per pixel
 and opening dimensions, including failed host drafts. Check these against the
-original annotations; there is no guessed unit correction or absolute size gate.
+original annotations. Huge spans inconsistent with declared heights are rejected
+as possible mm/metre mix-ups; values are never automatically rescaled.
 drawing_differences lists where the original's ink and the declaration disagree.
 Keep calibration and geometry in the SAME coordinate frame. Identify each
 representative plane: the perimeter may use observed outer faces while internal

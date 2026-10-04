@@ -10,6 +10,8 @@ import copy
 import math
 from decimal import Decimal
 
+from src.agent.geometry.input_scale import check_floor_placements, check_geometry_scale
+
 
 _ITEM_FIELDS = {"proposal", "floor_id", "z_floor", "height", "source_ref"}
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved"}
@@ -79,6 +81,7 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
     floor_ids: set[str] = set()
     global_x: list[float] = []
     global_y: list[float] = []
+    placements = []
 
     for index, raw_item in enumerate(items):
         path = f"items[{index}]"
@@ -125,6 +128,9 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
             raise ValueError(f"{path}: spanning_space_ids are outside the single-floor compiled plan contract")
         x = _bounds(geometry.get("footprint_x"), f"{path}.proposal.geometry.footprint_x")
         y = _bounds(geometry.get("footprint_y"), f"{path}.proposal.geometry.footprint_y")
+        check_geometry_scale(geometry, path=f"{path}.proposal.geometry")
+        placements.append((f"{path}.z_floor", target_z,
+                           f"{path}.proposal.geometry.floors[0].ceiling_height", height))
         global_x.extend(x)
         global_y.extend(y)
 
@@ -202,6 +208,7 @@ def assemble_plan_proposals(items: list[dict]) -> dict:
             f"source z_floor={source_z}, target z_floor={target_z}; note={original_note!r}"
         )
 
+    check_floor_placements(placements)
     return {
         "geometry": {
             "schema_version": "2",

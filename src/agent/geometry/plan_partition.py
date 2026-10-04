@@ -17,6 +17,7 @@ from shapely.geometry.polygon import orient
 from shapely.ops import polygonize_full, unary_union
 
 from src.agent.geometry.source_image_overlay import _axis_anchors
+from src.agent.geometry.input_scale import check_planar_scale
 
 
 _PLAN_FIELDS = frozenset({
@@ -223,6 +224,12 @@ def compile_plan_partition(
         footprint_points.pop()
     if len(footprint_points) < 4:
         raise ValueError("plan.footprint_pixels must contain at least four non-closing points")
+    check_planar_scale(
+        [(f"plan.{axis}_anchors (world values {[p[1] for p in anchors]})",
+          abs(slope) * (max(p[i] for p in footprint_points) - min(p[i] for p in footprint_points)))
+         for i, (axis, slope, anchors) in enumerate((("x", x_slope, parsed_x), ("y", y_slope, parsed_y)))],
+        [("plan.ceiling_height", ceiling_height)],
+    )
     _orthogonal(footprint_points, path="plan.footprint_pixels", closed=True)
     footprint = Polygon(footprint_points)
     if not footprint.is_valid or footprint.area <= 0 or footprint.interiors:

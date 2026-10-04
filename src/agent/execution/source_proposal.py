@@ -41,6 +41,8 @@ def _validate_proposal(proposal: dict) -> tuple[dict, list[str], list[str], dict
         raise ValueError("proposal fields: " + "; ".join(details))
     if not isinstance(proposal["geometry"], dict):
         raise TypeError("proposal.geometry must be an object")
+    from src.agent.geometry.input_scale import check_geometry_scale
+    check_geometry_scale(proposal["geometry"])
     # Legacy Window permits extra fields, but source generation always emits
     # entries from this collection as windows. Reject a conflicting declaration
     # before that can silently turn an explicitly identified door into glazing.
