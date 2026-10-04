@@ -42,6 +42,7 @@
 - `max_tokens` 对接 R2：整批被截断的工具调用均不执行，不把截断半句或思考块带进恢复请求；补救与计数沿用已有规则，包括崩溃后恢复。
 - C1 原有失败分类继续使用，支持 Anthropic 错误正文；用量合并输入、缓存读、缓存写、输出，并保留缺失值。嵌套缓存写入时长明细不重复累加。
 - 原生返回块、签名、坏工具批次、截断、失败分类、凭据隔离、缓存计数及恢复共 17 项定向检查通过；最终联合检查另列于 E。
+- [多工具顺序复核](native_tool_order_check.json)：实际离线请求为 `tool_result, tool_result, text, image`。原底座本就将工具结果集中在前，转换保留此顺序，符合 [Messages 工具结果要求](https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls)，没有为此增添另一套排序逻辑。
 
 与 Claude Code 的可见差异已写入 [R3 核对](runner_parity.json)：本线路非流式；不复制 Claude Code 私有系统包装、工具命名空间、客户端身份和设备会话元数据；工具图片紧随工具结果、同属用户消息，未嵌套进结果；保留自有底座原先按 token 阈值压缩上下文的机制。操作指南、工具定义、任务正文三例仍一致。服务端没有回报已应用参数，所以记录为“发送设置匹配，实际参数效果未经服务端证明”；本包不据此声称整案速度或质量已改善。
 
@@ -69,4 +70,34 @@
 
 使用 `validate.py short`、`long`、`frozen` 顺序执行；`PYTHONPATH` 指向当前工作树、`PYTHONDONTWRITEBYTECODE=1`、树内 TMPDIR、pytest 显式 `-n 2 -s`。保存日志、JUnit、检查期间源码哈希，全部离线。R3 `compare_runners.py` 核对 sm24／sm25／sm21，三例通过，模型请求 0；新增“协议与思考设置”对照。
 
+短程联合检查已 **387 passed**（555.30 秒）；[完整命令与源码哈希](validation/short.json)。因修改行为记录读取，额外补跑 `test_behaviour_c2.py`，**2 passed**（6.56 秒）。长任务与冻结工具长回放尚在执行。
+
 早期失败及修复后的定向日志保存在 `validation/test-*.log.gz`：A 初版严格 tuple 反序列化、共享对象引用和旧存储形状断言已修复；B 初版 R2 只看 OpenAI choices、协议转换误要求上下文压缩事件已修复。未删除原图片字节检查或允许半截工具执行。
+
+C2 补查首次因指定临时目录的父目录尚未创建，在收集测试前退出；创建本树目录后通过，保留 `validation/behaviour_c2_setup.log`。
+
+## 提交与复核入口
+
+基点 `6deee38c`，分支 `dev/astra-a1r-20261004`。当前提交：
+
+| 提交 | 内容 |
+|---|---|
+| `a75bda84` | 报告初稿与执行边界 |
+| `869707cc` | A 图片引用存档与无损重建 |
+| `27fa5d6d` | A 历史体积估算、42 请求与 57 项检查证据 |
+| `eb34f968` | B 新线路、记账、恢复、反例；D 配置；R3 协议核对 |
+| `c214a42d` | C 四次订阅小测、可恢复证据包与报告更新 |
+
+源码范围为 `src/agent_runtime/`、`src/harness_contracts/`、四个 `src/agent/runtime_*.py` 文件，另有 R3 核对脚本及对应测试。A1-T 工具目录、Agent 版本登记、全局项目目标与交接未改动；没有合入、推送或改写其他工作树文件。主工作树的 `.env` 仅作为用户明确允许的只读凭据来源。
+
+离线复核入口（均在当前树，先创建 `.a1r-tmp` 并设置上述环境）：
+
+```bash
+python AI_agent/logs/experiments/2026-10-04_absorb_a1r/validate.py short
+python AI_agent/logs/experiments/2026-10-04_absorb_a1r/validate.py long
+python AI_agent/logs/experiments/2026-10-04_absorb_a1r/validate.py frozen
+python AI_agent/logs/experiments/2026-10-04_absorb_a1r/verify_smoke_evidence.py --scratch .a1r-tmp/smoke-restored-review
+python -m src.agent.runtime_r1_preparation check AI_agent/logs/experiments/2026-10-04_absorb_a1r/configs/sm24_anthropic.json
+```
+
+B、C 只确认了协议和小请求行为；整案速度、建模质量、长上下文缓存收益尚未验证。本轮没有启动整案，后续由 Opus 接收本分支并按节点安排处理。
