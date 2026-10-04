@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,27 @@ from test_runtime_delegation import (
 from test_runtime_frozen_tools import _prepared_run
 
 
+@pytest.fixture(autouse=True)
+def controlled_time(monkeypatch):
+    # These checks assert overlap, ordering and budgets, not real-time expiry.
+    # Clock/timeout behaviour is exercised by the dedicated time-limit tests.
+    import src.agent_runtime.loop as runtime_loop
+    import src.agent.runtime_coordinator as coordinator
+    import src.agent.runtime_delegation as delegation
+    ticks = [0.0]
+    def advance():
+        ticks[0] += 0.001
+    fixed = SimpleNamespace(time=lambda: 2_000_000_000.0 + ticks[0],
+                            monotonic=lambda: 100.0 + ticks[0], advance=advance)
+    for module in (runtime_loop, coordinator, delegation):
+        monkeypatch.setattr(module, "time", fixed)
+
+    async def without_wall_timeout(awaitable, timeout):
+        return await awaitable
+
+    monkeypatch.setattr(asyncio, "wait_for", without_wall_timeout)
+
+
 def _task(name, *, tokens=100_000):
     return {"task_id": name, "question": "Describe the supplied crop.",
             "view_ids": ["view_0001"], "budget": {
@@ -34,7 +56,13 @@ class OverlapAdapter:
     async def send(self, prepared, *, timeout):
         self.activity["active"] += 1
         self.activity["peak"] = max(self.activity["peak"], self.activity["active"])
-        await asyncio.sleep(0.03)
+        # Yield by event-loop order, independent of elapsed wall time.
+        release = self.activity.setdefault("release", asyncio.Event())
+        if self.activity["active"] == self.activity.get("expected_overlap", 1):
+            release.set()
+        await release.wait()
+        import src.agent_runtime.loop as runtime_loop
+        runtime_loop.time.advance()
         self.activity["active"] -= 1
         if self.fail:
             # This fixture isolates a permanent child failure. Transient model
@@ -60,7 +88,7 @@ def _setup(tmp_path, store, limits, factory, concurrency):
 def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_path, concurrency, expected_peak):
     async def scenario():
         limits = RunLimits(model_calls=8, tool_calls=8, tokens=400_000, seconds=300)
-        activity = {"active": 0, "peak": 0}
+        activity = {"active": 0, "peak": 0, "expected_overlap": expected_peak}
         quota = tmp_path / "quota.jsonl"
         with EventStore(tmp_path / "audit", run_id="parallel-test", task_id="coordinator",
                         budget_limit=limits.ledger_limit()) as store:
@@ -103,7 +131,7 @@ def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_pa
 def test_parallel_results_are_rechecked_against_saved_version_before_application(tmp_path):
     async def scenario():
         limits = RunLimits(model_calls=4, tool_calls=4, tokens=400_000, seconds=300)
-        activity = {"active": 0, "peak": 0}
+        activity = {"active": 0, "peak": 0, "expected_overlap": 2}
         with EventStore(tmp_path / "audit", run_id="version-test", task_id="coordinator",
                         budget_limit=limits.ledger_limit()) as store:
             session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)
@@ -136,7 +164,7 @@ def test_duplicate_batch_identity_is_rejected_before_any_child_request(tmp_path)
 def test_parallel_batch_preserves_root_request_cap(tmp_path):
     async def scenario():
         limits = RunLimits(model_calls=2, tool_calls=4, tokens=400_000, seconds=300)
-        activity = {"active": 0, "peak": 0}
+        activity = {"active": 0, "peak": 0, "expected_overlap": 2}
         with EventStore(tmp_path / "audit", run_id="root-cap-test", task_id="coordinator",
                         budget_limit=limits.ledger_limit()) as store:
             session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)

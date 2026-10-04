@@ -18,7 +18,7 @@ from PIL import Image
 from scripts.tool_scripts import run_bim_agent as runner
 from scripts.tool_scripts import bim_agent_budget
 from src.agent import runtime_entry
-from src.agent.runtime_r1_preparation import argv_for, load_configuration
+from src.agent.runtime_configuration import argv_for, load_configuration
 from src.agent_runtime import loop
 from src.agent_runtime.agent_registry import load_agent_registry
 from src.agent.runtime_delegation import run_observer

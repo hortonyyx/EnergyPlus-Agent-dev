@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from src.agent.runtime_entry import parser, runtime_model_profile
-from src.agent.runtime_r1_preparation import argv_for, load_configuration
+from src.agent.runtime_configuration import argv_for, load_configuration
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.providers import (GLM_SUBSCRIPTION,
     GLM_SUBSCRIPTION_BASE_URL, provider_parameters, subscription_credentials)
