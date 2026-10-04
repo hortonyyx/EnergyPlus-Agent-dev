@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**10-04 吸收包第一批用量：** ChatGPT 订阅（Astra，`gpt-6-astra`／max，无子代理）：A1-R 约 65 分钟，输入 15,557,289（缓存 15,063,680）、输出 96,887；A1-T 约 60 分钟，输入 12,872,728（缓存 12,464,256）、输出 92,430。GLM 订阅：A1-R 新线路小测 4 次（8,090 token）。新线路 `glm-subscription-anthropic` 走智谱 Anthropic 兼容端点，请求字段按 Claude Code 抓包（自适应思考、`effort: medium`），尚未跑整案。Paratera 0，DeepSeek 0。
+
 **10-04 节点回归用量（用户批准）：** GLM 订阅：Claude Code sm24 一次（CLI 估价 2.77 美元，非账单；输入 225,747、缓存读取 2,601,664、输出 67,405）；新底座 sm24 一次（实报 4,033,569 token）、sm25 一次（实报 6,444,309 token），均 `reasoning_effort: medium`。Paratera 0，DeepSeek 0。见[回归记录](../logs/experiments/2026-10-04_node_regression_c2/README.md)。
 
 **10-03 晚用量（Opus 任项目经理）：** GLM 订阅：sm24 整案 3 次（新底座，实报 1,316,963／1,788,983／254,864 token），思考档校准 12 次（348,200 token），Claude Code 抓包 1 次、探测 1 次（极小）。新底座订阅线路改为接受 `reasoning_effort` low／medium／high／max：订阅端点默认接近最高档，Claude Code 发 `effort: medium` 加自适应思考，同条件对照应写明 medium（见[迁移对照记录](../logs/experiments/2026-10-03_migration_comparison/README.md)）。ChatGPT 订阅（Astra，`gpt-6-astra`／max）：R3 约 60 分钟，输入 14,548,271（缓存 13,986,944）、输出 78,113；首次审查约 44 分钟，输入 8,074,209（缓存 7,660,544）、输出 50,413，子代理 0；清理包 C1 约 80 分钟，输入 17,744,665（缓存 17,280,128）、输出 121,749，GLM 订阅小请求 2 次（462 token）；C2 约 114 分钟，会话在 2 小时上限处被停，用量回执未取得。Claude：Opus 空白上下文审查子代理约 39 分钟、45.5 万 token。Paratera 0，DeepSeek 0。见[工作记录](../logs/worklog/2026-10-03_opus_migration_close_and_first_review.md)。
