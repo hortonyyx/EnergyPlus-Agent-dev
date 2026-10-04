@@ -1,0 +1,133 @@
+{
+  "part": "roundtrip",
+  "status": "completed",
+  "model_calls": 2,
+  "tool_calls": 1,
+  "truncations": 0,
+  "reported_tokens": 7740,
+  "usage_accounting": {
+    "requests": 2,
+    "reported_input_tokens": 3960,
+    "reported_cache_read_tokens": 3712,
+    "reported_cache_write_tokens": null,
+    "reported_output_tokens": 68,
+    "provider_reported_tokens": 7740,
+    "image_tokens_estimate": 54,
+    "additional_image_tokens": 54,
+    "billing_modes": [
+      "subscription"
+    ],
+    "budget_charge_tokens": 7794,
+    "estimated_cost_cny": null,
+    "known_cost_components_cny": null,
+    "usage_complete": true,
+    "cost_estimate_complete": false,
+    "by_model": {
+      "glm-5.3-flash": {
+        "requests": 2,
+        "reported_input_tokens": 3960,
+        "reported_cache_read_tokens": 3712,
+        "reported_cache_write_tokens": null,
+        "reported_output_tokens": 68,
+        "provider_reported_tokens": 7740,
+        "image_tokens_estimate": 54,
+        "additional_image_tokens": 54,
+        "billing_modes": [
+          "subscription"
+        ],
+        "budget_charge_tokens": 7794,
+        "estimated_cost_cny": null,
+        "known_cost_components_cny": null,
+        "usage_complete": true,
+        "cost_estimate_complete": false
+      }
+    },
+    "by_task": {
+      "protocol_probe": {
+        "requests": 2,
+        "reported_input_tokens": 3960,
+        "reported_cache_read_tokens": 3712,
+        "reported_cache_write_tokens": null,
+        "reported_output_tokens": 68,
+        "provider_reported_tokens": 7740,
+        "image_tokens_estimate": 54,
+        "additional_image_tokens": 54,
+        "billing_modes": [
+          "subscription"
+        ],
+        "budget_charge_tokens": 7794,
+        "estimated_cost_cny": null,
+        "known_cost_components_cny": null,
+        "usage_complete": true,
+        "cost_estimate_complete": false
+      }
+    },
+    "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate."
+  },
+  "responses": [
+    {
+      "event_id": "event-000005",
+      "request_id": "event-000004",
+      "stop_reason": "tool_use",
+      "usage": {
+        "cache_read_input_tokens": 0,
+        "input_tokens": 3765,
+        "output_tokens": 45,
+        "server_tool_use": {
+          "web_search_requests": 0
+        },
+        "service_tier": "standard"
+      },
+      "response_block_types": [
+        "thinking",
+        "tool_use"
+      ],
+      "thinking_forms": [
+        "public_content",
+        "signature"
+      ],
+      "sent_images": 1,
+      "wire_sha256": "959ef4410d74f64235565758e7808960bb0dcf1a3d7a0fa3dad29e7ee9f0ae20",
+      "visible_text": [],
+      "tool_calls": [
+        {
+          "call_id": "call_e18f7fa3610f4ae4909420aa",
+          "tool_name": "record_reading",
+          "full_arguments": {
+            "input_colour": "red",
+            "total": 941
+          }
+        }
+      ]
+    },
+    {
+      "event_id": "event-000015",
+      "request_id": "event-000014",
+      "stop_reason": "end_turn",
+      "usage": {
+        "cache_read_input_tokens": 3712,
+        "input_tokens": 195,
+        "output_tokens": 23,
+        "server_tool_use": {
+          "web_search_requests": 0
+        },
+        "service_tier": "standard"
+      },
+      "response_block_types": [
+        "text"
+      ],
+      "thinking_forms": [
+        "unavailable"
+      ],
+      "sent_images": 2,
+      "wire_sha256": "195d3dce64ca3a116f93565121f79f0b0aa738ba97985b30b001395454bea11f",
+      "visible_text": [
+        "The input image was red and the returned image is blue, with a recorded total of 941."
+      ],
+      "tool_calls": []
+    }
+  ],
+  "whole_cases": 0,
+  "paratera_calls": 0,
+  "deepseek_calls": 0
+}
