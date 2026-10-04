@@ -111,7 +111,8 @@
 - 普通 `git commit` 的全索引刷新在共享文件系统长时间停留；只终止本会话该进程，核对暂存范围后改用 `write-tree`／`commit-tree`／`update-ref`，产生正常父子提交，不改写历史。
 - `365629cf`：72 次对照及原始证据、SSE 独立核对、完整检查首轮结果。原 pytest 日志／XML 保留输出尾空格，代码及文档的差异检查通过。
 - `2d10812d`：仅在测试内恢复历史旧工具入口，保留原 75 步断言，并新增生产目录／写权限反例。
-- 最后一笔交付提交：消息分组补核查、4 项补测与 447 项覆盖、最终报告与清理记录。提交号以本分支 HEAD 为准。
+- `8b9281bd`：消息分组补核查、4 项补测、447 项覆盖、最终结果报告与临时目录清理记录。
+- 最后一笔交付提交仅更新交接与凭据核查索引，提交号以本分支 HEAD 为准。
 
 ## 交付边界与后续
 
@@ -120,4 +121,4 @@
 - 生产源码、Agent 版本及两底座公共工具保持原样；本分支仅新增实验、证据及历史测试兼容修正。未修改禁区文件；未合入 main，未推送。
 - [配额与归档独立核对](delivery_check.json) 确认每次发送前都在双上限内，最大“累计实耗＋预留”为 4,833,565 token，72 份原始请求／回执无遗漏、无未知在途请求。凭据核查见 [credential_check.json](credential_check.json)。
 
-复核 B 只需将 `sequence_evidence.tar.gz` 的成员解入本实验目录的 `probe/`，再以本树 `PYTHONPATH` 执行 `summarize_probe.py` 和 `verify_sse_sdk.py`，均不发请求。不要将 `sequence_probe.py prepare/run` 当作离线复核入口。完整检查入口为 `validate.py all`；合并覆盖脚本为 `finalize_validation.py`。原始失败日志保留，临时运行的关键报告已压缩归档；清理完成情况见 [清理记录](cleanup.json)。
+复核 B 只需将 `sequence_evidence.tar.gz` 的成员解入本实验目录的 `probe/`，再以本树 `PYTHONPATH` 执行 `summarize_probe.py` 和 `verify_sse_sdk.py`，均不发请求。不要将 `sequence_probe.py prepare/run` 当作离线复核入口。完整检查入口为 `validate.py all`；合并覆盖脚本为 `finalize_validation.py`。原始失败日志保留，临时运行的关键报告已压缩归档；本包 `.tmp/` 已全部删除，见 [清理记录](cleanup.json)。合并覆盖脚本也已在清理后仅靠归档重新运行通过。
