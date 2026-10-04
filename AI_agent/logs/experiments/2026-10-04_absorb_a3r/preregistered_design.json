@@ -1,0 +1,43 @@
+{
+  "added_lines_per_step": 250,
+  "arm_order": [
+    [
+      "baseline",
+      "stream",
+      "identity"
+    ],
+    [
+      "identity",
+      "stream",
+      "baseline"
+    ]
+  ],
+  "arms": [
+    "baseline",
+    "stream",
+    "identity"
+  ],
+  "decision": "Adopt only if post-first-step weighted cache fraction gains >20 percentage points overall and in each replicate, without service failures; otherwise leave production unchanged.",
+  "initial_lines": 1200,
+  "output_limit": 256,
+  "replicates": 2,
+  "request_limit": 80,
+  "response_to_next_start_seconds": 45,
+  "scope": "Synthetic growing text conversations, about 30k input tokens initially and 6k per step. Not a BIM run, image/tool workload or test of model quality. No automatic fourth arm or additional requests.",
+  "sequence_ids": {
+    "baseline_0": "0d267d7f66793cea8d52e80c6555e402",
+    "baseline_1": "31c775611cf01ed07f389a366272f359",
+    "identity_0": "b3176f5cccd07211fad956be264894d4",
+    "identity_1": "3bae7d10b6bc52abecae4462c68ac448",
+    "stream_0": "b8dfdb0eb2c16808c95458d238d91ffd",
+    "stream_1": "76e346757c290146bf62b3ccbf1315cf"
+  },
+  "steps": 12,
+  "token_limit": 5000000,
+  "user_ids": {
+    "0": "7a41a2fd6715ffc693ec1ee7e4d95535",
+    "1": "26dd6606e9fb9eeedf4445b095c065e5"
+  },
+  "version": "a3r-v1",
+  "design_sha256": "9f3fa8e98f33af3c26c381f3c16498f30f032b6e4dc1b7ca588f93eacd51d6a9"
+}
