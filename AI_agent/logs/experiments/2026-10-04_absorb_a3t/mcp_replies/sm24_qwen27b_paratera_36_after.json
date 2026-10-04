@@ -1,0 +1,748 @@
+{
+  "drawing_differences": {
+    "file": "plan_drafts/draft_004/drawing_differences.json",
+    "sha256": "20a2c9f2e2fc82abed5b3aeb593258b5875ef049f74ebc27afd207a4f2aa26a7",
+    "status": "reported",
+    "total": 1,
+    "counts": {
+      "opening_offset_from_gap": 1
+    },
+    "items": [
+      {
+        "type": "opening_offset_from_gap",
+        "opening": "D1",
+        "divider": "P1",
+        "declared": {
+          "axis": "horizontal",
+          "y_px": 298,
+          "x_px": [
+            408,
+            455
+          ],
+          "y_m": 4.06,
+          "x_m": [
+            4.41,
+            5.7
+          ]
+        },
+        "gap": {
+          "axis": "horizontal",
+          "y_px": 298,
+          "x_px": [
+            410,
+            449
+          ],
+          "y_m": 4.06,
+          "x_m": [
+            4.46,
+            5.54
+          ]
+        },
+        "end_offsets_m": [
+          -0.06,
+          0.17
+        ],
+        "look_box": [
+          378,
+          269,
+          485,
+          328
+        ],
+        "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps."
+      }
+    ],
+    "truncated": false,
+    "meaning": "Places where the original's ink and this declaration disagree, to check in the original (look_box): revise only with evidence, or keep the object and say why. Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.",
+    "scope": "Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; exterior walls, windows, single-line walls and heights are not checked.",
+    "full_list": "inspect_plan_draft(draft_id) returns every item of that draft"
+  },
+  "plan_input": {
+    "plan_file": "plan_drafts/draft_004/plan.json",
+    "plan_sha256": "6e9be9339661789528ad4b5aca0bb7d2809c58cfb47e0919fd4ab1e9f51ef601",
+    "image": "1f_view.png",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "geometry_feedback": {
+      "file": "plan_drafts/draft_004/geometry_feedback.json",
+      "sha256": "d7801aa87e8b69fa6b0e8fa94cb4dac0e81c9ad8d7dd31bf3002f318a8b6040c",
+      "unit": "m",
+      "floor_id": "F1",
+      "metres_per_pixel": {
+        "x": 0.027548209366391185,
+        "y": 0.027510316368638238
+      },
+      "axis_orientation": {
+        "world_east_toward": "image_right",
+        "world_north_toward": "image_bottom",
+        "check": "These anchors put world north toward the bottom and east toward the right of the image. Unless this drawing's north arrow or labels show that orientation, the plan is mirrored; source overlays reuse your anchors and cannot reveal it."
+      },
+      "footprint_bounds_m": [
+        [
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "footprint_span_m": [
+        10.0,
+        20.0
+      ],
+      "z_floor_m": 0,
+      "ceiling_height_m": 4.5,
+      "drawing_fidelity": "not_evaluated",
+      "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+      "opening_count": 1,
+      "openings_returned": 1,
+      "openings_truncated": false,
+      "opening_dimensions": [
+        {
+          "id": "D1",
+          "width_m": 1.2947658402203857,
+          "z_m": [
+            0,
+            2.1
+          ]
+        }
+      ]
+    },
+    "draft_view": {
+      "image_file": "plan_drafts/draft_004/draft_view.png",
+      "image_sha256": "e7877050375c55aa2330532e16075b17b02f3358b457891e5ee88cf89aecf392",
+      "metadata_file": "plan_drafts/draft_004/draft_view.json",
+      "metadata_sha256": "453de2176dcbe443a8d629969c99d777544b00c14930e32c10c67681bc74113e",
+      "draft_only": true,
+      "drawing_fidelity": "not_evaluated",
+      "source_geometry_ready": false,
+      "unrenderable_count": 0,
+      "unrenderable": []
+    },
+    "compilation_file": "plan_drafts/draft_004/compilation.json",
+    "compilation_sha256": "5cd7bee7ad5c733c24236b5bd46d4b0c342e978abc7476b75e82b3ea8f9be7c3"
+  },
+  "candidate": "candidate_01",
+  "remaining_seconds": null,
+  "mode": "agent_geometry_proposal",
+  "status": "not_evaluated",
+  "source_geometry_ready": true,
+  "model_calls": 0,
+  "solver_calls": 0,
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "source_geometry_self_consistency": {
+    "status": "pass",
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "findings": []
+  },
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "e68be6f6c191cf78cd39ed892fdbed2b0f8f64ff7e0ed70de44a4aa8847c2f1d",
+  "provenance": {
+    "input_manifest_sha256": "cc7c9b6bbca7a8bf323e5fd4716aa10f4f248fc4e4d1b4eaa8653e0462e72b2e",
+    "mode": "runtime_original_inputs",
+    "generator": "runtime subscription tool loop"
+  },
+  "agent_assumptions": [
+    "t",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  },
+  "counts": {
+    "spaces": 2,
+    "boundaries": 12,
+    "openings": 1,
+    "connections": 1,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "source_model_sha256": "36a9bedcc63bde878cde22e5279964575865a5e7ea0ae06abe1895077c29076f",
+  "candidate_budget": {
+    "limit": 100,
+    "used": 1,
+    "remaining": 99
+  },
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      }
+    ],
+    "no_direct_view_images": [
+      "1f_view.png",
+      "East_view.png",
+      "North_view.png",
+      "South_view.png",
+      "West_view.png"
+    ],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound direct original returns from view_image or paired elevation views are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "plan_compilation": {
+    "mode": "deterministic_plan_partition",
+    "floor_id": "F1",
+    "image_name": "1f_view.png",
+    "image_size": [
+      790,
+      1111
+    ],
+    "space_count": 2,
+    "footprint": {
+      "pixel_polygon": [
+        [
+          248.0,
+          151.0
+        ],
+        [
+          611.0,
+          151.0
+        ],
+        [
+          611.0,
+          878.0
+        ],
+        [
+          248.0,
+          878.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ]
+    },
+    "calibration": {
+      "status": "caller_supplied_not_independently_verified",
+      "world_metres_per_pixel": {
+        "x": 0.027548209366391185,
+        "y": 0.027510316368638238
+      },
+      "x_anchors": [
+        [
+          248.0,
+          0.0
+        ],
+        [
+          611.0,
+          10.0
+        ]
+      ],
+      "y_anchors": [
+        [
+          151.0,
+          0.0
+        ],
+        [
+          878.0,
+          20.0
+        ]
+      ]
+    },
+    "partition_mapping": {
+      "columns": [
+        "partition_id",
+        "pixel_points",
+        "world_points_m"
+      ],
+      "rows": [
+        [
+          "P1",
+          [
+            [
+              248.0,
+              298.5
+            ],
+            [
+              611.0,
+              298.5
+            ]
+          ],
+          [
+            [
+              0.0,
+              4.057772
+            ],
+            [
+              10.0,
+              4.057772
+            ]
+          ]
+        ]
+      ]
+    },
+    "space_mapping": {
+      "columns": [
+        "space_id",
+        "seed",
+        "source_refs"
+      ],
+      "rows": [
+        [
+          "S1",
+          {
+            "id": "S1",
+            "point_pixel": [
+              300.0,
+              220.0
+            ],
+            "source_refs": []
+          },
+          [
+            "image:1f_view.png",
+            "t"
+          ]
+        ],
+        [
+          "F1_S02",
+          null,
+          [
+            "image:1f_view.png",
+            "t"
+          ]
+        ]
+      ]
+    },
+    "opening_hosts": {
+      "columns": [
+        "opening_id",
+        "p1_pixel",
+        "p2_pixel",
+        "width_m"
+      ],
+      "rows": [
+        [
+          "D1",
+          [
+            408.0,
+            298.5
+          ],
+          [
+            455.0,
+            298.5
+          ],
+          1.294766
+        ]
+      ]
+    }
+  },
+  "room_use_review": {
+    "source_model_sha256": "36a9bedcc63bde878cde22e5279964575865a5e7ea0ae06abe1895077c29076f",
+    "summary": {
+      "total_count": 2,
+      "recorded_count": 0,
+      "unrecorded_count": 2,
+      "observed_count": 0,
+      "inferred_count": 0,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [
+      "F1_S02",
+      "S1"
+    ],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [
+      "F1_S02",
+      "S1"
+    ],
+    "unknown_ids_truncated": false,
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "schema_version": "opening_heights_v2",
+    "candidate": "candidate_01",
+    "source_model_sha256": "36a9bedcc63bde878cde22e5279964575865a5e7ea0ae06abe1895077c29076f",
+    "delivery_blocked": false,
+    "summary": {
+      "exterior_count": 0,
+      "located_count": 0,
+      "status_counts": {}
+    },
+    "openings": [],
+    "calibration_problems": [],
+    "note": "Current values, evidence binding and source location, not drawing correctness. A region containing several openings needs individual evidence. Report only.",
+    "table_file": "candidate_01/height_coverage.json"
+  },
+  "facade_counts": {
+    "schema_version": "facade_count_report_v1",
+    "candidate": "candidate_01",
+    "source_model_sha256": "36a9bedcc63bde878cde22e5279964575865a5e7ea0ae06abe1895077c29076f",
+    "delivery_blocked": false,
+    "summary": {
+      "floor_facade_count": 4,
+      "window_status_counts": {
+        "count_mismatch": 4
+      },
+      "door_status_counts": {
+        "count_mismatch": 3,
+        "matches_observed_total": 1
+      },
+      "unused_observation_count": 0
+    },
+    "scopes": [
+      {
+        "floor_id": "F1",
+        "facade": "North",
+        "observation_ids": [
+          "count_01791137548388851765_41c52770266d"
+        ],
+        "window": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [],
+          "missing_count": 1
+        },
+        "door": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [],
+          "missing_count": 1
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "South",
+        "observation_ids": [
+          "count_01791137553659860943_a620994fa330"
+        ],
+        "window": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            2
+          ],
+          "built_opening_ids": [],
+          "missing_count": 2
+        },
+        "door": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [],
+          "missing_count": 1
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "East",
+        "observation_ids": [
+          "count_01791137561041198547_2c515831ba3b"
+        ],
+        "window": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            3
+          ],
+          "built_opening_ids": [],
+          "missing_count": 3
+        },
+        "door": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [],
+          "missing_count": 1
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "West",
+        "observation_ids": [
+          "count_01791137567116968430_419932ee1121"
+        ],
+        "window": {
+          "status": "count_mismatch",
+          "built_count": 0,
+          "observed_counts": [
+            5
+          ],
+          "built_opening_ids": [],
+          "missing_count": 5
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 0,
+          "observed_counts": [
+            0
+          ],
+          "built_opening_ids": [],
+          "missing_count": 0
+        }
+      }
+    ],
+    "unused_observations": [],
+    "unsupported_exterior_boundaries": [],
+    "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+  },
+  "opening_inventory": {
+    "counts": {
+      "door": 1,
+      "passage": 0,
+      "window": 0
+    },
+    "opening_count": 1,
+    "scope": {
+      "actual_openings": "only explicit built source openings are inventoried",
+      "unbuilt_opening_ids": [],
+      "unbuilt_opening_count": 0,
+      "unsupported_observation_count": 0
+    },
+    "floors": [
+      {
+        "floor_id": "F1",
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_count": 1,
+        "columns": [
+          "id",
+          "kind",
+          "space_ids",
+          "plan_endpoints",
+          "z_m",
+          "exterior"
+        ],
+        "rows": [
+          [
+            "D1",
+            "door",
+            [
+              "F1_S02",
+              "S1"
+            ],
+            [
+              [
+                4.407713,
+                4.057772
+              ],
+              [
+                5.702479,
+                4.057772
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ]
+        ]
+      }
+    ],
+    "spaces": {
+      "columns": [
+        "space_id",
+        "floor_id",
+        "opening_count",
+        "counts"
+      ],
+      "rows": [
+        [
+          "F1_S02",
+          "F1",
+          1,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 0
+          }
+        ],
+        [
+          "S1",
+          "F1",
+          1,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 0
+          }
+        ]
+      ]
+    }
+  },
+  "opening_review": "not_reviewed; compare this inventory with distinct drawing marks",
+  "source_image_projections": [
+    {
+      "candidate": "candidate_01",
+      "floor_id": "F1",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "source_model_sha256": "36a9bedcc63bde878cde22e5279964575865a5e7ea0ae06abe1895077c29076f",
+      "anchors": {
+        "x": [
+          [
+            248.0,
+            0.0
+          ],
+          [
+            611.0,
+            10.0
+          ]
+        ],
+        "y": [
+          [
+            151.0,
+            0.0
+          ],
+          [
+            878.0,
+            20.0
+          ]
+        ]
+      },
+      "box_original_pixels": [
+        0,
+        0,
+        790,
+        1111
+      ],
+      "original_size": [
+        790,
+        1111
+      ],
+      "returned_size": [
+        790,
+        1111
+      ],
+      "original_pixels_per_returned_pixel": [
+        1.0,
+        1.0
+      ],
+      "overlay_image": "image_overlays/overlay_012.png",
+      "legend": {
+        "magenta": "source representative boundary",
+        "blue": "declared wall faces; evidence status in metadata",
+        "green": "window",
+        "orange": "door/open aperture",
+        "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+        "red": "D#:S original dimension start evidence point",
+        "cyan": "D#:E original dimension end evidence point"
+      },
+      "out_of_image": {
+        "space_ids": [],
+        "opening_ids": [],
+        "wall_reference_ids": []
+      },
+      "calibration_unverified": true,
+      "drawing_fidelity": "not_evaluated",
+      "automatic_projection": true,
+      "trigger_action": "build_plan_bim",
+      "reused_calibration": {
+        "calibration_id": "calibration_007",
+        "registered_by_candidate": "candidate_01"
+      }
+    }
+  ],
+  "projection_errors": [],
+  "source_plan_views": [
+    {
+      "source_model_sha256": "36a9bedcc63bde878cde22e5279964575865a5e7ea0ae06abe1895077c29076f",
+      "floor_id": "F1",
+      "space_ids": [
+        "F1_S02",
+        "S1"
+      ],
+      "opening_ids": [
+        "D1"
+      ],
+      "world_bounds_m": {
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          0.0,
+          20.0
+        ]
+      },
+      "scope": "actual saved source plan; no original calibration, height verification or drawing-fidelity verdict",
+      "candidate": "candidate_01",
+      "plan_image": "candidate_01/plan_F1.png"
+    }
+  ],
+  "source_plan_errors": [],
+  "details_file": "tool_reports/build_bim_8ce8320cc4450f0bbbe7bfdd11d752b8ff0ba98da321ff3c8b389600187a3142.json",
+  "details_sha256": "8ce8320cc4450f0bbbe7bfdd11d752b8ff0ba98da321ff3c8b389600187a3142",
+  "details_read": "read_candidate_items(candidate=\"\", collection=\"report\", report_file=details_file); offset/limit page by characters."
+}

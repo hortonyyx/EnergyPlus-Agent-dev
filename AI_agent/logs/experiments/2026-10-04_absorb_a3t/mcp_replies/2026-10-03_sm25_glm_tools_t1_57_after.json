@@ -1,0 +1,134 @@
+{
+  "drawing_differences": {
+    "file": "plan_drafts/draft_002/drawing_differences.json",
+    "sha256": "af610a1338f7e719aa75c37ff8d2496065601abd69c18caa1a85b6a31bbda62d",
+    "status": "reported",
+    "total": 2,
+    "counts": {
+      "undeclared_wall_line": 1,
+      "wall_gap_without_opening": 1
+    },
+    "items": [
+      {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 963,
+        "x_px": [
+          524,
+          692
+        ],
+        "y_m": 5.88,
+        "x_m": [
+          5.24,
+          8.87
+        ],
+        "length_m": 3.63,
+        "drawn_thickness_m": 0.24,
+        "look_box": [
+          487,
+          926,
+          729,
+          1001
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      {
+        "type": "wall_gap_without_opening",
+        "divider": "P_corrS",
+        "axis": "horizontal",
+        "y_px": 582,
+        "x_px": [
+          699,
+          789
+        ],
+        "y_m": 14.11,
+        "x_m": [
+          9.02,
+          10.97
+        ],
+        "gap_m": 1.97,
+        "look_box": [
+          662,
+          545,
+          826,
+          620
+        ],
+        "check": "A stretch of this declared divider without ink that no declared opening occupies."
+      }
+    ],
+    "truncated": false,
+    "meaning": "Places where the original's ink and this declaration disagree, to check in the original (look_box): revise only with evidence, or keep the object and say why. Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.",
+    "scope": "Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; exterior walls, windows, single-line walls and heights are not checked.",
+    "full_list": "inspect_plan_draft(draft_id) returns every item of that draft"
+  },
+  "plan_input": {
+    "plan_file": "plan_drafts/draft_002/plan.json",
+    "plan_sha256": "6264cbd9644a99373faf0ee82cbf03cb30154c82d83d542d25525690463bbf8d",
+    "image": "1f_view.png",
+    "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "field_aliases": [
+      "plan.space_seeds[0].pixels accepted as plan.space_seeds[0].point; coordinates unchanged.",
+      "plan.space_seeds[1].pixels accepted as plan.space_seeds[1].point; coordinates unchanged.",
+      "plan.space_seeds[2].pixels accepted as plan.space_seeds[2].point; coordinates unchanged.",
+      "plan.space_seeds[3].pixels accepted as plan.space_seeds[3].point; coordinates unchanged.",
+      "plan.space_seeds[4].pixels accepted as plan.space_seeds[4].point; coordinates unchanged.",
+      "plan.space_seeds[5].pixels accepted as plan.space_seeds[5].point; coordinates unchanged.",
+      "plan.space_seeds[6].pixels accepted as plan.space_seeds[6].point; coordinates unchanged.",
+      "plan.space_seeds[7].pixels accepted as plan.space_seeds[7].point; coordinates unchanged.",
+      "plan.space_seeds[8].pixels accepted as plan.space_seeds[8].point; coordinates unchanged.",
+      "plan.space_seeds[9].pixels accepted as plan.space_seeds[9].point; coordinates unchanged.",
+      "plan.space_seeds[10].pixels accepted as plan.space_seeds[10].point; coordinates unchanged.",
+      "plan.space_seeds[11].pixels accepted as plan.space_seeds[11].point; coordinates unchanged.",
+      "plan.space_seeds[12].pixels accepted as plan.space_seeds[12].point; coordinates unchanged.",
+      "plan.space_seeds[13].pixels accepted as plan.space_seeds[13].point; coordinates unchanged.",
+      "plan.space_seeds[14].pixels accepted as plan.space_seeds[14].point; coordinates unchanged."
+    ],
+    "submitted_plan_file": "plan_drafts/draft_002/submitted_plan.json",
+    "submitted_plan_sha256": "c0f7f94dccb58b51b5292e8744fbc27e6e1f5c5c6e6f8c2b481c80973e00f90c",
+    "measurement_bindings": {
+      "file": "plan_drafts/draft_002/measurement_bindings.json",
+      "sha256": "8b87e68d1dc945d30bfa958e5d338f846cea274c0cbfa17b68412919a79f2d1c",
+      "count": 0,
+      "length_count": 0
+    },
+    "geometry_feedback": {
+      "status": "unavailable",
+      "reason": "'int' object is not iterable"
+    },
+    "draft_view": {
+      "image_file": "plan_drafts/draft_002/draft_view.png",
+      "image_sha256": "2a84c767ce2645a3cc7864449f7c10e76bea868b51b663578515f1186cd5c590",
+      "metadata_file": "plan_drafts/draft_002/draft_view.json",
+      "metadata_sha256": "2c3031a3caa3f2d09c5fb6912225d5ad375acbd0c85bf269cddec40c6a82d892",
+      "draft_only": true,
+      "drawing_fidelity": "not_evaluated",
+      "source_geometry_ready": false,
+      "unrenderable_count": 0,
+      "unrenderable": []
+    }
+  },
+  "status": "error",
+  "error": "partition P_corrN.source_refs must be a list of strings with at least one item",
+  "repair_hint": {
+    "path": "plan.partitions[0]",
+    "example": {
+      "id": "P_corrN",
+      "points": [
+        [
+          10,
+          20
+        ],
+        [
+          40,
+          20
+        ]
+      ],
+      "source_refs": [
+        "image: observed wall"
+      ]
+    },
+    "note": "Minimum item format only; replace example coordinates and evidence with observations. No geometry was adjusted."
+  },
+  "remaining_seconds": null,
+  "source_geometry_ready": false
+}
