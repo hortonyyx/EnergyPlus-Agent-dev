@@ -44,7 +44,7 @@ def test_same_run_preserves_height_confirmation_across_use_edit_then_accepts_exp
             row = _window_claim(toolkit)
             _confirm_window(toolkit, row["id"], {"z": {"claim": row["id"], "value": "height"}})
         elif kwargs["name"] == "continuation_02":
-            assert current_delivery(toolkit)["height_coverage"]["summary"]["image_linked_count"] == 1
+            assert current_delivery(toolkit)["height_coverage"]["openings"][0]["evidence"][0]["claim_id"] == "claim_0001"
             record_work_review(toolkit, "seed", "continue", "Use remains unexamined", "Record explained unknown")
             identity = read(run / "seed/source_model.json")["spaces"][0]["id"]
             result = toolkit.revise("seed", json.dumps([dict(op="set_space_role", space_id=identity,
@@ -54,7 +54,7 @@ def test_same_run_preserves_height_confirmation_across_use_edit_then_accepts_exp
             runner.dump(run / "delivery_selection.json", {"candidate": result["candidate"]})
         elif kwargs["name"] == "continuation_03":
             delivery = current_delivery(toolkit)
-            assert delivery["height_coverage"]["summary"]["image_linked_count"] == 1
+            assert delivery["height_coverage"]["openings"][0]["evidence"][0]["claim_id"] == "claim_0001"
             assert delivery["room_use_review"]["summary"]["unknown_count"] == 1
             record_work_review(toolkit, delivery["candidate"], "stop", "Other rooms outside scope; internal height unavailable")
         row = receipt()
@@ -73,7 +73,8 @@ def test_same_run_preserves_height_confirmation_across_use_edit_then_accepts_exp
     assert summary["continuation"]["task_completion"] == "not_certified"
     assert [t["persisted_source_or_evidence_changed"] for t in summary["continuation"]["turns"]] == [True, True, False]
     assert delivery["generation_status"]["continuation"] == summary["continuation"]
-    assert delivery["height_coverage"]["summary"]["unchecked_height_opening_ids"] == ["door"]
+    assert delivery["height_coverage"]["summary"]["status_counts"] == {"missing": 1}
+    assert delivery["height_coverage"]["openings"][0]["evidence"][0]["binding"] == "confirmation"
     assert not read(args.out / "work_turn.json")["active"]
     before, after = read(args.out / "seed/source_model.json"), read(args.out / delivery["source_model"])
     for field in ("floors", "boundaries", "openings", "connections", "opening_hosts", "boundary_relations"):

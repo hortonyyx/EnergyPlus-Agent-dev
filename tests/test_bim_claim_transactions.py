@@ -113,6 +113,25 @@ def test_multi_target_only_unchanged_target_inherits(tmp_path):
     assert state["missing_bindings"] == [["height", "window", "second"]]
 
 
+def test_changed_saved_view_prevents_inheriting_unchanged_target(tmp_path):
+    from tests.test_bim_view_references import viewed
+    run, toolkit = setup_run(tmp_path)
+    view = viewed(toolkit, [0, 4, 4, 7])
+    row = adopt(toolkit, claim(objects=[dict(kind="window", id="window")],
+        sources=[view["source_reference"]],
+        values={"height": dict(type="literal", value=[1, 2], unit="m")}))
+    candidate = notes(toolkit)
+    path = run / "image_views" / (view["view_id"] + ".json")
+    changed = json.loads(path.read_text())
+    changed["box_original_pixels"] = [0, 0, 12, 8]
+    path.write_text(json.dumps(changed))
+    result = transaction(toolkit, candidate, [dict(claim_id=row["id"], action="confirm",
+        operations=[window_check(row["id"])])])
+    assert result["status"] == "failed"
+    assert "source_view_changed" in result["entries"][0]["inheritance"][0]["targets"][0]["reasons"]
+    assert not list((run / "claims").glob("confirmation_*.json"))
+
+
 def test_retraction_cannot_be_implicitly_undone_by_transaction(tmp_path):
     run, toolkit = setup_run(tmp_path)
     row = window_claim(toolkit)

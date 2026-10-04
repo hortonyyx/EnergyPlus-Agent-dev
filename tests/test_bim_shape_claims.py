@@ -83,11 +83,11 @@ def test_height_coverage_is_exposed_in_mcp_and_delivery(tmp_path):
             report = _json_result(await session.call_tool('check_openings', {
                 'candidate': 'seed', 'heights_only': True}))
             coverage = report['height_coverage']
-            assert {row['opening_id'] for row in coverage['openings']} == {'window', 'door'}
-            assert all(row['coverage_state'] == 'unchecked' for row in coverage['openings'])
+            assert {row['opening_id'] for row in coverage['openings']} == {'window'}
+            assert all(row['status'] == 'missing' for row in coverage['openings'])
         delivery = toolkit.delivery('seed', selection_origin='test')
         assert 'height_coverage' in delivery_tool_reply(delivery)
-        assert '开口高度观察范围' in (run/'delivery.html').read_text()
+        assert '逐开口高度表' in (run/'delivery.html').read_text()
     asyncio.run(scenario())
 
 

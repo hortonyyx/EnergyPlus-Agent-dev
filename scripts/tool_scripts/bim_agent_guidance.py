@@ -117,8 +117,9 @@ a chain measuring one opening does not measure another. Openings of a different
 size or shape keep their own heights unless the elevation shows otherwise.
 Use view_elevation_candidate with observed anchors to locate the source openings;
 claim source boxes must cover those openings, not only an adjacent dimension chain.
-located_height_coverage reports unlocated heights and shared heights on different
-widths; a whole-image citation is unlocalized. Internal door heights without a
+height_coverage is one row per exterior opening: located/applied, located/confirmed,
+assumed or missing. A region covering several openings requires per-opening
+confirmation; whole-image citations are unlocalized. Internal door heights without a
 drawing are assumptions.
 """
 
@@ -294,10 +295,9 @@ East/West and absolute z; keep these original references fixed after revisions.
 Inspect the opening outline and its own dimension chain where the overlay differs.
 Plan views
 cannot reveal height errors. check_openings(candidate, heights_only=true) returns height_coverage
-by floor/facade from current z claim bindings. Check each floor's own dimension
-origin; viewing a facade alone covers no opening heights. Confirm matching
-heights before revising others; report any heights still unlinked to image
-observations. Examine the supplied views relevant to unresolved
+with actual z, status, claim IDs and views per exterior opening. Check each
+floor's own dimension origin; viewing a facade confirms no heights. A shared
+source region needs individual located evidence. Report remaining missing heights. Examine the supplied views relevant to unresolved
 geometry, and record any views or regions left unexamined.
 inputs, build results, check_openings and finish_bim include input_view_status:
 it counts this run's direct view_image and paired-elevation original returns bound to the admitted image
@@ -1161,6 +1161,14 @@ is separate. Include observed zero. Counts cover the WHOLE named floor/facade,
 not just a crop. Re-record to correct the same scope; different images are
 compared, never summed. facade_counts reports missing/conflicting totals and
 unresolved scopes on saves/checks/delivery; matching counts prove no positions.
+
+The height_coverage table has one row per exterior opening with absolute z,
+status (located_applied/located_confirmed/assumed/missing), claim IDs and source
+views. Location needs that facade's explicit elevation calibration and a source
+region containing this opening. A region containing several openings is marked
+needs_per_opening_confirmation, even when numbers match; narrow/replace the
+source with each opening's own evidence. Internal heights remain in the source
+inventory. Status is not proof that a dimension chain was read correctly.
 
 claim_status(candidate) reports confirmed_unchanged, applied_current,
 pending_application, partially_satisfied, changed_since_check and decisions,

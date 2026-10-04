@@ -121,7 +121,7 @@ def test_same_existing_mcp_tool_accepts_counts_without_candidate_or_new_tool(tmp
         with patch.object(FastMCP, "run", lambda s: servers.append(s)):
             runner.serve(run)
         server = servers[0]
-        assert len(await server.list_tools()) == 42
+        assert len(await server.list_tools()) == 43
         result = await server.call_tool("record_claim", {"claim_json": json.dumps(count())})
         assert not result.isError
         assert result.structuredContent["observation_type"] == "facade_count"

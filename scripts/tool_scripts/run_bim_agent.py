@@ -469,12 +469,6 @@ def delivery_tool_reply(result: dict) -> dict:
         return len(json.dumps(value, ensure_ascii=False, indent=2)) <= 18000
 
     reply = {k:v for k,v in result.items() if k != 'opening_inventory'}
-    if 'height_coverage' in reply:
-        from src.agent.execution.bim_height_coverage import compact_height_coverage
-        reply['height_coverage'] = compact_height_coverage(reply['height_coverage'])
-    if 'located_height_coverage' in reply and 'openings' in reply['located_height_coverage']:
-        from scripts.tool_scripts.bim_agent_facade_checks import compact_located_heights
-        reply['located_height_coverage'] = compact_located_heights(reply['located_height_coverage'])
     if fits(reply):
         return reply
     large = {'facade_inventory', 'opening_review_scopes', 'facade_review_scopes',
@@ -490,16 +484,6 @@ def delivery_tool_reply(result: dict) -> dict:
         'drawing_fidelity': 'not_evaluated',
     }
     height = result.get('height_coverage')
-    if height is not None:
-        compact['height_coverage'] = {key: height[key] for key in
-            ('candidate', 'summary', 'drawing_fidelity', 'delivery_blocked', 'note') if key in height}
-        compact['height_coverage']['floor_facade_summary'] = [{
-            'floor_id': floor['floor_id'], 'facade': scope.get('facade'),
-            'opening_count': len(scope['actual_opening_ids']),
-            'image_linked_count': len(scope['image_evidence_linked_opening_ids']),
-            'unchecked_count': len(scope['unchecked_height_opening_ids']),
-        } for floor in height.get('floors', [])
-            for scope in [*floor['facades'], floor['non_facade']]]
     projection = result.get('source_image_feedback', {})
     compact['source_image_feedback_summary'] = {key + '_count': len(projection.get(key, [])) for key in (
         'current_source_projections', 'old_source_projections', 'projection_errors',
@@ -543,20 +527,14 @@ def delivery_tool_reply(result: dict) -> dict:
         floors = result['floor_completeness']
         minimal['floor_completeness'] = {key: floors[key] for key in (
             'complete_building', 'missing_candidate_images', 'floor_scope_source')}
-    if 'located_height_coverage' in result:
-        located = result['located_height_coverage']
-        minimal['located_height_coverage'] = {key: located[key] for key in (
-            'summary', 'unchecked_opening_ids', 'priority_opening_ids', 'delivery_blocked') if key in located}
     if 'facade_counts' in result:
         counts = result['facade_counts']
         minimal['facade_counts'] = {key: counts[key] for key in ('summary', 'delivery_blocked', 'status', 'reason') if key in counts}
         minimal['facade_counts']['full_scopes'] = 'delivery.json:facade_counts.scopes'
     if height is not None:
-        summary = height['summary']
-        minimal['height_coverage'] = {'summary': {key: summary[key] for key in
-            ('total_count', 'image_linked_count', 'non_image_linked_count')},
-            'unchecked_count': len(summary['unchecked_height_opening_ids']),
-            'drawing_fidelity': 'not_evaluated'}
+        minimal['height_coverage'] = {key: height[key] for key in
+            ('schema_version', 'candidate', 'summary', 'table_file', 'status', 'reason') if key in height}
+        minimal['height_coverage']['details'] = 'Full per-opening table in table_file or delivery.json'
     views = result.get('input_view_status', {})
     minimal['input_view_summary'] = {
         'no_direct_view_count': len(views.get('no_direct_view_images', [])),
@@ -618,7 +596,7 @@ class Toolkit:
             raise ValueError("only the coordinator may confirm candidate claims")
         from src.agent.execution.bim_claim_state import confirm
         result = confirm(self.claims(), candidate, json.loads(operations_json))
-        result["located_height_coverage"] = self.located_heights(candidate)
+        result["height_coverage"] = self.located_heights(candidate)
         self.log("confirm_claims", result)
         return result
 
@@ -715,7 +693,7 @@ class Toolkit:
         dump(application_path, application)
         if result.get("candidate"):
             dump(self.candidate_path(result["candidate"]) / "application.json", application)
-            result["located_height_coverage"] = self.located_heights(result["candidate"])
+            result["height_coverage"] = self.located_heights(result["candidate"])
         self.log("claim_application", application)
         result["claim_application"] = application
         # Keep the saved provenance and its source digest unchanged. Only the
@@ -743,10 +721,12 @@ class Toolkit:
         return max(0, round(deadline - time.time())) if deadline else None
 
     def located_heights(self, candidate, current_state=None, *, compact=True):
-        from scripts.tool_scripts.bim_agent_facade_checks import located_height_report, compact_located_heights
+        from scripts.tool_scripts.bim_agent_facade_checks import located_height_report
         try:
             report = located_height_report(self, candidate, current_state)
-            return compact_located_heights(report) if compact else report
+            report["table_file"] = str((self.candidate_path(candidate) / "height_coverage.json").relative_to(self.run))
+            dump(self.run / report["table_file"], report)
+            return report
         except (OSError, ValueError, KeyError, TypeError) as error:
             # Advisory calculations must not turn a successful save into a failed build.
             return {"status": "unavailable", "reason": str(error), "delivery_blocked": False}
@@ -824,9 +804,7 @@ class Toolkit:
         from src.agent.execution.bim_claim_state import project
         current_claims = project(self.claims(), candidate)
         result["current_claim_state"] = current_claims
-        from src.agent.execution.bim_height_coverage import height_coverage
-        result["height_coverage"] = height_coverage(self.claims(), candidate, current_claims)
-        result["located_height_coverage"] = self.located_heights(candidate, current_claims, compact=False)
+        result["height_coverage"] = self.located_heights(candidate, current_claims)
         result["facade_counts"] = self.facade_counts(candidate)
         from scripts.tool_scripts.bim_agent_budget import saved_floor_status
         result["floor_completeness"] = saved_floor_status(self, candidate)
@@ -876,37 +854,22 @@ class Toolkit:
             facade_table += '<p>清点报告暂不可用：' + html.escape(count_report['reason']) + '</p>'
         if count_report.get('unused_observations') or count_report.get('unsupported_exterior_boundaries'):
             facade_table += '<p>部分观察无法绑定当前楼层/立面或原图已变化，或外墙方向未确定；详见 delivery.json 的 facade_counts。</p>'
+        heights = result['height_coverage']
+        height_labels = {'located_applied': '有定位依据，已应用', 'located_confirmed': '有定位依据，已确认',
+                         'assumed': '假设／声明', 'missing': '缺少逐扇定位依据'}
         height_rows = ''.join(
-            f'<tr><td>{html.escape(floor["floor_id"])}</td>'
-            f'<td>{html.escape(facades.get(scope.get("facade"), "内部/未确定方向"))}</td>'
-            f'<td>{len(scope["actual_opening_ids"])}</td>'
-            f'<td>{len(scope["image_evidence_linked_opening_ids"])}</td>'
-            f'<td>{html.escape(", ".join(scope["unchecked_height_opening_ids"]) or "—")}</td></tr>'
-            for floor in result['height_coverage']['floors']
-            for scope in [*floor['facades'], floor['non_facade']])
-        height_table = ('<h2>开口高度观察范围</h2><p>按实际开口的当前高度引用统计；'
-            '图像依据已关联不代表图意已独立验证。推断/声明仍列入未关联图像范围；'
-            '零个已建开口不证明图纸没有开口。</p><table>'
-            '<tr><th>楼层</th><th>立面</th><th>已建</th><th>高度图像依据已关联</th>'
-            f'<th>高度尚未关联图像依据</th></tr>{height_rows}</table>')
-        located = result['located_height_coverage']
-        located_labels = {'no_height_observation': '没有当前高度图证',
-                          'no_elevation_calibration': '缺少本立面标定，无法核对位置',
-                          'whole_image_only': '只有整图引用，未定位到此开口',
-                          'outside_source_region': '开口不在高度依据框内',
-                          'source_image_changed': '原图已变化'}
-        located_rows = ''.join(
-            f'<tr><td>{html.escape(row["opening_id"])}</td><td>{html.escape(str(row["facade"]))}</td>'
-            f'<td>{html.escape(", ".join(row["floor_ids"]))}</td><td>{row["width_m"]}</td>'
-            f'<td>{located_labels.get(row["status"], row["status"])}</td>'
-            f'<td>{"同一高度套到不同窗宽，请重点核对" if row["shared_height_across_widths"] else "窗宽与同面其他窗明显不同" if row.get("distinct_width_on_facade") else "—"}</td></tr>'
-            for row in located.get('openings', []) if row['status'] != 'covered')
-        height_table += ('<h2>逐扇高度依据定位</h2><p>只报告待核范围，不断言高度有误，也不阻止交付。'
-                         '需要本立面标定和覆盖该开口的局部高度依据框；整图引用不能证明逐扇核对。</p>'
-                         '<table><tr><th>开口</th><th>立面</th><th>楼层</th><th>宽度（米）</th><th>待核原因</th><th>重点</th></tr>'
-                         + located_rows + '</table>')
-        if located.get('status') == 'unavailable':
-            height_table += '<p>定位报告暂不可用：' + html.escape(located['reason']) + '</p>'
+            f'<tr><td>{html.escape(row["opening_id"])}</td><td>{html.escape(", ".join(row["floor_ids"]))}</td>'
+            f'<td>{html.escape(str(row["facade"]))}</td><td>{html.escape(str(row["absolute_z_m"]))}</td>'
+            f'<td>{height_labels[row["status"]]}</td>'
+            f'<td>{html.escape("; ".join(e["claim_id"] + ": " + ", ".join(v["image"] for v in e["views"]) for e in row["evidence"]))}</td>'
+            f'<td>{html.escape(", ".join(row["issues"]))}</td></tr>'
+            for row in heights.get('openings', []))
+        height_table = ('<h2>逐开口高度表</h2><p>一行对应一扇外部开口。状态说明数值应用和来源定位，'
+            '不证明读图正确；同一定位框包含多扇时需逐扇确认。假设、缺项与待核原因不阻止交付。</p>'
+            '<table><tr><th>开口</th><th>楼层</th><th>立面</th><th>绝对高度（米）</th>'
+            '<th>状态</th><th>依据与视图</th><th>待核原因</th></tr>' + height_rows + '</table>')
+        if heights.get('status') == 'unavailable':
+            height_table += '<p>高度表暂不可用：' + html.escape(heights['reason']) + '</p>'
         view_labels = {"full_view_returned": "已返回整图", "crop_only_returned": "仅返回局部",
                        "no_direct_view_record": "无直接看图记录"}
         input_rows = ''.join(
@@ -1377,7 +1340,7 @@ class Toolkit:
             from src.agent.roles import room_use_review
             source = json.loads(source_path.read_text())
             result["room_use_review"] = room_use_review(source, include_next_action=False)
-            result["located_height_coverage"] = self.located_heights(candidate)
+            result["height_coverage"] = self.located_heights(candidate)
             result["facade_counts"] = self.facade_counts(candidate)
             result["opening_inventory"] = opening_inventory(source)
             result["opening_review"] = "not_reviewed; compare this inventory with distinct drawing marks"
@@ -2732,9 +2695,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             if heights_only:
                 if review_json:
                     raise ValueError('heights_only cannot submit an opening review')
-                from src.agent.execution.bim_height_coverage import height_coverage, compact_height_coverage
-                result = {"candidate": candidate, "height_coverage": compact_height_coverage(
-                    height_coverage(toolkit.claims(), candidate))}
+                result = {"candidate": candidate}
             elif not review_json:
                 result = {"candidate": candidate, "inventory": opening_inventory(source),
                           "facade_inventory": facade_inventory(source),
@@ -2753,7 +2714,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 dump(target, {**result, "observations": observations})
             result["remaining_seconds"] = toolkit.remaining_seconds()
             result["input_view_status"] = toolkit.input_view_status()
-            result["located_height_coverage"] = toolkit.located_heights(candidate)
+            result["height_coverage"] = toolkit.located_heights(candidate)
             result["facade_counts"] = toolkit.facade_counts(candidate)
             toolkit.log("check_openings", result)
             return result

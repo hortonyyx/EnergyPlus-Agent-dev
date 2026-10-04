@@ -234,6 +234,6 @@ def claim_transaction(toolkit, candidate, entries):
     reply.update(audit_file=str(path.relative_to(toolkit.run)),
                  note="Entries commit independently; failed entries keep their recorded decisions. Numerical consistency is not drawing verification.")
     if current:
-        reply["located_height_coverage"] = toolkit.located_heights(current)
+        reply["height_coverage"] = toolkit.located_heights(current)
     toolkit.log("claim_transaction", reply)
     return reply

@@ -26,7 +26,7 @@ def test_views_distinguish_crop_whole_missing_and_do_not_cover_heights(tmp_path)
     assert status["drawing_fidelity"] == "not_evaluated"
     delivery = toolkit.delivery("seed", selection_origin="agent_selected")
     assert delivery["input_view_status"] == status
-    assert delivery["height_coverage"]["summary"]["image_linked_count"] == 0
+    assert delivery["height_coverage"]["summary"]["located_count"] == 0
     assert "本次原图直接查看记录" in (run / "delivery.html").read_text()
     # Access survives geometry revisions without asserting any height review.
     proposal = json.loads((run / "seed/proposal.json").read_text())
@@ -44,7 +44,7 @@ def test_input_and_height_tools_return_current_access_status(tmp_path):
             result = _json_result(await session.call_tool("check_openings", {
                 "candidate": "seed", "heights_only": True}))
             assert result["input_view_status"]["no_direct_view_images"] == []
-            assert result["height_coverage"]["summary"]["image_linked_count"] == 0
+            assert result["height_coverage"]["summary"]["located_count"] == 0
             finished = _json_result(await session.call_tool("finish_bim", {"candidate": "seed"}))
             assert finished["input_view_status"] == result["input_view_status"]
     asyncio.run(scenario())
