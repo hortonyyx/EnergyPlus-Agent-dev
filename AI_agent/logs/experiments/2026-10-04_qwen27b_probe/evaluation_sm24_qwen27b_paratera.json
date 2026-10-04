@@ -1,0 +1,440 @@
+{
+  "case": "sm24",
+  "run": "AI_agent/logs/experiments/2026-10-04_qwen27b_probe/runs/sm24_qwen27b_paratera",
+  "delivered_candidate": "candidate_06",
+  "selection_origin": "latest_complete_fallback_not_agent_selected",
+  "runtime": {
+    "status": "token_budget_exhausted",
+    "answer_present": false,
+    "receipt_elapsed_seconds": 3838.982229526242,
+    "event_span_seconds": 3831.9,
+    "model_calls": 55,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "Qwen3.8-27B": 55
+    },
+    "usage": {
+      "prompt": 5255982,
+      "completion": 198629,
+      "total": 5454611,
+      "cached": 4275328,
+      "reasoning": 170026,
+      "responses_without_usage": 0
+    },
+    "request_image_attachments": 782,
+    "estimated_yuan_text_only": null,
+    "yuan_note": "Subscription: no usage-based price.",
+    "per_round": {
+      "output_tokens": 3611,
+      "seconds": 69.8
+    },
+    "tool_calls": {
+      "inputs": 1,
+      "view_image": 28,
+      "view_pixel_profile": 13,
+      "get_bim_reference": 3,
+      "build_plan_bim": 4,
+      "inspect_plan_draft": 1,
+      "revise_plan_bim": 5,
+      "record_claim": 14,
+      "decide_claim": 14,
+      "confirm_claims": 4,
+      "view_elevation_candidate": 5,
+      "check_openings": 1,
+      "replace_claim_sources": 4
+    },
+    "tool_outcomes": {
+      "succeeded": 95,
+      "failed": 2
+    },
+    "tool_failures": [
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "token_budget_exhausted",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 55,
+      "settle": 55
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 264,
+      "budget": 110,
+      "adapter_request": 55,
+      "model_response": 55,
+      "tool_invocation": 97,
+      "tool_execution": 97,
+      "tool_presentation": 96,
+      "budget_overrun": 2,
+      "context": 78,
+      "run_usage_summary": 1
+    },
+    "mean_input_per_request": 95563,
+    "cache_share": 0.8134,
+    "agent_version": "t1-20261004-a1t.1",
+    "finalization": {
+      "delivery": {
+        "candidate": "candidate_06",
+        "complete_building": true,
+        "report": "bim/delivery.json",
+        "selection_origin": "latest_complete_fallback_not_agent_selected",
+        "viewer": "bim/delivery.html"
+      },
+      "status": "delivered"
+    },
+    "retries_recovered": []
+  },
+  "quality": {
+    "run": "sm24_qwen27b_paratera",
+    "case": "sm24",
+    "candidate": "candidate_06",
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 21,
+      "connections": 10
+    },
+    "spaces_one_to_one": {
+      "pass_": true,
+      "reference_rooms": 8,
+      "findings": []
+    },
+    "original_openings": {
+      "reference_count": 21,
+      "matched": 21,
+      "positions": 20,
+      "hosts": 21,
+      "door_connections": 10,
+      "unmatched_reference": [],
+      "unmatched_actual": []
+    },
+    "strict_heights": {
+      "tolerance_m": 0.05,
+      "expected": 14,
+      "matched": 14,
+      "within": 14,
+      "pass_": true,
+      "mismatches": [],
+      "unmatched_reference": [],
+      "unmatched_built_exterior": [],
+      "unclassified_exterior": [],
+      "all": [
+        {
+          "opening_id": "D9",
+          "reference_id": "op_ac9",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "D10",
+          "reference_id": "op_ac3",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "D8",
+          "reference_id": "op_ade",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W7",
+          "reference_id": "op_aff",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W5",
+          "reference_id": "op_afc",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W2",
+          "reference_id": "op_aea",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W1",
+          "reference_id": "op_ae1",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W10",
+          "reference_id": "op_af6",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W12",
+          "reference_id": "op_af9",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W9",
+          "reference_id": "op_ae4",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W8",
+          "reference_id": "op_af3",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W6",
+          "reference_id": "op_af0",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W4",
+          "reference_id": "op_aed",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W3",
+          "reference_id": "op_ae7",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        }
+      ]
+    }
+  },
+  "usage_accounting": {
+    "additional_image_tokens": 515088,
+    "billing_modes": [
+      "metered_or_unknown"
+    ],
+    "budget_charge_tokens": 5969699,
+    "by_model": {
+      "Qwen3.8-27B": {
+        "additional_image_tokens": 515088,
+        "billing_modes": [
+          "metered_or_unknown"
+        ],
+        "budget_charge_tokens": 5969699,
+        "cost_estimate_complete": true,
+        "estimated_cost_cny": "9.4359708",
+        "image_tokens_estimate": 515088,
+        "known_cost_components_cny": "9.4359708",
+        "provider_reported_tokens": 5454611,
+        "reported_cache_read_tokens": null,
+        "reported_cache_write_tokens": null,
+        "reported_input_tokens": 5255982,
+        "reported_output_tokens": 198629,
+        "requests": 55,
+        "usage_complete": true
+      }
+    },
+    "by_task": {
+      "coordinator": {
+        "additional_image_tokens": 515088,
+        "billing_modes": [
+          "metered_or_unknown"
+        ],
+        "budget_charge_tokens": 5969699,
+        "cost_estimate_complete": true,
+        "estimated_cost_cny": "9.4359708",
+        "image_tokens_estimate": 515088,
+        "known_cost_components_cny": "9.4359708",
+        "provider_reported_tokens": 5454611,
+        "reported_cache_read_tokens": null,
+        "reported_cache_write_tokens": null,
+        "reported_input_tokens": 5255982,
+        "reported_output_tokens": 198629,
+        "requests": 55,
+        "usage_complete": true
+      }
+    },
+    "cost_estimate_complete": true,
+    "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+    "estimated_cost_cny": "9.4359708",
+    "image_tokens_estimate": 515088,
+    "known_cost_components_cny": "9.4359708",
+    "provider_reported_tokens": 5454611,
+    "reported_cache_read_tokens": null,
+    "reported_cache_write_tokens": null,
+    "reported_input_tokens": 5255982,
+    "reported_output_tokens": 198629,
+    "requests": 55,
+    "usage_complete": true
+  }
+}
