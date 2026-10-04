@@ -284,7 +284,7 @@ def test_semantic_comparison_separates_geometry_hosts_and_connectivity() -> None
     assert comparison["connectivity"]["removed"] == before["connections"]
 
 
-def test_run99_archived_tool_snapshot_replays_saved_delivery_exactly() -> None:
+def test_run99_archived_snapshot_and_current_input_guard_preserve_delivery_exactly() -> None:
     spec = importlib.util.spec_from_file_location("stage1_replay_history", REPLAY_PATH)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -294,16 +294,21 @@ def test_run99_archived_tool_snapshot_replays_saved_delivery_exactly() -> None:
     assert evidence["status"] == "complete"
     assert evidence["snapshot_exact_file_count"] == evidence["file_count"] == 44
     by_path = {row["path"]: row for row in evidence["files"]}
+    # A1-T intentionally adds pre-kernel validation to the exporter. The archive
+    # must still match all 44 original hashes; the unchanged kernel files must
+    # still match too. For the current exporter, protect the actual source and
+    # display bytes below instead of prohibiting every new input check forever.
     assert all(
         by_path[path]["current_matches_snapshot"]
         for path in module.SNAPSHOT_REPLAY_CURRENT_MATCH_PATHS
+        if path != "src/agent/execution/source_proposal.py"
     )
     candidate = json.loads((run / "delivery.json").read_text())["candidate"]
     replay = module.replay_delivered(
         run,
         candidate,
         naming_module=run / "runtime_snapshot/src/agent/geometry/source_naming.py",
-        code_scope="test_archived_snapshot",
+        code_scope="archived_naming_and_current_guarded_exporter_unchanged_kernel",
     )
     assert replay["status"] == "exact"
     assert replay["source_fields_equal"] and replay["display_fields_equal"]

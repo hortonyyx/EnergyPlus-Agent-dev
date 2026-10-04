@@ -134,6 +134,10 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             footprint = getattr(floor, "footprint", None)
             if isinstance(footprint, dict):
                 floor.footprint = FootprintRing.model_validate(footprint)
+        # Check the values the existing schema actually passes to the kernel,
+        # including legacy numeric strings; the original proposal stays intact.
+        from src.agent.geometry.input_scale import check_geometry_scale
+        check_geometry_scale(geom.model_dump(mode="json"))
         source = build_source_bim(
             geom,
             capability_profile="orthogonal_polygon",

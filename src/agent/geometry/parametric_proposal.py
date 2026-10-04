@@ -13,6 +13,8 @@ import math
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
 
+from src.agent.geometry.input_scale import check_floor_placements, check_planar_scale, ring_spans
+
 
 def fields(value, required, optional=()):
     if not isinstance(value, dict):
@@ -77,9 +79,12 @@ def expand_parametric_proposal(plan: dict) -> dict:
         raise ValueError('templates must be a nonempty object')
     if not isinstance(plan['instances'], list) or not 1 <= len(plan['instances']) <= 100:
         raise ValueError('supply 1 to 100 explicit floor/volume instances')
+    check_floor_placements(
+        (f"plan.instances[{i}].z", instance.get('z'), f"plan.instances[{i}].height", instance.get('height'))
+        for i, instance in enumerate(plan['instances']) if isinstance(instance, dict))
     floors, windows, openings, all_points = [], [], [], []
     ids = set()
-    for instance in plan['instances']:
+    for instance_index, instance in enumerate(plan['instances']):
         fields(instance, ('id', 'template', 'z', 'height'), ('spanning_space_ids',))
         fid = identifier(instance['id'])
         if fid in ids:
@@ -90,6 +95,10 @@ def expand_parametric_proposal(plan: dict) -> dict:
             raise ValueError('instance height must be positive')
         template = plan['templates'][instance['template']]
         fields(template, ('footprint', 'spaces'), ('window_rows', 'doors'))
+        check_planar_scale(
+            ring_spans(template['footprint'], f"plan.templates[{instance['template']!r}].footprint"),
+            [(f"plan.instances[{instance_index}].height", height)],
+        )
         footprint = ring(template['footprint'])
         all_points.extend(footprint)
         cells, local_ids = [], set()

@@ -1,0 +1,73 @@
+bringing up nodes...
+bringing up nodes...
+
+.............usage: runner run [-h] [--images IMAGES] [--mesh MESH]
+                  [--image-kind {drawings,mesh_views,photos,unknown}]
+                  [--building-input BUILDING_INPUT] --out OUT [--scope SCOPE]
+                  [--timeout TIMEOUT] [--floor-plan-image FLOOR_PLAN_IMAGES]
+                  [--prepare-only] [--max-candidates MAX_CANDIDATES]
+                  [--continuation-rounds {0,1,2,3,4}] [--review-detail]
+                  [--provider {claude,glm}] [--exploratory-opus]
+                  [--effort {low,medium}]
+                  [--resume-candidate RESUME_CANDIDATE | --resume-plan RESUME_PLAN]
+                  [--plan-image PLAN_IMAGE]
+runner run: error: argument --resume-candidate: not allowed with argument --resume-plan
+................F..................................................................................................................................................................................................................................
+=================================== FAILURES ===================================
+_____ test_mesh_frame_and_overlay_reach_stdio_and_preserve_saved_geometry ______
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+  + Exception Group Traceback (most recent call last):
+  |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/tests/test_bim_agent_mesh.py", line 162, in test_mesh_frame_and_overlay_reach_stdio_and_preserve_saved_geometry
+  |     asyncio.run(scenario())
+  |   File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/tests/test_bim_agent_mesh.py", line 132, in scenario
+  |     async with _server_session(run, readonly=False) as session:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/tests/test_bim_agent_tools.py", line 60, in _server_session
+  |     async with stdio_client(parameters) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "/opt/venv/lib/python3.12/site-packages/mcp/client/stdio/__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "/opt/venv/lib/python3.12/site-packages/mcp/client/stdio/__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/tests/test_bim_agent_tools.py", line 61, in _server_session
+    |     async with ClientSession(read, write) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/opt/venv/lib/python3.12/site-packages/mcp/shared/session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 799, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/tests/test_bim_agent_tools.py", line 63, in _server_session
+      |     yield session
+      |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/tests/test_bim_agent_mesh.py", line 147, in scenario
+      |     assert not overlay.isError, overlay
+      | AssertionError: CallToolResult(meta=None, content=[TextContent(type='text', text='Run deadline reached; no further tool actions. Saved...就交付并列未决。 时间上限已到，停止执行；交最近完整全楼稿，无完整稿则交最近保存稿并标明不完整。', annotations=None, meta=None)], structuredContent=None, isError=True)
+      | assert not True
+      |  +  where True = CallToolResult(meta=None, content=[TextContent(type='text', text='Run deadline reached; no further tool actions. Saved...就交付并列未决。 时间上限已到，停止执行；交最近完整全楼稿，无完整稿则交最近保存稿并标明不完整。', annotations=None, meta=None)], structuredContent=None, isError=True).isError
+      +------------------------------------
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_bim_agent_mesh.py::test_mesh_frame_and_overlay_reach_stdio_and_preserve_saved_geometry
+1 failed, 255 passed in 438.28s (0:07:18)

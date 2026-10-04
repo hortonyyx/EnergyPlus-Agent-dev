@@ -1,0 +1,55 @@
+{
+  "first_replay_summary": {
+    "original_invalid_unchanged": 89,
+    "accepted_unchanged": 137,
+    "known_mm_rejected": 24,
+    "unexpected_scale_rejection": 1
+  },
+  "additional_rejection": {
+    "path": "AI_agent/logs/experiments/2026-09-28_sm21_method_control_run85/plan_drafts/draft_001/plan.json",
+    "run": "2026-09-28_sm21_method_control_run85",
+    "plan_sha256": "79f67db4a2c8e566e2808794826e1b5f475c421e32b7da9d2b089eb5bfd20178",
+    "expected_units": "normal_or_original_invalid",
+    "image": "1f_view.png",
+    "image_size": [
+      2133,
+      1345
+    ],
+    "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "original_compilation_saved": true,
+    "before": {
+      "accepted": true,
+      "output_sha256": "eb60575322f471dd1668f9a857aa55907567f3629bd72ff8d779642699db9a95"
+    },
+    "after": {
+      "accepted": false,
+      "error_type": "ScaleMismatchError",
+      "error": "plan.x_anchors (world values [0.0, 15000.0]): planar span 15000 m is 5000 times plan.ceiling_height=3 m (checks: span >= 5000 m and span/height >= 1000). 坐标看起来是毫米，世界坐标要用米。Check the drawing units and resubmit these world-coordinate fields in metres; no automatic conversion was applied.",
+      "scale_rejected": true
+    },
+    "outcome": "unexpected_scale_rejection"
+  },
+  "independent_normal_reference": {
+    "path": "AI_agent/logs/experiments/2026-09-26_sm21_whole_building_claude_run57/plan_drafts/draft_001/plan.json",
+    "run": "2026-09-26_sm21_whole_building_claude_run57",
+    "plan_sha256": "0938a8eb5bedc03309dfefafbfe658085f522599bfc7dcbf22786725c1229e72",
+    "expected_units": "normal_or_original_invalid",
+    "image": "1f_view.png",
+    "image_size": [
+      2133,
+      1345
+    ],
+    "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "original_compilation_saved": true,
+    "before": {
+      "accepted": true,
+      "output_sha256": "ab92f0a276f0a0d23856195aaf2a622379743019905ad7db7af2c53e9c7d6880"
+    },
+    "after": {
+      "accepted": true,
+      "output_sha256": "ab92f0a276f0a0d23856195aaf2a622379743019905ad7db7af2c53e9c7d6880"
+    },
+    "outcome": "accepted_unchanged"
+  },
+  "finding": "run85 first draft repeats the mm-as-m error: 15000 by 8000 with height 3; run57 uses 15 by 8 for the same original image hash. The repository also has a developer units_run85 correction. Classify this original draft as known misuse; no production thresholds changed."
+}
