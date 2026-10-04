@@ -1,8 +1,8 @@
 """Conservative metre-scale checks at declaration boundaries, never a rescaler.
 
 These are mixed-unit tripwires, not architectural size limits. A horizontal
-extent must be BOTH at least 5 km AND at least 1,000 times the largest declared
-height for that floor. That catches an ordinary 5–50 m plan written in mm while
+extent must be BOTH at least 5 km AND at least 1,000 times the declared floor
+height. That catches an ordinary 5–50 m plan written in mm while
 leaving large halls, long wings, tall spaces and survey-coordinate offsets alone.
 Consecutive floor placements get the same ratio check with a 1 km minimum gap.
 Only lengths/differences count; absolute coordinate magnitudes and prose do not.
@@ -105,8 +105,6 @@ def check_geometry_scale(geometry: dict, *, path: str = "proposal.geometry") -> 
         heights = [(f"{floor_path}.ceiling_height", floor.get("ceiling_height"))]
         cells = floor.get("cells", [])
         cells = cells if isinstance(cells, list) else []
-        heights.extend((f"{floor_path}.cells[{j}].height", cell.get("height"))
-                       for j, cell in enumerate(cells) if isinstance(cell, dict))
         footprint = floor.get("footprint")
         if isinstance(footprint, dict):
             spans = ring_spans(footprint.get("vertices"), f"{floor_path}.footprint.vertices")
@@ -117,7 +115,7 @@ def check_geometry_scale(geometry: dict, *, path: str = "proposal.geometry") -> 
             if not isinstance(cell, dict):
                 continue
             cell_path = f"{floor_path}.cells[{j}]"
-            if "polygon" in cell:
+            if cell.get("polygon"):
                 spans.extend(ring_spans(cell["polygon"], f"{cell_path}.polygon"))
             else:
                 spans.extend((f"{cell_path}.{axis}", span) for axis in ("x", "y")

@@ -128,12 +128,50 @@ def test_direct_and_edited_source_proposals_are_stopped_before_kernel(tmp_path, 
     proposal = _proposal()
     proposal["geometry"]["footprint_x"] = [0, 6000]
     before = copy.deepcopy(proposal)
-    monkeypatch.setattr(exporter, "ensure_corrected_geometry", lambda *_: pytest.fail("kernel ran"))
+    monkeypatch.setattr(exporter, "build_source_bim", lambda *_, **__: pytest.fail("kernel ran"))
     result = export_source_proposal(proposal, tmp_path / "bad")
     assert result["status"] == "error" and not result["source_geometry_ready"]
     assert "proposal.geometry.footprint_x" in result["error"]
     assert not (tmp_path / "bad/source_model.json").exists()
     assert json.loads((tmp_path / "bad/proposal.json").read_text()) == before == proposal
+
+
+def test_legacy_numeric_strings_are_checked_after_existing_schema_parsing(tmp_path, monkeypatch):
+    import src.agent.execution.source_proposal as exporter
+    proposal = _proposal()
+    proposal["geometry"]["footprint_x"] = ["0", "6000"]
+    proposal["geometry"]["floors"][0]["ceiling_height"] = "3"
+    monkeypatch.setattr(exporter, "build_source_bim", lambda *_, **__: pytest.fail("kernel ran"))
+    result = export_source_proposal(proposal, tmp_path / "strings")
+    assert result["status"] == "error" and "ScaleMismatchError" in result["error"]
+    assert "footprint_x" in result["error"] and "6000" in result["error"]
+    assert json.loads((tmp_path / "strings/proposal.json").read_text()) == proposal
+
+
+def test_normal_legacy_numeric_strings_keep_their_existing_acceptance(tmp_path):
+    proposal = _proposal()
+    proposal["geometry"]["footprint_x"] = ["0", "6"]
+    proposal["geometry"]["floors"][0]["ceiling_height"] = "3"
+    result = export_source_proposal(proposal, tmp_path / "normal-strings")
+    assert result["source_geometry_ready"], result
+    assert json.loads((tmp_path / "normal-strings/proposal.json").read_text()) == proposal
+
+
+def test_only_height_used_by_the_geometry_kernel_can_support_the_scale_check():
+    geometry = _proposal()["geometry"]
+    geometry["footprint_x"] = [0, 6000]
+    # Cell is a permissive legacy schema, but source_primitives uses the FLOOR
+    # height. Unused extra metadata must not neutralize the actual 3 m height.
+    geometry["floors"][0]["cells"][0]["height"] = 10000
+    with pytest.raises(ScaleMismatchError, match=r"ceiling_height=3"):
+        check_geometry_scale(geometry)
+
+
+def test_null_polygon_uses_the_same_rectangle_as_the_kernel():
+    geometry = _proposal()["geometry"]
+    geometry["floors"][0]["cells"][0].update(x=[0, 6000], polygon=None)
+    with pytest.raises(ScaleMismatchError, match=r"cells\[0\].x"):
+        check_geometry_scale(geometry)
 
 
 def test_geometry_checks_actual_floor_rings_and_cells_not_global_offset_between_floors():

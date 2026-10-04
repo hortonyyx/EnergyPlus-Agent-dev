@@ -41,8 +41,6 @@ def _validate_proposal(proposal: dict) -> tuple[dict, list[str], list[str], dict
         raise ValueError("proposal fields: " + "; ".join(details))
     if not isinstance(proposal["geometry"], dict):
         raise TypeError("proposal.geometry must be an object")
-    from src.agent.geometry.input_scale import check_geometry_scale
-    check_geometry_scale(proposal["geometry"])
     # Legacy Window permits extra fields, but source generation always emits
     # entries from this collection as windows. Reject a conflicting declaration
     # before that can silently turn an explicitly identified door into glazing.
@@ -136,6 +134,10 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
             footprint = getattr(floor, "footprint", None)
             if isinstance(footprint, dict):
                 floor.footprint = FootprintRing.model_validate(footprint)
+        # Check the values the existing schema actually passes to the kernel,
+        # including legacy numeric strings; the original proposal stays intact.
+        from src.agent.geometry.input_scale import check_geometry_scale
+        check_geometry_scale(geom.model_dump(mode="json"))
         source = build_source_bim(
             geom,
             capability_profile="orthogonal_polygon",
