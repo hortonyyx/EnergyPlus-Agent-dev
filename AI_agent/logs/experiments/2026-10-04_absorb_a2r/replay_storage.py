@@ -15,6 +15,28 @@ from src.harness_contracts import HashedBlobRef
 from src.harness_contracts.events import CapturedValue
 
 
+class ReplayStore(EventStore):
+    """Convert a frozen byte inventory, then verify materialized bytes once.
+
+    This is an offline estimator only; production EventStore always performs
+    durable writes and verifies disk reads. Avoid thousands of redundant 9p
+    round trips while recapturing the same historical messages for each turn.
+    """
+    def put_bytes(self, data, media_type="application/octet-stream"):
+        sha = hashlib.sha256(data).hexdigest()
+        uri = "blobs/" + sha
+        if uri in self.files and self.files[uri] != data:
+            raise ValueError("corrupt replay blob")
+        self.files[uri] = data
+        return HashedBlobRef(uri=uri, sha256=sha, media_type=media_type)
+
+    def get_bytes(self, ref):
+        data = self.files[ref.uri]
+        if hashlib.sha256(data).hexdigest() != ref.sha256:
+            raise ValueError("replay attachment hash mismatch")
+        return data
+
+
 def inventory(files):
     groups = Counter()
     for name, raw in files.items():
@@ -27,9 +49,10 @@ def main(run, scratch, report):
         raise ValueError("scratch already exists; preserve the previous replay")
     scratch.mkdir(parents=True)
     (scratch / "blobs").mkdir()
-    old, new = object.__new__(EventStore), object.__new__(EventStore)
+    old, new = object.__new__(ReplayStore), object.__new__(ReplayStore)
     old.directory, new.directory = run.resolve(), scratch.resolve()
     files = {str(p.relative_to(run)): p.read_bytes() for p in run.rglob("*") if p.is_file()}
+    old.files, new.files = files, {}
     rows = [json.loads(line) for line in files["events.jsonl"].splitlines()]
     adapter = TypeAdapter(CapturedValue)
     superseded, cache = set(), {}
@@ -90,8 +113,7 @@ def main(run, scratch, report):
     # The new behaviour record is just a verified reference; summary/timeline
     # are regenerated below through the public reader, then compared.
     virtual.pop("behaviour/record.json.gz", None)
-    for path in (scratch / "blobs").iterdir():
-        virtual["blobs/" + path.name] = path.read_bytes()
+    virtual.update(new.files)
     refs = set()
 
     def scan(value):
