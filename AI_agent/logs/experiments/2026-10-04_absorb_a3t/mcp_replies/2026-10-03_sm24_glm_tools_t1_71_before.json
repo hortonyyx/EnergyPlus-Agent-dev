@@ -1,0 +1,5272 @@
+{
+  "candidate": "candidate_02",
+  "remaining_seconds": null,
+  "mode": "agent_geometry_proposal",
+  "status": "not_evaluated",
+  "source_geometry_ready": true,
+  "model_calls": 0,
+  "solver_calls": 0,
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "source_geometry_self_consistency": {
+    "status": "pass",
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "findings": []
+  },
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "f0d0f56bf256fd603ebb0429500c46e55f484ec6b8c9b80804f70f507b9e6159",
+  "provenance": {
+    "input_manifest_sha256": "8a941e403129860e6ba11828b6148da816e338650eac34d1096d443327f00d3e",
+    "mode": "original_images_agent_experiment",
+    "generator": "glm subscription tool loop",
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+    "claim_application": {
+      "file": "claims/application_0001.json"
+    }
+  },
+  "agent_assumptions": [
+    "Interior door heights 2.1 m assumed; no internal door heights are drawn. Exterior door openings observed at 0.2..2.6 m on the elevations.",
+    "Ceiling height 4.5 m assumed equal to the observed building height in all four elevation chains (1700+1800+1000 etc.); no section is supplied.",
+    "Interior partitions drawn as ~120 mm line pairs; exterior walls 240 mm per '240' labels.",
+    "Interior door positions measured from pixels (+-30 mm); no interior dimension chain is drawn.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  },
+  "counts": {
+    "spaces": 8,
+    "boundaries": 54,
+    "openings": 21,
+    "connections": 10,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+  "candidate_budget": {
+    "limit": 100,
+    "used": 2,
+    "remaining": 98
+  },
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      }
+    ],
+    "no_direct_view_images": [
+      "1f_view.png",
+      "East_view.png",
+      "North_view.png",
+      "South_view.png",
+      "West_view.png"
+    ],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound direct original returns from view_image or paired elevation views are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "room_use_review": {
+    "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+    "summary": {
+      "total_count": 8,
+      "recorded_count": 0,
+      "unrecorded_count": 8,
+      "observed_count": 0,
+      "inferred_count": 0,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [
+      "S_R2",
+      "S_R3",
+      "S_cab",
+      "S_corr",
+      "S_hall",
+      "S_meet",
+      "S_mid",
+      "S_office"
+    ],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [
+      "S_R2",
+      "S_R3",
+      "S_cab",
+      "S_corr",
+      "S_hall",
+      "S_meet",
+      "S_mid",
+      "S_office"
+    ],
+    "unknown_ids_truncated": false,
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "schema_version": "opening_heights_v2",
+    "candidate": "candidate_02",
+    "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+    "delivery_blocked": false,
+    "summary": {
+      "exterior_count": 14,
+      "located_count": 7,
+      "status_counts": {
+        "located_applied": 7,
+        "missing": 7
+      }
+    },
+    "openings": [
+      {
+        "opening_id": "D_E_in",
+        "kind": "door",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "width_m": 1.604,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "door_ext_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "located"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 2,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 3,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "D_N_in",
+        "kind": "door",
+        "facade": "North",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "width_m": 1.601,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "door_ext_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "North_view.png",
+                "source_index": 1,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "D_S_in",
+        "kind": "door",
+        "facade": "South",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "width_m": 0.902,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "door_ext_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "South_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "South_view.png",
+                "source_index": 2,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W_E1",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.507,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 2,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 3,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W_E2",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "width_m": 4.8,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "win_big_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 2,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 3,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region",
+          "distinct_width_on_facade"
+        ]
+      },
+      {
+        "opening_id": "W_E3",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.201,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 2,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "East_view.png",
+                "source_index": 3,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W_N_big",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "width_m": 4.802,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "win_big_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "located"
+              },
+              {
+                "image": "North_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W_S1",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.502,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "located"
+              },
+              {
+                "image": "South_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "South_view.png",
+                "source_index": 2,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W_S2",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.502,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "South_view.png",
+                "source_index": 1,
+                "location": "located"
+              },
+              {
+                "image": "South_view.png",
+                "source_index": 2,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W_W1",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.507,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "covered_opening_ids": [
+                  "W_W1",
+                  "W_W2",
+                  "W_W3",
+                  "W_W4"
+                ],
+                "location": "needs_per_opening_confirmation"
+              },
+              {
+                "image": "West_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "needs_per_opening_confirmation",
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W_W2",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.201,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "covered_opening_ids": [
+                  "W_W1",
+                  "W_W2",
+                  "W_W3",
+                  "W_W4"
+                ],
+                "location": "needs_per_opening_confirmation"
+              },
+              {
+                "image": "West_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "needs_per_opening_confirmation",
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W_W3",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.502,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "covered_opening_ids": [
+                  "W_W1",
+                  "W_W2",
+                  "W_W3",
+                  "W_W4"
+                ],
+                "location": "needs_per_opening_confirmation"
+              },
+              {
+                "image": "West_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "needs_per_opening_confirmation",
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W_W4",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.502,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "win_small_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "covered_opening_ids": [
+                  "W_W1",
+                  "W_W2",
+                  "W_W3",
+                  "W_W4"
+                ],
+                "location": "needs_per_opening_confirmation"
+              },
+              {
+                "image": "West_view.png",
+                "source_index": 1,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "needs_per_opening_confirmation",
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W_W_big",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "width_m": 4.802,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "win_big_z",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              },
+              {
+                "image": "West_view.png",
+                "source_index": 1,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "distinct_width_on_facade"
+        ]
+      }
+    ],
+    "calibration_problems": [],
+    "note": "Current values, evidence binding and source location, not drawing correctness. A region containing several openings needs individual evidence. Report only.",
+    "table_file": "candidate_02/height_coverage.json"
+  },
+  "facade_counts": {
+    "schema_version": "facade_count_report_v1",
+    "candidate": "candidate_02",
+    "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+    "delivery_blocked": false,
+    "summary": {
+      "floor_facade_count": 4,
+      "window_status_counts": {
+        "matches_observed_total": 4
+      },
+      "door_status_counts": {
+        "matches_observed_total": 4
+      },
+      "unused_observation_count": 0
+    },
+    "scopes": [
+      {
+        "floor_id": "F1",
+        "facade": "North",
+        "observation_ids": [
+          "count_01791012507625193746_c20eefe88a67"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "W_N_big"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "D_N_in"
+          ],
+          "missing_count": 0
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "South",
+        "observation_ids": [
+          "count_01791012508386821828_d4857dde68aa"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 2,
+          "observed_counts": [
+            2
+          ],
+          "built_opening_ids": [
+            "W_S1",
+            "W_S2"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "D_S_in"
+          ],
+          "missing_count": 0
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "East",
+        "observation_ids": [
+          "count_01791012509717271903_c5ee5f45e66a"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 3,
+          "observed_counts": [
+            3
+          ],
+          "built_opening_ids": [
+            "W_E1",
+            "W_E2",
+            "W_E3"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "D_E_in"
+          ],
+          "missing_count": 0
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "West",
+        "observation_ids": [
+          "count_01791012510750047772_d7bca5680d1f"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 5,
+          "observed_counts": [
+            5
+          ],
+          "built_opening_ids": [
+            "W_W1",
+            "W_W2",
+            "W_W3",
+            "W_W4",
+            "W_W_big"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "matches_observed_total",
+          "built_count": 0,
+          "observed_counts": [
+            0
+          ],
+          "built_opening_ids": [],
+          "missing_count": 0
+        }
+      }
+    ],
+    "unused_observations": [],
+    "unsupported_exterior_boundaries": [],
+    "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+  },
+  "opening_inventory": {
+    "schema_version": "opening_inventory_v1",
+    "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+    "opening_count": 21,
+    "counts": {
+      "door": 10,
+      "passage": 0,
+      "window": 11
+    },
+    "floors": [
+      {
+        "floor_id": "F1",
+        "opening_count": 21,
+        "counts": {
+          "door": 10,
+          "passage": 0,
+          "window": 11
+        },
+        "opening_ids": [
+          "D_DR",
+          "D_E_in",
+          "D_L1",
+          "D_L2",
+          "D_N_in",
+          "D_R1",
+          "D_R2",
+          "D_S_in",
+          "D_corr_A",
+          "D_meet",
+          "W_E1",
+          "W_E2",
+          "W_E3",
+          "W_N_big",
+          "W_S1",
+          "W_S2",
+          "W_W1",
+          "W_W2",
+          "W_W3",
+          "W_W4",
+          "W_W_big"
+        ],
+        "openings": [
+          {
+            "id": "D_DR",
+            "kind": "door",
+            "space_ids": [
+              "S_corr",
+              "S_office"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                8.534103,
+                4.938697
+              ],
+              [
+                9.433443,
+                4.938697
+              ]
+            ],
+            "vertices": [
+              [
+                8.534103,
+                4.938697,
+                0.0
+              ],
+              [
+                9.433443,
+                4.938697,
+                0.0
+              ],
+              [
+                9.433443,
+                4.938697,
+                2.1
+              ],
+              [
+                8.534103,
+                4.938697,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_corr/wall/2",
+            "exterior": false
+          },
+          {
+            "id": "D_E_in",
+            "kind": "door",
+            "space_ids": [
+              "S_corr"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                5.711531
+              ],
+              [
+                10.0,
+                7.315057
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                5.711531,
+                0.2
+              ],
+              [
+                10.0,
+                7.315057,
+                0.2
+              ],
+              [
+                10.0,
+                7.315057,
+                2.6
+              ],
+              [
+                10.0,
+                5.711531,
+                2.6
+              ]
+            ],
+            "host_boundary_id": "space/S_corr/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "D_L1",
+            "kind": "door",
+            "space_ids": [
+              "S_R2",
+              "S_corr"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.14604,
+                13.321394
+              ],
+              [
+                4.14604,
+                14.244386
+              ]
+            ],
+            "vertices": [
+              [
+                4.14604,
+                13.321394,
+                0.0
+              ],
+              [
+                4.14604,
+                14.244386,
+                0.0
+              ],
+              [
+                4.14604,
+                14.244386,
+                2.1
+              ],
+              [
+                4.14604,
+                13.321394,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_R2/wall/1",
+            "exterior": false
+          },
+          {
+            "id": "D_L2",
+            "kind": "door",
+            "space_ids": [
+              "S_R3",
+              "S_corr"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.14604,
+                11.75093
+              ],
+              [
+                4.14604,
+                12.649125
+              ]
+            ],
+            "vertices": [
+              [
+                4.14604,
+                11.75093,
+                0.0
+              ],
+              [
+                4.14604,
+                12.649125,
+                0.0
+              ],
+              [
+                4.14604,
+                12.649125,
+                2.1
+              ],
+              [
+                4.14604,
+                11.75093,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_R3/wall/1",
+            "exterior": false
+          },
+          {
+            "id": "D_N_in",
+            "kind": "door",
+            "space_ids": [
+              "S_hall"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.539054,
+                20.0
+              ],
+              [
+                2.139714,
+                20.0
+              ]
+            ],
+            "vertices": [
+              [
+                0.539054,
+                20.0,
+                0.2
+              ],
+              [
+                2.139714,
+                20.0,
+                0.2
+              ],
+              [
+                2.139714,
+                20.0,
+                2.6
+              ],
+              [
+                0.539054,
+                20.0,
+                2.6
+              ]
+            ],
+            "host_boundary_id": "space/S_hall/wall/2",
+            "exterior": true
+          },
+          {
+            "id": "D_R1",
+            "kind": "door",
+            "space_ids": [
+              "S_cab",
+              "S_corr"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                5.782453,
+                14.343573
+              ],
+              [
+                5.782453,
+                15.25279
+              ]
+            ],
+            "vertices": [
+              [
+                5.782453,
+                14.343573,
+                0.0
+              ],
+              [
+                5.782453,
+                15.25279,
+                0.0
+              ],
+              [
+                5.782453,
+                15.25279,
+                2.1
+              ],
+              [
+                5.782453,
+                14.343573,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_cab/wall/3",
+            "exterior": false
+          },
+          {
+            "id": "D_R2",
+            "kind": "door",
+            "space_ids": [
+              "S_corr",
+              "S_mid"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                5.782453,
+                12.756578
+              ],
+              [
+                5.782453,
+                13.671305
+              ]
+            ],
+            "vertices": [
+              [
+                5.782453,
+                12.756578,
+                0.0
+              ],
+              [
+                5.782453,
+                13.671305,
+                0.0
+              ],
+              [
+                5.782453,
+                13.671305,
+                2.1
+              ],
+              [
+                5.782453,
+                12.756578,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_corr/wall/5",
+            "exterior": false
+          },
+          {
+            "id": "D_S_in",
+            "kind": "door",
+            "space_ids": [
+              "S_office"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.540704,
+                0.0
+              ],
+              [
+                5.442794,
+                0.0
+              ]
+            ],
+            "vertices": [
+              [
+                4.540704,
+                0.0,
+                0.2
+              ],
+              [
+                5.442794,
+                0.0,
+                0.2
+              ],
+              [
+                5.442794,
+                0.0,
+                2.6
+              ],
+              [
+                4.540704,
+                0.0,
+                2.6
+              ]
+            ],
+            "host_boundary_id": "space/S_office/wall/0",
+            "exterior": true
+          },
+          {
+            "id": "D_corr_A",
+            "kind": "door",
+            "space_ids": [
+              "S_corr",
+              "S_hall"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.441694,
+                15.9471
+              ],
+              [
+                5.50055,
+                15.9471
+              ]
+            ],
+            "vertices": [
+              [
+                4.441694,
+                15.9471,
+                0.0
+              ],
+              [
+                5.50055,
+                15.9471,
+                0.0
+              ],
+              [
+                5.50055,
+                15.9471,
+                2.1
+              ],
+              [
+                4.441694,
+                15.9471,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_corr/wall/6",
+            "exterior": false
+          },
+          {
+            "id": "D_meet",
+            "kind": "door",
+            "space_ids": [
+              "S_corr",
+              "S_meet"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.14604,
+                7.604353
+              ],
+              [
+                4.14604,
+                6.832897
+              ]
+            ],
+            "vertices": [
+              [
+                4.14604,
+                7.604353,
+                0.0
+              ],
+              [
+                4.14604,
+                6.832897,
+                0.0
+              ],
+              [
+                4.14604,
+                6.832897,
+                2.1
+              ],
+              [
+                4.14604,
+                7.604353,
+                2.1
+              ]
+            ],
+            "host_boundary_id": "space/S_corr/wall/7",
+            "exterior": false
+          },
+          {
+            "id": "W_E1",
+            "kind": "window",
+            "space_ids": [
+              "S_hall"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                17.988704
+              ],
+              [
+                10.0,
+                19.495798
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                17.988704,
+                1.0
+              ],
+              [
+                10.0,
+                19.495798,
+                1.0
+              ],
+              [
+                10.0,
+                19.495798,
+                2.8
+              ],
+              [
+                10.0,
+                17.988704,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/S_hall/wall/1",
+            "exterior": true
+          },
+          {
+            "id": "W_E2",
+            "kind": "window",
+            "space_ids": [
+              "S_mid"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                8.840061
+              ],
+              [
+                10.0,
+                13.640171
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                8.840061,
+                1.0
+              ],
+              [
+                10.0,
+                13.640171,
+                1.0
+              ],
+              [
+                10.0,
+                13.640171,
+                3.4
+              ],
+              [
+                10.0,
+                8.840061,
+                3.4
+              ]
+            ],
+            "host_boundary_id": "space/S_mid/wall/1",
+            "exterior": true
+          },
+          {
+            "id": "W_E3",
+            "kind": "window",
+            "space_ids": [
+              "S_cab"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                10.0,
+                14.406943
+              ],
+              [
+                10.0,
+                15.60821
+              ]
+            ],
+            "vertices": [
+              [
+                10.0,
+                14.406943,
+                1.0
+              ],
+              [
+                10.0,
+                15.60821,
+                1.0
+              ],
+              [
+                10.0,
+                15.60821,
+                2.8
+              ],
+              [
+                10.0,
+                14.406943,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/S_cab/wall/1",
+            "exterior": true
+          },
+          {
+            "id": "W_N_big",
+            "kind": "window",
+            "space_ids": [
+              "S_hall"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                4.661716,
+                20.0
+              ],
+              [
+                9.463696,
+                20.0
+              ]
+            ],
+            "vertices": [
+              [
+                4.661716,
+                20.0,
+                3.4
+              ],
+              [
+                9.463696,
+                20.0,
+                3.4
+              ],
+              [
+                9.463696,
+                20.0,
+                1.0
+              ],
+              [
+                4.661716,
+                20.0,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/S_hall/wall/2",
+            "exterior": true
+          },
+          {
+            "id": "W_S1",
+            "kind": "window",
+            "space_ids": [
+              "S_meet"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.539054,
+                0.0
+              ],
+              [
+                2.040704,
+                0.0
+              ]
+            ],
+            "vertices": [
+              [
+                0.539054,
+                0.0,
+                1.0
+              ],
+              [
+                2.040704,
+                0.0,
+                1.0
+              ],
+              [
+                2.040704,
+                0.0,
+                2.8
+              ],
+              [
+                0.539054,
+                0.0,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/S_meet/wall/0",
+            "exterior": true
+          },
+          {
+            "id": "W_S2",
+            "kind": "window",
+            "space_ids": [
+              "S_office"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                7.962046,
+                0.0
+              ],
+              [
+                9.463696,
+                0.0
+              ]
+            ],
+            "vertices": [
+              [
+                7.962046,
+                0.0,
+                1.0
+              ],
+              [
+                9.463696,
+                0.0,
+                1.0
+              ],
+              [
+                9.463696,
+                0.0,
+                2.8
+              ],
+              [
+                7.962046,
+                0.0,
+                2.8
+              ]
+            ],
+            "host_boundary_id": "space/S_office/wall/0",
+            "exterior": true
+          },
+          {
+            "id": "W_W1",
+            "kind": "window",
+            "space_ids": [
+              "S_hall"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                17.988704
+              ],
+              [
+                0.0,
+                19.495798
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                17.988704,
+                2.8
+              ],
+              [
+                0.0,
+                19.495798,
+                2.8
+              ],
+              [
+                0.0,
+                19.495798,
+                1.0
+              ],
+              [
+                0.0,
+                17.988704,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/S_hall/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "W_W2",
+            "kind": "window",
+            "space_ids": [
+              "S_R2"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                14.406943
+              ],
+              [
+                0.0,
+                15.60821
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                14.406943,
+                2.8
+              ],
+              [
+                0.0,
+                15.60821,
+                2.8
+              ],
+              [
+                0.0,
+                15.60821,
+                1.0
+              ],
+              [
+                0.0,
+                14.406943,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/S_R2/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "W_W3",
+            "kind": "window",
+            "space_ids": [
+              "S_R3"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                11.172338
+              ],
+              [
+                0.0,
+                12.673922
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                11.172338,
+                2.8
+              ],
+              [
+                0.0,
+                12.673922,
+                2.8
+              ],
+              [
+                0.0,
+                12.673922,
+                1.0
+              ],
+              [
+                0.0,
+                11.172338,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/S_R3/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "W_W4",
+            "kind": "window",
+            "space_ids": [
+              "S_R3"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                8.436424
+              ],
+              [
+                0.0,
+                9.938008
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                8.436424,
+                2.8
+              ],
+              [
+                0.0,
+                9.938008,
+                2.8
+              ],
+              [
+                0.0,
+                9.938008,
+                1.0
+              ],
+              [
+                0.0,
+                8.436424,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/S_R3/wall/3",
+            "exterior": true
+          },
+          {
+            "id": "W_W_big",
+            "kind": "window",
+            "space_ids": [
+              "S_meet"
+            ],
+            "floor_id": "F1",
+            "plan_endpoints": [
+              [
+                0.0,
+                0.540019
+              ],
+              [
+                0.0,
+                5.342334
+              ]
+            ],
+            "vertices": [
+              [
+                0.0,
+                0.540019,
+                3.4
+              ],
+              [
+                0.0,
+                5.342334,
+                3.4
+              ],
+              [
+                0.0,
+                5.342334,
+                1.0
+              ],
+              [
+                0.0,
+                0.540019,
+                1.0
+              ]
+            ],
+            "host_boundary_id": "space/S_meet/wall/3",
+            "exterior": true
+          }
+        ]
+      }
+    ],
+    "spaces": [
+      {
+        "space_id": "S_R2",
+        "floor_id": "F1",
+        "opening_count": 2,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "D_L1",
+          "W_W2"
+        ]
+      },
+      {
+        "space_id": "S_R3",
+        "floor_id": "F1",
+        "opening_count": 3,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 2
+        },
+        "opening_ids": [
+          "D_L2",
+          "W_W3",
+          "W_W4"
+        ]
+      },
+      {
+        "space_id": "S_cab",
+        "floor_id": "F1",
+        "opening_count": 2,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "D_R1",
+          "W_E3"
+        ]
+      },
+      {
+        "space_id": "S_corr",
+        "floor_id": "F1",
+        "opening_count": 8,
+        "counts": {
+          "door": 8,
+          "passage": 0,
+          "window": 0
+        },
+        "opening_ids": [
+          "D_DR",
+          "D_E_in",
+          "D_L1",
+          "D_L2",
+          "D_R1",
+          "D_R2",
+          "D_corr_A",
+          "D_meet"
+        ]
+      },
+      {
+        "space_id": "S_hall",
+        "floor_id": "F1",
+        "opening_count": 5,
+        "counts": {
+          "door": 2,
+          "passage": 0,
+          "window": 3
+        },
+        "opening_ids": [
+          "D_N_in",
+          "D_corr_A",
+          "W_E1",
+          "W_N_big",
+          "W_W1"
+        ]
+      },
+      {
+        "space_id": "S_meet",
+        "floor_id": "F1",
+        "opening_count": 3,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 2
+        },
+        "opening_ids": [
+          "D_meet",
+          "W_S1",
+          "W_W_big"
+        ]
+      },
+      {
+        "space_id": "S_mid",
+        "floor_id": "F1",
+        "opening_count": 2,
+        "counts": {
+          "door": 1,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "D_R2",
+          "W_E2"
+        ]
+      },
+      {
+        "space_id": "S_office",
+        "floor_id": "F1",
+        "opening_count": 3,
+        "counts": {
+          "door": 2,
+          "passage": 0,
+          "window": 1
+        },
+        "opening_ids": [
+          "D_DR",
+          "D_S_in",
+          "W_S2"
+        ]
+      }
+    ],
+    "scope": {
+      "actual_openings": "only explicit built source openings are inventoried",
+      "unbuilt_opening_ids": [],
+      "unbuilt_opening_count": 0,
+      "unsupported_observation_count": 0
+    }
+  },
+  "opening_review": "not_reviewed; compare this inventory with distinct drawing marks",
+  "source_image_projections": [
+    {
+      "mode": "source_image_overlay",
+      "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+      "floor_id": "F1",
+      "basis": "Plan 1f_view.png: overall chains 10000 (x) and 20000 (y); outer wall faces measured at px x=249..612.6, y=151.6(top/north)..877.5(bottom/south), 27.5 mm/px, north = up. Representative planes: exterior walls on their observed outer faces (thickness 240, labelled '240' on plan); interior partitions on measured line-pair midplanes, drawn ~120 thick. Exterior opening positions from the facade dimension chains (they sum to 10000/20000 on all four facades and match the drawn jambs within ~1 px); interior partition and door positions from pixel measurement (about +-30 mm). World y = north, x = east; z absolute, ground floor at 0.",
+      "calibration_basis": "caller_supplied_not_independently_verified",
+      "calibration_unverified": true,
+      "drawing_fidelity": "not_evaluated",
+      "anchors": {
+        "x": [
+          [
+            249.0,
+            0.0
+          ],
+          [
+            612.6,
+            10.0
+          ]
+        ],
+        "y": [
+          [
+            877.5,
+            0.0
+          ],
+          [
+            151.6,
+            20.0
+          ]
+        ]
+      },
+      "scale": {
+        "world_metres_per_pixel": {
+          "x": 0.0275027502750275,
+          "y": -0.027552004408320705
+        },
+        "pixels_per_world_metre": {
+          "x": 36.36000000000001,
+          "y": -36.295
+        },
+        "axis_px_per_m": {
+          "x": 36.36,
+          "y": 36.295
+        },
+        "warnings": []
+      },
+      "projected_spaces": [
+        {
+          "id": "S_R2",
+          "pixel_polygon": [
+            [
+              249.0,
+              409.199988
+            ],
+            [
+              399.750014,
+              409.199988
+            ],
+            [
+              399.750014,
+              298.700006
+            ],
+            [
+              249.0,
+              298.700006
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_R3",
+          "pixel_polygon": [
+            [
+              249.0,
+              585.199996
+            ],
+            [
+              399.750014,
+              585.199996
+            ],
+            [
+              399.750014,
+              409.199988
+            ],
+            [
+              249.0,
+              409.199988
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_cab",
+          "pixel_polygon": [
+            [
+              459.249991,
+              369.250009
+            ],
+            [
+              612.6,
+              369.250009
+            ],
+            [
+              612.6,
+              298.700006
+            ],
+            [
+              459.249991,
+              298.700006
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_corr",
+          "pixel_polygon": [
+            [
+              399.750014,
+              753.249984
+            ],
+            [
+              459.249991,
+              753.249984
+            ],
+            [
+              459.249991,
+              698.249992
+            ],
+            [
+              612.6,
+              698.249992
+            ],
+            [
+              612.6,
+              585.199996
+            ],
+            [
+              459.249991,
+              585.199996
+            ],
+            [
+              459.249991,
+              298.700006
+            ],
+            [
+              399.750014,
+              298.700006
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_hall",
+          "pixel_polygon": [
+            [
+              249.0,
+              298.700006
+            ],
+            [
+              612.6,
+              298.700006
+            ],
+            [
+              612.6,
+              151.6
+            ],
+            [
+              249.0,
+              151.6
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_meet",
+          "pixel_polygon": [
+            [
+              249.0,
+              877.5
+            ],
+            [
+              399.750014,
+              877.5
+            ],
+            [
+              399.750014,
+              585.199996
+            ],
+            [
+              249.0,
+              585.199996
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_mid",
+          "pixel_polygon": [
+            [
+              459.249991,
+              585.199996
+            ],
+            [
+              612.6,
+              585.199996
+            ],
+            [
+              612.6,
+              369.250009
+            ],
+            [
+              459.249991,
+              369.250009
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "S_office",
+          "pixel_polygon": [
+            [
+              399.750014,
+              877.5
+            ],
+            [
+              612.6,
+              877.5
+            ],
+            [
+              612.6,
+              698.249992
+            ],
+            [
+              459.249991,
+              698.249992
+            ],
+            [
+              459.249991,
+              753.249984
+            ],
+            [
+              399.750014,
+              753.249984
+            ]
+          ],
+          "out_of_image": false
+        }
+      ],
+      "projected_openings": [
+        {
+          "id": "D_DR",
+          "kind": "door",
+          "space_ids": [
+            "S_corr",
+            "S_office"
+          ],
+          "pixel_endpoints": [
+            [
+              559.299985,
+              698.249992
+            ],
+            [
+              591.999987,
+              698.249992
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_E_in",
+          "kind": "door",
+          "space_ids": [
+            "S_corr"
+          ],
+          "pixel_endpoints": [
+            [
+              612.6,
+              670.199982
+            ],
+            [
+              612.6,
+              612.000006
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_L1",
+          "kind": "door",
+          "space_ids": [
+            "S_R2",
+            "S_corr"
+          ],
+          "pixel_endpoints": [
+            [
+              399.750014,
+              394.000005
+            ],
+            [
+              399.750014,
+              360.50001
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_L2",
+          "kind": "door",
+          "space_ids": [
+            "S_R3",
+            "S_corr"
+          ],
+          "pixel_endpoints": [
+            [
+              399.750014,
+              450.999996
+            ],
+            [
+              399.750014,
+              418.400008
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_N_in",
+          "kind": "door",
+          "space_ids": [
+            "S_hall"
+          ],
+          "pixel_endpoints": [
+            [
+              268.600003,
+              151.6
+            ],
+            [
+              326.800001,
+              151.6
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_R1",
+          "kind": "door",
+          "space_ids": [
+            "S_cab",
+            "S_corr"
+          ],
+          "pixel_endpoints": [
+            [
+              459.249991,
+              356.900018
+            ],
+            [
+              459.249991,
+              323.899987
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_R2",
+          "kind": "door",
+          "space_ids": [
+            "S_corr",
+            "S_mid"
+          ],
+          "pixel_endpoints": [
+            [
+              459.249991,
+              414.500001
+            ],
+            [
+              459.249991,
+              381.299985
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_S_in",
+          "kind": "door",
+          "space_ids": [
+            "S_office"
+          ],
+          "pixel_endpoints": [
+            [
+              414.099997,
+              877.5
+            ],
+            [
+              446.89999,
+              877.5
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_corr_A",
+          "kind": "door",
+          "space_ids": [
+            "S_corr",
+            "S_hall"
+          ],
+          "pixel_endpoints": [
+            [
+              410.499994,
+              298.700006
+            ],
+            [
+              448.999998,
+              298.700006
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "D_meet",
+          "kind": "door",
+          "space_ids": [
+            "S_corr",
+            "S_meet"
+          ],
+          "pixel_endpoints": [
+            [
+              399.750014,
+              601.500008
+            ],
+            [
+              399.750014,
+              629.500003
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_E1",
+          "kind": "window",
+          "space_ids": [
+            "S_hall"
+          ],
+          "pixel_endpoints": [
+            [
+              612.6,
+              224.599988
+            ],
+            [
+              612.6,
+              169.900012
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_E2",
+          "kind": "window",
+          "space_ids": [
+            "S_mid"
+          ],
+          "pixel_endpoints": [
+            [
+              612.6,
+              556.649986
+            ],
+            [
+              612.6,
+              382.429994
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_E3",
+          "kind": "window",
+          "space_ids": [
+            "S_cab"
+          ],
+          "pixel_endpoints": [
+            [
+              612.6,
+              354.600004
+            ],
+            [
+              612.6,
+              311.000018
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_N_big",
+          "kind": "window",
+          "space_ids": [
+            "S_hall"
+          ],
+          "pixel_endpoints": [
+            [
+              418.499994,
+              151.6
+            ],
+            [
+              593.099987,
+              151.6
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_S1",
+          "kind": "window",
+          "space_ids": [
+            "S_meet"
+          ],
+          "pixel_endpoints": [
+            [
+              268.600003,
+              877.5
+            ],
+            [
+              323.199997,
+              877.5
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_S2",
+          "kind": "window",
+          "space_ids": [
+            "S_office"
+          ],
+          "pixel_endpoints": [
+            [
+              538.499993,
+              877.5
+            ],
+            [
+              593.099987,
+              877.5
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_W1",
+          "kind": "window",
+          "space_ids": [
+            "S_hall"
+          ],
+          "pixel_endpoints": [
+            [
+              249.0,
+              224.599988
+            ],
+            [
+              249.0,
+              169.900012
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_W2",
+          "kind": "window",
+          "space_ids": [
+            "S_R2"
+          ],
+          "pixel_endpoints": [
+            [
+              249.0,
+              354.600004
+            ],
+            [
+              249.0,
+              311.000018
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_W3",
+          "kind": "window",
+          "space_ids": [
+            "S_R3"
+          ],
+          "pixel_endpoints": [
+            [
+              249.0,
+              471.999992
+            ],
+            [
+              249.0,
+              417.500001
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_W4",
+          "kind": "window",
+          "space_ids": [
+            "S_R3"
+          ],
+          "pixel_endpoints": [
+            [
+              249.0,
+              571.299991
+            ],
+            [
+              249.0,
+              516.8
+            ]
+          ],
+          "out_of_image": false
+        },
+        {
+          "id": "W_W_big",
+          "kind": "window",
+          "space_ids": [
+            "S_meet"
+          ],
+          "pixel_endpoints": [
+            [
+              249.0,
+              857.90001
+            ],
+            [
+              249.0,
+              683.599987
+            ]
+          ],
+          "out_of_image": false
+        }
+      ],
+      "projected_wall_faces": [],
+      "legend": {
+        "magenta": "source representative boundary",
+        "blue": "declared wall faces; evidence status in metadata",
+        "green": "window",
+        "orange": "door/open aperture",
+        "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+        "red": "D#:S original dimension start evidence point",
+        "cyan": "D#:E original dimension end evidence point"
+      },
+      "out_of_image": {
+        "space_ids": [],
+        "opening_ids": [],
+        "wall_reference_ids": []
+      },
+      "unsupported": [
+        "rotation",
+        "perspective",
+        "nonlinear_distortion"
+      ],
+      "limits": [
+        "Two caller-supplied anchors per axis define the transform but do not independently close a dimension chain.",
+        "The overlay does not inspect original pixels or automatically decide positional error."
+      ],
+      "wall_evidence_projection": {
+        "scope": {
+          "image_name": "1f_view.png",
+          "floor_id": "F1",
+          "endpoint_selection": "exact original image name and linked wall floor",
+          "view_status": "not_visually_verified"
+        },
+        "walls": [],
+        "endpoints": [],
+        "limits": [
+          "Endpoint pixels are the declared original-image evidence and are drawn without inferred movement.",
+          "Tangential range and normal displacement are conditional on the caller-supplied axis-aligned calibration.",
+          "A dimension extension-line tick may legitimately lie outside its linked finite wall segment; this is a spatial fact, not an error or correctness verdict.",
+          "This view does not inspect pixels, choose a host wall, or mutate source geometry or evidence."
+        ]
+      },
+      "candidate": "candidate_02",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "trigger_action": "revise_bim",
+      "automatic_projection": true,
+      "reused_calibration": {
+        "calibration_id": "calibration_001",
+        "calibration_file": "overlay_calibrations/calibration_001.json",
+        "registered_by_candidate": "candidate_01",
+        "registered_source_model_sha256": "3e2eb8d40d5d2eea603a5e2483a7b0e5eee3b958f4498746cf715b7d7b1eaa55",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "x_anchors": [
+          [
+            249,
+            0
+          ],
+          [
+            612.6,
+            10
+          ]
+        ],
+        "y_anchors": [
+          [
+            877.5,
+            0
+          ],
+          [
+            151.6,
+            20
+          ]
+        ],
+        "basis": "Plan 1f_view.png: overall chains 10000 (x) and 20000 (y); outer wall faces measured at px x=249..612.6, y=151.6(top/north)..877.5(bottom/south), 27.5 mm/px, north = up. Representative planes: exterior walls on their observed outer faces (thickness 240, labelled '240' on plan); interior partitions on measured line-pair midplanes, drawn ~120 thick. Exterior opening positions from the facade dimension chains (they sum to 10000/20000 on all four facades and match the drawn jambs within ~1 px); interior partition and door positions from pixel measurement (about +-30 mm). World y = north, x = east; z absolute, ground floor at 0."
+      },
+      "overlay_image": "image_overlays/overlay_011.png",
+      "original_size": [
+        790,
+        1111
+      ],
+      "box_original_pixels": [
+        0,
+        0,
+        790,
+        1111
+      ],
+      "returned_size": [
+        790,
+        1111
+      ],
+      "original_pixels_per_returned_pixel": [
+        1.0,
+        1.0
+      ],
+      "remaining_seconds": null
+    }
+  ],
+  "projection_errors": [],
+  "source_plan_views": [
+    {
+      "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+      "floor_id": "F1",
+      "space_ids": [
+        "S_R2",
+        "S_R3",
+        "S_cab",
+        "S_corr",
+        "S_hall",
+        "S_meet",
+        "S_mid",
+        "S_office"
+      ],
+      "opening_ids": [
+        "D_DR",
+        "D_E_in",
+        "D_L1",
+        "D_L2",
+        "D_N_in",
+        "D_R1",
+        "D_R2",
+        "D_S_in",
+        "D_corr_A",
+        "D_meet",
+        "W_E1",
+        "W_E2",
+        "W_E3",
+        "W_N_big",
+        "W_S1",
+        "W_S2",
+        "W_W1",
+        "W_W2",
+        "W_W3",
+        "W_W4",
+        "W_W_big"
+      ],
+      "world_bounds_m": {
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          0.0,
+          20.0
+        ]
+      },
+      "scope": "actual saved source plan; no original calibration, height verification or drawing-fidelity verdict",
+      "candidate": "candidate_02",
+      "plan_image": "candidate_02/plan_F1.png"
+    }
+  ],
+  "source_plan_errors": [],
+  "claim_application": {
+    "id": "application_0001",
+    "parent_candidate": "candidate_01",
+    "submitted_operations": [
+      {
+        "op": "update_window",
+        "id": "W_N_big",
+        "changes": {
+          "z": {
+            "claim": "claim_0001",
+            "value": "win_big_z"
+          }
+        },
+        "reason": "Apply the observed North 4800-window extent (chain 1100|2400|1000, middle segment)"
+      },
+      {
+        "op": "update_window",
+        "id": "W_E2",
+        "changes": {
+          "z": {
+            "claim": "claim_0003",
+            "value": "win_big_z"
+          }
+        },
+        "reason": "Apply the observed East 4800-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_W_big",
+        "changes": {
+          "z": {
+            "claim": "claim_0004",
+            "value": "win_big_z"
+          }
+        },
+        "reason": "Apply the observed West 4800-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_S1",
+        "changes": {
+          "z": {
+            "claim": "claim_0002",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed South small-window extent (chain 1700|1800|1000, middle segment)"
+      },
+      {
+        "op": "update_window",
+        "id": "W_S2",
+        "changes": {
+          "z": {
+            "claim": "claim_0002",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed South small-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_E1",
+        "changes": {
+          "z": {
+            "claim": "claim_0003",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed East small-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_E3",
+        "changes": {
+          "z": {
+            "claim": "claim_0003",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed East small-window family extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_W1",
+        "changes": {
+          "z": {
+            "claim": "claim_0004",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed West small-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_W2",
+        "changes": {
+          "z": {
+            "claim": "claim_0004",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed West small-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_W3",
+        "changes": {
+          "z": {
+            "claim": "claim_0004",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed West small-window extent"
+      },
+      {
+        "op": "update_window",
+        "id": "W_W4",
+        "changes": {
+          "z": {
+            "claim": "claim_0004",
+            "value": "win_small_z"
+          }
+        },
+        "reason": "Apply the observed West small-window extent"
+      },
+      {
+        "op": "update_opening",
+        "id": "D_N_in",
+        "changes": {
+          "z": {
+            "claim": "claim_0001",
+            "value": "door_ext_z"
+          }
+        },
+        "reason": "Apply the observed North entrance door extent (chain 1900|2400|200)"
+      },
+      {
+        "op": "update_opening",
+        "id": "D_E_in",
+        "changes": {
+          "z": {
+            "claim": "claim_0003",
+            "value": "door_ext_z"
+          }
+        },
+        "reason": "Apply the observed East entrance door extent"
+      },
+      {
+        "op": "update_opening",
+        "id": "D_S_in",
+        "changes": {
+          "z": {
+            "claim": "claim_0002",
+            "value": "door_ext_z"
+          }
+        },
+        "reason": "Apply the observed South entrance door extent"
+      }
+    ],
+    "claim_ids": [
+      "claim_0001",
+      "claim_0002",
+      "claim_0003",
+      "claim_0004"
+    ],
+    "status": "applied",
+    "drawing_fidelity": "not_evaluated",
+    "evidence": {
+      "parent_candidate": "candidate_01",
+      "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+      "bindings": [
+        {
+          "operation_index": 0,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_N_big"
+            ]
+          ],
+          "claim_id": "claim_0001",
+          "value_field": "win_big_z",
+          "resolved_value": [
+            1.0,
+            3.4
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.1,
+                  "start_m": 4.5,
+                  "end_m": 3.4,
+                  "span_m": [
+                    3.4,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 2.4,
+                  "start_m": 3.4,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    3.4
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 1,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_E2"
+            ]
+          ],
+          "claim_id": "claim_0003",
+          "value_field": "win_big_z",
+          "resolved_value": [
+            1.0,
+            3.4
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.1,
+                  "start_m": 4.5,
+                  "end_m": 3.4,
+                  "span_m": [
+                    3.4,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 2.4,
+                  "start_m": 3.4,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    3.4
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 2,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_W_big"
+            ]
+          ],
+          "claim_id": "claim_0004",
+          "value_field": "win_big_z",
+          "resolved_value": [
+            1.0,
+            3.4
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.1,
+                  "start_m": 4.5,
+                  "end_m": 3.4,
+                  "span_m": [
+                    3.4,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 2.4,
+                  "start_m": 3.4,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    3.4
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 3,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_S1"
+            ]
+          ],
+          "claim_id": "claim_0002",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 4,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_S2"
+            ]
+          ],
+          "claim_id": "claim_0002",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 5,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_E1"
+            ]
+          ],
+          "claim_id": "claim_0003",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 6,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_E3"
+            ]
+          ],
+          "claim_id": "claim_0003",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 7,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_W1"
+            ]
+          ],
+          "claim_id": "claim_0004",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 8,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_W2"
+            ]
+          ],
+          "claim_id": "claim_0004",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 9,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_W3"
+            ]
+          ],
+          "claim_id": "claim_0004",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 10,
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W_W4"
+            ]
+          ],
+          "claim_id": "claim_0004",
+          "value_field": "win_small_z",
+          "resolved_value": [
+            1.0,
+            2.8
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.7,
+                  "start_m": 4.5,
+                  "end_m": 2.8,
+                  "span_m": [
+                    2.8,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 1.8,
+                  "start_m": 2.8,
+                  "end_m": 1.0,
+                  "span_m": [
+                    1.0,
+                    2.8
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 1.0,
+                  "start_m": 1.0,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 11,
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D_N_in"
+            ]
+          ],
+          "claim_id": "claim_0001",
+          "value_field": "door_ext_z",
+          "resolved_value": [
+            0.2,
+            2.6
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.9,
+                  "start_m": 4.5,
+                  "end_m": 2.6,
+                  "span_m": [
+                    2.6,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 2.4,
+                  "start_m": 2.6,
+                  "end_m": 0.2,
+                  "span_m": [
+                    0.2,
+                    2.6
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 0.2,
+                  "start_m": 0.2,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    0.2
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 12,
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D_E_in"
+            ]
+          ],
+          "claim_id": "claim_0003",
+          "value_field": "door_ext_z",
+          "resolved_value": [
+            0.2,
+            2.6
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.9,
+                  "start_m": 4.5,
+                  "end_m": 2.6,
+                  "span_m": [
+                    2.6,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 2.4,
+                  "start_m": 2.6,
+                  "end_m": 0.2,
+                  "span_m": [
+                    0.2,
+                    2.6
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 0.2,
+                  "start_m": 0.2,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    0.2
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        },
+        {
+          "operation_index": 13,
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D_S_in"
+            ]
+          ],
+          "claim_id": "claim_0002",
+          "value_field": "door_ext_z",
+          "resolved_value": [
+            0.2,
+            2.6
+          ],
+          "computation": {
+            "method": "dimension_chain",
+            "chain": {
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segments": [
+                {
+                  "index": 0,
+                  "length_m": 1.9,
+                  "start_m": 4.5,
+                  "end_m": 2.6,
+                  "span_m": [
+                    2.6,
+                    4.5
+                  ]
+                },
+                {
+                  "index": 1,
+                  "length_m": 2.4,
+                  "start_m": 2.6,
+                  "end_m": 0.2,
+                  "span_m": [
+                    0.2,
+                    2.6
+                  ]
+                },
+                {
+                  "index": 2,
+                  "length_m": 0.2,
+                  "start_m": 0.2,
+                  "end_m": 0.0,
+                  "span_m": [
+                    0.0,
+                    0.2
+                  ]
+                }
+              ],
+              "total_m": 4.5,
+              "end_m": 0.0,
+              "expected_total_m": null,
+              "closure_error_m": null,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+            },
+            "segment": 1
+          }
+        }
+      ],
+      "claims": {
+        "claim_0001": {
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_01",
+              "objects": [
+                {
+                  "id": "W_N_big",
+                  "kind": "window"
+                },
+                {
+                  "id": "D_N_in",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "North elevation chains read from the building top (z=4.5 m, observed 1700+1800+1000 chain): window chain 1100|2400|1000 with the drawn 4800 window occupying the middle 2400 segment -> z 1.0..3.4; entrance door chain 1900|2400|200 with the drawn leaf in the middle -> z 0.2..2.6 (transom rail at 2.2 inside the leaf assembly, no glazing above 2.6).",
+              "sources": [
+                {
+                  "box": [
+                    240.0,
+                    380.0,
+                    1560.0,
+                    1160.0
+                  ],
+                  "image": "North_view.png"
+                },
+                {
+                  "box": [
+                    1900.0,
+                    380.0,
+                    2620.0,
+                    1160.0
+                  ],
+                  "image": "North_view.png"
+                }
+              ],
+              "unresolved": [],
+              "value_targets": {
+                "door_ext_z": [
+                  {
+                    "id": "D_N_in",
+                    "kind": "opening"
+                  }
+                ],
+                "win_big_z": [
+                  {
+                    "id": "W_N_big",
+                    "kind": "window"
+                  }
+                ]
+              },
+              "values": {
+                "door_ext_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1900.0,
+                    2400.0,
+                    200.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                },
+                "win_big_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1100.0,
+                    2400.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                }
+              }
+            },
+            "computations": {
+              "door_ext_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 2.6,
+                      "index": 0,
+                      "length_m": 1.9,
+                      "span_m": [
+                        2.6,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 0.2,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        0.2,
+                        2.6
+                      ],
+                      "start_m": 2.6
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 0.2,
+                      "span_m": [
+                        0.0,
+                        0.2
+                      ],
+                      "start_m": 0.2
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              },
+              "win_big_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 3.4,
+                      "index": 0,
+                      "length_m": 1.1,
+                      "span_m": [
+                        3.4,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        1.0,
+                        3.4
+                      ],
+                      "start_m": 3.4
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              }
+            },
+            "id": "claim_0001",
+            "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+            "resolved_values": {
+              "door_ext_z": [
+                0.2,
+                2.6
+              ],
+              "win_big_z": [
+                1.0,
+                3.4
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  240.0,
+                  380.0,
+                  1560.0,
+                  1160.0
+                ],
+                "image": "North_view.png",
+                "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+                "size": [
+                  2890,
+                  1651
+                ]
+              },
+              {
+                "box": [
+                  1900.0,
+                  380.0,
+                  2620.0,
+                  1160.0
+                ],
+                "image": "North_view.png",
+                "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+                "size": [
+                  2890,
+                  1651
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          },
+          "decision": {
+            "claim_id": "claim_0001",
+            "disposition": "adopted",
+            "id": "decision_0001",
+            "reason": "North chains verified beside the drawn 4800 window and entrance door; window z 1.0..3.4, door z 0.2..2.6"
+          }
+        },
+        "claim_0003": {
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_01",
+              "objects": [
+                {
+                  "id": "W_E2",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_E1",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_E3",
+                  "kind": "window"
+                },
+                {
+                  "id": "D_E_in",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "East elevation (left=south) chains read from the building top (z=4.5 m): 4800 window chain 1100|2400|1000 with the drawn window in the middle segment -> z 1.0..3.4; the 1500/1200 windows share the small-window family chain 1700|1800|1000 -> z 1.0..2.8; the 1600 entrance door chain 1900|2400|200 -> z 0.2..2.6.",
+              "sources": [
+                {
+                  "box": [
+                    600.0,
+                    140.0,
+                    1080.0,
+                    720.0
+                  ],
+                  "image": "East_view.png"
+                },
+                {
+                  "box": [
+                    1140.0,
+                    140.0,
+                    1520.0,
+                    720.0
+                  ],
+                  "image": "East_view.png"
+                },
+                {
+                  "box": [
+                    1000.0,
+                    140.0,
+                    1280.0,
+                    720.0
+                  ],
+                  "image": "East_view.png"
+                },
+                {
+                  "box": [
+                    60.0,
+                    140.0,
+                    700.0,
+                    720.0
+                  ],
+                  "image": "East_view.png"
+                }
+              ],
+              "unresolved": [
+                "W_E3's drawn head/sill match W_E1's family chain; no separate label chain was read at its own jambs"
+              ],
+              "value_targets": {
+                "door_ext_z": [
+                  {
+                    "id": "D_E_in",
+                    "kind": "opening"
+                  }
+                ],
+                "win_big_z": [
+                  {
+                    "id": "W_E2",
+                    "kind": "window"
+                  }
+                ],
+                "win_small_z": [
+                  {
+                    "id": "W_E1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "W_E3",
+                    "kind": "window"
+                  }
+                ]
+              },
+              "values": {
+                "door_ext_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1900.0,
+                    2400.0,
+                    200.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                },
+                "win_big_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1100.0,
+                    2400.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                },
+                "win_small_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1700.0,
+                    1800.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                }
+              }
+            },
+            "computations": {
+              "door_ext_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 2.6,
+                      "index": 0,
+                      "length_m": 1.9,
+                      "span_m": [
+                        2.6,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 0.2,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        0.2,
+                        2.6
+                      ],
+                      "start_m": 2.6
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 0.2,
+                      "span_m": [
+                        0.0,
+                        0.2
+                      ],
+                      "start_m": 0.2
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              },
+              "win_big_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 3.4,
+                      "index": 0,
+                      "length_m": 1.1,
+                      "span_m": [
+                        3.4,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        1.0,
+                        3.4
+                      ],
+                      "start_m": 3.4
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              },
+              "win_small_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 2.8,
+                      "index": 0,
+                      "length_m": 1.7,
+                      "span_m": [
+                        2.8,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 1.8,
+                      "span_m": [
+                        1.0,
+                        2.8
+                      ],
+                      "start_m": 2.8
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              }
+            },
+            "id": "claim_0003",
+            "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+            "resolved_values": {
+              "door_ext_z": [
+                0.2,
+                2.6
+              ],
+              "win_big_z": [
+                1.0,
+                3.4
+              ],
+              "win_small_z": [
+                1.0,
+                2.8
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  600.0,
+                  140.0,
+                  1080.0,
+                  720.0
+                ],
+                "image": "East_view.png",
+                "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                "size": [
+                  2639,
+                  931
+                ]
+              },
+              {
+                "box": [
+                  1140.0,
+                  140.0,
+                  1520.0,
+                  720.0
+                ],
+                "image": "East_view.png",
+                "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                "size": [
+                  2639,
+                  931
+                ]
+              },
+              {
+                "box": [
+                  1000.0,
+                  140.0,
+                  1280.0,
+                  720.0
+                ],
+                "image": "East_view.png",
+                "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                "size": [
+                  2639,
+                  931
+                ]
+              },
+              {
+                "box": [
+                  60.0,
+                  140.0,
+                  700.0,
+                  720.0
+                ],
+                "image": "East_view.png",
+                "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+                "size": [
+                  2639,
+                  931
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          },
+          "decision": {
+            "claim_id": "claim_0003",
+            "disposition": "adopted",
+            "id": "decision_0003",
+            "reason": "East chains verified beside the 4800 window, the north 1500 window and the 1600 door; W_E3 shares the small-window family extent"
+          }
+        },
+        "claim_0004": {
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_01",
+              "objects": [
+                {
+                  "id": "W_W_big",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_W1",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_W2",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_W3",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_W4",
+                  "kind": "window"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "West elevation (left=north) chains read from the building top (z=4.5 m): 4800 window chain 1100|2400|1000 with the drawn window in the middle segment -> z 1.0..3.4; the four 1500/1200 windows share the jamb chain 1700|1800|1000 with the drawn windows in the middle 1800 segment -> z 1.0..2.8.",
+              "sources": [
+                {
+                  "box": [
+                    150.0,
+                    240.0,
+                    1500.0,
+                    700.0
+                  ],
+                  "image": "West_view.png"
+                },
+                {
+                  "box": [
+                    1700.0,
+                    240.0,
+                    2400.0,
+                    700.0
+                  ],
+                  "image": "West_view.png"
+                }
+              ],
+              "unresolved": [
+                "The four small windows share one left-edge jamb chain and identical drawn extents; no per-window chains are drawn"
+              ],
+              "value_targets": {
+                "win_big_z": [
+                  {
+                    "id": "W_W_big",
+                    "kind": "window"
+                  }
+                ],
+                "win_small_z": [
+                  {
+                    "id": "W_W1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "W_W2",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "W_W3",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "W_W4",
+                    "kind": "window"
+                  }
+                ]
+              },
+              "values": {
+                "win_big_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1100.0,
+                    2400.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                },
+                "win_small_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1700.0,
+                    1800.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                }
+              }
+            },
+            "computations": {
+              "win_big_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 3.4,
+                      "index": 0,
+                      "length_m": 1.1,
+                      "span_m": [
+                        3.4,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        1.0,
+                        3.4
+                      ],
+                      "start_m": 3.4
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              },
+              "win_small_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 2.8,
+                      "index": 0,
+                      "length_m": 1.7,
+                      "span_m": [
+                        2.8,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 1.8,
+                      "span_m": [
+                        1.0,
+                        2.8
+                      ],
+                      "start_m": 2.8
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              }
+            },
+            "id": "claim_0004",
+            "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+            "resolved_values": {
+              "win_big_z": [
+                1.0,
+                3.4
+              ],
+              "win_small_z": [
+                1.0,
+                2.8
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  150.0,
+                  240.0,
+                  1500.0,
+                  700.0
+                ],
+                "image": "West_view.png",
+                "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+                "size": [
+                  2580,
+                  993
+                ]
+              },
+              {
+                "box": [
+                  1700.0,
+                  240.0,
+                  2400.0,
+                  700.0
+                ],
+                "image": "West_view.png",
+                "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+                "size": [
+                  2580,
+                  993
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          },
+          "decision": {
+            "claim_id": "claim_0004",
+            "disposition": "adopted",
+            "id": "decision_0004",
+            "reason": "West chains verified beside the 4800 window and the four small windows; z 1.0..3.4 and 1.0..2.8"
+          }
+        },
+        "claim_0002": {
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_01",
+              "objects": [
+                {
+                  "id": "W_S1",
+                  "kind": "window"
+                },
+                {
+                  "id": "W_S2",
+                  "kind": "window"
+                },
+                {
+                  "id": "D_S_in",
+                  "kind": "opening"
+                }
+              ],
+              "observation_mode": "candidate_review",
+              "reason": "South elevation chains read from the building top (z=4.5 m): both 1500 windows use the jamb chain 1700|1800|1000 with the drawn window in the middle 1800 segment -> z 1.0..2.8; the 900 door chain 1900|2400|200 -> z 0.2..2.6.",
+              "sources": [
+                {
+                  "box": [
+                    230.0,
+                    300.0,
+                    810.0,
+                    1020.0
+                  ],
+                  "image": "South_view.png"
+                },
+                {
+                  "box": [
+                    1660.0,
+                    300.0,
+                    2200.0,
+                    1020.0
+                  ],
+                  "image": "South_view.png"
+                },
+                {
+                  "box": [
+                    950.0,
+                    300.0,
+                    1330.0,
+                    1020.0
+                  ],
+                  "image": "South_view.png"
+                }
+              ],
+              "unresolved": [
+                "W_S2 uses the same window family and drawn extent as W_S1; its own right-edge jamb chain shows the same 1700|1800|1000 reading"
+              ],
+              "value_targets": {
+                "door_ext_z": [
+                  {
+                    "id": "D_S_in",
+                    "kind": "opening"
+                  }
+                ],
+                "win_small_z": [
+                  {
+                    "id": "W_S1",
+                    "kind": "window"
+                  },
+                  {
+                    "id": "W_S2",
+                    "kind": "window"
+                  }
+                ]
+              },
+              "values": {
+                "door_ext_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1900.0,
+                    2400.0,
+                    200.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                },
+                "win_small_z": {
+                  "direction": -1,
+                  "lengths": [
+                    1700.0,
+                    1800.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                }
+              }
+            },
+            "computations": {
+              "door_ext_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 2.6,
+                      "index": 0,
+                      "length_m": 1.9,
+                      "span_m": [
+                        2.6,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 0.2,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        0.2,
+                        2.6
+                      ],
+                      "start_m": 2.6
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 0.2,
+                      "span_m": [
+                        0.0,
+                        0.2
+                      ],
+                      "start_m": 0.2
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              },
+              "win_small_z": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 2.8,
+                      "index": 0,
+                      "length_m": 1.7,
+                      "span_m": [
+                        2.8,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 1.8,
+                      "span_m": [
+                        1.0,
+                        2.8
+                      ],
+                      "start_m": 2.8
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              }
+            },
+            "id": "claim_0002",
+            "parent_proposal_sha256": "661c97b43a0206085727a42d9015a846cae6189fab620bfe326dfe1b7455ed11",
+            "resolved_values": {
+              "door_ext_z": [
+                0.2,
+                2.6
+              ],
+              "win_small_z": [
+                1.0,
+                2.8
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  230.0,
+                  300.0,
+                  810.0,
+                  1020.0
+                ],
+                "image": "South_view.png",
+                "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+                "size": [
+                  2434,
+                  1457
+                ]
+              },
+              {
+                "box": [
+                  1660.0,
+                  300.0,
+                  2200.0,
+                  1020.0
+                ],
+                "image": "South_view.png",
+                "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+                "size": [
+                  2434,
+                  1457
+                ]
+              },
+              {
+                "box": [
+                  950.0,
+                  300.0,
+                  1330.0,
+                  1020.0
+                ],
+                "image": "South_view.png",
+                "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+                "size": [
+                  2434,
+                  1457
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          },
+          "decision": {
+            "claim_id": "claim_0002",
+            "disposition": "adopted",
+            "id": "decision_0002",
+            "reason": "South chains verified beside both 1500 windows and the 900 door; windows z 1.0..2.8, door z 0.2..2.6"
+          }
+        }
+      }
+    },
+    "resolved_operations": [
+      {
+        "op": "update_window",
+        "id": "W_N_big",
+        "changes": {
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "reason": "Apply the observed North 4800-window extent (chain 1100|2400|1000, middle segment)",
+        "source_refs": [
+          "claim:claim_0001:0e24f15b998460d0e07fa2f5487acedc6e9bae29484be1b5f8c96ee513720cca"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_E2",
+        "changes": {
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "reason": "Apply the observed East 4800-window extent",
+        "source_refs": [
+          "claim:claim_0003:3984ec165b5b701184ce5e02f0ebdcf9fd0bf3a63a52ed1022115a3313a3906d"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_W_big",
+        "changes": {
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "reason": "Apply the observed West 4800-window extent",
+        "source_refs": [
+          "claim:claim_0004:5479a348d481e5603894af923bcb415a2f95495fb88efb3ebc34a0fe1c7f85fa"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_S1",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed South small-window extent (chain 1700|1800|1000, middle segment)",
+        "source_refs": [
+          "claim:claim_0002:d3a1582d67d273c764c6754a6817b417071754f336cdb07eee2f0c5b636e5577"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_S2",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed South small-window extent",
+        "source_refs": [
+          "claim:claim_0002:d3a1582d67d273c764c6754a6817b417071754f336cdb07eee2f0c5b636e5577"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_E1",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed East small-window extent",
+        "source_refs": [
+          "claim:claim_0003:3984ec165b5b701184ce5e02f0ebdcf9fd0bf3a63a52ed1022115a3313a3906d"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_E3",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed East small-window family extent",
+        "source_refs": [
+          "claim:claim_0003:3984ec165b5b701184ce5e02f0ebdcf9fd0bf3a63a52ed1022115a3313a3906d"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_W1",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed West small-window extent",
+        "source_refs": [
+          "claim:claim_0004:5479a348d481e5603894af923bcb415a2f95495fb88efb3ebc34a0fe1c7f85fa"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_W2",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed West small-window extent",
+        "source_refs": [
+          "claim:claim_0004:5479a348d481e5603894af923bcb415a2f95495fb88efb3ebc34a0fe1c7f85fa"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_W3",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed West small-window extent",
+        "source_refs": [
+          "claim:claim_0004:5479a348d481e5603894af923bcb415a2f95495fb88efb3ebc34a0fe1c7f85fa"
+        ]
+      },
+      {
+        "op": "update_window",
+        "id": "W_W4",
+        "changes": {
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "reason": "Apply the observed West small-window extent",
+        "source_refs": [
+          "claim:claim_0004:5479a348d481e5603894af923bcb415a2f95495fb88efb3ebc34a0fe1c7f85fa"
+        ]
+      },
+      {
+        "op": "update_opening",
+        "id": "D_N_in",
+        "changes": {
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "reason": "Apply the observed North entrance door extent (chain 1900|2400|200)",
+        "source_refs": [
+          "claim:claim_0001:0e24f15b998460d0e07fa2f5487acedc6e9bae29484be1b5f8c96ee513720cca"
+        ]
+      },
+      {
+        "op": "update_opening",
+        "id": "D_E_in",
+        "changes": {
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "reason": "Apply the observed East entrance door extent",
+        "source_refs": [
+          "claim:claim_0003:3984ec165b5b701184ce5e02f0ebdcf9fd0bf3a63a52ed1022115a3313a3906d"
+        ]
+      },
+      {
+        "op": "update_opening",
+        "id": "D_S_in",
+        "changes": {
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "reason": "Apply the observed South entrance door extent",
+        "source_refs": [
+          "claim:claim_0002:d3a1582d67d273c764c6754a6817b417071754f336cdb07eee2f0c5b636e5577"
+        ]
+      }
+    ],
+    "geometry_before_sha256": "3e729da46410905581dae3bd12efe10dc23d18b7e291d6ab7ce9133491ee770e",
+    "geometry_after_sha256": "09fac49b5dbc9b4b5db6e911968271920d860b7edc9a42f9b861ca11efe35a66",
+    "changes": [
+      {
+        "kind": "window",
+        "id": "W_E2",
+        "before": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E2",
+          "kind": "window",
+          "p1": [
+            10.0,
+            8.840061
+          ],
+          "p2": [
+            10.0,
+            13.640171
+          ],
+          "room": "S_mid",
+          "span": [
+            8.840061,
+            13.640171
+          ],
+          "width_m": 4.80011,
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "after": {
+          "facade": "East",
+          "floor": "F1",
+          "id": "W_E2",
+          "kind": "window",
+          "p1": [
+            10.0,
+            8.840061
+          ],
+          "p2": [
+            10.0,
+            13.640171
+          ],
+          "room": "S_mid",
+          "span": [
+            8.840061,
+            13.640171
+          ],
+          "width_m": 4.80011,
+          "z": [
+            1.0,
+            3.4
+          ]
+        }
+      },
+      {
+        "kind": "window",
+        "id": "W_N_big",
+        "before": {
+          "facade": "North",
+          "floor": "F1",
+          "id": "W_N_big",
+          "kind": "window",
+          "p1": [
+            4.661716,
+            20.0
+          ],
+          "p2": [
+            9.463696,
+            20.0
+          ],
+          "room": "S_hall",
+          "span": [
+            4.661716,
+            9.463696
+          ],
+          "width_m": 4.80198,
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "after": {
+          "facade": "North",
+          "floor": "F1",
+          "id": "W_N_big",
+          "kind": "window",
+          "p1": [
+            4.661716,
+            20.0
+          ],
+          "p2": [
+            9.463696,
+            20.0
+          ],
+          "room": "S_hall",
+          "span": [
+            4.661716,
+            9.463696
+          ],
+          "width_m": 4.80198,
+          "z": [
+            1.0,
+            3.4
+          ]
+        }
+      },
+      {
+        "kind": "window",
+        "id": "W_W_big",
+        "before": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_big",
+          "kind": "window",
+          "p1": [
+            0.0,
+            0.540019
+          ],
+          "p2": [
+            0.0,
+            5.342334
+          ],
+          "room": "S_meet",
+          "span": [
+            0.540019,
+            5.342334
+          ],
+          "width_m": 4.802315,
+          "z": [
+            1.1,
+            3.5
+          ]
+        },
+        "after": {
+          "facade": "West",
+          "floor": "F1",
+          "id": "W_W_big",
+          "kind": "window",
+          "p1": [
+            0.0,
+            0.540019
+          ],
+          "p2": [
+            0.0,
+            5.342334
+          ],
+          "room": "S_meet",
+          "span": [
+            0.540019,
+            5.342334
+          ],
+          "width_m": 4.802315,
+          "z": [
+            1.0,
+            3.4
+          ]
+        }
+      }
+    ],
+    "scope_check": "checked",
+    "outside_declared_scope": [],
+    "parameters_without_claims": [],
+    "candidate": "candidate_02",
+    "source_model_sha256": "4e0944c96367e4be78c198b71a43fc44d16bd10fd7d5190eb2e1838c5b2eddc4",
+    "source_geometry_ready": true,
+    "error": null,
+    "source_validation": {
+      "status": "pass",
+      "findings": [],
+      "numerical_tolerance_m": 1e-07,
+      "scope": "source geometry, contacts and explicit opening hosts",
+      "not_evaluated": [
+        "drawing partition fidelity and completeness",
+        "unobserved openings",
+        "voids and false slabs",
+        "thermal properties and solver acceptance"
+      ]
+    }
+  }
+}

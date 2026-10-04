@@ -1,0 +1,427 @@
+{
+  "drawing_differences": {
+    "file": "plan_drafts/draft_001/drawing_differences.json",
+    "sha256": "04d111867867f84717d4fc75300e58d541c24e155b0c13d5b00edc2e33d89f1a",
+    "status": "reported",
+    "total": 6,
+    "counts": {
+      "undeclared_wall_line": 2,
+      "wall_gap_without_opening": 2,
+      "declared_divider_with_little_ink": 1,
+      "opening_offset_from_gap": 1
+    },
+    "items": [
+      {
+        "type": "undeclared_wall_line",
+        "axis": "vertical",
+        "x_px": 741,
+        "y_px": [
+          321,
+          490
+        ],
+        "x_m": 9.94,
+        "y_m": [
+          16.11,
+          19.76
+        ],
+        "length_m": 3.65,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          704,
+          284,
+          778,
+          528
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      {
+        "type": "undeclared_wall_line",
+        "axis": "vertical",
+        "x_px": 883,
+        "y_px": [
+          1055,
+          1224
+        ],
+        "x_m": 13.01,
+        "y_m": [
+          0.24,
+          3.89
+        ],
+        "length_m": 3.65,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          846,
+          1018,
+          920,
+          1262
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      {
+        "type": "wall_gap_without_opening",
+        "divider": "pEWnW",
+        "axis": "horizontal",
+        "y_px": 496,
+        "x_px": [
+          461,
+          493
+        ],
+        "y_m": 15.98,
+        "x_m": [
+          3.87,
+          4.57
+        ],
+        "gap_m": 0.71,
+        "look_box": [
+          424,
+          459,
+          530,
+          534
+        ],
+        "check": "A stretch of this declared divider without ink that no declared opening occupies."
+      },
+      {
+        "type": "wall_gap_without_opening",
+        "divider": "pEWnE",
+        "axis": "horizontal",
+        "y_px": 496,
+        "x_px": [
+          533,
+          565
+        ],
+        "y_m": 15.98,
+        "x_m": [
+          5.43,
+          6.13
+        ],
+        "gap_m": 0.71,
+        "look_box": [
+          496,
+          459,
+          602,
+          534
+        ],
+        "check": "A stretch of this declared divider without ink that no declared opening occupies."
+      },
+      {
+        "type": "declared_divider_with_little_ink",
+        "divider": "pCoreW",
+        "axis": "vertical",
+        "x_px": 696,
+        "y_px": [
+          310,
+          496
+        ],
+        "x_m": 8.96,
+        "y_m": [
+          15.98,
+          20.0
+        ],
+        "ink_fraction": 0.18,
+        "look_box": [
+          659,
+          273,
+          733,
+          534
+        ],
+        "check": "Outside its declared openings, most of this declared divider has no ink along its sampled lines."
+      },
+      {
+        "type": "opening_offset_from_gap",
+        "opening": "D_core",
+        "divider": "pEWnE",
+        "declared": {
+          "axis": "horizontal",
+          "y_px": 496,
+          "x_px": [
+            712,
+            784
+          ],
+          "y_m": 15.98,
+          "x_m": [
+            9.31,
+            10.87
+          ]
+        },
+        "gap": {
+          "axis": "horizontal",
+          "y_px": 496,
+          "x_px": [
+            745,
+            793
+          ],
+          "y_m": 15.98,
+          "x_m": [
+            10.02,
+            11.06
+          ]
+        },
+        "end_offsets_m": [
+          -0.71,
+          -0.19
+        ],
+        "look_box": [
+          675,
+          459,
+          830,
+          534
+        ],
+        "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps."
+      }
+    ],
+    "truncated": false,
+    "meaning": "Places where the original's ink and this declaration disagree, to check in the original (look_box): revise only with evidence, or keep the object and say why. Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.",
+    "scope": "Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; exterior walls, windows, single-line walls and heights are not checked.",
+    "full_list": "inspect_plan_draft(draft_id) returns every item of that draft"
+  },
+  "plan_input": {
+    "plan_file": "plan_drafts/draft_001/plan.json",
+    "plan_sha256": "1d8f1b79bd8bbf8369ef10b8f8e6d9bf954074d79e95e00085d4f9e02c421b0c",
+    "image": "1f_view.png",
+    "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "geometry_feedback": {
+      "file": "plan_drafts/draft_001/geometry_feedback.json",
+      "sha256": "c65349a3afabc768537d55a57684cacf42556a942b1faaa6808f2821c6fe7137",
+      "unit": "m",
+      "floor_id": "F1",
+      "metres_per_pixel": {
+        "x": 0.021645021645021644,
+        "y": -0.021621621621621623
+      },
+      "axis_orientation": {
+        "world_east_toward": "image_right",
+        "world_north_toward": "image_top"
+      },
+      "footprint_bounds_m": [
+        [
+          0.0,
+          24.999999999999996
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "footprint_span_m": [
+        24.999999999999996,
+        20.0
+      ],
+      "z_floor_m": 0,
+      "ceiling_height_m": 3.5,
+      "drawing_fidelity": "not_evaluated",
+      "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+      "opening_count": 30,
+      "openings_returned": 24,
+      "openings_truncated": true,
+      "opening_dimensions": [
+        {
+          "id": "D_west",
+          "width_m": 0.8648648648648649,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "W_A",
+          "width_m": 2.4025974025974026,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_B",
+          "width_m": 2.35930735930736,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_C",
+          "width_m": 0.5411255411255418,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E1",
+          "width_m": 0.9081081081081095,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E2",
+          "width_m": 0.9081081081081095,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E3",
+          "width_m": 0.9081081081081077,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E4",
+          "width_m": 0.9081081081081077,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E5",
+          "width_m": 0.9081081081081077,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E6",
+          "width_m": 0.9081081081081059,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_E7",
+          "width_m": 0.8864864864864863,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_M1",
+          "width_m": 1.794594594594594,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_M2",
+          "width_m": 1.7729729729729726,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_N",
+          "width_m": 8.00865800865801,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_S1",
+          "width_m": 4.004329004329001,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "W_S2",
+          "width_m": 4.004329004329005,
+          "z_m": [
+            0.8,
+            2.7
+          ]
+        },
+        {
+          "id": "D_east",
+          "width_m": 1.5999999999999979,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_core",
+          "width_m": 1.558441558441558,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_M1",
+          "width_m": 0.7999999999999989,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_M2",
+          "width_m": 0.7783783783783811,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_R1",
+          "width_m": 0.8000000000000007,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_R2",
+          "width_m": 0.8000000000000043,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_R3",
+          "width_m": 0.7999999999999989,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D_R4",
+          "width_m": 0.7999999999999989,
+          "z_m": [
+            0,
+            2.1
+          ]
+        }
+      ]
+    },
+    "draft_view": {
+      "image_file": "plan_drafts/draft_001/draft_view.png",
+      "image_sha256": "222ad106d138d49abfcc55512c0189fc3c6ba472f52563db06824e10c72299be",
+      "metadata_file": "plan_drafts/draft_001/draft_view.json",
+      "metadata_sha256": "7a50954be3fde7d625b820212437edae0528126773d7d31e36149813af5d9444",
+      "draft_only": true,
+      "drawing_fidelity": "not_evaluated",
+      "source_geometry_ready": false,
+      "unrenderable_count": 0,
+      "unrenderable": []
+    }
+  },
+  "status": "error",
+  "error": "polygonize produced dangles: [{'partition_ids': ['pEWs'], 'pixel_points': [[513.0, 582.0], [696.0, 582.0]]}, {'partition_ids': ['pME'], 'pixel_points': [[696.0, 582.0], [696.0, 775.0]]}]",
+  "remaining_seconds": null,
+  "source_geometry_ready": false
+}

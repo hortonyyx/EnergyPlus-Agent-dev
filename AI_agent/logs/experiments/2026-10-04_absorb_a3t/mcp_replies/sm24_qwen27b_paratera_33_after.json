@@ -1,0 +1,71 @@
+{
+  "plan_input": {
+    "plan_file": "plan_drafts/draft_001/plan.json",
+    "plan_sha256": "1b33ebc500d27bfda7cc4514c4108a7a7e2acd05fdb86708b5b315ebcc2a3ed1",
+    "image": "1f_view.png",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "draft_view_errors": [
+      {
+        "path": "plan_json",
+        "reason": "parse_json: Expecting ',' delimiter: line 1 column 7602 (char 7601)"
+      }
+    ]
+  },
+  "status": "error",
+  "error": "Expecting ',' delimiter: line 1 column 7602 (char 7601)",
+  "error_stage": "parse_json",
+  "repair_hint": {
+    "path": "plan_json",
+    "example": {
+      "floor_id": "F1",
+      "z_floor": 0.0,
+      "ceiling_height": 3.0,
+      "x_anchors": [
+        [
+          10,
+          0.0
+        ],
+        [
+          110,
+          10.0
+        ]
+      ],
+      "y_anchors": [
+        [
+          10,
+          10.0
+        ],
+        [
+          110,
+          0.0
+        ]
+      ],
+      "basis": "observed calibration",
+      "footprint_pixels": [
+        [
+          10,
+          10
+        ],
+        [
+          110,
+          10
+        ],
+        [
+          110,
+          110
+        ],
+        [
+          10,
+          110
+        ]
+      ],
+      "partitions": [],
+      "openings": [],
+      "assumptions": [],
+      "unresolved": []
+    },
+    "note": "Minimum plan shape; example coordinates are not observations."
+  },
+  "remaining_seconds": null,
+  "source_geometry_ready": false
+}

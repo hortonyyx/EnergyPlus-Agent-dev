@@ -1,10 +1,13 @@
 """Run pre-A3 and A3 local MCP handlers on the five saved historical runs.
 
 Each call uses an independent copy of the saved run, pruned before the historical
-candidate/draft being created. Saved views/calibrations and claim decisions are
-held at the archived final state on both sides. This isolates API output and
+candidate/draft being created. Saved views/calibrations are held at the archived
+final state; claims used by a saved application use its actual decision snapshot,
+and future application files are removed by that application's sequence number.
+All context preparation is identical on both sides. This isolates API output and
 geometry; it is not a model re-run or a reconstruction of unseen model behavior.
 """
+import argparse
 import asyncio
 from collections import Counter, defaultdict
 import copy
@@ -19,6 +22,7 @@ from mcp.server.fastmcp import FastMCP
 from scripts.tool_scripts import run_bim_agent as current
 from src.agent.execution.bim_claims import geometry_state
 from src.agent.geometry import plan_partition
+from src.agent_runtime.agent_registry import agent_version_record
 
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[3]
@@ -29,6 +33,7 @@ measure=importlib.import_module('AI_agent.logs.experiments.2026-10-03_tool_packa
 
 
 def fixture(name, call, side):
+    notes=dict(application_cutoff=None,removed_applications=[],removed_later_decisions=[])
     origin=WORK/'history'/name
     if (origin/'bim').is_dir():origin=origin/'bim'
     run=WORK/'mcp_replay'/name/str(call['index'])/side
@@ -56,22 +61,38 @@ def fixture(name, call, side):
         if candidate:
             for p in run.glob('candidate_*'):
                 if p.is_dir() and p.name>=candidate:shutil.rmtree(p)
+            application=original.get('claim_application',{})
+            application_cutoff=application.get('id')
+            notes['application_cutoff']=application_cutoff
             for p in (run/'claims').glob('application_*.json'):
                 row=json.loads(p.read_text())
-                if row.get('candidate','')>=candidate:p.unlink()
+                remove=p.stem>=application_cutoff if application_cutoff else row.get('candidate','')>=candidate
+                if remove:
+                    p.unlink();notes['removed_applications'].append(p.stem)
+            for claim_id,snapshot in application.get('evidence',{}).get('claims',{}).items():
+                decision=snapshot['decision']
+                assert json.loads((run/'claims'/f'{claim_id}.json').read_text())==snapshot['record']
+                assert json.loads((run/'claims'/f'{decision["id"]}.json').read_text())==decision
+                for p in (run/'claims').glob('decision_*.json'):
+                    row=json.loads(p.read_text())
+                    if row['claim_id']==claim_id and p.stem>decision['id']:
+                        p.unlink();notes['removed_later_decisions'].append(p.stem)
         plan_file=original.get('plan_input',{}).get('plan_file')
         if plan_file and call['tool'] in {'build_plan_bim','revise_plan_bim'}:
             target=Path(plan_file).parent.name
             for p in (run/'plan_drafts').glob('draft_*'):
                 if p.is_dir() and p.name>=target:shutil.rmtree(p)
-    return run
+    return run,notes
 
 
 def capture(module,run,call,compiler):
     servers=[]
     with patch.object(FastMCP,'run',lambda server:servers.append(server)):
         module.serve(run)
-    with patch.object(plan_partition, 'compile_plan_partition', compiler):
+    # The runner catches this exact class to render host-error images. Pair it
+    # with the compiler's module; mixing old/new class identities drops a view.
+    with patch.multiple(plan_partition, compile_plan_partition=compiler,
+                        OpeningHostError=compiler.__globals__['OpeningHostError']):
         result=asyncio.run(servers[0].call_tool(call['tool'],copy.deepcopy(call['arguments'])))
     content=result.content if hasattr(result,'content') else result[0] if isinstance(result,tuple) else result
     data=getattr(result,'structuredContent',None)
@@ -90,17 +111,33 @@ def capture(module,run,call,compiler):
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--resume',action='store_true')
+    args=parser.parse_args()
+    registered=agent_version_record(ROOT,verify=True)
+    snapshot={p:v['sha256'] for p,v in registered['files'].items()}
     old=measure.baseline_module('scripts/tool_scripts/run_bim_agent.py','a3t_old_runner',BASELINE)
     old_compiler=measure.baseline_module('src/agent/geometry/plan_partition.py','a3t_old_compiler',BASELINE).compile_plan_partition
     new_compiler=plan_partition.compile_plan_partition
     rows=[];totals=defaultdict(lambda:dict(calls=0,before=0,after=0))
+    if args.resume:
+        saved=json.loads((HERE/'mcp_reply_comparison.json').read_text())
+        assert saved['baseline_commit']==BASELINE and saved['source_sha256']==snapshot
+        report=saved
+        rows=saved['rows']
+        for row in rows:
+            for group in (row['tool'],'ALL'):
+                totals[group]['calls']+=1
+                for side in ('before','after'):totals[group][side]+=row[side]['characters']
+    completed={(row['run'],row['step']) for row in rows}
     (HERE/'mcp_replies').mkdir(exist_ok=True)
     for name,path in audit.records():
         for call in audit.steps(path):
             if call['tool'] not in audit.TOOLS:continue
+            if (name,call['index']) in completed:continue
             captures={}
             for side,module in [('before',old),('after',current)]:
-                run=fixture(name,call,side)
+                run,context=fixture(name,call,side)
                 data,images,geometry,texts=capture(module,run,call,old_compiler if side=='before' else new_compiler)
                 # Preserve raw small replies and hash full bodies; no copied PNGs.
                 raw=json.dumps(data,ensure_ascii=False,indent=2)+'\n'
@@ -111,7 +148,7 @@ def main():
                     pretty_json_characters=len(raw)-1,sha256=hashlib.sha256(raw.encode()).hexdigest(),
                     status=data.get('status'),error=data.get('error'),candidate=data.get('candidate'),
                     image_sha256=images,geometry=geometry,details_file=data.get('details_file'),
-                    field_aliases=data.get('plan_input',{}).get('field_aliases',[]))
+                    field_aliases=data.get('plan_input',{}).get('field_aliases',[]),fixture_context=context)
                 if side=='after' and data.get('details_file'):
                     full=json.loads((run/data['details_file']).read_text())
                     assert full.get('height_coverage')==data.get('height_coverage') or call['tool']=='finish_bim'
@@ -133,6 +170,7 @@ def main():
             shutil.rmtree(WORK/'mcp_replay'/name/str(call['index']))
             report=dict(method=__doc__,counting='Exact MCP text block characters, excluding images and transport envelopes; pretty JSON retained only as evidence.',
                         baseline_commit=BASELINE,model_requests=0,rows=rows,totals=dict(totals))
+            report.update(agent_version=registered['version_id'],source_sha256=snapshot)
             current.dump(HERE/'mcp_reply_comparison.json',report)
     for t in totals.values():t['reduction_percent']=round(100*(1-t['after']/t['before']),2)
     current.dump(HERE/'mcp_reply_comparison.json',report)
