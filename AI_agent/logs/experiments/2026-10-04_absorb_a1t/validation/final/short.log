@@ -1,0 +1,30 @@
+bringing up nodes...
+bringing up nodes...
+
+.....................................................................................................................................................................................................................................................................................................................................................................F.....
+=================================== FAILURES ===================================
+_______ test_run99_archived_tool_snapshot_replays_saved_delivery_exactly _______
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_run99_archived_tool_snapshot_replays_saved_delivery_exactly() -> None:
+        spec = importlib.util.spec_from_file_location("stage1_replay_history", REPLAY_PATH)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        run = module.RUNS["run99"]
+        evidence = module.snapshot_code_evidence(run)
+        assert evidence["status"] == "complete"
+        assert evidence["snapshot_exact_file_count"] == evidence["file_count"] == 44
+        by_path = {row["path"]: row for row in evidence["files"]}
+>       assert all(
+            by_path[path]["current_matches_snapshot"]
+            for path in module.SNAPSHOT_REPLAY_CURRENT_MATCH_PATHS
+        )
+E       assert False
+E        +  where False = all(<generator object test_run99_archived_tool_snapshot_replays_saved_delivery_exactly.<locals>.<genexpr> at 0x7230db57b920>)
+
+tests/test_stage1_behaviour.py:297: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_stage1_behaviour.py::test_run99_archived_tool_snapshot_replays_saved_delivery_exactly
+1 failed, 362 passed in 605.09s (0:10:05)

@@ -1,0 +1,65 @@
+bringing up nodes...
+bringing up nodes...
+
+FFF.
+=================================== FAILURES ===================================
+___ test_only_height_used_by_the_geometry_kernel_can_support_the_scale_check ___
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_only_height_used_by_the_geometry_kernel_can_support_the_scale_check():
+        geometry = _proposal()["geometry"]
+        geometry["footprint_x"] = [0, 6000]
+        # Cell is a permissive legacy schema, but source_primitives uses the FLOOR
+        # height. Unused extra metadata must not neutralize the actual 3 m height.
+        geometry["floors"][0]["cells"][0]["height"] = 10000
+>       with pytest.raises(ScaleMismatchError, match=r"ceiling_height=3"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'src.agent.geometry.input_scale.ScaleMismatchError'>
+
+tests/test_bim_input_scale.py:166: Failed
+___________ test_null_polygon_uses_the_same_rectangle_as_the_kernel ____________
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_null_polygon_uses_the_same_rectangle_as_the_kernel():
+        geometry = _proposal()["geometry"]
+        geometry["floors"][0]["cells"][0].update(x=[0, 6000], polygon=None)
+>       with pytest.raises(ScaleMismatchError, match=r"cells\[0\].x"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'src.agent.geometry.input_scale.ScaleMismatchError'>
+
+tests/test_bim_input_scale.py:173: Failed
+____ test_legacy_numeric_strings_are_checked_after_existing_schema_parsing _____
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a1t/.tmp_a1t/typed_before/popen-gw0/test_legacy_numeric_strings_ar0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x727143c35fa0>
+
+    def test_legacy_numeric_strings_are_checked_after_existing_schema_parsing(tmp_path, monkeypatch):
+        import src.agent.execution.source_proposal as exporter
+        proposal = _proposal()
+        proposal["geometry"]["footprint_x"] = ["0", "6000"]
+        proposal["geometry"]["floors"][0]["ceiling_height"] = "3"
+        monkeypatch.setattr(exporter, "build_source_bim", lambda *_, **__: pytest.fail("kernel ran"))
+>       result = export_source_proposal(proposal, tmp_path / "strings")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_bim_input_scale.py:145:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/agent/execution/source_proposal.py:139: in export_source_proposal
+    source = build_source_bim(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+_ = (CorrectedGeometry(schema_version='2', footprint_x=[0.0, 6000.0], footprint_y=[0.0, 6.0], floors=[Floor(name='F1', z_f...'unknown', source_refs=['proposal:door'], assumptions=[])], corrections=[], conflicts=[], unsupported=[], notes=None),)
+__ = {'capability_profile': 'orthogonal_polygon', 'enclosure_declaration': None}
+
+>   monkeypatch.setattr(exporter, "build_source_bim", lambda *_, **__: pytest.fail("kernel ran"))
+                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: kernel ran
+
+tests/test_bim_input_scale.py:144: Failed
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_bim_input_scale.py::test_only_height_used_by_the_geometry_kernel_can_support_the_scale_check
+FAILED tests/test_bim_input_scale.py::test_null_polygon_uses_the_same_rectangle_as_the_kernel
+FAILED tests/test_bim_input_scale.py::test_legacy_numeric_strings_are_checked_after_existing_schema_parsing
+3 failed, 1 passed in 10.97s
