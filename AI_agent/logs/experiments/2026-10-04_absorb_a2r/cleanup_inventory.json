@@ -1,0 +1,46 @@
+{
+  "moves": [
+    {
+      "old": "src/agent/runtime_r1_facade.py",
+      "new": "AI_agent/logs/experiments/2026-10-03_runtime_r1/facade_support.py",
+      "before_sha256": "8b9b1f5bd2b8bdb8425bc8b60b4c434f2e7193202f10132db0f693706af68c9a",
+      "after_sha256": "8b9b1f5bd2b8bdb8425bc8b60b4c434f2e7193202f10132db0f693706af68c9a",
+      "before_lines": 249,
+      "after_lines": 249,
+      "remaining_consumers": [
+        "R1 facade_experiment.py",
+        "R1 verify_evidence.py",
+        "tests/test_runtime_r1_facade.py"
+      ],
+      "change": "Move only"
+    },
+    {
+      "old": "src/agent/runtime_snapshot.py",
+      "new": "AI_agent/logs/experiments/2026-10-02_harness_stage0/snapshot_support.py",
+      "before_sha256": "dd7ebcd9dad94761b8c91cae02d0b993627ac78052049279fc42ec0c87ef9163",
+      "after_sha256": "15317d952dc989bf2e28a8e27a693a8e9f3b6ab16fd341b4a64c1161d08019ef",
+      "before_lines": 321,
+      "after_lines": 321,
+      "remaining_consumers": [
+        "tests/test_runtime_snapshot.py"
+      ],
+      "change": "Move only; snapshot imports use absolute package names"
+    },
+    {
+      "old": "src/agent/runtime_r1_preparation.py",
+      "new": "src/agent/runtime_configuration.py",
+      "before_sha256": "814c3e28036634a5a1b02c172a282a89b6eecb172359bdc7dffc97df3239eeb0",
+      "after_sha256": "9b7fd38c6073f1653414e6567641be202bba7c94efb35ade5a4b516ae0a895d7",
+      "before_lines": 153,
+      "after_lines": 153,
+      "remaining_consumers": [
+        "CLI check/command/launch",
+        "R2b/c verify_delivery.py",
+        "R1/R2/R3/subscription configuration tests"
+      ],
+      "change": "Common production launcher kept and renamed; obsolete R1 wording removed"
+    }
+  ],
+  "old_runtime_modules_remaining": false,
+  "scope": "Historical reports and code-manifest hashes are not rewritten. Historical commands using runtime_r1_preparation must use runtime_configuration on current code."
+}

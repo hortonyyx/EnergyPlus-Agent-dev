@@ -1,4 +1,4 @@
-"""Validate or start an approved R1 whole-case configuration.
+"""Validate or start an approved whole-case configuration.
 
 This module performs no model call for ``check`` or ``command``.  ``launch``
 execs the reviewed runtime entry exactly once and is intended only after the
@@ -29,7 +29,7 @@ ALLOWED_ENTRYPOINTS = {
 def load_configuration(path: Path, *, low_output_limit_reason: str | None = None) -> dict:
     value = json.loads(path.read_bytes())
     if value.get("schema_version") != 1:
-        raise ValueError("unsupported R1 run configuration schema")
+        raise ValueError("unsupported run configuration schema")
     if not value.get("approval_required_before_launch"):
         raise ValueError("whole-case configuration must retain its approval gate")
     cases = value.get("cases")

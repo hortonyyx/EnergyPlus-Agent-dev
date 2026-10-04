@@ -15,7 +15,11 @@ from src.agent.contracts import (
     NormalizationProposal,
     ToleranceDecision,
 )
-from src.agent.runtime_snapshot import SnapshotDimensionSource, snapshot_source_bim
+from importlib import import_module
+
+_support = import_module("AI_agent.logs.experiments.2026-10-02_harness_stage0.snapshot_support")
+SnapshotDimensionSource = _support.SnapshotDimensionSource
+snapshot_source_bim = _support.snapshot_source_bim
 
 
 ROOT = Path(__file__).resolve().parents[1]

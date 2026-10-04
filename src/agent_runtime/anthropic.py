@@ -42,7 +42,7 @@ class HttpAnthropicAdapter(HttpChatAdapter):
                 "anthropic-version": "2023-06-01", "anthropic-beta": CAPTURED_BETAS}, timeout=timeout)
         if not response.is_success:
             from .failures import http_failure
-            raise http_failure(response, secret=self._key)
+            raise http_failure(response, secret=self._key, provider=self.failure_provider)
         return response.json()
 
 

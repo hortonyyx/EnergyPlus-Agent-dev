@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from src.agent.runtime_entry import execute, parser
-from src.agent.runtime_r1_preparation import argv_for, load_configuration
+from src.agent.runtime_configuration import argv_for, load_configuration
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
 from src.agent_runtime.loop import RunLimits

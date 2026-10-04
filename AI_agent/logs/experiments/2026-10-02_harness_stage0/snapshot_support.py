@@ -14,7 +14,7 @@ from typing import Any, Mapping, Sequence
 
 from pydantic import model_validator
 
-from .contracts import (
+from src.agent.contracts import (
     BuildingObjectRef,
     ConnectivityState,
     DimensionState,
@@ -22,7 +22,7 @@ from .contracts import (
     SavedModelSnapshot,
     SemanticSnapshot,
 )
-from .contracts._base import ContractModel, NonEmptyStr
+from src.agent.contracts._base import ContractModel, NonEmptyStr
 
 
 _HOST_TOLERANCE_M = 2e-5

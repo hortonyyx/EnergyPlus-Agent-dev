@@ -1,8 +1,15 @@
 import json
 from pathlib import Path
 
-from src.agent.runtime_r1_facade import (CHILD_BUDGET, build_tasks, evaluate_batches,
-    load_json, validate_protocol, validate_run_manifest)
+from importlib import import_module
+
+_support = import_module("AI_agent.logs.experiments.2026-10-03_runtime_r1.facade_support")
+CHILD_BUDGET = _support.CHILD_BUDGET
+build_tasks = _support.build_tasks
+evaluate_batches = _support.evaluate_batches
+load_json = _support.load_json
+validate_protocol = _support.validate_protocol
+validate_run_manifest = _support.validate_run_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]

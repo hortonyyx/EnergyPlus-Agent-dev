@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import tarfile
 
-from src.agent.runtime_r1_preparation import load_configuration
+from src.agent.runtime_configuration import load_configuration
 from src.agent_runtime.agent_registry import agent_version_record
 from src.harness_contracts import BudgetAmounts, EventEnvelope, EventLog
 

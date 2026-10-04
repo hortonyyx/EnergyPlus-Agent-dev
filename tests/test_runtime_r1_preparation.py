@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import pytest
 
-from src.agent.runtime_r1_preparation import argv_for, load_configuration
+from src.agent.runtime_configuration import argv_for, load_configuration
 
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -868,7 +868,7 @@ class Runtime:
             "image_originals": {k: v.model_dump(mode="json") for k, v in self.originals.items()},
             "counts": self.counts, "used_ids": sorted(self.used_ids), "answer": self.answer,
             "pending_response_id": self.pending_response_id,
-            "pending_pictures": self.store.put_json(self.pending_pictures).model_dump(mode="json"),
+            "pending_pictures": self.store.capture(self.pending_pictures).model_dump(mode="json"),
             "pending_picture_events": self.pending_picture_events,
             "terminal_reason": self.terminal_reason, "retry_of": self.retry_of,
             "answer_repair_request_id": self.answer_repair_request_id,
@@ -879,7 +879,7 @@ class Runtime:
             "elapsed_seconds": self.limits.seconds - self._remaining(), "started_epoch": self.started_epoch,
             "tool_state": self.tools.snapshot_state(), "config": self._config(),
             "versions": self.versions.model_dump(mode="json"), "last_event_id": self.store.events[-1].event_id}
-        ref = self.store.put_json(snapshot)
+        ref = self.store.put_json_tree(snapshot)
         self.store.append(CheckpointPayload(state=ref, after_event_id=snapshot["last_event_id"]))
         self.store.write_json("checkpoint.json", ref.model_dump(mode="json"))
         self._fault("after_checkpoint")
@@ -912,7 +912,15 @@ class Runtime:
         self.used_ids = set(saved["used_ids"])
         self.answer, self.terminal_reason = saved.get("answer"), saved.get("terminal_reason")
         self.pending_response_id = saved.get("pending_response_id")
-        self.pending_pictures = json.loads(self.store.get_bytes(HashedBlobRef.model_validate_json(json.dumps(saved["pending_pictures"])))) if saved.get("pending_pictures") else []
+        pictures = saved.get("pending_pictures")
+        if pictures and pictures.get("kind") == "sha256":  # historical checkpoint
+            self.pending_pictures = json.loads(self.store.get_bytes(HashedBlobRef.model_validate(pictures)))
+        elif pictures:
+            from pydantic import TypeAdapter
+            from src.harness_contracts.events import CapturedValue
+            self.pending_pictures = self.store.resolve(TypeAdapter(CapturedValue).validate_json(json.dumps(pictures)))
+        else:
+            self.pending_pictures = []
         self.pending_picture_events = saved.get("pending_picture_events", [])
         self.retry_of = saved.get("retry_of")
         self.answer_repair_request_id = saved.get("answer_repair_request_id")

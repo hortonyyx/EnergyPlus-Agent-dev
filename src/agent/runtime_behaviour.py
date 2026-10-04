@@ -14,6 +14,7 @@ import gzip
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import re
 from typing import Any
@@ -102,6 +103,12 @@ def _captured(value: Any, log_root: Path) -> Any:
     data = value.model_dump(mode="json") if hasattr(value, "model_dump") else value
     if data.get("kind") == "inline":
         return data.get("value")
+    if data.get("kind") == "json_references":
+        from src.harness_contracts import JsonReferencedCapture
+        from src.agent_runtime.store import EventStore
+        reader = object.__new__(EventStore)
+        reader.directory = log_root.resolve()
+        return reader.resolve(JsonReferencedCapture.model_validate(data))
     if data.get("kind") == "image_references":
         from src.harness_contracts import ImageReferencedCapture
         from src.agent_runtime.image_capture import reconstruct_capture
@@ -210,8 +217,8 @@ def _read_event_log(path: Path) -> dict[str, Any]:
                 "adapter": payload.adapter,
                 "model": request_model,
                 "final_request_body": (payload.final_request_body.model_dump(mode="json")
-                    if payload.final_request_body.kind == "image_references" else final_request_body),
-                "final_request_encoding": ("captured_value" if payload.final_request_body.kind == "image_references"
+                    if payload.final_request_body.kind in {"image_references", "json_references"} else final_request_body),
+                "final_request_encoding": ("captured_value" if payload.final_request_body.kind in {"image_references", "json_references"}
                     else "expanded_json"),
                 "wire_sha256": payload.wire_sha256,
                 "injected_content": [item.model_dump(mode="json") for item in payload.injected_content],
@@ -485,6 +492,19 @@ def _read_bridge(run: Path) -> dict[str, Any]:
     }
 
 
+def _behaviour_reference_target(target: Path, record: dict, source_root):
+    if record.get("schema_version") != 1:
+        raise ValueError("unsupported behaviour reference version")
+    log = (target.parent / record["event_log"]["uri"]).resolve()
+    if log.name != "events.jsonl":
+        raise ValueError("behaviour reference must point to events.jsonl")
+    if hashlib.sha256(log.read_bytes()).hexdigest() != record["event_log"]["sha256"]:
+        raise ValueError("behaviour event-log hash mismatch; regenerate the report after resume")
+    evidence_root = source_root or ((target.parent / record["source_root"]).resolve()
+                                   if record.get("source_root") else None)
+    return log, evidence_root
+
+
 def load_behaviour(path: str | Path, *, source_root: str | Path | None = None) -> dict[str, Any]:
     """Load a run directory, current ``events.jsonl``, CLI stream, or bridge audit."""
     path = Path(path)
@@ -500,6 +520,9 @@ def load_behaviour(path: str | Path, *, source_root: str | Path | None = None) -
         target = path / "record.json.gz" if path.is_dir() else path
         with gzip.open(target, "rt") as stream:
             record = json.load(stream)
+        if record.get("source_format") == "event_envelope_reference":
+            log, evidence_root = _behaviour_reference_target(target, record, source_root)
+            return load_behaviour(log, source_root=evidence_root)
         record.setdefault("source_format", "claude_cli_record")
         receipt = record.get("receipt") or {}
         record.setdefault("model", receipt.get("actual_model"))
@@ -801,10 +824,31 @@ def write_behaviour_report(path: str | Path, out: str | Path, *, source_root: st
     out.mkdir(parents=True, exist_ok=True)
     (out / "summary.json").write_text(json.dumps(record["summary"], ensure_ascii=False, indent=2) + "\n")
     (out / "timeline.md").write_text(render_timeline(record) + "\n")
+    saved = record
+    if record["source_format"] == "event_envelope_jsonl":
+        source = Path(path)
+        log = source / "events.jsonl" if source.is_dir() else source
+        if log.name != "events.jsonl" or not log.is_file():
+            target = source / "record.json.gz" if source.is_dir() else source
+            with gzip.open(target, "rt") as stream:
+                previous = json.load(stream)
+            if previous.get("source_format") == "event_envelope_reference":
+                log, source_root = _behaviour_reference_target(target, previous, source_root)
+            else:
+                # Old expanded records can be exported without their journal.
+                log = None
+        # The immutable event journal and its verified attachments already hold
+        # the complete behaviour. Avoid serializing an expanded second copy.
+        if log is not None:
+            saved = {"source_format": "event_envelope_reference", "schema_version": 1,
+                     "event_log": {"uri": os.path.relpath(log.resolve(), out.resolve()),
+                                   "sha256": hashlib.sha256(log.read_bytes()).hexdigest()}}
+            if source_root is not None:
+                saved["source_root"] = os.path.relpath(Path(source_root).resolve(), out.resolve())
     with (out / "record.json.gz").open("wb") as raw_stream:
         with gzip.GzipFile(filename="", mode="wb", fileobj=raw_stream, mtime=0) as compressed:
             with io.TextIOWrapper(compressed, encoding="utf-8") as stream:
-                json.dump(record, stream, ensure_ascii=False, indent=1)
+                json.dump(saved, stream, ensure_ascii=False, indent=1)
     return record["summary"]
 
 

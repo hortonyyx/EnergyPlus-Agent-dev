@@ -1,0 +1,380 @@
+bringing up nodes...
+bringing up nodes...
+
+.............................FFFFF.FFF.........
+==================================== ERRORS ====================================
+_______________ ERROR collecting tests/test_runtime_snapshot.py ________________
+ImportError while importing test module '/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/tests/test_runtime_snapshot.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_runtime_snapshot.py:20: in <module>
+    _support = import_module("AI_agent.logs.experiments.2026-10-02_harness_stage0.snapshot_support")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AI_agent/logs/experiments/2026-10-02_harness_stage0/snapshot_support.py:17: in <module>
+    from .contracts import (
+E   ModuleNotFoundError: No module named 'AI_agent.logs.experiments.2026-10-02_harness_stage0.contracts'
+=================================== FAILURES ===================================
+_________ test_shared_json_corruption_never_silently_falls_back[node] __________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw0/test_shared_json_corruption_ne0')
+damage = 'node'
+
+    @pytest.mark.parametrize("damage", ["node", "missing", "wire_hash", "capture_hash"])
+    def test_shared_json_corruption_never_silently_falls_back(tmp_path, damage):
+        engine = runtime(tmp_path, [])
+        with engine.store as store:
+            capture = store.capture({"text": "whole conversation" * 3000})
+            assert capture.kind == "json_references"
+            root = json.loads(store.get_bytes(capture.blob))
+            node = root["tree"][1]
+>           path = store.directory / node["uri"]
+                                     ^^^^^^^^^^^
+E           TypeError: list indices must be integers or slices, not str
+
+tests/test_runtime_a2r.py:46: TypeError
+________ test_shared_json_corruption_never_silently_falls_back[missing] ________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw0/test_shared_json_corruption_ne1')
+damage = 'missing'
+
+    @pytest.mark.parametrize("damage", ["node", "missing", "wire_hash", "capture_hash"])
+    def test_shared_json_corruption_never_silently_falls_back(tmp_path, damage):
+        engine = runtime(tmp_path, [])
+        with engine.store as store:
+            capture = store.capture({"text": "whole conversation" * 3000})
+            assert capture.kind == "json_references"
+            root = json.loads(store.get_bytes(capture.blob))
+            node = root["tree"][1]
+>           path = store.directory / node["uri"]
+                                     ^^^^^^^^^^^
+E           TypeError: list indices must be integers or slices, not str
+
+tests/test_runtime_a2r.py:46: TypeError
+_______ test_shared_json_corruption_never_silently_falls_back[wire_hash] _______
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw0/test_shared_json_corruption_ne2')
+damage = 'wire_hash'
+
+    @pytest.mark.parametrize("damage", ["node", "missing", "wire_hash", "capture_hash"])
+    def test_shared_json_corruption_never_silently_falls_back(tmp_path, damage):
+        engine = runtime(tmp_path, [])
+        with engine.store as store:
+            capture = store.capture({"text": "whole conversation" * 3000})
+            assert capture.kind == "json_references"
+            root = json.loads(store.get_bytes(capture.blob))
+            node = root["tree"][1]
+>           path = store.directory / node["uri"]
+                                     ^^^^^^^^^^^
+E           TypeError: list indices must be integers or slices, not str
+
+tests/test_runtime_a2r.py:46: TypeError
+_____ test_shared_json_corruption_never_silently_falls_back[capture_hash] ______
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw0/test_shared_json_corruption_ne3')
+damage = 'capture_hash'
+
+    @pytest.mark.parametrize("damage", ["node", "missing", "wire_hash", "capture_hash"])
+    def test_shared_json_corruption_never_silently_falls_back(tmp_path, damage):
+        engine = runtime(tmp_path, [])
+        with engine.store as store:
+            capture = store.capture({"text": "whole conversation" * 3000})
+            assert capture.kind == "json_references"
+            root = json.loads(store.get_bytes(capture.blob))
+            node = root["tree"][1]
+>           path = store.directory / node["uri"]
+                                     ^^^^^^^^^^^
+E           TypeError: list indices must be integers or slices, not str
+
+tests/test_runtime_a2r.py:46: TypeError
+_ test_parallel_results_are_rechecked_against_saved_version_before_application _
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw0/test_parallel_results_are_rech0')
+
+    def test_parallel_results_are_rechecked_against_saved_version_before_application(tmp_path):
+        async def scenario():
+            limits = RunLimits(model_calls=4, tool_calls=4, tokens=400_000, seconds=300)
+            activity = {"active": 0, "peak": 0, "expected_overlap": 2}
+            with EventStore(tmp_path / "audit", run_id="version-test", task_id="coordinator",
+                            budget_limit=limits.ledger_limit()) as store:
+                session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)
+                await session.initialize()
+                reply = await session.call_tool("delegate_to_roles", {"tasks": [_task("east"), _task("west")]})
+                assert all(row["status"] == "completed" for row in reply["structuredContent"]["results"])
+                assert session.inspect("west")["applicable"]
+                (tmp_path / "bim/inputs.json").write_text('{"revision": 2}')
+                rejected = await session.call_tool("apply_local_observation", _application("west"))
+                assert rejected["isError"]
+                assert "stale source model version" in rejected["structuredContent"]["reason"]
+                assert session.tools.calls == []
+                store.validate()
+>       asyncio.run(scenario())
+
+tests/test_runtime_parallel_delegation.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        limits = RunLimits(model_calls=4, tool_calls=4, tokens=400_000, seconds=300)
+        activity = {"active": 0, "peak": 0, "expected_overlap": 2}
+        with EventStore(tmp_path / "audit", run_id="version-test", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)
+            await session.initialize()
+            reply = await session.call_tool("delegate_to_roles", {"tasks": [_task("east"), _task("west")]})
+>           assert all(row["status"] == "completed" for row in reply["structuredContent"]["results"])
+E           assert False
+E            +  where False = all(<generator object test_parallel_results_are_rechecked_against_saved_version_before_application.<locals>.scenario.<locals>.<genexpr> at 0x7030ae5cd560>)
+
+tests/test_runtime_parallel_delegation.py:134: AssertionError
+__ test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[4-3] __
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw1/test_batch_isolates_failure_an0')
+concurrency = 4, expected_peak = 3
+
+    @pytest.mark.parametrize("concurrency, expected_peak", [(4, 3), (1, 1)])
+    def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_path, concurrency, expected_peak):
+        async def scenario():
+            limits = RunLimits(model_calls=8, tool_calls=8, tokens=400_000, seconds=300)
+            activity = {"active": 0, "peak": 0, "expected_overlap": expected_peak}
+            quota = tmp_path / "quota.jsonl"
+            with EventStore(tmp_path / "audit", run_id="parallel-test", task_id="coordinator",
+                            budget_limit=limits.ledger_limit()) as store:
+                factory = lambda task: QuotaAdapter(OverlapAdapter(activity, fail=task == "failure"),
+                    quota, limit=3, category="offline-r1")
+                session = _setup(tmp_path, store, limits, factory, concurrency)
+                await session.initialize()
+                tasks = [_task("good-a"), _task("over-budget", tokens=1),
+                         _task("failure"), _task("good-b")]
+                result = await session.call_tool("delegate_to_roles", {"tasks": tasks})
+                assert not result["isError"]
+                rows = result["structuredContent"]["results"]
+                assert [r["status"] for r in rows] == [
+                    "completed", "child_token_budget_exhausted", "permission_denied", "completed"]
+                assert activity["peak"] == expected_peak
+                assert [r["package"]["task_id"] for r in rows] == [t["task_id"] for t in tasks]
+                ledger = RuntimeBudget.from_events(store.budget_limit, store.all_events).ledger
+                assert len(ledger.reservations) == len(ledger.settlements) == 3
+                assert len({r.reservation_id for r in ledger.reservations}) == 3
+                assert ledger.committed.tokens <= limits.tokens
+                assert ledger.committed.calls == 3
+                last_stop = next(e for e in reversed(store.all_events)
+                    if e.payload.event_type == "run_lifecycle" and e.payload.action == "stop")
+                receipt_source = next(ref for ref in last_stop.source_refs if ref.source_id == "run-receipt")
+                final_receipt = json.loads(store.get_bytes(receipt_source.blob))
+                assert final_receipt["root_budget_available"] == ledger.available.model_dump(mode="json")
+                assert len([e for e in store.all_events if e.payload.event_type == "adapter_request"]) == 3
+                assert store.validate().events == tuple(store.all_events)
+                before = len([e for e in store.all_events if e.payload.event_type == "adapter_request"])
+                reused = await session.call_tool("delegate_to_roles", {"tasks": tasks})
+                assert all(r["reused_saved_result"] for r in reused["structuredContent"]["results"])
+                assert len([e for e in store.all_events if e.payload.event_type == "adapter_request"]) == before
+            tickets = [json.loads(line) for line in quota.read_text().splitlines()]
+            assert [r["ticket"] for r in tickets if r["event"] == "attempt"] == [1, 2, 3]
+            assert len([r for r in tickets if r["event"] == "failure"]) == 1
+            assert len([r for r in tickets if r["event"] == "response"]) == 2
+>       asyncio.run(scenario())
+
+tests/test_runtime_parallel_delegation.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        limits = RunLimits(model_calls=8, tool_calls=8, tokens=400_000, seconds=300)
+        activity = {"active": 0, "peak": 0, "expected_overlap": expected_peak}
+        quota = tmp_path / "quota.jsonl"
+        with EventStore(tmp_path / "audit", run_id="parallel-test", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            factory = lambda task: QuotaAdapter(OverlapAdapter(activity, fail=task == "failure"),
+                quota, limit=3, category="offline-r1")
+            session = _setup(tmp_path, store, limits, factory, concurrency)
+            await session.initialize()
+            tasks = [_task("good-a"), _task("over-budget", tokens=1),
+                     _task("failure"), _task("good-b")]
+            result = await session.call_tool("delegate_to_roles", {"tasks": tasks})
+            assert not result["isError"]
+            rows = result["structuredContent"]["results"]
+>           assert [r["status"] for r in rows] == [
+                "completed", "child_token_budget_exhausted", "permission_denied", "completed"]
+E           AssertionError: assert ['invalid_set...ent_evidence'] == ['completed',..., 'completed']
+E             
+E             At index 0 diff: 'invalid_settlement_evidence' != 'completed'
+E             Use -v to get more diff
+
+tests/test_runtime_parallel_delegation.py:98: AssertionError
+________________ test_parallel_batch_preserves_root_request_cap ________________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw0/test_parallel_batch_preserves_0')
+
+    def test_parallel_batch_preserves_root_request_cap(tmp_path):
+        async def scenario():
+            limits = RunLimits(model_calls=2, tool_calls=4, tokens=400_000, seconds=300)
+            activity = {"active": 0, "peak": 0, "expected_overlap": 2}
+            with EventStore(tmp_path / "audit", run_id="root-cap-test", task_id="coordinator",
+                            budget_limit=limits.ledger_limit()) as store:
+                session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)
+                await session.initialize()
+                reply = await session.call_tool("delegate_to_roles", {"tasks": [_task(f"child-{i}") for i in range(4)]})
+                statuses = [row["status"] for row in reply["structuredContent"]["results"]]
+                assert statuses.count("completed") == 2
+                assert statuses.count("root_model_budget_exhausted") == 2
+                ledger = RuntimeBudget.from_events(store.budget_limit, store.all_events).ledger
+                assert ledger.committed.calls == 2
+                store.validate()
+>       asyncio.run(scenario())
+
+tests/test_runtime_parallel_delegation.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        limits = RunLimits(model_calls=2, tool_calls=4, tokens=400_000, seconds=300)
+        activity = {"active": 0, "peak": 0, "expected_overlap": 2}
+        with EventStore(tmp_path / "audit", run_id="root-cap-test", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            session = _setup(tmp_path, store, limits, lambda task: OverlapAdapter(activity), 4)
+            await session.initialize()
+            reply = await session.call_tool("delegate_to_roles", {"tasks": [_task(f"child-{i}") for i in range(4)]})
+            statuses = [row["status"] for row in reply["structuredContent"]["results"]]
+>           assert statuses.count("completed") == 2
+E           AssertionError: assert 0 == 2
+E            +  where 0 = <built-in method count of list object at 0x7030adf9d000>('completed')
+E            +    where <built-in method count of list object at 0x7030adf9d000> = ['invalid_settlement_evidence', 'invalid_settlement_evidence', 'root_model_budget_exhausted', 'root_model_budget_exhausted'].count
+
+tests/test_runtime_parallel_delegation.py:168: AssertionError
+__ test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[1-1] __
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/.a2r-tmp/targeted-pytest/popen-gw1/test_batch_isolates_failure_an1')
+concurrency = 1, expected_peak = 1
+
+    @pytest.mark.parametrize("concurrency, expected_peak", [(4, 3), (1, 1)])
+    def test_batch_isolates_failure_and_child_budget_and_counts_every_attempt(tmp_path, concurrency, expected_peak):
+        async def scenario():
+            limits = RunLimits(model_calls=8, tool_calls=8, tokens=400_000, seconds=300)
+            activity = {"active": 0, "peak": 0, "expected_overlap": expected_peak}
+            quota = tmp_path / "quota.jsonl"
+            with EventStore(tmp_path / "audit", run_id="parallel-test", task_id="coordinator",
+                            budget_limit=limits.ledger_limit()) as store:
+                factory = lambda task: QuotaAdapter(OverlapAdapter(activity, fail=task == "failure"),
+                    quota, limit=3, category="offline-r1")
+                session = _setup(tmp_path, store, limits, factory, concurrency)
+                await session.initialize()
+                tasks = [_task("good-a"), _task("over-budget", tokens=1),
+                         _task("failure"), _task("good-b")]
+                result = await session.call_tool("delegate_to_roles", {"tasks": tasks})
+                assert not result["isError"]
+                rows = result["structuredContent"]["results"]
+                assert [r["status"] for r in rows] == [
+                    "completed", "child_token_budget_exhausted", "permission_denied", "completed"]
+                assert activity["peak"] == expected_peak
+                assert [r["package"]["task_id"] for r in rows] == [t["task_id"] for t in tasks]
+                ledger = RuntimeBudget.from_events(store.budget_limit, store.all_events).ledger
+                assert len(ledger.reservations) == len(ledger.settlements) == 3
+                assert len({r.reservation_id for r in ledger.reservations}) == 3
+                assert ledger.committed.tokens <= limits.tokens
+                assert ledger.committed.calls == 3
+                last_stop = next(e for e in reversed(store.all_events)
+                    if e.payload.event_type == "run_lifecycle" and e.payload.action == "stop")
+                receipt_source = next(ref for ref in last_stop.source_refs if ref.source_id == "run-receipt")
+                final_receipt = json.loads(store.get_bytes(receipt_source.blob))
+                assert final_receipt["root_budget_available"] == ledger.available.model_dump(mode="json")
+                assert len([e for e in store.all_events if e.payload.event_type == "adapter_request"]) == 3
+                assert store.validate().events == tuple(store.all_events)
+                before = len([e for e in store.all_events if e.payload.event_type == "adapter_request"])
+                reused = await session.call_tool("delegate_to_roles", {"tasks": tasks})
+                assert all(r["reused_saved_result"] for r in reused["structuredContent"]["results"])
+                assert len([e for e in store.all_events if e.payload.event_type == "adapter_request"]) == before
+            tickets = [json.loads(line) for line in quota.read_text().splitlines()]
+            assert [r["ticket"] for r in tickets if r["event"] == "attempt"] == [1, 2, 3]
+            assert len([r for r in tickets if r["event"] == "failure"]) == 1
+            assert len([r for r in tickets if r["event"] == "response"]) == 2
+>       asyncio.run(scenario())
+
+tests/test_runtime_parallel_delegation.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def scenario():
+        limits = RunLimits(model_calls=8, tool_calls=8, tokens=400_000, seconds=300)
+        activity = {"active": 0, "peak": 0, "expected_overlap": expected_peak}
+        quota = tmp_path / "quota.jsonl"
+        with EventStore(tmp_path / "audit", run_id="parallel-test", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            factory = lambda task: QuotaAdapter(OverlapAdapter(activity, fail=task == "failure"),
+                quota, limit=3, category="offline-r1")
+            session = _setup(tmp_path, store, limits, factory, concurrency)
+            await session.initialize()
+            tasks = [_task("good-a"), _task("over-budget", tokens=1),
+                     _task("failure"), _task("good-b")]
+            result = await session.call_tool("delegate_to_roles", {"tasks": tasks})
+            assert not result["isError"]
+            rows = result["structuredContent"]["results"]
+>           assert [r["status"] for r in rows] == [
+                "completed", "child_token_budget_exhausted", "permission_denied", "completed"]
+E           AssertionError: assert ['invalid_set...ent_evidence'] == ['completed',..., 'completed']
+E             
+E             At index 0 diff: 'invalid_settlement_evidence' != 'completed'
+E             Use -v to get more diff
+
+tests/test_runtime_parallel_delegation.py:98: AssertionError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_a2r.py::test_shared_json_corruption_never_silently_falls_back[node]
+FAILED tests/test_runtime_a2r.py::test_shared_json_corruption_never_silently_falls_back[missing]
+FAILED tests/test_runtime_a2r.py::test_shared_json_corruption_never_silently_falls_back[wire_hash]
+FAILED tests/test_runtime_a2r.py::test_shared_json_corruption_never_silently_falls_back[capture_hash]
+FAILED tests/test_runtime_parallel_delegation.py::test_parallel_results_are_rechecked_against_saved_version_before_application
+FAILED tests/test_runtime_parallel_delegation.py::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[4-3]
+FAILED tests/test_runtime_parallel_delegation.py::test_parallel_batch_preserves_root_request_cap
+FAILED tests/test_runtime_parallel_delegation.py::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[1-1]
+ERROR tests/test_runtime_snapshot.py - ImportError while importing test modul...
+8 failed, 39 passed, 1 error in 50.60s

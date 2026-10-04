@@ -76,7 +76,7 @@ def verify_independent_event_roots(checks, view, runs):
 
 
 def verify_facade_protocol(view, runs):
-    from src.agent.runtime_r1_facade import evaluate_batches, validate_protocol
+    from facade_support import evaluate_batches, validate_protocol
 
     protocol = view.json("facade_experiment/protocol.json")
     manifest_path = HERE / "facade_cases.json"

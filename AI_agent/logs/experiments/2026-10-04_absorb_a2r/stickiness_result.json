@@ -1,0 +1,103 @@
+{
+  "glm_subscription_requests": 12,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "whole_case_requests": 0,
+  "groups": {
+    "without": {
+      "requests": 6,
+      "cache_read_tokens": [
+        0,
+        0,
+        3328,
+        3328,
+        3328,
+        3328
+      ],
+      "post_warmup_cache_fraction": 0.7923809523809524,
+      "reported_input_tokens": 6848,
+      "reported_cache_read_tokens": 13312,
+      "reported_output_tokens": 43,
+      "seconds": 8.262,
+      "stop_reasons": [
+        "end_turn",
+        "end_turn",
+        "end_turn",
+        "end_turn",
+        "end_turn",
+        "end_turn"
+      ],
+      "one_identical_request_sha256": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1"
+    },
+    "with": {
+      "requests": 6,
+      "cache_read_tokens": [
+        0,
+        0,
+        0,
+        3328,
+        3328,
+        3328
+      ],
+      "post_warmup_cache_fraction": 0.5942857142857143,
+      "reported_input_tokens": 10176,
+      "reported_cache_read_tokens": 9984,
+      "reported_output_tokens": 272,
+      "seconds": 26.29,
+      "stop_reasons": [
+        "max_tokens",
+        "end_turn",
+        "end_turn",
+        "max_tokens",
+        "max_tokens",
+        "max_tokens"
+      ],
+      "one_identical_request_sha256": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4"
+    }
+  },
+  "difference_percentage_points": -19.81,
+  "decision": "Do not enable metadata.user_id: this bounded probe did not demonstrate cache benefit.",
+  "request_parameters": "adaptive / medium, max_tokens=64, fixed fresh 3360-token prefix per arm, no automatic retries. Output truncation is recorded; this tests input caching, not task completion.",
+  "official_field": "https://platform.claude.com/docs/en/api/messages/create",
+  "limits": "Six requests per arm cannot identify server routing or establish a universal effect. Different fresh same-length opaque prefixes prevent cross-arm warmup contamination.",
+  "file_sha256": {
+    "design.json": "a7a75ced97f823056e4beadc99ada10f3427d403e184166ac77bc669be0c80fd",
+    "request_00.json": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1",
+    "request_01.json": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4",
+    "request_02.json": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4",
+    "request_03.json": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1",
+    "request_04.json": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1",
+    "request_05.json": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4",
+    "request_06.json": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4",
+    "request_07.json": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1",
+    "request_08.json": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1",
+    "request_09.json": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4",
+    "request_10.json": "d9927ef53b2c168e47dd660101df2b0aeb144b15cdc99f06cef977f710cdfad4",
+    "request_11.json": "97f871fd748d7ad082b6f6ca4bc9eb499d71d9e94d9bc915f9b1a43d5d5248f1",
+    "request_quota.jsonl": "b779bea6e9d735b46294d3885f32cf925f6e5482ab7d870dd51b8ef90171d51a",
+    "response_00.json": "937b6f8837d82f1842c39c70b5258618d952ce463074113fc86e99bce5deb12f",
+    "response_01.json": "cea6e01d8dc7b0caa4ddc1cba7bfbb7e87260fb6e749fef909451ad479c53ebb",
+    "response_02.json": "a794741a722de6aa2198622209c503462ba570ed2df65a5bb0117087de094b51",
+    "response_03.json": "6a77a9bb18ae30633e795275193048a2f1b03259d33619b2746bdcc2ca102223",
+    "response_04.json": "7bda79c1145bb18641384b4a1a610b70ebeb19792775b0b5915fce05a263eb8b",
+    "response_05.json": "035157f93ad9d4b98aa337b98fe4384d3d6c9400f593ab27bcc8699518c340b7",
+    "response_06.json": "bfd75bcf917bf6ca5b63ee9f6bd9980a2b1d328c2039adaef75a18da9696574b",
+    "response_07.json": "694267a31344566e8a05548d5444268fb4d1c60c03614f20dcb9ce4b8806173c",
+    "response_08.json": "de54f190d1e668c9719e1cd181fe6476aa5b1e3d3f386827356cd38d69dead00",
+    "response_09.json": "9c4a5e88c1021cb5f605bbe043acabb6d68f3e7bda6ad78d3518fb6907dd4d4d",
+    "response_10.json": "2dcdb3dd85bd4114b44591cc9869202b64aae8d00ab3280a982c95011f1b3e1a",
+    "response_11.json": "86c79b0e35b1a68f332a62a2479f07dfb0cd73df289ae8dc4e2016420bef619b",
+    "result_00.json": "401e14ce7a353aa5d8938712b2b18a5db3fa9b621178872e3fa26141a35a7e3d",
+    "result_01.json": "1d42ee59ec03d60cffbf744052d74aacc3f2476375df82b77b6a97a2e0407f8a",
+    "result_02.json": "f94f47dd5e18de717a96cc719e50ce8eb8868499b702d935a83113b30028736f",
+    "result_03.json": "8ed97dcfd5ae92fb9d8d26c71d632211cf20dc3fda67695e5f3eaee37a8577fc",
+    "result_04.json": "d9e67e73f91daff8a76003a1417c9fc858d065c959630cf38873cc73657a8908",
+    "result_05.json": "579d2e298b94278c666db882da384465e1bebf2a0b8c418f5ee5deb031b9598f",
+    "result_06.json": "7cfd8bce06acea26ce5e8b066b7e06ef819008da482543923ddd2f8fb53d6252",
+    "result_07.json": "8c4a024f0521f084f4dd736a1d5c66b54359048113da11c398dfa03ecedf744c",
+    "result_08.json": "be7ea02ef92f6670c191a52541d55b334e12183e07e065b3401c578e271efc43",
+    "result_09.json": "ef8e56d302fca0e94acba5c46db8cc8f2c0d565bd165244bdc205fb563b8836e",
+    "result_10.json": "6579de8c7dfa09d84deeedff57b315fe86d6df9304fc4ffb4f5a4f77a1edfe05",
+    "result_11.json": "4c9b3177efc092285aeefe7f53f43922f5b17f145f9766ae61c7bda22792b960"
+  }
+}

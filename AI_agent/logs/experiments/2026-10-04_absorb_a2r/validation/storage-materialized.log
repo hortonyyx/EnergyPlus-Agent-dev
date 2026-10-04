@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/AI_agent/logs/experiments/2026-10-04_absorb_a2r/replay_storage.py", line 191, in <module>
+    main(args.run, args.scratch, args.report)
+  File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a2r/AI_agent/logs/experiments/2026-10-04_absorb_a2r/replay_storage.py", line 163, in main
+    budget_limit=BudgetAmounts.model_validate(journal["budget_limit"])) as checked:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/venv/lib/python3.12/site-packages/pydantic/main.py", line 732, in model_validate
+    return cls.__pydantic_validator__.validate_python(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for BudgetAmounts
+seconds
+  Input should be an instance of Decimal [type=is_instance_of, input_value='6000.0', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/is_instance_of

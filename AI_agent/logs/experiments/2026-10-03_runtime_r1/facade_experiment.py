@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT))
 
-from src.agent.runtime_r1_facade import (build_tasks, evaluate_batches, load_json,
+from facade_support import (build_tasks, evaluate_batches, load_json,
     validate_protocol, validate_run_manifest)
 from src.agent_runtime.mcp_tools import McpToolClient
 
@@ -64,7 +64,7 @@ def usage_for_tickets(rows: list[dict], first_ticket: int, last_ticket: int) -> 
 
 
 def protocol() -> dict:
-    sources = [Path(__file__).resolve(), ROOT / "src/agent/runtime_r1_facade.py",
+    sources = [Path(__file__).resolve(), HERE / "facade_support.py",
                ROOT / "src/agent/runtime_coordinator.py", ROOT / "src/agent/runtime_delegation.py",
                ROOT / "src/agent_runtime/loop.py", ROOT / "src/agent_runtime/model_profiles.json"]
     return {

@@ -153,6 +153,7 @@ class HttpChatAdapter:
         if parsed.scheme != "https" or parsed.username or parsed.password or parsed.query or parsed.fragment:
             raise ValueError("base URL must be HTTPS and contain no credentials/query/fragment")
         self.endpoint = base_url.rstrip("/") + "/chat/completions"
+        self.failure_provider = "glm" if parsed.hostname == "open.bigmodel.cn" else None
         self._key = api_key
         self.client = httpx.AsyncClient(transport=transport, follow_redirects=False)
 
@@ -166,7 +167,7 @@ class HttpChatAdapter:
                      "Content-Type": "application/json"}, timeout=timeout)
         if not response.is_success:
             from .failures import http_failure
-            raise http_failure(response, secret=self._key)
+            raise http_failure(response, secret=self._key, provider=self.failure_provider)
         return response.json()
 
 
