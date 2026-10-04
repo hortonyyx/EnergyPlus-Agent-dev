@@ -75,7 +75,9 @@ def test_plan_tool_source_images_provenance_and_revised_calibration(tmp_path):
             assert (run / draft_view["image_file"]).is_file()
             assert (run / draft_view["metadata_file"]).is_file()
             assert draft_view["draft_only"] and draft_view["drawing_fidelity"] == "not_evaluated"
-            assert built["plan_compilation"] == json.loads((run / record["compilation_file"]).read_text())
+            full = json.loads((run / built["details_file"]).read_text())
+            assert full["plan_compilation"] == json.loads((run / record["compilation_file"]).read_text())
+            assert built["plan_compilation"]["space_count"] == full["plan_compilation"]["space_count"]
             source = json.loads((run / built["candidate"] / "source_model.json").read_text())
             assert source["generation"]["provenance"]["plan_input"] == record
             assert len(source["spaces"]) == 2

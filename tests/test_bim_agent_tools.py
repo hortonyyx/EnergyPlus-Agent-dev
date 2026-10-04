@@ -1540,7 +1540,12 @@ def test_source_build_feedback_and_finish_preserve_same_level_annex_connection(t
             result=_json_result(await session.call_tool('build_bim',{'proposal_json':json.dumps(proposal)}))
             assert result['source_geometry_ready'],result
             assert len(result['source_plan_views'])==2
-            assert any(len(o.get('floor_ids',[]))==2 for f in result['opening_inventory']['floors'] for o in f['openings'])
+            summary_openings = [dict(zip(f['columns'], row))
+                for f in result['opening_inventory']['floors'] for row in f['rows']]
+            assert any(len(o.get('floor_ids') or []) == 2 for o in summary_openings)
+            complete = json.loads((run / result['details_file']).read_text())
+            assert any(len(o.get('floor_ids', [])) == 2
+                for f in complete['opening_inventory']['floors'] for o in f['openings'])
             finished=_json_result(await session.call_tool('finish_bim',{'candidate':result['candidate']}))
             assert finished['viewer_exists']
     asyncio.run(exercise())

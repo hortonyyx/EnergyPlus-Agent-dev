@@ -153,7 +153,7 @@ def _canonical_ring(polygon: Polygon) -> list[list[float]]:
     return [[x, y] for x, y in points]
 
 
-def _describe_residual(kind: str, geometry: Any, partitions: list[dict]) -> str:
+def _describe_residual(kind: str, geometry: Any, partitions: list[dict], footprint: Any) -> str:
     details = []
     for part in _parts(geometry):
         if part.geom_type != "LineString":
@@ -167,7 +167,29 @@ def _describe_residual(kind: str, geometry: Any, partitions: list[dict]) -> str:
             "partition_ids": sorted(ids) or ["footprint boundary"],
             "pixel_points": [[_rounded(x), _rounded(y)] for x, y in part.coords],
         })
-    return f"polygonize produced {kind}: {details}"
+    # Diagnostics only: nearest declared line to each disconnected endpoint.
+    # Never change the linework supplied to the polygonizer.
+    boundary = list(footprint.exterior.coords)
+    lines = [(f"footprint[{i}]", LineString([a, b]))
+             for i, (a, b) in enumerate(zip(boundary, boundary[1:]))]
+    lines += [(row["id"], row["line"]) for row in partitions]
+    nearest = []
+    for row in partitions:
+        if geometry.intersection(row["line"]).is_empty:
+            continue
+        for endpoint in (row["points"][0], row["points"][-1]):
+            point = Point(endpoint)
+            others = [(point.distance(line), identity, line) for identity, line in lines
+                      if line is not row["line"]]
+            if not others or any(distance == 0 for distance, _, _ in others):
+                continue
+            distance, identity, line = min(others, key=lambda item: (item[0], item[1]))
+            projected = line.interpolate(line.project(point))
+            nearest.append(dict(partition_id=row["id"], endpoint_pixel=list(endpoint),
+                nearest_line=identity, distance_pixels=distance,
+                nearest_point_pixel=[projected.x, projected.y]))
+    return (f"polygonize produced {kind}: {details}; nearest disconnected endpoints: {nearest}; "
+            "coordinates unchanged; no automatic snapping")
 
 
 def _append_once(items: list[str], value: str) -> list[str]:
@@ -189,6 +211,8 @@ def compile_plan_partition(
     unsupported footprint, or ambiguous opening host raises instead of
     dropping or modifying the declared evidence.
     """
+    from src.agent.geometry.plan_input import normalize_plan_fields
+    plan, field_aliases = normalize_plan_fields(plan)
     plan = _fields(
         plan, path="plan", allowed=_PLAN_FIELDS, required=_REQUIRED_PLAN_FIELDS,
     )
@@ -294,7 +318,7 @@ def compile_plan_partition(
     polygons, cuts, dangles, invalid = polygonize_full(linework)
     for kind, residual in (("cut edges", cuts), ("dangles", dangles), ("invalid rings", invalid)):
         if not residual.is_empty:
-            raise ValueError(_describe_residual(kind, residual, partitions))
+            raise ValueError(_describe_residual(kind, residual, partitions, footprint))
     pixel_polygons = list(polygons.geoms)
     if not pixel_polygons:
         raise ValueError("polygonize produced no source spaces")
@@ -584,4 +608,6 @@ def compile_plan_partition(
             "inferred_partitions": False,
         },
     }
+    if field_aliases:
+        metadata["field_aliases"] = field_aliases
     return proposal, metadata

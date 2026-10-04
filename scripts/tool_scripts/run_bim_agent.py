@@ -23,6 +23,7 @@ import sys
 import tempfile
 import threading
 import time
+from typing import Literal
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -83,9 +84,12 @@ def _empty_profile_diagnostics(pixels, rgb, counts, minimum_count, support_lengt
         "maximum_support_count": int(counts.max()),
         "maximum_support_fraction": round(float(counts.max()) / support_length, 6),
         "minimum_count": int(minimum_count),
-        "interpretation": "These are exact crop colours and filter support, not object labels. "
-                          "Reinspect the original and choose a suitable RGB/axis/threshold if needed. "
-                          "An empty filter does not establish a missing wall or an open connection.",
+        "next_action": ("Inspect the original crop; choose a listed observed RGB or increase tolerance "
+                        "toward nearest_observed_color.distance. Widen/move the crop if it misses the target."
+                        if int(counts.sum()) == 0 else
+                        "Matching ink exists: lower min_fraction toward maximum_support_fraction, narrow the "
+                        "cross-axis crop, or inspect cross_axis_profile before switching axis."),
+        "interpretation": "Empty/filter-excluded support does not prove an absent wall or open connection; no parameters were changed.",
     }
 
 
@@ -1089,6 +1093,7 @@ class Toolkit:
         from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
+        from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -1103,8 +1108,13 @@ class Toolkit:
             record["revision"] = revision
         dump(draft / "input.json", record)
         input_stage = "parse_json"
+        plan = None
         try:
             plan = json.loads(plan_json)
+            input_stage = "field_aliases"
+            plan, aliases = normalize_plan_fields(plan)
+            if aliases:
+                record["field_aliases"] = aliases
             input_stage = "length_binding"
             plan, length_bindings = resolve_plan_lengths(plan)
             input_stage = "measurement_binding"
@@ -1116,13 +1126,14 @@ class Toolkit:
             }]
             dump(draft / "input.json", record)
             result = {"status": "error", "error": str(error), "error_stage": input_stage, "plan_input": record,
+                      "repair_hint": plan_error_hint(plan, str(error)),
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
             return result
 
-        if bindings or length_bindings:
+        if bindings or length_bindings or aliases:
             submitted = draft / "submitted_plan.json"
             submitted.write_bytes(raw_path.read_bytes())
             dump(raw_path, plan)
@@ -1224,6 +1235,7 @@ class Toolkit:
                     record.setdefault("host_failure_view_errors", []).append(str(feedback_error))
                 dump(draft / "input.json", record)
             result = {"status": "error", "error": str(error), "drawing_differences": difference_reply,
+                      "repair_hint": plan_error_hint(plan, str(error)),
                       "plan_input": record, "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
             dump(draft / "result.json", result)
@@ -2206,13 +2218,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
     register_inference_tools(server, toolkit)
 
     @server.tool()
-    def get_bim_reference(topic: str) -> dict:
-        """Topics: plan_partition, plan_assembly, geometry, parametric (build formats);
-        edits, wall_dimensions (revise_bim operations); claims; opening_review;
-        facade_correspondence; room_types (role catalog); naming (public names);
-        reconstruction (the drawing method already in the system prompt);
-        partial_inference (mesh evidence, architectural hypotheses, assembly, source review).
-        Generic formats and interfaces, not case observations or answers.
+    def get_bim_reference(topic: Literal[tuple(REFERENCES)]) -> dict:
+        """Read a generic format, editing, evidence or modelling reference.
+        Choose a topic from the schema. References contain no case answers.
         """
         if topic not in REFERENCES:
             raise ValueError("unknown topic; choose " + ", ".join(REFERENCES))
@@ -2231,7 +2239,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
     @server.tool()
     def view_image(name: ImageFilename, box: list[int] | None = None, coordinate_grid: bool = True,
                    display_scale: float = 1.0):
-        """name is an input image filename from inputs(). View all or crop [left,top,right,bottom] in ORIGINAL pixels.
+        """View all or crop [left,top,right,bottom] in ORIGINAL pixels.
         Returned images are at most 1600 px on their long side; grid labels keep original
         coordinates. display_scale enlarges up to that limit, so a box whose longest side
         is under ~500 px can be shown 3x or more; coordinates stay original pixels.
@@ -2242,18 +2250,18 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         return toolkit.view(name, box, coordinate_grid, display_scale)
 
     @server.tool()
-    def pixel_profile(name: ImageFilename, box: list[int], axis: str,
+    def pixel_profile(name: ImageFilename, box: list[int], axis: Literal["x", "y"],
                       rgb: list[int], tolerance: float = 70) -> dict:
-        """name is an input image filename from inputs(), not a measurement label. Measure colored ink runs along x or y.
+        """Measure colored ink runs along the selected axis.
         You select RGB/tolerance; results have no wall/door semantic labels.
         """
         return toolkit.profile(name, box, axis, rgb, tolerance)
 
     @server.tool()
-    def view_pixel_profile(name: ImageFilename, box: list[int], axis: str,
+    def view_pixel_profile(name: ImageFilename, box: list[int], axis: Literal["x", "y"],
                            rgb: list[int], tolerance: float = 70,
                            min_fraction: float = 0.1):
-        """name is an input image filename from inputs(), not a measurement label. Show a color profile in ORIGINAL pixels.
+        """Show a color profile in ORIGINAL pixels.
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
@@ -2318,8 +2326,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         return toolkit.select_trace(trace_id)
 
     @server.tool()
-    def map_dimension_chain(lengths: list[float], unit: str = "mm",
-                            origin_m: float = 0.0, direction: int = 1,
+    def map_dimension_chain(lengths: list[float], unit: Literal["mm", "m"] = "mm",
+                            origin_m: float = 0.0, direction: Literal[-1, 1] = 1,
                             expected_total: float | None = None) -> dict:
         """Accumulate observed dimension labels into ordered world-metre spans.
         lengths and expected_total use unit mm or m; origin_m is always metres.
@@ -2334,7 +2342,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
     @server.tool()
     def compare_facade_spans(plan_image: ImageFilename, elevation_image: ImageFilename, observations_json: str,
-                             plan_axis: str = "y", elevation_axis: str = "x",
+                             plan_axis: Literal["x", "y"] = "y", elevation_axis: Literal["x", "y"] = "x",
                              ambiguity_tolerance_m: float = 0.05) -> dict:
         """Compare complete independently observed opening lists in BOTH axis directions.
         Exact original image names and original pixel coordinates only. JSON has plan
@@ -2391,7 +2399,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 result.setdefault("source_plan_errors", []).append({
                     "candidate": result.get("candidate"), "floor_id": metadata.get("floor_id"),
                     "trigger_action": "mcp_result_packaging", "error": str(error)})
-        content.append(TextContent(type="text", text=json.dumps(result, ensure_ascii=False)))
+        from scripts.tool_scripts.bim_agent_replies import compact_reply
+        result = compact_reply(toolkit.run, "build_bim", result)
+        content.append(TextContent(type="text", text=json.dumps(result, ensure_ascii=False, separators=(",", ":"))))
         return CallToolResult(content=content, structuredContent=result)
 
     @server.tool()
@@ -2514,7 +2524,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return toolkit.view_claim_evidence(claim_id, source_index, display_scale)
 
         @server.tool()
-        def decide_claim(claim_id: str, disposition: str, reason: str) -> dict:
+        def decide_claim(claim_id: str, disposition: Literal["adopted", "deferred", "retracted"], reason: str) -> dict:
             """Compatibility: decide one claim. Models use claim_transaction."""
             return toolkit.decide_claim(claim_id, disposition, reason)
 
@@ -2626,14 +2636,20 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return result
 
         @server.tool()
-        def read_candidate_items(candidate: str, collection: str, floor_id: str | None = None,
-                                 offset: int = 0, limit: int = 20) -> dict:
+        def read_candidate_items(candidate: str, collection: Literal["cells", "windows", "openings", "unsupported", "report"], floor_id: str | None = None,
+                                 offset: int = 0, limit: int | None = None, report_file: str = "") -> dict:
             """Read exact saved proposal cells, windows, openings or unsupported records.
-            collection is cells/windows/openings/unsupported; floor_id optionally narrows it.
+            collection=report reads a returned details_file via report_file, with
+            candidate="" and offset/limit in characters (limit up to 12000).
             Each cell includes floor_id. Read next_offset for more; page_is_partial
             means this is not a complete build_bim input. Prefer revise_bim to keep
             unexamined objects. This reads the proposal, not mesh/GT observations.
             """
+            if limit is None:
+                limit = 8000 if collection == 'report' else 20
+            if collection == 'report':
+                from scripts.tool_scripts.bim_agent_replies import read_report
+                return read_report(toolkit.run, report_file, offset, limit)
             if collection not in {'cells','windows','openings','unsupported'}:
                 raise ValueError('collection must be cells, windows, openings or unsupported')
             if not 1 <= limit <= 50 or offset < 0:
@@ -2717,10 +2733,11 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             result["height_coverage"] = toolkit.located_heights(candidate)
             result["facade_counts"] = toolkit.facade_counts(candidate)
             toolkit.log("check_openings", result)
-            return result
+            from scripts.tool_scripts.bim_agent_replies import compact_reply
+            return compact_reply(toolkit.run, "check_openings", result)
 
         @server.tool()
-        def record_work_review(candidate: str, decision: str, reason: str,
+        def record_work_review(candidate: str, decision: Literal["continue", "stop"], reason: str,
                                next_action: str = "") -> dict:
             """During a continuation turn, choose continue or stop against saved work.
             Explain scope/evidence; continue requires a concrete next_action to execute
@@ -2739,8 +2756,10 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             dump(run / "delivery_selection.json", {
                 "candidate": candidate, "source_model_sha256": result["source_model_sha256"]})
             toolkit.log("finish_bim", result)
-            return {**delivery_tool_reply(result),
-                    "remaining_seconds": toolkit.remaining_seconds()}
+            from scripts.tool_scripts.bim_agent_replies import compact_reply
+            return compact_reply(run, "finish_bim", {
+                **delivery_tool_reply(result), "remaining_seconds": toolkit.remaining_seconds()},
+                full_result=result)
 
         @server.tool()
         def overlay_candidate(candidate: str, image: ImageFilename, floor_id: str,
@@ -2808,16 +2827,12 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
         @server.tool()
         def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
-            """Build one floor from observed pixel wall paths, apertures and calibration.
-            Read get_bim_reference('plan_partition') for the JSON contract. Code
-            closes faces and finds opening hosts; it never fills wall-path gaps,
-            invents partitions or trims openings. Returns actual source plan and
-            original overlay images, and drawing_differences: places where the
-            original's ink and your declaration disagree, to check in the original.
-            Simple orthogonal outer footprint without holes, including concave
-            outlines; orthogonal interior partitions.
-            A draft with known omissions needs explicit
-            unresolved notes. Each source export uses the shared candidate budget.
+            """Build one floor from observed original-pixel walls, openings and calibration.
+            Read plan_partition for JSON. Orthogonal, possibly concave outer footprint
+            without holes; no gap filling, inferred walls, snapping or trimmed openings.
+            Returns actual source/overlay images, drawing_differences, IDs/heights and
+            details_file (read_candidate_items collection=report). Declare omissions in
+            unresolved. Each export consumes the shared candidate budget.
             """
             return candidate_result(toolkit.build_plan(image, plan_json))
 
@@ -2881,7 +2896,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return candidate_result(toolkit.build(json.loads(proposal_json)))
 
         @server.tool()
-        def view_elevation_candidate(candidate: str, facade: str, image: ImageFilename = "",
+        def view_elevation_candidate(candidate: str, facade: Literal["North", "South", "East", "West"], image: ImageFilename = "",
                                      horizontal_anchors: list[list[float]] | None = None,
                                      z_anchors: list[list[float]] | None = None,
                                      basis: str = "") -> CallToolResult:
