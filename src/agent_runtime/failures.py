@@ -32,7 +32,7 @@ class ModelServiceError(Exception):
         self.usage = usage
 
 
-def http_failure(response: httpx.Response, *, secret: str) -> ModelServiceError:
+def http_failure(response: httpx.Response, *, secret: str, provider: str | None = None) -> ModelServiceError:
     try:
         body = response.json()
     except ValueError:
@@ -42,20 +42,36 @@ def http_failure(response: httpx.Response, *, secret: str) -> ModelServiceError:
     error_type = error.get("type", error.get("code"))
     diagnostic = " ".join(str(error.get(k, "")) for k in ("type", "code", "message")).casefold()
     status = response.status_code
+    # Provider-specific codes are meaningful only on the identified route.
+    # Source: https://docs.bigmodel.cn/cn/api/api-code (checked 2026-10-04).
+    glm_code = str(error.get("code", "")) if provider == "glm" else ""
+    glm_quota = glm_code in {"1113", "1308", "1309", "1310", "1314",
+                            "1316", "1317", "1318", "1319", "1320", "1321"}
+    glm_permission = glm_code in {"1000", "1001", "1003", "1005", "1220", "1311", "1315"}
     # Ambiguous 429 is a stop. Only an explicitly temporary rate/concurrency
     # limit is retryable; account, balance and subscription exhaustion win.
-    quota = any(word in diagnostic for word in (
+    quota = glm_quota or any(word in diagnostic for word in (
         "quota", "balance", "credit", "billing", "daily limit", "usage limit",
-        "monthly limit", "subscription limit", "额度", "配额", "余额", "欠费", "套餐", "用尽", "用完"))
+        "monthly limit", "subscription limit", "额度", "配额", "余额", "欠费", "套餐", "用尽", "用完",
+        "使用上限", "消费上限", "限额", "每周", "每月"))
+    permission = glm_permission or any(word in diagnostic for word in (
+        "permission", "unauthorized", "forbidden", "权限", "无权", "身份验证"))
     transient_rate = any(word in diagnostic for word in (
         "rate_limit", "rate limit", "too many requests", "concurrency", "frequency",
         "temporar", "限流", "频率", "并发"))
-    if quota:
-        category, retryable = "quota_exhausted", False
-    elif status in {401, 403}:
+    if status in {401, 403} or permission:
         category, retryable = "permission_denied", False
+    elif quota:
+        category, retryable = "quota_exhausted", False
     elif status == 429:
-        category, retryable = ("temporary_rate_limit", True) if transient_rate else ("unclassified_rate_limit", False)
+        if glm_code in {"1302", "1305"}:
+            category, retryable = "temporary_rate_limit", True
+        elif glm_code or "公平使用" in diagnostic or "fair use" in diagnostic:
+            # 1313 requires an account-side policy action, despite mentioning
+            # request frequency. Unknown business codes are not guessed.
+            category, retryable = "unclassified_rate_limit", False
+        else:
+            category, retryable = ("temporary_rate_limit", True) if transient_rate else ("unclassified_rate_limit", False)
     elif status == 408:
         category, retryable = "timeout", True
     elif 500 <= status <= 599:
