@@ -65,7 +65,7 @@ def test_context_projection_keeps_frozen_guidance_and_exact_sent_tool_envelopes(
         assert result["status"] == "completed"
         requests = [e for e in engine.store.events if e.payload.event_type == "adapter_request"]
         for wire, request in zip(engine.adapter.requests, requests, strict=True):
-            assert wire == engine.store.get_bytes(request.payload.final_request_body.blob)
+            assert wire == engine.store.capture_bytes(request.payload.final_request_body)
             body = json.loads(wire)
             assert body["messages"][0] == MESSAGES[0]
             assert len(request.payload.images) <= 1

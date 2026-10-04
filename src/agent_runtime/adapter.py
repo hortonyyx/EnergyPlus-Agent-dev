@@ -110,6 +110,7 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
     wire = json_bytes(body)
     payload = AdapterRequestPayload(adapter="chat-completions-http-v1",
         final_request_body=InlineCapture(value=body),
+        wire_sha256=hashlib.sha256(wire).hexdigest(),
         injected_content=tuple(injections), images=tuple(images),
         parameters=ParameterAudit(requested=copy.deepcopy(parameters),
             provider_report=ParametersNotReported(reason="request has no provider parameter attestation"),
@@ -126,8 +127,10 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
         if hashlib.sha256(raw).hexdigest() != transmission.sent.sha256:
             raise ValueError("sent image hash differs from final request")
         store.get_bytes(transmission.original)
-    payload = payload.model_copy(update={"final_request_body": BlobCapture(
-        blob=store.put_bytes(wire, "application/json"))})
+    captured = store.capture(body, force_blob=True)
+    if store.capture_bytes(captured) != wire:
+        raise ValueError("stored request differs from wire bytes")
+    payload = payload.model_copy(update={"final_request_body": captured})
     output_limit = parameters.get("max_tokens", parameters.get("max_completion_tokens"))
     if type(output_limit) is not int or output_limit <= 0:
         raise ValueError("explicit positive output token cap required")

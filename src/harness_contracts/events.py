@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, JsonValue, field_validator, model_validator
 
-from .base import ContractModel, EventTimestamp, NonEmptyStr, ParentTaskRef
+from .base import ContractModel, EventTimestamp, NonEmptyStr, ParentTaskRef, Sha256
 from .budget import BudgetReservation, BudgetSettlement, UsageEvidence
 from .refs import BlobRef, HashedBlobRef, ImageTransmission, SourceRef
 
@@ -21,13 +21,29 @@ class BlobCapture(ContractModel):
     blob: BlobRef
 
 
+class EncodedImageReference(ContractModel):
+    location: str  # JSON pointer, including the empty pointer for a root string
+    image: HashedBlobRef
+    prefix: str = ""
+    # Usually absent: retain unusual but valid base64 spellings exactly.
+    base64_text: HashedBlobRef | None = None
+
+
+class ImageReferencedCapture(ContractModel):
+    kind: Literal["image_references"] = "image_references"
+    blob: HashedBlobRef  # canonical JSON template; image string slots are null
+    images: tuple[EncodedImageReference, ...] = Field(min_length=1)
+    wire_sha256: Sha256
+    serialization: Literal["json_utf8_sorted_compact_v1"] = "json_utf8_sorted_compact_v1"
+
+
 class MissingCapture(ContractModel):
     kind: Literal["missing"] = "missing"
     reason: NonEmptyStr
 
 
 CapturedValue = Annotated[
-    InlineCapture | BlobCapture | MissingCapture,
+    InlineCapture | BlobCapture | ImageReferencedCapture | MissingCapture,
     Field(discriminator="kind"),
 ]
 
@@ -155,6 +171,8 @@ class AdapterRequestPayload(ContractModel):
     logical_purpose: Literal["primary_task", "context_summary"] | None = None
     adapter: NonEmptyStr
     final_request_body: CapturedValue
+    # Optional only for journals written before A1-R. New adapters always set it.
+    wire_sha256: Sha256 | None = None
     injected_content: tuple[InjectedContent, ...] = ()
     images: tuple[ImageTransmission, ...] = ()
     parameters: ParameterAudit

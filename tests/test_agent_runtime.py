@@ -116,7 +116,7 @@ def test_single_role_keeps_complete_request_result_images_errors_and_public_thin
         assert log.mode == "complete" and receipt["reported_tokens"] == 60
         requests = [e.payload for e in log.events if e.payload.event_type == "adapter_request"]
         for sent, captured in zip(engine.adapter.requests, requests):
-            assert sent == engine.store.get_bytes(captured.final_request_body.blob)
+            assert sent == engine.store.capture_bytes(captured.final_request_body)
         body = engine.store.resolve(requests[-1].final_request_body)
         assert [m["role"] for m in body["messages"][-4:]] == ["tool", "tool", "tool", "user"]
         assert requests[-1].images[0].original.sha256 == requests[-1].images[0].sent.sha256
@@ -192,7 +192,7 @@ def test_prepared_tool_image_is_not_marked_delivered_when_call_budget_stops(tmp_
     with engine.store:
         assert asyncio.run(engine.run(MESSAGES))["status"] == "model_budget_exhausted"
         tool = next(e.payload for e in engine.store.events if e.payload.event_type == "tool_execution")
-        assert tool.presentation_status == "prepared" and tool.shown_result.kind == "blob"
+        assert tool.presentation_status == "prepared" and tool.shown_result.kind == "image_references"
         assert not [e for e in engine.store.events if e.payload.event_type == "tool_presentation"]
 
 
@@ -413,7 +413,7 @@ def test_exact_http_wire_body_matches_recorded_bytes_and_never_logs_key(tmp_path
         result = asyncio.run(exercise())
         assert result["status"] == "completed"
         request = next(e.payload for e in engine.store.events if e.payload.event_type == "adapter_request")
-        assert engine.store.get_bytes(request.final_request_body.blob) == received[0]
+        assert engine.store.capture_bytes(request.final_request_body) == received[0]
         assert all(b"test-secret" not in p.read_bytes() for p in engine.store.directory.rglob("*") if p.is_file())
 
 

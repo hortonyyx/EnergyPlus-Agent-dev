@@ -108,7 +108,7 @@ class ObserveReplay:
             event = next(e for e in reversed(engine.store.events)
                          if e.payload.event_type == "adapter_request")
             payload = event.payload
-            raw = engine.store.get_bytes(payload.final_request_body.blob)
+            raw = engine.store.capture_bytes(payload.final_request_body)
             pixels = 0
             for image in payload.images:
                 with Image.open(io.BytesIO(engine.store.get_bytes(image.sent))) as decoded:

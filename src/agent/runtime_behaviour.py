@@ -102,6 +102,13 @@ def _captured(value: Any, log_root: Path) -> Any:
     data = value.model_dump(mode="json") if hasattr(value, "model_dump") else value
     if data.get("kind") == "inline":
         return data.get("value")
+    if data.get("kind") == "image_references":
+        from src.harness_contracts import ImageReferencedCapture
+        from src.agent_runtime.image_capture import reconstruct_capture
+        from src.agent_runtime.store import EventStore
+        reader = object.__new__(EventStore)
+        reader.directory = log_root.resolve()
+        return json.loads(reconstruct_capture(ImageReferencedCapture.model_validate_json(json.dumps(data)), reader.get_bytes))
     if data.get("kind") == "blob":
         blob = data.get("blob") or {}
         uri = blob.get("uri")
@@ -202,7 +209,11 @@ def _read_event_log(path: Path) -> dict[str, Any]:
                 "event_id": event.event_id,
                 "adapter": payload.adapter,
                 "model": request_model,
-                "final_request_body": final_request_body,
+                "final_request_body": (payload.final_request_body.model_dump(mode="json")
+                    if payload.final_request_body.kind == "image_references" else final_request_body),
+                "final_request_encoding": ("captured_value" if payload.final_request_body.kind == "image_references"
+                    else "expanded_json"),
+                "wire_sha256": payload.wire_sha256,
                 "injected_content": [item.model_dump(mode="json") for item in payload.injected_content],
                 "images": [item.model_dump(mode="json") for item in payload.images],
                 "parameters": payload.parameters.model_dump(mode="json"),

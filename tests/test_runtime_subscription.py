@@ -84,7 +84,7 @@ def test_subscription_tool_image_thinking_audit_and_currency(tmp_path):
         assert result["usage_accounting"]["billing_modes"] == ["subscription"]
         requests = [e.payload for e in engine.store.events if e.payload.event_type == "adapter_request"]
         for sent, request in zip(engine.adapter.requests, requests):
-            assert sent == engine.store.get_bytes(request.final_request_body.blob)
+            assert sent == engine.store.capture_bytes(request.final_request_body)
             body = json.loads(sent)
             assert set(body) == {"model", "messages", "tools", "tool_choice", "stream", "max_tokens"}
             assert body["model"] == "glm-5.3-flash" and body["max_tokens"] == 32000

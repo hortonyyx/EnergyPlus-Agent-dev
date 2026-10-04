@@ -23,6 +23,8 @@ from .events import (
     AnswerRepairPayload,
     TruncationPayload,
     BlobCapture,
+    ImageReferencedCapture,
+    EncodedImageReference,
     BudgetEventPayload,
     BudgetOverrunPayload,
     ContextEventPayload,
