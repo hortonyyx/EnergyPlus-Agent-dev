@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "batch_id": "node-regression-c2-runtime-subscription",
+  "approval_required_before_launch": true,
+  "approval": "User 2026-10-04: 'ok，批准，跑吧' (node regression after cleanup packages C1/C2)",
+  "maximum_seconds_per_case": 6000,
+  "cases": [
+    {
+      "case_id": "sm24_runtime_subscription",
+      "mode": "single_model",
+      "provider": "glm-subscription",
+      "model": "glm-5.3-flash",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png"
+      ],
+      "output": "AI_agent/logs/experiments/2026-10-04_node_regression_c2/runs/sm24_runtime_subscription",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment constraints: work directly with the deterministic and visual tools, without review_detail or other delegation.\nBudget: 6000 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "task_sha256": "381c609265ee48aa866d1b232c533fd909e88199f933596a72d93320ab45a93d",
+      "task_source": "2026-10-02_sm24_glm_baseline/agent_request.json prompt with 'Budget: 3000 seconds' -> 'Budget: 6000 seconds' (same as the Claude Code launcher)",
+      "limits": {
+        "model_calls": 150,
+        "tool_calls": 300,
+        "tokens": 15000000,
+        "seconds": 6000,
+        "model_retries": 2,
+        "retry_backoff_seconds": 1.0
+      },
+      "max_candidates": 24,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "parameter_difference": "Claude Code sends output_config.effort=medium with adaptive thinking over the Anthropic-compatible endpoint; the runtime sends reasoning_effort=medium over the OpenAI-compatible endpoint (no adaptive switch). Hard stops are guards, not targets."
+    },
+    {
+      "case_id": "sm25_runtime_subscription",
+      "mode": "single_model",
+      "provider": "glm-subscription",
+      "model": "glm-5.3-flash",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm25-L_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png",
+        "2f_view.png"
+      ],
+      "output": "AI_agent/logs/experiments/2026-10-04_node_regression_c2/runs/sm25_runtime_subscription",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment constraints: work directly with the deterministic and visual tools, without review_detail or other delegation.\nBudget: 6000 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "task_sha256": "381c609265ee48aa866d1b232c533fd909e88199f933596a72d93320ab45a93d",
+      "task_source": "2026-10-02_sm25_glm_baseline/agent_request.json prompt with 'Budget: 3000 seconds' -> 'Budget: 6000 seconds' (same as the Claude Code launcher)",
+      "limits": {
+        "model_calls": 150,
+        "tool_calls": 300,
+        "tokens": 15000000,
+        "seconds": 6000,
+        "model_retries": 2,
+        "retry_backoff_seconds": 1.0
+      },
+      "max_candidates": 24,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "parameter_difference": "Claude Code sends output_config.effort=medium with adaptive thinking over the Anthropic-compatible endpoint; the runtime sends reasoning_effort=medium over the OpenAI-compatible endpoint (no adaptive switch). Hard stops are guards, not targets."
+    }
+  ]
+}
