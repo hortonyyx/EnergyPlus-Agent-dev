@@ -1,0 +1,387 @@
+{
+  "case": "sm24",
+  "run": "AI_agent/logs/experiments/2026-10-04_node_regression_c2/runs/sm24_runtime_subscription",
+  "delivered_candidate": "candidate_02",
+  "selection_origin": "agent_selected",
+  "runtime": {
+    "status": "completed",
+    "answer_present": true,
+    "receipt_elapsed_seconds": 2540.1033127591363,
+    "event_span_seconds": 2525.1,
+    "model_calls": 42,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "glm-5.3-flash": 42
+    },
+    "usage": {
+      "prompt": 3919532,
+      "completion": 114037,
+      "total": 4033569,
+      "cached": 2585984,
+      "reasoning": 97712,
+      "responses_without_usage": 0
+    },
+    "request_image_attachments": 591,
+    "estimated_yuan_text_only": null,
+    "yuan_note": "Subscription: no usage-based price.",
+    "per_round": {
+      "output_tokens": 2715,
+      "seconds": 60.5
+    },
+    "tool_calls": {
+      "inputs": 1,
+      "view_image": 28,
+      "get_bim_reference": 3,
+      "build_plan_bim": 1,
+      "revise_plan_bim": 3,
+      "record_claim": 11,
+      "decide_claim": 11,
+      "confirm_claims": 5,
+      "view_elevation_candidate": 8,
+      "replace_claim_sources": 4,
+      "revise_bim": 1,
+      "finish_bim": 1
+    },
+    "tool_outcomes": {
+      "succeeded": 74,
+      "failed": 3
+    },
+    "tool_failures": [
+      {
+        "tool": "revise_plan_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "revise_plan_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 42,
+      "settle": 42
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 203,
+      "budget": 84,
+      "adapter_request": 42,
+      "model_response": 42,
+      "tool_invocation": 77,
+      "tool_execution": 77,
+      "tool_presentation": 77,
+      "context": 44,
+      "run_usage_summary": 1
+    },
+    "mean_input_per_request": 93322,
+    "cache_share": 0.6598,
+    "agent_version": "t1-20261003-c2.1",
+    "finalization": {
+      "delivery": {
+        "candidate": "candidate_02",
+        "complete_building": true,
+        "report": "bim/delivery.json",
+        "selection_origin": "agent_selected",
+        "viewer": "bim/delivery.html"
+      },
+      "status": "delivered"
+    },
+    "retries_recovered": []
+  },
+  "quality": {
+    "run": "sm24_runtime_subscription",
+    "case": "sm24",
+    "candidate": "candidate_02",
+    "counts": {
+      "floors": 1,
+      "spaces": 8,
+      "openings": 22,
+      "connections": 10
+    },
+    "spaces_one_to_one": {
+      "pass_": true,
+      "reference_rooms": 8,
+      "findings": []
+    },
+    "original_openings": {
+      "reference_count": 21,
+      "matched": 21,
+      "positions": 19,
+      "hosts": 21,
+      "door_connections": 10,
+      "unmatched_reference": [],
+      "unmatched_actual": [
+        "W_N2"
+      ]
+    },
+    "strict_heights": {
+      "tolerance_m": 0.05,
+      "expected": 14,
+      "matched": 14,
+      "within": 14,
+      "pass_": false,
+      "mismatches": [],
+      "unmatched_reference": [],
+      "unmatched_built_exterior": [
+        "W_N2"
+      ],
+      "unclassified_exterior": [],
+      "all": [
+        {
+          "opening_id": "D_E4",
+          "reference_id": "op_ac9",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "D_N1",
+          "reference_id": "op_ac3",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "D_S2",
+          "reference_id": "op_ade",
+          "reference_z_m": [
+            0.19998881441390814,
+            2.5999888144139085
+          ],
+          "candidate_z_m": [
+            0.2,
+            2.6
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_E3",
+          "reference_id": "op_aff",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_E2",
+          "reference_id": "op_afc",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_E1",
+          "reference_id": "op_aea",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_N3",
+          "reference_id": "op_ae1",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_S1",
+          "reference_id": "op_af6",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_S3",
+          "reference_id": "op_af9",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_W5",
+          "reference_id": "op_ae4",
+          "reference_z_m": [
+            0.999988814413908,
+            3.399988814413909
+          ],
+          "candidate_z_m": [
+            1.0,
+            3.4
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_W4",
+          "reference_id": "op_af3",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_W3",
+          "reference_id": "op_af0",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_W2",
+          "reference_id": "op_aed",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        },
+        {
+          "opening_id": "W_W1",
+          "reference_id": "op_ae7",
+          "reference_z_m": [
+            0.999988814413908,
+            2.799988814413908
+          ],
+          "candidate_z_m": [
+            1.0,
+            2.8
+          ],
+          "z_delta_m": [
+            0.0,
+            0.0
+          ],
+          "within_strict": true
+        }
+      ]
+    }
+  }
+}
