@@ -11,7 +11,7 @@ from pathlib import Path
 
 from src.harness_contracts import (
     BlobCapture, BudgetAmounts, EventEnvelope, EventLog, HashedBlobRef,
-    InlineCapture, KnownParentTask, KnownTimestamp, RootTask, SourceRef,
+    InlineCapture, JsonReferencedCapture, KnownParentTask, KnownTimestamp, RootTask, SourceRef,
 )
 
 
@@ -169,12 +169,12 @@ class EventStore:
         for event in reversed(self.events):
             if event.payload.event_type == "checkpoint":
                 # Verify the blob now; never silently fall back past corruption.
-                return event.payload.state, json.loads(self.get_bytes(event.payload.state)), event.sequence
+                return event.payload.state, self.get_json_tree(event.payload.state), event.sequence
         pointer = self.task_directory / "checkpoint.json"
         if not pointer.exists():
             return None
         ref = HashedBlobRef.model_validate_json(pointer.read_bytes())
-        snapshot = json.loads(self.get_bytes(ref))
+        snapshot = self.get_json_tree(ref)
         sequence = next(e.sequence for e in self.events if e.event_id == snapshot["last_event_id"])
         return ref, snapshot, sequence
 
@@ -212,6 +212,14 @@ class EventStore:
     def put_json(self, value) -> HashedBlobRef:
         return self.put_bytes(json_bytes(value), "application/json")
 
+    def put_json_tree(self, value) -> HashedBlobRef:
+        from .json_tree import store_json_tree
+        return store_json_tree(value, self)
+
+    def get_json_tree(self, ref):
+        from .json_tree import read_json_tree
+        return read_json_tree(ref, self.get_bytes)
+
     def get_bytes(self, ref: HashedBlobRef) -> bytes:
         path = (self.directory / ref.uri).resolve()
         if not path.is_relative_to(self.directory):
@@ -227,7 +235,10 @@ class EventStore:
         referenced = capture_images(value, self, data)
         if referenced is not None:
             return referenced
-        if force_blob or len(data) > 8192:
+        if len(data) > 8192:
+            return JsonReferencedCapture(blob=self.put_json_tree(value),
+                wire_sha256=hashlib.sha256(data).hexdigest())
+        if force_blob:
             return BlobCapture(blob=self.put_bytes(data, "application/json"))
         return InlineCapture(value=value)
 
@@ -236,12 +247,17 @@ class EventStore:
             return capture.value
         if capture.kind == "blob":
             return json.loads(self.get_bytes(capture.blob))
-        if capture.kind == "image_references":
+        if capture.kind in {"image_references", "json_references"}:
             return json.loads(self.capture_bytes(capture))
         raise ValueError(f"capture unavailable: {capture.reason}")
 
     def capture_bytes(self, capture) -> bytes:
         """Return the exact captured bytes, expanding image references if needed."""
+        if capture.kind == "json_references":
+            wire = json_bytes(self.get_json_tree(capture.blob))
+            if hashlib.sha256(wire).hexdigest() != capture.wire_sha256:
+                raise ValueError("reconstructed capture hash mismatch")
+            return wire
         if capture.kind == "image_references":
             from .image_capture import reconstruct_capture
             return reconstruct_capture(capture, self.get_bytes)

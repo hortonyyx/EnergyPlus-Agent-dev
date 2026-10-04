@@ -53,7 +53,7 @@ def capture_images(value, store, wire: bytes):
     walk(template)
     if not images:
         return None
-    return ImageReferencedCapture(blob=store.put_bytes(json_bytes(template), "application/json"),
+    return ImageReferencedCapture(blob=store.put_json_tree(template),
         images=tuple(images), wire_sha256=hashlib.sha256(wire).hexdigest())
 
 
@@ -61,7 +61,8 @@ def reconstruct_capture(capture, read_blob) -> bytes:
     """Verify template, image and reconstructed wire hashes before returning."""
     from .store import json_bytes
 
-    value = json.loads(read_blob(capture.blob))
+    from .json_tree import read_json_tree
+    value = read_json_tree(capture.blob, read_blob)
     seen = set()
     for item in capture.images:
         if item.location in seen or not item.location.startswith("/"):

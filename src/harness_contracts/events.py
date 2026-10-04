@@ -21,6 +21,12 @@ class BlobCapture(ContractModel):
     blob: BlobRef
 
 
+class JsonReferencedCapture(ContractModel):
+    kind: Literal["json_references"] = "json_references"
+    blob: HashedBlobRef
+    wire_sha256: Sha256
+
+
 class EncodedImageReference(ContractModel):
     location: str  # JSON pointer, including the empty pointer for a root string
     image: HashedBlobRef
@@ -43,7 +49,7 @@ class MissingCapture(ContractModel):
 
 
 CapturedValue = Annotated[
-    InlineCapture | BlobCapture | ImageReferencedCapture | MissingCapture,
+    InlineCapture | BlobCapture | JsonReferencedCapture | ImageReferencedCapture | MissingCapture,
     Field(discriminator="kind"),
 ]
 
