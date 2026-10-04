@@ -514,7 +514,7 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 
 ## 吸收包第一批 A1-T：平面尺度检查（10-04 派出，Astra）
 
-**状态：派出，待交付。** 起因：节点回归 sm25 新底座第一次建平面就把尺寸链的毫米数当作米（`x_anchors:[[282,0],[975,15000]]`，同一输入层高写 3.6 米），整栋放大 1000 倍，平面编译器没拦，交付时标“完整全楼”，见[回归记录](../logs/experiments/2026-10-04_node_regression_c2/README.md)。派工单 [A1-T brief](../logs/experiments/2026-10-04_absorb_a1t/brief.md)。文件范围：`scripts/tool_scripts/`、`src/agent/geometry/`、`src/agent/execution/`、登记表及对应测试；不碰运行底座（归 A1-R）。
+**状态：10-04 验收通过，合入主线。** 起因：节点回归 sm25 新底座第一次建平面就把尺寸链的毫米数当作米（`x_anchors:[[282,0],[975,15000]]`，同一输入层高写 3.6 米），整栋放大 1000 倍，平面编译器没拦，交付时标“完整全楼”，见[回归记录](../logs/experiments/2026-10-04_node_regression_c2/README.md)。派工单 [A1-T brief](../logs/experiments/2026-10-04_absorb_a1t/brief.md)。文件范围：`scripts/tool_scripts/`、`src/agent/geometry/`、`src/agent/execution/`、登记表及对应测试；不碰运行底座（归 A1-R）。
 
 ### 通过条件
 
@@ -528,7 +528,7 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 
 ## 吸收包第一批 A1-R：图片按引用保存、智谱 Anthropic 兼容线路（10-04 派出，Astra）
 
-**状态：派出，待交付。** 起因：① 清理后新底座每次请求原样保存全部图片，运行目录 141／476 MB（Claude Code 约 10 MB）；② 节点回归里新底座每轮用时仍是 Claude Code 的 2.3 倍，主要因为 OpenAI 兼容端点没有自适应思考，见同一回归记录。派工单 [A1-R brief](../logs/experiments/2026-10-04_absorb_a1r/brief.md)。文件范围：`src/agent_runtime/`、`src/harness_contracts/`、`src/agent/runtime_*.py`、启动器、R3 核对脚本及对应测试；不碰 `scripts/tool_scripts/`（归 A1-T）。
+**状态：10-04 验收通过，合入主线。** 起因：① 清理后新底座每次请求原样保存全部图片，运行目录 141／476 MB（Claude Code 约 10 MB）；② 节点回归里新底座每轮用时仍是 Claude Code 的 2.3 倍，主要因为 OpenAI 兼容端点没有自适应思考，见同一回归记录。派工单 [A1-R brief](../logs/experiments/2026-10-04_absorb_a1r/brief.md)。文件范围：`src/agent_runtime/`、`src/harness_contracts/`、`src/agent/runtime_*.py`、启动器、R3 核对脚本及对应测试；不碰 `scripts/tool_scripts/`（归 A1-T）。
 
 ### 通过条件
 
@@ -541,3 +541,12 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 **D. 准备一份配置，只检查不跑：** sm24，新线路，6000 秒，任务正文与节点回归相同，effort medium。
 
 **E. 检查：** 阶段 0–3、R1–R3、C1 的检查全部通过，新增反例全部通过；两底座核对脚本加一项“协议与思考设置”的记录。Paratera、DeepSeek 为 0。
+
+### A1-T 与 A1-R 验收结论（10-04，Opus）
+
+两包并行，各约 1 小时交付：A1-T 分支 `dev/astra-a1t-20261004`（末提交 `9bd08a14`），A1-R 分支 `dev/astra-a1r-20261004`（末提交 `a7e9efc2`）；报告见 [A1-T](../logs/experiments/2026-10-04_absorb_a1t/README.md)、[A1-R](../logs/experiments/2026-10-04_absorb_a1r/README.md)。**两包都通过，依次合入（`3d86b9a5`、`84d6e28a`），当前 Agent 版本 `t1-20261004-a1t.1`。**
+
+- **A1-T：** 我逐行看了判断规则：只有平面跨度同时不小于 5 km、且不小于声明层高的 1000 倍才拒绝，不换算、不猜。sm25 节点回归的原参数（跨度约 20,939、层高 3.6，比值约 5,800）经真实工具服务被拒，返回指明字段；仓库里 251 份历史平面输入重放，137 份正常输入零误拒，25 份毫米误用被拒（含 09-27 run72），89 份原本就失败的保持原结果。指引按替换方式改了一句，四项合计净增 71 字符。
+- **A1-R：** 请求记录里的图片改为按哈希引用，节点回归 sm24 全部 42 次请求逐字节重建一致，目录体积估算 145 MB → 77 MB（仍是 Claude Code 的约 7 倍，剩下的主要是检查点与行为记录，留待以后）。新线路 `glm-subscription-anthropic` 发出的字段与 Claude Code 抓包一致：自适应思考（不回传思考内容）、`effort: medium`、保留全部旧思考、同样的 beta 头；差异是不用流式。订阅小测 4 次全过，第二次请求看到缓存读取 3,712 token，截断补救正常。sm24 配置已备好、未跑。
+- **合并后核对：** 主线上重跑短联合、R3、C1、A1-R 新增与全部工具检查共 643 项，全部通过；两底座三例逐字节一致。我第一次在 A1-R 工作树重跑时有 1 项并行委派测试失败（子任务在机器满载时用完了墙钟时限），单独连跑 5 次都通过，判为对负载敏感的测试，不是 A1-R 引入的；列入以后把它改成不依赖墙钟。
+- **未验证：** 新线路还没有跑过整案；它能否把每轮用时拉近 Claude Code、质量是否保持，要下一轮的节点回归（需用户批准）。
