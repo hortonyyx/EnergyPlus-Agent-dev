@@ -579,8 +579,12 @@ class Toolkit:
         return {"limit": limit, "used": used, "remaining": max(0, limit - used)}
 
     def claims(self):
-        from src.agent.execution.bim_claims import ClaimStore
-        return ClaimStore(self)
+        from scripts.tool_scripts.bim_agent_claims import AgentClaimStore
+        return AgentClaimStore(self)
+
+    def claim_transaction(self, candidate, entries_json):
+        from scripts.tool_scripts.bim_agent_claims import claim_transaction
+        return claim_transaction(self, candidate, json.loads(entries_json))
 
     def record_claim(self, claim_json):
         if self.readonly:
@@ -605,6 +609,7 @@ class Toolkit:
         if self.readonly:
             raise ValueError("only the coordinator may replace claim sources")
         result = self.claims().replace_sources(claim_id, view_ids, reason)
+        result["next_action"] = "Inspect the returned sources, then use claim_transaction with the new claim_id to confirm/apply."
         self.log("replace_claim_sources", result)
         return result
 
@@ -2510,12 +2515,18 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return CallToolResult(content=content, structuredContent=reply)
 
         @server.tool()
-        def record_claim(claim_json: str) -> CallToolResult:
-            """Record located values for a candidate, or one image/floor/facade count.
-            observation_type=facade_count can precede BIM; read get_bim_reference('claims').
-            Geometric claims return up to three clean source crops; view_claim_evidence
-            shows more. Counts are observations, not geometry edits or verified image truth.
+        def claim_transaction(entries_json: str, candidate: str = "") -> dict:
+            """Batch record/adopt/confirm or apply evidence with per-entry audit.
+            Entries commit independently; failed entries remain explicit. Read claims
+            reference for claim/claim_id, action, reason and $claim operation bindings.
+            Only unchanged targets inherit across candidates; retracted evidence cannot.
+            Empty candidate is allowed only for facade_count records before building.
             """
+            return toolkit.claim_transaction(candidate, entries_json)
+
+        @server.tool()
+        def record_claim(claim_json: str) -> CallToolResult:
+            """Compatibility: record one claim/count. Models use claim_transaction."""
             return claim_result(toolkit.record_claim(claim_json))
 
         @server.tool()
@@ -2524,7 +2535,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             Creates a new immutable claim on the SAME saved candidate, preserving objects,
             value definitions, targets, basis and unresolved items; replaces sources/reason.
             Retracts the old claim explicitly, returns new crops. New claim is unadopted:
-            decide_claim then confirm_claims/revise_bim is still required. No BIM change.
+            use claim_transaction to adopt and confirm/apply it. No BIM change.
             Full original views are valid; seeing a view does not certify interpretation.
             """
             return claim_result(toolkit.replace_claim_sources(claim_id, view_ids, reason))
@@ -2541,7 +2552,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
         @server.tool()
         def decide_claim(claim_id: str, disposition: str, reason: str) -> dict:
-            """Choose adopted/deferred/retracted; adoption does not apply geometry."""
+            """Compatibility: decide one claim. Models use claim_transaction."""
             return toolkit.decide_claim(claim_id, disposition, reason)
 
         @server.tool()
@@ -2557,11 +2568,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
         @server.tool()
         def confirm_claims(candidate: str, operations_json: str) -> dict:
-            """Check adopted claim references against unchanged saved parameters.
-            Use the same update_window/update_opening/move_shared_wall operations as
-            revise_bim. Every parameter must be a claim reference. Rejects any actual
-            geometric change; saves a confirmation without generating a new candidate.
-            """
+            """Compatibility: confirm bound values without geometry changes. Models use claim_transaction."""
             return toolkit.confirm_claims(candidate, operations_json)
 
         @server.tool()
@@ -2951,7 +2958,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
     if enabled_only:
         # The unfiltered service remains available for immutable version checks.
         capabilities = tool_capabilities(toolkit.manifest)
-        for name in ("review_detail", "record_work_review"):
+        for name in ("review_detail", "record_work_review", "record_claim", "decide_claim", "confirm_claims"):
             if not readonly and not filter_tool_catalog([{"name": name}], **capabilities):
                 server.remove_tool(name)
     server.run()
@@ -3046,6 +3053,7 @@ def run_experiment(args):
                              },
                              "deadline_epoch": (started_epoch + args.timeout if started_epoch is not None else None),
                              "implementation_sha256": {
+                                 "scripts/tool_scripts/bim_agent_claims.py":digest(ROOT/"scripts/tool_scripts/bim_agent_claims.py"),
                                  "scripts/tool_scripts/bim_agent_facade_checks.py":digest(ROOT/"scripts/tool_scripts/bim_agent_facade_checks.py"),
                                  "scripts/tool_scripts/bim_agent_feedback.py":digest(ROOT/"scripts/tool_scripts/bim_agent_feedback.py"),
                                  "scripts/tool_scripts/bim_agent_budget.py":digest(ROOT/"scripts/tool_scripts/bim_agent_budget.py"),

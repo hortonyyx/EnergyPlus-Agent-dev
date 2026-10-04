@@ -87,15 +87,15 @@ def repair_hint(toolkit, tool, arguments, message):
         return (f"Use ORIGINAL pixels for {name!r}, size {size}; omit box for the whole image, "
                 "or use 0 <= left < right <= width and 0 <= top < bottom <= height.")
     if "explicitly adopted" in message:
-        return ('Missing step: decide_claim(claim_id, disposition="adopted", reason="your evidence-based decision"); '
-                'then retry confirm_claims if values are unchanged, or revise_bim to change them.')
+        return ('Use claim_transaction with claim_id, your adoption reason and action=confirm '
+                'for unchanged values, or action=apply to revise them; see the claims reference.')
     if "refer to the operation targets" in message:
         return ('Read claim_status(candidate) for exact objects/value_targets; use update_window for kind=window '
                 'and update_opening for kind=opening. Record a new claim if its actual target differs.')
     if "differs from current geometry" in message:
-        return "Next: send these operations to revise_bim to apply the observed values, or decide_claim(..., disposition=\"deferred\", reason=...)."
-    if "stale for this parent" in message:
-        return "Next: record_claim on the current candidate, decide_claim adopted, then retry with the new claim ID."
+        return "Use claim_transaction action=apply, or action=decide with disposition=deferred and a reason."
+    if "stale for" in message:
+        return "Read the reported changed targets/views/values; record new evidence for those targets. Unchanged targets can be handled separately in claim_transaction."
     if tool == "revise_plan_bim":
         try:
             ops = json.loads(arguments.get("operations_json", "[]"))
