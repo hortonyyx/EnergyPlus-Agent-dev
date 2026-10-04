@@ -1,0 +1,594 @@
+{
+  "case": "sm25",
+  "run": "AI_agent/logs/experiments/2026-10-04_node_regression_c2/runs/sm25_runtime_subscription",
+  "delivered_candidate": "candidate_06",
+  "selection_origin": "agent_selected",
+  "runtime": {
+    "status": "completed",
+    "answer_present": true,
+    "receipt_elapsed_seconds": 5788.901582533494,
+    "event_span_seconds": 5752.5,
+    "model_calls": 69,
+    "retries": 0,
+    "fallback": false,
+    "reported_models": {
+      "glm-5.3-flash": 69
+    },
+    "usage": {
+      "prompt": 6182249,
+      "completion": 262060,
+      "total": 6444309,
+      "cached": 2830336,
+      "reasoning": 210221,
+      "responses_without_usage": 0
+    },
+    "request_image_attachments": 518,
+    "estimated_yuan_text_only": null,
+    "yuan_note": "Subscription: no usage-based price.",
+    "per_round": {
+      "output_tokens": 3798,
+      "seconds": 83.9
+    },
+    "tool_calls": {
+      "inputs": 2,
+      "view_image": 24,
+      "pixel_profile": 38,
+      "get_bim_reference": 5,
+      "build_plan_bim": 6,
+      "revise_plan_bim": 17,
+      "inspect_plan_draft": 2,
+      "assemble_plan_bim": 2,
+      "record_claim": 11,
+      "revise_bim": 4,
+      "decide_claim": 5,
+      "confirm_claims": 3,
+      "finish_bim": 1
+    },
+    "tool_outcomes": {
+      "succeeded": 107,
+      "failed": 13
+    },
+    "tool_failures": [
+      {
+        "tool": "assemble_plan_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "revise_plan_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "revise_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "revise_bim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "record_claim",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      },
+      {
+        "tool": "confirm_claims",
+        "outcome": "failed"
+      }
+    ],
+    "lifecycle": [
+      {
+        "action": "start",
+        "reason": "single-role run started",
+        "failure_stage": null
+      },
+      {
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    ],
+    "budget_actions": {
+      "reserve": 69,
+      "settle": 69
+    },
+    "event_types": {
+      "run_lifecycle": 2,
+      "checkpoint": 327,
+      "budget": 138,
+      "adapter_request": 69,
+      "model_response": 69,
+      "tool_invocation": 120,
+      "tool_execution": 120,
+      "tool_presentation": 120,
+      "context": 90,
+      "budget_overrun": 1,
+      "run_usage_summary": 1
+    },
+    "mean_input_per_request": 89598,
+    "cache_share": 0.4578,
+    "agent_version": "t1-20261003-c2.1",
+    "finalization": {
+      "delivery": {
+        "candidate": "candidate_06",
+        "complete_building": true,
+        "report": "bim/delivery.json",
+        "selection_origin": "agent_selected",
+        "viewer": "bim/delivery.html"
+      },
+      "status": "delivered"
+    },
+    "retries_recovered": []
+  },
+  "quality": {
+    "run": "sm25_runtime_subscription",
+    "case": "sm25",
+    "candidate": "candidate_06",
+    "counts": {
+      "floors": 2,
+      "spaces": 30,
+      "openings": 59,
+      "connections": 33
+    },
+    "spaces_one_to_one": {
+      "pass_": false,
+      "reference_rooms": 29,
+      "findings": [
+        {
+          "floor": "F1",
+          "seed": "NW1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "NW2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "W1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "W2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "S1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "S2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E3",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E4",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E5",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E6",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "E7",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "seed": "C",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SA",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SB",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SBAND_E",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SBN",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SBS",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SCORR",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SML",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SMR",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO1",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO2",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO3",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO4",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO5",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO6",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F1",
+          "candidate_space": "F1:SO7",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "seed": "NW1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "NW2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "NE",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "W",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "E1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "E2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "E3",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "E4",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "E5",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "S1",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "S2",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "S3",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "S4",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "S5",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "seed": "C",
+          "candidate_spaces": [],
+          "issue": "seed does not have its own unique source space"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2B1",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2B2",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2B3",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2B4",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2B5",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2CORR",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2E1",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2E2",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2E3",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2E4",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2E5",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2M1",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2M2",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2M3",
+          "issue": "no reference seed"
+        },
+        {
+          "floor": "F2",
+          "candidate_space": "F2:S2MR",
+          "issue": "no reference seed"
+        }
+      ]
+    },
+    "original_openings": {
+      "reference_count": 61,
+      "matched": 55,
+      "positions": 0,
+      "hosts": 0,
+      "door_connections": 0,
+      "unmatched_reference": [
+        "WW_C",
+        "WS1",
+        "WS2",
+        "WS3",
+        "WS4",
+        "WS5"
+      ],
+      "unmatched_actual": [
+        "F1:W_N3",
+        "F2:D2_O1",
+        "F2:D2_O2",
+        "F2:D2_O3"
+      ]
+    },
+    "strict_heights": {
+      "tolerance_m": 0.05,
+      "expected": 34,
+      "matched": 0,
+      "within": 0,
+      "pass_": false,
+      "mismatches": [],
+      "unmatched_reference": [
+        "op_156b",
+        "op_156e",
+        "op_1571",
+        "op_157f",
+        "op_1582",
+        "op_1585",
+        "op_1588",
+        "op_158b",
+        "op_158e",
+        "op_1591",
+        "op_1594",
+        "op_1597",
+        "op_159a",
+        "op_159d",
+        "op_15a0",
+        "op_15a3",
+        "op_15a6",
+        "op_15a9",
+        "op_15ac",
+        "op_15af",
+        "op_15b2",
+        "op_15b5",
+        "op_15b8",
+        "op_15bb",
+        "op_15be",
+        "op_15c1",
+        "op_15c4",
+        "op_15c7",
+        "op_15ca",
+        "op_15cd",
+        "op_15d0",
+        "op_15d3",
+        "op_15d6",
+        "op_15d9"
+      ],
+      "unmatched_built_exterior": [
+        "F1:D_EBAND",
+        "F1:D_WBAND",
+        "F1:D_WCORR",
+        "F1:W_E1",
+        "F1:W_E2",
+        "F1:W_E3",
+        "F1:W_E4",
+        "F1:W_E5",
+        "F1:W_E6",
+        "F1:W_E7",
+        "F1:W_N1",
+        "F1:W_N2",
+        "F1:W_N3",
+        "F1:W_S1",
+        "F1:W_S2",
+        "F1:W_STRIP",
+        "F1:W_STRIP_E",
+        "F1:W_W1",
+        "F1:W_W2",
+        "F2:D2_WBAND",
+        "F2:D2_WCORR",
+        "F2:W2_BE5",
+        "F2:W2_BESTRIP",
+        "F2:W2_E1",
+        "F2:W2_E2",
+        "F2:W2_E3",
+        "F2:W2_MRW",
+        "F2:W2_N1",
+        "F2:W2_N2",
+        "F2:W2_N3",
+        "F2:W2_STRIP"
+      ],
+      "unclassified_exterior": [],
+      "all": []
+    },
+    "strict_partition": {
+      "status": "severe",
+      "matched_count": 0
+    }
+  }
+}
