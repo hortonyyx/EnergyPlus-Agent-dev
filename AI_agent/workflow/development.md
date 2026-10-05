@@ -113,14 +113,26 @@
 
 **10-02 统一 Agent 开发的分工（用户安排）：** 主体开发交 GPT 侧，Astra 决定内部分工，负责实现、主线集成和开发记录；Opus 负责总主导、验收和质量，包括方向与优先级、阶段验收标准与结论、共享接口质量审查、回归与实测的提请、计划与验收记录；阶段结论和待拍板事项由 Opus 汇总报告用户。Claude 为 Plus 额度，Opus 不承担大段实现或长时间探索运行。见[开发计划](../project/unified_agent_harness_plan.md#五分工与交付方式10-02-用户调整)。
 
-## 从 Claude Code 派 Astra（10-02 起）
+## 从 Claude Code 派 Astra（Windows 原生，10-05 更新）
 
-- 容器禁止建立命名空间，codex 自带的写沙箱起不来，Landlock 只支持只读；要写代码只能用完全访问。10-02 用户授权 Opus 从 Claude Code 内以完全访问启动 Astra 派工、监督、验收。
-- 启动用单独一条命令，按项目设置原有的允许规则 `Bash(codex *)` 执行：`codex exec -m gpt-6-astra -c model_reasoning_effort='"max"' -c 'project_doc_fallback_filenames=["AI_agent/Agent.md"]' -s danger-full-access -C <工作树> --json -o <最终回复文件> "<派工提示>" > <事件日志> 2> <错误输出>`。不要和其他命令拼成一条，否则会转交自动审核而被拦。续接用 `codex exec resume <线程> -m gpt-6-astra -c model_reasoning_effort='"max"' -c sandbox_mode='"danger-full-access"' --json -o ... "<提示>"`；`resume` 不接受 `-C`，先把当前目录切到工作树。
-- 后台任务单次最长 2 小时；进度监视会被自动审核拦下，只能在运行结束时验收。预计超过 2 小时的阶段，建议由用户在自己的 Codex 里跑或续接。
-- 每个阶段的流程：Opus 先把验收标准和派工单写进主线 → 新建工作树（检出约 5 分钟）→ 启动 → 交付后 Opus 复核（改动范围、重跑检查、独立核实关键结论）→ 写验收结论 → 合入主线并推送，推送阶段分支备份，收回工作树。
-- 在 Astra 的工作树里跑检查时，设 `PYTHONPATH` 指向该工作树（共享安装会串到主工作树）；测试临时目录放在工作树内（开发入口只许写本工作树），用完删掉。
-- 新证据按哈希引用仓库里已有的字节，不重复打包；每个阶段新增的证据尽量控制在 10 MB 左右。
+Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可写，仓库外的独立探测目录拒绝写入。首次设置写权限花了约 47 秒，设置完成后探测正常。验证使用 `codex sandbox -P :workspace`，没有调用模型；容器时期“只能完全访问”的限制不再用于这台本机。
+
+工作树建在 Windows 本地 NTFS 目录，例如 `$env:LOCALAPPDATA\EnergyPlus-Agent\worktrees\<任务名>`，不放网络盘或同步盘。派工前由主助手准备已包含派工单的提交和独立工作树，写清范围与交付要求。下面在准备好的工作树根目录执行；PowerShell 参数语法和 Agent.md 加载已验证，实际开发派工按任务需要启动：
+
+```powershell
+$taskTree = (Get-Location).Path
+$taskLogs = Join-Path $taskTree 'AI_agent/logs/experiments/<本次派工>'
+New-Item -ItemType Directory -Force -Path $taskLogs | Out-Null
+$env:PYTHONUTF8 = '1'
+$env:PYTHONPATH = $taskTree
+codex exec -m gpt-6-astra -c 'model_reasoning_effort="xhigh"' -c 'project_doc_fallback_filenames=["Agent.md"]' -s workspace-write -C (Join-Path $taskTree 'AI_agent') --add-dir $taskTree --json -o (Join-Path $taskLogs 'final.md') '<派工提示：先完整读 Agent.md；随后从工作树根目录执行任务>' > (Join-Path $taskLogs 'events.jsonl') 2> (Join-Path $taskLogs 'stderr.log')
+```
+
+`AI_agent` 作为启动目录，是为适配本机 CLI 对嵌套备用文件名的实际加载行为；`--add-dir` 提供整个工作树的写入范围。旧 `Bash(codex *)` 允许规则不代表 PowerShell 的执行权限，实际权限以客户端显示为准。续接时先切到同一工作树的 `AI_agent`，再用 `codex exec resume <线程> -m gpt-6-astra -c 'model_reasoning_effort="xhigh"' --json -o <最终回复文件> '<续接提示>'`；resume 不接受 `-C`。
+
+- 每个阶段：验收标准与派工单入主线 → 建工作树 → 启动 → 复核改动范围与关键证据 → 必要检查 → 合入并推送 → 收回工作树。长包开工即保存报告初稿，逐步提交，保留中断后的续接入口。
+- 检查时将 `PYTHONPATH` 指向该工作树，先确认导入模块的 `__file__`；不能把共享 editable 安装的主树结果当作分支验证。pytest 用 `--basetemp AI_agent/archive/local_backup/<任务名>/pytest` 将临时产物留在已忽略的工作树目录。
+- 新证据按哈希引用已有字节，不重复打包；每阶段新增证据尽量约 10 MB。
 
 ## 版本、环境和并行
 
@@ -129,13 +141,15 @@
 **10-04 补充：** GitHub 拒收单个超过 100 MB 的文件。证据压缩包超过这个大小时，用 `split -b 90m` 拆段放证据分支，哈希清单里同时记整包哈希、各段哈希和拼接命令，拼接后先核整包哈希再解。
 派 Astra 做可能接近 2 小时的包时，要求它开工即提交报告初稿、过程中更新：后台任务 2 小时会被强停（10-03 C2 即如此），提前提交能保证交付说明不丢。
 **10-05 补充（吸收包第二至五批的教训）：**
-- **10-05 起合并后的核对改为全量**：在本机盘（容器自身磁盘，不在 `/workspaces` 的 9p 挂载上）检出合并后的提交，对 `tests/` 全部检查跑一轮，约 25 分钟（`-n 2`，TMPDIR、basetemp、PYTHONPATH 指向该检出）。9p 挂载上的文件操作慢两个数量级，下面“其余约 249 个旧检查跑不完”的判断由此而来，已更正；Astra 的工作树也建在本机盘（约 30 秒建好）。
+- **10-05 起合并后的核对改为全量**：在 Windows 本地磁盘的目标检出上，对 `tests/` 全部检查跑一轮：`python -m pytest -n 2 tests`；先激活原生环境，并确认 PYTHONPATH 与 basetemp 指向目标检出。历史 Linux 本机盘基线约 25 分钟，不把它当作 Windows 耗时保证；容器 9p 挂载的性能结论不再作为本机判断依据。
 - **合并后的检查范围（10-05 前的做法）**：用这次改动的模块名（完整路径与专有名）在 `tests/` 里检索引用它们的检查文件，连同 `test_bim_*`、`test_runtime_*`、`test_harness_*` 三组一起重跑；不能只重跑执行助手列的两组（10-04 A2 合并后漏了历史 run99 重放检查，主线带着失败直到 A3-R 发现）。`tests/` 其余约 249 个旧检查文件两小时跑不完、有既有失败与卡住，不作为验收依据，交第二次完整审查清理。
 - **派工单逐文件写清归属**：两包并行时，共享文件（如行为记录脚本、运行器里不同函数）写到函数一级；Agent 版本登记表只归一包，另一包改了登记文件时按约不改登记，合并后由 Opus 统一重新登记共同版本（`python -m src.agent_runtime.agent_registry register --version … [--add-file KIND:PATH]`）。
 - **工作树操作慢**：仓库工作树约 3 GB，机器忙时建或删一个工作树要 10–25 分钟；放后台执行、时限给足（10-04 一次 30 分钟时限中途被停，留下半截目录）。
 - **整案启动入口**：A2-R 起改为 `python -m src.agent.runtime_configuration check|command|launch <配置> --case <编号>`（原 `runtime_r1_preparation`）；按量计费线路可在配置里写人民币上限（A4-R）。
 main 是持续集成主干，由 Codex 主助手负责合并与推送。短期分支/worktree 明确文件范围，公共模型/内核/出口及时集成；验收合入后由主助手收树，未知改动先保存。共享历史不强推，回退已共享改动优先用 revert 或另开旧版本查看目录。工作树放在已确认持久化的位置，各实验独立输出目录。
-使用已配置的 Dev Container 环境。共享 editable 安装可能被另树启动改变；怀疑串树时检查模块 `__file__`。不要反复自动同步依赖或为普通文件改动新装环境，确需不同依赖时再隔离环境。
+日常开发使用 Windows 原生 Python 3.12 与 uv，仓库根执行 `. ./scripts/activate_windows.ps1`；配置与入口见[会话设置](session_setup.md)。共享 editable 安装可能被另树启动改变；怀疑串树时检查模块 `__file__`。不要反复自动同步依赖或为普通文件改动新装环境，确需不同依赖时再隔离环境。运行配置的 `run_root` 也应放本地磁盘；Windows 检查副本位于 `workflow/configs/windows_migration/`，旧实验配置保留原状。
+
+Windows 安全中心的“病毒和威胁防护 → 管理设置 → 排除项”可由用户把仓库目录与实际虚拟环境目录加入排除，减少大量小文件的逐个扫描；当前 `.venv` 在仓库内，父目录排除已经覆盖它。符号链接保护检查需要系统允许创建真实链接；Win+R 输入 `ms-settings:developers` 开启开发者模式后验证权限，不通过跳过保护检查来冒充全量通过。
 
 ## 用户说“收工”时
 
