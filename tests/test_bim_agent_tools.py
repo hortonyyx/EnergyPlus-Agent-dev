@@ -75,6 +75,28 @@ def _error_text(result) -> str:
     return "\n".join(getattr(row, "text", "") for row in result.content)
 
 
+async def _profile_full_report(session, summary):
+    """C3-T moves auxiliary intervals to the hash-checked, paged report."""
+    pieces, offset = [], 0
+    while True:
+        page = _json_result(await session.call_tool('read_candidate_items', {
+            'candidate': '', 'collection': 'report', 'report_file': summary['details_file'],
+            'offset': offset, 'limit': 12000}))
+        pieces.append(page['text'])
+        if page['next_offset'] is None:
+            break
+        offset = page['next_offset']
+    raw = ''.join(pieces)
+    assert hashlib.sha256(raw.encode()).hexdigest() == summary['details_sha256']
+    full = json.loads(raw)
+    assert full['candidates'] == summary['candidates']
+    assert full.get('empty_filter_diagnostics') == summary.get('empty_filter_diagnostics')
+    assert summary['cross_axis_profile']['run_count'] == len(full['cross_axis_profile']['runs'])
+    assert summary['threshold_excluded_support']['interval_count'] == len(full['threshold_excluded_support']['intervals'])
+    assert 'evidence_note' not in summary
+    return full
+
+
 def _full_delivery_result(run, result):
     """Large receipts explicitly point to the complete persisted report."""
     reply = _json_result(result)
@@ -543,6 +565,7 @@ def test_view_pixel_profile_filters_sparse_strokes_and_reports_unbridged_peak_su
             assert viewed.content[0].type == "image"
             result = json.loads(viewed.content[1].text)
             assert result["minimum_count"] == 3
+            result = await _profile_full_report(session, result)
             assert result["candidates"] == [{
                 "id": "C01", "pixels": [8, 9], "peak": 8, "max_count": 5,
                 "max_fraction": 0.625,
@@ -603,6 +626,7 @@ def test_profile_cross_axis_separates_long_traces_from_junction_peak(tmp_path, r
                       tolerance=0, min_fraction=.2)
         async with _server_session(run, readonly=readonly) as session:
             data = json.loads((await session.call_tool("view_pixel_profile", {**common, "axis": "x"})).content[1].text)
+            data = await _profile_full_report(session, data)
             assert data["candidates"][0]["support_intervals_at_peak"] == [[5, 14]]
             cross = data["cross_axis_profile"]
             assert cross["axis"] == "y" and cross["minimum_count"] == 4
@@ -624,6 +648,7 @@ def test_profile_cross_axis_separates_long_traces_from_junction_peak(tmp_path, r
                 "top": [[19, 19]], "bottom": [[19, 19]]}
             assert context["suggested_view_box"] == [0, 0, 24, 20]
             other = json.loads((await session.call_tool("view_pixel_profile", {**common, "axis": "y"})).content[1].text)
+            other = await _profile_full_report(session, other)
             assert [{k: v for k, v in row.items() if k != "id"} for row in other["candidates"]] == cross["runs"]
             assert other["threshold_excluded_support"] == cross["threshold_excluded_support"]
             assert other["cross_axis_profile"]["threshold_excluded_support"] == data["threshold_excluded_support"]
@@ -652,6 +677,7 @@ def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, re
             wrong = await session.call_tool("view_pixel_profile", {
                 **common, "rgb": [255, 255, 255], "min_fraction": .5})
             data = json.loads(wrong.content[1].text)
+            data = await _profile_full_report(session, data)
             diagnostic = data["empty_filter_diagnostics"]
             assert data["candidates"] == [] and data["matching_pixels"] == 0
             assert data["threshold_excluded_support"]["intervals"] == []
@@ -664,6 +690,7 @@ def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, re
             strict = await session.call_tool("view_pixel_profile", {
                 **common, "rgb": diagnostic["nearest_observed_color"]["rgb"], "min_fraction": 1})
             data = json.loads(strict.content[1].text)
+            data = await _profile_full_report(session, data)
             diagnostic = data["empty_filter_diagnostics"]
             assert data["candidates"] == [] and data["matching_pixels"] == 8
             assert diagnostic["reason"] == "matching_pixels_below_support_threshold"
@@ -680,6 +707,7 @@ def test_empty_profile_explains_color_mismatch_and_filtered_support(tmp_path, re
             unfiltered = await session.call_tool("view_pixel_profile", {
                 **common, "rgb": [128, 128, 128], "min_fraction": .01})
             unfiltered_data = json.loads(unfiltered.content[1].text)
+            unfiltered_data = await _profile_full_report(session, unfiltered_data)
             assert unfiltered_data["minimum_count"] == 1
             assert unfiltered_data["threshold_excluded_support"]["intervals"] == []
             assert unfiltered_data["cross_axis_profile"]["threshold_excluded_support"]["intervals"] == []

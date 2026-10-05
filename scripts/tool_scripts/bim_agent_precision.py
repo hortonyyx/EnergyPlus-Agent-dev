@@ -84,4 +84,17 @@ def building_precision(toolkit, candidate, source=None):
         proposal.get('wall_references', []), proposal.get('wall_dimensions', []))
     if errors:
         report['evidence_errors'] = errors
+    previous = source.get('generation', {}).get('provenance', {}).get('parent_candidate')
+    previous_path = toolkit.run / str(previous) / 'precision_report.json'
+    if previous and previous_path.is_file():
+        before = json.loads(previous_path.read_text())
+        key = lambda row: json.dumps(row, sort_keys=True)
+        old, new = {key(r) for r in before['items']}, {key(r) for r in report['items']}
+        report['changes'] = dict(status='compared', previous_candidate=previous,
+            new=[i for i, r in enumerate(report['items']) if key(r) not in old],
+            unchanged=[i for i, r in enumerate(report['items']) if key(r) in old],
+            resolved=[r for r in before['items'] if key(r) not in new])
+    else:
+        report['changes'] = dict(status='no_previous_report', previous_candidate=previous)
+    (path / 'precision_report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     return report

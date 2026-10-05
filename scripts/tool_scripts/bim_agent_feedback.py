@@ -139,11 +139,76 @@ def repair_hint(toolkit, tool, arguments, message):
         "claims" if "claim" in tool else "edits" if "revise" in tool else "plan_partition") + ") for the operation format."
 
 
+def plan_feedback_error(error, **plans):
+    """Name a malformed declaration without filling in any geometry values."""
+    from src.agent.geometry.plan_input import plan_error_hint
+    missing = error.args[0] if isinstance(error, KeyError) and error.args else None
+    for phase, plan in plans.items():
+        if not isinstance(plan, dict):
+            continue
+        rows = plan.get('openings', [])
+        for i, row in enumerate(rows if isinstance(rows, list) else []):
+            path, field = f'plan.openings[{i}]', None
+            if isinstance(row, dict):
+                if missing in {'p1', 'p2', 'z', 'id', 'kind'} and missing not in row:
+                    field = missing
+                elif missing is None:
+                    for k in ('p1', 'p2', 'z'):
+                        value = row.get(k)
+                        if (not isinstance(value, list) or len(value) != 2 or
+                                any(isinstance(v, bool) or not isinstance(v, (int, float)) for v in value)):
+                            field = k
+                            break
+                if field is None:
+                    continue
+                identity = row.get('id', f'index {i}')
+                issue = f"missing field {field!r}" if field not in row else f"invalid field {field!r}; needs two finite numbers"
+                reason = f"{phase} {path} ({identity!r}): {issue}"
+            else:
+                identity = f'index {i}'
+                reason = f"{phase} {path}: opening must be an object"
+            return dict(status='unavailable', reason=reason, object_id=identity,
+                field=field, declaration=phase, error_type=type(error).__name__,
+                repair_hint=plan_error_hint(plan, path))
+        if missing in plan or missing is None:
+            continue
+        if missing in {'x_anchors', 'y_anchors', 'footprint_pixels', 'openings', 'floor_id', 'z_floor', 'ceiling_height'}:
+            reason = f"{phase} plan: missing field {missing!r}"
+            return dict(status='unavailable', reason=reason, field=missing, declaration=phase,
+                error_type=type(error).__name__, repair_hint=plan_error_hint(plan, 'plan.' + missing))
+    plan = next(iter(plans.values()), None)
+    return dict(status='unavailable', reason=f'{type(error).__name__}: {error}',
+        repair_hint=plan_error_hint(plan, str(error)))
+
+
 class FeedbackMCP(FastMCP):
     """One response boundary shared by successful, image and failed tools."""
     def __init__(self, toolkit, *args, **kwargs):
         self.toolkit = toolkit
         super().__init__(*args, **kwargs)
+
+    async def list_tools(self):
+        # Pydantic's generated labels repeat parameter names on every request.
+        # Only schema annotations are removed: a property/default named title
+        # remains valid data, and validation requirements are unchanged.
+        def without_titles(schema):
+            if isinstance(schema, list):
+                return [without_titles(v) for v in schema]
+            if not isinstance(schema, dict):
+                return schema
+            result = {}
+            for key, value in schema.items():
+                if key == "title":
+                    continue
+                if key in {"properties", "$defs", "definitions", "patternProperties", "dependentSchemas"}:
+                    result[key] = {name: without_titles(v) for name, v in value.items()}
+                elif key in {"default", "examples", "enum", "const"}:
+                    result[key] = value
+                else:
+                    result[key] = without_titles(value)
+            return result
+        return [tool.model_copy(update={"inputSchema": without_titles(tool.inputSchema)})
+                for tool in await super().list_tools()]
 
     async def call_tool(self, name, arguments):
         notes = []

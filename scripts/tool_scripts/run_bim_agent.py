@@ -520,7 +520,7 @@ def delivery_tool_reply(result: dict) -> dict:
     # Even a long user note or hundreds of floors must not hide the actual
     # completion/uncertainty state behind a transport error.
     minimal = {key: compact[key] for key in (
-        'candidate', 'viewer', 'source_model', 'source_model_sha256', 'counts',
+        'candidate', 'saved_candidate', 'save_effects', 'viewer', 'source_model', 'source_model_sha256', 'counts',
         'selection_origin', 'drawing_fidelity', 'response_compacted',
         'full_delivery_report', 'review_scope_status_counts', 'current_review_count',
         'stale_review_count', 'source_image_feedback_summary', 'space_relation_review_summary',
@@ -830,6 +830,8 @@ class Toolkit:
             for row in claim_state["applications"]]
         result["adopted_unapplied_claims"] = [row["id"] for row in current_claims["claims"]
             if row["state"] in {"pending_application", "partially_satisfied", "changed_since_check"}]
+        from scripts.tool_scripts.bim_agent_saved_result import saved_source_result
+        saved_source_result(self.run, result, selection=True)
         dump(self.run / "delivery.json", result)
         # A separate handoff preserves the immutable candidate's original report.
         statuses = {"not_reviewed":"未回查", "partial":"仅有局部回查",
@@ -1076,6 +1078,11 @@ class Toolkit:
             raise
         result["plan_revision"] = dict(**binding, unchanged_ids=preservation["unchanged_ids"],
             changed_targets=[dict(field=r["field"], id=r["id"]) for r in preservation["changes"]])
+        from scripts.tool_scripts.bim_agent_saved_result import saved_source_result
+        prior_result = self.run / "plan_drafts" / draft_id / "result.json"
+        prior = json.loads(prior_result.read_bytes()).get("candidate") if prior_result.is_file() else None
+        saved_source_result(self.run, result, parent=prior)
+        saved_plan = updated
         try:
             saved_plan = json.loads((self.run / result["plan_input"]["plan_file"]).read_text())
             with PILImage.open(self.image_path(parent["image"])) as original:
@@ -1092,7 +1099,9 @@ class Toolkit:
                 truncated=len(changes["changed_openings"]) > 24,
                 unchanged_opening_ids=changes["unchanged_opening_ids"], note=changes["note"])
         except (ValueError, TypeError, KeyError, IndexError) as error:
-            result["plan_revision"]["geometry_changes"] = dict(status="unavailable", reason=str(error))
+            from scripts.tool_scripts.bim_agent_feedback import plan_feedback_error
+            result["plan_revision"]["geometry_changes"] = plan_feedback_error(error,
+                parent=parent["declaration"], revised=saved_plan)
         dump((self.run / result["plan_input"]["plan_file"]).with_name("result.json"), result)
         self.log("revise_plan_bim", dict(candidate=result.get("candidate"),
             source_geometry_ready=result.get("source_geometry_ready"), plan_input=result.get("plan_input"),
@@ -1106,6 +1115,7 @@ class Toolkit:
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
         from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
+        from scripts.tool_scripts.bim_agent_saved_result import saved_result
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -1141,6 +1151,7 @@ class Toolkit:
                       "repair_hint": plan_error_hint(plan, str(error)),
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            saved_result(result, audit_written=True)
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
             return result
@@ -1167,7 +1178,8 @@ class Toolkit:
             record["geometry_feedback"] = dict(file=str(dimensions_path.relative_to(self.run)),
                 sha256=digest(dimensions_path), **compact_plan_feedback(dimensions))
         except (ValueError, TypeError, KeyError, IndexError) as error:
-            record["geometry_feedback"] = dict(status="unavailable", reason=str(error))
+            from scripts.tool_scripts.bim_agent_feedback import plan_feedback_error
+            record["geometry_feedback"] = plan_feedback_error(error, current=plan)
 
         # Report-only comparison of the original's ink with this declaration, also for
         # drafts that fail to compile (run75/83/86/94 left drawn dividers out; run91/93/94
@@ -1250,6 +1262,7 @@ class Toolkit:
                       "repair_hint": plan_error_hint(plan, str(error)),
                       "plan_input": record, "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            saved_result(result, audit_written=True)
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
             return result
@@ -1323,6 +1336,7 @@ class Toolkit:
               plan_input=None, calibration=None, claim_application=None,
               plan_assembly=None, assembly_calibrations=None):
         from src.agent.execution.source_proposal import export_source_proposal
+        from scripts.tool_scripts.bim_agent_saved_result import saved_result, saved_source_result
         if isinstance(proposal, dict) and 'mesh_frame' in proposal:
             from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
             frame = validate_mesh_frame(proposal['mesh_frame'])
@@ -1331,8 +1345,8 @@ class Toolkit:
         budget = self.candidate_budget()
         index = budget["used"] + 1
         if budget["remaining"] == 0:
-            return {"error": "candidate budget exhausted; report saved partial results",
-                    "candidate_budget": budget, "remaining_seconds": self.remaining_seconds()}
+            return saved_result({"error": "candidate budget exhausted; report saved partial results",
+                    "candidate_budget": budget, "remaining_seconds": self.remaining_seconds()})
         candidate = f"candidate_{index:02d}"
         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
                       "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
@@ -1387,6 +1401,7 @@ class Toolkit:
                 except Exception as error:
                     result["source_plan_errors"].append({"candidate": candidate,
                         "floor_id": floor["id"], "error": str(error)})
+        saved_source_result(self.run, result, parent=parent)
         self.log(action, result)
         return result
 
@@ -2276,15 +2291,21 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
-        positive_support_runs retains all nonzero runs and local peaks, before thresholding.
-        cross_axis_profile measures the SAME mask in the other direction;
-        crop_context flags cut ink and suggests a wider original-image view.
-        Use profile_id and candidate IDs in compare_facade_spans coordinate slots
-        to adopt measured coordinates without copying numbers.
+        Left panel is the original crop; right is the exact color mask, magenta
+        candidate bands and blue peak support. Multiply returned-image coordinates
+        by original_pixels_per_returned_pixel, subtract the right panel offset
+        when applicable, then add the crop origin. Candidates already use original pixels.
+        Peak support is not whole-band continuity; empty/filtered ink is not absence.
+        Auxiliary summaries count unthresholded peaks, cross-axis support and cut
+        crop edges; their full intervals and notes are in details_file, readable
+        with read_candidate_items(collection="report", report_file=details_file).
+        Use profile_id/C IDs in build_plan_bim or compare_facade_spans pixel slots.
         include_image=false returns the same saved measurement without its picture.
         """
         picture, metadata = toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
-        return [picture, metadata] if include_image else json.loads(metadata)
+        from scripts.tool_scripts.bim_agent_replies import compact_reply
+        reply = compact_reply(toolkit.run, 'view_pixel_profile', json.loads(metadata))
+        return [picture, json.dumps(reply)] if include_image else reply
 
     @server.tool()
     def view_pixel_region_overview(name: ImageFilename, background_rgb: list[int], tolerance: float = 60,
@@ -2365,6 +2386,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
     def candidate_result(result) -> CallToolResult:
         """Keep JSON structured output while attaching newly generated feedback views."""
+        from scripts.tool_scripts.bim_agent_saved_result import saved_result
+        if "saved_candidate" not in result:
+            saved_result(result)
         # Put drawing differences, then actionable dimensions/edits, ahead of the large inventories.
         result = {**{k: result[k] for k in ("drawing_differences", "plan_revision", "plan_input") if k in result}, **result}
         content = []
@@ -2437,6 +2461,54 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                                   "y_anchors":y_anchors,"result":result})
         return result
 
+    @server.tool()
+    def read_candidate_items(candidate: str, collection: Literal["cells", "windows", "openings", "unsupported", "report"], floor_id: str | None = None,
+                             offset: int = 0, limit: int | None = None, report_file: str = "") -> dict:
+        """Read exact saved proposal cells, windows, openings or unsupported records.
+        collection=report reads a returned details_file via report_file, with
+        candidate="" and offset/limit in characters (limit up to 12000).
+        Each cell includes floor_id. Read next_offset for more; page_is_partial
+        means this is not a complete build_bim input. Prefer revise_bim to keep
+        unexamined objects. This reads the proposal, not mesh/GT observations.
+        """
+        if limit is None:
+            limit = 8000 if collection == 'report' else 20
+        if collection == 'report':
+            from scripts.tool_scripts.bim_agent_replies import read_report
+            return read_report(toolkit.run, report_file, offset, limit)
+        if collection not in {'cells','windows','openings','unsupported'}:
+            raise ValueError('collection must be cells, windows, openings or unsupported')
+        if not 1 <= limit <= 50 or offset < 0:
+            raise ValueError('requires offset >= 0 and limit 1..50')
+        proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
+        geometry = json.loads(proposal_path.read_text())['geometry']
+        if floor_id is not None and floor_id not in {f['name'] for f in geometry['floors']}:
+            raise ValueError('unknown floor_id')
+        floors = [f for f in geometry['floors'] if floor_id is None or f['name'] == floor_id]
+        cells = [{**c,'floor_id':f['name']} for f in floors for c in f['cells']]
+        ids = {c['id'] for c in cells}
+        items = (cells if collection == 'cells' else
+            [r for r in geometry.get('unsupported', []) if floor_id is None or r.get('floor_id') == floor_id]
+            if collection == 'unsupported' else
+            [w for w in geometry.get('windows',[]) if floor_id is None or w['floor'] == floor_id]
+            if collection == 'windows' else
+            [o for o in geometry.get('openings',[]) if floor_id is None or o['space_id'] in ids
+             or o.get('other_space_id') in ids])
+        page = []
+        for item in items[offset:offset+limit]:
+            if len(json.dumps(page+[item])) > 18000:
+                if not page:
+                    raise ValueError('single object exceeds reply size; exact proposal remains on disk')
+                break
+            page.append(item)
+        result = {'candidate':candidate,'proposal_sha256':digest(proposal_path),
+            'collection':collection,'floor_id':floor_id,'total':len(items),'offset':offset,
+            'items':page,'returned':len(page),
+            'next_offset':offset+len(page) if offset+len(page)<len(items) else None,
+            'page_is_partial':True}
+        toolkit.log('read_candidate_items', {k:v for k,v in result.items() if k!='items'})
+        return result
+
     if not readonly:
         @server.tool()
         def inspect_plan_draft(draft_id: str) -> dict:
@@ -2494,14 +2566,14 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return CallToolResult(content=content, structuredContent=reply)
 
         @server.tool()
-        def claim_transaction(entries_json: str, candidate: str = "") -> dict:
+        def claim_transaction(entries_json: str, candidate: str = "") -> CallToolResult:
             """Batch record/adopt/confirm or apply evidence with per-entry audit.
             Entries commit independently; failed entries remain explicit. Read claims
             reference for claim/claim_id, action, reason and $claim operation bindings.
             Only unchanged targets inherit across candidates; retracted evidence cannot.
             Empty candidate is allowed only for facade_count records before building.
             """
-            return toolkit.claim_transaction(candidate, entries_json)
+            return candidate_result(toolkit.claim_transaction(candidate, entries_json))
 
         @server.tool()
         def record_claim(claim_json: str) -> CallToolResult:
@@ -2653,54 +2725,6 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 result['source_plan_view'] = metadata
                 return CallToolResult(content=[picture.to_image_content(),
                     TextContent(type="text", text=json.dumps(result, ensure_ascii=False))], structuredContent=result)
-            return result
-
-        @server.tool()
-        def read_candidate_items(candidate: str, collection: Literal["cells", "windows", "openings", "unsupported", "report"], floor_id: str | None = None,
-                                 offset: int = 0, limit: int | None = None, report_file: str = "") -> dict:
-            """Read exact saved proposal cells, windows, openings or unsupported records.
-            collection=report reads a returned details_file via report_file, with
-            candidate="" and offset/limit in characters (limit up to 12000).
-            Each cell includes floor_id. Read next_offset for more; page_is_partial
-            means this is not a complete build_bim input. Prefer revise_bim to keep
-            unexamined objects. This reads the proposal, not mesh/GT observations.
-            """
-            if limit is None:
-                limit = 8000 if collection == 'report' else 20
-            if collection == 'report':
-                from scripts.tool_scripts.bim_agent_replies import read_report
-                return read_report(toolkit.run, report_file, offset, limit)
-            if collection not in {'cells','windows','openings','unsupported'}:
-                raise ValueError('collection must be cells, windows, openings or unsupported')
-            if not 1 <= limit <= 50 or offset < 0:
-                raise ValueError('requires offset >= 0 and limit 1..50')
-            proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
-            geometry = json.loads(proposal_path.read_text())['geometry']
-            if floor_id is not None and floor_id not in {f['name'] for f in geometry['floors']}:
-                raise ValueError('unknown floor_id')
-            floors = [f for f in geometry['floors'] if floor_id is None or f['name'] == floor_id]
-            cells = [{**c,'floor_id':f['name']} for f in floors for c in f['cells']]
-            ids = {c['id'] for c in cells}
-            items = (cells if collection == 'cells' else
-                [r for r in geometry.get('unsupported', []) if floor_id is None or r.get('floor_id') == floor_id]
-                if collection == 'unsupported' else
-                [w for w in geometry.get('windows',[]) if floor_id is None or w['floor'] == floor_id]
-                if collection == 'windows' else
-                [o for o in geometry.get('openings',[]) if floor_id is None or o['space_id'] in ids
-                 or o.get('other_space_id') in ids])
-            page = []
-            for item in items[offset:offset+limit]:
-                if len(json.dumps(page+[item])) > 18000:
-                    if not page:
-                        raise ValueError('single object exceeds reply size; exact proposal remains on disk')
-                    break
-                page.append(item)
-            result = {'candidate':candidate,'proposal_sha256':digest(proposal_path),
-                'collection':collection,'floor_id':floor_id,'total':len(items),'offset':offset,
-                'items':page,'returned':len(page),
-                'next_offset':offset+len(page) if offset+len(page)<len(items) else None,
-                'page_is_partial':True}
-            toolkit.log('read_candidate_items', {k:v for k,v in result.items() if k!='items'})
             return result
 
         @server.tool()

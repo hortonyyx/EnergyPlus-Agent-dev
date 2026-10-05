@@ -164,7 +164,13 @@ class CoordinatorSession:
                     value = json.loads(self.store.get_bytes(source.blob))
                     self.children[value["package"]["task_id"]] = value
                 if source.source_id == "applied-observation" and source.blob:
-                    self.applied.add(json.loads(self.store.get_bytes(source.blob))["task_id"])
+                    from scripts.tool_scripts.bim_agent_saved_result import read_saved_result, result_metadata
+                    p = event.payload
+                    if p.event_type == "tool_execution" and p.outcome == "succeeded":
+                        saved = read_saved_result(result_metadata(self.store.resolve(p.raw_result)),
+                            tool=p.tool_name, run=self.tools.run_directory)
+                        if saved["save_effects"]["geometry_applied"]:
+                            self.applied.add(json.loads(self.store.get_bytes(source.blob))["task_id"])
             if event.payload.event_type == "tool_execution" and event.payload.outcome == "unknown":
                 self.unknown_write |= event.payload.repeatability != "read_only"
         complete = {e.payload.invocation_event_id for e in self.store.events
@@ -239,11 +245,10 @@ class CoordinatorSession:
         selected = None
         for event in reversed(self.store.events):
             p = event.payload
-            if (p.event_type == "tool_execution" and p.outcome == "succeeded"
-                    and p.tool_name in {"build_bim", "build_plan_bim", "assemble_plan_bim", "build_parametric_bim",
-                                        "revise_bim", "revise_plan_bim", "finish_bim"}):
-                from src.agent.runtime_tools import _result_metadata
-                selected = _result_metadata(self.store.resolve(p.raw_result)).get("candidate")
+            if p.event_type == "tool_execution" and p.outcome == "succeeded":
+                from scripts.tool_scripts.bim_agent_saved_result import read_saved_result, result_metadata
+                selected = read_saved_result(result_metadata(self.store.resolve(p.raw_result)),
+                    tool=p.tool_name, run=run)["saved_candidate"]
                 if selected:
                     break
         candidates = sorted(run.glob("candidate_*/source_model.json"))
@@ -328,11 +333,18 @@ class CoordinatorSession:
             return result_envelope({"status": "unknown_write_outcome" if write else "tool_transport_failed",
                                     "error_type": type(exc).__name__}, error=True)
         sources = [self.store.source("coordinator-tool-state-after", self.tools.snapshot_state())]
-        if application and not raw.get("isError"):
+        from scripts.tool_scripts.bim_agent_saved_result import read_saved_result, result_metadata
+        saved = read_saved_result(result_metadata(raw), tool=name, run=self.tools.run_directory)
+        geometry_applied = not raw.get("isError") and saved["save_effects"]["geometry_applied"]
+        if application:
+            sources.append(self.store.source("observation-application-attempt", {**application, **saved}))
+        if application and geometry_applied:
             sources.append(self.store.source("applied-observation", application))
         execution = self.store.append(ToolExecutionPayload(call_id=call_id, tool_name=name,
             full_arguments=arguments, repeatability=repeatability, operation_key=key,
             outcome="failed" if raw.get("isError") else "succeeded",
+            # Runtime write acknowledgement includes the durable audit journal;
+            # only geometry_applied can consume a localized observation.
             applied_write_id=key if write and not raw.get("isError") else None,
             raw_result=self.store.capture(raw, force_blob=True),
             shown_result=self.store.capture(raw, force_blob=True), invocation_event_id=invocation.event_id),
@@ -344,7 +356,7 @@ class CoordinatorSession:
                     "registered-views", [v.as_json() for v in views]),))
             for view in views:
                 self.views[view.view_id] = view
-        if application and not raw.get("isError"):
+        if application and geometry_applied:
             self.applied.add(application["task_id"])
         return raw
 

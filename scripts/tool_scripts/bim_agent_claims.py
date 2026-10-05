@@ -145,6 +145,7 @@ def claim_transaction(toolkit, candidate, entries):
     The journal is saved before effects and after each entry for interrupted runs.
     """
     from scripts.tool_scripts.run_bim_agent import dump
+    from scripts.tool_scripts.bim_agent_saved_result import saved_result
     if toolkit.readonly:
         raise ValueError("only the coordinator may transact candidate claims")
     if not isinstance(entries, list) or not entries:
@@ -153,6 +154,7 @@ def claim_transaction(toolkit, candidate, entries):
     transaction = store._write("transaction", dict(candidate=candidate, status="running", entries=[]))
     path = store.folder / (transaction["id"] + ".json")
     current = candidate
+    committed, save_feedback, geometry_applied = [], None, False
     for index, entry in enumerate(entries):
         audit = dict(index=index, candidate=current, status="pending", request=copy.deepcopy(entry))
         transaction["entries"].append(audit)
@@ -216,8 +218,12 @@ def claim_transaction(toolkit, candidate, entries):
                 app = result["claim_application"]
                 audit.update(status=app["status"], application_id=app["id"], error=app.get("error"))
                 if app["status"] == "applied":
-                    current = result["candidate"]
+                    current = result["saved_candidate"]
+                    committed.extend(result["save_effects"]["created_candidates"])
+                    geometry_applied |= result["save_effects"]["geometry_applied"]
+                    save_feedback = result
                     audit["result_candidate"] = current
+                    audit["save_effects"] = result["save_effects"]
         except (OSError, ValueError, KeyError, TypeError) as error:
             audit.update(status="failed", error=str(error))
             if isinstance(error, ClaimBindingError):
@@ -227,8 +233,12 @@ def claim_transaction(toolkit, candidate, entries):
     failed = sum(row["status"] == "failed" for row in transaction["entries"])
     transaction.update(status="failed" if failed == len(entries) else "partial" if failed else "completed",
                        result_candidate=current)
+    saved_result(transaction, candidate=current if committed else None, created=committed,
+                 geometry_applied=geometry_applied, audit_written=True)
     dump(path, transaction)
-    reply = {key: value for key, value in transaction.items() if key != "entries"}
+    # Reuse ordinary revision feedback (including its views), then add this
+    # batch's audit. The final source remains visible even if a later entry fails.
+    reply = {**(save_feedback or {}), **{key: value for key, value in transaction.items() if key != "entries"}}
     reply["entries"] = [{key: value for key, value in row.items() if key != "request"}
                         for row in transaction["entries"]]
     reply.update(audit_file=str(path.relative_to(toolkit.run)),

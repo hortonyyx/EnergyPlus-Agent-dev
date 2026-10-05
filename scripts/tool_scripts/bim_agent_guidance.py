@@ -117,8 +117,8 @@ a chain measuring one opening does not measure another. Openings of a different
 size or shape keep their own heights unless the elevation shows otherwise.
 Use view_elevation_candidate with observed anchors to locate the source openings;
 claim source boxes must cover those openings, not only an adjacent dimension chain.
-height_coverage is one row per exterior opening: located/applied, located/confirmed,
-assumed or missing. A region covering several openings requires per-opening
+height_coverage lists evidenced/problem openings and counts the rest; full rows are
+in details_file. A region covering several openings requires per-opening
 confirmation; whole-image citations are unlocalized. Internal door heights without a
 drawing are assumptions.
 """
@@ -983,9 +983,9 @@ not just a crop. Re-record to correct the same scope; different images are
 compared, never summed. facade_counts reports missing/conflicting totals and
 unresolved scopes on saves/checks/delivery; matching counts prove no positions.
 
-The height_coverage table has one row per exterior opening with absolute z,
-status (located_applied/located_confirmed/assumed/missing), claim IDs and source
-views. Location needs that facade's explicit elevation calibration and a source
+height_coverage lists evidenced/problem openings; other missing bindings are counted.
+Full rows in details_file retain z, status, claim IDs and views.
+Location needs that facade's explicit elevation calibration and a source
 region containing this opening. A region containing several openings is marked
 needs_per_opening_confirmation, even when numbers match; narrow/replace the
 source with each opening's own evidence. Internal heights remain in the source

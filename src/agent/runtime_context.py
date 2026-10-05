@@ -100,10 +100,10 @@ def update_building_context(engine, event, raw_result):
     candidates = sorted(p for p in run.glob("candidate_*/source_model.json") if p.is_file())
     old = next((s for s in context.state if s.key == "current-source-bim"), None)
     selected = old.value["candidate"] if old else None
-    changed_bim = event.payload.tool_name in {"build_bim", "build_plan_bim", "assemble_plan_bim",
-        "build_parametric_bim", "revise_bim", "revise_plan_bim", "finish_bim"}
-    if changed_bim and not raw_result.get("isError"):
-        selected = metadata.get("candidate") or selected
+    from scripts.tool_scripts.bim_agent_saved_result import read_saved_result
+    saved = read_saved_result(metadata, tool=event.payload.tool_name, run=run)
+    if not raw_result.get("isError"):
+        selected = saved["saved_candidate"] or selected
     path = run / str(selected) / "source_model.json" if selected else None
     if path is None or not path.is_file():
         path = candidates[-1] if candidates else run / "seed/source_model.json"

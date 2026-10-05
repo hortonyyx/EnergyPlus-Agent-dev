@@ -24,9 +24,7 @@ from src.harness_contracts import EventEnvelope
 
 FACADES = ("north", "south", "east", "west")
 FIRST_DRAFT_TOOLS = {"build_plan_bim", "build_bim", "build_parametric_bim"}
-WRITE_TOOLS = FIRST_DRAFT_TOOLS | {
-    "assemble_plan_bim", "revise_plan_bim", "revise_bim", "finish_bim"
-}
+from scripts.tool_scripts.bim_agent_saved_result import read_saved_result
 
 
 def _stamp(value: str) -> float:
@@ -669,20 +667,19 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
                            for entry in (step.get("result_data") or {}).get("entries", [])]
     for step in steps:
         data = step.get("result_data") or {}
-        ready = data.get("source_geometry_ready")
-        candidate = data.get("candidate")
-        if ready is None and step["tool"] in WRITE_TOOLS and isinstance(candidate, str):
-            report = (run / candidate / "report.json").resolve()
-            if report.is_relative_to(run.resolve()) and report.is_file():
-                ready = json.loads(report.read_bytes()).get("source_geometry_ready")
+        saved_bim = read_saved_result(data, tool=step["tool"], run=run)
+        ready = saved_bim.get("source_geometry_ready", data.get("source_geometry_ready"))
         call_error = bool(step.get("is_error"))
         domain_failure = not call_error and (data.get("status") in {"error", "failed"}
                          or step["tool"] == "claim_transaction" and data.get("status") == "partial"
                          or ready is False or bool(data.get("error")))
         step["call_error"] = call_error
         step["domain_failure"] = domain_failure
-        step["usable_source_draft"] = (not call_error and not domain_failure and ready is True
-            and step["tool"] in WRITE_TOOLS - {"finish_bim"})
+        # A partial transaction can both fail in the domain and commit usable
+        # sources. Count those commits; do not erase them with the batch status.
+        step["usable_source_draft"] = (len(saved_bim["save_effects"]["created_candidates"])
+                                        if not call_error else 0)
+        step["saved_candidate"] = saved_bim["saved_candidate"]
     attempt = next((step.get("t_call") for step in steps if step["tool"] in FIRST_DRAFT_TOOLS), None)
     first = next((step.get("t_call") for step in steps if step["usable_source_draft"]), None)
     views = [dict(_view_detail(step), t=step.get("t_call")) for step in steps
@@ -745,8 +742,8 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
             "applied_entries": sum(entry.get("status") == "applied" for entry in transaction_entries)},
         "outcome_definitions": {
             "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
-            "domain_failures": "normal return with status error/failed, error, or source_geometry_ready=false",
-            "usable_source_drafts": "build/edit/assembly returns source_geometry_ready=true; not a fidelity verdict",
+            "domain_failures": "normal return with status error/failed/partial, error, or source_geometry_ready=false",
+            "usable_source_drafts": "committed usable sources from the shared save contract, including partial batches; selections excluded; not a fidelity verdict",
             "tool_errors": "historical alias of call_errors only",
             "first_draft_s": "first usable source, including one produced by correcting a failed draft",
             "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"},
@@ -776,7 +773,7 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
         "plan_edits": tools["revise_plan_bim"] + tools["edit_plan_bim"],
         "candidate_revisions": tools["revise_bim"] + sum(entry.get("status") == "applied" for entry in transaction_entries), "gaps": record["gaps"],
         "outcomes": [{key: s.get(key) for key in ("index", "tool", "t_call", "call_error", "domain_failure",
-                     "usable_source_draft")} for s in steps if s["call_error"] or s["domain_failure"] or s["usable_source_draft"]],
+                     "usable_source_draft", "saved_candidate")} for s in steps if s["call_error"] or s["domain_failure"] or s["usable_source_draft"]],
         "usage": record.get("usage", [row for inv in invocations for row in inv.get("message_usage", [])]),
         "model_usage": {key: dict(value) for key, value in model_usage.items()},
         "cost_usd_cli": sum(row.get("total_cost_usd") or 0 for row in cli_results) if cli else None,

@@ -1,0 +1,1474 @@
+{
+  "schema_version": "bim.behaviour.v2",
+  "run": "sm24_qwen27b_paratera",
+  "source_format": "event_envelope_jsonl",
+  "model": "Qwen3.8-27B",
+  "cli": null,
+  "turns": 55,
+  "invocations": 1,
+  "elapsed_seconds": 3831.8838279247284,
+  "tool_calls": 97,
+  "tool_capture_missing": false,
+  "call_errors": 2,
+  "domain_failures": 3,
+  "usable_source_drafts": 6,
+  "tool_errors": 2,
+  "tools": {
+    "inputs": 1,
+    "view_image": 28,
+    "view_pixel_profile": 13,
+    "get_bim_reference": 3,
+    "build_plan_bim": 4,
+    "inspect_plan_draft": 1,
+    "revise_plan_bim": 5,
+    "record_claim": 14,
+    "decide_claim": 14,
+    "confirm_claims": 4,
+    "view_elevation_candidate": 5,
+    "check_openings": 1,
+    "replace_claim_sources": 4
+  },
+  "claim_transactions": {
+    "calls": 0,
+    "entries": 0,
+    "status_counts": {},
+    "recorded_claims": 0,
+    "applied_entries": 0
+  },
+  "outcome_definitions": {
+    "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
+    "domain_failures": "normal return with status error/failed/partial, error, or source_geometry_ready=false",
+    "usable_source_drafts": "committed usable sources from the shared save contract, including partial batches; selections excluded; not a fidelity verdict",
+    "tool_errors": "historical alias of call_errors only",
+    "first_draft_s": "first usable source, including one produced by correcting a failed draft",
+    "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"
+  },
+  "prepared_tool_results": 97,
+  "delivered_tool_results": 96,
+  "undelivered_tool_results": 1,
+  "first_draft_s": 1863.949,
+  "calls_before_first_draft": 35,
+  "first_build_attempt_s": 1374.39,
+  "calls_before_first_build_attempt": 32,
+  "full_views_before_first_build_attempt": 5,
+  "crops_before_first_build_attempt": 12,
+  "pixel_tools_before_first_build_attempt": 13,
+  "first_assembly_s": null,
+  "finish_s": null,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 12,
+  "pixel_tools_before_first_draft": 13,
+  "crop_scales": [
+    0.76,
+    0.76,
+    1.0,
+    1.68,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    4.0,
+    4.0,
+    4.0,
+    4.0,
+    6.0,
+    6.0,
+    6.0,
+    6.0
+  ],
+  "elevation_crops_by_facade": {
+    "south": 1,
+    "north": 2
+  },
+  "elevation_overlays_by_facade": {
+    "north": 2,
+    "south": 1,
+    "east": 1,
+    "west": 1
+  },
+  "height_provenance_claims": [
+    {
+      "id": "claim_0001",
+      "objects": [
+        "W1"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view: left vertical chain 1100/2400/1000 (top to bottom) bounds the 4800 window. Chain datum is the ground line z=0 (bottom of the overall 4500 wall dimension); walking up: 1000 to sill, 2400 glazing, 1100 to wall top z=4.5. Segment 1 is the window z span [1.0, 3.4].",
+      "t": 2931.694,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0001.json",
+      "saved_sha256": "50662333bbdc1dccfdd6fb9c1c826d1abd49e7baf2d2f312b27107e5c4615af9"
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "D10"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North_view: right vertical chain 1900/2400/200 (top to bottom) bounds the 1600 double-leaf door. Datum is ground line z=0 (bottom of overall 4500); walking up: 200 to door bottom, 2400 door, 1900 to wall top z=4.5. Segment 1 is the door z span [0.2, 2.6].",
+      "t": 2939.139,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0002.json",
+      "saved_sha256": "65b013a747fcf0db3d736fb24a667a264763eaa37bf5b0874a8f8705351f5384"
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "D8"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view: middle vertical chain 1900/2400/200 (top to bottom) bounds the 900 door. Datum is ground line z=0 (bottom of overall 4500); walking up: 200 to door bottom, 2400 door, 1900 to wall top z=4.5. Segment 1 is the door z span [0.2, 2.6].",
+      "t": 2946.074,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0003.json",
+      "saved_sha256": "e0d0d0775e5ab2679247cec0fc37658ceea313a7354353586454c179eb3c7116"
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "W10"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view: left vertical chain 1700/1800/1000 (top to bottom) bounds the west 1500 window. Datum is ground line z=0 (bottom of overall 4500); walking up: 1000 to sill, 1800 glazing, 1700 to wall top z=4.5. Segment 1 is the window z span [1.0, 2.8].",
+      "t": 2998.034,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0004.json",
+      "saved_sha256": "1155afbc0240b1af366485cffec3f94649e5406a99033c0e80431e60df1bf963"
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "W12"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South_view: right vertical chain 1700/1800/1000 (top to bottom) bounds the east 1500 window. Datum is ground line z=0 (bottom of overall 4500); walking up: 1000 to sill, 1800 glazing, 1700 to wall top z=4.5. Segment 1 is the window z span [1.0, 2.8].",
+      "t": 3010.522,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0005.json",
+      "saved_sha256": "e4d63b1e277cf33e5c2dd8f14c339cdc6cfb26479724537ada5c9b9df06f1555"
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "D9"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view: left vertical chain 1900/2400/200 (top to bottom) bounds the 1600 double-leaf door. Datum is ground line z=0 (bottom of overall 4500); walking up: 200 to door bottom, 2400 door, 1900 to wall top z=4.5. Segment 1 is the door z span [0.2, 2.6].",
+      "t": 3018.539,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0006.json",
+      "saved_sha256": "718931ffa4830f7ed41b10bfd6f5a4d33fcce19faf598d0720d754a6b4db9f44"
+    },
+    {
+      "id": "claim_0007",
+      "objects": [
+        "W7"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view: middle vertical chain 1100/2400/1000 (top to bottom) bounds the 4800 window. Datum is ground line z=0 (bottom of overall 4500); walking up: 1000 to sill, 2400 glazing, 1100 to wall top z=4.5. Segment 1 is the window z span [1.0, 3.4].",
+      "t": 3027.436,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0007.json",
+      "saved_sha256": "de507d99ee2442ed97a720721bd09782fef8fc858f673b69ac67a071c41260c0"
+    },
+    {
+      "id": "claim_0008",
+      "objects": [
+        "W2",
+        "W5"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East_view: right vertical chain 1700/1800/1000 (top to bottom) bounds both small windows (1500 and 1200), which are drawn at the same sill/head levels. Datum is ground line z=0 (bottom of overall 4500); walking up: 1000 to sill, 1800 glazing, 1700 to wall top z=4.5. Segment 1 is the window z span [1.0, 2.8].",
+      "t": 3036.973,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0008.json",
+      "saved_sha256": "3c7300f031fefcc31d2d6ceb3043a6c7db5c544c29afcb5b49054c93b5aff9c3"
+    },
+    {
+      "id": "claim_0009",
+      "objects": [
+        "W3",
+        "W4",
+        "W6",
+        "W8"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view: left vertical chain 1700/1800/1000 (top to bottom) bounds the four small windows (1500, 1200, 1500, 1500), all drawn at the same sill/head levels. Datum is ground line z=0 (bottom of overall 4500); walking up: 1000 to sill, 1800 glazing, 1700 to wall top z=4.5. Segment 1 is the window z span [1.0, 2.8].",
+      "t": 3046.741,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0009.json",
+      "saved_sha256": "12efc806f6dd158e0359c51e6b905fd4bf75fe94a6c4145f8af52813557a23a3"
+    },
+    {
+      "id": "claim_0010",
+      "objects": [
+        "W9"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West_view: right vertical chain 1100/2400/1000 (top to bottom) bounds the 4800 window. Datum is ground line z=0 (bottom of overall 4500); walking up: 1000 to sill, 2400 glazing, 1100 to wall top z=4.5. Segment 1 is the window z span [1.0, 3.4].",
+      "t": 3057.36,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0010.json",
+      "saved_sha256": "a1a5f65de1b919abb469565095e345c414e848dd07f0ab7b8c6b3563461f2e70"
+    },
+    {
+      "id": "claim_0011",
+      "objects": [
+        "W1"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "Wider box covering both the 1100/2400/1000 chain (left of image) and the 4800 window it bounds (right side of facade, drawn x~710-1500). Previous box omitted the window itself.",
+      "t": 3672.117,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0011.json",
+      "saved_sha256": "34d02ce8f46d1928f5beef3cc3b31f474c7cad966f37df810f4310dfda091168"
+    },
+    {
+      "id": "claim_0012",
+      "objects": [
+        "D10"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "Wider box covering both the 1900/2400/200 chain (right of image) and the 1600 door it bounds (drawn x~1950-2220). Previous box omitted the door itself.",
+      "t": 3680.664,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0012.json",
+      "saved_sha256": "fceca2d7124617cd59296844e2d435b255bad6fc32ba4b159c075409fc414d23"
+    },
+    {
+      "id": "claim_0013",
+      "objects": [
+        "W10"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "W10 is the west 1500 window (drawn right side of South elevation, x~1673-1902) bounded by the right 1700/1800/1000 chain; this box covers both. Previous box covered the east window instead.",
+      "t": 3689.247,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0013.json",
+      "saved_sha256": "dbe9bf66c4dc412d78f875687a8d1e0df639664e8cf94a5a15f3072559883c6f"
+    },
+    {
+      "id": "claim_0014",
+      "objects": [
+        "W12"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "W12 is the east 1500 window (drawn left side of South elevation, x~538-767) bounded by the left 1700/1800/1000 chain; this box covers both. Previous box covered the west window instead.",
+      "t": 3697.425,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0014.json",
+      "saved_sha256": "44343eb1f5f6075b123a96a4e4280ec02d7be18c53dd26be0a7203d35446e479"
+    }
+  ],
+  "height_provenance_facades": {
+    "north": 4,
+    "south": 5,
+    "east": 3,
+    "west": 2
+  },
+  "claims_from_saved_files": 14,
+  "cross_facade_height_claims": 0,
+  "plan_builds": 4,
+  "plan_edits": 5,
+  "candidate_revisions": 0,
+  "gaps": [],
+  "outcomes": [
+    {
+      "index": 33,
+      "tool": "build_plan_bim",
+      "t_call": 1374.39,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 34,
+      "tool": "build_plan_bim",
+      "t_call": 1477.095,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 35,
+      "tool": "build_plan_bim",
+      "t_call": 1737.699,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 36,
+      "tool": "build_plan_bim",
+      "t_call": 1863.949,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_01"
+    },
+    {
+      "index": 38,
+      "tool": "revise_plan_bim",
+      "t_call": 2086.567,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_02"
+    },
+    {
+      "index": 39,
+      "tool": "revise_plan_bim",
+      "t_call": 2193.775,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_03"
+    },
+    {
+      "index": 45,
+      "tool": "revise_plan_bim",
+      "t_call": 2414.799,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_04"
+    },
+    {
+      "index": 46,
+      "tool": "revise_plan_bim",
+      "t_call": 2478.241,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_05"
+    },
+    {
+      "index": 52,
+      "tool": "revise_plan_bim",
+      "t_call": 2794.879,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_06"
+    },
+    {
+      "index": 77,
+      "tool": "confirm_claims",
+      "t_call": 3254.6,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 79,
+      "tool": "confirm_claims",
+      "t_call": 3311.771,
+      "call_error": true,
+      "domain_failure": false,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    }
+  ],
+  "usage": [
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 26,
+        "prompt_tokens": 11252,
+        "total_tokens": 11278,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 11252
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 122,
+        "prompt_tokens": 13163,
+        "total_tokens": 13285,
+        "completion_tokens_details": {
+          "reasoning_tokens": 45
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 9984,
+          "text_tokens": 13163
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 4804,
+        "prompt_tokens": 17256,
+        "total_tokens": 22060,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4713
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 11648,
+          "text_tokens": 14927,
+          "image_tokens": 2329
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2989,
+        "prompt_tokens": 26282,
+        "total_tokens": 29271,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2953
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 15744,
+          "text_tokens": 21549,
+          "image_tokens": 4733
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2087,
+        "prompt_tokens": 31098,
+        "total_tokens": 33185,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1942
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 24960,
+          "text_tokens": 25413,
+          "image_tokens": 5685
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2983,
+        "prompt_tokens": 34726,
+        "total_tokens": 37709,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2867
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 28159,
+          "image_tokens": 6567
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 4857,
+        "prompt_tokens": 38821,
+        "total_tokens": 43678,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4577
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 33280,
+          "text_tokens": 31748,
+          "image_tokens": 7073
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3796,
+        "prompt_tokens": 48058,
+        "total_tokens": 51854,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3493
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 37376,
+          "text_tokens": 40801,
+          "image_tokens": 7257
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1939,
+        "prompt_tokens": 54944,
+        "total_tokens": 56883,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1790
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 46592,
+          "text_tokens": 47498,
+          "image_tokens": 7446
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2858,
+        "prompt_tokens": 57980,
+        "total_tokens": 60838,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2757
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 46592,
+          "text_tokens": 50028,
+          "image_tokens": 7952
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3811,
+        "prompt_tokens": 62998,
+        "total_tokens": 66809,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3539
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 56576,
+          "text_tokens": 53562,
+          "image_tokens": 9436
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 4623,
+        "prompt_tokens": 71210,
+        "total_tokens": 75833,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4499
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 61568,
+          "text_tokens": 61538,
+          "image_tokens": 9672
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3272,
+        "prompt_tokens": 77116,
+        "total_tokens": 80388,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2998
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 69888,
+          "text_tokens": 66802,
+          "image_tokens": 10314
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 10195,
+        "prompt_tokens": 85403,
+        "total_tokens": 95598,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9914
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 75648,
+          "text_tokens": 74845,
+          "image_tokens": 10558
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1632,
+        "prompt_tokens": 99139,
+        "total_tokens": 100771,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1463
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 83968,
+          "text_tokens": 88377,
+          "image_tokens": 10762
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2212,
+        "prompt_tokens": 102227,
+        "total_tokens": 104439,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2117
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 98176,
+          "text_tokens": 91135,
+          "image_tokens": 11092
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2324,
+        "prompt_tokens": 105170,
+        "total_tokens": 107494,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2211
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 100608,
+          "text_tokens": 93896,
+          "image_tokens": 11274
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2468,
+        "prompt_tokens": 109274,
+        "total_tokens": 111742,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2364
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 103936,
+          "text_tokens": 96882,
+          "image_tokens": 12392
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2105,
+        "prompt_tokens": 112739,
+        "total_tokens": 114844,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2012
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 108160,
+          "text_tokens": 99927,
+          "image_tokens": 12812
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2675,
+        "prompt_tokens": 115735,
+        "total_tokens": 118410,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2406
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 111488,
+          "text_tokens": 102591,
+          "image_tokens": 13144
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1198,
+        "prompt_tokens": 121462,
+        "total_tokens": 122660,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1104
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 113152,
+          "text_tokens": 108162,
+          "image_tokens": 13300
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 918,
+        "prompt_tokens": 123448,
+        "total_tokens": 124366,
+        "completion_tokens_details": {
+          "reasoning_tokens": 763
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 119808,
+          "text_tokens": 109906,
+          "image_tokens": 13542
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 15342,
+        "prompt_tokens": 126147,
+        "total_tokens": 141489,
+        "completion_tokens_details": {
+          "reasoning_tokens": 15289
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 122240,
+          "text_tokens": 112528,
+          "image_tokens": 13619
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 13518,
+        "prompt_tokens": 143296,
+        "total_tokens": 156814,
+        "completion_tokens_details": {
+          "reasoning_tokens": 9942
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 124800,
+          "text_tokens": 129677,
+          "image_tokens": 13619
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 8788,
+        "prompt_tokens": 157105,
+        "total_tokens": 165893,
+        "completion_tokens_details": {
+          "reasoning_tokens": 5540
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 142208,
+          "text_tokens": 143486,
+          "image_tokens": 13619
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 18365,
+        "prompt_tokens": 92188,
+        "total_tokens": 110553,
+        "completion_tokens_details": {
+          "reasoning_tokens": 15640
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 89127,
+          "image_tokens": 3061
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 9167,
+        "prompt_tokens": 110847,
+        "total_tokens": 120014,
+        "completion_tokens_details": {
+          "reasoning_tokens": 8879
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 90624,
+          "text_tokens": 107786,
+          "image_tokens": 3061
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 14024,
+        "prompt_tokens": 129425,
+        "total_tokens": 143449,
+        "completion_tokens_details": {
+          "reasoning_tokens": 13945
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 109824,
+          "text_tokens": 124635,
+          "image_tokens": 4790
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1232,
+        "prompt_tokens": 144703,
+        "total_tokens": 145935,
+        "completion_tokens_details": {
+          "reasoning_tokens": 38
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 128128,
+          "text_tokens": 139913,
+          "image_tokens": 4790
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 6117,
+        "prompt_tokens": 81245,
+        "total_tokens": 87362,
+        "completion_tokens_details": {
+          "reasoning_tokens": 5020
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 77787,
+          "image_tokens": 3458
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1339,
+        "prompt_tokens": 109203,
+        "total_tokens": 110542,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1233
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 79872,
+          "text_tokens": 104016,
+          "image_tokens": 5187
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 294,
+        "prompt_tokens": 111325,
+        "total_tokens": 111619,
+        "completion_tokens_details": {
+          "reasoning_tokens": 214
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 108160,
+          "text_tokens": 105938,
+          "image_tokens": 5387
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 154,
+        "prompt_tokens": 112494,
+        "total_tokens": 112648,
+        "completion_tokens_details": {
+          "reasoning_tokens": 123
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 109824,
+          "text_tokens": 106930,
+          "image_tokens": 5564
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2390,
+        "prompt_tokens": 114198,
+        "total_tokens": 116588,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2326
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 111488,
+          "text_tokens": 107757,
+          "image_tokens": 6441
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2400,
+        "prompt_tokens": 119036,
+        "total_tokens": 121436,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2338
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 113152,
+          "text_tokens": 111143,
+          "image_tokens": 7893
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2085,
+        "prompt_tokens": 123244,
+        "total_tokens": 125329,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1450
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 113152,
+          "text_tokens": 114449,
+          "image_tokens": 8795
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3051,
+        "prompt_tokens": 148923,
+        "total_tokens": 151974,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1139
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 120576,
+          "text_tokens": 138399,
+          "image_tokens": 10524
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1571,
+        "prompt_tokens": 84035,
+        "total_tokens": 85606,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1511
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 76969,
+          "image_tokens": 7066
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2565,
+        "prompt_tokens": 88200,
+        "total_tokens": 90765,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2477
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 82304,
+          "text_tokens": 81134,
+          "image_tokens": 7066
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2646,
+        "prompt_tokens": 95010,
+        "total_tokens": 97656,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2544
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 83200,
+          "text_tokens": 85490,
+          "image_tokens": 9520
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1130,
+        "prompt_tokens": 99992,
+        "total_tokens": 101122,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1020
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 93952,
+          "text_tokens": 88870,
+          "image_tokens": 11122
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3785,
+        "prompt_tokens": 101933,
+        "total_tokens": 105718,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3492
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 93952,
+          "text_tokens": 90577,
+          "image_tokens": 11356
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 6353,
+        "prompt_tokens": 133064,
+        "total_tokens": 139417,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4990
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 100608,
+          "text_tokens": 119979,
+          "image_tokens": 13085
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1981,
+        "prompt_tokens": 149388,
+        "total_tokens": 151369,
+        "completion_tokens_details": {
+          "reasoning_tokens": 163
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 131456,
+          "text_tokens": 133995,
+          "image_tokens": 15393
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1482,
+        "prompt_tokens": 86245,
+        "total_tokens": 87727,
+        "completion_tokens_details": {
+          "reasoning_tokens": 296
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 76770,
+          "image_tokens": 9475
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 696,
+        "prompt_tokens": 89008,
+        "total_tokens": 89704,
+        "completion_tokens_details": {
+          "reasoning_tokens": 298
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 84864,
+          "text_tokens": 79533,
+          "image_tokens": 9475
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 78,
+        "prompt_tokens": 89777,
+        "total_tokens": 89855,
+        "completion_tokens_details": {
+          "reasoning_tokens": 34
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 87296,
+          "text_tokens": 80302,
+          "image_tokens": 9475
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 639,
+        "prompt_tokens": 92444,
+        "total_tokens": 93083,
+        "completion_tokens_details": {
+          "reasoning_tokens": 179
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 88192,
+          "text_tokens": 82969,
+          "image_tokens": 9475
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 1047,
+        "prompt_tokens": 93158,
+        "total_tokens": 94205,
+        "completion_tokens_details": {
+          "reasoning_tokens": 18
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 88192,
+          "text_tokens": 83683,
+          "image_tokens": 9475
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 2739,
+        "prompt_tokens": 116682,
+        "total_tokens": 119421,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1814
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 91520,
+          "text_tokens": 107207,
+          "image_tokens": 9475
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 458,
+        "prompt_tokens": 144730,
+        "total_tokens": 145188,
+        "completion_tokens_details": {
+          "reasoning_tokens": 375
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 115584,
+          "text_tokens": 125639,
+          "image_tokens": 19091
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 3318,
+        "prompt_tokens": 151042,
+        "total_tokens": 154360,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3087
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 143104,
+          "text_tokens": 131951,
+          "image_tokens": 19091
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 4582,
+        "prompt_tokens": 83559,
+        "total_tokens": 88141,
+        "completion_tokens_details": {
+          "reasoning_tokens": 3651
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 71639,
+          "image_tokens": 11920
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 952,
+        "prompt_tokens": 106676,
+        "total_tokens": 107628,
+        "completion_tokens_details": {
+          "reasoning_tokens": 397
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 82304,
+          "text_tokens": 88486,
+          "image_tokens": 18190
+        }
+      }
+    },
+    {
+      "kind": "reported",
+      "raw_usage": {
+        "completion_tokens": 447,
+        "prompt_tokens": 108159,
+        "total_tokens": 108606,
+        "completion_tokens_details": {
+          "reasoning_tokens": 28
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 105600,
+          "text_tokens": 89969,
+          "image_tokens": 18190
+        }
+      }
+    }
+  ],
+  "model_usage": {},
+  "cost_usd_cli": null,
+  "thinking_tokens_estimated": null,
+  "visible_text_chars": 7124,
+  "five_hour_window": null,
+  "seven_day_window": null
+}
