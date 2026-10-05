@@ -1,0 +1,322 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BIM 候选与实际检查</title><style>body{font:16px system-ui;max-width:1100px;margin:30px auto;padding:0 16px;line-height:1.6}table{border-collapse:collapse;width:100%}td,th{padding:8px;border:1px solid #ccc;text-align:left}iframe{width:100%;height:680px;border:1px solid #ccc}</style><h1>BIM 候选与实际检查</h1><p>以下状态来自保存的源模型和回查记录。几何自洽或观察对应不等于原图保真；未核查和待处理问题见下方记录。</p><p>本次模型调用正常结束。 已覆盖预期楼层图；这不证明房间、门窗或高度正确。</p><p>模型选定：candidate_16。8 个空间，21 个已建开口，0 个未建开口。几何自洽：通过；原图保真：未评价。</p><p><a href="candidate_16/viewer.html">打开模型</a> · <a href="candidate_16/source_model.json">源 BIM</a> · <a href="delivery.json">检查记录</a></p><table><tr><th>楼层</th><th>类别</th><th>已建数量</th><th>原图观察回查</th></tr><tr><td>L1</td><td>门洞</td><td>10</td><td>未回查</td></tr><tr><td>L1</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>L1</td><td>窗</td><td>11</td><td>未回查</td></tr></table><p>0 份旧源回查未用于当前候选。</p><h2>本次原图直接查看记录</h2><p>仅统计本次直接看图工具的返回；其他图像工具、局部模型和前次运行不计入。返回整图不等于已检查全图或读图正确，也不等于高度已落实到模型。</p><table><tr><th>原图</th><th>返回范围</th></tr><tr><td>1f_view.png</td><td>已返回整图</td></tr><tr><td>East_view.png</td><td>已返回整图</td></tr><tr><td>North_view.png</td><td>已返回整图</td></tr><tr><td>South_view.png</td><td>已返回整图</td></tr><tr><td>West_view.png</td><td>已返回整图</td></tr></table><details><summary>逐立面回查范围</summary><p>零个已建开口也需明确观察；内部及无法确定方向的开口不能靠立面回查覆盖。与所报观察一致仍不代表原图保真。</p><table><tr><th>楼层</th><th>立面</th><th>类别</th><th>已建数量</th><th>回查状态</th></tr><tr><td>L1</td><td>北</td><td>门洞</td><td>1</td><td>未回查</td></tr><tr><td>L1</td><td>南</td><td>门洞</td><td>1</td><td>未回查</td></tr><tr><td>L1</td><td>东</td><td>门洞</td><td>1</td><td>未回查</td></tr><tr><td>L1</td><td>西</td><td>门洞</td><td>0</td><td>未回查</td></tr><tr><td>L1</td><td>北</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>L1</td><td>南</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>L1</td><td>东</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>L1</td><td>西</td><td>空通道</td><td>0</td><td>未回查</td></tr><tr><td>L1</td><td>北</td><td>窗</td><td>1</td><td>未回查</td></tr><tr><td>L1</td><td>南</td><td>窗</td><td>2</td><td>未回查</td></tr><tr><td>L1</td><td>东</td><td>窗</td><td>3</td><td>未回查</td></tr><tr><td>L1</td><td>西</td><td>窗</td><td>5</td><td>未回查</td></tr></table></details><h2>逐层逐面外墙门窗清点</h2><p>数量来自所报原图观察；相等不证明位置正确。未清点、数量不符和冲突均只报告，不阻止交付。</p><table><tr><th>楼层</th><th>立面</th><th>类别</th><th>已建</th><th>所报原图数量</th><th>结果</th></tr><tr><td>L1</td><td>北</td><td>窗</td><td>1</td><td>[1]</td><td>与所报数量一致</td></tr><tr><td>L1</td><td>北</td><td>门洞</td><td>1</td><td>[]</td><td>尚未清点</td></tr><tr><td>L1</td><td>南</td><td>窗</td><td>2</td><td>[2]</td><td>与所报数量一致</td></tr><tr><td>L1</td><td>南</td><td>门洞</td><td>1</td><td>[]</td><td>尚未清点</td></tr><tr><td>L1</td><td>东</td><td>窗</td><td>3</td><td>[3]</td><td>与所报数量一致</td></tr><tr><td>L1</td><td>东</td><td>门洞</td><td>1</td><td>[]</td><td>尚未清点</td></tr><tr><td>L1</td><td>西</td><td>窗</td><td>5</td><td>[5]</td><td>与所报数量一致</td></tr><tr><td>L1</td><td>西</td><td>门洞</td><td>0</td><td>[]</td><td>尚未清点</td></tr></table><h2>逐开口高度表</h2><p>一行对应一扇外部开口。状态说明数值应用和来源定位，不证明读图正确；同一定位框包含多扇时需逐扇确认。假设、缺项与待核原因不阻止交付。</p><table><tr><th>开口</th><th>楼层</th><th>立面</th><th>绝对高度（米）</th><th>状态</th><th>依据与视图</th><th>待核原因</th></tr><tr><td>D-E</td><td>L1</td><td>East</td><td>[0.2, 2.6]</td><td>有定位依据，已确认</td><td>claim_0020: East_view.png</td><td></td></tr><tr><td>D-N-entry</td><td>L1</td><td>North</td><td>[0.2, 2.6]</td><td>有定位依据，已应用</td><td>claim_0002: North_view.png</td><td></td></tr><tr><td>D-S</td><td>L1</td><td>South</td><td>[0.2, 2.6]</td><td>有定位依据，已应用</td><td>claim_0004: South_view.png</td><td></td></tr><tr><td>W-E1</td><td>L1</td><td>East</td><td>[1.0, 2.8]</td><td>有定位依据，已确认</td><td>claim_0023: East_view.png</td><td></td></tr><tr><td>W-E2</td><td>L1</td><td>East</td><td>[1.0, 2.8]</td><td>有定位依据，已确认</td><td>claim_0024: East_view.png</td><td></td></tr><tr><td>W-E3</td><td>L1</td><td>East</td><td>[1.0, 3.4]</td><td>有定位依据，已确认</td><td>claim_0021: East_view.png</td><td>distinct_width_on_facade</td></tr><tr><td>W-N1</td><td>L1</td><td>North</td><td>[1.0, 3.4]</td><td>有定位依据，已应用</td><td>claim_0001: North_view.png</td><td></td></tr><tr><td>W-S1</td><td>L1</td><td>South</td><td>[1.0, 2.8]</td><td>有定位依据，已应用</td><td>claim_0003: South_view.png</td><td></td></tr><tr><td>W-S2</td><td>L1</td><td>South</td><td>[1.0, 2.8]</td><td>有定位依据，已应用</td><td>claim_0005: South_view.png</td><td></td></tr><tr><td>W-W1</td><td>L1</td><td>West</td><td>[1.0, 2.8]</td><td>有定位依据，已确认</td><td>claim_0015: West_view.png</td><td></td></tr><tr><td>W-W2</td><td>L1</td><td>West</td><td>[1.0, 2.8]</td><td>有定位依据，已确认</td><td>claim_0016: West_view.png</td><td></td></tr><tr><td>W-W3</td><td>L1</td><td>West</td><td>[1.0, 2.8]</td><td>有定位依据，已确认</td><td>claim_0017: West_view.png</td><td></td></tr><tr><td>W-W4</td><td>L1</td><td>West</td><td>[1.0, 2.8]</td><td>有定位依据，已确认</td><td>claim_0018: West_view.png</td><td></td></tr><tr><td>W-W5</td><td>L1</td><td>West</td><td>[1.0, 3.4]</td><td>有定位依据，已确认</td><td>claim_0019: West_view.png</td><td>distinct_width_on_facade</td></tr></table><h2>尚未解决</h2><ul><li>Door swing directions are visible in the plan but leaf state is not modelled.</li><li>Pixel-to-world calibration was supplied by the caller and was not independently verified.</li></ul><details><summary>模型采用的假设</summary><ul><li>Correction cell rings represent physical source spaces with horizontal floor/ceiling boundaries.</li><li>Contacts describe adjacency, not traversability or EnergyPlus surface pairing.</li><li>Only explicit openings are represented; absent observations do not establish a solid wall.</li><li>Source boundary identity follows cell identity and ring order; topology edits need identity migration.</li><li>Interior door heights assumed 0-2.1 m; no interior elevation was supplied.</li><li>Interior partitions declared on measured line-pair midplanes; drawn 240 mm thicknesses not modelled.</li><li>Room uses inferred from furniture; no printed use labels on the plan.</li><li>Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.</li></ul></details><h2>当前候选的观察结论</h2><p>以下核对实际参数和宿主是否仍保留，不代表原图判断已经验证。</p><table><tr><th>观察</th><th>当前状态</th><th>依据</th></tr><tr><td>claim_0001</td><td>已应用，当前仍保留</td><td>North elevation: window head/sill measured by the left vertical chain 1100+2400+1000 from the 4500 wall top; segment 1 is the 2400 window span, sill 1.0 m head 3.4 m.</td></tr><tr><td>claim_0002</td><td>已应用，当前仍保留</td><td>North elevation right chain 1900+2400+200 from the 4500 wall top: 2400 door leaf with a 200 sill/step above ground; z 0.2-2.6.</td></tr><tr><td>claim_0003</td><td>已应用，当前仍保留</td><td>South elevation left chain 1700+1800+1000 from the 4500 wall top: 1800 window, sill 1.0 m head 2.8 m.</td></tr><tr><td>claim_0004</td><td>已应用，当前仍保留</td><td>South elevation centre chain 1900+2400+200: door z 0.2-2.6 with 200 step.</td></tr><tr><td>claim_0005</td><td>已应用，当前仍保留</td><td>South elevation right chain 1700+1800+1000: window sill 1.0 m head 2.8 m; same size/shape as W-S1 with its own chain.</td></tr><tr><td>claim_0006</td><td>已撤回</td><td>West elevation (left edge = north end): chain 1700+1800+1000 from the 4500 wall top measures the 1800-high windows; W-W1 is the north-most of them.</td></tr><tr><td>claim_0007</td><td>已撤回</td><td>West elevation: W-W2 has the same drawn top/bottom extension lines as the 1700+1800+1000 chain (head 2.8, sill 1.0).</td></tr><tr><td>claim_0008</td><td>已撤回</td><td>West elevation: W-W3 shares the 1800-high window band measured by the 1700+1800+1000 chain.</td></tr><tr><td>claim_0009</td><td>已撤回</td><td>West elevation: W-W4 shares the 1800-high window band measured by the 1700+1800+1000 chain.</td></tr><tr><td>claim_0010</td><td>已撤回</td><td>West elevation right chain 1100+2400+1000 measures the large 4800 conference window: sill 1.0 m head 3.4 m.</td></tr><tr><td>claim_0011</td><td>已撤回</td><td>East elevation left chain 1900+2400+200 from the 4500 wall top: door z 0.2-2.6 with 200 step.</td></tr><tr><td>claim_0012</td><td>已撤回</td><td>East elevation centre chain 1100+2400+1000 measures the large 4800 meeting-room window: sill 1.0 m head 3.4 m.</td></tr><tr><td>claim_0013</td><td>已撤回</td><td>East elevation right chain 1700+1800+1000 measures the 1800-high windows; W-E2 shares that band (head 2.8, sill 1.0).</td></tr><tr><td>claim_0014</td><td>已撤回</td><td>East elevation right chain 1700+1800+1000 measures the 1800-high windows; W-E1 shares that band (head 2.8, sill 1.0).</td></tr><tr><td>claim_0015</td><td>已核对，无需修改</td><td>W-W1 (west facade, north-most 1800 window): source crop now covers the projected opening location on West_view.png under the registered west elevation calibration; chain 1700+1800+1000 gives sill 1.0 m, head 2.8 m.</td></tr><tr><td>claim_0016</td><td>已核对，无需修改</td><td>W-W2 (west facade): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).</td></tr><tr><td>claim_0017</td><td>已核对，无需修改</td><td>W-W3 (west facade): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).</td></tr><tr><td>claim_0018</td><td>已核对，无需修改</td><td>W-W4 (west facade, south-most 1800 window): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).</td></tr><tr><td>claim_0019</td><td>已核对，无需修改</td><td>W-W5 (west facade large 4800 conference window): source crop now covers the projected opening location and its own 1100+2400+1000 chain on West_view.png under the registered west calibration; sill 1.0 m, head 3.4 m.</td></tr><tr><td>claim_0020</td><td>已核对，无需修改</td><td>D-E (east entry door): source crop now covers the projected opening location and its 1900+2400+200 chain on East_view.png under the registered east calibration; door leaf 2.4 m with 0.2 m step, z 0.2-2.6.</td></tr><tr><td>claim_0021</td><td>已核对，无需修改</td><td>W-E3 (east facade large 4800 meeting-room window): source crop now covers the projected opening location and its 1100+2400+1000 chain on East_view.png under the registered east calibration; sill 1.0 m, head 3.4 m.</td></tr><tr><td>claim_0022</td><td>已撤回</td><td>W-E2 (east facade, NE-cabinet window): source crop now covers the projected opening location and the shared 1700+1800+1000 chain on East_view.png under the registered east calibration; sill 1.0 m, head 2.8 m.</td></tr><tr><td>claim_0023</td><td>已核对，无需修改</td><td>W-E1 (east facade, N-room window): source crop now covers the projected opening location and the 1700+1800+1000/4500 chains on East_view.png under the registered east calibration; sill 1.0 m, head 2.8 m.</td></tr><tr><td>claim_0024</td><td>已核对，无需修改</td><td>W-E2 (east facade, NE-cabinet window): narrowed source crop covers only this opening&#x27;s projected location on East_view.png under the registered east calibration, removing the needs_per_opening_confirmation overlap with W-E1; the shared 1700+1800+1000 chain (view_0026) still evidences the band z 1.0-2.8.</td></tr></table><details><summary>已替代的说明</summary><ul><li>无显式替代记录。</li></ul></details><details><summary>观察与实际应用</summary><p>采纳、执行成功与原图正确分别判断；历史应用成功不代表当前候选保留该结果。完整记录见检查记录。</p><pre>{
+  &quot;adopted_unapplied&quot;: [],
+  &quot;applications&quot;: [
+    {
+      &quot;id&quot;: &quot;application_0001&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0001&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0002&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0002&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_opening: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0003&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0003&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0004&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0004&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_opening: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0005&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0005&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0006&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0006&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0007&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0007&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0008&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0008&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0009&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0009&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0010&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0010&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0011&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0011&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_opening: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0012&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0012&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0013&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0013&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0014&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: null,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0014&quot;
+      ],
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;error&quot;: &quot;update_window: reason must be a nonblank string&quot;,
+      &quot;parameters_without_claims&quot;: null
+    },
+    {
+      &quot;id&quot;: &quot;application_0015&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_01&quot;,
+      &quot;candidate&quot;: &quot;candidate_02&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0001&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0016&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_02&quot;,
+      &quot;candidate&quot;: &quot;candidate_03&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0002&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0017&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_03&quot;,
+      &quot;candidate&quot;: &quot;candidate_04&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0003&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0018&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_04&quot;,
+      &quot;candidate&quot;: &quot;candidate_05&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0004&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0019&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_05&quot;,
+      &quot;candidate&quot;: &quot;candidate_06&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0005&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0020&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_06&quot;,
+      &quot;candidate&quot;: &quot;candidate_07&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0006&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0021&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_07&quot;,
+      &quot;candidate&quot;: &quot;candidate_08&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0007&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0022&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_08&quot;,
+      &quot;candidate&quot;: &quot;candidate_09&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0008&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0023&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_09&quot;,
+      &quot;candidate&quot;: &quot;candidate_10&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0009&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0024&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_10&quot;,
+      &quot;candidate&quot;: &quot;candidate_11&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0010&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0025&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_11&quot;,
+      &quot;candidate&quot;: &quot;candidate_12&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0011&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0026&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_12&quot;,
+      &quot;candidate&quot;: &quot;candidate_13&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0012&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0027&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_13&quot;,
+      &quot;candidate&quot;: &quot;candidate_14&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0013&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0028&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_14&quot;,
+      &quot;candidate&quot;: &quot;candidate_15&quot;,
+      &quot;claim_ids&quot;: [
+        &quot;claim_0014&quot;
+      ],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    },
+    {
+      &quot;id&quot;: &quot;application_0029&quot;,
+      &quot;parent_candidate&quot;: &quot;candidate_15&quot;,
+      &quot;candidate&quot;: &quot;candidate_16&quot;,
+      &quot;claim_ids&quot;: [],
+      &quot;status&quot;: &quot;applied&quot;,
+      &quot;error&quot;: null,
+      &quot;parameters_without_claims&quot;: []
+    }
+  ]
+}</pre></details><h2>原图回叠反馈</h2><p>标定由模型提供，尚未独立验证；图像已生成不代表已审视或原图保真。</p><p>当前源投影 1 份；旧源投影 15 份；登记但当前楼层未覆盖 0 份；当前源无登记图面楼层 0 个。</p><ul><li>1f_view.png / L1：<a href="image_overlays/overlay_022.png">当前源回叠图</a></li></ul><details><summary>旧源投影</summary><ul><li>1f_view.png / L1：181437c5da5a</li><li>1f_view.png / L1：7cafcba16356</li><li>1f_view.png / L1：e63fd59a00a4</li><li>1f_view.png / L1：528dd87ea27d</li><li>1f_view.png / L1：15ed0f01f670</li><li>1f_view.png / L1：d4f352bb17e0</li><li>1f_view.png / L1：697710af868b</li><li>1f_view.png / L1：73444d9dfe30</li><li>1f_view.png / L1：9a66db10b6f3</li><li>1f_view.png / L1：0f372b0fe6b6</li><li>1f_view.png / L1：7f291d4c5064</li><li>1f_view.png / L1：d0f651f7cffa</li><li>1f_view.png / L1：3e26b0c0eca2</li><li>1f_view.png / L1：8120b61ffb77</li><li>1f_view.png / L1：b5b0ec1c2181</li></ul></details><details><summary>未覆盖或失败</summary><ul><li>无</li></ul></details><iframe title="保存的 BIM 候选" src="candidate_16/viewer.html"></iframe></html>

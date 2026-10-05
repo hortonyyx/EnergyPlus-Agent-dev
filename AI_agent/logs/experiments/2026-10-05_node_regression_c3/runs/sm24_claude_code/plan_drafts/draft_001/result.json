@@ -1,0 +1,349 @@
+{
+  "status": "error",
+  "error": "partitions wall-x458 and wall-E overlap at LINESTRING (456.5 700, 456.5 753.5)",
+  "drawing_differences": {
+    "file": "plan_drafts/draft_001/drawing_differences.json",
+    "sha256": "a876beaabf14754a8f4642b4e7a9143b9a3c7b1ba5f7287ed76a22aa1889c140",
+    "status": "reported",
+    "total": 2,
+    "counts": {
+      "wall_gap_without_opening": 1,
+      "opening_offset_from_gap": 1
+    },
+    "items": [
+      {
+        "type": "wall_gap_without_opening",
+        "divider": "wall-x458",
+        "axis": "vertical",
+        "x_px": 456,
+        "y_px": [
+          588,
+          695
+        ],
+        "x_m": 5.73,
+        "y_m": [
+          5.04,
+          7.98
+        ],
+        "gap_m": 2.97,
+        "look_box": [
+          427,
+          558,
+          486,
+          725
+        ],
+        "check": "A stretch of this declared divider without ink that no declared opening occupies."
+      },
+      {
+        "type": "opening_offset_from_gap",
+        "opening": "D-B1",
+        "divider": "wall-B",
+        "declared": {
+          "axis": "horizontal",
+          "y_px": 298,
+          "x_px": [
+            402,
+            456
+          ],
+          "y_m": 15.93,
+          "x_m": [
+            4.23,
+            5.71
+          ]
+        },
+        "gap": {
+          "axis": "horizontal",
+          "y_px": 298,
+          "x_px": [
+            410,
+            449
+          ],
+          "y_m": 15.93,
+          "x_m": [
+            4.45,
+            5.52
+          ]
+        },
+        "end_offsets_m": [
+          -0.22,
+          0.19
+        ],
+        "look_box": [
+          372,
+          269,
+          486,
+          328
+        ],
+        "check": "The declared opening's ends differ from the ends of the inkless stretch it overlaps."
+      }
+    ],
+    "truncated": false,
+    "meaning": "Places where the original's ink and this declaration disagree, to check in the original (look_box): revise only with evidence, or keep the object and say why. Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.",
+    "scope": "Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; includes door-interrupted double lines and unsupported open separators; exterior walls, windows, single-line walls, oblique walls and heights are not checked.",
+    "coverage": {
+      "footprint_pixels": [
+        [
+          248.0,
+          878.5
+        ],
+        [
+          612.0,
+          878.5
+        ],
+        [
+          612.0,
+          150.5
+        ],
+        [
+          248.0,
+          150.5
+        ]
+      ],
+      "declared_divider_count": 9,
+      "checked": "orthogonal interior ink/declaration differences within this calibrated footprint",
+      "not_checked": [
+        "exterior walls/windows",
+        "single-line or oblique wall completeness",
+        "heights",
+        "room identity/use",
+        "whole-building fidelity"
+      ],
+      "tested_divider_segments": 10,
+      "zero_means": "No differences found by these scoped ink tests; not complete drawing verification."
+    },
+    "full_list": "inspect_plan_draft(draft_id) returns every item of that draft"
+  },
+  "repair_hint": {
+    "note": "The item shape parsed; inspect the reported geometry in the original. No snapping, host trimming or unit conversion was applied."
+  },
+  "plan_input": {
+    "plan_file": "plan_drafts/draft_001/plan.json",
+    "plan_sha256": "13f2cc904e4968316835966864ad2b21c8f8d9c7625f2b9f1db030282a9e0112",
+    "image": "1f_view.png",
+    "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "geometry_feedback": {
+      "file": "plan_drafts/draft_001/geometry_feedback.json",
+      "sha256": "eacccd496d015b2c522f212db407a416fef4925b980d553e1f62ea5ab913518c",
+      "unit": "m",
+      "floor_id": "L1",
+      "metres_per_pixel": {
+        "x": 0.027472527472527472,
+        "y": -0.027472527472527472
+      },
+      "axis_orientation": {
+        "world_east_toward": "image_right",
+        "world_north_toward": "image_top"
+      },
+      "footprint_bounds_m": [
+        [
+          0.0,
+          10.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "footprint_span_m": [
+        10.0,
+        20.0
+      ],
+      "z_floor_m": 0,
+      "ceiling_height_m": 4.5,
+      "drawing_fidelity": "not_evaluated",
+      "note": "Effective declaration dimensions, not verified drawing dimensions. Bare world values mean metres. Compare with original annotations; no unit or scale is inferred.",
+      "opening_count": 21,
+      "openings_returned": 21,
+      "openings_truncated": false,
+      "opening_dimensions": [
+        {
+          "id": "D-N-entry",
+          "width_m": 1.5989010989010985,
+          "z_m": [
+            0.2,
+            2.6
+          ]
+        },
+        {
+          "id": "W-N1",
+          "width_m": 4.8076923076923075,
+          "z_m": [
+            1.0,
+            3.4
+          ]
+        },
+        {
+          "id": "W-S1",
+          "width_m": 1.4972527472527464,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "D-S",
+          "width_m": 0.9038461538461551,
+          "z_m": [
+            0.2,
+            2.6
+          ]
+        },
+        {
+          "id": "W-S2",
+          "width_m": 1.4862637362637363,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-W1",
+          "width_m": 1.5,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-W2",
+          "width_m": 1.1813186813186807,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-W3",
+          "width_m": 1.5027472527472518,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-W4",
+          "width_m": 1.5,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-W5",
+          "width_m": 4.804945054945055,
+          "z_m": [
+            1.0,
+            3.4
+          ]
+        },
+        {
+          "id": "W-E1",
+          "width_m": 1.5,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-E2",
+          "width_m": 1.1813186813186807,
+          "z_m": [
+            1.0,
+            2.8
+          ]
+        },
+        {
+          "id": "W-E3",
+          "width_m": 4.799450549450549,
+          "z_m": [
+            1.0,
+            3.4
+          ]
+        },
+        {
+          "id": "D-E",
+          "width_m": 1.598901098901102,
+          "z_m": [
+            0.2,
+            2.6
+          ]
+        },
+        {
+          "id": "D-B1",
+          "width_m": 1.4835164835164836,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D-L1",
+          "width_m": 0.9340659340659325,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D-L2",
+          "width_m": 0.9065934065934069,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D-CONF",
+          "width_m": 0.8791208791208796,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D-R2",
+          "width_m": 0.8791208791208796,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D-R3",
+          "width_m": 0.8791208791208796,
+          "z_m": [
+            0,
+            2.1
+          ]
+        },
+        {
+          "id": "D-BR",
+          "width_m": 0.7967032967032956,
+          "z_m": [
+            0,
+            2.1
+          ]
+        }
+      ]
+    },
+    "draft_view": {
+      "image_file": "plan_drafts/draft_001/draft_view.png",
+      "image_sha256": "0366a553fc64ac0597c9c2819b69da8983bff43dc84e21d786b57354317e3d9c",
+      "metadata_file": "plan_drafts/draft_001/draft_view.json",
+      "metadata_sha256": "7a8732eead98ef6f337e07e9595fcdaa5c9baccc79dc4de06fc22a0237a785f8",
+      "draft_only": true,
+      "drawing_fidelity": "not_evaluated",
+      "source_geometry_ready": false,
+      "unrenderable_count": 0,
+      "unrenderable": []
+    }
+  },
+  "remaining_seconds": 5087,
+  "source_geometry_ready": false,
+  "saved_candidate": null,
+  "save_effects": {
+    "created_candidates": [],
+    "geometry_applied": false,
+    "audit_written": true
+  }
+}

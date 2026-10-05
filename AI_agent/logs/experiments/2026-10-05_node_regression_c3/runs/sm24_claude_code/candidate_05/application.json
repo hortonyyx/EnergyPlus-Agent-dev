@@ -1,0 +1,275 @@
+{
+  "id": "application_0018",
+  "parent_candidate": "candidate_04",
+  "submitted_operations": [
+    {
+      "op": "update_opening",
+      "id": "D-S",
+      "changes": {
+        "z": {
+          "claim": "claim_0004",
+          "value": "height"
+        }
+      },
+      "reason": "Located south-elevation chain for this door",
+      "source_refs": [
+        "South_view.png centre chain 1900+2400+200"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0004"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_04",
+    "parent_proposal_sha256": "65099e06b8423d5d88bd384917690176a0cf672ca9d34c4b0d08b1098b69a30d",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "opening",
+            "D-S"
+          ]
+        ],
+        "claim_id": "claim_0004",
+        "value_field": "height",
+        "resolved_value": [
+          0.2,
+          2.6
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.9,
+                "start_m": 4.5,
+                "end_m": 2.6,
+                "span_m": [
+                  2.6,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.4,
+                "start_m": 2.6,
+                "end_m": 0.2,
+                "span_m": [
+                  0.2,
+                  2.6
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 0.2,
+                "start_m": 0.2,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  0.2
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0004": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "D-S",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "South elevation centre chain 1900+2400+200: door z 0.2-2.6 with 200 step.",
+            "sources": [
+              {
+                "box": [
+                  640.0,
+                  230.0,
+                  900.0,
+                  680.0
+                ],
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1900.0,
+                  2400.0,
+                  200.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.6,
+                    "index": 0,
+                    "length_m": 1.9,
+                    "span_m": [
+                      2.6,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 0.2,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      0.2,
+                      2.6
+                    ],
+                    "start_m": 2.6
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.2
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0004",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              0.2,
+              2.6
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                640.0,
+                230.0,
+                900.0,
+                680.0
+              ],
+              "image": "South_view.png",
+              "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+              "size": [
+                2434,
+                1457
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0004",
+          "disposition": "adopted",
+          "id": "decision_0018",
+          "reason": "Apply the observed south door chain (1900+2400+200) to D-S."
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0004",
+        "from_candidate": "candidate_01",
+        "to_candidate": "candidate_04",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "current_proposal_sha256": "65099e06b8423d5d88bd384917690176a0cf672ca9d34c4b0d08b1098b69a30d",
+        "targets": [
+          {
+            "kind": "opening",
+            "id": "D-S",
+            "eligible": true,
+            "reasons": []
+          }
+        ]
+      }
+    ]
+  },
+  "resolved_operations": [
+    {
+      "op": "update_opening",
+      "id": "D-S",
+      "changes": {
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      "reason": "Located south-elevation chain for this door",
+      "source_refs": [
+        "South_view.png centre chain 1900+2400+200",
+        "claim:claim_0004:35b5a521e20c73186faff7ea77477d41a2bd384d0abc73f3c5c7684615a0cd2a"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "geometry_after_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_05",
+  "source_model_sha256": "15ed0f01f6705e932c97240cb8ded7aad3851cd1af2922df165dce0eff9ed659",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

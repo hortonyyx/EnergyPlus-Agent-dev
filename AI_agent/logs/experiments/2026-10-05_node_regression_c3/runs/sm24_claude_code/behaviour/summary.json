@@ -1,0 +1,1115 @@
+{
+  "schema_version": "bim.behaviour.v2",
+  "run": "sm24_claude_code",
+  "source_format": "claude_cli_stream",
+  "model": "glm-5.3-flash",
+  "cli": "2.1.284",
+  "turns": 74,
+  "invocations": 1,
+  "elapsed_seconds": 1760.44,
+  "tool_calls": 72,
+  "tool_capture_missing": false,
+  "call_errors": 0,
+  "domain_failures": 6,
+  "usable_source_drafts": 16,
+  "tool_errors": 0,
+  "tools": {
+    "inputs": 1,
+    "view_image": 27,
+    "get_bim_reference": 4,
+    "view_pixel_profile": 8,
+    "claim_transaction": 10,
+    "build_plan_bim": 1,
+    "revise_plan_bim": 1,
+    "view_elevation_candidate": 6,
+    "check_openings": 1,
+    "claim_status": 1,
+    "replace_claim_sources": 10,
+    "revise_bim": 1,
+    "finish_bim": 1
+  },
+  "claim_transactions": {
+    "calls": 10,
+    "entries": 63,
+    "status_counts": {
+      "failed": 35,
+      "recorded": 4,
+      "applied": 14,
+      "confirmed_unchanged": 10
+    },
+    "recorded_claims": 14,
+    "applied_entries": 14
+  },
+  "outcome_definitions": {
+    "call_errors": "outer MCP/transport call failed; not added again to domain_failures",
+    "domain_failures": "normal return with status error/failed/partial, error, or source_geometry_ready=false",
+    "usable_source_drafts": "committed usable sources from the shared save contract, including partial batches; selections excluded; not a fidelity verdict",
+    "tool_errors": "historical alias of call_errors only",
+    "first_draft_s": "first usable source, including one produced by correcting a failed draft",
+    "time": "CLI t_call is dispatch time; runtime t_call is execution-event time; no invented precision"
+  },
+  "prepared_tool_results": 0,
+  "delivered_tool_results": 72,
+  "undelivered_tool_results": 0,
+  "first_draft_s": 948.635,
+  "calls_before_first_draft": 34,
+  "first_build_attempt_s": 888.312,
+  "calls_before_first_build_attempt": 32,
+  "full_views_before_first_build_attempt": 5,
+  "crops_before_first_build_attempt": 11,
+  "pixel_tools_before_first_build_attempt": 8,
+  "first_assembly_s": null,
+  "finish_s": 1716.139,
+  "full_views_before_first_draft": 5,
+  "crops_before_first_draft": 12,
+  "pixel_tools_before_first_draft": 8,
+  "crop_scales": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    2.08,
+    3.0,
+    3.0,
+    3.0,
+    3.0,
+    3.81,
+    4.0,
+    4.0,
+    4.0,
+    4.0,
+    4.0,
+    8.0
+  ],
+  "elevation_crops_by_facade": {
+    "east": 5,
+    "west": 5
+  },
+  "elevation_overlays_by_facade": {
+    "north": 1,
+    "south": 1,
+    "east": 2,
+    "west": 2
+  },
+  "height_provenance_claims": [
+    {
+      "id": "claim_0015",
+      "objects": [
+        "W-W1"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "W-W1 (west facade, north-most 1800 window): source crop now covers the projected opening location on West_view.png under the registered west elevation calibration; chain 1700+1800+1000 gives sill 1.0 m, head 2.8 m.",
+      "t": 1465.418,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0015.json",
+      "saved_sha256": "885ec96e1bf15a98f6e2cd5c20b4c9ad2801ace73614c47f692fce00c70f4cb2"
+    },
+    {
+      "id": "claim_0016",
+      "objects": [
+        "W-W2"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "W-W2 (west facade): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).",
+      "t": 1466.31,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0016.json",
+      "saved_sha256": "39a52849c3119ce0e70dcdd110c017dff1fc951da8de4adc1b1185a3887ca657"
+    },
+    {
+      "id": "claim_0017",
+      "objects": [
+        "W-W3"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "W-W3 (west facade): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).",
+      "t": 1467.075,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0017.json",
+      "saved_sha256": "30cffa60678050c4896854667c417f4714a25c687949c0b7369a50ff937ef376"
+    },
+    {
+      "id": "claim_0018",
+      "objects": [
+        "W-W4"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "W-W4 (west facade, south-most 1800 window): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).",
+      "t": 1468.017,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0018.json",
+      "saved_sha256": "3bbf54bfd873a3b6154f132e8282b73ca56437d66062972c7a6571f2262e860c"
+    },
+    {
+      "id": "claim_0019",
+      "objects": [
+        "W-W5"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "W-W5 (west facade large 4800 conference window): source crop now covers the projected opening location and its own 1100+2400+1000 chain on West_view.png under the registered west calibration; sill 1.0 m, head 3.4 m.",
+      "t": 1468.961,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0019.json",
+      "saved_sha256": "681475b8798f0b8819422b1913fe32122ac009b2515d746645f41be9a7c6ac18"
+    },
+    {
+      "id": "claim_0020",
+      "objects": [
+        "D-E"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "D-E (east entry door): source crop now covers the projected opening location and its 1900+2400+200 chain on East_view.png under the registered east calibration; door leaf 2.4 m with 0.2 m step, z 0.2-2.6.",
+      "t": 1470.049,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0020.json",
+      "saved_sha256": "d9c76103fd79fc4e7ec0838f116ef54f43a8eea3fe46235f530d2be9b0642ab6"
+    },
+    {
+      "id": "claim_0021",
+      "objects": [
+        "W-E3"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "W-E3 (east facade large 4800 meeting-room window): source crop now covers the projected opening location and its 1100+2400+1000 chain on East_view.png under the registered east calibration; sill 1.0 m, head 3.4 m.",
+      "t": 1470.842,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0021.json",
+      "saved_sha256": "ff228275ec81dba54dee341db2c1212fe160869d4d9fa38aed819739b91de9b4"
+    },
+    {
+      "id": "claim_0022",
+      "objects": [
+        "W-E2"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "W-E2 (east facade, NE-cabinet window): source crop now covers the projected opening location and the shared 1700+1800+1000 chain on East_view.png under the registered east calibration; sill 1.0 m, head 2.8 m.",
+      "t": 1471.735,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0022.json",
+      "saved_sha256": "ea5ca41a9dbb3fc62c644bb33ae3f8c70ae8a822f2316875b5636455d89f24cf"
+    },
+    {
+      "id": "claim_0023",
+      "objects": [
+        "W-E1"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "W-E1 (east facade, N-room window): source crop now covers the projected opening location and the 1700+1800+1000/4500 chains on East_view.png under the registered east calibration; sill 1.0 m, head 2.8 m.",
+      "t": 1472.688,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0023.json",
+      "saved_sha256": "bb8b4556dc036ba9e78ba7290a21ee325e3311f083e8fd9b050b7341b2da04e2"
+    },
+    {
+      "id": "claim_0024",
+      "objects": [
+        "W-E2"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "W-E2 (east facade, NE-cabinet window): narrowed source crop covers only this opening's projected location on East_view.png under the registered east calibration, removing the needs_per_opening_confirmation overlap with W-E1; the shared 1700+1800+1000 chain (view_0026) still evidences the band z 1.0-2.8.",
+      "t": 1651.29,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0024.json",
+      "saved_sha256": "95a70745ce066fce63979f92dbc41fe6fa83ca749ac61702652135e0b02ed257"
+    },
+    {
+      "id": "claim_0001",
+      "objects": [
+        "W-N1"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North elevation: window head/sill measured by the left vertical chain 1100+2400+1000 from the 4500 wall top; segment 1 is the 2400 window span, sill 1.0 m head 3.4 m.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0001.json",
+      "saved_sha256": "3c66ac14272328a378899ff5b44728b7d668e70ba6fc43937da818d83b6655b1"
+    },
+    {
+      "id": "claim_0002",
+      "objects": [
+        "D-N-entry"
+      ],
+      "sources": [
+        "North_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "north"
+      ],
+      "target_facades": [
+        "north"
+      ],
+      "cross_facade": false,
+      "reason": "North elevation right chain 1900+2400+200 from the 4500 wall top: 2400 door leaf with a 200 sill/step above ground; z 0.2-2.6.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0002.json",
+      "saved_sha256": "10f7c22adc930583634197658ae98e29974d7a15bd4a80b88baf9d23d7ecbef0"
+    },
+    {
+      "id": "claim_0003",
+      "objects": [
+        "W-S1"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South elevation left chain 1700+1800+1000 from the 4500 wall top: 1800 window, sill 1.0 m head 2.8 m.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0003.json",
+      "saved_sha256": "f3d271b2da335ea34128f6af405f2f9c673a704030d17f43eb45eff0a9b6ff4b"
+    },
+    {
+      "id": "claim_0004",
+      "objects": [
+        "D-S"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South elevation centre chain 1900+2400+200: door z 0.2-2.6 with 200 step.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0004.json",
+      "saved_sha256": "35b5a521e20c73186faff7ea77477d41a2bd384d0abc73f3c5c7684615a0cd2a"
+    },
+    {
+      "id": "claim_0005",
+      "objects": [
+        "W-S2"
+      ],
+      "sources": [
+        "South_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "south"
+      ],
+      "target_facades": [
+        "south"
+      ],
+      "cross_facade": false,
+      "reason": "South elevation right chain 1700+1800+1000: window sill 1.0 m head 2.8 m; same size/shape as W-S1 with its own chain.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0005.json",
+      "saved_sha256": "1d2908c90ee0425538eb9c240ae16c0bd4157e1261a632a27fc4d7343928c1bc"
+    },
+    {
+      "id": "claim_0006",
+      "objects": [
+        "W-W1"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West elevation (left edge = north end): chain 1700+1800+1000 from the 4500 wall top measures the 1800-high windows; W-W1 is the north-most of them.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0006.json",
+      "saved_sha256": "9830af814a716b3c8333304e4fbebfe279ccca35ee15540d60c593559a512d04"
+    },
+    {
+      "id": "claim_0007",
+      "objects": [
+        "W-W2"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West elevation: W-W2 has the same drawn top/bottom extension lines as the 1700+1800+1000 chain (head 2.8, sill 1.0).",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0007.json",
+      "saved_sha256": "345270f2a80449a2f5a5c9554958cd05e339d242c573d9355254436f6f99ac15"
+    },
+    {
+      "id": "claim_0008",
+      "objects": [
+        "W-W3"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West elevation: W-W3 shares the 1800-high window band measured by the 1700+1800+1000 chain.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0008.json",
+      "saved_sha256": "c4492a3110c0397fa072e06e17c22f6246aed786f444c63f34e5e8586cab617e"
+    },
+    {
+      "id": "claim_0009",
+      "objects": [
+        "W-W4"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West elevation: W-W4 shares the 1800-high window band measured by the 1700+1800+1000 chain.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0009.json",
+      "saved_sha256": "054434104d75f2d8ad5756be222e45c7e3df22fdd5eec88d01c32cde62506f9d"
+    },
+    {
+      "id": "claim_0010",
+      "objects": [
+        "W-W5"
+      ],
+      "sources": [
+        "West_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "west"
+      ],
+      "target_facades": [
+        "west"
+      ],
+      "cross_facade": false,
+      "reason": "West elevation right chain 1100+2400+1000 measures the large 4800 conference window: sill 1.0 m head 3.4 m.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0010.json",
+      "saved_sha256": "81e8d5266f275d99e7382ffc8a6738dd1110707f8c44d68dfc43ed7484cce5ca"
+    },
+    {
+      "id": "claim_0011",
+      "objects": [
+        "D-E"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          0.2,
+          2.6
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East elevation left chain 1900+2400+200 from the 4500 wall top: door z 0.2-2.6 with 200 step.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0011.json",
+      "saved_sha256": "39490f8ee4a5611eec32a90f7029f305538a6ee194711b9240e3f1db6b807870"
+    },
+    {
+      "id": "claim_0012",
+      "objects": [
+        "W-E3"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          3.4
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East elevation centre chain 1100+2400+1000 measures the large 4800 meeting-room window: sill 1.0 m head 3.4 m.",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0012.json",
+      "saved_sha256": "aa09fa489290c00b9e113b29599a0096bb8c5871f0faef9f641a0e1604cb2cbc"
+    },
+    {
+      "id": "claim_0013",
+      "objects": [
+        "W-E2"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East elevation right chain 1700+1800+1000 measures the 1800-high windows; W-E2 shares that band (head 2.8, sill 1.0).",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0013.json",
+      "saved_sha256": "3f71d3a7f255ca5e79ba21d10859a5262eaa673f0f6d595cb991303895410a93"
+    },
+    {
+      "id": "claim_0014",
+      "objects": [
+        "W-E1"
+      ],
+      "sources": [
+        "East_view.png"
+      ],
+      "resolved": {
+        "height": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_facades": [
+        "east"
+      ],
+      "target_facades": [
+        "east"
+      ],
+      "cross_facade": false,
+      "reason": "East elevation right chain 1700+1800+1000 measures the 1800-high windows; W-E1 shares that band (head 2.8, sill 1.0).",
+      "t": 1057.708,
+      "evidence_capture": "saved_claim_file",
+      "saved_file": "claims/claim_0014.json",
+      "saved_sha256": "7f75d34d7895de99f08d93a75f52899e47a37a3a7c3b7484dbb2720f6e2ce91d"
+    }
+  ],
+  "height_provenance_facades": {
+    "west": 10,
+    "east": 9,
+    "north": 2,
+    "south": 3
+  },
+  "claims_from_saved_files": 24,
+  "cross_facade_height_claims": 0,
+  "plan_builds": 1,
+  "plan_edits": 1,
+  "candidate_revisions": 15,
+  "gaps": [
+    "CLI launch request is not the final provider request body.",
+    "Tool results are the CLI-visible transformed results, not guaranteed raw MCP bytes.",
+    "Thinking content is unavailable; only CLI-estimated token deltas and signatures may exist."
+  ],
+  "outcomes": [
+    {
+      "index": 29,
+      "tool": "claim_transaction",
+      "t_call": 790.908,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 30,
+      "tool": "claim_transaction",
+      "t_call": 801.56,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 31,
+      "tool": "claim_transaction",
+      "t_call": 812.092,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 33,
+      "tool": "build_plan_bim",
+      "t_call": 888.312,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 35,
+      "tool": "revise_plan_bim",
+      "t_call": 948.635,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_01"
+    },
+    {
+      "index": 36,
+      "tool": "claim_transaction",
+      "t_call": 1057.708,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 37,
+      "tool": "claim_transaction",
+      "t_call": 1085.185,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 14,
+      "saved_candidate": "candidate_15"
+    },
+    {
+      "index": 64,
+      "tool": "claim_transaction",
+      "t_call": 1507.431,
+      "call_error": false,
+      "domain_failure": true,
+      "usable_source_draft": 0,
+      "saved_candidate": null
+    },
+    {
+      "index": 71,
+      "tool": "revise_bim",
+      "t_call": 1696.184,
+      "call_error": false,
+      "domain_failure": false,
+      "usable_source_draft": 1,
+      "saved_candidate": "candidate_16"
+    }
+  ],
+  "usage": [
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005194116c58ec43bbdcc42b3",
+      "t": 0.024
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051941206e8c4998cf794237",
+      "t": 5.289
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051941263672a31ee7eb4d34",
+      "t": 27.964
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051941489a07b7b40b00488b",
+      "t": 101.821
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005194302e04dedace9d54ffa",
+      "t": 166.0
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051944065a6087b67c76492b",
+      "t": 234.928
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051945150e94f5d354014d53",
+      "t": 259.052
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051945394a235eea48a04e6c",
+      "t": 307.828
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005194628e0c9a1828c0544e8",
+      "t": 342.617
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005194703b55c7d57148c45e2",
+      "t": 434.087
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051948355c1c5527332b430f",
+      "t": 458.89
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051948597e26c587fa02492f",
+      "t": 489.498
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051949308a39d26f16c840d8",
+      "t": 545.111
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005195026f1262bc1f0b94b64",
+      "t": 635.573
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051951564f193458fd6042f4",
+      "t": 743.513
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051953445b39ba9b343e4df2",
+      "t": 790.908
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_2026100519543384ce824497cf4055",
+      "t": 801.56
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_2026100519544272e7a182a0404825",
+      "t": 812.092
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005195453ede7ed4b31f3430c",
+      "t": 823.244
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005195504c0cde20c42b54ee6",
+      "t": 888.312
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051956100cb471926d6d4b4d",
+      "t": 915.612
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_2026100519563687f3951498524031",
+      "t": 948.635
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610051957118ab8bc5ab28a4f6c",
+      "t": 1057.708
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005195903a3e798cc05864322",
+      "t": 1085.185
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200033d226ef4bdfb24693",
+      "t": 1188.35
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200114f06d0d92f2bd4b76",
+      "t": 1206.015
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200310494a94c7b33344e0",
+      "t": 1343.577
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200349579261570b674033",
+      "t": 1370.208
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200415c9dc75ad38764d72",
+      "t": 1387.6
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610052004330357fbae77dc477b",
+      "t": 1429.44
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_2026100520053516e119dd3f0948dd",
+      "t": 1472.688
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200612ecbe9604f3ef4889",
+      "t": 1507.431
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610052006382184ea7e83894b6e",
+      "t": 1522.954
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200646ce1c38020c314e9f",
+      "t": 1533.555
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_2026100520070744dbc76685084206",
+      "t": 1559.874
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200833ff32f2a0f7f34cde",
+      "t": 1640.393
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_2026100520084589ca6af2df454cb1",
+      "t": 1651.29
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200857207de59e301345c0",
+      "t": 1663.405
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005200920236c6c8130d34f71",
+      "t": 1696.184
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_202610052009483f05b410bcf94c17",
+      "t": 1716.139
+    },
+    {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "message_id": "msg_20261005201006726506bd44f94574",
+      "t": 1741.785
+    }
+  ],
+  "model_usage": {
+    "glm-5.3-flash": {
+      "inputTokens": 299890,
+      "outputTokens": 83702,
+      "cacheReadInputTokens": 2877760,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 3.4491520000000007,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0
+    }
+  },
+  "cost_usd_cli": 3.4491520000000007,
+  "thinking_tokens_estimated": 74016,
+  "visible_text_chars": 5890,
+  "five_hour_window": null,
+  "seven_day_window": null
+}

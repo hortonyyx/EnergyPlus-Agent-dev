@@ -1,0 +1,67 @@
+{
+  "schema": "building_precision_v1",
+  "status": "reported",
+  "source_model_sha256": "e63fd59a00a4aad475887ad2f49cb847213c137bc0152ae1ad8cca9abc5a462b",
+  "total": 0,
+  "counts": {},
+  "items": [],
+  "tolerances": {
+    "L1": {
+      "default_m": 0.061813186813186816,
+      "pixel_noise_m": 0.054945054945054944,
+      "wall_thickness_m": 0.12362637362637363,
+      "basis": {
+        "calibration_id": "calibration_001",
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "thickness": "median long double-line/band width estimate"
+      },
+      "rule": "min(wall thickness, max(2 pixels, half wall thickness)); scale alone if thickness unknown",
+      "thickness_cap_known": true
+    }
+  },
+  "coverage": {
+    "floors": [
+      "L1"
+    ],
+    "adjacent_storey_pairs": [],
+    "orthogonal_wall_lines": 14,
+    "nonorthogonal_walls_not_checked": 0,
+    "floors_without_tolerance": []
+  },
+  "meaning": "Review only; no geometry changed. Align to an existing line, never an average. Real setbacks, voids and narrow spaces require evidence; do not delete partitions or alter connectivity.",
+  "not_checked": [
+    "nonorthogonal wall alignment",
+    "non-overlapping storeys",
+    "opening positions/heights",
+    "drawing fidelity",
+    "user fineness cap (not configured)"
+  ],
+  "wall_placement": {
+    "schema_version": "wall_placement_v1",
+    "status": "not_assessed",
+    "tolerance_m": 0.02,
+    "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+    "checked_positions": 0,
+    "items": [],
+    "skipped": [],
+    "total": 0,
+    "delivery_blocked": false,
+    "geometry_changed": false,
+    "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+    "floor_axis_tolerance_m": {
+      "L1": {
+        "x": 0.10989010989010989,
+        "y": 0.10989010989010989
+      }
+    },
+    "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+  },
+  "changes": {
+    "status": "compared",
+    "previous_candidate": "candidate_02",
+    "new": [],
+    "unchanged": [],
+    "resolved": []
+  }
+}

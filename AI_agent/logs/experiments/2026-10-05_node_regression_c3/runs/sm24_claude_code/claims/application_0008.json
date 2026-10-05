@@ -1,0 +1,231 @@
+{
+  "id": "application_0008",
+  "parent_candidate": "candidate_01",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W-W3",
+      "changes": {
+        "z": {
+          "claim": "claim_0008",
+          "value": "height"
+        }
+      }
+    }
+  ],
+  "claim_ids": [
+    "claim_0008"
+  ],
+  "status": "failed",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W-W3"
+          ]
+        ],
+        "claim_id": "claim_0008",
+        "value_field": "height",
+        "resolved_value": [
+          1.0,
+          2.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.7,
+                "start_m": 4.5,
+                "end_m": 2.8,
+                "span_m": [
+                  2.8,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 2.8,
+                "end_m": 1.0,
+                "span_m": [
+                  1.0,
+                  2.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 1.0,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0008": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-W3",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "West elevation: W-W3 shares the 1800-high window band measured by the 1700+1800+1000 chain.",
+            "sources": [
+              {
+                "box": [
+                  615.0,
+                  140.0,
+                  770.0,
+                  470.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1700.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0008",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              1.0,
+              2.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                615.0,
+                140.0,
+                770.0,
+                470.0
+              ],
+              "image": "West_view.png",
+              "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+              "size": [
+                2580,
+                993
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0008",
+          "disposition": "adopted",
+          "id": "decision_0008",
+          "reason": "Apply the observed west window chain to W-W3."
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W-W3",
+      "changes": {
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      "source_refs": [
+        "claim:claim_0008:c4492a3110c0397fa072e06e17c22f6246aed786f444c63f34e5e8586cab617e"
+      ]
+    }
+  ],
+  "error": "update_window: reason must be a nonblank string"
+}

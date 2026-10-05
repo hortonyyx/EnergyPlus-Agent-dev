@@ -1,0 +1,598 @@
+{
+  "mode": "source_elevation_overlay",
+  "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+  "facade": "South",
+  "horizontal_axis": "x",
+  "direction": "+x",
+  "image_size": [
+    2434,
+    1457
+  ],
+  "reference_background": "grayscale_copy_original_file_unchanged",
+  "opening_colours_rgb": {
+    "window": [
+      255,
+      145,
+      0
+    ],
+    "door": [
+      215,
+      65,
+      225
+    ],
+    "open": [
+      215,
+      65,
+      225
+    ]
+  },
+  "overlay_colours_rgb": {
+    "exterior_wall_edges": [
+      0,
+      190,
+      255
+    ],
+    "floor_lines": [
+      80,
+      210,
+      70
+    ],
+    "window": [
+      255,
+      145,
+      0
+    ],
+    "door": [
+      215,
+      65,
+      225
+    ],
+    "open": [
+      215,
+      65,
+      225
+    ]
+  },
+  "legend": {
+    "gray": "original drawing",
+    "cyan": "source exterior wall edges, including per-space wall segmentation",
+    "green": "source floor datum lines",
+    "orange": "source windows",
+    "purple": "source doors and open passages"
+  },
+  "anchors": {
+    "horizontal": [
+      [
+        305.0,
+        0.0
+      ],
+      [
+        1315.0,
+        10.0
+      ]
+    ],
+    "absolute_z": [
+      [
+        660.0,
+        0.0
+      ],
+      [
+        205.0,
+        4.5
+      ]
+    ]
+  },
+  "basis": "South elevation, seen from outside with west on the left (world x increases rightward). Horizontal anchors: 10000 mm chain ends px305=world x0, px1315=world x10. Vertical anchors: ground px660=z0, wall top px205=z4.5.",
+  "calibration_unverified": true,
+  "transform": {
+    "horizontal_metres_per_pixel": 0.009900990099009901,
+    "horizontal_offset_m": -3.01980198019802,
+    "z_metres_per_pixel": -0.00989010989010989,
+    "z_offset_m": 6.527472527472527
+  },
+  "calibration_warnings": [],
+  "projected_exterior_walls": [
+    {
+      "id": "space/SE-office/wall/0",
+      "space_id": "SE-office",
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          4.203297,
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0,
+          4.5
+        ],
+        [
+          4.203297,
+          0.0,
+          4.5
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          729.532997,
+          660.0
+        ],
+        [
+          1315.0,
+          660.0
+        ],
+        [
+          1315.0,
+          205.0
+        ],
+        [
+          729.532997,
+          205.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "space/SW-conference/wall/0",
+      "space_id": "SW-conference",
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          4.203297,
+          0.0,
+          0.0
+        ],
+        [
+          4.203297,
+          0.0,
+          4.5
+        ],
+        [
+          0.0,
+          0.0,
+          4.5
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          305.0,
+          660.0
+        ],
+        [
+          729.532997,
+          660.0
+        ],
+        [
+          729.532997,
+          205.0
+        ],
+        [
+          305.0,
+          205.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "D-S",
+      "kind": "door",
+      "host_boundary_id": "space/SE-office/wall/0",
+      "space_ids": [
+        "SE-office"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          4.538462,
+          0.0,
+          0.2
+        ],
+        [
+          5.442308,
+          0.0,
+          0.2
+        ],
+        [
+          5.442308,
+          0.0,
+          2.6
+        ],
+        [
+          4.538462,
+          0.0,
+          2.6
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          763.384662,
+          639.777778
+        ],
+        [
+          854.673108,
+          639.777778
+        ],
+        [
+          854.673108,
+          397.111111
+        ],
+        [
+          763.384662,
+          397.111111
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W-S1",
+      "kind": "window",
+      "host_boundary_id": "space/SW-conference/wall/0",
+      "space_ids": [
+        "SW-conference"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.541209,
+          0.0,
+          1.0
+        ],
+        [
+          2.038462,
+          0.0,
+          1.0
+        ],
+        [
+          2.038462,
+          0.0,
+          2.8
+        ],
+        [
+          0.541209,
+          0.0,
+          2.8
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          359.662109,
+          558.888889
+        ],
+        [
+          510.884662,
+          558.888889
+        ],
+        [
+          510.884662,
+          376.888889
+        ],
+        [
+          359.662109,
+          376.888889
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W-S2",
+      "kind": "window",
+      "host_boundary_id": "space/SE-office/wall/0",
+      "space_ids": [
+        "SE-office"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          7.980769,
+          0.0,
+          1.0
+        ],
+        [
+          9.467033,
+          0.0,
+          1.0
+        ],
+        [
+          9.467033,
+          0.0,
+          2.8
+        ],
+        [
+          7.980769,
+          0.0,
+          2.8
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          1111.057669,
+          558.888889
+        ],
+        [
+          1261.170333,
+          558.888889
+        ],
+        [
+          1261.170333,
+          376.888889
+        ],
+        [
+          1111.057669,
+          376.888889
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "opening_labels": [
+    {
+      "id": "D-S",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        863,
+        509,
+        901,
+        528
+      ],
+      "leader_segments": [
+        [
+          [
+            858,
+            518
+          ],
+          [
+            860,
+            518
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "W-S1",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        519,
+        459,
+        571,
+        478
+      ],
+      "leader_segments": [
+        [
+          [
+            514,
+            468
+          ],
+          [
+            516,
+            468
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "W-S2",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        1334,
+        459,
+        1386,
+        478
+      ],
+      "leader_segments": [
+        [
+          [
+            1265,
+            468
+          ],
+          [
+            1312,
+            468
+          ]
+        ],
+        [
+          [
+            1318,
+            468
+          ],
+          [
+            1331,
+            468
+          ]
+        ]
+      ]
+    }
+  ],
+  "projected_floor_lines": [
+    {
+      "floor_id": "L1",
+      "coordinate_axes": [
+        "x",
+        "z"
+      ],
+      "world_vertices": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          305.0,
+          660.0
+        ],
+        [
+          1315.0,
+          660.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "opening_heights": [
+    {
+      "id": "D-S",
+      "kind": "door",
+      "floor_id": "L1",
+      "host_boundary_id": "space/SE-office/wall/0",
+      "horizontal_span_m": [
+        4.538462,
+        5.442308
+      ],
+      "absolute_z_m": [
+        0.2,
+        2.6
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        0.2,
+        2.6
+      ],
+      "opening_height_m": 2.4
+    },
+    {
+      "id": "W-S1",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/SW-conference/wall/0",
+      "horizontal_span_m": [
+        0.541209,
+        2.038462
+      ],
+      "absolute_z_m": [
+        1.0,
+        2.8
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        2.8
+      ],
+      "opening_height_m": 1.8
+    },
+    {
+      "id": "W-S2",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/SE-office/wall/0",
+      "horizontal_span_m": [
+        7.980769,
+        9.467033
+      ],
+      "absolute_z_m": [
+        1.0,
+        2.8
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        2.8
+      ],
+      "opening_height_m": 1.8
+    }
+  ],
+  "drawing_fidelity": "not_evaluated",
+  "view_status": "not_visually_verified",
+  "limits": [
+    "Caller selects the image/facade and original-pixel/world-metre references; neither is independently verified.",
+    "Horizontal values are world x/y, not distance from the facade's left edge; z is absolute, not above-floor height.",
+    "Only axis-aligned drawings are supported; no rotation, perspective or automatic pixel matching.",
+    "All same-facing exterior hosts are projected; recess-depth occlusion is not resolved.",
+    "The reference background is grayscale; consult the original colour drawing for colour conventions. All projected geometry is coloured: cyan wall edges, green floor datum lines, orange windows, purple doors/open passages.",
+    "Cyan wall edges include per-space segmentation; these edges do not establish visible joints in the original facade.",
+    "IDs use clear side regions; labels may be omitted on busy images. Leaders skip existing ink. IDs remain in the opening inventory.",
+    "No source geometry is changed. Repeat with the same observed anchors after revision; do not fit anchors to generated openings."
+  ],
+  "candidate": "candidate_15",
+  "image": "South_view.png",
+  "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+  "overlay_image": "image_overlays/overlay_017.png",
+  "original_size": [
+    2434,
+    1457
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2434,
+    1457
+  ],
+  "returned_size": [
+    1600,
+    958
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.52125,
+    1.5208768267223383
+  ],
+  "remaining_seconds": 4785,
+  "elevation_image": "image_overlays/overlay_017.png",
+  "elevation_image_sha256": "0979e390786c527e24139aca77a151ca7998908f848dee1f4360e5bcff802de3",
+  "original_view": {
+    "name": "South_view.png",
+    "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+    "original_size": [
+      2434,
+      1457
+    ],
+    "coordinate_grid": {
+      "shown": false
+    },
+    "box_original_pixels": [
+      0,
+      0,
+      2434,
+      1457
+    ],
+    "returned_size": [
+      1600,
+      958
+    ],
+    "display_scale_requested": 1.0,
+    "display_scale_used": 1,
+    "display_scale_actual": [
+      0.657354149548069,
+      0.6575154426904598
+    ],
+    "original_pixels_per_returned_pixel": [
+      1.52125,
+      1.5208768267223383
+    ],
+    "coordinate_note": "Grid labels show ORIGINAL pixels. Original pixel = crop origin + returned pixel * original_pixels_per_returned_pixel. Use ORIGINAL pixels for the next crop or measurement.",
+    "remaining_seconds": 4785,
+    "view_id": "view_0019",
+    "source_reference": {
+      "view_id": "view_0019"
+    },
+    "returned_png_sha256": "4146dd008a7aa6e4f7785e431f522000be1b49dcf341ccbf05fdfe6c71c7f03c",
+    "view_record_sha256": "1e6d89b9c208cf4ac615d8dd7849f7ff54a3f3c2b86547bef410af4255ab2c7f"
+  },
+  "comparison": {
+    "image_order": [
+      "full_original",
+      "calibrated_source_elevation"
+    ],
+    "image_facade_binding": "caller_selected_not_verified",
+    "pixel_alignment": "caller-calibrated original frame; both returned images have the same scale",
+    "review": "Match visible opening shapes to source IDs and their above-floor/absolute height intervals. Use the full dimension chain and opening outline together; an ordinary-window height does not establish other opening families. Reopen a clean crop with view_image when needed. Revise only supported discrepancies and recheck the resulting source."
+  }
+}

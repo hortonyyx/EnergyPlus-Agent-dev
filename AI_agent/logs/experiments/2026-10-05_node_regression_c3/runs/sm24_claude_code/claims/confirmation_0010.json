@@ -1,0 +1,237 @@
+{
+  "candidate": "candidate_15",
+  "claim_ids": [
+    "claim_0024"
+  ],
+  "evidence": {
+    "bindings": [
+      {
+        "claim_id": "claim_0024",
+        "computation": {
+          "chain": {
+            "closure_error_m": null,
+            "direction": -1,
+            "end_m": 0.0,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "expected_total_m": null,
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+            "segments": [
+              {
+                "end_m": 2.8,
+                "index": 0,
+                "length_m": 1.7,
+                "span_m": [
+                  2.8,
+                  4.5
+                ],
+                "start_m": 4.5
+              },
+              {
+                "end_m": 1.0,
+                "index": 1,
+                "length_m": 1.8,
+                "span_m": [
+                  1.0,
+                  2.8
+                ],
+                "start_m": 2.8
+              },
+              {
+                "end_m": 0.0,
+                "index": 2,
+                "length_m": 1.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ],
+                "start_m": 1.0
+              }
+            ],
+            "total_m": 4.5
+          },
+          "method": "dimension_chain",
+          "segment": 1
+        },
+        "operation_index": 0,
+        "parameter": "z",
+        "resolved_value": [
+          1.0,
+          2.8
+        ],
+        "targets": [
+          [
+            "window",
+            "W-E2"
+          ]
+        ],
+        "value_field": "height"
+      }
+    ],
+    "claims": {
+      "claim_0024": {
+        "decision": {
+          "claim_id": "claim_0024",
+          "disposition": "adopted",
+          "id": "decision_0057",
+          "reason": "W-E2 z 1.0-2.8 matches current geometry; east 1700+1800+1000 chain; narrowed source view_0042 covers only this opening under the registered east calibration."
+        },
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-E2",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "W-E2 (east facade, NE-cabinet window): narrowed source crop covers only this opening's projected location on East_view.png under the registered east calibration, removing the needs_per_opening_confirmation overlap with W-E1; the shared 1700+1800+1000 chain (view_0026) still evidences the band z 1.0-2.8.",
+            "sources": [
+              {
+                "view_id": "view_0042"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1700.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0024",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "replaced_claim_sha256": "ea5ca41a9dbb3fc62c644bb33ae3f8c70ae8a822f2316875b5636455d89f24cf",
+          "replaces_claim": "claim_0022",
+          "resolved_values": {
+            "height": [
+              1.0,
+              2.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                1690,
+                330,
+                1950,
+                610
+              ],
+              "image": "East_view.png",
+              "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+              "size": [
+                2639,
+                931
+              ],
+              "view_id": "view_0042",
+              "view_sha256": "359fa75c6f086b5e598906f44c974006236a1dd98d0d3edfa2b0c11293fc4ff5"
+            }
+          ],
+          "verification": "not_independently_verified"
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0024",
+        "current_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+        "from_candidate": "candidate_01",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "targets": [
+          {
+            "eligible": true,
+            "id": "W-E2",
+            "kind": "window",
+            "reasons": []
+          }
+        ],
+        "to_candidate": "candidate_15"
+      }
+    ],
+    "parent_candidate": "candidate_15",
+    "parent_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f"
+  },
+  "id": "confirmation_0010",
+  "kind": "confirmation",
+  "parent_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+  "resolved_operations": [
+    {
+      "changes": {
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      "id": "W-E2",
+      "op": "update_window",
+      "reason": "Confirm unchanged z from the observed east chain",
+      "source_refs": [
+        "image: East_view.png",
+        "claim:claim_0024:95a70745ce066fce63979f92dbc41fe6fa83ca749ac61702652135e0b02ed257"
+      ]
+    }
+  ],
+  "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+  "status": "confirmed_unchanged"
+}

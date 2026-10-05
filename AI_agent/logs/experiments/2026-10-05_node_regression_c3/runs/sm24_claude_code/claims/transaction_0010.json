@@ -1,0 +1,74 @@
+{
+  "id": "transaction_0010",
+  "candidate": "candidate_15",
+  "status": "completed",
+  "entries": [
+    {
+      "index": 0,
+      "candidate": "candidate_15",
+      "status": "confirmed_unchanged",
+      "request": {
+        "claim_id": "claim_0024",
+        "action": "confirm",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Confirm unchanged z from the observed east chain",
+            "source_refs": [
+              "image: East_view.png"
+            ]
+          }
+        ],
+        "reason": "W-E2 z 1.0-2.8 matches current geometry; east 1700+1800+1000 chain; narrowed source view_0042 covers only this opening under the registered east calibration."
+      },
+      "action": "confirm",
+      "claim_id": "claim_0024",
+      "reason": "W-E2 z 1.0-2.8 matches current geometry; east 1700+1800+1000 chain; narrowed source view_0042 covers only this opening under the registered east calibration.",
+      "decision_id": "decision_0057",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E2"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0024",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_15",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-E2",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "confirmation_id": "confirmation_0010"
+    }
+  ],
+  "result_candidate": "candidate_15",
+  "saved_candidate": null,
+  "save_effects": {
+    "created_candidates": [],
+    "geometry_applied": false,
+    "audit_written": true
+  }
+}

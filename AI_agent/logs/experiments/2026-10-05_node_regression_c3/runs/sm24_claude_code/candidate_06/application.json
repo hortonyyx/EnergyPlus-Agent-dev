@@ -1,0 +1,275 @@
+{
+  "id": "application_0019",
+  "parent_candidate": "candidate_05",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W-S2",
+      "changes": {
+        "z": {
+          "claim": "claim_0005",
+          "value": "height"
+        }
+      },
+      "reason": "Located south-elevation chain for this window",
+      "source_refs": [
+        "South_view.png right chain 1700+1800+1000"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0005"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_05",
+    "parent_proposal_sha256": "44776933eabd3a0149caf1957e9525b99b0929043a2b49a0ce777082e232c5df",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W-S2"
+          ]
+        ],
+        "claim_id": "claim_0005",
+        "value_field": "height",
+        "resolved_value": [
+          1.0,
+          2.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.7,
+                "start_m": 4.5,
+                "end_m": 2.8,
+                "span_m": [
+                  2.8,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 2.8,
+                "end_m": 1.0,
+                "span_m": [
+                  1.0,
+                  2.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 1.0,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0005": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-S2",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "South elevation right chain 1700+1800+1000: window sill 1.0 m head 2.8 m; same size/shape as W-S1 with its own chain.",
+            "sources": [
+              {
+                "box": [
+                  1080.0,
+                  220.0,
+                  1470.0,
+                  680.0
+                ],
+                "image": "South_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1700.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0005",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              1.0,
+              2.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                1080.0,
+                220.0,
+                1470.0,
+                680.0
+              ],
+              "image": "South_view.png",
+              "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+              "size": [
+                2434,
+                1457
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0005",
+          "disposition": "adopted",
+          "id": "decision_0019",
+          "reason": "Apply the observed south window chain (1700+1800+1000) to W-S2."
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0005",
+        "from_candidate": "candidate_01",
+        "to_candidate": "candidate_05",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "current_proposal_sha256": "44776933eabd3a0149caf1957e9525b99b0929043a2b49a0ce777082e232c5df",
+        "targets": [
+          {
+            "kind": "window",
+            "id": "W-S2",
+            "eligible": true,
+            "reasons": []
+          }
+        ]
+      }
+    ]
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W-S2",
+      "changes": {
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      "reason": "Located south-elevation chain for this window",
+      "source_refs": [
+        "South_view.png right chain 1700+1800+1000",
+        "claim:claim_0005:1d2908c90ee0425538eb9c240ae16c0bd4157e1261a632a27fc4d7343928c1bc"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "geometry_after_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_06",
+  "source_model_sha256": "d4f352bb17e08eac22948f998afa9ebc95cc713fe67b96e8bf10d6e758fb9a5b",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

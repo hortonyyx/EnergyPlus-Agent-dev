@@ -1,0 +1,275 @@
+{
+  "id": "application_0023",
+  "parent_candidate": "candidate_09",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W-W4",
+      "changes": {
+        "z": {
+          "claim": "claim_0009",
+          "value": "height"
+        }
+      },
+      "reason": "Located west-elevation chain for this window",
+      "source_refs": [
+        "West_view.png left chain 1700+1800+1000"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0009"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_09",
+    "parent_proposal_sha256": "f0a0d28d6c73597af07f5397eca4a1a42f6abf3692089865ae3595a4642b4005",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W-W4"
+          ]
+        ],
+        "claim_id": "claim_0009",
+        "value_field": "height",
+        "resolved_value": [
+          1.0,
+          2.8
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.7,
+                "start_m": 4.5,
+                "end_m": 2.8,
+                "span_m": [
+                  2.8,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 1.8,
+                "start_m": 2.8,
+                "end_m": 1.0,
+                "span_m": [
+                  1.0,
+                  2.8
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 1.0,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0009": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-W4",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "West elevation: W-W4 shares the 1800-high window band measured by the 1700+1800+1000 chain.",
+            "sources": [
+              {
+                "box": [
+                  775.0,
+                  140.0,
+                  930.0,
+                  470.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1700.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0009",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              1.0,
+              2.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                775.0,
+                140.0,
+                930.0,
+                470.0
+              ],
+              "image": "West_view.png",
+              "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+              "size": [
+                2580,
+                993
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0009",
+          "disposition": "adopted",
+          "id": "decision_0023",
+          "reason": "Apply the observed west window chain (1700+1800+1000) to W-W4."
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0009",
+        "from_candidate": "candidate_01",
+        "to_candidate": "candidate_09",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "current_proposal_sha256": "f0a0d28d6c73597af07f5397eca4a1a42f6abf3692089865ae3595a4642b4005",
+        "targets": [
+          {
+            "kind": "window",
+            "id": "W-W4",
+            "eligible": true,
+            "reasons": []
+          }
+        ]
+      }
+    ]
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W-W4",
+      "changes": {
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      "reason": "Located west-elevation chain for this window",
+      "source_refs": [
+        "West_view.png left chain 1700+1800+1000",
+        "claim:claim_0009:054434104d75f2d8ad5756be222e45c7e3df22fdd5eec88d01c32cde62506f9d"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "geometry_after_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_10",
+  "source_model_sha256": "0f372b0fe6b69b6bb2a69ba3d6db58bba5bb83a4b3978a4bb10130e020ee5260",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

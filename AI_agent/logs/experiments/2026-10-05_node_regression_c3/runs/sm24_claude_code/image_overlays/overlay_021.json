@@ -1,0 +1,826 @@
+{
+  "mode": "source_elevation_overlay",
+  "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+  "facade": "West",
+  "horizontal_axis": "y",
+  "direction": "-y",
+  "image_size": [
+    2580,
+    993
+  ],
+  "reference_background": "grayscale_copy_original_file_unchanged",
+  "opening_colours_rgb": {
+    "window": [
+      255,
+      145,
+      0
+    ],
+    "door": [
+      215,
+      65,
+      225
+    ],
+    "open": [
+      215,
+      65,
+      225
+    ]
+  },
+  "overlay_colours_rgb": {
+    "exterior_wall_edges": [
+      0,
+      190,
+      255
+    ],
+    "floor_lines": [
+      80,
+      210,
+      70
+    ],
+    "window": [
+      255,
+      145,
+      0
+    ],
+    "door": [
+      215,
+      65,
+      225
+    ],
+    "open": [
+      215,
+      65,
+      225
+    ]
+  },
+  "legend": {
+    "gray": "original drawing",
+    "cyan": "source exterior wall edges, including per-space wall segmentation",
+    "green": "source floor datum lines",
+    "orange": "source windows",
+    "purple": "source doors and open passages"
+  },
+  "anchors": {
+    "horizontal": [
+      [
+        351.0,
+        20.0
+      ],
+      [
+        2241.0,
+        0.0
+      ]
+    ],
+    "absolute_z": [
+      [
+        677.0,
+        0.0
+      ],
+      [
+        250.0,
+        4.5
+      ]
+    ]
+  },
+  "basis": "West elevation, seen from outside with north on the left (world y decreases rightward). Horizontal anchors: 20000 mm chain ends px351=world y20, px2241=world y0 (original pixels). Vertical anchors: ground px677=z0, wall top px250=z4.5.",
+  "calibration_unverified": true,
+  "transform": {
+    "horizontal_metres_per_pixel": -0.010582010582010581,
+    "horizontal_offset_m": 23.714285714285715,
+    "z_metres_per_pixel": -0.01053864168618267,
+    "z_offset_m": 7.134660421545667
+  },
+  "calibration_warnings": [],
+  "projected_exterior_walls": [
+    {
+      "id": "space/N-room/wall/3",
+      "space_id": "N-room",
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          20.0,
+          0.0
+        ],
+        [
+          0.0,
+          15.934066,
+          0.0
+        ],
+        [
+          0.0,
+          15.934066,
+          4.5
+        ],
+        [
+          0.0,
+          20.0,
+          4.5
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          351.0,
+          677.0
+        ],
+        [
+          735.230763,
+          677.0
+        ],
+        [
+          735.230763,
+          250.0
+        ],
+        [
+          351.0,
+          250.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "space/NW-meeting/wall/3",
+      "space_id": "NW-meeting",
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          15.934066,
+          0.0
+        ],
+        [
+          0.0,
+          12.994505,
+          0.0
+        ],
+        [
+          0.0,
+          12.994505,
+          4.5
+        ],
+        [
+          0.0,
+          15.934066,
+          4.5
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          735.230763,
+          677.0
+        ],
+        [
+          1013.019278,
+          677.0
+        ],
+        [
+          1013.019278,
+          250.0
+        ],
+        [
+          735.230763,
+          250.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "space/SW-conference/wall/3",
+      "space_id": "SW-conference",
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          8.049451,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          4.5
+        ],
+        [
+          0.0,
+          8.049451,
+          4.5
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          1480.326881,
+          677.0
+        ],
+        [
+          2241.0,
+          677.0
+        ],
+        [
+          2241.0,
+          250.0
+        ],
+        [
+          1480.326881,
+          250.0
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "space/W-office/wall/3",
+      "space_id": "W-office",
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          12.994505,
+          0.0
+        ],
+        [
+          0.0,
+          8.049451,
+          0.0
+        ],
+        [
+          0.0,
+          8.049451,
+          4.5
+        ],
+        [
+          0.0,
+          12.994505,
+          4.5
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          1013.019278,
+          677.0
+        ],
+        [
+          1480.326881,
+          677.0
+        ],
+        [
+          1480.326881,
+          250.0
+        ],
+        [
+          1013.019278,
+          250.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "projected_openings": [
+    {
+      "id": "W-W1",
+      "kind": "window",
+      "host_boundary_id": "space/N-room/wall/3",
+      "space_ids": [
+        "N-room"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          17.967033,
+          2.8
+        ],
+        [
+          0.0,
+          19.467033,
+          2.8
+        ],
+        [
+          0.0,
+          19.467033,
+          1.0
+        ],
+        [
+          0.0,
+          17.967033,
+          1.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          543.115382,
+          411.311111
+        ],
+        [
+          401.365382,
+          411.311111
+        ],
+        [
+          401.365382,
+          582.111111
+        ],
+        [
+          543.115382,
+          582.111111
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W-W2",
+      "kind": "window",
+      "host_boundary_id": "space/NW-meeting/wall/3",
+      "space_ids": [
+        "NW-meeting"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          14.381868,
+          2.8
+        ],
+        [
+          0.0,
+          15.563187,
+          2.8
+        ],
+        [
+          0.0,
+          15.563187,
+          1.0
+        ],
+        [
+          0.0,
+          14.381868,
+          1.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          881.913474,
+          411.311111
+        ],
+        [
+          770.278829,
+          411.311111
+        ],
+        [
+          770.278829,
+          582.111111
+        ],
+        [
+          881.913474,
+          582.111111
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W-W3",
+      "kind": "window",
+      "host_boundary_id": "space/W-office/wall/3",
+      "space_ids": [
+        "W-office"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          11.14011,
+          2.8
+        ],
+        [
+          0.0,
+          12.642857,
+          2.8
+        ],
+        [
+          0.0,
+          12.642857,
+          1.0
+        ],
+        [
+          0.0,
+          11.14011,
+          1.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          1188.259605,
+          411.311111
+        ],
+        [
+          1046.250014,
+          411.311111
+        ],
+        [
+          1046.250014,
+          582.111111
+        ],
+        [
+          1188.259605,
+          582.111111
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W-W4",
+      "kind": "window",
+      "host_boundary_id": "space/W-office/wall/3",
+      "space_ids": [
+        "W-office"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          8.423077,
+          2.8
+        ],
+        [
+          0.0,
+          9.923077,
+          2.8
+        ],
+        [
+          0.0,
+          9.923077,
+          1.0
+        ],
+        [
+          0.0,
+          8.423077,
+          1.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          1445.019224,
+          411.311111
+        ],
+        [
+          1303.269224,
+          411.311111
+        ],
+        [
+          1303.269224,
+          582.111111
+        ],
+        [
+          1445.019224,
+          582.111111
+        ]
+      ],
+      "out_of_image": false
+    },
+    {
+      "id": "W-W5",
+      "kind": "window",
+      "host_boundary_id": "space/SW-conference/wall/3",
+      "space_ids": [
+        "SW-conference"
+      ],
+      "floor_id": "L1",
+      "world_vertices": [
+        [
+          0.0,
+          0.541209,
+          3.4
+        ],
+        [
+          0.0,
+          5.346154,
+          3.4
+        ],
+        [
+          0.0,
+          5.346154,
+          1.0
+        ],
+        [
+          0.0,
+          0.541209,
+          1.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          2189.85575,
+          354.377778
+        ],
+        [
+          1735.788447,
+          354.377778
+        ],
+        [
+          1735.788447,
+          582.111111
+        ],
+        [
+          2189.85575,
+          582.111111
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "opening_labels": [
+    {
+      "id": "W-W1",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        552,
+        488,
+        610,
+        507
+      ],
+      "leader_segments": [
+        [
+          [
+            547,
+            497
+          ],
+          [
+            549,
+            497
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "W-W2",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        890,
+        488,
+        948,
+        507
+      ],
+      "leader_segments": [
+        [
+          [
+            885,
+            497
+          ],
+          [
+            887,
+            497
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "W-W3",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        1197,
+        488,
+        1255,
+        507
+      ],
+      "leader_segments": [
+        [
+          [
+            1192,
+            497
+          ],
+          [
+            1194,
+            497
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "W-W4",
+      "status": "placed",
+      "side": "right",
+      "box_original_pixels": [
+        1494,
+        488,
+        1552,
+        507
+      ],
+      "leader_segments": [
+        [
+          [
+            1449,
+            497
+          ],
+          [
+            1477,
+            497
+          ]
+        ],
+        [
+          [
+            1483,
+            497
+          ],
+          [
+            1491,
+            497
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "W-W5",
+      "status": "placed",
+      "side": "left",
+      "box_original_pixels": [
+        1669,
+        459,
+        1727,
+        478
+      ],
+      "leader_segments": [
+        [
+          [
+            1730,
+            468
+          ],
+          [
+            1732,
+            468
+          ]
+        ]
+      ]
+    }
+  ],
+  "projected_floor_lines": [
+    {
+      "floor_id": "L1",
+      "coordinate_axes": [
+        "y",
+        "z"
+      ],
+      "world_vertices": [
+        [
+          20.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "pixel_vertices": [
+        [
+          351.0,
+          677.0
+        ],
+        [
+          2241.0,
+          677.0
+        ]
+      ],
+      "out_of_image": false
+    }
+  ],
+  "opening_heights": [
+    {
+      "id": "W-W1",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/N-room/wall/3",
+      "horizontal_span_m": [
+        17.967033,
+        19.467033
+      ],
+      "absolute_z_m": [
+        1.0,
+        2.8
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        2.8
+      ],
+      "opening_height_m": 1.8
+    },
+    {
+      "id": "W-W2",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/NW-meeting/wall/3",
+      "horizontal_span_m": [
+        14.381868,
+        15.563187
+      ],
+      "absolute_z_m": [
+        1.0,
+        2.8
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        2.8
+      ],
+      "opening_height_m": 1.8
+    },
+    {
+      "id": "W-W3",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/W-office/wall/3",
+      "horizontal_span_m": [
+        11.14011,
+        12.642857
+      ],
+      "absolute_z_m": [
+        1.0,
+        2.8
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        2.8
+      ],
+      "opening_height_m": 1.8
+    },
+    {
+      "id": "W-W4",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/W-office/wall/3",
+      "horizontal_span_m": [
+        8.423077,
+        9.923077
+      ],
+      "absolute_z_m": [
+        1.0,
+        2.8
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        2.8
+      ],
+      "opening_height_m": 1.8
+    },
+    {
+      "id": "W-W5",
+      "kind": "window",
+      "floor_id": "L1",
+      "host_boundary_id": "space/SW-conference/wall/3",
+      "horizontal_span_m": [
+        0.541209,
+        5.346154
+      ],
+      "absolute_z_m": [
+        1.0,
+        3.4
+      ],
+      "floor_base_z_m": 0.0,
+      "above_floor_m": [
+        1.0,
+        3.4
+      ],
+      "opening_height_m": 2.4
+    }
+  ],
+  "drawing_fidelity": "not_evaluated",
+  "view_status": "not_visually_verified",
+  "limits": [
+    "Caller selects the image/facade and original-pixel/world-metre references; neither is independently verified.",
+    "Horizontal values are world x/y, not distance from the facade's left edge; z is absolute, not above-floor height.",
+    "Only axis-aligned drawings are supported; no rotation, perspective or automatic pixel matching.",
+    "All same-facing exterior hosts are projected; recess-depth occlusion is not resolved.",
+    "The reference background is grayscale; consult the original colour drawing for colour conventions. All projected geometry is coloured: cyan wall edges, green floor datum lines, orange windows, purple doors/open passages.",
+    "Cyan wall edges include per-space segmentation; these edges do not establish visible joints in the original facade.",
+    "IDs use clear side regions; labels may be omitted on busy images. Leaders skip existing ink. IDs remain in the opening inventory.",
+    "No source geometry is changed. Repeat with the same observed anchors after revision; do not fit anchors to generated openings."
+  ],
+  "candidate": "candidate_15",
+  "image": "West_view.png",
+  "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+  "overlay_image": "image_overlays/overlay_021.png",
+  "original_size": [
+    2580,
+    993
+  ],
+  "box_original_pixels": [
+    0,
+    0,
+    2580,
+    993
+  ],
+  "returned_size": [
+    1600,
+    616
+  ],
+  "original_pixels_per_returned_pixel": [
+    1.6125,
+    1.6120129870129871
+  ],
+  "remaining_seconds": 4629
+}

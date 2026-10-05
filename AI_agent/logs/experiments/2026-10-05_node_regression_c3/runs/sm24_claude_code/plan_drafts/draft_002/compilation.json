@@ -1,0 +1,1646 @@
+{
+  "mode": "deterministic_plan_partition",
+  "image_name": "1f_view.png",
+  "image_size": [
+    790,
+    1111
+  ],
+  "floor_id": "L1",
+  "basis": "Scale from overall chains: 10000 mm across (west outer face px248=0m, east outer face px612=10m) and 20000 mm deep (south outer face py878.5=0m, north outer face py150.5=20m); 27.47 mm/px both axes. North is up (world y grows as pixel y falls). Perimeter declared on observed outer faces; interior dividers on measured line-pair midplanes. Horizontal dividers at 4060/7000/11940 mm from the north outer-face chain = world y 15.94/13.00/8.06 m, matching measured midplanes py 298.5/405.5/585.5. East-side interior walls measured: R2 south wall midplane py360 (y14.25), lobby south wall py700 (y4.90), SE entry wall py753.5 (y3.42). Corridor divider midplanes px401 and px456.5. Edge partitions are carried to the outer-face ring; the drawn 604-612 px band is the 240 exterior wall thickness.",
+  "space_count": 8,
+  "space_mapping": [
+    {
+      "space_id": "N-room",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          248.0,
+          150.5
+        ],
+        [
+          612.0,
+          150.5
+        ],
+        [
+          612.0,
+          298.5
+        ],
+        [
+          248.0,
+          298.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          15.934066
+        ],
+        [
+          10.0,
+          15.934066
+        ],
+        [
+          10.0,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          10.0
+        ],
+        "y": [
+          15.934066,
+          20.0
+        ]
+      },
+      "partition_ids": [
+        "wall-B"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456"
+      ],
+      "seed": {
+        "id": "N-room",
+        "point_pixel": [
+          430.0,
+          220.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "NW-meeting",
+      "role": "conference/meeting/multipurpose",
+      "pixel_polygon": [
+        [
+          248.0,
+          298.5
+        ],
+        [
+          401.0,
+          298.5
+        ],
+        [
+          401.0,
+          405.5
+        ],
+        [
+          248.0,
+          405.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          12.994505
+        ],
+        [
+          4.203297,
+          12.994505
+        ],
+        [
+          4.203297,
+          15.934066
+        ],
+        [
+          0.0,
+          15.934066
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.203297
+        ],
+        "y": [
+          12.994505,
+          15.934066
+        ]
+      },
+      "partition_ids": [
+        "wall-B",
+        "wall-wmid",
+        "wall-x400"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456",
+        "1f_view.png: divider at 7000 from north between NW meeting room and west office",
+        "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+      ],
+      "seed": {
+        "id": "NW-meeting",
+        "point_pixel": [
+          300.0,
+          350.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "corridor-lobby",
+      "role": "corridor",
+      "pixel_polygon": [
+        [
+          401.0,
+          298.5
+        ],
+        [
+          456.5,
+          298.5
+        ],
+        [
+          456.5,
+          585.5
+        ],
+        [
+          612.0,
+          585.5
+        ],
+        [
+          612.0,
+          700.0
+        ],
+        [
+          456.5,
+          700.0
+        ],
+        [
+          456.5,
+          753.5
+        ],
+        [
+          401.0,
+          753.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.203297,
+          3.434066
+        ],
+        [
+          5.728022,
+          3.434066
+        ],
+        [
+          5.728022,
+          4.903846
+        ],
+        [
+          10.0,
+          4.903846
+        ],
+        [
+          10.0,
+          8.049451
+        ],
+        [
+          5.728022,
+          8.049451
+        ],
+        [
+          5.728022,
+          15.934066
+        ],
+        [
+          4.203297,
+          15.934066
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.203297,
+          10.0
+        ],
+        "y": [
+          3.434066,
+          15.934066
+        ]
+      },
+      "partition_ids": [
+        "wall-A-right",
+        "wall-B",
+        "wall-D",
+        "wall-E",
+        "wall-x400",
+        "wall-x458"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456",
+        "1f_view.png: same divider east of corridor; corridor gap px401-456.5 left open",
+        "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures",
+        "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction",
+        "1f_view.png: lobby south wall with door aperture px560.5-589.5",
+        "1f_view.png: L-shaped wall closing corridor south end; vertical stub px456.5 py700-753.5 then west to corridor wall"
+      ],
+      "seed": {
+        "id": "corridor-lobby",
+        "point_pixel": [
+          430.0,
+          450.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "NE-cabinet",
+      "role": "storage",
+      "pixel_polygon": [
+        [
+          456.5,
+          298.5
+        ],
+        [
+          612.0,
+          298.5
+        ],
+        [
+          612.0,
+          360.0
+        ],
+        [
+          456.5,
+          360.0
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.728022,
+          14.244505
+        ],
+        [
+          10.0,
+          14.244505
+        ],
+        [
+          10.0,
+          15.934066
+        ],
+        [
+          5.728022,
+          15.934066
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.728022,
+          10.0
+        ],
+        "y": [
+          14.244505,
+          15.934066
+        ]
+      },
+      "partition_ids": [
+        "wall-B",
+        "wall-R2",
+        "wall-x458"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456",
+        "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction",
+        "1f_view.png: south wall of north-east cabinet room"
+      ],
+      "seed": {
+        "id": "NE-cabinet",
+        "point_pixel": [
+          550.0,
+          330.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "E-meeting",
+      "role": "conference/meeting/multipurpose",
+      "pixel_polygon": [
+        [
+          456.5,
+          360.0
+        ],
+        [
+          612.0,
+          360.0
+        ],
+        [
+          612.0,
+          585.5
+        ],
+        [
+          456.5,
+          585.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          5.728022,
+          8.049451
+        ],
+        [
+          10.0,
+          8.049451
+        ],
+        [
+          10.0,
+          14.244505
+        ],
+        [
+          5.728022,
+          14.244505
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          5.728022,
+          10.0
+        ],
+        "y": [
+          8.049451,
+          14.244505
+        ]
+      },
+      "partition_ids": [
+        "wall-A-right",
+        "wall-R2",
+        "wall-x458"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: same divider east of corridor; corridor gap px401-456.5 left open",
+        "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction",
+        "1f_view.png: south wall of north-east cabinet room"
+      ],
+      "seed": {
+        "id": "E-meeting",
+        "point_pixel": [
+          550.0,
+          470.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "W-office",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          248.0,
+          405.5
+        ],
+        [
+          401.0,
+          405.5
+        ],
+        [
+          401.0,
+          585.5
+        ],
+        [
+          248.0,
+          585.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          8.049451
+        ],
+        [
+          4.203297,
+          8.049451
+        ],
+        [
+          4.203297,
+          12.994505
+        ],
+        [
+          0.0,
+          12.994505
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.203297
+        ],
+        "y": [
+          8.049451,
+          12.994505
+        ]
+      },
+      "partition_ids": [
+        "wall-A-left",
+        "wall-wmid",
+        "wall-x400"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: divider at 7000 from north between NW meeting room and west office",
+        "1f_view.png: divider at 11940 from north, west of corridor",
+        "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+      ],
+      "seed": {
+        "id": "W-office",
+        "point_pixel": [
+          300.0,
+          500.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "SW-conference",
+      "role": "conference/meeting/multipurpose",
+      "pixel_polygon": [
+        [
+          248.0,
+          585.5
+        ],
+        [
+          401.0,
+          585.5
+        ],
+        [
+          401.0,
+          878.5
+        ],
+        [
+          248.0,
+          878.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4.203297,
+          0.0
+        ],
+        [
+          4.203297,
+          8.049451
+        ],
+        [
+          0.0,
+          8.049451
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          0.0,
+          4.203297
+        ],
+        "y": [
+          0.0,
+          8.049451
+        ]
+      },
+      "partition_ids": [
+        "wall-A-left",
+        "wall-x400"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: divider at 11940 from north, west of corridor",
+        "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+      ],
+      "seed": {
+        "id": "SW-conference",
+        "point_pixel": [
+          300.0,
+          780.0
+        ],
+        "source_refs": []
+      }
+    },
+    {
+      "space_id": "SE-office",
+      "role": "office",
+      "pixel_polygon": [
+        [
+          401.0,
+          753.5
+        ],
+        [
+          456.5,
+          753.5
+        ],
+        [
+          456.5,
+          700.0
+        ],
+        [
+          612.0,
+          700.0
+        ],
+        [
+          612.0,
+          878.5
+        ],
+        [
+          401.0,
+          878.5
+        ]
+      ],
+      "world_polygon_m": [
+        [
+          4.203297,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          4.903846
+        ],
+        [
+          5.728022,
+          4.903846
+        ],
+        [
+          5.728022,
+          3.434066
+        ],
+        [
+          4.203297,
+          3.434066
+        ]
+      ],
+      "bbox_m": {
+        "x": [
+          4.203297,
+          10.0
+        ],
+        "y": [
+          0.0,
+          4.903846
+        ]
+      },
+      "partition_ids": [
+        "wall-D",
+        "wall-E",
+        "wall-x400"
+      ],
+      "source_refs": [
+        "image:1f_view.png",
+        "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures",
+        "1f_view.png: lobby south wall with door aperture px560.5-589.5",
+        "1f_view.png: L-shaped wall closing corridor south end; vertical stub px456.5 py700-753.5 then west to corridor wall"
+      ],
+      "seed": {
+        "id": "SE-office",
+        "point_pixel": [
+          540.0,
+          820.0
+        ],
+        "source_refs": []
+      }
+    }
+  ],
+  "partition_mapping": [
+    {
+      "partition_id": "wall-B",
+      "pixel_points": [
+        [
+          248.0,
+          298.5
+        ],
+        [
+          612.0,
+          298.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          15.934066
+        ],
+        [
+          10.0,
+          15.934066
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456"
+      ]
+    },
+    {
+      "partition_id": "wall-wmid",
+      "pixel_points": [
+        [
+          248.0,
+          405.5
+        ],
+        [
+          401.0,
+          405.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          12.994505
+        ],
+        [
+          4.203297,
+          12.994505
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: divider at 7000 from north between NW meeting room and west office"
+      ]
+    },
+    {
+      "partition_id": "wall-A-left",
+      "pixel_points": [
+        [
+          248.0,
+          585.5
+        ],
+        [
+          401.0,
+          585.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          0.0,
+          8.049451
+        ],
+        [
+          4.203297,
+          8.049451
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: divider at 11940 from north, west of corridor"
+      ]
+    },
+    {
+      "partition_id": "wall-A-right",
+      "pixel_points": [
+        [
+          456.5,
+          585.5
+        ],
+        [
+          612.0,
+          585.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.728022,
+          8.049451
+        ],
+        [
+          10.0,
+          8.049451
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: same divider east of corridor; corridor gap px401-456.5 left open"
+      ]
+    },
+    {
+      "partition_id": "wall-x400",
+      "pixel_points": [
+        [
+          401.0,
+          298.5
+        ],
+        [
+          401.0,
+          878.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          4.203297,
+          15.934066
+        ],
+        [
+          4.203297,
+          0.0
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+      ]
+    },
+    {
+      "partition_id": "wall-x458",
+      "pixel_points": [
+        [
+          456.5,
+          298.5
+        ],
+        [
+          456.5,
+          585.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.728022,
+          15.934066
+        ],
+        [
+          5.728022,
+          8.049451
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction"
+      ]
+    },
+    {
+      "partition_id": "wall-R2",
+      "pixel_points": [
+        [
+          456.5,
+          360.0
+        ],
+        [
+          612.0,
+          360.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.728022,
+          14.244505
+        ],
+        [
+          10.0,
+          14.244505
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: south wall of north-east cabinet room"
+      ]
+    },
+    {
+      "partition_id": "wall-D",
+      "pixel_points": [
+        [
+          456.5,
+          700.0
+        ],
+        [
+          612.0,
+          700.0
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.728022,
+          4.903846
+        ],
+        [
+          10.0,
+          4.903846
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: lobby south wall with door aperture px560.5-589.5"
+      ]
+    },
+    {
+      "partition_id": "wall-E",
+      "pixel_points": [
+        [
+          456.5,
+          700.0
+        ],
+        [
+          456.5,
+          753.5
+        ],
+        [
+          401.0,
+          753.5
+        ]
+      ],
+      "world_points_m": [
+        [
+          5.728022,
+          4.903846
+        ],
+        [
+          5.728022,
+          3.434066
+        ],
+        [
+          4.203297,
+          3.434066
+        ]
+      ],
+      "source_refs": [
+        "1f_view.png: L-shaped wall closing corridor south end; vertical stub px456.5 py700-753.5 then west to corridor wall"
+      ]
+    }
+  ],
+  "opening_hosts": [
+    {
+      "opening_id": "D-N-entry",
+      "kind": "door",
+      "space_ids": [
+        "N-room"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        267.7,
+        150.5
+      ],
+      "p2_pixel": [
+        325.9,
+        150.5
+      ],
+      "p1_world_m": [
+        0.541209,
+        20.0
+      ],
+      "p2_world_m": [
+        2.14011,
+        20.0
+      ],
+      "width_m": 1.598901,
+      "z_absolute_m": [
+        0.2,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: double entry door px267-326 in north wall",
+        "North_view.png: chain 1900+2400+200 from top; head 2.6m, bottom 0.2m"
+      ]
+    },
+    {
+      "opening_id": "W-N1",
+      "kind": "window",
+      "space_ids": [
+        "N-room"
+      ],
+      "exterior": true,
+      "facade": "North",
+      "p1_pixel": [
+        417.6,
+        150.5
+      ],
+      "p2_pixel": [
+        592.6,
+        150.5
+      ],
+      "p1_world_m": [
+        4.659341,
+        20.0
+      ],
+      "p2_world_m": [
+        9.467033,
+        20.0
+      ],
+      "width_m": 4.807692,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: 4800 window px417-593",
+        "North_view.png: chain 1100+2400+1000; sill 1.0m head 3.4m"
+      ]
+    },
+    {
+      "opening_id": "W-S1",
+      "kind": "window",
+      "space_ids": [
+        "SW-conference"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        267.7,
+        878.5
+      ],
+      "p2_pixel": [
+        322.2,
+        878.5
+      ],
+      "p1_world_m": [
+        0.541209,
+        0.0
+      ],
+      "p2_world_m": [
+        2.038462,
+        0.0
+      ],
+      "width_m": 1.497253,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: 1500 window",
+        "South_view.png: chain 1700+1800+1000; sill 1.0m head 2.8m"
+      ]
+    },
+    {
+      "opening_id": "D-S",
+      "kind": "door",
+      "space_ids": [
+        "SE-office"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        413.2,
+        878.5
+      ],
+      "p2_pixel": [
+        446.1,
+        878.5
+      ],
+      "p1_world_m": [
+        4.538462,
+        0.0
+      ],
+      "p2_world_m": [
+        5.442308,
+        0.0
+      ],
+      "width_m": 0.903846,
+      "z_absolute_m": [
+        0.2,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: 900 door",
+        "South_view.png: chain 1900+2400+200"
+      ]
+    },
+    {
+      "opening_id": "W-S2",
+      "kind": "window",
+      "space_ids": [
+        "SE-office"
+      ],
+      "exterior": true,
+      "facade": "South",
+      "p1_pixel": [
+        538.5,
+        878.5
+      ],
+      "p2_pixel": [
+        592.6,
+        878.5
+      ],
+      "p1_world_m": [
+        7.980769,
+        0.0
+      ],
+      "p2_world_m": [
+        9.467033,
+        0.0
+      ],
+      "width_m": 1.486264,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: 1500 window",
+        "South_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-W1",
+      "kind": "window",
+      "space_ids": [
+        "N-room"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        169.9
+      ],
+      "p2_pixel": [
+        248.0,
+        224.5
+      ],
+      "p1_world_m": [
+        0.0,
+        19.467033
+      ],
+      "p2_world_m": [
+        0.0,
+        17.967033
+      ],
+      "width_m": 1.5,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: west 1500 window nearest north",
+        "West_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-W2",
+      "kind": "window",
+      "space_ids": [
+        "NW-meeting"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        312.0
+      ],
+      "p2_pixel": [
+        248.0,
+        355.0
+      ],
+      "p1_world_m": [
+        0.0,
+        15.563187
+      ],
+      "p2_world_m": [
+        0.0,
+        14.381868
+      ],
+      "width_m": 1.181319,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: west 1200 window",
+        "West_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-W3",
+      "kind": "window",
+      "space_ids": [
+        "W-office"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        418.3
+      ],
+      "p2_pixel": [
+        248.0,
+        473.0
+      ],
+      "p1_world_m": [
+        0.0,
+        12.642857
+      ],
+      "p2_world_m": [
+        0.0,
+        11.14011
+      ],
+      "width_m": 1.502747,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: west 1500 window",
+        "West_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-W4",
+      "kind": "window",
+      "space_ids": [
+        "W-office"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        517.3
+      ],
+      "p2_pixel": [
+        248.0,
+        571.9
+      ],
+      "p1_world_m": [
+        0.0,
+        9.923077
+      ],
+      "p2_world_m": [
+        0.0,
+        8.423077
+      ],
+      "width_m": 1.5,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: west 1500 window",
+        "West_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-W5",
+      "kind": "window",
+      "space_ids": [
+        "SW-conference"
+      ],
+      "exterior": true,
+      "facade": "West",
+      "p1_pixel": [
+        248.0,
+        683.9
+      ],
+      "p2_pixel": [
+        248.0,
+        858.8
+      ],
+      "p1_world_m": [
+        0.0,
+        5.346154
+      ],
+      "p2_world_m": [
+        0.0,
+        0.541209
+      ],
+      "width_m": 4.804945,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: west 4800 window (conference room)",
+        "West_view.png: chain 1100+2400+1000; sill 1.0m head 3.4m"
+      ]
+    },
+    {
+      "opening_id": "W-E1",
+      "kind": "window",
+      "space_ids": [
+        "N-room"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        612.0,
+        169.9
+      ],
+      "p2_pixel": [
+        612.0,
+        224.5
+      ],
+      "p1_world_m": [
+        10.0,
+        19.467033
+      ],
+      "p2_world_m": [
+        10.0,
+        17.967033
+      ],
+      "width_m": 1.5,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: east 1500 window nearest north",
+        "East_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-E2",
+      "kind": "window",
+      "space_ids": [
+        "NE-cabinet"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        612.0,
+        312.0
+      ],
+      "p2_pixel": [
+        612.0,
+        355.0
+      ],
+      "p1_world_m": [
+        10.0,
+        15.563187
+      ],
+      "p2_world_m": [
+        10.0,
+        14.381868
+      ],
+      "width_m": 1.181319,
+      "z_absolute_m": [
+        1.0,
+        2.8
+      ],
+      "source_refs": [
+        "1f_view.png: east 1200 window",
+        "East_view.png: chain 1700+1800+1000"
+      ]
+    },
+    {
+      "opening_id": "W-E3",
+      "kind": "window",
+      "space_ids": [
+        "E-meeting"
+      ],
+      "exterior": true,
+      "facade": "East",
+      "p1_pixel": [
+        612.0,
+        381.8
+      ],
+      "p2_pixel": [
+        612.0,
+        556.5
+      ],
+      "p1_world_m": [
+        10.0,
+        13.645604
+      ],
+      "p2_world_m": [
+        10.0,
+        8.846154
+      ],
+      "width_m": 4.79945,
+      "z_absolute_m": [
+        1.0,
+        3.4
+      ],
+      "source_refs": [
+        "1f_view.png: east 4800 window (meeting room)",
+        "East_view.png: chain 1100+2400+1000"
+      ]
+    },
+    {
+      "opening_id": "D-E",
+      "kind": "door",
+      "space_ids": [
+        "corridor-lobby"
+      ],
+      "exterior": true,
+      "facade": null,
+      "p1_pixel": [
+        612.0,
+        612.8
+      ],
+      "p2_pixel": [
+        612.0,
+        671.0
+      ],
+      "p1_world_m": [
+        10.0,
+        7.299451
+      ],
+      "p2_world_m": [
+        10.0,
+        5.700549
+      ],
+      "width_m": 1.598902,
+      "z_absolute_m": [
+        0.2,
+        2.6
+      ],
+      "source_refs": [
+        "1f_view.png: 1600 east entry door, swing drawn outside",
+        "East_view.png: chain 1900+2400+200"
+      ]
+    },
+    {
+      "opening_id": "D-B1",
+      "kind": "door",
+      "space_ids": [
+        "N-room",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        408.0,
+        298.5
+      ],
+      "p2_pixel": [
+        452.0,
+        298.5
+      ],
+      "p1_world_m": [
+        4.395604,
+        15.934066
+      ],
+      "p2_world_m": [
+        5.604396,
+        15.934066
+      ],
+      "width_m": 1.208792,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: double door px402-456 in wall-B, leaves swing into north room; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D-L1",
+      "kind": "door",
+      "space_ids": [
+        "NW-meeting",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        401.0,
+        358.0
+      ],
+      "p2_pixel": [
+        401.0,
+        392.0
+      ],
+      "p1_world_m": [
+        4.203297,
+        14.299451
+      ],
+      "p2_world_m": [
+        4.203297,
+        13.365385
+      ],
+      "width_m": 0.934066,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door px py358-392 in corridor west wall into NW meeting room; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D-L2",
+      "kind": "door",
+      "space_ids": [
+        "W-office",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        401.0,
+        420.0
+      ],
+      "p2_pixel": [
+        401.0,
+        453.0
+      ],
+      "p1_world_m": [
+        4.203297,
+        12.596154
+      ],
+      "p2_world_m": [
+        4.203297,
+        11.68956
+      ],
+      "width_m": 0.906594,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door py420-453 in corridor west wall into west office; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D-CONF",
+      "kind": "door",
+      "space_ids": [
+        "SW-conference",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        401.0,
+        600.0
+      ],
+      "p2_pixel": [
+        401.0,
+        632.0
+      ],
+      "p1_world_m": [
+        4.203297,
+        7.651099
+      ],
+      "p2_world_m": [
+        4.203297,
+        6.771978
+      ],
+      "width_m": 0.879121,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door py600-632 in corridor west wall into SW conference room; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D-R2",
+      "kind": "door",
+      "space_ids": [
+        "NE-cabinet",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        456.5,
+        325.0
+      ],
+      "p2_pixel": [
+        456.5,
+        357.0
+      ],
+      "p1_world_m": [
+        5.728022,
+        15.206044
+      ],
+      "p2_world_m": [
+        5.728022,
+        14.326923
+      ],
+      "width_m": 0.879121,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door py325-357 in corridor east wall into NE cabinet room; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D-R3",
+      "kind": "door",
+      "space_ids": [
+        "E-meeting",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        456.5,
+        380.0
+      ],
+      "p2_pixel": [
+        456.5,
+        412.0
+      ],
+      "p1_world_m": [
+        5.728022,
+        13.695055
+      ],
+      "p2_world_m": [
+        5.728022,
+        12.815934
+      ],
+      "width_m": 0.879121,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door py380-412 in corridor east wall into east meeting room; height assumed"
+      ]
+    },
+    {
+      "opening_id": "D-BR",
+      "kind": "door",
+      "space_ids": [
+        "SE-office",
+        "corridor-lobby"
+      ],
+      "exterior": false,
+      "facade": null,
+      "p1_pixel": [
+        560.5,
+        700.0
+      ],
+      "p2_pixel": [
+        589.5,
+        700.0
+      ],
+      "p1_world_m": [
+        8.585165,
+        4.903846
+      ],
+      "p2_world_m": [
+        9.381868,
+        4.903846
+      ],
+      "width_m": 0.796703,
+      "z_absolute_m": [
+        0.0,
+        2.1
+      ],
+      "source_refs": [
+        "1f_view.png: door px560.5-589.5 in wall-D into SE office; height assumed"
+      ]
+    }
+  ],
+  "footprint": {
+    "pixel_polygon": [
+      [
+        248.0,
+        150.5
+      ],
+      [
+        612.0,
+        150.5
+      ],
+      [
+        612.0,
+        878.5
+      ],
+      [
+        248.0,
+        878.5
+      ]
+    ],
+    "world_polygon_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        10.0,
+        0.0
+      ],
+      [
+        10.0,
+        20.0
+      ],
+      [
+        0.0,
+        20.0
+      ]
+    ]
+  },
+  "calibration": {
+    "x_anchors": [
+      [
+        248.0,
+        0.0
+      ],
+      [
+        612.0,
+        10.0
+      ]
+    ],
+    "y_anchors": [
+      [
+        878.5,
+        0.0
+      ],
+      [
+        150.5,
+        20.0
+      ]
+    ],
+    "world_metres_per_pixel": {
+      "x": 0.027472527472527472,
+      "y": -0.027472527472527472
+    },
+    "basis": "Scale from overall chains: 10000 mm across (west outer face px248=0m, east outer face px612=10m) and 20000 mm deep (south outer face py878.5=0m, north outer face py150.5=20m); 27.47 mm/px both axes. North is up (world y grows as pixel y falls). Perimeter declared on observed outer faces; interior dividers on measured line-pair midplanes. Horizontal dividers at 4060/7000/11940 mm from the north outer-face chain = world y 15.94/13.00/8.06 m, matching measured midplanes py 298.5/405.5/585.5. East-side interior walls measured: R2 south wall midplane py360 (y14.25), lobby south wall py700 (y4.90), SE entry wall py753.5 (y3.42). Corridor divider midplanes px401 and px456.5. Edge partitions are carried to the outer-face ring; the drawn 604-612 px band is the 240 exterior wall thickness.",
+    "status": "caller_supplied_not_independently_verified"
+  },
+  "method": {
+    "polygonizer": "shapely.unary_union+polygonize_full",
+    "snap": false,
+    "extend": false,
+    "clip": false,
+    "inferred_partitions": false
+  }
+}

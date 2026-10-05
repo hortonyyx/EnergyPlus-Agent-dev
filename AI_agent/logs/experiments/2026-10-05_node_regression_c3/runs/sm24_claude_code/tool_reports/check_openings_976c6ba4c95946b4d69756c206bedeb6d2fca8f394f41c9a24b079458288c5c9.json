@@ -1,0 +1,628 @@
+{
+  "candidate": "candidate_15",
+  "remaining_seconds": 4605,
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "full_view_count": 1,
+        "crop_view_count": 12,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+        "full_view_count": 3,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+        "full_view_count": 2,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+        "full_view_count": 2,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+        "full_view_count": 3,
+        "crop_view_count": 0,
+        "status": "full_view_returned"
+      }
+    ],
+    "no_direct_view_images": [],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound direct original returns from view_image or paired elevation views are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "height_coverage": {
+    "schema_version": "opening_heights_v2",
+    "candidate": "candidate_15",
+    "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+    "delivery_blocked": false,
+    "summary": {
+      "exterior_count": 14,
+      "located_count": 5,
+      "status_counts": {
+        "missing": 9,
+        "located_applied": 5
+      }
+    },
+    "openings": [
+      {
+        "opening_id": "D-E",
+        "kind": "door",
+        "facade": "East",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "width_m": 1.599,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0011",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "D-N-entry",
+        "kind": "door",
+        "facade": "North",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "width_m": 1.599,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "D-S",
+        "kind": "door",
+        "facade": "South",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.6
+        ],
+        "width_m": 0.904,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W-E1",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.5,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0014",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W-E2",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.181,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0013",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W-E3",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "width_m": 4.799,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0012",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region",
+          "distinct_width_on_facade"
+        ]
+      },
+      {
+        "opening_id": "W-N1",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "width_m": 4.808,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W-S1",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.497,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W-S2",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.486,
+        "status": "located_applied",
+        "evidence": [
+          {
+            "claim_id": "claim_0005",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "located"
+              }
+            ]
+          }
+        ],
+        "issues": []
+      },
+      {
+        "opening_id": "W-W1",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.5,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0006",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W-W2",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.181,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0007",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W-W3",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.503,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0008",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W-W4",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 1.5,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0009",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region"
+        ]
+      },
+      {
+        "opening_id": "W-W5",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "L1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.4
+        ],
+        "width_m": 4.805,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0010",
+            "value": "height",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "outside_source_region"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "outside_source_region",
+          "distinct_width_on_facade"
+        ]
+      }
+    ],
+    "calibration_problems": [],
+    "note": "Current values, evidence binding and source location, not drawing correctness. A region containing several openings needs individual evidence. Report only.",
+    "table_file": "candidate_15/height_coverage.json"
+  },
+  "facade_counts": {
+    "schema_version": "facade_count_report_v1",
+    "candidate": "candidate_15",
+    "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+    "delivery_blocked": false,
+    "summary": {
+      "floor_facade_count": 4,
+      "window_status_counts": {
+        "matches_observed_total": 4
+      },
+      "door_status_counts": {
+        "not_counted": 4
+      },
+      "unused_observation_count": 0
+    },
+    "scopes": [
+      {
+        "floor_id": "L1",
+        "facade": "North",
+        "observation_ids": [
+          "count_01791201303180406479_f3ab28d111fb"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 1,
+          "observed_counts": [
+            1
+          ],
+          "built_opening_ids": [
+            "W-N1"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 1,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "D-N-entry"
+          ],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "L1",
+        "facade": "South",
+        "observation_ids": [
+          "count_01791201303207040222_88c69926e1e1"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 2,
+          "observed_counts": [
+            2
+          ],
+          "built_opening_ids": [
+            "W-S1",
+            "W-S2"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 1,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "D-S"
+          ],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "L1",
+        "facade": "East",
+        "observation_ids": [
+          "count_01791201303255163743_5f22407e19fc"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 3,
+          "observed_counts": [
+            3
+          ],
+          "built_opening_ids": [
+            "W-E1",
+            "W-E2",
+            "W-E3"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 1,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "D-E"
+          ],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "L1",
+        "facade": "West",
+        "observation_ids": [
+          "count_01791201303231169444_b4b702ff807a"
+        ],
+        "window": {
+          "status": "matches_observed_total",
+          "built_count": 5,
+          "observed_counts": [
+            5
+          ],
+          "built_opening_ids": [
+            "W-W1",
+            "W-W2",
+            "W-W3",
+            "W-W4",
+            "W-W5"
+          ],
+          "missing_count": 0
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      }
+    ],
+    "unused_observations": [],
+    "unsupported_exterior_boundaries": [],
+    "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+  }
+}

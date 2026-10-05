@@ -1,0 +1,237 @@
+{
+  "candidate": "candidate_15",
+  "claim_ids": [
+    "claim_0020"
+  ],
+  "evidence": {
+    "bindings": [
+      {
+        "claim_id": "claim_0020",
+        "computation": {
+          "chain": {
+            "closure_error_m": null,
+            "direction": -1,
+            "end_m": 0.0,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "expected_total_m": null,
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+            "segments": [
+              {
+                "end_m": 2.6,
+                "index": 0,
+                "length_m": 1.9,
+                "span_m": [
+                  2.6,
+                  4.5
+                ],
+                "start_m": 4.5
+              },
+              {
+                "end_m": 0.2,
+                "index": 1,
+                "length_m": 2.4,
+                "span_m": [
+                  0.2,
+                  2.6
+                ],
+                "start_m": 2.6
+              },
+              {
+                "end_m": 0.0,
+                "index": 2,
+                "length_m": 0.2,
+                "span_m": [
+                  0.0,
+                  0.2
+                ],
+                "start_m": 0.2
+              }
+            ],
+            "total_m": 4.5
+          },
+          "method": "dimension_chain",
+          "segment": 1
+        },
+        "operation_index": 0,
+        "parameter": "z",
+        "resolved_value": [
+          0.2,
+          2.6
+        ],
+        "targets": [
+          [
+            "opening",
+            "D-E"
+          ]
+        ],
+        "value_field": "height"
+      }
+    ],
+    "claims": {
+      "claim_0020": {
+        "decision": {
+          "claim_id": "claim_0020",
+          "disposition": "adopted",
+          "id": "decision_0052",
+          "reason": "D-E z 0.2-2.6 matches current geometry; east 1900+2400+200 chain, source view_0024 covers the projected opening and its chain."
+        },
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "D-E",
+                "kind": "opening"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "D-E (east entry door): source crop now covers the projected opening location and its 1900+2400+200 chain on East_view.png under the registered east calibration; door leaf 2.4 m with 0.2 m step, z 0.2-2.6.",
+            "sources": [
+              {
+                "view_id": "view_0024"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1900.0,
+                  2400.0,
+                  200.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.6,
+                    "index": 0,
+                    "length_m": 1.9,
+                    "span_m": [
+                      2.6,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 0.2,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      0.2,
+                      2.6
+                    ],
+                    "start_m": 2.6
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.2
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0020",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "replaced_claim_sha256": "39490f8ee4a5611eec32a90f7029f305538a6ee194711b9240e3f1db6b807870",
+          "replaces_claim": "claim_0011",
+          "resolved_values": {
+            "height": [
+              0.2,
+              2.6
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                850,
+                300,
+                1250,
+                700
+              ],
+              "image": "East_view.png",
+              "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+              "size": [
+                2639,
+                931
+              ],
+              "view_id": "view_0024",
+              "view_sha256": "bb490bcef83faa8d8771fe6fca018178df9e5ab4d73ca7c6c2b3607df93b5794"
+            }
+          ],
+          "verification": "not_independently_verified"
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0020",
+        "current_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+        "from_candidate": "candidate_01",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "targets": [
+          {
+            "eligible": true,
+            "id": "D-E",
+            "kind": "opening",
+            "reasons": []
+          }
+        ],
+        "to_candidate": "candidate_15"
+      }
+    ],
+    "parent_candidate": "candidate_15",
+    "parent_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f"
+  },
+  "id": "confirmation_0006",
+  "kind": "confirmation",
+  "parent_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+  "resolved_operations": [
+    {
+      "changes": {
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      "id": "D-E",
+      "op": "update_opening",
+      "reason": "Confirm unchanged z from the observed east door chain",
+      "source_refs": [
+        "image: East_view.png",
+        "claim:claim_0020:d9c76103fd79fc4e7ec0838f116ef54f43a8eea3fe46235f530d2be9b0642ab6"
+      ]
+    }
+  ],
+  "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+  "status": "confirmed_unchanged"
+}

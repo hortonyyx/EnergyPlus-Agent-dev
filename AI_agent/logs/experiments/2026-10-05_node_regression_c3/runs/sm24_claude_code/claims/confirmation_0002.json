@@ -1,0 +1,237 @@
+{
+  "candidate": "candidate_15",
+  "claim_ids": [
+    "claim_0016"
+  ],
+  "evidence": {
+    "bindings": [
+      {
+        "claim_id": "claim_0016",
+        "computation": {
+          "chain": {
+            "closure_error_m": null,
+            "direction": -1,
+            "end_m": 0.0,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "expected_total_m": null,
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+            "segments": [
+              {
+                "end_m": 2.8,
+                "index": 0,
+                "length_m": 1.7,
+                "span_m": [
+                  2.8,
+                  4.5
+                ],
+                "start_m": 4.5
+              },
+              {
+                "end_m": 1.0,
+                "index": 1,
+                "length_m": 1.8,
+                "span_m": [
+                  1.0,
+                  2.8
+                ],
+                "start_m": 2.8
+              },
+              {
+                "end_m": 0.0,
+                "index": 2,
+                "length_m": 1.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ],
+                "start_m": 1.0
+              }
+            ],
+            "total_m": 4.5
+          },
+          "method": "dimension_chain",
+          "segment": 1
+        },
+        "operation_index": 0,
+        "parameter": "z",
+        "resolved_value": [
+          1.0,
+          2.8
+        ],
+        "targets": [
+          [
+            "window",
+            "W-W2"
+          ]
+        ],
+        "value_field": "height"
+      }
+    ],
+    "claims": {
+      "claim_0016": {
+        "decision": {
+          "claim_id": "claim_0016",
+          "disposition": "adopted",
+          "id": "decision_0048",
+          "reason": "W-W2 z 1.0-2.8 matches current geometry; west 1700+1800+1000 chain, source view_0029 covers the projected opening."
+        },
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-W2",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "W-W2 (west facade): source crop now covers the projected opening location on West_view.png under the registered west calibration; shares the 1700+1800+1000 window band (sill 1.0, head 2.8).",
+            "sources": [
+              {
+                "view_id": "view_0029"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1700.0,
+                  1800.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0016",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "replaced_claim_sha256": "345270f2a80449a2f5a5c9554958cd05e339d242c573d9355254436f6f99ac15",
+          "replaces_claim": "claim_0007",
+          "resolved_values": {
+            "height": [
+              1.0,
+              2.8
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                720,
+                350,
+                950,
+                650
+              ],
+              "image": "West_view.png",
+              "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+              "size": [
+                2580,
+                993
+              ],
+              "view_id": "view_0029",
+              "view_sha256": "c57c267a53baffad8dc6c6c3345d2e5f68548fcc6c6e26e64dcb614e81552cca"
+            }
+          ],
+          "verification": "not_independently_verified"
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0016",
+        "current_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+        "from_candidate": "candidate_01",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "targets": [
+          {
+            "eligible": true,
+            "id": "W-W2",
+            "kind": "window",
+            "reasons": []
+          }
+        ],
+        "to_candidate": "candidate_15"
+      }
+    ],
+    "parent_candidate": "candidate_15",
+    "parent_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f"
+  },
+  "id": "confirmation_0002",
+  "kind": "confirmation",
+  "parent_proposal_sha256": "c863a3616bfe39ad918a90f914caa5980de4ce418a162e45a1788febef04b47f",
+  "resolved_operations": [
+    {
+      "changes": {
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      "id": "W-W2",
+      "op": "update_window",
+      "reason": "Confirm unchanged z from the observed west chain",
+      "source_refs": [
+        "image: West_view.png",
+        "claim:claim_0016:39a52849c3119ce0e70dcdd110c017dff1fc951da8de4adc1b1185a3887ca657"
+      ]
+    }
+  ],
+  "source_model_sha256": "b5b0ec1c21816e620da8e91ef9349b9ad4095f40488167f6f826711473fe8c77",
+  "status": "confirmed_unchanged"
+}

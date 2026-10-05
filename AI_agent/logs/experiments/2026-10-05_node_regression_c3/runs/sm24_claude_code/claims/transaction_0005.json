@@ -1,0 +1,1078 @@
+{
+  "id": "transaction_0005",
+  "candidate": "candidate_01",
+  "status": "failed",
+  "entries": [
+    {
+      "index": 0,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-N1"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "North elevation: window head/sill measured by the left vertical chain 1100+2400+1000 from the 4500 wall top; segment 1 is the 2400 window span, sill 1.0 m head 3.4 m.",
+          "sources": [
+            {
+              "image": "North_view.png",
+              "box": [
+                120,
+                180,
+                900,
+                680
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1100,
+                2400,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed north window chain to W-N1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-N1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0001",
+      "reason": "Apply the observed north window chain to W-N1.",
+      "decision_id": "decision_0001",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-N1"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 1,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "opening",
+              "id": "D-N-entry"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "North elevation right chain 1900+2400+200 from the 4500 wall top: 2400 door leaf with a 200 sill/step above ground; z 0.2-2.6.",
+          "sources": [
+            {
+              "image": "North_view.png",
+              "box": [
+                1030,
+                230,
+                1520,
+                680
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1900,
+                2400,
+                200
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed north door chain to D-N-entry.",
+        "operations": [
+          {
+            "op": "update_opening",
+            "id": "D-N-entry",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0002",
+      "reason": "Apply the observed north door chain to D-N-entry.",
+      "decision_id": "decision_0002",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D-N-entry"
+            ]
+          ]
+        }
+      ],
+      "error": "update_opening: reason must be a nonblank string"
+    },
+    {
+      "index": 2,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-S1"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "South elevation left chain 1700+1800+1000 from the 4500 wall top: 1800 window, sill 1.0 m head 2.8 m.",
+          "sources": [
+            {
+              "image": "South_view.png",
+              "box": [
+                100,
+                220,
+                560,
+                680
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed south window chain to W-S1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-S1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0003",
+      "reason": "Apply the observed south window chain to W-S1.",
+      "decision_id": "decision_0003",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-S1"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 3,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "opening",
+              "id": "D-S"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "South elevation centre chain 1900+2400+200: door z 0.2-2.6 with 200 step.",
+          "sources": [
+            {
+              "image": "South_view.png",
+              "box": [
+                640,
+                230,
+                900,
+                680
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1900,
+                2400,
+                200
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed south door chain to D-S.",
+        "operations": [
+          {
+            "op": "update_opening",
+            "id": "D-S",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0004",
+      "reason": "Apply the observed south door chain to D-S.",
+      "decision_id": "decision_0004",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D-S"
+            ]
+          ]
+        }
+      ],
+      "error": "update_opening: reason must be a nonblank string"
+    },
+    {
+      "index": 4,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-S2"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "South elevation right chain 1700+1800+1000: window sill 1.0 m head 2.8 m; same size/shape as W-S1 with its own chain.",
+          "sources": [
+            {
+              "image": "South_view.png",
+              "box": [
+                1080,
+                220,
+                1470,
+                680
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed south window chain to W-S2.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-S2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0005",
+      "reason": "Apply the observed south window chain to W-S2.",
+      "decision_id": "decision_0005",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-S2"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 5,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-W1"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "West elevation (left edge = north end): chain 1700+1800+1000 from the 4500 wall top measures the 1800-high windows; W-W1 is the north-most of them.",
+          "sources": [
+            {
+              "image": "West_view.png",
+              "box": [
+                100,
+                140,
+                360,
+                470
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed west window chain to W-W1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0006",
+      "reason": "Apply the observed west window chain to W-W1.",
+      "decision_id": "decision_0006",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W1"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 6,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-W2"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "West elevation: W-W2 has the same drawn top/bottom extension lines as the 1700+1800+1000 chain (head 2.8, sill 1.0).",
+          "sources": [
+            {
+              "image": "West_view.png",
+              "box": [
+                440,
+                140,
+                580,
+                470
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed west window chain to W-W2.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0007",
+      "reason": "Apply the observed west window chain to W-W2.",
+      "decision_id": "decision_0007",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W2"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 7,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-W3"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "West elevation: W-W3 shares the 1800-high window band measured by the 1700+1800+1000 chain.",
+          "sources": [
+            {
+              "image": "West_view.png",
+              "box": [
+                615,
+                140,
+                770,
+                470
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed west window chain to W-W3.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W3",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0008",
+      "reason": "Apply the observed west window chain to W-W3.",
+      "decision_id": "decision_0008",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W3"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 8,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-W4"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "West elevation: W-W4 shares the 1800-high window band measured by the 1700+1800+1000 chain.",
+          "sources": [
+            {
+              "image": "West_view.png",
+              "box": [
+                775,
+                140,
+                930,
+                470
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed west window chain to W-W4.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W4",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0009",
+      "reason": "Apply the observed west window chain to W-W4.",
+      "decision_id": "decision_0009",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W4"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 9,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-W5"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "West elevation right chain 1100+2400+1000 measures the large 4800 conference window: sill 1.0 m head 3.4 m.",
+          "sources": [
+            {
+              "image": "West_view.png",
+              "box": [
+                1040,
+                140,
+                1390,
+                470
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1100,
+                2400,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed west large-window chain to W-W5.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W5",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0010",
+      "reason": "Apply the observed west large-window chain to W-W5.",
+      "decision_id": "decision_0010",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W5"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 10,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "opening",
+              "id": "D-E"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "East elevation left chain 1900+2400+200 from the 4500 wall top: door z 0.2-2.6 with 200 step.",
+          "sources": [
+            {
+              "image": "East_view.png",
+              "box": [
+                520,
+                120,
+                680,
+                420
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1900,
+                2400,
+                200
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed east door chain to D-E.",
+        "operations": [
+          {
+            "op": "update_opening",
+            "id": "D-E",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0011",
+      "reason": "Apply the observed east door chain to D-E.",
+      "decision_id": "decision_0011",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D-E"
+            ]
+          ]
+        }
+      ],
+      "error": "update_opening: reason must be a nonblank string"
+    },
+    {
+      "index": 11,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-E3"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "East elevation centre chain 1100+2400+1000 measures the large 4800 meeting-room window: sill 1.0 m head 3.4 m.",
+          "sources": [
+            {
+              "image": "East_view.png",
+              "box": [
+                700,
+                120,
+                1040,
+                420
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1100,
+                2400,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed east large-window chain to W-E3.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E3",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0012",
+      "reason": "Apply the observed east large-window chain to W-E3.",
+      "decision_id": "decision_0012",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E3"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 12,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-E2"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "East elevation right chain 1700+1800+1000 measures the 1800-high windows; W-E2 shares that band (head 2.8, sill 1.0).",
+          "sources": [
+            {
+              "image": "East_view.png",
+              "box": [
+                1020,
+                120,
+                1150,
+                420
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed east window chain to W-E2.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0013",
+      "reason": "Apply the observed east window chain to W-E2.",
+      "decision_id": "decision_0013",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E2"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    },
+    {
+      "index": 13,
+      "candidate": "candidate_01",
+      "status": "failed",
+      "request": {
+        "action": "apply",
+        "claim": {
+          "objects": [
+            {
+              "kind": "window",
+              "id": "W-E1"
+            }
+          ],
+          "basis": "annotation_and_pixels",
+          "reason": "East elevation right chain 1700+1800+1000 measures the 1800-high windows; W-E1 shares that band (head 2.8, sill 1.0).",
+          "sources": [
+            {
+              "image": "East_view.png",
+              "box": [
+                1255,
+                120,
+                1390,
+                420
+              ]
+            }
+          ],
+          "values": {
+            "height": {
+              "type": "dimension_chain",
+              "lengths": [
+                1700,
+                1800,
+                1000
+              ],
+              "unit": "mm",
+              "origin_m": 4.5,
+              "direction": -1,
+              "segment": 1
+            }
+          },
+          "observation_mode": "direct",
+          "unresolved": []
+        },
+        "reason": "Apply the observed east window chain to W-E1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            }
+          }
+        ]
+      },
+      "action": "apply",
+      "recorded": true,
+      "claim_id": "claim_0014",
+      "reason": "Apply the observed east window chain to W-E1.",
+      "decision_id": "decision_0014",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E1"
+            ]
+          ]
+        }
+      ],
+      "error": "update_window: reason must be a nonblank string"
+    }
+  ],
+  "result_candidate": "candidate_01",
+  "saved_candidate": null,
+  "save_effects": {
+    "created_candidates": [],
+    "geometry_applied": false,
+    "audit_written": true
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "id": "application_0015",
+  "parent_candidate": "candidate_01",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W-N1",
+      "changes": {
+        "z": {
+          "claim": "claim_0001",
+          "value": "height"
+        }
+      },
+      "reason": "Located north-elevation chain for this window",
+      "source_refs": [
+        "North_view.png left chain 1100+2400+1000"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0001"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_01",
+    "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W-N1"
+          ]
+        ],
+        "claim_id": "claim_0001",
+        "value_field": "height",
+        "resolved_value": [
+          1.0,
+          3.4
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.1,
+                "start_m": 4.5,
+                "end_m": 3.4,
+                "span_m": [
+                  3.4,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.4,
+                "start_m": 3.4,
+                "end_m": 1.0,
+                "span_m": [
+                  1.0,
+                  3.4
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 1.0,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0001": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-N1",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "North elevation: window head/sill measured by the left vertical chain 1100+2400+1000 from the 4500 wall top; segment 1 is the 2400 window span, sill 1.0 m head 3.4 m.",
+            "sources": [
+              {
+                "box": [
+                  120.0,
+                  180.0,
+                  900.0,
+                  680.0
+                ],
+                "image": "North_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1100.0,
+                  2400.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 3.4,
+                    "index": 0,
+                    "length_m": 1.1,
+                    "span_m": [
+                      3.4,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      1.0,
+                      3.4
+                    ],
+                    "start_m": 3.4
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0001",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              1.0,
+              3.4
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                120.0,
+                180.0,
+                900.0,
+                680.0
+              ],
+              "image": "North_view.png",
+              "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+              "size": [
+                2890,
+                1651
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0001",
+          "disposition": "adopted",
+          "id": "decision_0015",
+          "reason": "Apply the observed north 4800-window chain (1100+2400+1000 from the 4500 wall top) to W-N1."
+        }
+      }
+    }
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W-N1",
+      "changes": {
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      "reason": "Located north-elevation chain for this window",
+      "source_refs": [
+        "North_view.png left chain 1100+2400+1000",
+        "claim:claim_0001:3c66ac14272328a378899ff5b44728b7d668e70ba6fc43937da818d83b6655b1"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "geometry_after_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_02",
+  "source_model_sha256": "7cafcba163565ddf7a836184fe6a5206ddebc67a201ebe574d04dcc2c6cfd1d9",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

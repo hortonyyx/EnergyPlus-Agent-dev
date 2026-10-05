@@ -1,0 +1,275 @@
+{
+  "id": "application_0026",
+  "parent_candidate": "candidate_12",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W-E3",
+      "changes": {
+        "z": {
+          "claim": "claim_0012",
+          "value": "height"
+        }
+      },
+      "reason": "Located east-elevation chain for the 4800 meeting-room window",
+      "source_refs": [
+        "East_view.png centre chain 1100+2400+1000"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0012"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_12",
+    "parent_proposal_sha256": "3aa80a31017524f72c9447bb6dfab0c2e0049226e0076b7092d7c96eda60307a",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W-E3"
+          ]
+        ],
+        "claim_id": "claim_0012",
+        "value_field": "height",
+        "resolved_value": [
+          1.0,
+          3.4
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.1,
+                "start_m": 4.5,
+                "end_m": 3.4,
+                "span_m": [
+                  3.4,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.4,
+                "start_m": 3.4,
+                "end_m": 1.0,
+                "span_m": [
+                  1.0,
+                  3.4
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 1.0,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0012": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-E3",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "East elevation centre chain 1100+2400+1000 measures the large 4800 meeting-room window: sill 1.0 m head 3.4 m.",
+            "sources": [
+              {
+                "box": [
+                  700.0,
+                  120.0,
+                  1040.0,
+                  420.0
+                ],
+                "image": "East_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1100.0,
+                  2400.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 3.4,
+                    "index": 0,
+                    "length_m": 1.1,
+                    "span_m": [
+                      3.4,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      1.0,
+                      3.4
+                    ],
+                    "start_m": 3.4
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0012",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              1.0,
+              3.4
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                700.0,
+                120.0,
+                1040.0,
+                420.0
+              ],
+              "image": "East_view.png",
+              "sha256": "a0df722e20dae3a41f801420b2ad6ed0b1776e1535f01f54646cc33e40b440f8",
+              "size": [
+                2639,
+                931
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0012",
+          "disposition": "adopted",
+          "id": "decision_0026",
+          "reason": "Apply the observed east large-window chain (1100+2400+1000) to W-E3."
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0012",
+        "from_candidate": "candidate_01",
+        "to_candidate": "candidate_12",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "current_proposal_sha256": "3aa80a31017524f72c9447bb6dfab0c2e0049226e0076b7092d7c96eda60307a",
+        "targets": [
+          {
+            "kind": "window",
+            "id": "W-E3",
+            "eligible": true,
+            "reasons": []
+          }
+        ]
+      }
+    ]
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W-E3",
+      "changes": {
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      "reason": "Located east-elevation chain for the 4800 meeting-room window",
+      "source_refs": [
+        "East_view.png centre chain 1100+2400+1000",
+        "claim:claim_0012:aa09fa489290c00b9e113b29599a0096bb8c5871f0faef9f641a0e1604cb2cbc"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "geometry_after_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_13",
+  "source_model_sha256": "3e26b0c0eca2364a168260177cb529491f0256137aec91856f0a1259e176c436",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

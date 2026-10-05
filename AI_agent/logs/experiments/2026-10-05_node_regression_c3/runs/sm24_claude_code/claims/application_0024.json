@@ -1,0 +1,275 @@
+{
+  "id": "application_0024",
+  "parent_candidate": "candidate_10",
+  "submitted_operations": [
+    {
+      "op": "update_window",
+      "id": "W-W5",
+      "changes": {
+        "z": {
+          "claim": "claim_0010",
+          "value": "height"
+        }
+      },
+      "reason": "Located west-elevation chain for the 4800 conference window",
+      "source_refs": [
+        "West_view.png right chain 1100+2400+1000"
+      ]
+    }
+  ],
+  "claim_ids": [
+    "claim_0010"
+  ],
+  "status": "applied",
+  "drawing_fidelity": "not_evaluated",
+  "evidence": {
+    "parent_candidate": "candidate_10",
+    "parent_proposal_sha256": "2ed26697203a0dec45b2659aaf8f6af0517048a42f980bfd56039c7743cf758f",
+    "bindings": [
+      {
+        "operation_index": 0,
+        "parameter": "z",
+        "targets": [
+          [
+            "window",
+            "W-W5"
+          ]
+        ],
+        "claim_id": "claim_0010",
+        "value_field": "height",
+        "resolved_value": [
+          1.0,
+          3.4
+        ],
+        "computation": {
+          "method": "dimension_chain",
+          "chain": {
+            "input_unit": "mm",
+            "origin_m": 4.5,
+            "direction": -1,
+            "segments": [
+              {
+                "index": 0,
+                "length_m": 1.1,
+                "start_m": 4.5,
+                "end_m": 3.4,
+                "span_m": [
+                  3.4,
+                  4.5
+                ]
+              },
+              {
+                "index": 1,
+                "length_m": 2.4,
+                "start_m": 3.4,
+                "end_m": 1.0,
+                "span_m": [
+                  1.0,
+                  3.4
+                ]
+              },
+              {
+                "index": 2,
+                "length_m": 1.0,
+                "start_m": 1.0,
+                "end_m": 0.0,
+                "span_m": [
+                  0.0,
+                  1.0
+                ]
+              }
+            ],
+            "total_m": 4.5,
+            "end_m": 0.0,
+            "expected_total_m": null,
+            "closure_error_m": null,
+            "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+            "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation"
+          },
+          "segment": 1
+        }
+      }
+    ],
+    "claims": {
+      "claim_0010": {
+        "record": {
+          "claim": {
+            "basis": "annotation_and_pixels",
+            "candidate": "candidate_01",
+            "objects": [
+              {
+                "id": "W-W5",
+                "kind": "window"
+              }
+            ],
+            "observation_mode": "direct",
+            "reason": "West elevation right chain 1100+2400+1000 measures the large 4800 conference window: sill 1.0 m head 3.4 m.",
+            "sources": [
+              {
+                "box": [
+                  1040.0,
+                  140.0,
+                  1390.0,
+                  470.0
+                ],
+                "image": "West_view.png"
+              }
+            ],
+            "unresolved": [],
+            "value_targets": null,
+            "values": {
+              "height": {
+                "direction": -1,
+                "lengths": [
+                  1100.0,
+                  2400.0,
+                  1000.0
+                ],
+                "origin_m": 4.5,
+                "segment": 1,
+                "type": "dimension_chain",
+                "unit": "mm"
+              }
+            }
+          },
+          "computations": {
+            "height": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 3.4,
+                    "index": 0,
+                    "length_m": 1.1,
+                    "span_m": [
+                      3.4,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      1.0,
+                      3.4
+                    ],
+                    "start_m": 3.4
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            }
+          },
+          "id": "claim_0010",
+          "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "resolved_values": {
+            "height": [
+              1.0,
+              3.4
+            ]
+          },
+          "sources": [
+            {
+              "box": [
+                1040.0,
+                140.0,
+                1390.0,
+                470.0
+              ],
+              "image": "West_view.png",
+              "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+              "size": [
+                2580,
+                993
+              ]
+            }
+          ],
+          "verification": "not_independently_verified"
+        },
+        "decision": {
+          "claim_id": "claim_0010",
+          "disposition": "adopted",
+          "id": "decision_0024",
+          "reason": "Apply the observed west large-window chain (1100+2400+1000) to W-W5."
+        }
+      }
+    },
+    "inheritance": [
+      {
+        "claim_id": "claim_0010",
+        "from_candidate": "candidate_01",
+        "to_candidate": "candidate_10",
+        "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+        "current_proposal_sha256": "2ed26697203a0dec45b2659aaf8f6af0517048a42f980bfd56039c7743cf758f",
+        "targets": [
+          {
+            "kind": "window",
+            "id": "W-W5",
+            "eligible": true,
+            "reasons": []
+          }
+        ]
+      }
+    ]
+  },
+  "resolved_operations": [
+    {
+      "op": "update_window",
+      "id": "W-W5",
+      "changes": {
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      "reason": "Located west-elevation chain for the 4800 conference window",
+      "source_refs": [
+        "West_view.png right chain 1100+2400+1000",
+        "claim:claim_0010:81e8d5266f275d99e7382ffc8a6738dd1110707f8c44d68dfc43ed7484cce5ca"
+      ]
+    }
+  ],
+  "geometry_before_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "geometry_after_sha256": "afcf8c8952261c5468e094b79d9ce64458c341ec82d18323d649ef9c61535eda",
+  "changes": [],
+  "scope_check": "checked",
+  "outside_declared_scope": [],
+  "parameters_without_claims": [],
+  "candidate": "candidate_11",
+  "source_model_sha256": "7f291d4c5064b9600e9190a8707f4199ffa82de390ca412c5b9816ffccc3a1a3",
+  "source_geometry_ready": true,
+  "error": null,
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  }
+}

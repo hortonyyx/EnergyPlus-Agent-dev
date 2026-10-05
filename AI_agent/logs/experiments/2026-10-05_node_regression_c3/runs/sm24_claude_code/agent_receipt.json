@@ -1,0 +1,99 @@
+{
+  "requested_model": "glm-5.3-flash",
+  "requested_role": "sonnet",
+  "provider": "glm",
+  "agent_version": "t1-20261005-c3.1",
+  "channel": "glm subscription; no paid API/fallback",
+  "readonly": false,
+  "timeout_seconds": 6000,
+  "exploratory_opus": false,
+  "effort": "medium",
+  "returncode": 0,
+  "elapsed_seconds": 1760.44,
+  "actual_model": "glm-5.3-flash",
+  "result": {
+    "duration_api_ms": 1455906,
+    "stop_reason": "end_turn",
+    "session_id": "e0780af3-7f67-4b79-850f-ae384bc6b8c5",
+    "total_cost_usd": 3.4491520000000007,
+    "usage": {
+      "input_tokens": 298573,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2715136,
+      "output_tokens": 76291,
+      "output_tokens_details": {
+        "thinking_tokens": 0
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "",
+      "iterations": [],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "glm-5.3-flash": {
+        "inputTokens": 299890,
+        "outputTokens": 83702,
+        "cacheReadInputTokens": 2877760,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 3.4491520000000007,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "glm-5.3-flash",
+        "provider": "firstParty",
+        "costBasis": "unknown"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 74,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Delivered: **candidate_16** (viewer: `candidate_16/viewer.html`, source model `candidate_16/source_model.json`).\n\n## Building reconstructed\nSingle storey, 10 m (x, west–east) × 20 m (y, south–north), floor z=0, ceiling 4.5 m. 8 spaces, 54 boundaries, 21 openings, 10 door connections:\n\n- **Spaces**: N-room (full-width north, y 15.93–20), NW-meeting (y 12.99–15.93), W-office (y 8.05–12.99), SW-conference (y 0–8.05) down the west side; corridor-lobby spine (x 4.20–5.73) from the north wall to the L-shaped wall-E closure at y 3.43, opening east into the lobby; NE-cabinet (1.69 m deep), E-meeting (y 8.05–14.24) and SE-office (L-shaped, with the south vestibule) on the east side.\n- **Doors**: 3 exterior — D-N-entry, D-S, D-E (all 1.6 m, z 0.2–2.6). 7 interior — D-B1, D-L1, D-L2, D-CONF, D-R2, D-R3, D-BR (assumed z 0–2.1).\n- **Windows**: 11 — four 4800 mm (W-N1, W-E3, W-W5, z 1–3.4), six 1500 mm and one 1180 mm (z 1–2.8), each on its observed wall.\n\n## Observed\n- All walls and dividers from the plan's drawn line pairs; every opening placed from its own jamb/frame marks and dimension segments (plan calibration 27.47 mm/px from the 10000/20000 chains; draft_002 ended with 0 drawing_differences after the wall-x458 and D-B1 corrections).\n- All 14 exterior opening heights read from per-facade dimension chains on the four elevations (ordinary windows 1700+1800+1000; large windows 1100+2400+1000; doors 1900+2400+200 from the 4500 wall top). All 14 are **located claims** on the delivered candidate: 5 applied (North/South) and 9 confirmed with per-opening elevation crops under registered East/West calibrations; calibrated overlays align projected openings with the drawn ink on all four facades. Facade window counts match observations (N 1, S 2, E 3, W 5).\n\n## Assumed (explicit in saved notes)\n- Interior door heights 0–2.1 m (no interior elevation supplied).\n- Interior partitions on line-pair midplanes; drawn 240 mm thicknesses not modelled.\n- All 8 room uses inferred (no printed labels): office ×3, meeting/conference ×3, corridor, storage (NE-cabinet).\n\n## Left unexamined / limitations\n- Door swing directions visible in the plan but leaf state not modelled.\n- All pixel-to-world and elevation calibrations are caller-supplied arithmetic, not independently verified; a returned image is not proof of correct interpretation.\n- \"distinct_width_on_facade\" informational flags on W-E3/W-W5 (each has its own chain, so no height transfer was involved); drawing fidelity formally \"not_evaluated\" by the tooling, differences were resolved manually to 0 on the final draft.",
+    "ttft_ms": 4800,
+    "type": "result",
+    "duration_ms": 1746685,
+    "uuid": "b3fbace9-af8e-48cb-a9ab-212abdf5486e",
+    "ttft_stream_ms": 4700,
+    "time_to_request_ms": 74,
+    "first_content_frame_ms": 4701,
+    "queued_turn_count": 0,
+    "result_index": 0
+  }
+}

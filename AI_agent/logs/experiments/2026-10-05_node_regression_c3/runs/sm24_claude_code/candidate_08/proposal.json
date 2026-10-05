@@ -1,0 +1,2812 @@
+{
+  "assumptions": [
+    "Interior door heights assumed 0-2.1 m; no interior elevation was supplied.",
+    "Interior partitions declared on measured line-pair midplanes; drawn 240 mm thicknesses not modelled.",
+    "Room uses inferred from furniture; no printed use labels on the plan.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "geometry": {
+    "corrections": [
+      {
+        "after": {
+          "assumptions": [],
+          "facade": "North",
+          "floor": "L1",
+          "id": "W-N1",
+          "kind": "window",
+          "p1": [
+            4.659341,
+            20.0
+          ],
+          "p2": [
+            9.467033,
+            20.0
+          ],
+          "room": "N-room",
+          "source_refs": [
+            "North_view.png left chain 1100+2400+1000",
+            "claim:claim_0001:3c66ac14272328a378899ff5b44728b7d668e70ba6fc43937da818d83b6655b1"
+          ],
+          "span": [
+            4.659341,
+            9.467033
+          ],
+          "width_m": 4.807692,
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "facade": "North",
+          "floor": "L1",
+          "id": "W-N1",
+          "kind": "window",
+          "p1": [
+            4.659341,
+            20.0
+          ],
+          "p2": [
+            9.467033,
+            20.0
+          ],
+          "room": "N-room",
+          "source_refs": [
+            "1f_view.png: 4800 window px417-593",
+            "North_view.png: chain 1100+2400+1000; sill 1.0m head 3.4m"
+          ],
+          "span": [
+            4.659341,
+            9.467033
+          ],
+          "width_m": 4.807692,
+          "z": [
+            1.0,
+            3.4
+          ]
+        },
+        "id": "W-N1",
+        "operation": "update_window",
+        "reason": "Located north-elevation chain for this window",
+        "source_refs": [
+          "North_view.png left chain 1100+2400+1000",
+          "claim:claim_0001:3c66ac14272328a378899ff5b44728b7d668e70ba6fc43937da818d83b6655b1"
+        ]
+      },
+      {
+        "application_id": "application_0015",
+        "bindings": [
+          {
+            "claim_id": "claim_0001",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 3.4,
+                    "index": 0,
+                    "length_m": 1.1,
+                    "span_m": [
+                      3.4,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      1.0,
+                      3.4
+                    ],
+                    "start_m": 3.4
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              1.0,
+              3.4
+            ],
+            "targets": [
+              [
+                "window",
+                "W-N1"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0001": {
+            "decision": {
+              "claim_id": "claim_0001",
+              "disposition": "adopted",
+              "id": "decision_0015",
+              "reason": "Apply the observed north 4800-window chain (1100+2400+1000 from the 4500 wall top) to W-N1."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "W-N1",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "North elevation: window head/sill measured by the left vertical chain 1100+2400+1000 from the 4500 wall top; segment 1 is the 2400 window span, sill 1.0 m head 3.4 m.",
+                "sources": [
+                  {
+                    "box": [
+                      120.0,
+                      180.0,
+                      900.0,
+                      680.0
+                    ],
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1100.0,
+                      2400.0,
+                      1000.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 3.4,
+                        "index": 0,
+                        "length_m": 1.1,
+                        "span_m": [
+                          3.4,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 1.0,
+                        "index": 1,
+                        "length_m": 2.4,
+                        "span_m": [
+                          1.0,
+                          3.4
+                        ],
+                        "start_m": 3.4
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 1.0,
+                        "span_m": [
+                          0.0,
+                          1.0
+                        ],
+                        "start_m": 1.0
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0001",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  1.0,
+                  3.4
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    120.0,
+                    180.0,
+                    900.0,
+                    680.0
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+                  "size": [
+                    2890,
+                    1651
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "operation": "claim_application",
+        "parent_candidate": "candidate_01",
+        "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef"
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "id": "D-N-entry",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            0.541209,
+            20.0
+          ],
+          "p2": [
+            2.14011,
+            20.0
+          ],
+          "source_refs": [
+            "North_view.png right chain 1900+2400+200",
+            "claim:claim_0002:10f7c22adc930583634197658ae98e29974d7a15bd4a80b88baf9d23d7ecbef0"
+          ],
+          "space_id": "N-room",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "D-N-entry",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            0.541209,
+            20.0
+          ],
+          "p2": [
+            2.14011,
+            20.0
+          ],
+          "source_refs": [
+            "1f_view.png: double entry door px267-326 in north wall",
+            "North_view.png: chain 1900+2400+200 from top; head 2.6m, bottom 0.2m"
+          ],
+          "space_id": "N-room",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "id": "D-N-entry",
+        "operation": "update_opening",
+        "reason": "Located north-elevation chain for this door",
+        "source_refs": [
+          "North_view.png right chain 1900+2400+200",
+          "claim:claim_0002:10f7c22adc930583634197658ae98e29974d7a15bd4a80b88baf9d23d7ecbef0"
+        ]
+      },
+      {
+        "application_id": "application_0016",
+        "bindings": [
+          {
+            "claim_id": "claim_0002",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.6,
+                    "index": 0,
+                    "length_m": 1.9,
+                    "span_m": [
+                      2.6,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 0.2,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      0.2,
+                      2.6
+                    ],
+                    "start_m": 2.6
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.2
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              0.2,
+              2.6
+            ],
+            "targets": [
+              [
+                "opening",
+                "D-N-entry"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0002": {
+            "decision": {
+              "claim_id": "claim_0002",
+              "disposition": "adopted",
+              "id": "decision_0016",
+              "reason": "Apply the observed north entry-door chain (1900+2400+200) to D-N-entry."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "D-N-entry",
+                    "kind": "opening"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "North elevation right chain 1900+2400+200 from the 4500 wall top: 2400 door leaf with a 200 sill/step above ground; z 0.2-2.6.",
+                "sources": [
+                  {
+                    "box": [
+                      1030.0,
+                      230.0,
+                      1520.0,
+                      680.0
+                    ],
+                    "image": "North_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1900.0,
+                      2400.0,
+                      200.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.6,
+                        "index": 0,
+                        "length_m": 1.9,
+                        "span_m": [
+                          2.6,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 0.2,
+                        "index": 1,
+                        "length_m": 2.4,
+                        "span_m": [
+                          0.2,
+                          2.6
+                        ],
+                        "start_m": 2.6
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 0.2,
+                        "span_m": [
+                          0.0,
+                          0.2
+                        ],
+                        "start_m": 0.2
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0002",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  0.2,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    1030.0,
+                    230.0,
+                    1520.0,
+                    680.0
+                  ],
+                  "image": "North_view.png",
+                  "sha256": "b2618ac8940437d3d152a2fb61ccb06f9167b33b64e6662e86c62d56e9a4ca5a",
+                  "size": [
+                    2890,
+                    1651
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "inheritance": [
+          {
+            "claim_id": "claim_0002",
+            "current_proposal_sha256": "29d8b2064bc123bc32006ca13dbb15442ef5f4bc885801cb7d9bc46c61869ccd",
+            "from_candidate": "candidate_01",
+            "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "targets": [
+              {
+                "eligible": true,
+                "id": "D-N-entry",
+                "kind": "opening",
+                "reasons": []
+              }
+            ],
+            "to_candidate": "candidate_02"
+          }
+        ],
+        "operation": "claim_application",
+        "parent_candidate": "candidate_02",
+        "parent_proposal_sha256": "29d8b2064bc123bc32006ca13dbb15442ef5f4bc885801cb7d9bc46c61869ccd"
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "facade": "South",
+          "floor": "L1",
+          "id": "W-S1",
+          "kind": "window",
+          "p1": [
+            0.541209,
+            0.0
+          ],
+          "p2": [
+            2.038462,
+            0.0
+          ],
+          "room": "SW-conference",
+          "source_refs": [
+            "South_view.png left chain 1700+1800+1000",
+            "claim:claim_0003:f3d271b2da335ea34128f6af405f2f9c673a704030d17f43eb45eff0a9b6ff4b"
+          ],
+          "span": [
+            0.541209,
+            2.038462
+          ],
+          "width_m": 1.497253,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "facade": "South",
+          "floor": "L1",
+          "id": "W-S1",
+          "kind": "window",
+          "p1": [
+            0.541209,
+            0.0
+          ],
+          "p2": [
+            2.038462,
+            0.0
+          ],
+          "room": "SW-conference",
+          "source_refs": [
+            "1f_view.png: 1500 window",
+            "South_view.png: chain 1700+1800+1000; sill 1.0m head 2.8m"
+          ],
+          "span": [
+            0.541209,
+            2.038462
+          ],
+          "width_m": 1.497253,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "id": "W-S1",
+        "operation": "update_window",
+        "reason": "Located south-elevation chain for this window",
+        "source_refs": [
+          "South_view.png left chain 1700+1800+1000",
+          "claim:claim_0003:f3d271b2da335ea34128f6af405f2f9c673a704030d17f43eb45eff0a9b6ff4b"
+        ]
+      },
+      {
+        "application_id": "application_0017",
+        "bindings": [
+          {
+            "claim_id": "claim_0003",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              1.0,
+              2.8
+            ],
+            "targets": [
+              [
+                "window",
+                "W-S1"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0003": {
+            "decision": {
+              "claim_id": "claim_0003",
+              "disposition": "adopted",
+              "id": "decision_0017",
+              "reason": "Apply the observed south window chain (1700+1800+1000) to W-S1."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "W-S1",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "South elevation left chain 1700+1800+1000 from the 4500 wall top: 1800 window, sill 1.0 m head 2.8 m.",
+                "sources": [
+                  {
+                    "box": [
+                      100.0,
+                      220.0,
+                      560.0,
+                      680.0
+                    ],
+                    "image": "South_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1700.0,
+                      1800.0,
+                      1000.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.8,
+                        "index": 0,
+                        "length_m": 1.7,
+                        "span_m": [
+                          2.8,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 1.0,
+                        "index": 1,
+                        "length_m": 1.8,
+                        "span_m": [
+                          1.0,
+                          2.8
+                        ],
+                        "start_m": 2.8
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 1.0,
+                        "span_m": [
+                          0.0,
+                          1.0
+                        ],
+                        "start_m": 1.0
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0003",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    100.0,
+                    220.0,
+                    560.0,
+                    680.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+                  "size": [
+                    2434,
+                    1457
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "inheritance": [
+          {
+            "claim_id": "claim_0003",
+            "current_proposal_sha256": "5e863fb154e9fba3708b011aa60881e9f6ba023a3d1c37459deb8ddc212f633b",
+            "from_candidate": "candidate_01",
+            "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "targets": [
+              {
+                "eligible": true,
+                "id": "W-S1",
+                "kind": "window",
+                "reasons": []
+              }
+            ],
+            "to_candidate": "candidate_03"
+          }
+        ],
+        "operation": "claim_application",
+        "parent_candidate": "candidate_03",
+        "parent_proposal_sha256": "5e863fb154e9fba3708b011aa60881e9f6ba023a3d1c37459deb8ddc212f633b"
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "id": "D-S",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            4.538462,
+            0.0
+          ],
+          "p2": [
+            5.442308,
+            0.0
+          ],
+          "source_refs": [
+            "South_view.png centre chain 1900+2400+200",
+            "claim:claim_0004:35b5a521e20c73186faff7ea77477d41a2bd384d0abc73f3c5c7684615a0cd2a"
+          ],
+          "space_id": "SE-office",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "id": "D-S",
+          "kind": "door",
+          "other_space_id": null,
+          "p1": [
+            4.538462,
+            0.0
+          ],
+          "p2": [
+            5.442308,
+            0.0
+          ],
+          "source_refs": [
+            "1f_view.png: 900 door",
+            "South_view.png: chain 1900+2400+200"
+          ],
+          "space_id": "SE-office",
+          "z": [
+            0.2,
+            2.6
+          ]
+        },
+        "id": "D-S",
+        "operation": "update_opening",
+        "reason": "Located south-elevation chain for this door",
+        "source_refs": [
+          "South_view.png centre chain 1900+2400+200",
+          "claim:claim_0004:35b5a521e20c73186faff7ea77477d41a2bd384d0abc73f3c5c7684615a0cd2a"
+        ]
+      },
+      {
+        "application_id": "application_0018",
+        "bindings": [
+          {
+            "claim_id": "claim_0004",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.6,
+                    "index": 0,
+                    "length_m": 1.9,
+                    "span_m": [
+                      2.6,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 0.2,
+                    "index": 1,
+                    "length_m": 2.4,
+                    "span_m": [
+                      0.2,
+                      2.6
+                    ],
+                    "start_m": 2.6
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 0.2,
+                    "span_m": [
+                      0.0,
+                      0.2
+                    ],
+                    "start_m": 0.2
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              0.2,
+              2.6
+            ],
+            "targets": [
+              [
+                "opening",
+                "D-S"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0004": {
+            "decision": {
+              "claim_id": "claim_0004",
+              "disposition": "adopted",
+              "id": "decision_0018",
+              "reason": "Apply the observed south door chain (1900+2400+200) to D-S."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "D-S",
+                    "kind": "opening"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "South elevation centre chain 1900+2400+200: door z 0.2-2.6 with 200 step.",
+                "sources": [
+                  {
+                    "box": [
+                      640.0,
+                      230.0,
+                      900.0,
+                      680.0
+                    ],
+                    "image": "South_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1900.0,
+                      2400.0,
+                      200.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.6,
+                        "index": 0,
+                        "length_m": 1.9,
+                        "span_m": [
+                          2.6,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 0.2,
+                        "index": 1,
+                        "length_m": 2.4,
+                        "span_m": [
+                          0.2,
+                          2.6
+                        ],
+                        "start_m": 2.6
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 0.2,
+                        "span_m": [
+                          0.0,
+                          0.2
+                        ],
+                        "start_m": 0.2
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0004",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  0.2,
+                  2.6
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    640.0,
+                    230.0,
+                    900.0,
+                    680.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+                  "size": [
+                    2434,
+                    1457
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "inheritance": [
+          {
+            "claim_id": "claim_0004",
+            "current_proposal_sha256": "65099e06b8423d5d88bd384917690176a0cf672ca9d34c4b0d08b1098b69a30d",
+            "from_candidate": "candidate_01",
+            "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "targets": [
+              {
+                "eligible": true,
+                "id": "D-S",
+                "kind": "opening",
+                "reasons": []
+              }
+            ],
+            "to_candidate": "candidate_04"
+          }
+        ],
+        "operation": "claim_application",
+        "parent_candidate": "candidate_04",
+        "parent_proposal_sha256": "65099e06b8423d5d88bd384917690176a0cf672ca9d34c4b0d08b1098b69a30d"
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "facade": "South",
+          "floor": "L1",
+          "id": "W-S2",
+          "kind": "window",
+          "p1": [
+            7.980769,
+            0.0
+          ],
+          "p2": [
+            9.467033,
+            0.0
+          ],
+          "room": "SE-office",
+          "source_refs": [
+            "South_view.png right chain 1700+1800+1000",
+            "claim:claim_0005:1d2908c90ee0425538eb9c240ae16c0bd4157e1261a632a27fc4d7343928c1bc"
+          ],
+          "span": [
+            7.980769,
+            9.467033
+          ],
+          "width_m": 1.486264,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "facade": "South",
+          "floor": "L1",
+          "id": "W-S2",
+          "kind": "window",
+          "p1": [
+            7.980769,
+            0.0
+          ],
+          "p2": [
+            9.467033,
+            0.0
+          ],
+          "room": "SE-office",
+          "source_refs": [
+            "1f_view.png: 1500 window",
+            "South_view.png: chain 1700+1800+1000"
+          ],
+          "span": [
+            7.980769,
+            9.467033
+          ],
+          "width_m": 1.486264,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "id": "W-S2",
+        "operation": "update_window",
+        "reason": "Located south-elevation chain for this window",
+        "source_refs": [
+          "South_view.png right chain 1700+1800+1000",
+          "claim:claim_0005:1d2908c90ee0425538eb9c240ae16c0bd4157e1261a632a27fc4d7343928c1bc"
+        ]
+      },
+      {
+        "application_id": "application_0019",
+        "bindings": [
+          {
+            "claim_id": "claim_0005",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              1.0,
+              2.8
+            ],
+            "targets": [
+              [
+                "window",
+                "W-S2"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0005": {
+            "decision": {
+              "claim_id": "claim_0005",
+              "disposition": "adopted",
+              "id": "decision_0019",
+              "reason": "Apply the observed south window chain (1700+1800+1000) to W-S2."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "W-S2",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "South elevation right chain 1700+1800+1000: window sill 1.0 m head 2.8 m; same size/shape as W-S1 with its own chain.",
+                "sources": [
+                  {
+                    "box": [
+                      1080.0,
+                      220.0,
+                      1470.0,
+                      680.0
+                    ],
+                    "image": "South_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1700.0,
+                      1800.0,
+                      1000.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.8,
+                        "index": 0,
+                        "length_m": 1.7,
+                        "span_m": [
+                          2.8,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 1.0,
+                        "index": 1,
+                        "length_m": 1.8,
+                        "span_m": [
+                          1.0,
+                          2.8
+                        ],
+                        "start_m": 2.8
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 1.0,
+                        "span_m": [
+                          0.0,
+                          1.0
+                        ],
+                        "start_m": 1.0
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0005",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    1080.0,
+                    220.0,
+                    1470.0,
+                    680.0
+                  ],
+                  "image": "South_view.png",
+                  "sha256": "bfcf0489abe0de8960aa502c8acf1da01ed283e05e8cd25d4e19cb1f92c28766",
+                  "size": [
+                    2434,
+                    1457
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "inheritance": [
+          {
+            "claim_id": "claim_0005",
+            "current_proposal_sha256": "44776933eabd3a0149caf1957e9525b99b0929043a2b49a0ce777082e232c5df",
+            "from_candidate": "candidate_01",
+            "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "targets": [
+              {
+                "eligible": true,
+                "id": "W-S2",
+                "kind": "window",
+                "reasons": []
+              }
+            ],
+            "to_candidate": "candidate_05"
+          }
+        ],
+        "operation": "claim_application",
+        "parent_candidate": "candidate_05",
+        "parent_proposal_sha256": "44776933eabd3a0149caf1957e9525b99b0929043a2b49a0ce777082e232c5df"
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "facade": "West",
+          "floor": "L1",
+          "id": "W-W1",
+          "kind": "window",
+          "p1": [
+            0.0,
+            19.467033
+          ],
+          "p2": [
+            0.0,
+            17.967033
+          ],
+          "room": "N-room",
+          "source_refs": [
+            "West_view.png left chain 1700+1800+1000",
+            "claim:claim_0006:9830af814a716b3c8333304e4fbebfe279ccca35ee15540d60c593559a512d04"
+          ],
+          "span": [
+            17.967033,
+            19.467033
+          ],
+          "width_m": 1.5,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "facade": "West",
+          "floor": "L1",
+          "id": "W-W1",
+          "kind": "window",
+          "p1": [
+            0.0,
+            19.467033
+          ],
+          "p2": [
+            0.0,
+            17.967033
+          ],
+          "room": "N-room",
+          "source_refs": [
+            "1f_view.png: west 1500 window nearest north",
+            "West_view.png: chain 1700+1800+1000"
+          ],
+          "span": [
+            17.967033,
+            19.467033
+          ],
+          "width_m": 1.5,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "id": "W-W1",
+        "operation": "update_window",
+        "reason": "Located west-elevation chain for this window",
+        "source_refs": [
+          "West_view.png left chain 1700+1800+1000",
+          "claim:claim_0006:9830af814a716b3c8333304e4fbebfe279ccca35ee15540d60c593559a512d04"
+        ]
+      },
+      {
+        "application_id": "application_0020",
+        "bindings": [
+          {
+            "claim_id": "claim_0006",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              1.0,
+              2.8
+            ],
+            "targets": [
+              [
+                "window",
+                "W-W1"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0006": {
+            "decision": {
+              "claim_id": "claim_0006",
+              "disposition": "adopted",
+              "id": "decision_0020",
+              "reason": "Apply the observed west window chain (1700+1800+1000) to W-W1."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "W-W1",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "West elevation (left edge = north end): chain 1700+1800+1000 from the 4500 wall top measures the 1800-high windows; W-W1 is the north-most of them.",
+                "sources": [
+                  {
+                    "box": [
+                      100.0,
+                      140.0,
+                      360.0,
+                      470.0
+                    ],
+                    "image": "West_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1700.0,
+                      1800.0,
+                      1000.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.8,
+                        "index": 0,
+                        "length_m": 1.7,
+                        "span_m": [
+                          2.8,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 1.0,
+                        "index": 1,
+                        "length_m": 1.8,
+                        "span_m": [
+                          1.0,
+                          2.8
+                        ],
+                        "start_m": 2.8
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 1.0,
+                        "span_m": [
+                          0.0,
+                          1.0
+                        ],
+                        "start_m": 1.0
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0006",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    100.0,
+                    140.0,
+                    360.0,
+                    470.0
+                  ],
+                  "image": "West_view.png",
+                  "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+                  "size": [
+                    2580,
+                    993
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "inheritance": [
+          {
+            "claim_id": "claim_0006",
+            "current_proposal_sha256": "146e95bcc8ab1ec92161ee39467848f6b9666632223c8f382784d5e21ddaeb13",
+            "from_candidate": "candidate_01",
+            "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "targets": [
+              {
+                "eligible": true,
+                "id": "W-W1",
+                "kind": "window",
+                "reasons": []
+              }
+            ],
+            "to_candidate": "candidate_06"
+          }
+        ],
+        "operation": "claim_application",
+        "parent_candidate": "candidate_06",
+        "parent_proposal_sha256": "146e95bcc8ab1ec92161ee39467848f6b9666632223c8f382784d5e21ddaeb13"
+      },
+      {
+        "after": {
+          "assumptions": [],
+          "facade": "West",
+          "floor": "L1",
+          "id": "W-W2",
+          "kind": "window",
+          "p1": [
+            0.0,
+            15.563187
+          ],
+          "p2": [
+            0.0,
+            14.381868
+          ],
+          "room": "NW-meeting",
+          "source_refs": [
+            "West_view.png left chain 1700+1800+1000",
+            "claim:claim_0007:345270f2a80449a2f5a5c9554958cd05e339d242c573d9355254436f6f99ac15"
+          ],
+          "span": [
+            14.381868,
+            15.563187
+          ],
+          "width_m": 1.181319,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "before": {
+          "assumptions": [],
+          "facade": "West",
+          "floor": "L1",
+          "id": "W-W2",
+          "kind": "window",
+          "p1": [
+            0.0,
+            15.563187
+          ],
+          "p2": [
+            0.0,
+            14.381868
+          ],
+          "room": "NW-meeting",
+          "source_refs": [
+            "1f_view.png: west 1200 window",
+            "West_view.png: chain 1700+1800+1000"
+          ],
+          "span": [
+            14.381868,
+            15.563187
+          ],
+          "width_m": 1.181319,
+          "z": [
+            1.0,
+            2.8
+          ]
+        },
+        "id": "W-W2",
+        "operation": "update_window",
+        "reason": "Located west-elevation chain for this window",
+        "source_refs": [
+          "West_view.png left chain 1700+1800+1000",
+          "claim:claim_0007:345270f2a80449a2f5a5c9554958cd05e339d242c573d9355254436f6f99ac15"
+        ]
+      },
+      {
+        "application_id": "application_0021",
+        "bindings": [
+          {
+            "claim_id": "claim_0007",
+            "computation": {
+              "chain": {
+                "closure_error_m": null,
+                "direction": -1,
+                "end_m": 0.0,
+                "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                "expected_total_m": null,
+                "input_unit": "mm",
+                "origin_m": 4.5,
+                "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                "segments": [
+                  {
+                    "end_m": 2.8,
+                    "index": 0,
+                    "length_m": 1.7,
+                    "span_m": [
+                      2.8,
+                      4.5
+                    ],
+                    "start_m": 4.5
+                  },
+                  {
+                    "end_m": 1.0,
+                    "index": 1,
+                    "length_m": 1.8,
+                    "span_m": [
+                      1.0,
+                      2.8
+                    ],
+                    "start_m": 2.8
+                  },
+                  {
+                    "end_m": 0.0,
+                    "index": 2,
+                    "length_m": 1.0,
+                    "span_m": [
+                      0.0,
+                      1.0
+                    ],
+                    "start_m": 1.0
+                  }
+                ],
+                "total_m": 4.5
+              },
+              "method": "dimension_chain",
+              "segment": 1
+            },
+            "operation_index": 0,
+            "parameter": "z",
+            "resolved_value": [
+              1.0,
+              2.8
+            ],
+            "targets": [
+              [
+                "window",
+                "W-W2"
+              ]
+            ],
+            "value_field": "height"
+          }
+        ],
+        "claims": {
+          "claim_0007": {
+            "decision": {
+              "claim_id": "claim_0007",
+              "disposition": "adopted",
+              "id": "decision_0021",
+              "reason": "Apply the observed west window chain (1700+1800+1000) to W-W2."
+            },
+            "record": {
+              "claim": {
+                "basis": "annotation_and_pixels",
+                "candidate": "candidate_01",
+                "objects": [
+                  {
+                    "id": "W-W2",
+                    "kind": "window"
+                  }
+                ],
+                "observation_mode": "direct",
+                "reason": "West elevation: W-W2 has the same drawn top/bottom extension lines as the 1700+1800+1000 chain (head 2.8, sill 1.0).",
+                "sources": [
+                  {
+                    "box": [
+                      440.0,
+                      140.0,
+                      580.0,
+                      470.0
+                    ],
+                    "image": "West_view.png"
+                  }
+                ],
+                "unresolved": [],
+                "value_targets": null,
+                "values": {
+                  "height": {
+                    "direction": -1,
+                    "lengths": [
+                      1700.0,
+                      1800.0,
+                      1000.0
+                    ],
+                    "origin_m": 4.5,
+                    "segment": 1,
+                    "type": "dimension_chain",
+                    "unit": "mm"
+                  }
+                }
+              },
+              "computations": {
+                "height": {
+                  "chain": {
+                    "closure_error_m": null,
+                    "direction": -1,
+                    "end_m": 0.0,
+                    "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                    "expected_total_m": null,
+                    "input_unit": "mm",
+                    "origin_m": 4.5,
+                    "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                    "segments": [
+                      {
+                        "end_m": 2.8,
+                        "index": 0,
+                        "length_m": 1.7,
+                        "span_m": [
+                          2.8,
+                          4.5
+                        ],
+                        "start_m": 4.5
+                      },
+                      {
+                        "end_m": 1.0,
+                        "index": 1,
+                        "length_m": 1.8,
+                        "span_m": [
+                          1.0,
+                          2.8
+                        ],
+                        "start_m": 2.8
+                      },
+                      {
+                        "end_m": 0.0,
+                        "index": 2,
+                        "length_m": 1.0,
+                        "span_m": [
+                          0.0,
+                          1.0
+                        ],
+                        "start_m": 1.0
+                      }
+                    ],
+                    "total_m": 4.5
+                  },
+                  "method": "dimension_chain",
+                  "segment": 1
+                }
+              },
+              "id": "claim_0007",
+              "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+              "resolved_values": {
+                "height": [
+                  1.0,
+                  2.8
+                ]
+              },
+              "sources": [
+                {
+                  "box": [
+                    440.0,
+                    140.0,
+                    580.0,
+                    470.0
+                  ],
+                  "image": "West_view.png",
+                  "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+                  "size": [
+                    2580,
+                    993
+                  ]
+                }
+              ],
+              "verification": "not_independently_verified"
+            }
+          }
+        },
+        "inheritance": [
+          {
+            "claim_id": "claim_0007",
+            "current_proposal_sha256": "12efc7507928418ed87647c1a4622c8d6a0d361209e5aa53d399200d9a2f9199",
+            "from_candidate": "candidate_01",
+            "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "targets": [
+              {
+                "eligible": true,
+                "id": "W-W2",
+                "kind": "window",
+                "reasons": []
+              }
+            ],
+            "to_candidate": "candidate_07"
+          }
+        ],
+        "operation": "claim_application",
+        "parent_candidate": "candidate_07",
+        "parent_proposal_sha256": "12efc7507928418ed87647c1a4622c8d6a0d361209e5aa53d399200d9a2f9199"
+      }
+    ],
+    "floors": [
+      {
+        "ceiling_height": 4.5,
+        "cells": [
+          {
+            "id": "N-room",
+            "polygon": [
+              [
+                0.0,
+                15.934066
+              ],
+              [
+                10.0,
+                15.934066
+              ],
+              [
+                10.0,
+                20.0
+              ],
+              [
+                0.0,
+                20.0
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456"
+            ],
+            "x": [
+              0.0,
+              10.0
+            ],
+            "y": [
+              15.934066,
+              20.0
+            ]
+          },
+          {
+            "id": "NW-meeting",
+            "polygon": [
+              [
+                0.0,
+                12.994505
+              ],
+              [
+                4.203297,
+                12.994505
+              ],
+              [
+                4.203297,
+                15.934066
+              ],
+              [
+                0.0,
+                15.934066
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456",
+              "1f_view.png: divider at 7000 from north between NW meeting room and west office",
+              "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+            ],
+            "x": [
+              0.0,
+              4.203297
+            ],
+            "y": [
+              12.994505,
+              15.934066
+            ]
+          },
+          {
+            "id": "corridor-lobby",
+            "polygon": [
+              [
+                4.203297,
+                3.434066
+              ],
+              [
+                5.728022,
+                3.434066
+              ],
+              [
+                5.728022,
+                4.903846
+              ],
+              [
+                10.0,
+                4.903846
+              ],
+              [
+                10.0,
+                8.049451
+              ],
+              [
+                5.728022,
+                8.049451
+              ],
+              [
+                5.728022,
+                15.934066
+              ],
+              [
+                4.203297,
+                15.934066
+              ]
+            ],
+            "role": "corridor",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456",
+              "1f_view.png: same divider east of corridor; corridor gap px401-456.5 left open",
+              "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures",
+              "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction",
+              "1f_view.png: lobby south wall with door aperture px560.5-589.5",
+              "1f_view.png: L-shaped wall closing corridor south end; vertical stub px456.5 py700-753.5 then west to corridor wall"
+            ],
+            "x": [
+              4.203297,
+              10.0
+            ],
+            "y": [
+              3.434066,
+              15.934066
+            ]
+          },
+          {
+            "id": "NE-cabinet",
+            "polygon": [
+              [
+                5.728022,
+                14.244505
+              ],
+              [
+                10.0,
+                14.244505
+              ],
+              [
+                10.0,
+                15.934066
+              ],
+              [
+                5.728022,
+                15.934066
+              ]
+            ],
+            "role": "storage",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: north-room divider at 4060 from north, double door aperture px402-456",
+              "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction",
+              "1f_view.png: south wall of north-east cabinet room"
+            ],
+            "x": [
+              5.728022,
+              10.0
+            ],
+            "y": [
+              14.244505,
+              15.934066
+            ]
+          },
+          {
+            "id": "E-meeting",
+            "polygon": [
+              [
+                5.728022,
+                8.049451
+              ],
+              [
+                10.0,
+                8.049451
+              ],
+              [
+                10.0,
+                14.244505
+              ],
+              [
+                5.728022,
+                14.244505
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: same divider east of corridor; corridor gap px401-456.5 left open",
+              "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction",
+              "1f_view.png: south wall of north-east cabinet room"
+            ],
+            "x": [
+              5.728022,
+              10.0
+            ],
+            "y": [
+              8.049451,
+              14.244505
+            ]
+          },
+          {
+            "id": "W-office",
+            "polygon": [
+              [
+                0.0,
+                8.049451
+              ],
+              [
+                4.203297,
+                8.049451
+              ],
+              [
+                4.203297,
+                12.994505
+              ],
+              [
+                0.0,
+                12.994505
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: divider at 7000 from north between NW meeting room and west office",
+              "1f_view.png: divider at 11940 from north, west of corridor",
+              "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+            ],
+            "x": [
+              0.0,
+              4.203297
+            ],
+            "y": [
+              8.049451,
+              12.994505
+            ]
+          },
+          {
+            "id": "SW-conference",
+            "polygon": [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                4.203297,
+                0.0
+              ],
+              [
+                4.203297,
+                8.049451
+              ],
+              [
+                0.0,
+                8.049451
+              ]
+            ],
+            "role": "conference/meeting/multipurpose",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: divider at 11940 from north, west of corridor",
+              "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures"
+            ],
+            "x": [
+              0.0,
+              4.203297
+            ],
+            "y": [
+              0.0,
+              8.049451
+            ]
+          },
+          {
+            "id": "SE-office",
+            "polygon": [
+              [
+                4.203297,
+                0.0
+              ],
+              [
+                10.0,
+                0.0
+              ],
+              [
+                10.0,
+                4.903846
+              ],
+              [
+                5.728022,
+                4.903846
+              ],
+              [
+                5.728022,
+                3.434066
+              ],
+              [
+                4.203297,
+                3.434066
+              ]
+            ],
+            "role": "office",
+            "source_refs": [
+              "image:1f_view.png",
+              "1f_view.png: corridor west wall pair px397.5/402, continues to south wall through three door apertures",
+              "1f_view.png: lobby south wall with door aperture px560.5-589.5",
+              "1f_view.png: L-shaped wall closing corridor south end; vertical stub px456.5 py700-753.5 then west to corridor wall"
+            ],
+            "x": [
+              4.203297,
+              10.0
+            ],
+            "y": [
+              0.0,
+              4.903846
+            ]
+          }
+        ],
+        "name": "L1",
+        "z_floor": 0.0
+      }
+    ],
+    "footprint_x": [
+      0.0,
+      10.0
+    ],
+    "footprint_y": [
+      0.0,
+      20.0
+    ],
+    "notes": "Deterministic plan partition compilation from explicit original-image pixels. Calibration and drawing fidelity remain unverified.",
+    "openings": [
+      {
+        "assumptions": [],
+        "id": "D-N-entry",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          0.541209,
+          20.0
+        ],
+        "p2": [
+          2.14011,
+          20.0
+        ],
+        "source_refs": [
+          "North_view.png right chain 1900+2400+200",
+          "claim:claim_0002:10f7c22adc930583634197658ae98e29974d7a15bd4a80b88baf9d23d7ecbef0"
+        ],
+        "space_id": "N-room",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-S",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          4.538462,
+          0.0
+        ],
+        "p2": [
+          5.442308,
+          0.0
+        ],
+        "source_refs": [
+          "South_view.png centre chain 1900+2400+200",
+          "claim:claim_0004:35b5a521e20c73186faff7ea77477d41a2bd384d0abc73f3c5c7684615a0cd2a"
+        ],
+        "space_id": "SE-office",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-E",
+        "kind": "door",
+        "other_space_id": null,
+        "p1": [
+          10.0,
+          7.299451
+        ],
+        "p2": [
+          10.0,
+          5.700549
+        ],
+        "source_refs": [
+          "1f_view.png: 1600 east entry door, swing drawn outside",
+          "East_view.png: chain 1900+2400+200"
+        ],
+        "space_id": "corridor-lobby",
+        "z": [
+          0.2,
+          2.6
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-B1",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          4.395604,
+          15.934066
+        ],
+        "p2": [
+          5.604396,
+          15.934066
+        ],
+        "source_refs": [
+          "1f_view.png: double door px402-456 in wall-B, leaves swing into north room; height assumed"
+        ],
+        "space_id": "N-room",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-L1",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          4.203297,
+          14.299451
+        ],
+        "p2": [
+          4.203297,
+          13.365385
+        ],
+        "source_refs": [
+          "1f_view.png: door px py358-392 in corridor west wall into NW meeting room; height assumed"
+        ],
+        "space_id": "NW-meeting",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-L2",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          4.203297,
+          12.596154
+        ],
+        "p2": [
+          4.203297,
+          11.68956
+        ],
+        "source_refs": [
+          "1f_view.png: door py420-453 in corridor west wall into west office; height assumed"
+        ],
+        "space_id": "W-office",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-CONF",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          4.203297,
+          7.651099
+        ],
+        "p2": [
+          4.203297,
+          6.771978
+        ],
+        "source_refs": [
+          "1f_view.png: door py600-632 in corridor west wall into SW conference room; height assumed"
+        ],
+        "space_id": "SW-conference",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-R2",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          5.728022,
+          15.206044
+        ],
+        "p2": [
+          5.728022,
+          14.326923
+        ],
+        "source_refs": [
+          "1f_view.png: door py325-357 in corridor east wall into NE cabinet room; height assumed"
+        ],
+        "space_id": "NE-cabinet",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-R3",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          5.728022,
+          13.695055
+        ],
+        "p2": [
+          5.728022,
+          12.815934
+        ],
+        "source_refs": [
+          "1f_view.png: door py380-412 in corridor east wall into east meeting room; height assumed"
+        ],
+        "space_id": "E-meeting",
+        "z": [
+          0.0,
+          2.1
+        ]
+      },
+      {
+        "assumptions": [],
+        "id": "D-BR",
+        "kind": "door",
+        "other_space_id": "corridor-lobby",
+        "p1": [
+          8.585165,
+          4.903846
+        ],
+        "p2": [
+          9.381868,
+          4.903846
+        ],
+        "source_refs": [
+          "1f_view.png: door px560.5-589.5 in wall-D into SE office; height assumed"
+        ],
+        "space_id": "SE-office",
+        "z": [
+          0.0,
+          2.1
+        ]
+      }
+    ],
+    "schema_version": "2",
+    "windows": [
+      {
+        "assumptions": [],
+        "facade": "North",
+        "floor": "L1",
+        "id": "W-N1",
+        "kind": "window",
+        "p1": [
+          4.659341,
+          20.0
+        ],
+        "p2": [
+          9.467033,
+          20.0
+        ],
+        "room": "N-room",
+        "source_refs": [
+          "North_view.png left chain 1100+2400+1000",
+          "claim:claim_0001:3c66ac14272328a378899ff5b44728b7d668e70ba6fc43937da818d83b6655b1"
+        ],
+        "span": [
+          4.659341,
+          9.467033
+        ],
+        "width_m": 4.807692,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "L1",
+        "id": "W-S1",
+        "kind": "window",
+        "p1": [
+          0.541209,
+          0.0
+        ],
+        "p2": [
+          2.038462,
+          0.0
+        ],
+        "room": "SW-conference",
+        "source_refs": [
+          "South_view.png left chain 1700+1800+1000",
+          "claim:claim_0003:f3d271b2da335ea34128f6af405f2f9c673a704030d17f43eb45eff0a9b6ff4b"
+        ],
+        "span": [
+          0.541209,
+          2.038462
+        ],
+        "width_m": 1.497253,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "South",
+        "floor": "L1",
+        "id": "W-S2",
+        "kind": "window",
+        "p1": [
+          7.980769,
+          0.0
+        ],
+        "p2": [
+          9.467033,
+          0.0
+        ],
+        "room": "SE-office",
+        "source_refs": [
+          "South_view.png right chain 1700+1800+1000",
+          "claim:claim_0005:1d2908c90ee0425538eb9c240ae16c0bd4157e1261a632a27fc4d7343928c1bc"
+        ],
+        "span": [
+          7.980769,
+          9.467033
+        ],
+        "width_m": 1.486264,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "L1",
+        "id": "W-W1",
+        "kind": "window",
+        "p1": [
+          0.0,
+          19.467033
+        ],
+        "p2": [
+          0.0,
+          17.967033
+        ],
+        "room": "N-room",
+        "source_refs": [
+          "West_view.png left chain 1700+1800+1000",
+          "claim:claim_0006:9830af814a716b3c8333304e4fbebfe279ccca35ee15540d60c593559a512d04"
+        ],
+        "span": [
+          17.967033,
+          19.467033
+        ],
+        "width_m": 1.5,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "L1",
+        "id": "W-W2",
+        "kind": "window",
+        "p1": [
+          0.0,
+          15.563187
+        ],
+        "p2": [
+          0.0,
+          14.381868
+        ],
+        "room": "NW-meeting",
+        "source_refs": [
+          "West_view.png left chain 1700+1800+1000",
+          "claim:claim_0007:345270f2a80449a2f5a5c9554958cd05e339d242c573d9355254436f6f99ac15"
+        ],
+        "span": [
+          14.381868,
+          15.563187
+        ],
+        "width_m": 1.181319,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "L1",
+        "id": "W-W3",
+        "kind": "window",
+        "p1": [
+          0.0,
+          12.642857
+        ],
+        "p2": [
+          0.0,
+          11.14011
+        ],
+        "room": "W-office",
+        "source_refs": [
+          "1f_view.png: west 1500 window",
+          "West_view.png: chain 1700+1800+1000"
+        ],
+        "span": [
+          11.14011,
+          12.642857
+        ],
+        "width_m": 1.502747,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "L1",
+        "id": "W-W4",
+        "kind": "window",
+        "p1": [
+          0.0,
+          9.923077
+        ],
+        "p2": [
+          0.0,
+          8.423077
+        ],
+        "room": "W-office",
+        "source_refs": [
+          "1f_view.png: west 1500 window",
+          "West_view.png: chain 1700+1800+1000"
+        ],
+        "span": [
+          8.423077,
+          9.923077
+        ],
+        "width_m": 1.5,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "West",
+        "floor": "L1",
+        "id": "W-W5",
+        "kind": "window",
+        "p1": [
+          0.0,
+          5.346154
+        ],
+        "p2": [
+          0.0,
+          0.541209
+        ],
+        "room": "SW-conference",
+        "source_refs": [
+          "1f_view.png: west 4800 window (conference room)",
+          "West_view.png: chain 1100+2400+1000; sill 1.0m head 3.4m"
+        ],
+        "span": [
+          0.541209,
+          5.346154
+        ],
+        "width_m": 4.804945,
+        "z": [
+          1.0,
+          3.4
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "L1",
+        "id": "W-E1",
+        "kind": "window",
+        "p1": [
+          10.0,
+          19.467033
+        ],
+        "p2": [
+          10.0,
+          17.967033
+        ],
+        "room": "N-room",
+        "source_refs": [
+          "1f_view.png: east 1500 window nearest north",
+          "East_view.png: chain 1700+1800+1000"
+        ],
+        "span": [
+          17.967033,
+          19.467033
+        ],
+        "width_m": 1.5,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "L1",
+        "id": "W-E2",
+        "kind": "window",
+        "p1": [
+          10.0,
+          15.563187
+        ],
+        "p2": [
+          10.0,
+          14.381868
+        ],
+        "room": "NE-cabinet",
+        "source_refs": [
+          "1f_view.png: east 1200 window",
+          "East_view.png: chain 1700+1800+1000"
+        ],
+        "span": [
+          14.381868,
+          15.563187
+        ],
+        "width_m": 1.181319,
+        "z": [
+          1.0,
+          2.8
+        ]
+      },
+      {
+        "assumptions": [],
+        "facade": "East",
+        "floor": "L1",
+        "id": "W-E3",
+        "kind": "window",
+        "p1": [
+          10.0,
+          13.645604
+        ],
+        "p2": [
+          10.0,
+          8.846154
+        ],
+        "room": "E-meeting",
+        "source_refs": [
+          "1f_view.png: east 4800 window (meeting room)",
+          "East_view.png: chain 1100+2400+1000"
+        ],
+        "span": [
+          8.846154,
+          13.645604
+        ],
+        "width_m": 4.79945,
+        "z": [
+          1.0,
+          3.4
+        ]
+      }
+    ]
+  },
+  "unresolved": [
+    "Door swing directions are visible in the plan but leaf state is not modelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

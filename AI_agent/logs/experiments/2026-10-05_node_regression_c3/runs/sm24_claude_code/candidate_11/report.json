@@ -1,0 +1,271 @@
+{
+  "agent_assumptions": [
+    "Interior door heights assumed 0-2.1 m; no interior elevation was supplied.",
+    "Interior partitions declared on measured line-pair midplanes; drawn 240 mm thicknesses not modelled.",
+    "Room uses inferred from furniture; no printed use labels on the plan.",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "counts": {
+    "boundaries": 54,
+    "connections": 10,
+    "openings": 21,
+    "spaces": 8,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "mode": "agent_geometry_proposal",
+  "model_calls": 0,
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "6987e1c011e4abbbc65b2561d0884f99199cc5da217eb4cfcf4d358d526361e4",
+  "provenance": {
+    "claim_application": {
+      "bindings": [
+        {
+          "claim_id": "claim_0010",
+          "computation": {
+            "chain": {
+              "closure_error_m": null,
+              "direction": -1,
+              "end_m": 0.0,
+              "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+              "expected_total_m": null,
+              "input_unit": "mm",
+              "origin_m": 4.5,
+              "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+              "segments": [
+                {
+                  "end_m": 3.4,
+                  "index": 0,
+                  "length_m": 1.1,
+                  "span_m": [
+                    3.4,
+                    4.5
+                  ],
+                  "start_m": 4.5
+                },
+                {
+                  "end_m": 1.0,
+                  "index": 1,
+                  "length_m": 2.4,
+                  "span_m": [
+                    1.0,
+                    3.4
+                  ],
+                  "start_m": 3.4
+                },
+                {
+                  "end_m": 0.0,
+                  "index": 2,
+                  "length_m": 1.0,
+                  "span_m": [
+                    0.0,
+                    1.0
+                  ],
+                  "start_m": 1.0
+                }
+              ],
+              "total_m": 4.5
+            },
+            "method": "dimension_chain",
+            "segment": 1
+          },
+          "operation_index": 0,
+          "parameter": "z",
+          "resolved_value": [
+            1.0,
+            3.4
+          ],
+          "targets": [
+            [
+              "window",
+              "W-W5"
+            ]
+          ],
+          "value_field": "height"
+        }
+      ],
+      "claims": {
+        "claim_0010": {
+          "decision": {
+            "claim_id": "claim_0010",
+            "disposition": "adopted",
+            "id": "decision_0024",
+            "reason": "Apply the observed west large-window chain (1100+2400+1000) to W-W5."
+          },
+          "record": {
+            "claim": {
+              "basis": "annotation_and_pixels",
+              "candidate": "candidate_01",
+              "objects": [
+                {
+                  "id": "W-W5",
+                  "kind": "window"
+                }
+              ],
+              "observation_mode": "direct",
+              "reason": "West elevation right chain 1100+2400+1000 measures the large 4800 conference window: sill 1.0 m head 3.4 m.",
+              "sources": [
+                {
+                  "box": [
+                    1040.0,
+                    140.0,
+                    1390.0,
+                    470.0
+                  ],
+                  "image": "West_view.png"
+                }
+              ],
+              "unresolved": [],
+              "value_targets": null,
+              "values": {
+                "height": {
+                  "direction": -1,
+                  "lengths": [
+                    1100.0,
+                    2400.0,
+                    1000.0
+                  ],
+                  "origin_m": 4.5,
+                  "segment": 1,
+                  "type": "dimension_chain",
+                  "unit": "mm"
+                }
+              }
+            },
+            "computations": {
+              "height": {
+                "chain": {
+                  "closure_error_m": null,
+                  "direction": -1,
+                  "end_m": 0.0,
+                  "evidence_status": "caller_supplied_dimensions_and_frame_not_independently_verified",
+                  "expected_total_m": null,
+                  "input_unit": "mm",
+                  "origin_m": 4.5,
+                  "scope": "arithmetic only; no image interpretation, opening classification, or geometry mutation",
+                  "segments": [
+                    {
+                      "end_m": 3.4,
+                      "index": 0,
+                      "length_m": 1.1,
+                      "span_m": [
+                        3.4,
+                        4.5
+                      ],
+                      "start_m": 4.5
+                    },
+                    {
+                      "end_m": 1.0,
+                      "index": 1,
+                      "length_m": 2.4,
+                      "span_m": [
+                        1.0,
+                        3.4
+                      ],
+                      "start_m": 3.4
+                    },
+                    {
+                      "end_m": 0.0,
+                      "index": 2,
+                      "length_m": 1.0,
+                      "span_m": [
+                        0.0,
+                        1.0
+                      ],
+                      "start_m": 1.0
+                    }
+                  ],
+                  "total_m": 4.5
+                },
+                "method": "dimension_chain",
+                "segment": 1
+              }
+            },
+            "id": "claim_0010",
+            "parent_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+            "resolved_values": {
+              "height": [
+                1.0,
+                3.4
+              ]
+            },
+            "sources": [
+              {
+                "box": [
+                  1040.0,
+                  140.0,
+                  1390.0,
+                  470.0
+                ],
+                "image": "West_view.png",
+                "sha256": "04d7deea75c8663bdbc229d877d150c4b8cb6782023000e27cd3b8b1edec5a8d",
+                "size": [
+                  2580,
+                  993
+                ]
+              }
+            ],
+            "verification": "not_independently_verified"
+          }
+        }
+      },
+      "file": "claims/application_0024.json",
+      "inheritance": [
+        {
+          "claim_id": "claim_0010",
+          "current_proposal_sha256": "2ed26697203a0dec45b2659aaf8f6af0517048a42f980bfd56039c7743cf758f",
+          "from_candidate": "candidate_01",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "targets": [
+            {
+              "eligible": true,
+              "id": "W-W5",
+              "kind": "window",
+              "reasons": []
+            }
+          ],
+          "to_candidate": "candidate_10"
+        }
+      ],
+      "parent_candidate": "candidate_10",
+      "parent_proposal_sha256": "2ed26697203a0dec45b2659aaf8f6af0517048a42f980bfd56039c7743cf758f"
+    },
+    "generator": "glm subscription tool loop",
+    "input_manifest_sha256": "d432e6d0fb7d6be087c51e04c19e78a05129123922f0246e9bd26b8cc6e03a50",
+    "mode": "original_images_agent_experiment",
+    "parent_candidate": "candidate_10",
+    "parent_proposal_sha256": "2ed26697203a0dec45b2659aaf8f6af0517048a42f980bfd56039c7743cf758f"
+  },
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "solver_calls": 0,
+  "source_geometry_ready": true,
+  "source_geometry_self_consistency": {
+    "findings": [],
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "source_model_sha256": "7f291d4c5064b9600e9190a8707f4199ffa82de390ca412c5b9816ffccc3a1a3",
+  "source_validation": {
+    "findings": [],
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "status": "pass"
+  },
+  "status": "not_evaluated",
+  "unresolved": [
+    "Door swing directions are visible in the plan but leaf state is not modelled.",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ]
+}

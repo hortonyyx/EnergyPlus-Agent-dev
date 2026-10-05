@@ -1,0 +1,155 @@
+{
+  "parent_draft_id": "draft_001",
+  "parent_plan_sha256": "13f2cc904e4968316835966864ad2b21c8f8d9c7625f2b9f1db030282a9e0112",
+  "operations_json": "[{\"op\": \"update\", \"collection\": \"partitions\", \"id\": \"wall-x458\", \"changes\": {\"points\": [[456.5, 298.5], [456.5, 585.5]]}, \"reason\": \"Ink check and view_0016 show the corridor east wall exists only from wall-B down to wall-A; below wall-A the lobby is open to the corridor, and the short vertical at px456.5 py700-753.5 belongs to wall-E, removing the overlap compile error.\", \"source_refs\": [\"1f_view.png view_0016 crop [440,555,630,715]: no ink at px456-462 between py588-695\", \"draft_001 drawing_differences wall_gap_without_opening wall-x458 y_px 588-695\"]}, {\"op\": \"update\", \"collection\": \"openings\", \"id\": \"D-B1\", \"changes\": {\"p1\": [408, 298.5], \"p2\": [452, 298.5]}, \"reason\": \"8x view_0017 shows the double-door aperture between jamb lines at px408 and px452 (leaf hinges); declared ends 402/456 included the jamb ink.\", \"source_refs\": [\"1f_view.png view_0017 crop [372,269,486,328]\", \"draft_001 drawing_differences opening_offset_from_gap D-B1 gap x_px 410-449\"]}]",
+  "status": "declaration_applied",
+  "changes": [
+    {
+      "operation_index": 0,
+      "field": "partitions",
+      "id": "wall-x458",
+      "before": {
+        "id": "wall-x458",
+        "points": [
+          [
+            456.5,
+            298.5
+          ],
+          [
+            456.5,
+            753.5
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction"
+        ]
+      },
+      "after": {
+        "id": "wall-x458",
+        "points": [
+          [
+            456.5,
+            298.5
+          ],
+          [
+            456.5,
+            585.5
+          ]
+        ],
+        "source_refs": [
+          "1f_view.png: corridor east wall pair px452-457/461, through two door apertures, down to SE entry wall junction"
+        ]
+      },
+      "reason": "Ink check and view_0016 show the corridor east wall exists only from wall-B down to wall-A; below wall-A the lobby is open to the corridor, and the short vertical at px456.5 py700-753.5 belongs to wall-E, removing the overlap compile error.",
+      "source_refs": [
+        "1f_view.png view_0016 crop [440,555,630,715]: no ink at px456-462 between py588-695",
+        "draft_001 drawing_differences wall_gap_without_opening wall-x458 y_px 588-695"
+      ]
+    },
+    {
+      "operation_index": 1,
+      "field": "openings",
+      "id": "D-B1",
+      "before": {
+        "id": "D-B1",
+        "kind": "door",
+        "p1": [
+          402,
+          298.5
+        ],
+        "p2": [
+          456,
+          298.5
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: double door px402-456 in wall-B, leaves swing into north room; height assumed"
+        ]
+      },
+      "after": {
+        "id": "D-B1",
+        "kind": "door",
+        "p1": [
+          408,
+          298.5
+        ],
+        "p2": [
+          452,
+          298.5
+        ],
+        "z": [
+          0,
+          2.1
+        ],
+        "source_refs": [
+          "1f_view.png: double door px402-456 in wall-B, leaves swing into north room; height assumed"
+        ]
+      },
+      "reason": "8x view_0017 shows the double-door aperture between jamb lines at px408 and px452 (leaf hinges); declared ends 402/456 included the jamb ink.",
+      "source_refs": [
+        "1f_view.png view_0017 crop [372,269,486,328]",
+        "draft_001 drawing_differences opening_offset_from_gap D-B1 gap x_px 410-449"
+      ]
+    }
+  ],
+  "unchanged_ids": {
+    "partitions": [
+      "wall-B",
+      "wall-wmid",
+      "wall-A-left",
+      "wall-A-right",
+      "wall-x400",
+      "wall-R2",
+      "wall-D",
+      "wall-E"
+    ],
+    "openings": [
+      "D-N-entry",
+      "W-N1",
+      "W-S1",
+      "D-S",
+      "W-S2",
+      "W-W1",
+      "W-W2",
+      "W-W3",
+      "W-W4",
+      "W-W5",
+      "W-E1",
+      "W-E2",
+      "W-E3",
+      "D-E",
+      "D-L1",
+      "D-L2",
+      "D-CONF",
+      "D-R2",
+      "D-R3",
+      "D-BR"
+    ],
+    "space_seeds": [
+      "N-room",
+      "NW-meeting",
+      "W-office",
+      "SW-conference",
+      "corridor-lobby",
+      "SE-office",
+      "NE-cabinet",
+      "E-meeting"
+    ]
+  },
+  "unchanged_fields": [
+    "floor_id",
+    "z_floor",
+    "ceiling_height",
+    "x_anchors",
+    "y_anchors",
+    "basis",
+    "footprint_pixels",
+    "space_seeds",
+    "assumptions",
+    "unresolved"
+  ],
+  "scope": "Declaration preservation only; changed topology can change derived rooms/hosts. Compiler validates geometry; original-image fidelity is not certified."
+}

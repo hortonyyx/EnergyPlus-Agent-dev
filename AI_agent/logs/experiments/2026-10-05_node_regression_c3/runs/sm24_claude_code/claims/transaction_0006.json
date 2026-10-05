@@ -1,0 +1,978 @@
+{
+  "id": "transaction_0006",
+  "candidate": "candidate_01",
+  "status": "completed",
+  "entries": [
+    {
+      "index": 0,
+      "candidate": "candidate_01",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0001",
+        "reason": "Apply the observed north 4800-window chain (1100+2400+1000 from the 4500 wall top) to W-N1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-N1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located north-elevation chain for this window",
+            "source_refs": [
+              "North_view.png left chain 1100+2400+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0001",
+      "reason": "Apply the observed north 4800-window chain (1100+2400+1000 from the 4500 wall top) to W-N1.",
+      "decision_id": "decision_0015",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-N1"
+            ]
+          ]
+        }
+      ],
+      "application_id": "application_0015",
+      "error": null,
+      "result_candidate": "candidate_02",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_02"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 1,
+      "candidate": "candidate_02",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0002",
+        "reason": "Apply the observed north entry-door chain (1900+2400+200) to D-N-entry.",
+        "operations": [
+          {
+            "op": "update_opening",
+            "id": "D-N-entry",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located north-elevation chain for this door",
+            "source_refs": [
+              "North_view.png right chain 1900+2400+200"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0002",
+      "reason": "Apply the observed north entry-door chain (1900+2400+200) to D-N-entry.",
+      "decision_id": "decision_0016",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D-N-entry"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0002",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_02",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "29d8b2064bc123bc32006ca13dbb15442ef5f4bc885801cb7d9bc46c61869ccd",
+          "targets": [
+            {
+              "kind": "opening",
+              "id": "D-N-entry",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0016",
+      "error": null,
+      "result_candidate": "candidate_03",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_03"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 2,
+      "candidate": "candidate_03",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0003",
+        "reason": "Apply the observed south window chain (1700+1800+1000) to W-S1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-S1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located south-elevation chain for this window",
+            "source_refs": [
+              "South_view.png left chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0003",
+      "reason": "Apply the observed south window chain (1700+1800+1000) to W-S1.",
+      "decision_id": "decision_0017",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-S1"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0003",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_03",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "5e863fb154e9fba3708b011aa60881e9f6ba023a3d1c37459deb8ddc212f633b",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-S1",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0017",
+      "error": null,
+      "result_candidate": "candidate_04",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_04"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 3,
+      "candidate": "candidate_04",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0004",
+        "reason": "Apply the observed south door chain (1900+2400+200) to D-S.",
+        "operations": [
+          {
+            "op": "update_opening",
+            "id": "D-S",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located south-elevation chain for this door",
+            "source_refs": [
+              "South_view.png centre chain 1900+2400+200"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0004",
+      "reason": "Apply the observed south door chain (1900+2400+200) to D-S.",
+      "decision_id": "decision_0018",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D-S"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0004",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_04",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "65099e06b8423d5d88bd384917690176a0cf672ca9d34c4b0d08b1098b69a30d",
+          "targets": [
+            {
+              "kind": "opening",
+              "id": "D-S",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0018",
+      "error": null,
+      "result_candidate": "candidate_05",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_05"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 4,
+      "candidate": "candidate_05",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0005",
+        "reason": "Apply the observed south window chain (1700+1800+1000) to W-S2.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-S2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located south-elevation chain for this window",
+            "source_refs": [
+              "South_view.png right chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0005",
+      "reason": "Apply the observed south window chain (1700+1800+1000) to W-S2.",
+      "decision_id": "decision_0019",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-S2"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0005",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_05",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "44776933eabd3a0149caf1957e9525b99b0929043a2b49a0ce777082e232c5df",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-S2",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0019",
+      "error": null,
+      "result_candidate": "candidate_06",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_06"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 5,
+      "candidate": "candidate_06",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0006",
+        "reason": "Apply the observed west window chain (1700+1800+1000) to W-W1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located west-elevation chain for this window",
+            "source_refs": [
+              "West_view.png left chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0006",
+      "reason": "Apply the observed west window chain (1700+1800+1000) to W-W1.",
+      "decision_id": "decision_0020",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W1"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0006",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_06",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "146e95bcc8ab1ec92161ee39467848f6b9666632223c8f382784d5e21ddaeb13",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-W1",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0020",
+      "error": null,
+      "result_candidate": "candidate_07",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_07"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 6,
+      "candidate": "candidate_07",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0007",
+        "reason": "Apply the observed west window chain (1700+1800+1000) to W-W2.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located west-elevation chain for this window",
+            "source_refs": [
+              "West_view.png left chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0007",
+      "reason": "Apply the observed west window chain (1700+1800+1000) to W-W2.",
+      "decision_id": "decision_0021",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W2"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0007",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_07",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "12efc7507928418ed87647c1a4622c8d6a0d361209e5aa53d399200d9a2f9199",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-W2",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0021",
+      "error": null,
+      "result_candidate": "candidate_08",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_08"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 7,
+      "candidate": "candidate_08",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0008",
+        "reason": "Apply the observed west window chain (1700+1800+1000) to W-W3.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W3",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located west-elevation chain for this window",
+            "source_refs": [
+              "West_view.png left chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0008",
+      "reason": "Apply the observed west window chain (1700+1800+1000) to W-W3.",
+      "decision_id": "decision_0022",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W3"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0008",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_08",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "f3d9b5e281080e422529732ca95429b4daef836766f9ec56d24aa3539d46b497",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-W3",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0022",
+      "error": null,
+      "result_candidate": "candidate_09",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_09"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 8,
+      "candidate": "candidate_09",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0009",
+        "reason": "Apply the observed west window chain (1700+1800+1000) to W-W4.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W4",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located west-elevation chain for this window",
+            "source_refs": [
+              "West_view.png left chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0009",
+      "reason": "Apply the observed west window chain (1700+1800+1000) to W-W4.",
+      "decision_id": "decision_0023",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W4"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0009",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_09",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "f0a0d28d6c73597af07f5397eca4a1a42f6abf3692089865ae3595a4642b4005",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-W4",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0023",
+      "error": null,
+      "result_candidate": "candidate_10",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_10"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 9,
+      "candidate": "candidate_10",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0010",
+        "reason": "Apply the observed west large-window chain (1100+2400+1000) to W-W5.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-W5",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located west-elevation chain for the 4800 conference window",
+            "source_refs": [
+              "West_view.png right chain 1100+2400+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0010",
+      "reason": "Apply the observed west large-window chain (1100+2400+1000) to W-W5.",
+      "decision_id": "decision_0024",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-W5"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0010",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_10",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "2ed26697203a0dec45b2659aaf8f6af0517048a42f980bfd56039c7743cf758f",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-W5",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0024",
+      "error": null,
+      "result_candidate": "candidate_11",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_11"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 10,
+      "candidate": "candidate_11",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0011",
+        "reason": "Apply the observed east door chain (1900+2400+200) to D-E.",
+        "operations": [
+          {
+            "op": "update_opening",
+            "id": "D-E",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located east-elevation chain for this door",
+            "source_refs": [
+              "East_view.png left chain 1900+2400+200"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0011",
+      "reason": "Apply the observed east door chain (1900+2400+200) to D-E.",
+      "decision_id": "decision_0025",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "opening",
+              "D-E"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0011",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_11",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "6987e1c011e4abbbc65b2561d0884f99199cc5da217eb4cfcf4d358d526361e4",
+          "targets": [
+            {
+              "kind": "opening",
+              "id": "D-E",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0025",
+      "error": null,
+      "result_candidate": "candidate_12",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_12"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 11,
+      "candidate": "candidate_12",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0012",
+        "reason": "Apply the observed east large-window chain (1100+2400+1000) to W-E3.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E3",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located east-elevation chain for the 4800 meeting-room window",
+            "source_refs": [
+              "East_view.png centre chain 1100+2400+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0012",
+      "reason": "Apply the observed east large-window chain (1100+2400+1000) to W-E3.",
+      "decision_id": "decision_0026",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E3"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0012",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_12",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "3aa80a31017524f72c9447bb6dfab0c2e0049226e0076b7092d7c96eda60307a",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-E3",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0026",
+      "error": null,
+      "result_candidate": "candidate_13",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_13"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 12,
+      "candidate": "candidate_13",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0013",
+        "reason": "Apply the observed east window chain (1700+1800+1000) to W-E2.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E2",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located east-elevation chain for this window",
+            "source_refs": [
+              "East_view.png right chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0013",
+      "reason": "Apply the observed east window chain (1700+1800+1000) to W-E2.",
+      "decision_id": "decision_0027",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E2"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0013",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_13",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "b8ac16f96ea3352a0a8c69ba34da9eb95245e6e801fc5c4d1f2fa3c76ccdce4b",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-E2",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0027",
+      "error": null,
+      "result_candidate": "candidate_14",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_14"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    },
+    {
+      "index": 13,
+      "candidate": "candidate_14",
+      "status": "applied",
+      "request": {
+        "action": "apply",
+        "claim_id": "claim_0014",
+        "reason": "Apply the observed east window chain (1700+1800+1000) to W-E1.",
+        "operations": [
+          {
+            "op": "update_window",
+            "id": "W-E1",
+            "changes": {
+              "z": {
+                "claim": "$claim",
+                "value": "height"
+              }
+            },
+            "reason": "Located east-elevation chain for this window",
+            "source_refs": [
+              "East_view.png right chain 1700+1800+1000"
+            ]
+          }
+        ]
+      },
+      "action": "apply",
+      "claim_id": "claim_0014",
+      "reason": "Apply the observed east window chain (1700+1800+1000) to W-E1.",
+      "decision_id": "decision_0028",
+      "targets": [
+        {
+          "value": "height",
+          "parameter": "z",
+          "targets": [
+            [
+              "window",
+              "W-E1"
+            ]
+          ]
+        }
+      ],
+      "inheritance": [
+        {
+          "claim_id": "claim_0014",
+          "from_candidate": "candidate_01",
+          "to_candidate": "candidate_14",
+          "original_proposal_sha256": "e17ff9721a219dd49fa8e44c4e0d731801ec8dc034867aeb9e56c303c8d7b7ef",
+          "current_proposal_sha256": "25575209a61628cebe3b53c5ffde3edf6114cca5e5ffb8e8b9f6100ebd427842",
+          "targets": [
+            {
+              "kind": "window",
+              "id": "W-E1",
+              "eligible": true,
+              "reasons": []
+            }
+          ]
+        }
+      ],
+      "application_id": "application_0028",
+      "error": null,
+      "result_candidate": "candidate_15",
+      "save_effects": {
+        "created_candidates": [
+          "candidate_15"
+        ],
+        "geometry_applied": false,
+        "audit_written": true
+      }
+    }
+  ],
+  "result_candidate": "candidate_15",
+  "saved_candidate": "candidate_15",
+  "save_effects": {
+    "created_candidates": [
+      "candidate_02",
+      "candidate_03",
+      "candidate_04",
+      "candidate_05",
+      "candidate_06",
+      "candidate_07",
+      "candidate_08",
+      "candidate_09",
+      "candidate_10",
+      "candidate_11",
+      "candidate_12",
+      "candidate_13",
+      "candidate_14",
+      "candidate_15"
+    ],
+    "geometry_applied": false,
+    "audit_written": true
+  }
+}
