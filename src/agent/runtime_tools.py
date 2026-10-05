@@ -473,26 +473,8 @@ def _is_run_artifact(path: Path, run_directory: Path) -> bool:
 
 def _result_metadata(raw_result: Mapping[str, Any]) -> dict[str, Any]:
     """Extract the ordinary text JSON metadata returned alongside an MCP image."""
-
-    structured = raw_result.get("structuredContent")
-    if isinstance(structured, dict):
-        return structured
-    content = raw_result.get("content", [])
-    if not isinstance(content, list):
-        return {}
-    for block in reversed(content):
-        if not isinstance(block, Mapping) or block.get("type") != "text":
-            continue
-        text = block.get("text")
-        if not isinstance(text, str):
-            continue
-        try:
-            value = json.loads(text)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(value, dict):
-            return value
-    return {}
+    from scripts.tool_scripts.bim_agent_saved_result import result_metadata
+    return result_metadata(raw_result)
 
 
 def write_frozen_materials(output_directory: Path, *, repository_root: Path) -> dict[str, Any]:

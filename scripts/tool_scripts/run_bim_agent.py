@@ -520,7 +520,7 @@ def delivery_tool_reply(result: dict) -> dict:
     # Even a long user note or hundreds of floors must not hide the actual
     # completion/uncertainty state behind a transport error.
     minimal = {key: compact[key] for key in (
-        'candidate', 'viewer', 'source_model', 'source_model_sha256', 'counts',
+        'candidate', 'saved_candidate', 'save_effects', 'viewer', 'source_model', 'source_model_sha256', 'counts',
         'selection_origin', 'drawing_fidelity', 'response_compacted',
         'full_delivery_report', 'review_scope_status_counts', 'current_review_count',
         'stale_review_count', 'source_image_feedback_summary', 'space_relation_review_summary',
@@ -830,6 +830,8 @@ class Toolkit:
             for row in claim_state["applications"]]
         result["adopted_unapplied_claims"] = [row["id"] for row in current_claims["claims"]
             if row["state"] in {"pending_application", "partially_satisfied", "changed_since_check"}]
+        from scripts.tool_scripts.bim_agent_saved_result import saved_source_result
+        saved_source_result(self.run, result, selection=True)
         dump(self.run / "delivery.json", result)
         # A separate handoff preserves the immutable candidate's original report.
         statuses = {"not_reviewed":"未回查", "partial":"仅有局部回查",
@@ -1076,6 +1078,10 @@ class Toolkit:
             raise
         result["plan_revision"] = dict(**binding, unchanged_ids=preservation["unchanged_ids"],
             changed_targets=[dict(field=r["field"], id=r["id"]) for r in preservation["changes"]])
+        from scripts.tool_scripts.bim_agent_saved_result import saved_source_result
+        prior_result = self.run / "plan_drafts" / draft_id / "result.json"
+        prior = json.loads(prior_result.read_bytes()).get("candidate") if prior_result.is_file() else None
+        saved_source_result(self.run, result, parent=prior)
         try:
             saved_plan = json.loads((self.run / result["plan_input"]["plan_file"]).read_text())
             with PILImage.open(self.image_path(parent["image"])) as original:
@@ -1106,6 +1112,7 @@ class Toolkit:
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
         from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
+        from scripts.tool_scripts.bim_agent_saved_result import saved_result
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
         folder.mkdir(exist_ok=True)
@@ -1141,6 +1148,7 @@ class Toolkit:
                       "repair_hint": plan_error_hint(plan, str(error)),
                       "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            saved_result(result, audit_written=True)
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
             return result
@@ -1250,6 +1258,7 @@ class Toolkit:
                       "repair_hint": plan_error_hint(plan, str(error)),
                       "plan_input": record, "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            saved_result(result, audit_written=True)
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
             return result
@@ -1323,6 +1332,7 @@ class Toolkit:
               plan_input=None, calibration=None, claim_application=None,
               plan_assembly=None, assembly_calibrations=None):
         from src.agent.execution.source_proposal import export_source_proposal
+        from scripts.tool_scripts.bim_agent_saved_result import saved_result, saved_source_result
         if isinstance(proposal, dict) and 'mesh_frame' in proposal:
             from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
             frame = validate_mesh_frame(proposal['mesh_frame'])
@@ -1331,8 +1341,8 @@ class Toolkit:
         budget = self.candidate_budget()
         index = budget["used"] + 1
         if budget["remaining"] == 0:
-            return {"error": "candidate budget exhausted; report saved partial results",
-                    "candidate_budget": budget, "remaining_seconds": self.remaining_seconds()}
+            return saved_result({"error": "candidate budget exhausted; report saved partial results",
+                    "candidate_budget": budget, "remaining_seconds": self.remaining_seconds()})
         candidate = f"candidate_{index:02d}"
         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
                       "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
@@ -1387,6 +1397,7 @@ class Toolkit:
                 except Exception as error:
                     result["source_plan_errors"].append({"candidate": candidate,
                         "floor_id": floor["id"], "error": str(error)})
+        saved_source_result(self.run, result, parent=parent)
         self.log(action, result)
         return result
 
@@ -2365,6 +2376,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
     def candidate_result(result) -> CallToolResult:
         """Keep JSON structured output while attaching newly generated feedback views."""
+        from scripts.tool_scripts.bim_agent_saved_result import saved_result
+        if "saved_candidate" not in result:
+            saved_result(result)
         # Put drawing differences, then actionable dimensions/edits, ahead of the large inventories.
         result = {**{k: result[k] for k in ("drawing_differences", "plan_revision", "plan_input") if k in result}, **result}
         content = []
@@ -2494,14 +2508,14 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return CallToolResult(content=content, structuredContent=reply)
 
         @server.tool()
-        def claim_transaction(entries_json: str, candidate: str = "") -> dict:
+        def claim_transaction(entries_json: str, candidate: str = "") -> CallToolResult:
             """Batch record/adopt/confirm or apply evidence with per-entry audit.
             Entries commit independently; failed entries remain explicit. Read claims
             reference for claim/claim_id, action, reason and $claim operation bindings.
             Only unchanged targets inherit across candidates; retracted evidence cannot.
             Empty candidate is allowed only for facade_count records before building.
             """
-            return toolkit.claim_transaction(candidate, entries_json)
+            return candidate_result(toolkit.claim_transaction(candidate, entries_json))
 
         @server.tool()
         def record_claim(claim_json: str) -> CallToolResult:

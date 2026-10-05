@@ -8,13 +8,13 @@
 
 本包修改工具脚本（不含 `bim_agent_budget.py`、`bim_agent_guidance.py` 中 C3-R 所属两句时间指引），以及 `runtime_context` 当前稿选择、`runtime_coordinator` 源稿/观察应用/恢复、`runtime_behaviour`、`runtime_tools` 的结果元数据与工具名表、版本登记及对应检查。不修改 C3-R 所属底座、检查点、配置与旧检查。
 
-目前没有发现需要越界修改的事项；如发现，先在本报告记录并留给合并方处理。
+共享接口核对：底座 `ToolExecutionPayload` 规定正常返回的写调用必须有 `applied_write_id`；这个字段确认持久写入（包括事务审计），不等于几何应用。本包保留该契约，用 `save_effects.audit_written` 与 `save_effects.geometry_applied` 区分，只有后者登记/恢复 `applied-observation`。无需越界改 `src/harness_contracts/` 或 C3-R 检查点；合并时请保留这一区分。
 
 ## 验收进度
 
 | 项目 | 实施与核验 | 状态 |
 | --- | --- | --- |
-| A 保存结果契约 | 统一八个保存入口及读取处；事务全部失败、部分成功、恢复反例 | 待做 |
+| A 保存结果契约 | `saved_candidate`＋`save_effects` 共用契约；事务复用普通修订反馈与图像，状态读取及源稿计数共用兼容读取器。成功、全部失败、部分成功、真实压缩再恢复及纯备注不算几何应用反例通过 | 已实现，综合核验待 E |
 | B 冗余返回 | 去 schema title；剖面/修订/高度覆盖/精度摘要，全文可读回；四项文字及三类历史返回字符数 | 待做 |
 | C 报错修正 | 对象、缺失字段与最小格式；A1 sm25 四次修订重放 | 待做 |
 | D 三列口径 | 调用报错／领域未成功／可用源稿；两次 27B 重算（A2 后预期 0／2／1） | 待做 |
@@ -25,3 +25,6 @@
 启动检查：工作树干净，分支和基线正确；C3-R 独立工作树存在。已阅读 `AI_agent/Agent.md` 与完整派工单，继续加载指定项目上下文和审查证据。
 
 后续在此记录实际命令、结果、字符数、提交与未完成项，不以离线通过宣称真实模型质量已验证。
+
+- A 定向检查：`PYTHONPATH=/root/worktrees/astra-c3t python -m pytest -n 2 -s --basetemp=.tmp_c3t/pytest_contract3 tests/test_bim_cleanup_c3t.py tests/test_bim_claim_transactions.py tests/test_stage1_behaviour.py`，**26 通过，8.42 秒**（[日志](validation/contract3.log)）。
+- 五份历史运行已解到 `.tmp_c3t/history/`，压缩包及 **10,230 文件**哈希全部核对；索引见 [evidence_sources.json](evidence_sources.json)。原证据未改。
