@@ -139,9 +139,10 @@ def test_native_http_failures_use_c1_rules_without_credentials(tmp_path, status,
                        if e.payload.event_type == "run_lifecycle" and e.payload.model_failure)
         assert failure.http_status == status and failure.service_error_type == error
         assert failure.request_id == "req-native" and failure.usage_received
-        for f in engine.store.directory.rglob("*"):
-            if f.is_file():
-                assert b"private-test-key" not in f.read_bytes()
+    # Include the lock file after closing its Windows-exclusive handle.
+    for f in engine.store.directory.rglob("*"):
+        if f.is_file():
+            assert b"private-test-key" not in f.read_bytes()
 
 
 def test_explicit_native_credentials_and_capture_parameters(tmp_path, monkeypatch):

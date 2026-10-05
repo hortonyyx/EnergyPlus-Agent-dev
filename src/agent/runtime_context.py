@@ -32,8 +32,8 @@ def update_building_context(engine, event, raw_result):
         if not path.is_relative_to(run):
             raise ValueError("context artifact escapes run directory")
         ref = store.put_bytes(path.read_bytes(), "application/json")
-        return SourceRef(source_id=str(path.relative_to(run)), source_kind="tool",
-            locator=str(path.relative_to(run)), blob=ref)
+        return SourceRef(source_id=path.relative_to(run).as_posix(), source_kind="tool",
+            locator=path.relative_to(run).as_posix(), blob=ref)
 
     metadata = raw_result.get("structuredContent")
     if not isinstance(metadata, dict):

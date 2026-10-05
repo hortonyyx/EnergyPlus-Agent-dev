@@ -118,7 +118,7 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
     monkeypatch.setattr(runtime_entry, "ScriptedAdapter", ScenarioAdapter)
     script = tmp_path / "actions.json"
     script.write_text(json.dumps(actions))
-    args = runtime_entry.parser().parse_args(["--out", str(out), "--images", str(images),
+    args = runtime_entry.parser().parse_args(["--out", str(out), "--run-root", str(tmp_path), "--images", str(images),
         "--provider", "scripted", "--script", str(script), "--seconds", "6000",
         "--model-calls", str(model_calls), "--tool-calls", "20", "--tokens", "20000000",
         "--max-candidates", "8", "--floor-plan-image", "plan.png",

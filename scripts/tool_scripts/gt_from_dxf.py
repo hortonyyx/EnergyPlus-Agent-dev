@@ -11,8 +11,7 @@ import sys
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+sys.path.insert(0, str(_REPO_ROOT))  # Own checkout precedes any editable install.
 
 from src.agent.judge.gt_extraction import ExtractionInputs, extract_gt_v3
 from src.agent.judge.gt import DEFAULT_GT_DIR

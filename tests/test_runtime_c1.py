@@ -98,11 +98,12 @@ def test_mocktransport_failure_classification_and_bounded_retry(tmp_path, failur
                 assert item.request_id == "request-one"
         assert len([e for e in engine.store.events if e.payload.event_type == "budget"
                     and e.payload.action == "settle"]) == expected_calls
-        for path in engine.store.directory.rglob("*"):
-            if path.is_file():
-                assert b"secret-test-key" not in path.read_bytes()
-                assert b"other-secret" not in path.read_bytes()
         engine.store.validate()
+    # Include the lock file after closing its Windows-exclusive handle.
+    for path in engine.store.directory.rglob("*"):
+        if path.is_file():
+            assert b"secret-test-key" not in path.read_bytes()
+            assert b"other-secret" not in path.read_bytes()
 
 
 def test_scripted_turns_keep_prefix_then_compact_once_with_exact_saved_state(tmp_path):

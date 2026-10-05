@@ -209,7 +209,7 @@ class CoordinatorSession:
             "model_profile": asdict(get_model_profile(self.model)),
             "guide_sha256": hashlib.sha256(self.guide.encode()).hexdigest(),
             "tools_sha256": hashlib.sha256(json.dumps(self.catalog, sort_keys=True).encode()).hexdigest(),
-            "source_files": {str(p.relative_to(self.root)): hashlib.sha256(p.read_bytes()).hexdigest()
+            "source_files": {p.relative_to(self.root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                              for p in source_files if p.is_file()}}
         configuration = json.loads(json.dumps(configuration))
         config_path = self.store.task_directory / "coordinator-config.json"

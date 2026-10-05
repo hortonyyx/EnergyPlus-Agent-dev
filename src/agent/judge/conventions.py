@@ -243,11 +243,11 @@ def reading_report(run: Path, *, reference_spaces=()) -> dict:
         try:
             raw = json.loads(data)
         except (ValueError, UnicodeDecodeError) as error:
-            records.append(dict(path=str(path.relative_to(run)), sha256=sha256(path),
+            records.append(dict(path=path.relative_to(run).as_posix(), sha256=sha256(path),
                 status='unparseable_saved_reading', raw_text=data.decode('utf-8', errors='replace'),
                 parse_error=str(error)))
             continue
-        row = dict(path=str(path.relative_to(run)), sha256=sha256(path), declaration=raw)
+        row = dict(path=path.relative_to(run).as_posix(), sha256=sha256(path), declaration=raw)
         for name in ('input.json', 'compilation.json', 'geometry_feedback.json'):
             saved = path.with_name(name)
             if saved.is_file():
@@ -273,10 +273,10 @@ def reading_report(run: Path, *, reference_spaces=()) -> dict:
                             ('dimension_chains', '*.json')]:
         for path in sorted((run / folder).glob(pattern)):
             try:
-                records.append(dict(path=str(path.relative_to(run)), sha256=sha256(path),
+                records.append(dict(path=path.relative_to(run).as_posix(), sha256=sha256(path),
                                     declaration=json.loads(path.read_bytes())))
             except (ValueError, UnicodeDecodeError) as error:
-                records.append(dict(path=str(path.relative_to(run)), sha256=sha256(path),
+                records.append(dict(path=path.relative_to(run).as_posix(), sha256=sha256(path),
                     status='unparseable_saved_reading', raw_text=path.read_text(errors='replace'), parse_error=str(error)))
     return dict(mode='recorded_readings_before_delivery_allowances', records=records,
         status='recorded' if records else 'not_available',

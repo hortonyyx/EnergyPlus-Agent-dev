@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -75,6 +76,8 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             raise ValueError(f"input does not exist: {target}")
         if case.get("run_root") is not None and mode != "single_model":
             raise ValueError("explicit run_root currently supports single_model only")
+        if case.get("run_root") is not None:
+            case["run_root"] = str(Path(case["run_root"]).expanduser())
         resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
                            run_root=case.get("run_root"))
         floors = case.get("floor_plan_images")
@@ -114,7 +117,7 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                                 run_root=case.get("run_root"))
     argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
             "--out", str(output), "--provider", case["provider"],
-            "--model", case["model"], "--credentials-file", case["credentials_file"],
+            "--model", case["model"], "--credentials-file", str((ROOT / Path(case["credentials_file"]).expanduser()).resolve()),
             "--scope", case["scope"], "--image-kind", case["image_kind"],
             "--model-calls", str(limits["model_calls"]),
             "--tool-calls", str(limits["tool_calls"]),
@@ -177,10 +180,14 @@ def main() -> None:
     case = selected_case(configuration, args.case)
     command = argv_for(case, resume=args.resume)
     if args.action == "command":
-        print(shlex.join(command))
+        # Printed commands are for the host shell; launch itself always uses argv.
+        print("& " + " ".join("'" + value.replace("'", "''") + "'" for value in command)
+              if os.name == "nt" else shlex.join(command))
         return
-    os.execvpe(command[0], command, {**os.environ, "PYTHONPATH": str(ROOT),
-                                     "PYTHONDONTWRITEBYTECODE": "1"})
+    environment = {**os.environ, "PYTHONPATH": str(ROOT), "PYTHONDONTWRITEBYTECODE": "1"}
+    if os.name == "nt":
+        raise SystemExit(subprocess.call(command, env=environment))
+    os.execvpe(command[0], command, environment)
 
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ def build_review_index(files: Iterable[Path], *, root: Path, candidate_gt_sha256
                        manifest_sha256: str) -> dict:
     """Build the v1 inventory using the already-reviewed, frozen formula."""
     root = Path(root).resolve()
-    entries = [{"path": str(Path(path).resolve().relative_to(root)), "sha256": _sha256(Path(path))}
+    entries = [{"path": Path(path).resolve().relative_to(root).as_posix(), "sha256": _sha256(Path(path))}
                for path in files]
     entries = _sort_inventory_entries(entries)
     return {"schema": REVIEW_INDEX_SCHEMA, "candidate_gt_sha256": candidate_gt_sha256,
@@ -92,7 +92,7 @@ def validate_review_index(bundle_dir: Path) -> dict:
         raise ValueError("review_index_algorithm_invalid")
     if index.get("inventory_sha256") != _canonical_inventory_sha256(normalized):
         raise ValueError("review_index_inventory_mismatch")
-    expected = {str(path.relative_to(root)) for path in _review_files(root)}
+    expected = {path.relative_to(root).as_posix() for path in _review_files(root)}
     listed = {item["path"] for item in normalized}
     if listed != expected:
         raise ValueError("review_index_file_set_mismatch")

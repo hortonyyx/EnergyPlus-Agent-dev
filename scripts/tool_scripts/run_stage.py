@@ -39,8 +39,7 @@ from pathlib import Path
 # Be robust to CWD: make `import src...` work whether or not the package is
 # installed editable (mirrors how the repo runs scripts from the root).
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+sys.path.insert(0, str(_REPO_ROOT))  # Own checkout precedes any editable install.
 
 from src.agent.execution import (  # noqa: E402
     RunManifest,
@@ -1554,7 +1553,7 @@ def _render_geometry_viewer(
         out = save_source_review(run_dir, state, viewer)
         landing = run_dir / "manual_review/geometry_viewer.html"
         landing.write_text('<!doctype html><meta charset="utf-8"><title>源模型查看</title>'
-                           f'<p>{status}</p><a href="{html_module.escape(str(out.relative_to(landing.parent)))}">打开当前源模型</a>', encoding="utf-8")
+                           f'<p>{status}</p><a href="{html_module.escape(out.relative_to(landing.parent).as_posix())}">打开当前源模型</a>', encoding="utf-8")
         return str(out)
     except Exception as e:  # noqa: BLE001 — viewer is best-effort, never fatal
         return f"(geometry viewer render failed: {type(e).__name__}: {e})"

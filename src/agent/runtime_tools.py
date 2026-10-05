@@ -367,7 +367,7 @@ class FrozenBimTools:
         for path in sorted(self.run_directory.rglob("*")):
             if not path.is_file() or not _is_durable_artifact(path, self.run_directory):
                 continue
-            files[str(path.relative_to(self.run_directory))] = _sha256(path)
+            files[path.relative_to(self.run_directory).as_posix()] = _sha256(path)
         canonical = json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return {"files": files, "snapshot_sha256": hashlib.sha256(canonical).hexdigest()}
 

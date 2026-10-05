@@ -2,6 +2,7 @@
 import asyncio
 import copy
 import json
+import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -64,8 +65,13 @@ def test_explicit_storage_root_cannot_authorize_another_checkout_or_symlink(tmp_
 
 
 def test_default_cli_output_keeps_cwd_semantics_and_still_refuses_foreign_cwd(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    assert resolve_run_output(Path("relative"), repository_root=ROOT) == tmp_path / "relative"
+    # The positive default-root case must actually be inside this checkout;
+    # native Windows puts pytest's default tmp_path outside it.
+    with tempfile.TemporaryDirectory(prefix=".test-run-cwd-", dir=ROOT) as directory:
+        local = Path(directory)
+        monkeypatch.chdir(local)
+        assert resolve_run_output(Path("relative"), repository_root=ROOT) == local / "relative"
+        monkeypatch.chdir(ROOT)
     monkeypatch.chdir(ROOT.parent)
     with pytest.raises(ValueError, match="escapes"):
         resolve_run_output(Path("relative"), repository_root=ROOT)

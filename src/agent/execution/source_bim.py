@@ -60,14 +60,14 @@ def export_source_bim(run_dir: Path, out_dir: Path, *, capability_profile: str, 
             report["input_authority"] = "accepted_correction" if rec else "legacy_stage_root"
             report["input_trust"] = resolved.trust_message
         input_path = attempt / "output.json" if attempt else run_dir / "1_correction/correction_geometry_snapped.json"
-        report["input_artifacts"][str(input_path.relative_to(run_dir))] = hash_file(input_path)
+        report["input_artifacts"][input_path.relative_to(run_dir).as_posix()] = hash_file(input_path)
         blocked_input = False
         if attempt:
             for name in ("checks.json", "judge.json", "feature_states.json", "window_resolver_inputs.json", "window_hosts.json"):
                 path = attempt / name
                 if not path.exists():
                     continue
-                report["input_artifacts"][str(path.relative_to(run_dir))] = hash_file(path)
+                report["input_artifacts"][path.relative_to(run_dir).as_posix()] = hash_file(path)
                 if name == "checks.json":
                     from src.validator.checks.schema import CheckReport
                     checks = CheckReport.model_validate_json(path.read_bytes())

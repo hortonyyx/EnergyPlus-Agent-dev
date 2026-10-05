@@ -414,7 +414,9 @@ def test_exact_http_wire_body_matches_recorded_bytes_and_never_logs_key(tmp_path
         assert result["status"] == "completed"
         request = next(e.payload for e in engine.store.events if e.payload.event_type == "adapter_request")
         assert engine.store.capture_bytes(request.final_request_body) == received[0]
-        assert all(b"test-secret" not in p.read_bytes() for p in engine.store.directory.rglob("*") if p.is_file())
+    # Windows exclusive locks deny reads through a second handle too. Scan
+    # every file, including writer.lock, after releasing the writer handle.
+    assert all(b"test-secret" not in p.read_bytes() for p in engine.store.directory.rglob("*") if p.is_file())
 
 
 def test_store_detects_corruption_and_torn_tail(tmp_path):

@@ -24,7 +24,7 @@ def make_versions(store: EventStore, *, root: Path, prompt: str,
         if path == root / "src/agent_runtime":
             files = sorted((*files, path / "model_profiles.json"))
         for file in files:
-            sources[str(file.relative_to(root))] = hashlib.sha256(file.read_bytes()).hexdigest()
+            sources[file.relative_to(root).as_posix()] = hashlib.sha256(file.read_bytes()).hexdigest()
     code = store.source("code-manifest", {"commit": commit, "files": sources})
 
     def stamp(name, value):

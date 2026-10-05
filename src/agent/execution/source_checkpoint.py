@@ -147,8 +147,8 @@ def save_source_review(run_dir: Path, state: dict, viewer_html: str) -> Path:
             raise ValueError("immutable source review changed")
         path.write_text(content, encoding="utf-8")
     record = {"schema": SCHEMA, "digest": state["digest"], "approval_ready": state["approval_ready"],
-              "viewer": str((folder / "geometry_viewer.html").relative_to(run_dir)),
-              "artifacts": {str((folder / name).relative_to(run_dir)): hash_file(folder / name) for name in outputs}}
+              "viewer": (folder / "geometry_viewer.html").relative_to(run_dir).as_posix(),
+              "artifacts": {(folder / name).relative_to(run_dir).as_posix(): hash_file(folder / name) for name in outputs}}
     run_meta_path(run_dir, REVIEW_NAME, for_write=True).write_text(json.dumps(record, indent=2), encoding="utf-8")
     return folder / "geometry_viewer.html"
 
@@ -163,7 +163,7 @@ def current_source_review(run_dir: Path, *, policy: RunPolicy, expected_digest: 
         if not record["approval_ready"]:
             return None
         viewer = Path(record["viewer"])
-        expected_files = {str(viewer.with_name(name)) for name in (
+        expected_files = {viewer.with_name(name).as_posix() for name in (
             "geometry_viewer.html", "source_model.json", "building_geometry.json", "checkpoint.json")}
         if set(record["artifacts"]) != expected_files or viewer.name != "geometry_viewer.html":
             return None

@@ -545,7 +545,7 @@ def load_behaviour(path: str | Path, *, source_root: str | Path | None = None) -
     else:
         raise ValueError(f"no supported behaviour log found at {path}")
     log_root = path if path.is_dir() else path.parent
-    record["source_files"] = [str(Path(name).resolve().relative_to(log_root.resolve()))
+    record["source_files"] = [Path(name).resolve().relative_to(log_root.resolve()).as_posix()
         if Path(name).resolve().is_relative_to(log_root.resolve()) else name
         for name in record.get("source_files", [])]
     record["_source_root"] = str(source_root or (path if path.is_dir() else path.parent))

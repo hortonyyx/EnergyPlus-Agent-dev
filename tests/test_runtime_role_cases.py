@@ -113,7 +113,7 @@ def test_each_case_requires_three_part_observation_and_original_pixel_localizati
                 "referenced_space": "original_image_pixels",
                 "relation": "identity",
             }
-            assert image["path"] == str(Path(image["path"]))
+            assert image["path"] == Path(image["path"]).as_posix()
             assert len(image["sha256"]) == 64
             assert image["view_source"]
             assert image["coordinate_source"]
