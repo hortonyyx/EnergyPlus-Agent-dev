@@ -113,7 +113,7 @@ def time_status(toolkit, *, now=None):
         dimensions["seconds"] = dict(remaining=remaining, remaining_fraction=min(
             remaining / total if total > 0 else 0, old.get("remaining_fraction", 1)))
     if not dimensions:
-        return dict(active=False, line="剩余额度：未启用限制。", reminders=[])
+        return dict(active=False, line="已用／剩余分钟：未启用计时。", reminders=[])
     if "seconds" in dimensions:
         remaining = float(dimensions["seconds"]["remaining"])
     tightest = min(dimensions, key=lambda name: dimensions[name]["remaining_fraction"])

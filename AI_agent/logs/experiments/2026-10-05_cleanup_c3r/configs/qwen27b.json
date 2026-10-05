@@ -22,7 +22,7 @@
       "case_id": "sm24_qwen27b_c3",
       "provider": "paratera",
       "model": "Qwen3.8-27B",
-      "output": "AI_agent/logs/experiments/2026-10-05_cleanup_c3r/runs/sm24_qwen27b_c3",
+      "output": "c3r-qwen27b/sm24_anchor",
       "limits": {
         "model_calls": 150,
         "tool_calls": 300,
@@ -43,7 +43,8 @@
         "hard_stop": "6,000,000 tokens caps the worst case near 25 CNY"
       },
       "parameter_difference": "Same images, task text, 6000 s, 24 candidates and no delegation as the GLM legs. Paratera offers no reasoning_effort=medium, so thinking is switched on with enable_thinking. temperature 0.7 and output 16,384 are the values of the 10-02 Paratera probe in which Qwen3.8-27B read both sm24 elevations correctly (16,384 is also the reviewed profile minimum); the runtime default 0.0 is greedy decoding, which Qwen advises against in thinking mode. Context ceiling is the model's native 262,144 tokens; compaction at 150,000 as on the GLM legs.",
-      "reasoning_history": "current_tool_chain"
+      "reasoning_history": "current_tool_chain",
+      "run_root": "/root/bim-agent-runs"
     }
   ]
 }

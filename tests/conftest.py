@@ -15,3 +15,9 @@ from ep_no_billed_gate import (  # noqa: F401  (re-export for `from conftest imp
     ProviderCallBlocked,
     _is_local,
 )
+
+# Fixture-only source copies for the old clean-room tests; no gate replacement.
+from tests.isolation_source_fixture import (  # noqa: F401
+    isolation_source_copy,
+    separate_cleanroom_source,
+)
