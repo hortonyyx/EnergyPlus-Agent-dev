@@ -17,6 +17,7 @@ MODULES = {
     "test_f51_single_frame", "test_f51_source_frame_roundtrip", "test_isolation",
     "test_substrate_fix_cleanroom", "test_substrate_fix_tools",
     "test_substrate_sweep_policy", "test_substrate_sweep_tools",
+    "test_reading_ruler_r1_batchB",
 }
 
 

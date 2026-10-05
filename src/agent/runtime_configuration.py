@@ -75,7 +75,7 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             raise ValueError(f"input does not exist: {target}")
         if case.get("run_root") is not None and mode != "single_model":
             raise ValueError("explicit run_root currently supports single_model only")
-        resolve_run_output(Path(case["output"]), repository_root=ROOT,
+        resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
                            run_root=case.get("run_root"))
         floors = case.get("floor_plan_images")
         if floors is not None and (not isinstance(floors, list) or any(
@@ -110,7 +110,7 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     budget = validate_budget(case)
     validate_output_limit(case["model"], case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
     limits = case["limits"]
-    output = resolve_run_output(Path(case["output"]), repository_root=ROOT,
+    output = resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
                                 run_root=case.get("run_root"))
     argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
             "--out", str(output), "--provider", case["provider"],

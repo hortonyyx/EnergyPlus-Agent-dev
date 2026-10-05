@@ -137,9 +137,11 @@ def test_production_string_paths_cannot_bridge_through_test_nodes():
     assert result.scope == "SUBSET"
     assert "tests/test_cv_toolbox.py" in result.tests
     assert "tests/test_gt_from_dxf.py" not in result.tests
-    assert len(result.tests) <= 9
-
     edges = affected.build_edges(affected.first_class_files())
+    # Real consumers grow when a shared test fixture starts using cv_probe.
+    # Protect the actual no-production-to-test bridge rule, not a stale count.
+    assert not [edge for edge in edges if edge.kind == "string-path"
+                and not edge.source.startswith("tests/") and edge.target.startswith("tests/")]
     assert affected.Edge(
         "src/agent/judge/gt.py",
         "tests/test_gt_discipline.py",

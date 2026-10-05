@@ -145,8 +145,8 @@ def test_half_near_deadline_and_late_tool_refusal_through_runtime(tmp_path, monk
     out, receipt, requests, events = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
     shown = [m["content"] for request in requests for m in request["messages"] if m["role"] == "tool"]
     text = "\n".join(shown)
-    assert "已用 0.0／剩余 100.0 分钟" in text
-    assert "时间已过半，尚无草稿的楼层图：plan.png, upstairs.png" in text
+    assert "保守剩余（本运行）：时间 100.0 分钟" in text
+    assert "最紧额度已过半，尚无草稿的楼层图：plan.png, upstairs.png" in text
     assert "剩余不足15%" in text and "停止新范围探索" in text
     assert "有界复核已列严重问题" in text and "交付并列未决" in text
     assert receipt["status"] == "time_budget_exhausted"

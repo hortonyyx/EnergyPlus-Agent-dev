@@ -63,6 +63,27 @@ def test_explicit_storage_root_cannot_authorize_another_checkout_or_symlink(tmp_
             resolve_run_output(tmp_path / "registered/run", repository_root=ROOT, run_root=tmp_path)
 
 
+def test_default_cli_output_keeps_cwd_semantics_and_still_refuses_foreign_cwd(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert resolve_run_output(Path("relative"), repository_root=ROOT) == tmp_path / "relative"
+    monkeypatch.chdir(ROOT.parent)
+    with pytest.raises(ValueError, match="escapes"):
+        resolve_run_output(Path("relative"), repository_root=ROOT)
+
+
+def test_configuration_output_keeps_repository_semantics_from_foreign_cwd(tmp_path, monkeypatch):
+    from src.agent.runtime_configuration import load_configuration, argv_for
+    configuration = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-05_cleanup_c3r/configs/qwen27b.json").read_text())
+    case = configuration["cases"][0]
+    case.pop("run_root")
+    case["output"] = "runs/relative-config-output"
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(configuration))
+    monkeypatch.chdir(ROOT.parent)
+    argv = argv_for(load_configuration(path)["cases"][0])
+    assert argv[argv.index("--out") + 1] == str(ROOT / case["output"])
+
+
 @pytest.mark.parametrize("policy,kept", [("all", [True, True]), ("current_tool_chain", [True, True])])
 def test_reasoning_policy_changes_only_wire_history_and_keeps_current_parallel_batch(tmp_path, policy, kept):
     responses = [response(("old", "view", {}), reasoning=True),

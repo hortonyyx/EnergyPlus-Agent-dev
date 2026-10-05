@@ -8,7 +8,9 @@ def resolve_run_output(output: Path, *, repository_root: Path, run_root: Path | 
     if run_root is not None and not Path(run_root).is_absolute():
         raise ValueError("run_root must be an absolute path")
     root = repository_root if run_root is None else Path(run_root).resolve()
-    target = (root / output).resolve()
+    # Preserve the original CLI's cwd-relative behavior unless storage was
+    # explicitly relocated. Configuration callers supply repository paths.
+    target = Path(output).resolve() if run_root is None else (root / output).resolve()
     if not target.is_relative_to(root):
         raise ValueError("run output escapes its configured root (default: own worktree)")
     # Resolve symlinks before checking both registered worktrees and independent
