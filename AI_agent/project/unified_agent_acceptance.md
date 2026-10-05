@@ -670,7 +670,7 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 
 ## 吸收包第五批 A5-T：按标注落位、命名缺口、按用量精简工具、指引共用段（10-05 派出，Astra）
 
-**状态：派出。** 这是“历史经验封闭清单”里工具侧的最后几项（10-03 决定，见[开发计划](unified_agent_harness_plan.md)第七之二节）。起因：① 10-01 亲做三例：好结果时期按标注尺寸落墙，现做法按量出的墨线面落墙，系统性偏 4–7 cm；② 同排房间编号受浮点误差左右（run99 东北间排成 Z01），楼层公开名沿用源楼层名、与 [BIM 命名](../design/bim_naming.md)的 F1/F2 序号不一致（10-01 部分推理改动 `2b83a759` 引入）；③ 首次审查 L2：从没用过的工具、`pixel_profile` 与 `view_pixel_profile` 重叠、旧轨迹工具仍在默认目录，当时约定等 27B 摸底的行为记录出来再定，现在有了；④ 网格指引 15,808 字符是旧版整篇保留，应与图纸共享公共段。派工单 [A5-T brief](../logs/experiments/2026-10-05_absorb_a5t/brief.md)。文件范围：`scripts/tool_scripts/`（`evaluate_bim_agent.py` 与 `run_bim_agent.py` 里的 `run_experiment` 除外）、`src/agent/geometry/`（不改几何计算）、`src/agent/runtime_tools.py`、登记表及对应测试。
+**状态：10-05 验收通过，合入主线。** 这是“历史经验封闭清单”里工具侧的最后几项（10-03 决定，见[开发计划](unified_agent_harness_plan.md)第七之二节）。起因：① 10-01 亲做三例：好结果时期按标注尺寸落墙，现做法按量出的墨线面落墙，系统性偏 4–7 cm；② 同排房间编号受浮点误差左右（run99 东北间排成 Z01），楼层公开名沿用源楼层名、与 [BIM 命名](../design/bim_naming.md)的 F1/F2 序号不一致（10-01 部分推理改动 `2b83a759` 引入）；③ 首次审查 L2：从没用过的工具、`pixel_profile` 与 `view_pixel_profile` 重叠、旧轨迹工具仍在默认目录，当时约定等 27B 摸底的行为记录出来再定，现在有了；④ 网格指引 15,808 字符是旧版整篇保留，应与图纸共享公共段。派工单 [A5-T brief](../logs/experiments/2026-10-05_absorb_a5t/brief.md)。文件范围：`scripts/tool_scripts/`（`evaluate_bim_agent.py` 与 `run_bim_agent.py` 里的 `run_experiment` 除外）、`src/agent/geometry/`（不改几何计算）、`src/agent/runtime_tools.py`、登记表及对应测试。
 
 ### 通过条件
 
@@ -686,7 +686,7 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 
 ## 吸收包第五批 A5-R：两底座共用输入准备、评价侧约定差（10-05 派出，Astra）
 
-**状态：派出。** 这是封闭清单里底座与评价侧的最后两项。起因：① 首次审查 L4：两底座各写一份输入清单（R3 补 `deadline_epoch` 正是因为这里漂移过），评分时还要靠 `compat_view` 补字段；② 10-02 讨论：规整不能掩盖读错，评价保留规整前读数，交付质量与读图能力分别报告；参照照图不改，规整范围内的差异记为“约定差”（[评价设计](../design/evaluation.md)列了地坪门槛 0.2 m、单线半墙厚偏移、容差内跨层对齐三类）。派工单 [A5-R brief](../logs/experiments/2026-10-05_absorb_a5r/brief.md)。文件范围：新的共用输入模块、`src/agent/runtime_entry.py`、`src/agent/runtime_context.py`、`scripts/tool_scripts/run_bim_agent.py` 里**只限 `run_experiment` 函数**、`scripts/tool_scripts/evaluate_bim_agent.py`、`src/agent/judge/` 与对应测试；不碰工具目录与指引（归 A5-T）。
+**状态：10-05 验收通过，合入主线。** 这是封闭清单里底座与评价侧的最后两项。起因：① 首次审查 L4：两底座各写一份输入清单（R3 补 `deadline_epoch` 正是因为这里漂移过），评分时还要靠 `compat_view` 补字段；② 10-02 讨论：规整不能掩盖读错，评价保留规整前读数，交付质量与读图能力分别报告；参照照图不改，规整范围内的差异记为“约定差”（[评价设计](../design/evaluation.md)列了地坪门槛 0.2 m、单线半墙厚偏移、容差内跨层对齐三类）。派工单 [A5-R brief](../logs/experiments/2026-10-05_absorb_a5r/brief.md)。文件范围：新的共用输入模块、`src/agent/runtime_entry.py`、`src/agent/runtime_context.py`、`scripts/tool_scripts/run_bim_agent.py` 里**只限 `run_experiment` 函数**、`scripts/tool_scripts/evaluate_bim_agent.py`、`src/agent/judge/` 与对应测试；不碰工具目录与指引（归 A5-T）。
 
 ### 通过条件
 
@@ -695,3 +695,12 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 **B. 评价侧约定差。** 评分把容差内的约定差单列，不报严重；同时出两份报告：规整前的读图读数与交付稿质量。参照不改。用 10-04 节点回归的 sm24、sm25、两次 27B 与 10-01 亲做三例重评，给出哪些差异被改记为约定差、哪些照旧报告。
 
 **C. 检查。** 阶段 0–3、R1–R3、C1、A1-R～A4-R 的检查与引用了改动模块的全部检查文件通过；0 次模型请求。
+
+### A5-T 与 A5-R 验收结论（10-05，Opus）
+
+两包并行：A5-T 约 104 分钟交付（`dev/astra-a5t-20261005`，末提交 `9c9d9d47`），A5-R 约 85 分钟交付（`dev/astra-a5r-20261005`，末提交 `4aadd382`）；报告见 [A5-T](../logs/experiments/2026-10-05_absorb_a5t/README.md)、[A5-R](../logs/experiments/2026-10-05_absorb_a5r/README.md)。**两包都通过，依次合入（`18c306ec`、`cd37ab96`）；合并后由 Opus 重新登记共同版本 `t1-20261005-a5.1`（`6f46d8df`，56 个文件，新增 `src/agent/bim_inputs.py` 作任务说明）。** 至此 10-03 定下的“历史经验封闭清单”全部落实，下一步是第二次完整审查（分界）。
+
+- **A5-T：** 按标注落位检查只报告、不改坐标、不阻断交付；没有结构化标注绑定时返回“未评估”，不把 0 条当作查过。容差取各楼层各轴 `max(2 cm, 4 个原图像素)`（sm21 约 4.3 cm、sm24 约 11 cm），补录绑定后回放 13 份候选 88 处墙位：run99、run100 命中 7 处，亲做三例、Claude 好结果与 10-04 Claude Code 对照 0 误报，粗图上漏 2 处小偏差（误报优先的代价）。**历史运行没有这类绑定，所以这是开发者辅助的条件回放，工作模型会不会提供绑定要真实运行验证。** 命名：同排房间按容差分排（run99 东北间 Z01 → Z03），楼层公开名按 F1/F2，源楼层名另存，19 份候选几何不变。按 24 次运行、1,751 次调用统计：默认工具 38 → 32；`pixel_profile`（历史 113 次）并入 `view_pixel_profile`，5 个零调用的旧轨迹与查看工具并入现有入口，兼容注册保留、历史重放照旧可用；零调用但功能唯一的工具保留。四项合计 59,178 → 58,206，网格默认指引 15,217 → 7,010 字符。
+- **A5-R：** `inputs.json` 改由 `src/agent/bim_inputs.py` 一处生成，Claude Code 运行器的 `run_experiment` 与新底座都调用它；两底座三例到模型进程边界为止逐字节一致，新底座直接产出可评分的摘要。评价把有依据的建模约定（地坪门槛、单线半墙厚、容差内跨层对齐）与原始读数分开报告，参照与历史模型都没改；7 份历史输出重评：Opus 亲做 sm24 分区 severe → pass、sm25 severe → minor，其余 5 份不变，实质错误照旧报告。A5-R 改了登记表里的运行器文件，登记归 A5-T，A5-R 按约没有越权改登记，在报告里提出合并后重新登记，处理得当。
+- **合并后核对：** 引用了第五批改动的 12 个模块的检查文件，加上 `test_bim_*`、`test_runtime_*`、`test_harness_*` 等组，共 84 个文件 850 项，主线上全部通过（27 分钟）；两底座三例核对逐字节一致（0 次模型请求）；登记表核验 `t1-20261005-a5.1` 的 56 个文件一致；10-04 节点回归配置用新入口 `runtime_configuration check` 通过。
+- **未验证：** 依据事务、返回瘦身、全楼检查、按标注落位、精简后的工具目录都还没有经过真实模型运行；第二次完整审查之后的节点回归要看它们是否被用上、质量有无变差。
