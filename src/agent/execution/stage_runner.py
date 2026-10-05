@@ -683,7 +683,9 @@ class StageRunner:
                 "output_coordinate_snapshot.json": snapshot_text,
             })
         for filename, text in files.items():
-            (adir / filename).write_text(text, encoding="utf-8")
+            # Hashes above bind UTF-8 bytes; Windows newline translation must
+            # not change the published bytes after those hashes are computed.
+            (adir / filename).write_text(text, encoding="utf-8", newline="\n")
 
         if is_b5_correction:
             from src.agent.correction.feature_state import FeatureStatesArtifactV1
@@ -801,8 +803,8 @@ class StageRunner:
                 )
                 if is_correction_write:
                     # Convenience copies are promoted only after gate acceptance.
-                    (stage_dir / "correction_geometry_snapped.json").write_text(out_text, encoding="utf-8")
-                    (stage_dir / "corrections.json").write_text(_to_json(output_obj.audit_payload), encoding="utf-8")
+                    (stage_dir / "correction_geometry_snapped.json").write_text(out_text, encoding="utf-8", newline="\n")
+                    (stage_dir / "corrections.json").write_text(_to_json(output_obj.audit_payload), encoding="utf-8", newline="\n")
                     # 2026-08-12 (摊 C): pure "annotation basis" observation
                     # sidecar -- convenience copy only, like the two writes
                     # above; deliberately NOT added to `artifact_hashes` /
@@ -816,11 +818,11 @@ class StageRunner:
                     if annotation_basis:
                         (stage_dir / "annotation_basis.json").write_text(
                             _to_json(annotation_basis_report(annotation_basis, load_core_tolerances())),
-                            encoding="utf-8",
+                            encoding="utf-8", newline="\n",
                         )
                 elif is_assembly_e4:
-                    (stage_dir / "output_coordinate_contract.json").write_text(contract_text, encoding="utf-8")
-                    (stage_dir / "output_coordinate_snapshot.json").write_text(snapshot_text, encoding="utf-8")
+                    (stage_dir / "output_coordinate_contract.json").write_text(contract_text, encoding="utf-8", newline="\n")
+                    (stage_dir / "output_coordinate_snapshot.json").write_text(snapshot_text, encoding="utf-8", newline="\n")
             else:
                 self.manifest.accept(StageRecord(**common))
         return rec
@@ -851,7 +853,7 @@ def _record_archive_failure(stage_dir: Path, stage: str, report: CheckReport, ex
     directory = root / f"{max(indices, default=0) + 1:03d}"
     directory.mkdir(exist_ok=False)
     checks = report.model_dump_json(indent=2)
-    (directory / "checks.json").write_text(checks, encoding="utf-8")
+    (directory / "checks.json").write_text(checks, encoding="utf-8", newline="\n")
     (directory / "failure.json").write_text(json.dumps({
         "stage": stage,
         "accepted": False,
@@ -860,7 +862,7 @@ def _record_archive_failure(stage_dir: Path, stage: str, report: CheckReport, ex
         "checks_sha256": hash_text(checks),
         "candidate_output_sha256": report.attempt_hash,
         "note": "gate diagnostics only; candidate was not successfully archived by this call",
-    }, indent=2, ensure_ascii=False), encoding="utf-8")
+    }, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
 
 
 def _to_json(obj) -> str:

@@ -37,3 +37,14 @@
 ## 后续状态
 
 第二轮全量测试进行中；配置检查、GLM 唯一请求、最终 MCP 目录核对及最终交付仍待完成。Codex/Claude 入口与 Windows 写沙箱已独立核对，撤容器仍待全部检查通过和用户确认。尚未发出任何工作模型请求。
+
+## 10-06 凌晨：全量结果与兼容修复
+
+- 第二轮全量已完成：`214 failed, 5266 passed, 17 skipped, 13 xfailed, 48 errors`，1979.64 秒。原始 XML、日志在被忽略的本地备份目录；这是迁移中间结果，不是通过结论。
+- 第一批修复统一 UTF-8/LF 产物字节，使 manifest 中的哈希与落盘内容相同；评分双文件继续保留文件 fsync、校验、原子替换及失败回滚，Windows 不执行不支持的目录 fsync。GT 临时文件在权限设置异常时也能关闭句柄。DXF 生成器固定 LF，历史源 DXF 不变。
+- 两张图分别在 Windows 和临时启动的旧 Linux 容器里生成；旧容器均恢复停止。旧 PNG 文件哈希仍与原测试常量完全一致，两端模式、尺寸、全部像素完全相同。差异仅为 zlib 1.2.11 与 zlib-ng 的 PNG 编码。将原 Linux PNG 保存为测试夹具，保留其字节哈希，同时严格比较所有像素；评分 sidecar 除已核对的 PNG 编码哈希外仍满足原完整内容哈希。没有更换几何/评分答案。
+- 修复后的失败项复测：245 通过、23 失败（130.60 秒）；再修复剩余问题后这 23 项全部通过（19.62 秒）。75 步历史回放另行诊断，最终全量仍待进行。
+- 用户已开启开发者模式；原生非管理员 Python 实际创建、读取符号链接通过，相关越界测试已在上述复测中执行。
+- 用户授权我添加仓库 Defender 排除项。提权执行失败，系统返回 `0x800106ba`；回读确认 Windows Defender 原本未运行、实时防护关闭，排除项未添加。我没有更改服务/防护启停设置。后续启用防护时仍应补排除项。
+- 三份案例配置的 `runtime_configuration check` 返回 ready：两份 GLM 案例、一份 Qwen 27B 案例。只检查配置，未 launch；历史配置不改，新配置位于 `workflow/configs/windows_migration/`，凭据相对仓库根，run_root 为本机用户目录。
+- **GLM 唯一最小请求已完成，不再重复：** 新底座 `HttpAnthropicAdapter` 经审核的 GLM 订阅 Anthropic 路线，`glm-5.3-flash`、low、max_tokens 128；返回 OK/end_turn，input 17、output 3、cache_read 0，成功请求 1 次、重试 0 次。证据 `glm-connectivity-attempt.json` 与 `glm-connectivity-result.json` 只存非敏感元数据；一次性标记阻止误重试。DeepSeek、Paratera 和整案模型运行均为 0。

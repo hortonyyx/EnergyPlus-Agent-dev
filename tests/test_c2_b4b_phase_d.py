@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 import pytest
 from PIL import Image
@@ -188,8 +189,13 @@ def test_d4_legacy_v2_renderer_pixel_hash_and_samples_are_locked():
     import render_grade
     from tests.test_render_grade import _gt, _sidecar
     image = render_grade.render_grade("0_reading", _sidecar(), _gt())
-    encoded = BytesIO(); image.save(encoded, format="PNG")
-    assert hashlib.sha256(encoded.getvalue()).hexdigest() == "c44204353979bd390112b47b1d60317adb0d809a1002816126d954c8b7c36a30"
+    # Original Linux PNG retained byte-for-byte. zlib and zlib-ng encode the
+    # same pixels differently; lock every decoded pixel, mode and dimension.
+    reference = Path(__file__).parent / "fixtures/legacy_grade_v2_linux.png"
+    assert hashlib.sha256(reference.read_bytes()).hexdigest() == "c44204353979bd390112b47b1d60317adb0d809a1002816126d954c8b7c36a30"
+    with Image.open(reference) as original:
+        assert (image.mode, image.size) == (original.mode, original.size)
+        assert image.tobytes() == original.tobytes()
     assert image.getpixel((300, 300)) == (238, 238, 234)
     assert image.getpixel((50, 900)) == (150, 150, 145)
 
@@ -255,7 +261,7 @@ def test_gt_echo_fixture_preserves_runstage_cli_byte_parity(tmp_path):
     assert Path(artifacts["grade"]).read_bytes().startswith(b"\x89PNG")
     cli_out = tmp_path / "cli"
     completed = subprocess.run([
-        "python", "scripts/tool_scripts/score_reading_vs_gt.py", str(attempt / "output.json"), "--case", gt.case,
+        sys.executable, "scripts/tool_scripts/score_reading_vs_gt.py", str(attempt / "output.json"), "--case", gt.case,
         "--typed-elevation-json", str(attempt / "output.json"), "--gt-file", str(gt_file),
         "--view-manifest", str(meta / "view_manifest.json"), "--bindings", str(meta / "judge_score_bindings.json"),
         "--attempt", "1", "--out-dir", str(cli_out),
@@ -591,7 +597,7 @@ def test_d6_judge_scoring_path_leaves_case_tests_byte_for_byte_unchanged(tmp_pat
 
     cli_out = tmp_path / "cli"
     completed = subprocess.run([
-        "python", "scripts/tool_scripts/score_reading_vs_gt.py", str(attempt / "output.json"), "--case", gt.case,
+        sys.executable, "scripts/tool_scripts/score_reading_vs_gt.py", str(attempt / "output.json"), "--case", gt.case,
         "--typed-elevation-json", str(attempt / "output.json"), "--gt-file", str(gt_file),
         "--view-manifest", str(meta / "view_manifest.json"), "--bindings", str(meta / "judge_score_bindings.json"),
         "--attempt", "1", "--out-dir", str(cli_out),

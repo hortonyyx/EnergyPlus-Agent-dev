@@ -8,11 +8,12 @@ import shutil
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from scripts.tool_scripts import run_stage
 from scripts.tool_scripts.build_score_view_bindings import build as build_score_view_bindings
 from src.agent.execution.manifest import RunManifest
-from src.agent.judge.score_schema import load_score_gt_identity
+from src.agent.judge.score_schema import load_score_gt_identity, canonical_sha256
 from tests.test_reading_typed_scoring_slice0 import _grade_payload, _real_payload
 
 
@@ -218,9 +219,23 @@ def test_f67_filtered_unread_inputs_do_not_degrade_channel_status(
 
 def test_f67_sm24_score_sidecar_is_field_stable(tmp_path):
     """No ambiguity in sm24: the canonical full-sidecar hash cannot move."""
-    sidecar, _artifacts = _grade_payload(
+    sidecar, artifacts = _grade_payload(
         tmp_path,
         _real_payload(),
         name="sm24_f67_field_lock",
     )
-    assert sidecar["content_sha256"] == SM24_PRE_F67_SCORE_SHA256
+    # The original Linux PNG still satisfies the old full-sidecar hash.
+    # zlib-ng (Windows) changes only lossless PNG encoding, never a pixel.
+    reference = REPO / "tests/fixtures/sm24_f67_grade_linux.png"
+    original_png_sha = "c41f34b18c9ec01ab727aec50746b9cc3a8a8ffa7e10654061f709d85fc15a2b"
+    assert hashlib.sha256(reference.read_bytes()).hexdigest() == original_png_sha
+    grade = Path(artifacts["grade"])
+    assert hashlib.sha256(grade.read_bytes()).hexdigest() == sidecar["artifact_contract"]["grade_png_sha256"]
+    with Image.open(reference) as expected, Image.open(grade) as actual:
+        assert (actual.mode, actual.size) == (expected.mode, expected.size)
+        assert actual.tobytes() == expected.tobytes()
+    stable = copy.deepcopy(sidecar)
+    recorded_sha = stable.pop("content_sha256")
+    assert canonical_sha256(stable) == recorded_sha
+    stable["artifact_contract"]["grade_png_sha256"] = original_png_sha
+    assert canonical_sha256(stable) == SM24_PRE_F67_SCORE_SHA256

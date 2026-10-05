@@ -724,8 +724,11 @@ def write_gt_v3_candidate(doc: GroundTruthV3, out: Path, *, overwrite: Literal[F
     data = canonical_gt_v3_bytes(doc)
     descriptor, temporary = tempfile.mkstemp(prefix=f".{out.name}.", dir=out.parent)
     try:
-        os.fchmod(descriptor, 0o600)
         with os.fdopen(descriptor, "wb") as handle:
+            # mkstemp already creates a private file on POSIX. Windows uses
+            # the destination directory's ACL; fchmod is not available there.
+            if hasattr(os, "fchmod"):
+                os.fchmod(handle.fileno(), 0o600)
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())

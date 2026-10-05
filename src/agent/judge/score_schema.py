@@ -1777,11 +1777,14 @@ def commit_score_artifacts(*, sidecar_path: Path | str, grade_path: Path | str,
         temp_paths.remove(png_tmp)
         os.replace(sidecar_tmp, score)
         temp_paths.remove(sidecar_tmp)
-        directory_fd = os.open(score.parent, os.O_RDONLY)
-        try:
-            os.fsync(directory_fd)
-        finally:
-            os.close(directory_fd)
+        # Windows has no POSIX directory fsync. Both files were already
+        # flushed before atomic replacement; directory durability is OS-owned.
+        if os.name != "nt":
+            directory_fd = os.open(score.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
     except Exception as exc:
         try:
             if old_grade is None:

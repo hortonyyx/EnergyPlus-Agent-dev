@@ -586,7 +586,7 @@ def test_tamper_13_self_consistent_output_sha_still_fails_relation_gate(tmp_path
     output = attempt / "output.json"
     data = json.loads(output.read_text(encoding="utf-8"))
     data["windows"][0]["room"] = "forged-room"
-    output.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    output.write_text(json.dumps(data, indent=2), encoding="utf-8", newline="\n")
     _accept_file_mutation(record, output, "output")
 
     # Attacker also repairs every ordinary artifact SHA/content hash.  The
@@ -594,7 +594,7 @@ def test_tamper_13_self_consistent_output_sha_still_fails_relation_gate(tmp_path
     states_path = attempt / "feature_states.json"
     states = json.loads(states_path.read_text(encoding="utf-8"))
     states["output_sha256"] = record.output_hash
-    states_path.write_text(json.dumps(states, indent=2), encoding="utf-8")
+    states_path.write_text(json.dumps(states, indent=2), encoding="utf-8", newline="\n")
     _accept_file_mutation(record, states_path, "feature_states")
 
     hosts_path = attempt / "window_hosts.json"
@@ -609,7 +609,7 @@ def test_tamper_13_self_consistent_output_sha_still_fails_relation_gate(tmp_path
     hosts["content_sha256"] = canonical_sha256({
         key: value for key, value in hosts.items() if key != "content_sha256"
     })
-    hosts_path.write_text(json.dumps(hosts, indent=2), encoding="utf-8")
+    hosts_path.write_text(json.dumps(hosts, indent=2), encoding="utf-8", newline="\n")
     _accept_file_mutation(record, hosts_path, "window_hosts")
     with pytest.raises(ValueError, match="resolver_output_tampered|host|room"):
         load_verified_accepted_correction(run_dir=tmp_path, manifest=manifest)
@@ -1284,7 +1284,7 @@ def _write_legacy_v2_accepted(tmp_path: Path):
     checks_report = CheckReport(stage="1_correction", capability_profile="rectangular")
     checks_report.add_pass("phase_d.fixture", CheckLayer.INVARIANT)
     checks_text = checks_report.model_dump_json(indent=2)
-    (attempt / "checks.json").write_text(checks_text, encoding="utf-8")
+    (attempt / "checks.json").write_text(checks_text, encoding="utf-8", newline="\n")
     output_hash = hash_text(output_text)
     manifest = RunManifestV2(
         case="legacy-v2", run_id=new_run_id(),

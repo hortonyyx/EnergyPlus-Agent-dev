@@ -354,7 +354,7 @@ def test_f_d_closure_membership_matches_a_static_import_walk():
     AST walk of MODULE-LEVEL imports, starting at tarch_normalize.py, must
     equal the tuple minus the one hand-added lazy dependency."""
     entry = REPO / "src/agent/judge/tarch_normalize.py"
-    discovered = {str(p.relative_to(REPO)) for p in _static_closure(entry)}
+    discovered = {p.relative_to(REPO).as_posix() for p in _static_closure(entry)}
     expected = set(tn.CONVERTER_CLOSURE_FILES) - {"src/agent/judge/gt_extraction.py"}
     assert discovered == expected, (
         f"static top-level import closure disagrees with CONVERTER_CLOSURE_FILES "
@@ -382,20 +382,19 @@ def test_f_d_excluded_lazy_imports_are_confirmed_unreachable():
     name must still be unreachable from the conversion path.  If a future
     edit wires either in for real, this must fail loudly rather than let
     F-D's blind spot silently reopen."""
-    write_gt_v3_candidate_callers = subprocess.run(
-        ["grep", "-rn", "write_gt_v3_candidate(", "--include=*.py", "src", "scripts"],
-        cwd=REPO, capture_output=True, text=True,
-    ).stdout.splitlines()
+    write_gt_v3_candidate_callers = [
+        f"{path.relative_to(REPO).as_posix()}:{number}:{line}"
+        for folder in ("src", "scripts") for path in (REPO / folder).rglob("*.py")
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
+        if "write_gt_v3_candidate(" in line]
     call_sites = [line for line in write_gt_v3_candidate_callers
                  if "def write_gt_v3_candidate" not in line]
     assert call_sites and all(line.startswith("scripts/tool_scripts/gt_from_dxf.py:")
                               for line in call_sites), call_sites
 
-    corrected_geometry_validators = subprocess.run(
-        ["grep", "-rlE", r"CorrectedGeometryV3\.model_validate(_json)?\(",
-         "--include=*.py", "src/agent/judge"],
-        cwd=REPO, capture_output=True, text=True,
-    ).stdout.split()
+    corrected_geometry_validators = [path.relative_to(REPO).as_posix()
+        for path in (REPO / "src/agent/judge").rglob("*.py")
+        if re.search(r"CorrectedGeometryV3\.model_validate(_json)?\(", path.read_text(encoding="utf-8"))]
     closure_paths = set(tn.CONVERTER_CLOSURE_FILES)
     assert not (set(corrected_geometry_validators) & closure_paths), corrected_geometry_validators
 
@@ -407,7 +406,9 @@ def test_ezdxf_default_writer_matches_converter_writer_except_pinned_metadata(tm
     ezdxf.readfile(SOURCE).saveas(default)
     tn._save_converter_augmented_dxf(ezdxf.readfile(SOURCE), converter, "a" * 64, "b" * 64)
     def strip_pinned(raw: bytes) -> bytes:
-        text = raw.decode("utf-8")
+        # ezdxf's generic writer uses the platform newline. Our hashed
+        # converter output deliberately uses LF on every platform.
+        text = raw.decode("utf-8").replace("\r\n", "\n")
         for name in ("$TDCREATE", "$TDUCREATE", "$TDUPDATE", "$TDUUPDATE", "$FINGERPRINTGUID", "$VERSIONGUID"):
             text = re.sub(rf"({re.escape(name)}\n\s*\d+\n)[^\n]+", r"\1<PINNED>", text)
         text = re.sub(r"(WRITTEN_BY_EZDXF\n\s*350\n[0-9A-F]+\n\s*0\nDICTIONARYVAR.*?\n\s*1\n)[^\n]+",

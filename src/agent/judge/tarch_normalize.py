@@ -3150,7 +3150,7 @@ def _save_converter_augmented_dxf(doc, dest: Path, source_sha256: str,
     doc.update_all()
     _apply_deterministic_dxf_metadata(doc, source_sha256, request_sha256)
     handles = bool(doc.header.get("$HANDLING", 0)) if doc.dxfversion == DXF12 else True
-    with Path(dest).open("wt", encoding=doc.output_encoding, errors="dxfreplace") as stream:
+    with Path(dest).open("wt", encoding=doc.output_encoding, errors="dxfreplace", newline="\n") as stream:
         doc.export_sections(TagWriter(stream, write_handles=handles, dxfversion=doc.dxfversion))
 
 
