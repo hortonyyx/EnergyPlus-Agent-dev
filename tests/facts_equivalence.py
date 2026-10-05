@@ -28,11 +28,17 @@ def canonical_ring_origins(document):
                 mapping.update({prefix + str(i): prefix + str((i-start) % count)
                                 for i in range(count)})
         groups = {}
+        previous_cavity = None
         for edge in view.get("boundary_edges", []):
             witness = edge["evidence"].get("footprint_edge_id")
             if witness in mapping:
                 edge["evidence"]["footprint_edge_id"] = mapping[witness]
-            groups.setdefault(edge["cavity_id"], []).append(edge)
+            cavity = edge["cavity_id"]
+            if cavity != previous_cavity:
+                assert cavity not in groups, "boundary cavity groups must remain contiguous"
+            groups.setdefault(cavity, []).append(edge)
+            previous_cavity = cavity
+        normalized_edges = []
         for edges in groups.values():
             # Preserve traversal order: malformed, reordered, or duplicate
             # sequences cannot become valid merely through normalization.
@@ -43,6 +49,9 @@ def canonical_ring_origins(document):
             for sequence, edge in enumerate(edges[start:] + edges[:start]):
                 edge["id"] = _edge_id(edge, sequence)
                 edge["sequence"] = sequence
+                normalized_edges.append(edge)
         if "boundary_edges" in view:
-            view["boundary_edges"].sort(key=lambda e: (e["cavity_id"], e["sequence"]))
+            # Only rotate each ring. The original ordering of cavity groups is
+            # also a fact and must never be normalized away.
+            view["boundary_edges"] = normalized_edges
     return document
