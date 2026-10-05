@@ -9,6 +9,38 @@ from src.agent.geometry.modelling import _canonical_ring, _geometry_fingerprint,
 from src.agent.roles import ROOM_TYPES, normalize
 
 
+# This is naming comparison precision, not a geometry snapping tolerance.
+ROW_TOLERANCE_M = 1e-6
+
+
+def _ordered_spaces(spaces, polys, floor_order):
+    """Group north-to-south rows before sorting west-to-east within each row.
+
+    Anchor each row to its northernmost centroid to avoid transitive chains
+    spanning more than the tolerance. Sorting first makes input order irrelevant
+    and avoids rounded-bin boundaries splitting numerical equals (run99).
+    """
+    by_floor = defaultdict(list)
+    for space in spaces:
+        by_floor[space['floor_id']].append(space)
+    ordered = []
+    for fid in sorted(by_floor, key=floor_order.__getitem__):
+        north_to_south = sorted(by_floor[fid], key=lambda s: (
+            -polys[s['id']].centroid.y, polys[s['id']].centroid.x,
+            _geometry_fingerprint(polys[s['id']]), s['id']))
+        rows = []
+        for space in north_to_south:
+            y = polys[space['id']].centroid.y
+            if not rows or rows[-1][0] - y > ROW_TOLERANCE_M:
+                rows.append((y, []))
+            rows[-1][1].append(space)
+        for _, row in rows:
+            ordered.extend(sorted(row, key=lambda s: (
+                round(polys[s['id']].centroid.x, 6),
+                _geometry_fingerprint(polys[s['id']]), s['id'])))
+    return ordered
+
+
 def geometry_key(vertices):
     """Winding/start-independent ordering for fragments and edge names."""
     return tuple(sorted(tuple(round(float(c), 6) for c in v) for v in vertices))
@@ -16,17 +48,14 @@ def geometry_key(vertices):
 
 def build_public_names(source: dict) -> dict:
     floors = sorted(source["floors"], key=lambda f: (f["z_floor"], f["id"]))
-    # A source floor can also describe an annex or one continuous vertical
-    # volume. Its explicit name is the only safe display label; ordinal F#
-    # labels would turn those independent groups into invented storeys.
-    floor_names = {f["id"]: f.get("name") or f["id"] for f in floors}
+    # F# is an ordinal, including annex/vertical groups; source labels stay
+    # separate and do not imply geographic/architectural storey identity.
+    floor_names = {f["id"]: f"F{i}" for i, f in enumerate(floors, 1)}
     floor_order = {f["id"]: i for i, f in enumerate(floors)}
     polys = {s["id"]: Polygon(s["polygon"]) for s in source["spaces"]}
     points = [p for f in floors for p in f["footprint"]]
     xs, ys = [p[0] for p in points], [p[1] for p in points]
-    ordered = sorted(source["spaces"], key=lambda s: (
-        floor_order[s["floor_id"]], _zone_centroid_key(polys[s["id"]]),
-        _geometry_fingerprint(polys[s["id"]]), s["id"]))
+    ordered = _ordered_spaces(source["spaces"], polys, floor_order)
     width = max(2, len(str(len(ordered))))
     handles, spaces, boundaries, openings, sides = {}, {}, {}, {}, {}
     for i, space in enumerate(ordered, 1):
@@ -77,7 +106,9 @@ def build_public_names(source: dict) -> dict:
     for oid, hosts in sides.items():
         # One shared opening with two room-side aliases, not two doors.
         openings[oid] = min(hosts.values())
-    return {"scheme_version": "bim_names_v1", "direction_frame": "model XY: +X=E, +Y=N; not a geographic north assertion",
+    return {"scheme_version": "bim_names_v2", "row_tolerance_m": ROW_TOLERANCE_M,
+            "direction_frame": "model XY: +X=E, +Y=N; not a geographic north assertion",
+            "source_floor_names": {f['id']: f.get('name') or f['id'] for f in floors},
             "floors": floor_names, "spaces": spaces, "boundaries": boundaries,
             "openings": openings, "opening_sides": sides}
 
@@ -118,6 +149,8 @@ def viewer_names(data: dict, parts: dict) -> dict:
         rank = {i:n for n,i in enumerate(order, 1)}
         edges[obj["name"]] = [f"{objects[obj['name']]}_Edge{rank[i]}" for i in range(len(vs))]
     floors = sorted(source.get("floors", []), key=lambda f: (f["z_floor"], f["id"]))
-    return {"floors": [{"id": f["id"], "name": f.get("name") or f["id"], "z_floor": f["z_floor"]} for f in floors],
+    return {"floors": [{"id": f["id"], "name": f"F{i}",
+                       "source_name": f.get("name") or f["id"], "z_floor": f["z_floor"]}
+                      for i, f in enumerate(floors, 1)],
             "spaces": names.get("spaces", {}), "objects": objects, "parts": fragment_names,
             "regions": region_names, "edges": edges}

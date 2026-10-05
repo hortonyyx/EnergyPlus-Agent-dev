@@ -1,0 +1,105 @@
+{
+  "baseline_commit": "f4d48cf7",
+  "model_requests": 0,
+  "before": {
+    "system_prompt_chars": 9532,
+    "tool_count": 43,
+    "tool_description_chars": 16762,
+    "references_chars": {
+      "facade_correspondence": 4395,
+      "reconstruction": 4070,
+      "plan_partition": 7448,
+      "plan_assembly": 1725,
+      "geometry": 1502,
+      "edits": 6696,
+      "wall_dimensions": 4733,
+      "opening_review": 2409,
+      "partial_inference": 8557,
+      "parametric": 3578,
+      "claims": 8257,
+      "room_types": 2947,
+      "naming": 1070
+    },
+    "input_schema_json_chars": 17179,
+    "common_reference_chars": 15705,
+    "instruction_total_chars": 59178
+  },
+  "after": {
+    "system_prompt_chars": 9610,
+    "tool_count": 43,
+    "tool_description_chars": 16329,
+    "references_chars": {
+      "facade_correspondence": 4395,
+      "reconstruction": 4070,
+      "plan_partition": 7448,
+      "plan_assembly": 1725,
+      "geometry": 1502,
+      "edits": 6696,
+      "wall_dimensions": 5564,
+      "opening_review": 2409,
+      "partial_inference": 8557,
+      "parametric": 3578,
+      "claims": 8258,
+      "room_types": 2947,
+      "naming": 1070
+    },
+    "input_schema_json_chars": 16561,
+    "common_reference_chars": 15706,
+    "instruction_total_chars": 58206
+  },
+  "delta": {
+    "system_prompt_chars": 78,
+    "tool_count": 0,
+    "tool_description_chars": -433,
+    "input_schema_json_chars": -618,
+    "common_reference_chars": 1,
+    "instruction_total_chars": -972
+  },
+  "default_catalog": {
+    "before": {
+      "tool_count": 38,
+      "tool_description_chars": 15702,
+      "input_schema_json_chars": 15760,
+      "system_prompt_chars": 9532,
+      "common_reference_chars": 15705,
+      "instruction_total_chars": 56699
+    },
+    "after": {
+      "tool_count": 32,
+      "tool_description_chars": 14856,
+      "input_schema_json_chars": 12949,
+      "system_prompt_chars": 9610,
+      "common_reference_chars": 15706,
+      "instruction_total_chars": 53121
+    }
+  },
+  "mesh_system": {
+    "before": {
+      "legacy_or_assembled_constant_chars": 15653,
+      "default_system_chars": 15217
+    },
+    "after": {
+      "legacy_or_assembled_constant_chars": 7120,
+      "default_system_chars": 7010
+    }
+  },
+  "mesh_default_catalog": {
+    "before": {
+      "tool_count": 45,
+      "tool_description_chars": 18780,
+      "input_schema_json_chars": 18837,
+      "system_prompt_chars": 15217,
+      "common_reference_chars": 15705,
+      "instruction_total_chars": 68539
+    },
+    "after": {
+      "tool_count": 39,
+      "tool_description_chars": 17934,
+      "input_schema_json_chars": 16026,
+      "system_prompt_chars": 7010,
+      "common_reference_chars": 15706,
+      "instruction_total_chars": 56676
+    }
+  },
+  "method": "Same historical four terms: drawing system prompt + all registered tool descriptions + json.dumps input schemas + plan_partition/claims references; Unicode characters. Full catalog includes replay handlers. Baseline ImageFilename restored from the same commit; pristine pre-edit snapshot independently matched."
+}
