@@ -12,18 +12,19 @@ from scripts.tool_scripts.run_bim_agent import Toolkit
 def finalize_building(run: Path, *, reason: str, elapsed_seconds: float) -> dict:
     """Mirror the subscription runner's timeout/selection precedence.
 
-    An expired run prefers its latest complete building, even if a later
-    partial candidate was selected. Other stops preserve an explicit selection.
+    Time or CNY budget stops prefer the latest complete building, even if a
+    later partial candidate was selected. Other stops preserve a selection.
     Completeness, geometry checks and HTML all come from the shared T1 code.
     """
     timed_out = reason.endswith("time_budget_exhausted")
+    money_stopped = reason.endswith("money_budget_exhausted") or reason == "money_cny_usage_unavailable"
     generation = {"state": "completed" if reason == "completed" else "interrupted",
         "agent_response_completed": reason == "completed", "timed_out": timed_out,
         "elapsed_seconds": elapsed_seconds, "runtime_stop_reason": reason}
     try:
         toolkit = Toolkit(run)
         selection = run / "delivery_selection.json"
-        if selection.is_file() and not timed_out:
+        if selection.is_file() and not (timed_out or money_stopped):
             chosen = json.loads(selection.read_bytes())["candidate"]
             origin = "agent_selected"
         else:

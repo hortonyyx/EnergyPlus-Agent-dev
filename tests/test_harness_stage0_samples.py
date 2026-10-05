@@ -13,7 +13,7 @@ import pytest
 from pydantic import ValidationError
 
 from src.agent.contracts import BuildingContractBundle, assert_result_applicable
-from src.harness_contracts import EventLog, ModelBinding, RoleDefinition
+from src.harness_contracts import BudgetLedger, EventLog, ModelBinding, RoleDefinition
 
 ROOT = Path(__file__).resolve().parents[1]
 FIX = ROOT / "tests/fixtures/harness_stage0"
@@ -238,16 +238,20 @@ def test_sample_generator_is_byte_deterministic_without_touching_history(tmp_pat
     module.main()
     assert first == generated  # Exact bytes remain deterministic between builds.
 
-    def with_current_event_defaults(value):
-        # Read historical fixtures under the current additive event schema;
+    def with_current_contract_defaults(value):
+        # Read historical fixtures under the current additive contract schemas;
         # never rewrite the original fixtures just to add optional null fields.
         if isinstance(value, dict):
             if value.get("mode") in {"complete", "excerpt"} and "events" in value:
                 return EventLog.model_validate_json(json.dumps(value)).model_dump(mode="json")
-            return {k: with_current_event_defaults(v) for k, v in value.items()}
+            if "role_id" in value and "tool_whitelist" in value:
+                return RoleDefinition.model_validate_json(json.dumps(value)).model_dump(mode="json")
+            if {"total_limit", "reservations", "settlements"} <= value.keys():
+                return BudgetLedger.model_validate_json(json.dumps(value)).model_dump(mode="json")
+            return {k: with_current_contract_defaults(v) for k, v in value.items()}
         if isinstance(value, list):
-            return [with_current_event_defaults(v) for v in value]
+            return [with_current_contract_defaults(v) for v in value]
         return value
 
     for relative,content in generated.items():
-        assert with_current_event_defaults(read(ROOT / relative)) == with_current_event_defaults(json.loads(content))
+        assert with_current_contract_defaults(read(ROOT / relative)) == with_current_contract_defaults(json.loads(content))

@@ -45,8 +45,14 @@ class EventStore:
             metadata = {"run_id": run_id, "task_id": task_id,
                         "budget_limit": budget_limit.model_dump(mode="json")}
             path = self.directory / "journal.json"
-            if path.exists() and json.loads(path.read_bytes()) != metadata:
-                raise ValueError("journal limits/identity cannot change on resume")
+            if path.exists():
+                saved_metadata = json.loads(path.read_bytes())
+                # Normalize optional dimensions added to the contract; an old
+                # journal without a CNY limit must remain readable, not acquire one.
+                saved_metadata["budget_limit"] = BudgetAmounts.model_validate_json(
+                    json.dumps(saved_metadata["budget_limit"])).model_dump(mode="json")
+                if saved_metadata != metadata:
+                    raise ValueError("journal limits/identity cannot change on resume")
             repair = self._repair_tail() if recover_tail else None
             self._all_events = self.read_events(self.path)
             if self._all_events:

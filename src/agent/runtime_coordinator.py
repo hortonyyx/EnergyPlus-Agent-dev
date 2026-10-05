@@ -14,6 +14,7 @@ import hashlib
 import json
 import re
 import time
+from decimal import Decimal
 from pathlib import Path
 
 import jsonschema
@@ -30,7 +31,7 @@ from src.agent.runtime_tools import (FrozenBimTools, coordinator_role, frozen_bi
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.anthropic import HttpAnthropicAdapter
 from src.agent_runtime.agent_registry import agent_version_record
-from src.agent_runtime.accounting import request_accounting_from_store, summarize_request_accounting
+from src.agent_runtime.accounting import require_cny_price_schedule, request_accounting_from_store, summarize_request_accounting
 from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
@@ -490,8 +491,10 @@ async def serve(args):
     validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
     parameters = provider_parameters(args.provider, output_tokens=args.output_tokens, thinking=args.thinking,
                                      reasoning_effort=args.reasoning_effort)
+    if args.money_cny is not None:
+        require_cny_price_schedule(effective_model, route_id=args.provider)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
-                       seconds=args.seconds, tokens=args.tokens,
+                       seconds=args.seconds, tokens=args.tokens, money_cny=args.money_cny,
                        max_consecutive_truncations=args.max_consecutive_truncations,
                        max_total_truncations=args.max_total_truncations)
     if args.resume:
@@ -578,7 +581,11 @@ def parser():
     p.add_argument("--quota-limit", type=int, default=60)
     p.add_argument("--model-calls", type=int, default=20)
     p.add_argument("--tool-calls", type=int, default=100)
-    p.add_argument("--tokens", type=int, default=300_000)
+    token_limit = p.add_mutually_exclusive_group()
+    token_limit.add_argument("--tokens", type=int, default=300_000)
+    token_limit.add_argument("--no-token-limit", dest="tokens", action="store_const", const=None)
+    p.add_argument("--money-cny", type=Decimal,
+                   help="shared CNY estimate ceiling for local observers; external coordinator usage is unavailable")
     p.add_argument("--seconds", type=float, default=3600)
     p.add_argument("--output-tokens", type=int, help="defaults to the reviewed model recommendation")
     p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")

@@ -114,6 +114,7 @@ def test_child_cleanup_time_overrun_keeps_unknown_hold_and_scoped_receipt(tmp_pa
         assert evidence["observed"] == {
             "tokens": None,
             "money_usd": None,
+            "money_cny": None,
             "seconds": "0.995",
             "calls": 1,
         }
