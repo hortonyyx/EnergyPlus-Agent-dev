@@ -567,7 +567,12 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def _corpus_0_reading_json_files(root: Path = _REPO_ROOT) -> list[Path]:
-    """Every `0_reading/*.json` file under ``root``, repo-anchored by default."""
+    """Tracked evidence only; concurrent pytest/archived scratch is not a corpus."""
+    if root == _REPO_ROOT:
+        import subprocess
+        tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root, text=True)
+        return sorted(root / name for name in tracked.split("\0") if name
+                      and Path(name).parent.name == "0_reading" and name.endswith(".json"))
     return [
         p
         for d in root.rglob("0_reading")
@@ -623,22 +628,36 @@ def test_r3_every_real_sidecar_still_parses_as_the_producer_type():
 def test_r3_all_real_legacy_views_still_consumed():
     """R5's compatibility half, asserted rather than only measured by hand.
 
-    Invariant, not a snapshot count: "still consumed" means no corpus file
-    falls to CONTRACT_UNKNOWN (the B-01 fix must not have tightened
+    Invariant, not a snapshot count: "still consumed" means no vector file
+    falls to CONTRACT_UNKNOWN (nine pinned pilot metadata sidecars remain
+    deliberately rejected by the production classifier; B-01 must not tighten
     classification into rejecting a real historical shape), and that legacy
     views specifically remain a real, non-empty, recognized slice of the
     corpus rather than "however many there happen to be right now"."""
     files = _require_nonempty_corpus(_corpus_0_reading_json_files())
+    import hashlib
+    auxiliary = json.loads((_REPO_ROOT / "tests/fixtures/f97_nonvector_sidecars.json").read_text())
+    seen_auxiliary = set()
     unknown = []
     legacy = 0
     for path in files:
         raw = json.loads(path.read_text(encoding="utf-8"))
         contract = classify_vector_json(raw).contract_id
+        relative = path.relative_to(_REPO_ROOT).as_posix()
+        if relative in auxiliary:
+            # These exact pilot ledgers are not vector inputs. The production
+            # consumer must STILL reject them; this is no classifier exemption.
+            assert contract == CONTRACT_UNKNOWN
+            assert hashlib.sha256(path.read_bytes()).hexdigest() == auxiliary[relative]["sha256"]
+            assert auxiliary[relative]["reason"]
+            seen_auxiliary.add(relative)
+            continue
         if contract == CONTRACT_UNKNOWN:
             unknown.append(path)
         elif contract == CONTRACT_READING_VIEW_LEGACY:
             legacy += 1
     assert not unknown, f"{len(unknown)} corpus file(s) fell to CONTRACT_UNKNOWN: {unknown[:10]}"
+    assert seen_auxiliary == set(auxiliary)
     assert legacy > 0, "no corpus file was recognized as a legacy view"
 
 
