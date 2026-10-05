@@ -1082,6 +1082,7 @@ class Toolkit:
         prior_result = self.run / "plan_drafts" / draft_id / "result.json"
         prior = json.loads(prior_result.read_bytes()).get("candidate") if prior_result.is_file() else None
         saved_source_result(self.run, result, parent=prior)
+        saved_plan = updated
         try:
             saved_plan = json.loads((self.run / result["plan_input"]["plan_file"]).read_text())
             with PILImage.open(self.image_path(parent["image"])) as original:
@@ -1098,7 +1099,9 @@ class Toolkit:
                 truncated=len(changes["changed_openings"]) > 24,
                 unchanged_opening_ids=changes["unchanged_opening_ids"], note=changes["note"])
         except (ValueError, TypeError, KeyError, IndexError) as error:
-            result["plan_revision"]["geometry_changes"] = dict(status="unavailable", reason=str(error))
+            from scripts.tool_scripts.bim_agent_feedback import plan_feedback_error
+            result["plan_revision"]["geometry_changes"] = plan_feedback_error(error,
+                parent=parent["declaration"], revised=saved_plan)
         dump((self.run / result["plan_input"]["plan_file"]).with_name("result.json"), result)
         self.log("revise_plan_bim", dict(candidate=result.get("candidate"),
             source_geometry_ready=result.get("source_geometry_ready"), plan_input=result.get("plan_input"),
@@ -1175,7 +1178,8 @@ class Toolkit:
             record["geometry_feedback"] = dict(file=str(dimensions_path.relative_to(self.run)),
                 sha256=digest(dimensions_path), **compact_plan_feedback(dimensions))
         except (ValueError, TypeError, KeyError, IndexError) as error:
-            record["geometry_feedback"] = dict(status="unavailable", reason=str(error))
+            from scripts.tool_scripts.bim_agent_feedback import plan_feedback_error
+            record["geometry_feedback"] = plan_feedback_error(error, current=plan)
 
         # Report-only comparison of the original's ink with this declaration, also for
         # drafts that fail to compile (run75/83/86/94 left drawn dividers out; run91/93/94
@@ -2287,15 +2291,21 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
-        positive_support_runs retains all nonzero runs and local peaks, before thresholding.
-        cross_axis_profile measures the SAME mask in the other direction;
-        crop_context flags cut ink and suggests a wider original-image view.
-        Use profile_id and candidate IDs in compare_facade_spans coordinate slots
-        to adopt measured coordinates without copying numbers.
+        Left panel is the original crop; right is the exact color mask, magenta
+        candidate bands and blue peak support. Multiply returned-image coordinates
+        by original_pixels_per_returned_pixel, subtract the right panel offset
+        when applicable, then add the crop origin. Candidates already use original pixels.
+        Peak support is not whole-band continuity; empty/filtered ink is not absence.
+        Auxiliary summaries count unthresholded peaks, cross-axis support and cut
+        crop edges; their full intervals and notes are in details_file, readable
+        with read_candidate_items(collection="report", report_file=details_file).
+        Use profile_id/C IDs in build_plan_bim or compare_facade_spans pixel slots.
         include_image=false returns the same saved measurement without its picture.
         """
         picture, metadata = toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
-        return [picture, metadata] if include_image else json.loads(metadata)
+        from scripts.tool_scripts.bim_agent_replies import compact_reply
+        reply = compact_reply(toolkit.run, 'view_pixel_profile', json.loads(metadata))
+        return [picture, json.dumps(reply)] if include_image else reply
 
     @server.tool()
     def view_pixel_region_overview(name: ImageFilename, background_rgb: list[int], tolerance: float = 60,

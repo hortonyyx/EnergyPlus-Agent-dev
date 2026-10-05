@@ -735,7 +735,11 @@ class _CoordinatorTools:
         self.calls.append((name, arguments))
         return {
             "content": [{"type": "text", "text": "revision recorded"}],
-            "structuredContent": {"status": "ok"},
+            # This coordinator fixture represents a real geometric write.
+            # C3-T integration checks exercise the corresponding persisted BIM.
+            "structuredContent": {"status": "ok", "saved_candidate": "candidate_01",
+                "save_effects": {"created_candidates": ["candidate_01"],
+                    "geometry_applied": True, "audit_written": True}},
             "isError": False,
         }
 

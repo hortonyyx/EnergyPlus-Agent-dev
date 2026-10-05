@@ -24,14 +24,18 @@ def saved_result(result, *, candidate=None, created=(), geometry_applied=False, 
 def _geometry(source):
     """Physical objects only; source roles, notes and provenance are not geometry."""
     fields = {
-        "floors": ("id", "footprint", "z_floor", "ceiling_height"),
+        "floors": ("id", "footprint", "z_floor", "height", "spanning_space_ids"),
         "spaces": ("id", "floor_id", "polygon", "z_floor", "height", "ceiling_height"),
-        "boundaries": ("id", "space_id", "geometry_type", "vertices", "counterpart_ids", "enclosure"),
-        "openings": ("id", "kind", "vertices", "space_ids", "boundary_ids", "exterior"),
-        "connections": ("id", "kind", "opening_id", "space_ids", "boundary_ids"),
+        "boundaries": ("id", "space_id", "kind", "geometry_type", "vertices", "adjacent_space_ids", "counterpart_ids"),
+        "openings": ("id", "kind", "vertices", "space_ids", "host_boundary_id", "exterior", "connectivity"),
+        "connections": ("kind", "opening_id", "space_ids", "exterior", "state"),
     }
-    return {collection: sorted((tuple(json.dumps(row.get(k), sort_keys=True) for k in keys)
+    result = {collection: sorted((tuple(json.dumps(row.get(k), sort_keys=True) for k in keys)
             for row in source.get(collection, []))) for collection, keys in fields.items()}
+    result["opening_hosts"] = source.get("opening_hosts", {})
+    result["coordinate_system"] = {k: source.get("coordinate_system", {}).get(k)
+                                   for k in ("units", "up_axis", "north_axis")}
+    return result
 
 
 def saved_source_result(run, result, *, parent=None, selection=False):
@@ -52,7 +56,10 @@ def result_metadata(raw):
     structured = raw.get("structuredContent")
     if isinstance(structured, dict):
         return structured
-    for block in reversed(raw.get("content") or []):
+    content = raw.get("content", [])
+    if not isinstance(content, list):
+        return {}
+    for block in reversed(content):
         if not isinstance(block, dict) or block.get("type") != "text":
             continue
         try:

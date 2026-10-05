@@ -7,12 +7,14 @@ provenance, polygon/vertex copies and projection internals from routine replies.
 from __future__ import annotations
 
 import copy
+from collections import defaultdict
 import hashlib
 import json
 from pathlib import Path
 
 COMPACT_TOOLS = frozenset({'build_bim', 'build_plan_bim', 'revise_bim', 'revise_plan_bim',
-                          'build_parametric_bim', 'assemble_plan_bim', 'check_openings', 'finish_bim'})
+                          'build_parametric_bim', 'assemble_plan_bim', 'check_openings', 'finish_bim',
+                          'claim_transaction', 'view_pixel_profile'})
 
 
 def pick(value, keys):
@@ -83,21 +85,118 @@ def projection_summary(value):
 
 
 
+def height_summary(report):
+    result = copy.deepcopy(report)
+    rows = result.get('openings', [])
+    # Missing bindings are a coverage limit, not an individual geometric fault.
+    retained = [r for r in rows if r.get('evidence') or r.get('status') != 'missing'
+                or set(r.get('issues', [])) - {'no_current_height_binding'}]
+    result['openings'] = retained
+    result['unbound_without_other_issues'] = len(rows) - len(retained)
+    return result
+
+
+def change_fields(rows):
+    result = []
+    for row in rows:
+        if 'before' not in row and 'after' not in row:
+            result.append(row)
+            continue
+        before, after = row.get('before'), row.get('after')
+        if not isinstance(before, dict) or not isinstance(after, dict):
+            fields = sorted((before or after or {}).keys())
+        else:
+            fields = sorted(k for k in before.keys() | after.keys() if before.get(k) != after.get(k))
+        result.append(dict(kind=row.get('kind'), id=row['id'], fields=fields,
+            change='added' if before is None else 'removed' if after is None else 'updated'))
+    return result
+
+
+def precision_summary(report):
+    if report.get('status') != 'reported':
+        return report
+    result = pick(report, ('schema', 'status', 'source_model_sha256', 'total', 'counts', 'evidence_errors'))
+    placement = copy.deepcopy(report.get('wall_placement', {}))
+    if placement:
+        # No truncation, including serious placement findings after the fourth.
+        if placement.get('status') == 'not_assessed' and not placement.get('total'):
+            placement = pick(placement, ('status', 'checked_positions', 'total', 'reason', 'skipped', 'calibration_errors'))
+        elif not placement.get('total'):
+            placement.pop('items', None)
+        result['wall_placement'] = placement
+    changes = report.get('changes', {})
+    result['comparison'] = pick(changes, ('status', 'previous_candidate'))
+    if not report.get('items') and not changes.get('resolved'):
+        c = report.get('coverage', {})
+        tolerances = {f: t.get('default_m') for f, t in report.get('tolerances', {}).items()}
+        result['coverage'] = (f"0 findings; floors {c.get('floors', [])}, tolerances m {tolerances}, "
+            f"storey pairs {c.get('adjacent_storey_pairs', [])}, {c.get('orthogonal_wall_lines', 0)} wall lines; "
+            f"unassessed floors {c.get('floors_without_tolerance', [])}, "
+            f"nonorthogonal walls {c.get('nonorthogonal_walls_not_checked', 0)}; "
+            f"not checked: {', '.join(report.get('not_checked', []))}; source/basis in details_file.")
+        return result
+    result.update(pick(report, ('coverage', 'tolerances', 'not_checked', 'meaning')))
+    lines, identities, groups = {}, {}, defaultdict(list)
+    def line_id(line):
+        key = json.dumps(line, sort_keys=True)
+        if key not in identities:
+            identity = 'L' + str(len(lines) + 1)
+            identities[key] = identity
+            lines[identity] = line
+        return identities[key]
+    rows = [(row, 'new' if i in changes.get('new', []) else 'unchanged'
+             if i in changes.get('unchanged', []) else 'current') for i, row in enumerate(report['items'])]
+    rows += [(row, 'resolved') for row in changes.get('resolved', [])]
+    for row, state in rows:
+        item = {k: v for k, v in row.items() if k != 'type'}
+        for key in ('lines', 'align_to_options'):
+            if key in item:
+                item[key] = [line_id(v) for v in item[key]]
+        if 'align_to' in item:
+            item['align_to'] = line_id(item['align_to'])
+        groups[(row['type'], state)].append(item)
+    result['wall_lines'] = table([dict(line_id=identity, **line) for identity, line in lines.items()])
+    result['groups'] = []
+    for (kind, state), rows in groups.items():
+        common = {key: value for key, value in rows[0].items()
+                  if len(rows) > 1 and all(row.get(key) == value for row in rows[1:])}
+        result['groups'].append(dict(type=kind, change=state, common=common,
+            **table([{k: v for k, v in row.items() if k not in common} for row in rows])))
+    return result
+
+
+def profile_summary(result):
+    reply = copy.deepcopy(result)
+    for key in ('panel_note', 'evidence_note', 'display_note'):
+        reply.pop(key, None)
+    positive = reply.pop('positive_support_runs', [])
+    reply['positive_support_summary'] = dict(run_count=len(positive),
+        local_peak_count=sum(len(row.get('support_peaks', [])) for row in positive),
+        max_count=max((row.get('max_count', 0) for row in positive), default=0))
+    def excluded(value):
+        return {**pick(value, ('coordinate_count', 'matching_pixels', 'minimum_count', 'support_length')),
+                'interval_count': len(value.get('intervals', []))}
+    reply['threshold_excluded_support'] = excluded(result.get('threshold_excluded_support', {}))
+    cross = result.get('cross_axis_profile', {})
+    reply['cross_axis_profile'] = {**pick(cross, ('axis', 'min_fraction', 'minimum_count', 'support_length')),
+        'run_count': len(cross.get('runs', [])),
+        'max_count': max((r.get('max_count', 0) for r in cross.get('runs', [])), default=0),
+        'threshold_excluded_support': excluded(cross.get('threshold_excluded_support', {}))}
+    crop = reply.get('crop_context', {})
+    crop.pop('note', None)
+    edges = crop.pop('edge_support_intervals', {})
+    crop['edge_interval_counts'] = {k: len(v) for k, v in edges.items()}
+    return reply
+
+
 def summarize_reply(result):
     """Pure presentation: errors, findings, IDs, heights and geometry stay explicit."""
     reply = copy.deepcopy(result)
     precision = reply.get('building_precision')
-    if isinstance(precision, dict) and precision.get('status') == 'reported':
-        precision['items'] = table(precision['items'][:8])
-        precision['truncated'] = precision['total'] > 8
-        # Exact evidence and all findings are in the ordinary A3-T details file.
-        for row in precision.get('tolerances', {}).values():
-            row.pop('basis', None)
-            row.pop('rule', None)
-    if isinstance(precision, dict) and isinstance(precision.get('wall_placement'), dict):
-        placement = precision['wall_placement']
-        placement['items'] = placement['items'][:4]
-        placement['truncated'] = placement['total'] > 4
+    if isinstance(precision, dict):
+        reply['building_precision'] = precision_summary(precision)
+    if isinstance(reply.get('height_coverage'), dict):
+        reply['height_coverage'] = height_summary(reply['height_coverage'])
     for key in ('opening_inventory', 'inventory'):
         if isinstance(reply.get(key), dict):
             reply[key] = inventory_summary(reply[key])
@@ -113,16 +212,22 @@ def summarize_reply(result):
     application = reply.get('claim_application')
     if (isinstance(application, dict) and 'submitted_operations' in application
             and application['submitted_operations'] == application.get('resolved_operations')):
-        # Equality only: resolved values/IDs remain, and actual changes remain whole.
+        # These are the exact operations the caller just supplied, not new facts.
         application.pop('submitted_operations')
+        application.pop('resolved_operations')
         application['submitted_operations_equal_resolved'] = True
+    if isinstance(application, dict):
+        if 'changes' in application:
+            application['changes'] = change_fields(application['changes'])
+        if isinstance(application.get('outside_declared_scope'), list):
+            application['outside_declared_scope'] = change_fields(application['outside_declared_scope'])
     return reply
 
 
 def compact_reply(run: Path, tool: str, result: dict, *, full_result: dict | None = None) -> dict:
     if tool not in COMPACT_TOOLS:
         return result
-    reply = summarize_reply(result)
+    reply = profile_summary(result) if tool == 'view_pixel_profile' else summarize_reply(result)
     if reply == result and full_result is None:
         return result
     raw = (json.dumps(result if full_result is None else full_result, ensure_ascii=False, indent=2) + '\n').encode()

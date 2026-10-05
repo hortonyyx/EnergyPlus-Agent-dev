@@ -74,7 +74,10 @@ def test_compact_reply_keeps_usable_ids_geometry_images_and_complete_readback(tm
             raw = (run / result['details_file']).read_bytes()
             assert hashlib.sha256(raw).hexdigest() == result['details_sha256']
             full = json.loads(raw)
-            assert full['height_coverage'] == result['height_coverage']
+            heights = result['height_coverage']
+            assert full['height_coverage']['summary'] == heights['summary']
+            assert all(row in full['height_coverage']['openings'] for row in heights['openings'])
+            assert len(heights['openings']) + heights['unbound_without_other_issues'] == len(full['height_coverage']['openings'])
             assert full['source_validation'] == result['source_validation']
             assert full['plan_input'] == result['plan_input']
             assert full['plan_compilation']['space_count'] == result['plan_compilation']['space_count']
@@ -126,7 +129,7 @@ def test_only_identical_submitted_operations_are_deduplicated():
                                  'changes': [{'kind': 'door', 'id': 'D1'}]}}
     receipt = summarize_reply(full)['claim_application']
     assert receipt['submitted_operations_equal_resolved']
-    assert receipt['resolved_operations'] == submitted
+    assert 'resolved_operations' not in receipt and 'submitted_operations' not in receipt
     assert receipt['changes'] == full['claim_application']['changes']
     full['claim_application']['resolved_operations'][0]['changes']['z'] = [0, 2.2]
     assert summarize_reply(full)['claim_application'] == full['claim_application']

@@ -39,7 +39,10 @@ def main():
     with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
         tar.extractall(WORK / 'baseline', filter='data')
     (WORK / 'baseline/scripts/__init__.py').touch()
-    (WORK / 'baseline/scripts/tool_scripts/__init__.py').touch()
+    # Current offline behaviour readers import the new contract module; fallback
+    # only for modules absent in the baseline, never for its existing tool code.
+    (WORK / 'baseline/scripts/tool_scripts/__init__.py').write_text(
+        '__path__.append(' + repr(str(ROOT / 'scripts/tool_scripts')) + ')\n')
     (HERE / 'evidence_sources.json').write_text(json.dumps(dict(baseline=BASE, model_requests=0, runs=rows), indent=2)+'\n')
 
 
