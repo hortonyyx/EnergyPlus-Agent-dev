@@ -30,11 +30,11 @@ def read(path):
 
 
 def digest(path):
-    # These specimens explicitly identify the frozen code commit. Rebuilding
-    # them after an Agent upgrade must still hash that commit's bytes, never
+    # These specimens explicitly identify the frozen code commit. Its code
+    # and dependency lock must still hash that commit's bytes, never
     # relabel current tools as historical code or rewrite the original samples.
     raw = (subprocess.check_output(["git", "show", f"{SAMPLE_CODE_COMMIT}:{path}"], cwd=ROOT)
-           if str(path) == SAMPLE_CODE_PATH else (ROOT / path).read_bytes())
+           if str(path) in {SAMPLE_CODE_PATH, "uv.lock"} else (ROOT / path).read_bytes())
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -42,7 +42,7 @@ def dump(path, value):
     target = ROOT / path
     assert target.resolve().is_relative_to(FIX)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+    target.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return path
 
 

@@ -41,7 +41,10 @@ _IGNORED_WARNING = (
 def _ep_exe() -> str | None:
     from src.runner.runner import resolve_energyplus_exe
 
-    exe = resolve_energyplus_exe()
+    try:
+        exe = resolve_energyplus_exe()
+    except FileNotFoundError:
+        return None  # Preserve the documented optional-solver skip at collection.
     if Path(exe).is_file() or shutil.which(exe):
         return exe
     return None

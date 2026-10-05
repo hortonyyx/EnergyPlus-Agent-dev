@@ -80,7 +80,7 @@ def test_r1_absolute_path_from_the_rework_dispatch_is_rejected(tmp_path, monkeyp
     assert not str(raw_join).startswith(str(tmp_path)), (
         "sanity: the absolute-path attack must actually discard the staging "
         "root via plain pathlib '/' semantics, or this fixture proves nothing")
-    assert raw_join == pathlib.Path("/tmp/evil/facts")
+    assert raw_join.resolve() == pathlib.Path("/tmp/evil/facts").resolve()
 
     with pytest.raises(FactsStagingCaseError) as exc_info:
         gt_facts_staging._facts_staging_dir(case)

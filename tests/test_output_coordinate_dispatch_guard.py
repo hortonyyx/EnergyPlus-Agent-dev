@@ -57,7 +57,7 @@ def test_no_schema_version_three_mode_dispatch_outside_owners():
     pattern = re.compile(r'schema_version\s*==\s*["\']3["\']')
     offenders = []
     for path in _SRC.rglob("*.py"):
-        rel = str(path.relative_to(_REPO))
+        rel = path.relative_to(_REPO).as_posix()
         if rel in owners:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")

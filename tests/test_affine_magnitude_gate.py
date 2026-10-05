@@ -434,7 +434,7 @@ def test_affine2dv1_still_has_exactly_one_producer():
     hits: list[tuple[str, str, int]] = []
     for path in sorted((REPO / "src").rglob("*.py")):
         for function, line in _construction_sites(path, "Affine2DV1"):
-            hits.append((str(path.relative_to(REPO)), function, line))
+            hits.append((path.relative_to(REPO).as_posix(), function, line))
     assert len(hits) == 1, hits
     module, function, _line = hits[0]
     assert (module, function) == AFFINE2DV1_PRODUCER, hits
@@ -463,7 +463,7 @@ def test_the_producer_lock_is_not_vacuous():
 def test_only_the_declared_modules_may_name_affine2dv1():
     """Breadth half of the lock: the scan above must be looking everywhere."""
     naming = sorted(
-        str(path.relative_to(REPO))
+        path.relative_to(REPO).as_posix()
         for path in (REPO / "src").rglob("*.py")
         if "Affine2DV1" in path.read_text(encoding="utf-8")
     )

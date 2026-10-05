@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 import json
+import re
 import subprocess
 
 import pytest
@@ -144,10 +145,11 @@ def test_ea2_pipeline_archive_rebuilds_every_batch_byte_for_byte(tmp_path):
 
 
 def test_ea3_no_production_call_to_historical_dict_api():
-    scan=subprocess.run(['grep','-rnE',r'\bsynthesize_openings\s*\(','--include=*.py','src','scripts'],
-                        cwd=ROOT,capture_output=True,text=True)
-    assert scan.returncode in (0,1),scan.stderr
-    calls=[line for line in scan.stdout.splitlines() if 'def synthesize_openings(' not in line]
+    calls=[f'{path.relative_to(ROOT).as_posix()}:{number}:{line}'
+           for folder in ('src','scripts') for path in (ROOT/folder).rglob('*.py')
+           for number,line in enumerate(path.read_text(encoding='utf-8').splitlines(),1)
+           if re.search(r'\bsynthesize_openings\s*\(',line)
+           and 'def synthesize_openings(' not in line]
     assert not calls,calls
 
 

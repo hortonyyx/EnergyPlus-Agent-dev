@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import pytest
+from tests.facts_equivalence import canonical_ring_origins
 from pydantic import ValidationError
 
 import src.agent.judge.gt_facts_staging as gt_facts_staging
@@ -74,7 +75,8 @@ def _synthetic_unsigned_record(as_measured, *, view_id: str = "plan-F1",
 def staging_present(tmp_path_factory):
     """Renew only the implementation identity in a disposable test fixture.
 
-    Every other as-measured field must equal the archived real-source facts.
+    Every other fact must equal the archive, modulo closed-ring start indices
+    chosen by GEOS. All coordinates, evidence, traversal and IDs remain checked.
     The archive is retained; this is not a new human approval or GT promotion.
     """
     out = _facts_staging_dir(CASE)
@@ -83,8 +85,8 @@ def staging_present(tmp_path_factory):
     old, ledger, _signed = read_facts_candidate(CASE)
     fresh = build_as_measured(ANCHOR / "sm25-L_t3_as_received.dxf",
                               ANCHOR / "request_as_measured.json")
-    assert old.model_dump(exclude={"converter_implementation_fingerprint"}) == fresh.model_dump(
-        exclude={"converter_implementation_fingerprint"})
+    assert canonical_ring_origins(old.model_dump(exclude={"converter_implementation_fingerprint"})) == canonical_ring_origins(
+        fresh.model_dump(exclude={"converter_implementation_fingerprint"}))
     assert not ledger.revisions
     ledger = ledger.model_copy(update={"as_measured_content_sha256": content_sha256(fresh)})
     with pytest.MonkeyPatch.context() as patch:

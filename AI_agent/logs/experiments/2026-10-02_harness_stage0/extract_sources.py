@@ -55,7 +55,7 @@ def source(path: Path, selector: str, *, line: int | None = None) -> dict[str, A
 
 def write(name: str, data: dict[str, Any]) -> None:
     target = OUT / name
-    target.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def compact(value: Any, limit: int = 1400) -> Any:

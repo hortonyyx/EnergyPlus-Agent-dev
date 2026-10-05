@@ -78,6 +78,8 @@ def test_six_samples_validate_and_reach_exact_saved_objects(case):
                 version = event["payload"]["versions"]["code_commit"]
                 reference = version["evidence"]["blob"]
                 pinned_code[reference["uri"]] = version["identifier"]
+                lock = event["payload"]["versions"]["dependency_lock"]["evidence"]["blob"]
+                pinned_code[lock["uri"]] = version["identifier"]
         for row in walk(example):
             if isinstance(row,dict) and row.get("kind") == "sha256":
                 path = (ROOT / row["uri"]).resolve()

@@ -488,7 +488,7 @@ def test_f2c_single_contract_detector_is_canonical():
 
     # Exactly one detector definition across the production source tree.
     hits = [
-        str(path)
+        path.as_posix()
         for path in Path("src").rglob("*.py")
         if "def identify_reading_contract" in path.read_text(encoding="utf-8")
     ]
