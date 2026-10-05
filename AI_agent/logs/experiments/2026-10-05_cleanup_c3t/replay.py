@@ -132,7 +132,7 @@ def main(side):
         if run.exists():
             shutil.rmtree(run)
         shutil.copytree(original, run)
-        candidate = sorted(run.glob('candidate_*/source_model.json'))[-1].parent.name
+        candidate = json.loads((run/'delivery.json').read_text())['candidate']
         before_hash = sha(run/candidate/'source_model.json')
         full = building_precision(runner.Toolkit(run), candidate)
         compact = summarize_reply(dict(building_precision=full))['building_precision']
