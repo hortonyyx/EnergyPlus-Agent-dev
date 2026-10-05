@@ -49,6 +49,28 @@ def test_profile_without_picture_has_identical_measured_values_and_saved_ids(tmp
     assert second['profile_id'] != first['profile_id']
 
 
+def test_merged_profile_retains_weak_unthresholded_local_maxima(tmp_path):
+    from PIL import Image
+    import hashlib
+    run = _run_with_one_image(tmp_path)
+    path = run/'images/plan.png'
+    pic = Image.new('RGB', (12, 8), 'white')
+    for x,height in enumerate([0,1,1,2,1,6,1,3,3,1,0,0]):
+        for y in range(height):
+            pic.putpixel((x,y), (0,0,0))
+    pic.save(path)
+    manifest = json.loads((run/'inputs.json').read_text())
+    manifest['images']['plan.png']['sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+    (run/'inputs.json').write_text(json.dumps(manifest))
+    toolkit = Toolkit(run)
+    old = toolkit.profile('plan.png', [0,0,12,8], 'x', [0,0,0], 0)
+    _, metadata = toolkit.view_profile('plan.png', [0,0,12,8], 'x', [0,0,0], 0, .5)
+    new = json.loads(metadata)
+    assert new['positive_support_runs'] == old['runs']
+    assert [p['count'] for p in new['positive_support_runs'][0]['support_peaks']] == [2,6,3]
+    assert len(new['candidates']) == 1 and new['candidates'][0]['peak'] == 5
+
+
 def test_saved_claim_view_routes_to_the_existing_hash_checked_reader(tmp_path):
     run = _run_with_one_image(tmp_path)
     api = server(run, enabled_only=True)

@@ -132,6 +132,16 @@ def _profile_support_peaks(counts, offset):
     return peaks
 
 
+def _profile_positive_runs(counts, offset):
+    """Preserve the legacy unthresholded runs and every local maximum plateau."""
+    rows = []
+    for start, end in _inclusive_runs(counts > 0):
+        peak = start + int(counts[start:end + 1].argmax())
+        rows.append(dict(pixels=[start + offset, end + offset], peak=peak + offset,
+            max_count=int(counts[peak]), support_peaks=_profile_support_peaks(counts[start:end + 1], start + offset)))
+    return rows
+
+
 def _profile_excluded_support(counts, offset, minimum_count, support_length):
     """Expose positive ink omitted by the caller's threshold, without new candidates."""
     excluded = (counts > 0) & (counts < minimum_count)
@@ -1979,15 +1989,7 @@ class Toolkit:
         counts = mask.sum(axis=0 if axis == "x" else 1)
         offset = x0 if axis == "x" else y0
         # Return runs of positive support plus maxima, without naming objects.
-        runs = []; start = None
-        for i, count in enumerate([*counts, 0]):
-            if count > 0 and start is None: start = i
-            if count == 0 and start is not None:
-                peak = start + int(counts[start:i].argmax())
-                runs.append({"pixels": [start+offset, i-1+offset], "peak": peak+offset,
-                             "max_count": int(counts[peak]),
-                             "support_peaks": _profile_support_peaks(counts[start:i], start + offset)})
-                start = None
+        runs = _profile_positive_runs(counts, offset)
         result = {"axis": axis, "runs": runs, "matching_pixels": int(mask.sum()),
                   "name": name, "box_original_pixels": list(box),
                   "support_length": mask.shape[0] if axis == "x" else mask.shape[1],
@@ -2085,6 +2087,7 @@ class Toolkit:
             "support_length": support_length,
             "matching_pixels": int(mask.sum()),
             "candidates": candidates,
+            "positive_support_runs": _profile_positive_runs(counts, projection_offset),
             "threshold_excluded_support": _profile_excluded_support(
                 counts, projection_offset, minimum_count, support_length),
             "cross_axis_profile": {
@@ -2273,6 +2276,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
         share along the other axis. Results are pixel evidence, not object labels.
+        positive_support_runs retains all nonzero runs and local peaks, before thresholding.
         cross_axis_profile measures the SAME mask in the other direction;
         crop_context flags cut ink and suggests a wider original-image view.
         Use profile_id and candidate IDs in compare_facade_spans coordinate slots
