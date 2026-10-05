@@ -36,6 +36,7 @@ from src.agent_runtime.providers import (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTH
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
+from src.agent_runtime.run_paths import resolve_run_output
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -84,10 +85,21 @@ def paratera_credentials(path: Path | None) -> tuple[str, str]:
     return base_url, key
 
 
+def publish_tool_budget(engine):
+    """Bridge the runtime ledger to the existing, shared tool-tail formatter."""
+    run = engine.tools.run_directory.resolve()
+    directory = run / ".harness_tmp"
+    directory.mkdir(exist_ok=True)
+    value = {**engine.remaining_budget_status(), "run_directory": str(run),
+             "started_epoch": engine.started_epoch}
+    pending = directory / "budget_status.tmp"
+    pending.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+    pending.replace(directory / "budget_status.json")
+
+
 async def execute(args) -> dict:
-    output = args.out.resolve()
-    if not output.is_relative_to(ROOT):
-        raise ValueError("this development entry writes only inside its own worktree")
+    output = resolve_run_output(args.out, repository_root=ROOT,
+                                run_root=getattr(args, "run_root", None))
     strict_model_profile = args.provider in LIVE_PROVIDERS
     # Reject an unreviewed real route before creating a run or reading credentials.
     runtime_model_profile(args.provider, args.model)
@@ -155,6 +167,7 @@ async def execute(args) -> dict:
                     adapter = adapter_type(base_url=base_url, api_key=key)
                     route = {"route_id": args.provider, "model": args.model, "base_url": base_url,
                         "billing_mode": "subscription" if args.provider in SUBSCRIPTION_PROVIDERS else "metered"}
+                route["reasoning_history"] = args.reasoning_history
                 specs = [{"type": "function", "function": {"name": t["name"],
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
@@ -191,11 +204,13 @@ async def execute(args) -> dict:
                 engine = Runtime(store=store, adapter=adapter, tools=tools, role=role,
                     model=route["model"], parameters=parameters, versions=versions, limits=limits,
                     context_policy=context_policy, pricing=pricing,
+                    reasoning_history=args.reasoning_history,
                     context_update=update_building_context,
                     required_view_ids=tuple(args.keep_view_id),
                     retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image),
                     start_epoch=started_epoch,
                     finalize_run=finalize_runtime_building,
+                    tool_budget_update=publish_tool_budget,
                     strict_model_profile=strict_model_profile)
                 engine.low_output_limit_reason = args.low_output_limit_reason
                 result = await engine.run(messages, image_originals=originals, resume=args.resume)
@@ -222,6 +237,8 @@ async def execute(args) -> dict:
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--run-root", type=Path,
+                   help="explicit absolute run-storage root; defaults to this worktree")
     p.add_argument("--images", type=Path)
     p.add_argument("--floor-plan-image", dest="floor_plan_images", action="append",
                    help="Explicit expected floor-plan filename; repeat for all floors (same as Claude Code)")
@@ -233,6 +250,8 @@ def parser():
     p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)
     p.add_argument("--script", type=Path, help="explicit offline Chat Completions response fixture")
     p.add_argument("--model", default="Qwen3.8-27B")
+    p.add_argument("--reasoning-history", choices=("all", "current_tool_chain"), default="all",
+                   help="OpenAI-compatible history policy; Anthropic messages are unchanged")
     p.add_argument("--credentials-file", type=Path, help="read only this provider credentials file; required for GLM subscription")
     p.add_argument("--model-calls", type=int, default=6)
     p.add_argument("--tool-calls", type=int, default=12)

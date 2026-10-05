@@ -206,8 +206,9 @@ already give. Image names are the exact names listed by inputs.
 # C2: stopping all image reading also barred necessary checks of listed serious
 # errors. Replace it with bounded review, without extending the hard deadline.
 FINISHING = """Resolve saved unresolved items and drawing differences while time permits.
-Tools report used and remaining minutes. After halfway, save missing floor drafts
-before refining. Below 15%, stop exploring new scope; only make bounded necessary
+Tools report conservative remaining time, tokens, money and calls where limited;
+use the tightest limit: after halfway, save missing floor drafts before refining;
+below 15%, stop exploring new scope; only make bounded necessary
 checks of already-listed serious issues. Deliver within the limit and retain
 anything unfinished as unresolved, distinguishing missing information,
 indeterminate evidence and time exhausted."""

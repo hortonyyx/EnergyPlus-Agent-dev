@@ -12,6 +12,7 @@ import argparse
 import asyncio
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -42,7 +43,13 @@ def _canonical_json_bytes(value: Any) -> bytes:
 
 def _registry_path(root: Path, registry_path: Path | None) -> Path:
     root = Path(root).resolve()
-    path = Path(registry_path) if registry_path is not None else root / REGISTRY_RELATIVE_PATH
+    # Explicit scratch registries let independently owned packages verify their
+    # complete working files without editing the shared release registry. The
+    # same strict file/catalog hash checks apply; nothing is auto-registered.
+    override = os.environ.get("BIM_AGENT_REGISTRY_PATH") if registry_path is None else None
+    if override is not None and not Path(override).is_absolute():
+        raise ValueError("BIM_AGENT_REGISTRY_PATH must be absolute")
+    path = Path(registry_path) if registry_path is not None else Path(override) if override else root / REGISTRY_RELATIVE_PATH
     return path.resolve()
 
 

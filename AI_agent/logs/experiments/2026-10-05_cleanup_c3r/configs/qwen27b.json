@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "batch_id": "c3r-qwen27b-prepared-not-approved",
+  "approval_required_before_launch": true,
+  "approval": "Prepared offline only; the C3 node regression requires separate approval before launch.",
+  "maximum_seconds_per_case": 6000,
+  "cases": [
+    {
+      "mode": "single_model",
+      "credentials_file": "/workspaces/EnergyPlus-Agent-dev/.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png"
+      ],
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment constraints: work directly with the deterministic and visual tools, without review_detail or other delegation.\nBudget: 6000 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "task_sha256": "381c609265ee48aa866d1b232c533fd909e88199f933596a72d93320ab45a93d",
+      "task_source": "2026-10-02_sm24_glm_baseline/agent_request.json prompt with 'Budget: 3000 seconds' -> 'Budget: 6000 seconds' (same as the Claude Code launcher)",
+      "max_candidates": 24,
+      "compact_at_tokens": 150000,
+      "case_id": "sm24_qwen27b_c3",
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "output": "AI_agent/logs/experiments/2026-10-05_cleanup_c3r/runs/sm24_qwen27b_c3",
+      "limits": {
+        "model_calls": 150,
+        "tool_calls": 300,
+        "tokens": 6000000,
+        "seconds": 6000,
+        "model_retries": 2,
+        "retry_backoff_seconds": 1.0
+      },
+      "context_tokens": 262144,
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "thinking": true,
+      "expected_usage": {
+        "model_requests": 45,
+        "provider_tokens": 4000000,
+        "basis": "new-runtime sm24 on GLM (10-04 node regression): 42 requests, 4,033,569 reported tokens; 27B may need more rounds",
+        "estimated_cny": "about 10-20 at the 10-03 bill-derived prices (text 3, cached 0.6, output 12 per million; images billed twice)",
+        "hard_stop": "6,000,000 tokens caps the worst case near 25 CNY"
+      },
+      "parameter_difference": "Same images, task text, 6000 s, 24 candidates and no delegation as the GLM legs. Paratera offers no reasoning_effort=medium, so thinking is switched on with enable_thinking. temperature 0.7 and output 16,384 are the values of the 10-02 Paratera probe in which Qwen3.8-27B read both sm24 elevations correctly (16,384 is also the reviewed profile minimum); the runtime default 0.0 is greedy decoding, which Qwen advises against in thinking mode. Context ceiling is the model's native 262,144 tokens; compaction at 150,000 as on the GLM legs.",
+      "reasoning_history": "current_tool_chain"
+    }
+  ]
+}
