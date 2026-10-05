@@ -27,12 +27,12 @@ monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7d17b1f2d1f0&gt;
         monkeypatch.setattr(runner.subprocess, "Popen", ScriptedProcess)
 &gt;       runner.subscription(run, "fixture", model="sonnet", name="first", timeout=6000)
 
-tests/test_bim_time_budget.py:129: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_bim_time_budget.py:129:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 scripts/tool_scripts/run_bim_agent.py:298: in subscription
     agent_version = agent_version_record(ROOT)["version_id"]
                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 root = PosixPath('/root/worktrees/astra-c3r'), version_id = None
 
@@ -44,7 +44,7 @@ root = PosixPath('/root/worktrees/astra-c3r'), version_id = None
         verify: bool = True,
     ) -&gt; dict[str, Any]:
         """Return one registry record, optionally checking every registered file."""
-    
+
         root = Path(root).resolve()
         registry = load_agent_registry(root, registry_path)
         selected = version_id or registry["current_version"]

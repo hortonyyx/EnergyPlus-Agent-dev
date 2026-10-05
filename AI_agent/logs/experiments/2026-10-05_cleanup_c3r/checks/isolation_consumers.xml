@@ -3,7 +3,7 @@
     def test_build_isolation_workspace_copies_whitelist_and_manifest(tmp_path: Path):
         manifest = _build(tmp_path)
         staging = manifest.staging_root
-    
+
         assert (staging / "case_data" / "1f_view.png").exists()
         assert (staging / "case_data" / "testdata_prompt.json").exists()
         assert (staging / "skills/intake_pipeline/0_reading/session_kickoff.md").exists()
@@ -12,7 +12,7 @@
         assert (staging / "tools/cv_probe.py").exists()
         assert (staging / "tools/run_cv_probe.py").exists()
         assert (staging / "out").is_dir()
-    
+
         data = json.loads((staging / "MANIFEST.json").read_text(encoding="utf-8"))
         assert data["schema_version"] == "1"
         assert data["merge_eligible"] is False

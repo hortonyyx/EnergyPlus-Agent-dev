@@ -30,16 +30,16 @@ tests/test_affected_tests_map.py:140: AssertionError</failure></testcase><testca
             _recommendation_block(evidence_id),
         )
         report_path.write_text(authored, encoding="utf-8")
-    
+
         record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
         after_one = report_path.read_text(encoding="utf-8")
         assert "Custom narrative survives." in after_one
         assert "- action: add a sharper gate" in after_one
-    
+
         record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
 &gt;       assert report_path.read_text(encoding="utf-8") == after_one
 E       AssertionError: assert '&lt;!-- GEN:STA...ppendix --&gt;\n' == '&lt;!-- GEN:STA...ppendix --&gt;\n'
-E         
+E
 E         Skipping 344 identical leading characters in diff, use -v to show
 E         Skipping 25187 identical trailing characters in diff, use -v to show
 E         - irty:160000 skills=2
@@ -58,13 +58,13 @@ tests/test_orchestrate_baseline.py:881: AssertionError</failure></testcase><test
             tmp_path, "reg", "regression", "orthogonal_polygon",
         )
 
-tests/test_reading_ruler_r1_batchB.py:530: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_reading_ruler_r1_batchB.py:530:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_reading_ruler_r1_batchB.py:494: in _merge_with_policy
     build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L10_isolation_policy_trut0/staging_reg')
 
@@ -86,13 +86,13 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
             tmp_path, "reg", "regression", "orthogonal_polygon",
         )
 
-tests/test_reading_ruler_r1_batchB.py:554: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_reading_ruler_r1_batchB.py:554:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_reading_ruler_r1_batchB.py:494: in _merge_with_policy
     build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L11_exploratory_control_s0/staging_reg')
 
@@ -123,11 +123,11 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
         staging = tmp_path / "staging_drift"
 &gt;       build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=staging)
 
-tests/test_reading_ruler_r1_batchB.py:583: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_reading_ruler_r1_batchB.py:583:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L12_policy_drift_rejected0/staging_drift')
 

@@ -6,16 +6,16 @@
         across the positive/negative tests in this file -- each test writes to
         its own ``out/&lt;unique&gt;`` name so nothing collides. The neuter test builds
         its OWN fresh staging instead (see ``_neuter_into_fresh_staging``)."""
-    
+
         root = tmp_path_factory.mktemp("c1_staging")
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_cross_axis_exit.py:87: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cross_axis_exit.py:87:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/c1_staging0/staging')
 
@@ -35,16 +35,16 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         across the positive/negative tests in this file -- each test writes to
         its own ``out/&lt;unique&gt;`` name so nothing collides. The neuter test builds
         its OWN fresh staging instead (see ``_neuter_into_fresh_staging``)."""
-    
+
         root = tmp_path_factory.mktemp("c1_staging")
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_cross_axis_exit.py:87: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cross_axis_exit.py:87:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/c1_staging0/staging')
 
@@ -78,18 +78,18 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         Confirmed empirically while writing this test, not merely reasoned from
         reading the source.
         """
-    
+
 &gt;       neuter_staging = _neuter_into_fresh_staging(tmp_path)
                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_cross_axis_exit.py:222: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cross_axis_exit.py:222:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_cross_axis_exit.py:139: in _neuter_into_fresh_staging
     manifest = build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "neuter_staging")
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_neuter_reverting_the_lega0/neuter_staging')
 
@@ -113,13 +113,13 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 &gt;       manifest = _formal_build(_SM21, run_dir, tmp_path / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:243: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:243:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f2a_merge_carries_reading0/staging')
 
@@ -146,13 +146,13 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 &gt;       manifest = _formal_build(_SM21, run_dir, tmp_path / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:273: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:273:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f2b_merge_without_summary0/staging')
 
@@ -173,7 +173,7 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
         source verifier — which pre-F-2c reconstructed ``{}`` (no flat files) and
         died on the envelope/floor shape mismatch — now binds those mirrors to the
         envelope accepted archive.
-    
+
         Neuter: drop the mirror-writing loop in ``merge_isolated_output`` ⇒ the
         ``0_reading/*_view.json`` glob is empty ⇒ the verifier rebuilds ``{}``,
         wraps it to ``{"views": {}}``, and reds on the canonical mismatch (and the
@@ -181,8 +181,8 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 &gt;       run_dir = _isolated_merge_run(tmp_path)
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:334: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:334:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:313: in _isolated_merge_run
     workspace = _formal_build(_SM21, run_dir, tmp_path / "staging")
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -190,7 +190,7 @@ tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f2c1_isolated_merge_mirro0/staging')
 
@@ -209,14 +209,14 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
         are written, swapping ONE coordinate in ONE view's mirror MUST still be
         rejected — adding the mirrors cannot turn this gate恒真. Two-cell on the same
         post-merge run: clean verifies, then reds after a single coordinate swap.
-    
+
         Neuter: collapse the canonical comparison (e.g. make it a tautology) ⇒ the
         swapped-coordinate cell stops raising ⇒ this lock reds."""
 &gt;       run_dir = _isolated_merge_run(tmp_path)
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:367: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:367:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:313: in _isolated_merge_run
     workspace = _formal_build(_SM21, run_dir, tmp_path / "staging")
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -224,7 +224,7 @@ tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f2c2_tampered_mirror_coor0/staging')
 
@@ -253,13 +253,13 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 &gt;       workspace = _formal_build(_SM21, run_dir, tmp_path / "staging")
                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:436: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:436:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f2c_rework_r1_stale_stage0/staging')
 
@@ -275,14 +275,14 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 
     def test_f35_merge_carries_cv_evidence_out_of_staging(tmp_path):
         """F-35: the reader's CV sidecars survive the workspace they were made in.
-    
+
         ``check_calibration_evidence`` reads ``out/cv`` during merge and then the
         staging root is discarded, so until now the evidence died with it — the
         2026-07-07 runs kept 92 and 38 sidecars and can still be audited step by
         step, while the 2026-08-21 sm25 run made 42 cv_probe / 19 profiler / 56 crop
         calls and left nothing to audit. Whether a reading measured or eyeballed is
         what the evidence shows and the product hides.
-    
+
         Neuter: drop the ``_archive_cv_evidence`` call in ``merge_isolated_output``
         ⇒ ``cv_evidence/`` is absent and the provenance digest is null ⇒ red.
         """
@@ -291,13 +291,13 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 &gt;       manifest = _formal_build(_SM21, run_dir, tmp_path / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:586: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:586:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f35_merge_carries_cv_evid0/staging')
 
@@ -313,7 +313,7 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 
     def test_f35_merge_without_cv_evidence_records_an_explicit_null(tmp_path):
         """A reader that produced no sidecars is a finding, not a gap in the record.
-    
+
         An absent key would read as "nobody looked"; an explicit null says "looked,
         found none" — the same absence-is-not-a-signal discipline the summary hash
         already follows.
@@ -323,13 +323,13 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
 &gt;       manifest = _formal_build(_SM21, run_dir, tmp_path / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_e2e_break_r2_locks.py:618: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_e2e_break_r2_locks.py:618:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 tests/test_e2e_break_r2_locks.py:224: in _formal_build
     return build_isolation_workspace(
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_f35_merge_without_cv_evid0/staging')
 
@@ -349,7 +349,7 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -359,11 +359,11 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -383,7 +383,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -393,11 +393,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -417,7 +417,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -427,11 +427,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -451,7 +451,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -461,11 +461,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -485,7 +485,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -495,11 +495,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -519,7 +519,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -529,11 +529,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -553,7 +553,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -563,11 +563,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -587,7 +587,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -597,11 +597,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -621,7 +621,7 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         current source tree, shared read-mostly across the tests in this file --
         each test that runs a subprocess writes to its own ``out/&lt;unique&gt;`` name
         so nothing collides under this repo's default parallel test run."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
         # 2026-08-19: the DEFAULT tier is now "none" (stage the original; user ruling —
         # cost-driven downscaling is off the table and the frame tradeoff is packaged into
@@ -631,11 +631,11 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
             CASE_DIR, staging_root=root / "staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:92: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:92:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging0/staging')
 
@@ -665,7 +665,7 @@ monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x72bed74b4860&gt;
         technique -- the equivalent-strength substitute is a ``monkeypatch`` of
         the exact call site's imported name, scoped to this one test by pytest's
         ``monkeypatch`` fixture (auto-undone at teardown).
-    
+
         This is at least as safe as the file-swap technique against the M-1
         cross-worker race (2026-08-17 cross-review, see
         ``tests/test_substrate_fix_tools.py::_neuter_into_fresh_staging``'s
@@ -675,7 +675,7 @@ monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x72bed74b4860&gt;
         process with its own independent Python module state, so it cannot
         observe this patch under any interleaving, a stronger guarantee than "no
         other worker happens to read this exact path during the swap window".
-    
+
         Still a real-entry-point test throughout: the REAL
         ``build_isolation_workspace()`` runs end to end (never a hand-simulated
         reimplementation) and a REAL subprocess runs against the staged
@@ -684,22 +684,22 @@ monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x72bed74b4860&gt;
         passthrough that opens the file and returns its size WITHOUT resizing,
         i.e. exactly what every caller observed before F-51 added this call.
         """
-    
+
         def _passthrough_no_resize(path, tier: str = DEFAULT_VISION_RESIZE_TIER) -&gt; tuple[int, int]:
             with Image.open(path) as img:
                 return img.size
-    
+
         monkeypatch.setattr(isolation_module, "resize_image_file_to_tier", _passthrough_no_resize)
-    
+
 &gt;       manifest = build_isolation_workspace(
             CASE_DIR, staging_root=tmp_path / "neuter_staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:317: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:317:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_neuter_cutting_the_resize0/neuter_staging')
 
@@ -716,7 +716,7 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
     def test_default_tier_stages_the_original_bytes(tmp_path: Path) -&gt; None:
         """⭐ 2026-08-19 user ruling lock: the DEFAULT staging behaviour is to leave the
         drawing alone.
-    
+
         The rest of this file locks that the resize MECHANISM works when asked for. This
         locks the other half — that it is not asked for by default. Before this ruling the
         default was "standard", which silently shrank every plan to 1377x868; the reason it
@@ -728,17 +728,17 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
             DEFAULT_VISION_RESIZE_TIER,
             NO_VISION_RESIZE,
         )
-    
+
         assert DEFAULT_VISION_RESIZE_TIER == NO_VISION_RESIZE
-    
+
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=tmp_path / "default_staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_f51_single_frame.py:358: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:358:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_default_tier_stages_the_o0/default_staging')
 
@@ -760,11 +760,11 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
             CASE_DIR, staging_root=tmp_path / "standard_staging", vision_resize_tier="standard"
         )
 
-tests/test_f51_single_frame.py:373: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_single_frame.py:373:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/test_standard_tier_still_shrin0/standard_staging')
 
@@ -783,16 +783,16 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
         """A real isolation staging (preview/unbound build) with the synthetic
         source image staged into ``case_data/`` — exactly where the wrapper's path
         resolution expects reader inputs to live."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_f51_source_frame_roundtrip.py:83: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_source_frame_roundtrip.py:83:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging1/staging')
 
@@ -811,16 +811,16 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         """A real isolation staging (preview/unbound build) with the synthetic
         source image staged into ``case_data/`` — exactly where the wrapper's path
         resolution expects reader inputs to live."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_f51_source_frame_roundtrip.py:83: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_source_frame_roundtrip.py:83:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging1/staging')
 
@@ -839,16 +839,16 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         """A real isolation staging (preview/unbound build) with the synthetic
         source image staged into ``case_data/`` — exactly where the wrapper's path
         resolution expects reader inputs to live."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_f51_source_frame_roundtrip.py:83: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_source_frame_roundtrip.py:83:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging1/staging')
 
@@ -867,16 +867,16 @@ src/agent/execution/isolation.py:1971: ValueError</error></testcase><testcase cl
         """A real isolation staging (preview/unbound build) with the synthetic
         source image staged into ``case_data/`` — exactly where the wrapper's path
         resolution expects reader inputs to live."""
-    
+
         root = tmp_path_factory.mktemp("f51_staging")
 &gt;       manifest = build_isolation_workspace(CASE_DIR, staging_root=root / "staging")
                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_f51_source_frame_roundtrip.py:83: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_f51_source_frame_roundtrip.py:83:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw1/f51_staging1/staging')
 
@@ -920,11 +920,11 @@ expected = &lt;class 'subprocess.TimeoutExpired'&gt;
 &gt;       staging = build_isolation_workspace(case_dir, staging_root=tmp_path / "staging").staging_root
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_automatic_reading.py:157: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_automatic_reading.py:157:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw0/test_subscription_spawn_archiv0/staging')
 
@@ -968,11 +968,11 @@ expected = &lt;class 'RuntimeError'&gt;
 &gt;       staging = build_isolation_workspace(case_dir, staging_root=tmp_path / "staging").staging_root
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-tests/test_automatic_reading.py:157: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_automatic_reading.py:157:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src/agent/execution/isolation.py:231: in build_isolation_workspace
     _require_outside_repo(staging_root)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full/popen-gw0/test_subscription_spawn_archiv1/staging')
 
@@ -1000,8 +1000,8 @@ src/agent/execution/isolation.py:1971: ValueError</failure></testcase><testcase 
             assert "已用／剩余分钟" in result.content[-1].text
 &gt;       asyncio.run(scenario())
 
-tests/test_bim_facade_counts.py:129: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_bim_facade_counts.py:129:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 /usr/lib/python3.12/asyncio/runners.py:195: in run
     return runner.run(main)
            ^^^^^^^^^^^^^^^^
@@ -1011,7 +1011,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 /usr/lib/python3.12/asyncio/base_events.py:691: in run_until_complete
     return future.result()
            ^^^^^^^^^^^^^^^
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
     async def scenario():
         run = _run_with_one_image(tmp_path)

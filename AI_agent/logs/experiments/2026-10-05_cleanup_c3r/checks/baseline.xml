@@ -3,7 +3,7 @@
 &gt;       assert verdict.status == "reproduced", verdict.detail
 E       AssertionError: this tree no longer matches the implementation that produced the report; moved fingerprints: vg_implementation_sha256. The on-disk report may still be exactly what was signed -- re-check after aligning the tree.
 E       assert 'implementation_drift' == 'reproduced'
-E         
+E
 E         - reproduced
 E         + implementation_drift
 
@@ -13,7 +13,7 @@ tests/test_gt_raw_layer.py:92: AssertionError</failure></testcase><testcase clas
         root = _clone_gt(tmp_path)
         path = _report_path(root)
         report = json.loads(path.read_text(encoding="utf-8"))
-    
+
         # Pick a concrete edge and prove the mutation really changed something
         # (a mutation that silently no-ops would make this test a false green).
         zone_index, edge_index = 0, 0
@@ -22,12 +22,12 @@ tests/test_gt_raw_layer.py:92: AssertionError</failure></testcase><testcase clas
         edge["thickness_m"] = 0.13
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         assert json.loads(path.read_text(encoding="utf-8"))["zones"][0]["edges"][0]["thickness_m"] == 0.13
-    
+
         verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
 &gt;       assert verdict.status == "content_mismatch", verdict.detail
 E       AssertionError: this tree no longer matches the implementation that produced the report; moved fingerprints: vg_implementation_sha256. The on-disk report may still be exactly what was signed -- re-check after aligning the tree.
 E       assert 'implementation_drift' == 'content_mismatch'
-E         
+E
 E         - content_mismatch
 E         + implementation_drift
 
@@ -37,7 +37,7 @@ tests/test_gt_raw_layer.py:114: AssertionError</failure></testcase><testcase cla
                                   ANCHOR / "request_as_measured.json")
 &gt;       assert content_sha256(staged_as_measured) == content_sha256(fresh)
 E       AssertionError: assert '10c9c2229ca0...fc4d35f1fee00' == '4f210cea9b98...a9d0c4e6346f4'
-E         
+E
 E         - 4f210cea9b989a14dfba9e29f3e18e36769055049f6ddbfc740a9d0c4e6346f4
 E         + 10c9c2229ca0d15de4edce0a7fcac00ce925f89ec30bf70d0f5fc4d35f1fee00
 
@@ -52,13 +52,13 @@ tests/test_gt_facts_staging_sm25.py:91: AssertionError</failure></testcase><test
         recorded = face["area_m2"]
         face["area_m2"] = recorded + 0.001
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    
+
         verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
         expected = "/gates/G6/evidence/views/0/evidence/near_threshold_faces/0/area_m2"
 &gt;       assert verdict.status == "content_mismatch", verdict.detail
 E       AssertionError: this tree no longer matches the implementation that produced the report; moved fingerprints: vg_implementation_sha256. The on-disk report may still be exactly what was signed -- re-check after aligning the tree.
 E       assert 'implementation_drift' == 'content_mismatch'
-E         
+E
 E         - content_mismatch
 E         + implementation_drift
 
@@ -70,12 +70,12 @@ tests/test_gt_raw_layer.py:132: AssertionError</failure></testcase><testcase cla
         report = json.loads(path.read_text(encoding="utf-8"))
         report["gates"].append(dict(report["gates"][0]))
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    
+
         verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
 &gt;       assert verdict.status == "content_mismatch", verdict.detail
 E       AssertionError: this tree no longer matches the implementation that produced the report; moved fingerprints: vg_implementation_sha256. The on-disk report may still be exactly what was signed -- re-check after aligning the tree.
 E       assert 'implementation_drift' == 'content_mismatch'
-E         
+E
 E         - content_mismatch
 E         + implementation_drift
 
@@ -85,31 +85,31 @@ tests/test_gt_raw_layer.py:144: AssertionError</failure></testcase><testcase cla
         root = _clone_gt(tmp_path)
         path = _report_path(root)
         report = json.loads(path.read_text(encoding="utf-8"))
-    
+
         recorded = report["converter_sha256"]
         # drift it by exactly one hex digit
         flipped = ("1" if recorded[0] != "1" else "2") + recorded[1:]
         assert flipped != recorded
         report["converter_sha256"] = flipped
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    
+
         verdict = verify_raw_layer_reproduction(CASE, gt_dir=root)
         assert verdict.status == "implementation_drift", verdict.detail
 &gt;       assert verdict.drifted_fingerprints == ("converter_sha256",)
 E       AssertionError: assert ('converter_s...ation_sha256') == ('converter_sha256',)
-E         
+E
 E         Left contains one more item: 'vg_implementation_sha256'
 E         Use -v to get more diff
 
 tests/test_gt_raw_layer.py:165: AssertionError</failure></testcase><testcase classname="tests.test_gt_raw_layer" name="test_r5_vg_implementation_drift_is_fatal" time="0.137" /><testcase classname="tests.test_gt_raw_layer" name="test_missing_signed_inputs_report_inputs_unavailable" time="0.006" /><testcase classname="tests.test_gt_raw_layer" name="test_tampered_signed_chain_is_rejected_before_reproduction" time="0.018" /><testcase classname="tests.test_gt_raw_layer" name="test_f111_a_signed_request_resolves_from_the_case_owned_path" time="0.004" /><testcase classname="tests.test_gt_raw_layer" name="test_f111_b_sm24_is_no_longer_blocked_on_missing_inputs" time="0.136" /><testcase classname="tests.test_gt_facts_staging_sm25" name="test_6_the_worklist_is_empty_because_the_detector_finds_nothing" time="1.674"><failure message="AssertionError: assert '10c9c2229ca0...fc4d35f1fee00' == '4f210cea9b98...a9d0c4e6346f4'&#10;  &#10;  - 4f210cea9b989a14dfba9e29f3e18e36769055049f6ddbfc740a9d0c4e6346f4&#10;  + 10c9c2229ca0d15de4edce0a7fcac00ce925f89ec30bf70d0f5fc4d35f1fee00">def test_6_the_worklist_is_empty_because_the_detector_finds_nothing():
         """Verification #6, re-derived: the待签清单 is machine-produced (recomputed
         here from scratch, ⛔ not merely re-read) and it is now EMPTY.
-    
+
         ⚠️ A-11 (2026-09-05) moved this shape once: with the 1 mm ingest snap in
         place, 13AC/160A's ~0.2 mm "difference" was pure representation residue and
         was absorbed, while 13AD/13AE surfaced a real ``const -30`` (3.0 mm) and
         13AF stayed inexpressible.  ⇒ 3 records.
-    
+
         ⚠️⚠️ G-c (2026-09-07) moved it again, to ZERO -- and ⭐ the reason is the
         whole unit: those 3.0 mm were never the drawing's error.  The converter's
         own snap chose the MIDPOINT of a crooked stroke, which dragged the endpoint
@@ -118,7 +118,7 @@ tests/test_gt_raw_layer.py:165: AssertionError</failure></testcase><testcase cla
         classifier and vanished.  With the ladder anchoring on the joint instead,
         the as-received build reproduces the signed geometry and there is nothing
         left for a human to sign.
-    
+
         ⛔⛔ AN EMPTY RESULT IS NOT SELF-PROVING, so this test does not stop there:
         the second half feeds the detector a document it MUST find something in, so
         "zero" cannot come from a detector that has quietly stopped working.
@@ -128,7 +128,7 @@ tests/test_gt_raw_layer.py:165: AssertionError</failure></testcase><testcase cla
         after = build_as_measured(ANCHOR / "sm25-L_t3.dxf", ANCHOR / "request.json")
         recomputed = detect_translate_candidates(before, after, CHANGED_HANDLES)
         assert recomputed == [], [r.id for r in recomputed]
-    
+
         # ⭐ the same five handles, on a document whose face lines really do differ:
         # move one face line by hand and the detector must produce exactly one
         # well-formed candidate.  ⇒ the zero above is a MEASUREMENT, ⛔ not a
@@ -148,12 +148,12 @@ tests/test_gt_raw_layer.py:165: AssertionError</failure></testcase><testcase cla
         assert found[0].candidate_action.field == "const"
         assert found[0].candidate_action.delta_0p1mm == 30
         assert found[0].verdict == "unsigned"
-    
+
         _staged_am, staged_revisions, _staged_as_signed = read_facts_candidate(CASE)
         assert staged_revisions.revisions == []
 &gt;       assert staged_revisions.as_measured_content_sha256 == content_sha256(before)
 E       AssertionError: assert '10c9c2229ca0...fc4d35f1fee00' == '4f210cea9b98...a9d0c4e6346f4'
-E         
+E
 E         - 4f210cea9b989a14dfba9e29f3e18e36769055049f6ddbfc740a9d0c4e6346f4
 E         + 10c9c2229ca0d15de4edce0a7fcac00ce925f89ec30bf70d0f5fc4d35f1fee00
 
@@ -164,7 +164,7 @@ tests/test_gt_facts_staging_sm25.py:144: AssertionError</failure></testcase><tes
         without touching ``_expected_converter_sha256``'s exemption logic itself
         -- which this dispatch explicitly forbids ("不许往豁免集合里塞任何值" /
         "不许扩大豁免集合").
-    
+
         MEASURED (this exact tree, after R1's edit to ``tarch_normalize.py`` +
         ``tarch_converter_schema.py``, both CONVERTER_CLOSURE_FILES members):
         ``_expected_converter_sha256`` returns ``recorded`` UNCONDITIONALLY for any
@@ -176,7 +176,7 @@ tests/test_gt_facts_staging_sm25.py:144: AssertionError</failure></testcase><tes
         exact "sm25's converter_sha256 signal is DEAD ... until the case is next
         re-signed" behaviour ``_expected_converter_sha256``'s own docstring
         documents as an ACCEPTED, GLM-verified limitation of ②-1b-R's widening.
-    
+
         sm24_anchor (NOT a member of the exemption set) is the fixture that is
         actually sensitive to a closure edit, and IS correctly red here -- this is
         what "the assertion still has teeth, just not on sm25" looks like.
@@ -189,13 +189,13 @@ tests/test_gt_facts_staging_sm25.py:144: AssertionError</failure></testcase><tes
             "re-checking either way, not silently accepted")
 E       AssertionError: sm25 is legacy-exempted by design (②-1b-R) -- if this ever starts reporting drift, either the exemption set moved (forbidden by this dispatch) or sm25 was re-signed, and this test's premise needs re-checking either way, not silently accepted
 E       assert 'implementation_drift' == 'reproduced'
-E         
+E
 E         - reproduced
 E         + implementation_drift
 
 tests/test_tarch_converter_reproducibility.py:296: AssertionError</failure></testcase><testcase classname="tests.test_tarch_converter_reproducibility" name="test_f_d_closure_membership_matches_a_static_import_walk" time="0.054" /><testcase classname="tests.test_tarch_converter_reproducibility" name="test_f_d_gt_extraction_lazy_dependency_is_real_and_on_the_p2_path" time="0.074" /><testcase classname="tests.test_tarch_converter_reproducibility" name="test_f_d_excluded_lazy_imports_are_confirmed_unreachable" time="0.043" /><testcase classname="tests.test_tarch_converter_reproducibility" name="test_ezdxf_default_writer_matches_converter_writer_except_pinned_metadata" time="0.426" /><testcase classname="tests.test_tarch_converter_reproducibility" name="test_r1_3_metadata_guids_change_with_source_or_request" time="0.000" /><testcase classname="tests.test_tarch_converter_reproducibility" name="test_r1_4_gt_and_all_seven_renders_are_byte_identical" time="7.200" /><testcase classname="tests.test_f97_vector_contract" name="test_b1_real_sm25_reading_products_are_all_legacy_and_all_consumed" time="0.005" /><testcase classname="tests.test_f97_vector_contract" name="test_b1_prompt_bytes_unchanged_for_a_legacy_only_dir" time="0.008" /><testcase classname="tests.test_f97_vector_contract" name="test_b2_unknown_contract_raises_and_names_the_file" time="0.005" /><testcase classname="tests.test_f97_vector_contract" name="test_b2_unknown_is_never_silently_dropped" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_b2_empty_object_is_unknown_not_legacy" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_b2_non_object_json_is_unknown" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_b3_as_drawn_plan_is_wired_to_the_adapter" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_nf1_missing_face_lines_key_is_a_loud_unknown" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_nf1_empty_face_lines_list_is_still_as_drawn_plan" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_real_historical_views_lacking_dimensions_are_recognized[path2]" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_real_historical_views_lacking_dimensions_are_recognized[path3]" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_real_historical_views_lacking_dimensions_are_recognized[path4]" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_real_historical_views_lacking_dimensions_are_recognized[path5]" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_r1_unregistered_schema_is_unknown_not_legacy" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_r1_unregistered_schema_fails_loudly_through_the_real_entry" time="0.005" /><testcase classname="tests.test_f97_vector_contract" name="test_r1_unregistered_schema_never_reaches_the_prompt" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_r2_registered_schema_plus_legacy_is_still_ambiguous" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_r2_undeclared_legacy_still_recognized" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_r3_malformed_sidecar_is_unknown_not_excluded" time="0.000" /><testcase classname="tests.test_f97_vector_contract" name="test_r3_malformed_sidecar_fails_loudly_through_the_real_entry" time="0.005" /><testcase classname="tests.test_f97_vector_contract" name="test_n_b_empty_corpus_root_is_a_loud_red_not_a_silent_pass" time="0.001" /><testcase classname="tests.test_f97_vector_contract" name="test_r3_every_real_sidecar_still_parses_as_the_producer_type" time="0.536" /><testcase classname="tests.test_f97_vector_contract" name="test_r3_all_real_legacy_views_still_consumed" time="0.238"><failure message="AssertionError: 14 corpus file(s) fell to CONTRACT_UNKNOWN: [PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/baseline/popen-gw0/test_b2_unknown_contract_raise0/0_reading/mystery.json'), PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/baseline/popen-gw0/test_b2_unknown_is_never_silen0/0_reading/mystery.json'), PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/baseline/popen-gw0/test_r1_unregistered_schema_fa0/0_reading/2f_view.json'), PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/baseline/popen-gw0/test_r3_malformed_sidecar_fail0/0_reading/1f_view_checks.json'), PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/baseline/popen-gw0/test_r1_unregistered_schema_ne0/0_reading/1f_view.json'), PosixPath('/root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/workspace/0_reading/candidate_ledger.json'), PosixPath('/root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/workspace/0_reading/coordinate_frame.json'), PosixPath('/root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/workspace/0_reading/pilot_self_check.json'), PosixPath('/root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/invocations/pilot_01/snapshot/0_reading/candidate_ledger.json'), PosixPath('/root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/invocations/pilot_01/snapshot/0_reading/coordinate_frame.json')]&#10;assert not [PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/baseline/popen-gw0/test_b2_unknown_contract_raise0/0_reading/mystery.js...-c3r/AI_agent/logs/experiments/2026-09-21_historical_sm21_pilot_run01/workspace/0_reading/candidate_ledger.json'), ...]">def test_r3_all_real_legacy_views_still_consumed():
         """R5's compatibility half, asserted rather than only measured by hand.
-    
+
         Invariant, not a snapshot count: "still consumed" means no corpus file
         falls to CONTRACT_UNKNOWN (the B-01 fix must not have tightened
         classification into rejecting a real historical shape), and that legacy
@@ -221,15 +221,15 @@ tests/test_f97_vector_contract.py:641: AssertionError</failure></testcase><testc
         bare `python scripts/.../foo.py` run from a non-main checkout resolves
         ``src`` to its OWN tree, not to whatever tree the editable-install
         ``.pth`` happens to point at.
-    
+
         F-94 A-case (2026-08-25). If this goes red, the failure message names
         every offending script + line numbers -- fix by adding, immediately
         before its first ``from src`` / ``import src`` line:
-    
+
             _REPO_ROOT = Path(__file__).resolve().parents[N]
             if str(_REPO_ROOT) not in sys.path:
                 sys.path.insert(0, str(_REPO_ROOT))
-    
+
         (N = 1 for scripts directly under scripts/, 2 for scripts/tool_scripts/.)
         """
         offenders = _unguarded_scripts()
@@ -249,7 +249,7 @@ tests/test_scripts_bootstrap_lock.py:154: AssertionError</failure></testcase><te
         rules = yaml.safe_load(affected.RULES_PATH.read_text(encoding="utf-8"))
         allowlist = rules["uncovered_allowlist"]
         assert allowlist and all(reason.strip() for reason in allowlist.values())
-    
+
         files = affected.first_class_files()
         edges = affected.build_edges(files)
         tests = [path for path in files if path.startswith("tests/")]
@@ -261,7 +261,7 @@ tests/test_scripts_bootstrap_lock.py:154: AssertionError</failure></testcase><te
         }
 &gt;       assert uncovered == set(allowlist)
 E       AssertionError: assert {'scripts/too...mote.py', ...} == {'scripts/too...sign.py', ...}
-E         
+E
 E         Extra items in the left set:
 E         'scripts/tool_scripts/diagnose_source_bim.py'
 E         'scripts/tool_scripts/diagnose_wall_openings.py'
