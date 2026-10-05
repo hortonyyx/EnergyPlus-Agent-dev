@@ -707,7 +707,7 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 
 ## 清理包 C3-T：保存结果契约、返回瘦身、报错修正（第二次完整审查后，10-05 派出，Astra）
 
-**状态：已派出，待交付。** 依据[第二次完整审查汇总](../logs/reviews/2026-10-05_second_full_review/summary.md)第三节，这是分界前的 Agent 侧清理。派工单 [C3-T brief](../logs/experiments/2026-10-05_cleanup_c3t/brief.md)。文件范围：`scripts/tool_scripts/`（`bim_agent_budget.py` 与 `bim_agent_guidance.py` 里 `FINISHING` 段讲剩余时间、过半与 15% 的两句归 C3-R）；`src/agent/runtime_context.py` 里选“当前稿”的部分；`src/agent/runtime_coordinator.py` 里 `source_bim` 与观察是否已应用的判定（含恢复时重建）；`src/agent/runtime_behaviour.py`；`src/agent/runtime_tools.py` 里 `_result_metadata` 与工具名表（`snapshot_state` 归 C3-R）；登记表与对应测试。
+**状态：10-05 验收通过，合入主线。** 依据[第二次完整审查汇总](../logs/reviews/2026-10-05_second_full_review/summary.md)第三节，这是分界前的 Agent 侧清理。派工单 [C3-T brief](../logs/experiments/2026-10-05_cleanup_c3t/brief.md)。文件范围：`scripts/tool_scripts/`（`bim_agent_budget.py` 与 `bim_agent_guidance.py` 里 `FINISHING` 段讲剩余时间、过半与 15% 的两句归 C3-R）；`src/agent/runtime_context.py` 里选“当前稿”的部分；`src/agent/runtime_coordinator.py` 里 `source_bim` 与观察是否已应用的判定（含恢复时重建）；`src/agent/runtime_behaviour.py`；`src/agent/runtime_tools.py` 里 `_result_metadata` 与工具名表（`snapshot_state` 归 C3-R）；登记表与对应测试。
 
 ### 通过条件
 
@@ -720,6 +720,17 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 **D. 三列失败口径。** 行为摘要与报告模板实际给出“调用报错／领域未成功／可用源稿”三列；对 10-04 两次 27B 重新生成，A2 后那次为 0／2／1。
 
 **E. 版本与检查。** 登记新 Agent 版本，旧版本保留；两底座三例核对逐字节一致；引用了改动模块的全部检查文件通过；0 次模型请求。
+
+### C3-T 验收结论（10-05，Opus）
+
+约 65 分钟交付（`dev/astra-c3t-20261005`，末提交 `afdf3310`），报告见 [C3-T](../logs/experiments/2026-10-05_cleanup_c3t/README.md)。**通过。**
+
+- **A 保存结果契约：** 八个保存入口统一给出 `saved_candidate` 与 `save_effects`（区分“审计已写入”与“几何实际应用”），单模型底座的当前稿、调度的 `source_bim`、观察是否已应用、行为记录都经同一个读取模块（`bim_agent_saved_result.py`）。**Opus 独立复现：** 只用改前也存在的接口写一段脚本（建第一稿 → 事务改门高 → 把真实返回交给 `update_building_context`），在 `a5baa32d` 上当前稿停在 `candidate_01`（磁盘上已有 `candidate_02`），在本分支上跟到 `candidate_02`。本包检查另覆盖全部失败、部分成功、压缩后恢复不重做已提交条目；纯备注、用途与朝向依据变化不消费观察。底座回执 `applied_write_id` 仍表示“审计已落盘”，不再被当作几何应用证据，合并 C3-R 时须保留这一区分。
+- **B 冗余返回：** 四项合计 58,206 → 53,755（默认 32 工具 53,121 → 49,743）；工具说明 +335（剖面固定说明移入一次），参数结构 16,561 → 11,792（去 `title`）。sm25 一次 `revise_bim` 65,788 → 44,875；27B A2 后 34 次剖面合计 185,429 → 80,065；五份最终稿精度段 13,738 → 9,270，且取消了原来只给前 8 项异常的截断。全文可读回，源、图片哈希与完整诊断一致。
+- **C 报错：** A1 sm25 第 69／71／73／81 步重放，指出 `D2_pass` 缺 `z` 并附最小格式。
+- **D 三列：** 两次 27B 重算 2／3／6 与 0／2／1。
+- **E：** 登记 `t1-20261005-c3t.3`（另留 `.1`、`.2` 开发快照，登记表瘦身归以后 L8）。**Opus 在本机盘重跑本包 53 个文件 505 项全部通过（244 秒）**；两底座三例核对逐字节一致；0 次模型请求。证据 1.7 MB。
+- **未验证：** 瘦身后的返回、保存契约在真实运行里是否被模型正确使用，待节点回归。
 
 ## 清理包 C3-R：底座开销、思考回传、按实际额度收尾、检查全量（第二次完整审查后，10-05 派出，Astra）
 
