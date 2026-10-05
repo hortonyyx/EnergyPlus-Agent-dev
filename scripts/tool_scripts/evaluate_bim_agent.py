@@ -90,6 +90,13 @@ def evaluate(run: Path, reference_case: str, *, modelling_task: str,
         heights = compare_exterior_heights(source, gt, report)
         quality = classify_conventions(report, source, policy if modelling_task == "reconstruction" else {},
                                        inventory=inventory, heights=heights)
+        if modelling_task != "reconstruction":
+            # An unprovided interior layout is not a fidelity target for
+            # inference. Retain the measurements without issuing a verdict.
+            quality["reference_layout_diagnostic_status"] = quality["status"]
+            quality["status"] = "not_evaluated"
+            quality.setdefault("limits", []).append(
+                "For inference, the full reference layout is diagnostic only; evaluate provided constraints and inference plausibility separately.")
         dump(target / f"{candidate.name}_delivery_quality.json", quality)
         row = {
             "candidate": candidate.name, "is_recovery_seed": candidate.name == "seed",

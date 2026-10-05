@@ -212,3 +212,24 @@ def test_good_delivery_does_not_reclassify_a_bad_saved_reading(tmp_path):
     readings = reading_report(tmp_path, reference_spaces=raw['reference_spaces'])
     assert readings['records'][0]['declaration']['z_floor'] == 10.
     assert readings['records'][0]['strict_reading_partition']['status'] == 'severe'
+
+
+def test_partial_inference_reference_differences_remain_diagnostic(tmp_path):
+    _, source, proposal, manifest, key = fixture('sm24')
+    # Withhold the floor plan: an inferred interior is not a reconstruction
+    # target, even when its full independent reference is available to a judge.
+    manifest['images'] = {name: value for name, value in manifest['images'].items()
+                          if not name[0].isdigit()}
+    manifest['floor_plan_images'] = []
+    manifest['floor_scope_source'] = 'not_declared'
+    (tmp_path/'inputs.json').write_text(json.dumps(manifest))
+    (tmp_path/'summary.json').write_text('{"agent_response_completed":true}')
+    candidate = tmp_path/'candidate_01'
+    candidate.mkdir()
+    (candidate/'source_model.json').write_text(json.dumps(source))
+    (candidate/'proposal.json').write_text(json.dumps(proposal))
+    result = evaluate(tmp_path, key, modelling_task='partial_inference', reference_scope='exteriors only')
+    assert result['candidates'][0]['delivery_quality_status'] == 'not_evaluated'
+    quality = json.loads((tmp_path/'evaluation/candidate_01_delivery_quality.json').read_bytes())
+    assert quality['reference_layout_diagnostic_status'] == 'severe'
+    assert quality['retained_findings'] and not quality['convention_differences']
