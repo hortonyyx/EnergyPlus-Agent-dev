@@ -1,0 +1,559 @@
+{
+  "model_requests": 0,
+  "method": "Record developer original-image review of the small novel diagnostic set.\n\nThis is evaluation-only: frozen reference labels and manual judgements are never\nimported by production code. Counts are per saved draft, not independent runs.\n",
+  "groups": {
+    "frozen_108": {
+      "drafts": 108,
+      "new_items": 8,
+      "frozen_label_matches": 5,
+      "manual_supported": 3,
+      "new_false_positives": 0,
+      "unresolved": 0
+    },
+    "sm25_two_runs": {
+      "drafts": 6,
+      "new_items": 2,
+      "frozen_label_matches": 0,
+      "manual_supported": 2,
+      "new_false_positives": 0,
+      "unresolved": 0
+    },
+    "sm24_run100": {
+      "drafts": 1,
+      "new_items": 4,
+      "frozen_label_matches": 0,
+      "manual_supported": 4,
+      "new_false_positives": 0,
+      "unresolved": 0
+    }
+  },
+  "frozen_label_detection": {
+    "before": 175,
+    "after": 180,
+    "added": 5,
+    "lost": 0
+  },
+  "candidate_07": {
+    "source_sha256": "ac96793216e76bfa2d177c2a9bef725e20c8d27515d2523e79d3e57896f5fad4",
+    "opening": {
+      "assumptions": [],
+      "connectivity": "open",
+      "exterior": false,
+      "host_boundary_id": "space/F1%3AS_C/wall/0",
+      "id": "F1:D_core",
+      "kind": "open",
+      "source_refs": [
+        "1f_view.png: room C full-width open passage px745-793, no jambs or arc drawn (view_0021)"
+      ],
+      "space_ids": [
+        "F1:S_C",
+        "F1:S_corr"
+      ],
+      "vertices": [
+        [
+          10.021645,
+          15.978378,
+          0.0
+        ],
+        [
+          11.060606,
+          15.978378,
+          0.0
+        ],
+        [
+          11.060606,
+          15.978378,
+          2.1
+        ],
+        [
+          10.021645,
+          15.978378,
+          2.1
+        ]
+      ]
+    },
+    "matching_drafts": [
+      "draft_009",
+      "draft_011"
+    ]
+  },
+  "reviewed": [
+    {
+      "run": "AI_agent/logs/experiments/2026-09-24_sm25_continuous_space_glm_run44",
+      "draft": "draft_001",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "809590de3e3c45865eccba8b52fa7b88bf9df3997fb1da52a676721265433f52",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "P_corr_north_w",
+        "opening": "PASS_corr_s",
+        "axis": "horizontal",
+        "y_px": 957,
+        "x_px": [
+          695,
+          792
+        ],
+        "y_m": 6.01,
+        "x_m": [
+          8.94,
+          11.04
+        ],
+        "length_m": 2.1,
+        "ink_fraction": 0.0,
+        "look_box": [
+          658,
+          920,
+          829,
+          995
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": true,
+      "decision": "supported_difference",
+      "reason": "Original crop [658,920,829,995]: continuous inkless corridor between real room walls. Frozen F1_S13 is a declared space without a reference; this diagnostic locates its artificial open separator."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-24_sm25_continuous_space_glm_run44",
+      "draft": "draft_003",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "P_corr_north_w",
+        "opening": "PASS_corr_s",
+        "axis": "horizontal",
+        "y_px": 957,
+        "x_px": [
+          695,
+          792
+        ],
+        "y_m": 6.01,
+        "x_m": [
+          8.94,
+          11.04
+        ],
+        "length_m": 2.1,
+        "ink_fraction": 0.0,
+        "look_box": [
+          658,
+          920,
+          829,
+          995
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": true,
+      "decision": "supported_difference",
+      "reason": "Original crop [658,920,829,995]: continuous inkless corridor between real room walls. Frozen F1_S13 is a declared space without a reference; this diagnostic locates its artificial open separator."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-24_sm25_local_plan_glm_run43",
+      "draft": "draft_003",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "38beb082411576b05ce026e574e22d4896e392c057e2e4e40ae4b9b116d9f555",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "P_corr_north_w",
+        "opening": "PASS_corr_s",
+        "axis": "horizontal",
+        "y_px": 957,
+        "x_px": [
+          695,
+          792
+        ],
+        "y_m": 6.01,
+        "x_m": [
+          8.94,
+          11.04
+        ],
+        "length_m": 2.1,
+        "ink_fraction": 0.0,
+        "look_box": [
+          658,
+          920,
+          829,
+          995
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": true,
+      "decision": "supported_difference",
+      "reason": "Original crop [658,920,829,995]: continuous inkless corridor between real room walls. Frozen F1_S13 is a declared space without a reference; this diagnostic locates its artificial open separator."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-25_sm25_space_relation_claude_run47",
+      "draft": "draft_001",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "6f20b2d829da2a038fe924a30048c9878c18ffe97abadf930421e247f4e1e830",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "P_corr_north_w",
+        "opening": "PASS_corr_s",
+        "axis": "horizontal",
+        "y_px": 957,
+        "x_px": [
+          695,
+          792
+        ],
+        "y_m": 6.01,
+        "x_m": [
+          8.94,
+          11.04
+        ],
+        "length_m": 2.1,
+        "ink_fraction": 0.0,
+        "look_box": [
+          658,
+          920,
+          829,
+          995
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": true,
+      "decision": "supported_difference",
+      "reason": "Original crop [658,920,829,995]: continuous inkless corridor between real room walls. Frozen F1_S13 is a declared space without a reference; this diagnostic locates its artificial open separator."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-25_sm25_space_relation_glm_run46",
+      "draft": "draft_001",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "33d195f228119c935934a8506f9ce09cc75c5717dede4fad7b2858fcf9c06681",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "P_corr_north_w",
+        "opening": "PASS_corr_s",
+        "axis": "horizontal",
+        "y_px": 957,
+        "x_px": [
+          695,
+          792
+        ],
+        "y_m": 6.01,
+        "x_m": [
+          8.94,
+          11.04
+        ],
+        "length_m": 2.1,
+        "ink_fraction": 0.0,
+        "look_box": [
+          658,
+          920,
+          829,
+          995
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": true,
+      "decision": "supported_difference",
+      "reason": "Original crop [658,920,829,995]: continuous inkless corridor between real room walls. Frozen F1_S13 is a declared space without a reference; this diagnostic locates its artificial open separator."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-28_sm21_behavior_repeat_run83",
+      "draft": "draft_001",
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_sha256": "ab939cd76102aec3fd9ba0d1b2617ac48f73ce6f5761d289b1e1c88cf24d364e",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 624,
+        "x_px": [
+          894,
+          1816
+        ],
+        "y_m": 5.0,
+        "x_m": [
+          5.08,
+          14.95
+        ],
+        "length_m": 9.86,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          819,
+          549,
+          1891,
+          699
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original crop [819,549,1891,699]: real corridor paired faces near y=618/629, interrupted by doors. Draft declares the north corridor wall at y=600 (about 0.26 m away). This is a misplaced existing wall, not an instruction to add a second wall; frozen room-seed labels do not label this offset."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-28_sm21_dimension_first_run84",
+      "draft": "draft_002",
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_sha256": "c8c0954d54cbf3f5bebe8e537eef0147ebef03a9965a534950cc75b97e4712f4",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 624,
+        "x_px": [
+          894,
+          1816
+        ],
+        "y_m": 5.0,
+        "x_m": [
+          5.04,
+          14.98
+        ],
+        "length_m": 9.94,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          819,
+          550,
+          1891,
+          698
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original crop [819,549,1891,699]: real corridor paired faces near y=618/629, interrupted by doors. Draft declares the north corridor wall at y=600 (about 0.26 m away). This is a misplaced existing wall, not an instruction to add a second wall; frozen room-seed labels do not label this offset."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-28_sm21_dimension_first_run84",
+      "draft": "draft_004",
+      "image": "1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "plan_sha256": "5fe6569c3c3bc894551d14facd96c3cff232ece0750262d8dd4980fba53c6b00",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 624,
+        "x_px": [
+          894,
+          1816
+        ],
+        "y_m": 5.0,
+        "x_m": [
+          5.04,
+          14.98
+        ],
+        "length_m": 9.94,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          819,
+          550,
+          1891,
+          698
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original crop [819,549,1891,699]: real corridor paired faces near y=618/629, interrupted by doors. Draft declares the north corridor wall at y=600 (about 0.26 m away). This is a misplaced existing wall, not an instruction to add a second wall; frozen room-seed labels do not label this offset."
+    },
+    {
+      "run": ".tmp_a4t/history/sm25_runtime_anthropic/bim",
+      "draft": "draft_009",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "bfeb88a12838473d6b4b67efb2dfa64a768d33d9dcf5a33749ac366127b9067d",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "pEWnE",
+        "opening": "D_core",
+        "axis": "horizontal",
+        "y_px": 496,
+        "x_px": [
+          741,
+          793
+        ],
+        "y_m": 15.98,
+        "x_m": [
+          9.94,
+          11.06
+        ],
+        "length_m": 1.13,
+        "ink_fraction": 0.0,
+        "look_box": [
+          704,
+          459,
+          830,
+          534
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original crop [704,459,830,534]: no wall/jamb/door arc across the corridor head. candidate_07 opening F1:D_core joins F1:S_C to F1:S_corr along this same separator."
+    },
+    {
+      "run": ".tmp_a4t/history/sm25_runtime_anthropic/bim",
+      "draft": "draft_011",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "plan_sha256": "9c279adb33a7d75866668eca57a6a36bb56c1d36e19bbf9356ef05c3f852eec7",
+      "item": {
+        "type": "unsupported_open_separator",
+        "divider": "pEWnE",
+        "opening": "D_core",
+        "axis": "horizontal",
+        "y_px": 496,
+        "x_px": [
+          741,
+          793
+        ],
+        "y_m": 15.98,
+        "x_m": [
+          9.94,
+          11.06
+        ],
+        "length_m": 1.13,
+        "ink_fraction": 0.0,
+        "look_box": [
+          704,
+          459,
+          830,
+          534
+        ],
+        "check": "An open connection fills this partition segment with almost no ink support. Check whether this is one continuous space rather than a wall with an opening."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original crop [704,459,830,534]: no wall/jamb/door arc across the corridor head. candidate_07 opening F1:D_core joins F1:S_C to F1:S_corr along this same separator."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-30_sm24_instruction_fix_run100",
+      "draft": "draft_002",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_sha256": "35a85ece82158f2014a87431ec644a32535a1959b5a5696323539244372b01c8",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "vertical",
+        "x_px": 459,
+        "y_px": [
+          300,
+          583
+        ],
+        "x_m": 5.82,
+        "y_m": [
+          8.17,
+          16.03
+        ],
+        "length_m": 7.86,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          430,
+          271,
+          489,
+          612
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original run100 draft_002 image: the corridor east double line, its lower cross wall, and two legs of the lower room return are drawn and absent from the declaration; all four look_box regions inspected."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-30_sm24_instruction_fix_run100",
+      "draft": "draft_002",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_sha256": "35a85ece82158f2014a87431ec644a32535a1959b5a5696323539244372b01c8",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 585,
+        "x_px": [
+          461,
+          612
+        ],
+        "y_m": 8.12,
+        "x_m": [
+          5.86,
+          10.0
+        ],
+        "length_m": 4.14,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          431,
+          555,
+          642,
+          614
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original run100 draft_002 image: the corridor east double line, its lower cross wall, and two legs of the lower room return are drawn and absent from the declaration; all four look_box regions inspected."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-30_sm24_instruction_fix_run100",
+      "draft": "draft_002",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_sha256": "35a85ece82158f2014a87431ec644a32535a1959b5a5696323539244372b01c8",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "horizontal",
+        "y_px": 753,
+        "x_px": [
+          402,
+          457
+        ],
+        "y_m": 3.45,
+        "x_m": [
+          4.25,
+          5.75
+        ],
+        "length_m": 1.51,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          372,
+          723,
+          487,
+          782
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original run100 draft_002 image: the corridor east double line, its lower cross wall, and two legs of the lower room return are drawn and absent from the declaration; all four look_box regions inspected."
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-30_sm24_instruction_fix_run100",
+      "draft": "draft_002",
+      "image": "1f_view.png",
+      "image_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "plan_sha256": "35a85ece82158f2014a87431ec644a32535a1959b5a5696323539244372b01c8",
+      "item": {
+        "type": "undeclared_wall_line",
+        "axis": "vertical",
+        "x_px": 459,
+        "y_px": [
+          700,
+          751
+        ],
+        "x_m": 5.82,
+        "y_m": [
+          3.5,
+          4.92
+        ],
+        "length_m": 1.42,
+        "drawn_thickness_m": 0.12,
+        "look_box": [
+          430,
+          671,
+          489,
+          780
+        ],
+        "check": "A double or banded ink line meeting walls at both ends; no declared divider lies along it."
+      },
+      "frozen_label_match": false,
+      "decision": "supported_difference",
+      "reason": "Original run100 draft_002 image: the corridor east double line, its lower cross wall, and two legs of the lower room return are drawn and absent from the declaration; all four look_box regions inspected."
+    }
+  ],
+  "limitations": "Only newly added items are adjudicated here; no claim of zero false positives for the pre-existing checker. The old subscription sm25 has an implausible millimetre-as-metre calibration: all three drafts are explicitly not_checked. Frozen labels cover room seeds/doors, not every wall coordinate."
+}

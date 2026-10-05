@@ -101,13 +101,12 @@ draft can happen at any time. Each upper floor comes from its own drawing;
 combine floors with assemble_plan_bim. A room count, seed or use never justifies
 adding or removing a divider.
 
-5. RESOLVE THE DIFFERENCES. Each plan build returns drawing_differences: drawn
-wall lines no declared divider follows, declared dividers with no drawn wall,
-and wall gaps that do not match declared doors. They are places to look, not
-verdicts: view the original at the item's look_box, then revise the objects it
-shows wrong or keep them and say why. Compare the returned overlay with the
-original too. Revise only the affected objects and look at the changed property
-on the new source.
+5. RESOLVE THE DIFFERENCES. drawing_differences compares interior ink and
+declared walls/openings; zero covers only its stated scope. building_precision
+reports near wall lines and thin strips across floors. Both are review clues:
+check the original at look_box or the named source objects, then revise or
+explain retention. Align to an existing line, never an average; preserve rooms,
+openings and connections. Check the changed source and overlay after revision.
 
 6. HEIGHTS FROM ELEVATIONS. Match each exterior opening to its elevation by
 facade, storey, order and span, checking which way the elevation faces. Read

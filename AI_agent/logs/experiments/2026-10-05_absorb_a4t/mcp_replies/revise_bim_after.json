@@ -1,0 +1,6744 @@
+{
+  "candidate": "candidate_07",
+  "remaining_seconds": null,
+  "mode": "agent_geometry_proposal",
+  "status": "not_evaluated",
+  "source_geometry_ready": true,
+  "model_calls": 0,
+  "solver_calls": 0,
+  "scope": "agent-supplied geometry to independent source BIM; no correction run or solver stage",
+  "drawing_fidelity": "not_evaluated",
+  "human_confirmation": "not_evaluated",
+  "source_geometry_self_consistency": {
+    "status": "pass",
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "findings": []
+  },
+  "not_evaluated": [
+    "original drawing fidelity and completeness",
+    "human confirmation",
+    "thermal properties and EnergyPlus adaptation"
+  ],
+  "proposal_sha256": "bed8f10e4f915c1ed4eab963bafe5032b2e20a632917ae9e8267bdc5ec480a17",
+  "provenance": {
+    "input_manifest_sha256": "869c895f420f71da894663a6ae927f5b41459711a196845190e5b9e69bac3bfc",
+    "mode": "runtime_original_inputs",
+    "generator": "runtime subscription tool loop",
+    "parent_candidate": "candidate_06",
+    "parent_proposal_sha256": "2464f2f37ac839cf98e71b183c7be0d0767ce474e6d685990fbbcda10aa361c3",
+    "claim_application": {
+      "file": "claims/application_0003.json"
+    }
+  },
+  "agent_assumptions": [
+    "Exterior window heights now carry located adopted claims from the four elevation chains (claim_0001..claim_0004); F1 west exterior doors z 0.2-2.3 observed; F1:D_east and all interior door heights remain 2.1m assumptions (no drawn height chains)",
+    "Core entrance door D_core jambs approximated (px712-784); drawing there not read at jamb level",
+    "Wing north wall declared at inner face py970 on the perimeter, midplane partitions py964 carry it inside",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied.",
+    "Storey height 3.6 observed on all four elevation vertical chains (3600+3600=7200, F2 z_floor 3.6); the saved F1 floor height field remains 3.5 as compiled and was not recompiled",
+    "Exterior window and F1-west exterior-door heights set from adopted elevation claims claim_0001..claim_0004; interior and remaining exterior door heights stay 2.1m assumptions",
+    "Conference east wall assumed continuous with north-wing divider line px696 (not separately profiled)",
+    "Conference door y-positions approximate from full-view arcs",
+    "Room A west mark W2_AW (2F plan px241 py428-448) appears in the 2F plan but NOT on the West elevation; kept as drawn in plan; the plan/elevation discrepancy is explicit",
+    "Plan spaces were compiled deterministically from the declared footprint and physical partition segments; no snapping, extension, clipping, or inferred partition was applied."
+  ],
+  "unresolved": [
+    "Bottom right room R7 furniture/use not re-checked (room vs covered porch)",
+    "Wing north double doors D_L1/D_L2 leaf count not resolved (declared 1.56m openings)",
+    "Core (lift/stair) interior layout not modeled",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified.",
+    "No drawn stair symbol identified on either floor; vertical circulation location unresolved",
+    "West elevation checked: F2 west shows only W2_CM (z 4.6-6.8) and W2_WW (z 4.6-6.2, in the 1200mm zone y 4.26-5.46); W2_AW not visible there",
+    "F1 west drawn door-like widths 540/800mm vs declared D_west 0.865m / D_wingW 0.886m; positions kept from plan reads",
+    "Whether rooms A2/B2 have south-wall doors like 1F not yet read",
+    "Pixel-to-world calibration was supplied by the caller and was not independently verified."
+  ],
+  "source_validation": {
+    "status": "pass",
+    "findings": [],
+    "numerical_tolerance_m": 1e-07,
+    "scope": "source geometry, contacts and explicit opening hosts",
+    "not_evaluated": [
+      "drawing partition fidelity and completeness",
+      "unobserved openings",
+      "voids and false slabs",
+      "thermal properties and solver acceptance"
+    ]
+  },
+  "counts": {
+    "spaces": 30,
+    "boundaries": 198,
+    "openings": 63,
+    "connections": 31,
+    "unbuilt_openings": 0,
+    "unsupported": 0
+  },
+  "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+  "candidate_budget": {
+    "limit": 100,
+    "used": 7,
+    "remaining": 93
+  },
+  "input_view_status": {
+    "schema_version": "input_direct_view_status_v1",
+    "images": [
+      {
+        "image": "1f_view.png",
+        "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "2f_view.png",
+        "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "East_view.png",
+        "image_sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "North_view.png",
+        "image_sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "South_view.png",
+        "image_sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      },
+      {
+        "image": "West_view.png",
+        "image_sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+        "full_view_count": 0,
+        "crop_view_count": 0,
+        "status": "no_direct_view_record"
+      }
+    ],
+    "no_direct_view_images": [
+      "1f_view.png",
+      "2f_view.png",
+      "East_view.png",
+      "North_view.png",
+      "South_view.png",
+      "West_view.png"
+    ],
+    "crop_only_images": [],
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false,
+    "note": "Only this run's hash-bound direct original returns from view_image or paired elevation views are counted. Other image tools, workers and prior runs are outside this scope. A returned image is not proof of examination, complete coverage, correct interpretation or applied heights. Use supplied relevant elevations to check each floor's opening heights; do not transfer a typical height to an unexamined opening family."
+  },
+  "room_use_review": {
+    "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+    "summary": {
+      "total_count": 30,
+      "recorded_count": 30,
+      "unrecorded_count": 0,
+      "observed_count": 0,
+      "inferred_count": 30,
+      "unknown_count": 0
+    },
+    "unrecorded_space_ids": [],
+    "unrecorded_ids_truncated": false,
+    "unknown_space_ids": [],
+    "unknown_ids_truncated": false,
+    "interpretation": "Counts cover structured role_evidence only, not semantic correctness. Legacy source_refs may contain other evidence. Unknown remains a fallback when no defensible listed use fits; it is not a preferred response to ambiguity.",
+    "drawing_fidelity": "not_evaluated",
+    "delivery_blocked": false
+  },
+  "height_coverage": {
+    "schema_version": "opening_heights_v2",
+    "candidate": "candidate_07",
+    "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+    "delivery_blocked": false,
+    "summary": {
+      "exterior_count": 35,
+      "located_count": 0,
+      "status_counts": {
+        "missing": 35
+      }
+    },
+    "openings": [
+      {
+        "opening_id": "F1:D_east",
+        "kind": "door",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          0.0,
+          2.1
+        ],
+        "width_m": 1.6,
+        "status": "missing",
+        "evidence": [],
+        "issues": [
+          "no_current_height_binding"
+        ]
+      },
+      {
+        "opening_id": "F1:D_west",
+        "kind": "door",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.3
+        ],
+        "width_m": 0.865,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "dr",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:D_wingW",
+        "kind": "door",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          0.2,
+          2.3
+        ],
+        "width_m": 0.886,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "dr",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_A",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 2.403,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "std_f1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_B",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 2.359,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "std_f1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_C",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.541,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "std_f1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration",
+          "distinct_width_on_facade",
+          "shared_height_across_widths"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E1",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.908,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E2",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.908,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E3",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.908,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E4",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.908,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E5",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.908,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E6",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.908,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_E7",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 0.886,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_M1",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 1.795,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "m",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_M2",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.6
+        ],
+        "width_m": 1.773,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "m",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_N",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          3.2
+        ],
+        "width_m": 8.009,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "big_f1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration",
+          "distinct_width_on_facade"
+        ]
+      },
+      {
+        "opening_id": "F1:W_S1",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 4.004,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F1:W_S2",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F1"
+        ],
+        "absolute_z_m": [
+          1.0,
+          2.8
+        ],
+        "width_m": 4.004,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s1",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_A",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 2.4,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "std_f2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_AW",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.436,
+        "status": "missing",
+        "evidence": [],
+        "issues": [
+          "no_current_height_binding",
+          "distinct_width_on_facade"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_B",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 2.4,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "std_f2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_C",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.633,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "std_f2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration",
+          "distinct_width_on_facade",
+          "shared_height_across_widths"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_CM",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.8
+        ],
+        "width_m": 4.318,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "cm",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration",
+          "distinct_width_on_facade"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_E1",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.894,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_E2",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.894,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_E3",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.894,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_E4",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.894,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_E5",
+        "kind": "window",
+        "facade": "East",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 0.894,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0003",
+            "value": "e2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "East_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_N",
+        "kind": "window",
+        "facade": "North",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.8
+        ],
+        "width_m": 7.984,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0001",
+            "value": "big_f2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "North_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration",
+          "distinct_width_on_facade"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_S1",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 1.789,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_S2",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 1.811,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_S3",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 1.811,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_S4",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 1.789,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_S5",
+        "kind": "window",
+        "facade": "South",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 1.789,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0002",
+            "value": "s2",
+            "binding": "application",
+            "views": [
+              {
+                "image": "South_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      },
+      {
+        "opening_id": "F2:W2_WW",
+        "kind": "window",
+        "facade": "West",
+        "floor_ids": [
+          "F2"
+        ],
+        "absolute_z_m": [
+          4.6,
+          6.2
+        ],
+        "width_m": 1.265,
+        "status": "missing",
+        "evidence": [
+          {
+            "claim_id": "claim_0004",
+            "value": "ww",
+            "binding": "application",
+            "views": [
+              {
+                "image": "West_view.png",
+                "source_index": 0,
+                "location": "no_elevation_calibration"
+              }
+            ]
+          }
+        ],
+        "issues": [
+          "no_elevation_calibration"
+        ]
+      }
+    ],
+    "calibration_problems": [],
+    "note": "Current values, evidence binding and source location, not drawing correctness. A region containing several openings needs individual evidence. Report only.",
+    "table_file": "candidate_07/height_coverage.json"
+  },
+  "facade_counts": {
+    "schema_version": "facade_count_report_v1",
+    "candidate": "candidate_07",
+    "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+    "delivery_blocked": false,
+    "summary": {
+      "floor_facade_count": 8,
+      "window_status_counts": {
+        "not_counted": 8
+      },
+      "door_status_counts": {
+        "not_counted": 8
+      },
+      "unused_observation_count": 0
+    },
+    "scopes": [
+      {
+        "floor_id": "F1",
+        "facade": "North",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 4,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F1:W_A",
+            "F1:W_B",
+            "F1:W_C",
+            "F1:W_N"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "South",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 2,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F1:W_S1",
+            "F1:W_S2"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "East",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 7,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F1:W_E1",
+            "F1:W_E2",
+            "F1:W_E3",
+            "F1:W_E4",
+            "F1:W_E5",
+            "F1:W_E6",
+            "F1:W_E7"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 1,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F1:D_east"
+          ],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F1",
+        "facade": "West",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 2,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F1:W_M1",
+            "F1:W_M2"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 2,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F1:D_west",
+            "F1:D_wingW"
+          ],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F2",
+        "facade": "North",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 4,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F2:W2_A",
+            "F2:W2_B",
+            "F2:W2_C",
+            "F2:W2_N"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F2",
+        "facade": "South",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 5,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F2:W2_S1",
+            "F2:W2_S2",
+            "F2:W2_S3",
+            "F2:W2_S4",
+            "F2:W2_S5"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F2",
+        "facade": "East",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 5,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F2:W2_E1",
+            "F2:W2_E2",
+            "F2:W2_E3",
+            "F2:W2_E4",
+            "F2:W2_E5"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      },
+      {
+        "floor_id": "F2",
+        "facade": "West",
+        "observation_ids": [],
+        "window": {
+          "status": "not_counted",
+          "built_count": 3,
+          "observed_counts": [],
+          "built_opening_ids": [
+            "F2:W2_AW",
+            "F2:W2_CM",
+            "F2:W2_WW"
+          ],
+          "missing_count": null
+        },
+        "door": {
+          "status": "not_counted",
+          "built_count": 0,
+          "observed_counts": [],
+          "built_opening_ids": [],
+          "missing_count": null
+        }
+      }
+    ],
+    "unused_observations": [],
+    "unsupported_exterior_boundaries": [],
+    "note": "Compare observer-reported whole-floor/facade totals with actual source openings. Uncounted facades, zero totals, conflicting evidence and unresolved scopes stay explicit. Equal counts do not prove position or drawing fidelity. Report only."
+  },
+  "opening_inventory": {
+    "counts": {
+      "door": 30,
+      "passage": 1,
+      "window": 32
+    },
+    "opening_count": 63,
+    "scope": {
+      "actual_openings": "only explicit built source openings are inventoried",
+      "unbuilt_opening_ids": [],
+      "unbuilt_opening_count": 0,
+      "unsupported_observation_count": 0
+    },
+    "floors": [
+      {
+        "floor_id": "F1",
+        "counts": {
+          "door": 16,
+          "passage": 1,
+          "window": 15
+        },
+        "opening_count": 32,
+        "columns": [
+          "id",
+          "kind",
+          "space_ids",
+          "plan_endpoints",
+          "z_m",
+          "exterior"
+        ],
+        "rows": [
+          [
+            "F1:D_A",
+            "door",
+            [
+              "F1:S_A",
+              "F1:S_corr"
+            ],
+            [
+              [
+                3.874459,
+                15.978378
+              ],
+              [
+                4.5671,
+                15.978378
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_B",
+            "door",
+            [
+              "F1:S_B",
+              "F1:S_corr"
+            ],
+            [
+              [
+                5.4329,
+                15.978378
+              ],
+              [
+                6.125541,
+                15.978378
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_L1",
+            "door",
+            [
+              "F1:S_L1",
+              "F1:S_corr"
+            ],
+            [
+              [
+                11.038961,
+                4.043243
+              ],
+              [
+                12.619048,
+                4.043243
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_L2",
+            "door",
+            [
+              "F1:S_L2",
+              "F1:S_corr"
+            ],
+            [
+              [
+                13.376623,
+                4.043243
+              ],
+              [
+                14.95671,
+                4.043243
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_M1",
+            "door",
+            [
+              "F1:S_M1",
+              "F1:S_corr"
+            ],
+            [
+              [
+                8.961039,
+                10.356757
+              ],
+              [
+                8.961039,
+                11.156757
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_M2",
+            "door",
+            [
+              "F1:S_M2",
+              "F1:S_corr"
+            ],
+            [
+              [
+                8.961039,
+                8.843243
+              ],
+              [
+                8.961039,
+                9.621622
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R1",
+            "door",
+            [
+              "F1:S_C",
+              "F1:S_R1"
+            ],
+            [
+              [
+                11.060606,
+                18.356757
+              ],
+              [
+                11.060606,
+                19.156757
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R2",
+            "door",
+            [
+              "F1:S_C",
+              "F1:S_R2"
+            ],
+            [
+              [
+                11.060606,
+                16.843243
+              ],
+              [
+                11.060606,
+                17.643243
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R3",
+            "door",
+            [
+              "F1:S_R3",
+              "F1:S_corr"
+            ],
+            [
+              [
+                11.060606,
+                14.356757
+              ],
+              [
+                11.060606,
+                15.156757
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R4",
+            "door",
+            [
+              "F1:S_R4",
+              "F1:S_corr"
+            ],
+            [
+              [
+                11.060606,
+                12.843243
+              ],
+              [
+                11.060606,
+                13.643243
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R5",
+            "door",
+            [
+              "F1:S_R5",
+              "F1:S_corr"
+            ],
+            [
+              [
+                11.060606,
+                10.356757
+              ],
+              [
+                11.060606,
+                11.156757
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R6",
+            "door",
+            [
+              "F1:S_R6",
+              "F1:S_corr"
+            ],
+            [
+              [
+                11.060606,
+                8.843243
+              ],
+              [
+                11.060606,
+                9.643243
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_R7",
+            "door",
+            [
+              "F1:S_R7",
+              "F1:S_corr"
+            ],
+            [
+              [
+                11.060606,
+                6.854054
+              ],
+              [
+                11.060606,
+                7.654054
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_core",
+            "passage",
+            [
+              "F1:S_C",
+              "F1:S_corr"
+            ],
+            [
+              [
+                10.021645,
+                15.978378
+              ],
+              [
+                11.060606,
+                15.978378
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            false
+          ],
+          [
+            "F1:D_east",
+            "door",
+            [
+              "F1:S_corr"
+            ],
+            [
+              [
+                25.0,
+                1.556757
+              ],
+              [
+                25.0,
+                3.156757
+              ]
+            ],
+            [
+              0.0,
+              2.1
+            ],
+            true
+          ],
+          [
+            "F1:D_west",
+            "door",
+            [
+              "F1:S_corr"
+            ],
+            [
+              [
+                0.0,
+                14.443243
+              ],
+              [
+                0.0,
+                15.308108
+              ]
+            ],
+            [
+              0.2,
+              2.3
+            ],
+            true
+          ],
+          [
+            "F1:D_wingW",
+            "door",
+            [
+              "F1:S_corr"
+            ],
+            [
+              [
+                5.0,
+                4.259459
+              ],
+              [
+                5.0,
+                5.145946
+              ]
+            ],
+            [
+              0.2,
+              2.3
+            ],
+            true
+          ],
+          [
+            "F1:W_A",
+            "window",
+            [
+              "F1:S_A"
+            ],
+            [
+              [
+                2.229437,
+                20.0
+              ],
+              [
+                4.632035,
+                20.0
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_B",
+            "window",
+            [
+              "F1:S_B"
+            ],
+            [
+              [
+                5.367965,
+                20.0
+              ],
+              [
+                7.727273,
+                20.0
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_C",
+            "window",
+            [
+              "F1:S_C"
+            ],
+            [
+              [
+                10.30303,
+                20.0
+              ],
+              [
+                10.844156,
+                20.0
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E1",
+            "window",
+            [
+              "F1:S_R1"
+            ],
+            [
+              [
+                15.021645,
+                18.356757
+              ],
+              [
+                15.021645,
+                19.264865
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E2",
+            "window",
+            [
+              "F1:S_R2"
+            ],
+            [
+              [
+                15.021645,
+                16.735135
+              ],
+              [
+                15.021645,
+                17.643243
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E3",
+            "window",
+            [
+              "F1:S_R3"
+            ],
+            [
+              [
+                15.021645,
+                14.356757
+              ],
+              [
+                15.021645,
+                15.264865
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E4",
+            "window",
+            [
+              "F1:S_R4"
+            ],
+            [
+              [
+                15.021645,
+                12.735135
+              ],
+              [
+                15.021645,
+                13.643243
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E5",
+            "window",
+            [
+              "F1:S_R5"
+            ],
+            [
+              [
+                15.021645,
+                10.356757
+              ],
+              [
+                15.021645,
+                11.264865
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E6",
+            "window",
+            [
+              "F1:S_R6"
+            ],
+            [
+              [
+                15.021645,
+                8.735135
+              ],
+              [
+                15.021645,
+                9.643243
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_E7",
+            "window",
+            [
+              "F1:S_R7"
+            ],
+            [
+              [
+                15.021645,
+                6.745946
+              ],
+              [
+                15.021645,
+                7.632432
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_M1",
+            "window",
+            [
+              "F1:S_M1"
+            ],
+            [
+              [
+                5.0,
+                10.356757
+              ],
+              [
+                5.0,
+                12.151351
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_M2",
+            "window",
+            [
+              "F1:S_M2"
+            ],
+            [
+              [
+                5.0,
+                7.87027
+              ],
+              [
+                5.0,
+                9.643243
+              ]
+            ],
+            [
+              1.0,
+              2.6
+            ],
+            true
+          ],
+          [
+            "F1:W_N",
+            "window",
+            [
+              "F1:S_corr"
+            ],
+            [
+              [
+                15.30303,
+                5.72973
+              ],
+              [
+                23.311688,
+                5.72973
+              ]
+            ],
+            [
+              1.0,
+              3.2
+            ],
+            true
+          ],
+          [
+            "F1:W_S1",
+            "window",
+            [
+              "F1:S_L1"
+            ],
+            [
+              [
+                8.636364,
+                0.0
+              ],
+              [
+                12.640693,
+                0.0
+              ]
+            ],
+            [
+              1.0,
+              2.8
+            ],
+            true
+          ],
+          [
+            "F1:W_S2",
+            "window",
+            [
+              "F1:S_L2"
+            ],
+            [
+              [
+                13.354978,
+                0.0
+              ],
+              [
+                17.359307,
+                0.0
+              ]
+            ],
+            [
+              1.0,
+              2.8
+            ],
+            true
+          ]
+        ]
+      },
+      {
+        "floor_id": "F2",
+        "counts": {
+          "door": 14,
+          "passage": 0,
+          "window": 17
+        },
+        "opening_count": 31,
+        "columns": [
+          "id",
+          "kind",
+          "space_ids",
+          "plan_endpoints",
+          "z_m",
+          "exterior"
+        ],
+        "rows": [
+          [
+            "F2:D2_A",
+            "door",
+            [
+              "F2:S2_A",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                3.883072,
+                16.139586
+              ],
+              [
+                4.581152,
+                16.139586
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_B",
+            "door",
+            [
+              "F2:S2_B",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                5.431937,
+                16.139586
+              ],
+              [
+                6.130017,
+                16.139586
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_Loff",
+            "door",
+            [
+              "F2:S2_Loff",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                10.100349,
+                16.139586
+              ],
+              [
+                10.929319,
+                16.139586
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_R1",
+            "door",
+            [
+              "F2:S2_R1",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                11.060209,
+                14.351145
+              ],
+              [
+                11.060209,
+                15.245365
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_R2",
+            "door",
+            [
+              "F2:S2_R2",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                11.060209,
+                12.737186
+              ],
+              [
+                11.060209,
+                13.631407
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_R3",
+            "door",
+            [
+              "F2:S2_R3",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                11.060209,
+                10.4253
+              ],
+              [
+                11.060209,
+                11.123228
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_R4",
+            "door",
+            [
+              "F2:S2_R4",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                11.060209,
+                8.876772
+              ],
+              [
+                11.060209,
+                9.5747
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_R5",
+            "door",
+            [
+              "F2:S2_R5",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                11.060209,
+                6.870229
+              ],
+              [
+                11.060209,
+                7.568157
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_c1",
+            "door",
+            [
+              "F2:S2_conf",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                8.987784,
+                12.061069
+              ],
+              [
+                8.987784,
+                13.762268
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_o1",
+            "door",
+            [
+              "F2:S2_O1",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                6.893543,
+                4.034896
+              ],
+              [
+                8.704188,
+                4.034896
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_o2",
+            "door",
+            [
+              "F2:S2_O2",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                9.424084,
+                4.034896
+              ],
+              [
+                11.256545,
+                4.034896
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_o3",
+            "door",
+            [
+              "F2:S2_O3",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                14.768761,
+                4.034896
+              ],
+              [
+                16.535777,
+                4.034896
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_o4",
+            "door",
+            [
+              "F2:S2_O4",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                17.255672,
+                4.034896
+              ],
+              [
+                19.175393,
+                4.034896
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:D2_o5",
+            "door",
+            [
+              "F2:S2_O5",
+              "F2:S2_corr"
+            ],
+            [
+              [
+                21.793194,
+                4.034896
+              ],
+              [
+                23.603839,
+                4.034896
+              ]
+            ],
+            [
+              3.6,
+              5.7
+            ],
+            false
+          ],
+          [
+            "F2:W2_A",
+            "window",
+            [
+              "F2:S2_A"
+            ],
+            [
+              [
+                2.246946,
+                20.0
+              ],
+              [
+                4.646597,
+                20.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_AW",
+            "window",
+            [
+              "F2:S2_A"
+            ],
+            [
+              [
+                0.0,
+                17.666303
+              ],
+              [
+                0.0,
+                18.102508
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_B",
+            "window",
+            [
+              "F2:S2_B"
+            ],
+            [
+              [
+                5.366492,
+                20.0
+              ],
+              [
+                7.766143,
+                20.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_C",
+            "window",
+            [
+              "F2:S2_Loff"
+            ],
+            [
+              [
+                10.296684,
+                20.0
+              ],
+              [
+                10.929319,
+                20.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_CM",
+            "window",
+            [
+              "F2:S2_conf"
+            ],
+            [
+              [
+                4.995637,
+                7.85169
+              ],
+              [
+                4.995637,
+                12.17012
+              ]
+            ],
+            [
+              4.6,
+              6.8
+            ],
+            true
+          ],
+          [
+            "F2:W2_E1",
+            "window",
+            [
+              "F2:S2_R1"
+            ],
+            [
+              [
+                15.008726,
+                14.351145
+              ],
+              [
+                15.008726,
+                15.245365
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_E2",
+            "window",
+            [
+              "F2:S2_R2"
+            ],
+            [
+              [
+                15.008726,
+                12.737186
+              ],
+              [
+                15.008726,
+                13.631407
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_E3",
+            "window",
+            [
+              "F2:S2_R3"
+            ],
+            [
+              [
+                15.008726,
+                10.359869
+              ],
+              [
+                15.008726,
+                11.254089
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_E4",
+            "window",
+            [
+              "F2:S2_R4"
+            ],
+            [
+              [
+                15.008726,
+                8.745911
+              ],
+              [
+                15.008726,
+                9.640131
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_E5",
+            "window",
+            [
+              "F2:S2_R5"
+            ],
+            [
+              [
+                15.008726,
+                6.739368
+              ],
+              [
+                15.008726,
+                7.633588
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_N",
+            "window",
+            [
+              "F2:S2_corr"
+            ],
+            [
+              [
+                15.314136,
+                5.866957
+              ],
+              [
+                23.298429,
+                5.866957
+              ]
+            ],
+            [
+              4.6,
+              6.8
+            ],
+            true
+          ],
+          [
+            "F2:W2_S1",
+            "window",
+            [
+              "F2:S2_O1"
+            ],
+            [
+              [
+                6.937173,
+                0.0
+              ],
+              [
+                8.726003,
+                0.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_S2",
+            "window",
+            [
+              "F2:S2_O2"
+            ],
+            [
+              [
+                9.445899,
+                0.0
+              ],
+              [
+                11.256545,
+                0.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_S3",
+            "window",
+            [
+              "F2:S2_O3"
+            ],
+            [
+              [
+                14.746946,
+                0.0
+              ],
+              [
+                16.557592,
+                0.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_S4",
+            "window",
+            [
+              "F2:S2_O4"
+            ],
+            [
+              [
+                17.277487,
+                0.0
+              ],
+              [
+                19.066318,
+                0.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_S5",
+            "window",
+            [
+              "F2:S2_O5"
+            ],
+            [
+              [
+                21.313264,
+                0.0
+              ],
+              [
+                23.102094,
+                0.0
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ],
+          [
+            "F2:W2_WW",
+            "window",
+            [
+              "F2:S2_corr"
+            ],
+            [
+              [
+                4.995637,
+                4.100327
+              ],
+              [
+                4.995637,
+                5.365322
+              ]
+            ],
+            [
+              4.6,
+              6.2
+            ],
+            true
+          ]
+        ]
+      }
+    ],
+    "spaces": {
+      "columns": [
+        "space_id",
+        "floor_id",
+        "opening_count",
+        "counts"
+      ],
+      "rows": [
+        [
+          "F1:S_A",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_B",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_C",
+          "F1",
+          4,
+          {
+            "door": 2,
+            "passage": 1,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_L1",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_L2",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_M1",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_M2",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R1",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R2",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R3",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R4",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R5",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R6",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_R7",
+          "F1",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F1:S_corr",
+          "F1",
+          16,
+          {
+            "door": 14,
+            "passage": 1,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_A",
+          "F2",
+          3,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 2
+          }
+        ],
+        [
+          "F2:S2_B",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_Loff",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_O1",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_O2",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_O3",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_O4",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_O5",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_R1",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_R2",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_R3",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_R4",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_R5",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_conf",
+          "F2",
+          2,
+          {
+            "door": 1,
+            "passage": 0,
+            "window": 1
+          }
+        ],
+        [
+          "F2:S2_corr",
+          "F2",
+          16,
+          {
+            "door": 14,
+            "passage": 0,
+            "window": 2
+          }
+        ]
+      ]
+    }
+  },
+  "opening_review": "not_reviewed; compare this inventory with distinct drawing marks",
+  "building_precision": {
+    "schema": "building_precision_v1",
+    "status": "reported",
+    "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+    "total": 11,
+    "counts": {
+      "storey_wall_offset": 11
+    },
+    "items": {
+      "columns": [
+        "type",
+        "lines",
+        "deviation_m",
+        "overlap_m",
+        "tolerance_m",
+        "align_to_options",
+        "decision",
+        "align_to"
+      ],
+      "rows": [
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_M1/wall/2",
+                "space/F1%3AS_corr/wall/0"
+              ],
+              "axis": "y",
+              "coordinate_m": 14.118919,
+              "span_m": [
+                0.0,
+                8.961039
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_conf/wall/2",
+                "space/F2%3AS2_corr/wall/0"
+              ],
+              "axis": "y",
+              "coordinate_m": 14.154853,
+              "span_m": [
+                0.0,
+                8.987784
+              ]
+            }
+          ],
+          0.035934,
+          8.961039,
+          0.059991273996509595,
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_M1/wall/2",
+                "space/F1%3AS_corr/wall/0"
+              ],
+              "axis": "y",
+              "coordinate_m": 14.118919,
+              "span_m": [
+                0.0,
+                8.961039
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_conf/wall/2",
+                "space/F2%3AS2_corr/wall/0"
+              ],
+              "axis": "y",
+              "coordinate_m": 14.154853,
+              "span_m": [
+                0.0,
+                8.987784
+              ]
+            }
+          ],
+          "choose_existing_line_with_evidence",
+          null
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_R3/wall/0",
+                "space/F1%3AS_R4/wall/2"
+              ],
+              "axis": "y",
+              "coordinate_m": 13.967568,
+              "span_m": [
+                11.060606,
+                15.021645
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_R1/wall/0",
+                "space/F2%3AS2_R2/wall/2"
+              ],
+              "axis": "y",
+              "coordinate_m": 13.93675,
+              "span_m": [
+                11.060209,
+                15.008726
+              ]
+            }
+          ],
+          0.030818,
+          3.94812,
+          0.059991273996509595,
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_R3/wall/0",
+                "space/F1%3AS_R4/wall/2"
+              ],
+              "axis": "y",
+              "coordinate_m": 13.967568,
+              "span_m": [
+                11.060606,
+                15.021645
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_R1/wall/0",
+                "space/F2%3AS2_R2/wall/2"
+              ],
+              "axis": "y",
+              "coordinate_m": 13.93675,
+              "span_m": [
+                11.060209,
+                15.008726
+              ]
+            }
+          ],
+          "choose_existing_line_with_evidence",
+          null
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_M1/wall/1",
+                "space/F1%3AS_M2/wall/1",
+                "space/F1%3AS_corr/wall/1"
+              ],
+              "axis": "x",
+              "coordinate_m": 8.961039,
+              "span_m": [
+                5.859459,
+                14.118919
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_conf/wall/1",
+                "space/F2%3AS2_corr/wall/1"
+              ],
+              "axis": "x",
+              "coordinate_m": 8.987784,
+              "span_m": [
+                5.997819,
+                14.154853
+              ]
+            }
+          ],
+          0.026745,
+          8.1211,
+          0.059991273996509595,
+          null,
+          "prefer_dimensioned_then_exterior_then_shared_line",
+          {
+            "floor_id": "F1",
+            "boundary_ids": [
+              "space/F1%3AS_M1/wall/1",
+              "space/F1%3AS_M2/wall/1",
+              "space/F1%3AS_corr/wall/1"
+            ],
+            "axis": "x",
+            "coordinate_m": 8.961039,
+            "span_m": [
+              5.859459,
+              14.118919
+            ]
+          }
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_R1/wall/1",
+                "space/F1%3AS_R2/wall/1",
+                "space/F1%3AS_R3/wall/1",
+                "space/F1%3AS_R4/wall/1",
+                "space/F1%3AS_R5/wall/1",
+                "space/F1%3AS_R6/wall/1",
+                "space/F1%3AS_R7/wall/1",
+                "space/F1%3AS_corr/wall/9"
+              ],
+              "axis": "x",
+              "coordinate_m": 15.021645,
+              "span_m": [
+                5.72973,
+                20.0
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_Loff/wall/1",
+                "space/F2%3AS2_R1/wall/1",
+                "space/F2%3AS2_R2/wall/1",
+                "space/F2%3AS2_R3/wall/1",
+                "space/F2%3AS2_R4/wall/1",
+                "space/F2%3AS2_R5/wall/1",
+                "space/F2%3AS2_corr/wall/7"
+              ],
+              "axis": "x",
+              "coordinate_m": 15.008726,
+              "span_m": [
+                5.866957,
+                20.0
+              ]
+            }
+          ],
+          0.012919,
+          14.133043,
+          0.059991273996509595,
+          null,
+          "prefer_dimensioned_then_exterior_then_shared_line",
+          {
+            "floor_id": "F1",
+            "boundary_ids": [
+              "space/F1%3AS_R1/wall/1",
+              "space/F1%3AS_R2/wall/1",
+              "space/F1%3AS_R3/wall/1",
+              "space/F1%3AS_R4/wall/1",
+              "space/F1%3AS_R5/wall/1",
+              "space/F1%3AS_R6/wall/1",
+              "space/F1%3AS_R7/wall/1",
+              "space/F1%3AS_corr/wall/9"
+            ],
+            "axis": "x",
+            "coordinate_m": 15.021645,
+            "span_m": [
+              5.72973,
+              20.0
+            ]
+          }
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_B/wall/1",
+                "space/F1%3AS_C/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 9.935065,
+              "span_m": [
+                15.978378,
+                20.0
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_B/wall/1",
+                "space/F2%3AS2_Loff/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 9.925829,
+              "span_m": [
+                16.139586,
+                20.0
+              ]
+            }
+          ],
+          0.009236,
+          3.860414,
+          0.059991273996509595,
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_B/wall/1",
+                "space/F1%3AS_C/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 9.935065,
+              "span_m": [
+                15.978378,
+                20.0
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_B/wall/1",
+                "space/F2%3AS2_Loff/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 9.925829,
+              "span_m": [
+                16.139586,
+                20.0
+              ]
+            }
+          ],
+          "choose_existing_line_with_evidence",
+          null
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_L1/wall/2",
+                "space/F1%3AS_L2/wall/2",
+                "space/F1%3AS_corr/wall/4"
+              ],
+              "axis": "y",
+              "coordinate_m": 4.043243,
+              "span_m": [
+                5.0,
+                21.060606
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_O1/wall/2",
+                "space/F2%3AS2_O2/wall/2",
+                "space/F2%3AS2_O3/wall/2",
+                "space/F2%3AS2_O4/wall/2",
+                "space/F2%3AS2_O5/wall/2",
+                "space/F2%3AS2_corr/wall/4"
+              ],
+              "axis": "y",
+              "coordinate_m": 4.034896,
+              "span_m": [
+                4.995637,
+                25.0
+              ]
+            }
+          ],
+          0.008347,
+          16.060606,
+          0.059991273996509595,
+          null,
+          "prefer_dimensioned_then_exterior_then_shared_line",
+          {
+            "floor_id": "F2",
+            "boundary_ids": [
+              "space/F2%3AS2_O1/wall/2",
+              "space/F2%3AS2_O2/wall/2",
+              "space/F2%3AS2_O3/wall/2",
+              "space/F2%3AS2_O4/wall/2",
+              "space/F2%3AS2_O5/wall/2",
+              "space/F2%3AS2_corr/wall/4"
+            ],
+            "axis": "y",
+            "coordinate_m": 4.034896,
+            "span_m": [
+              4.995637,
+              25.0
+            ]
+          }
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_L1/wall/1",
+                "space/F1%3AS_L2/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 13.008658,
+              "span_m": [
+                0.0,
+                4.043243
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_O2/wall/1",
+                "space/F2%3AS2_O3/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 13.001745,
+              "span_m": [
+                0.0,
+                4.034896
+              ]
+            }
+          ],
+          0.006913,
+          4.034896,
+          0.059991273996509595,
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_L1/wall/1",
+                "space/F1%3AS_L2/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 13.008658,
+              "span_m": [
+                0.0,
+                4.043243
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_O2/wall/1",
+                "space/F2%3AS2_O3/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 13.001745,
+              "span_m": [
+                0.0,
+                4.034896
+              ]
+            }
+          ],
+          "choose_existing_line_with_evidence",
+          null
+        ],
+        [
+          "storey_wall_offset",
+          [
+            {
+              "floor_id": "F1",
+              "boundary_ids": [
+                "space/F1%3AS_L1/wall/3",
+                "space/F1%3AS_M1/wall/3",
+                "space/F1%3AS_M2/wall/3",
+                "space/F1%3AS_corr/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 5.0,
+              "span_m": [
+                0.0,
+                14.118919
+              ]
+            },
+            {
+              "floor_id": "F2",
+              "boundary_ids": [
+                "space/F2%3AS2_O1/wall/3",
+                "space/F2%3AS2_conf/wall/3",
+                "space/F2%3AS2_corr/wall/3"
+              ],
+              "axis": "x",
+              "coordinate_m": 4.995637,
+              "span_m": [
+                0.0,
+                14.154853
+              ]
+            }
+          ],
+          0.004363,
+          14.118919,
+          0.059991273996509595,
+          null,
+          "prefer_dimensioned_then_exterior_then_shared_line",
+          {
+            "floor_id": "F1",
+            "boundary_ids": [
+              "space/F1%3AS_L1/wall/3",
+              "space/F1%3AS_M1/wall/3",
+              "space/F1%3AS_M2/wall/3",
+              "space/F1%3AS_corr/wall/3"
+            ],
+            "axis": "x",
+            "coordinate_m": 5.0,
+            "span_m": [
+              0.0,
+              14.118919
+            ]
+          }
+        ]
+      ]
+    },
+    "tolerances": {
+      "F1": {
+        "default_m": 0.06759974259974261,
+        "pixel_noise_m": 0.04329004329004329,
+        "wall_thickness_m": 0.13519948519948521,
+        "thickness_cap_known": true
+      },
+      "F2": {
+        "default_m": 0.059991273996509595,
+        "pixel_noise_m": 0.04363001745200698,
+        "wall_thickness_m": 0.11998254799301919,
+        "thickness_cap_known": true
+      }
+    },
+    "coverage": {
+      "floors": [
+        "F1",
+        "F2"
+      ],
+      "adjacent_storey_pairs": [
+        [
+          "F1",
+          "F2"
+        ]
+      ],
+      "orthogonal_wall_lines": 49,
+      "nonorthogonal_walls_not_checked": 0,
+      "floors_without_tolerance": []
+    },
+    "meaning": "Review only; no geometry changed. Align to an existing line, never an average. Real setbacks, voids and narrow spaces require evidence; do not delete partitions or alter connectivity.",
+    "not_checked": [
+      "nonorthogonal wall alignment",
+      "non-overlapping storeys",
+      "opening positions/heights",
+      "drawing fidelity",
+      "user fineness cap (not configured)"
+    ],
+    "truncated": true
+  },
+  "source_image_projections": [
+    {
+      "candidate": "candidate_07",
+      "floor_id": "F1",
+      "image": "1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+      "anchors": {
+        "x": [
+          [
+            282.0,
+            0.0
+          ],
+          [
+            1437.0,
+            25.0
+          ]
+        ],
+        "y": [
+          [
+            1235.0,
+            0.0
+          ],
+          [
+            310.0,
+            20.0
+          ]
+        ]
+      },
+      "box_original_pixels": [
+        0,
+        0,
+        1758,
+        1496
+      ],
+      "original_size": [
+        1758,
+        1496
+      ],
+      "returned_size": [
+        1600,
+        1362
+      ],
+      "original_pixels_per_returned_pixel": [
+        1.09875,
+        1.0983847283406756
+      ],
+      "overlay_image": "image_overlays/overlay_011.png",
+      "legend": {
+        "magenta": "source representative boundary",
+        "blue": "declared wall faces; evidence status in metadata",
+        "green": "window",
+        "orange": "door/open aperture",
+        "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+        "red": "D#:S original dimension start evidence point",
+        "cyan": "D#:E original dimension end evidence point"
+      },
+      "out_of_image": {
+        "space_ids": [],
+        "opening_ids": [],
+        "wall_reference_ids": []
+      },
+      "calibration_unverified": true,
+      "drawing_fidelity": "not_evaluated",
+      "automatic_projection": true,
+      "trigger_action": "revise_bim",
+      "reused_calibration": {
+        "calibration_id": "calibration_004",
+        "registered_by_candidate": "candidate_05"
+      }
+    },
+    {
+      "candidate": "candidate_07",
+      "floor_id": "F2",
+      "image": "2f_view.png",
+      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+      "anchors": {
+        "x": [
+          [
+            241.0,
+            0.0
+          ],
+          [
+            1387.0,
+            25.0
+          ]
+        ],
+        "y": [
+          [
+            1258.0,
+            0.0
+          ],
+          [
+            341.0,
+            20.0
+          ]
+        ]
+      },
+      "box_original_pixels": [
+        0,
+        0,
+        1661,
+        1561
+      ],
+      "original_size": [
+        1661,
+        1561
+      ],
+      "returned_size": [
+        1600,
+        1504
+      ],
+      "original_pixels_per_returned_pixel": [
+        1.038125,
+        1.0378989361702127
+      ],
+      "overlay_image": "image_overlays/overlay_012.png",
+      "legend": {
+        "magenta": "source representative boundary",
+        "blue": "declared wall faces; evidence status in metadata",
+        "green": "window",
+        "orange": "door/open aperture",
+        "yellow": "W# resolved wall-reference representative segment; full wall mapping in wall_evidence_projection",
+        "red": "D#:S original dimension start evidence point",
+        "cyan": "D#:E original dimension end evidence point"
+      },
+      "out_of_image": {
+        "space_ids": [],
+        "opening_ids": [],
+        "wall_reference_ids": []
+      },
+      "calibration_unverified": true,
+      "drawing_fidelity": "not_evaluated",
+      "automatic_projection": true,
+      "trigger_action": "revise_bim",
+      "reused_calibration": {
+        "calibration_id": "calibration_005",
+        "registered_by_candidate": "candidate_05"
+      }
+    }
+  ],
+  "projection_errors": [],
+  "source_plan_views": [
+    {
+      "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+      "floor_id": "F1",
+      "space_ids": [
+        "F1:S_A",
+        "F1:S_B",
+        "F1:S_C",
+        "F1:S_L1",
+        "F1:S_L2",
+        "F1:S_M1",
+        "F1:S_M2",
+        "F1:S_R1",
+        "F1:S_R2",
+        "F1:S_R3",
+        "F1:S_R4",
+        "F1:S_R5",
+        "F1:S_R6",
+        "F1:S_R7",
+        "F1:S_corr"
+      ],
+      "opening_ids": [
+        "F1:D_A",
+        "F1:D_B",
+        "F1:D_L1",
+        "F1:D_L2",
+        "F1:D_M1",
+        "F1:D_M2",
+        "F1:D_R1",
+        "F1:D_R2",
+        "F1:D_R3",
+        "F1:D_R4",
+        "F1:D_R5",
+        "F1:D_R6",
+        "F1:D_R7",
+        "F1:D_core",
+        "F1:D_east",
+        "F1:D_west",
+        "F1:D_wingW",
+        "F1:W_A",
+        "F1:W_B",
+        "F1:W_C",
+        "F1:W_E1",
+        "F1:W_E2",
+        "F1:W_E3",
+        "F1:W_E4",
+        "F1:W_E5",
+        "F1:W_E6",
+        "F1:W_E7",
+        "F1:W_M1",
+        "F1:W_M2",
+        "F1:W_N",
+        "F1:W_S1",
+        "F1:W_S2"
+      ],
+      "world_bounds_m": {
+        "x": [
+          0.0,
+          25.0
+        ],
+        "y": [
+          0.0,
+          20.0
+        ]
+      },
+      "scope": "actual saved source plan; no original calibration, height verification or drawing-fidelity verdict",
+      "candidate": "candidate_07",
+      "plan_image": "candidate_07/plan_F1.png"
+    },
+    {
+      "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+      "floor_id": "F2",
+      "space_ids": [
+        "F2:S2_A",
+        "F2:S2_B",
+        "F2:S2_Loff",
+        "F2:S2_O1",
+        "F2:S2_O2",
+        "F2:S2_O3",
+        "F2:S2_O4",
+        "F2:S2_O5",
+        "F2:S2_R1",
+        "F2:S2_R2",
+        "F2:S2_R3",
+        "F2:S2_R4",
+        "F2:S2_R5",
+        "F2:S2_conf",
+        "F2:S2_corr"
+      ],
+      "opening_ids": [
+        "F2:D2_A",
+        "F2:D2_B",
+        "F2:D2_Loff",
+        "F2:D2_R1",
+        "F2:D2_R2",
+        "F2:D2_R3",
+        "F2:D2_R4",
+        "F2:D2_R5",
+        "F2:D2_c1",
+        "F2:D2_o1",
+        "F2:D2_o2",
+        "F2:D2_o3",
+        "F2:D2_o4",
+        "F2:D2_o5",
+        "F2:W2_A",
+        "F2:W2_AW",
+        "F2:W2_B",
+        "F2:W2_C",
+        "F2:W2_CM",
+        "F2:W2_E1",
+        "F2:W2_E2",
+        "F2:W2_E3",
+        "F2:W2_E4",
+        "F2:W2_E5",
+        "F2:W2_N",
+        "F2:W2_S1",
+        "F2:W2_S2",
+        "F2:W2_S3",
+        "F2:W2_S4",
+        "F2:W2_S5",
+        "F2:W2_WW"
+      ],
+      "world_bounds_m": {
+        "x": [
+          0.0,
+          25.0
+        ],
+        "y": [
+          0.0,
+          20.0
+        ]
+      },
+      "scope": "actual saved source plan; no original calibration, height verification or drawing-fidelity verdict",
+      "candidate": "candidate_07",
+      "plan_image": "candidate_07/plan_F2.png"
+    }
+  ],
+  "source_plan_errors": [],
+  "claim_application": {
+    "id": "application_0003",
+    "parent_candidate": "candidate_06",
+    "claim_ids": [],
+    "status": "applied",
+    "drawing_fidelity": "not_evaluated",
+    "evidence": {
+      "parent_candidate": "candidate_06",
+      "parent_proposal_sha256": "2464f2f37ac839cf98e71b183c7be0d0767ce474e6d685990fbbcda10aa361c3",
+      "bindings": [],
+      "claims": {}
+    },
+    "resolved_operations": [
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_A",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Round meeting table with chairs drawn in room"
+        ],
+        "reason": "Furniture indicates small meeting room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_B",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Round meeting table with chairs drawn in room"
+        ],
+        "reason": "Furniture indicates small meeting room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_C",
+        "role": "stairwell",
+        "basis": "inferred",
+        "assumptions": [
+          "Narrow core zone next to corridor head; lift/stair core interior not modeled"
+        ],
+        "reason": "Enclosed core strip between corridor and north rooms",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_corr",
+        "role": "corridor",
+        "basis": "inferred",
+        "assumptions": [
+          "Long connecting space serving all rooms via doors"
+        ],
+        "reason": "L-shaped corridor with doors to every room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_M1",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Desk with chairs drawn"
+        ],
+        "reason": "Single-desk room off corridor",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_M2",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Desk with chairs drawn"
+        ],
+        "reason": "Single-desk room off corridor",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R1",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Row of workstations drawn"
+        ],
+        "reason": "Open-plan workstation room in east wing",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R2",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Row of workstations drawn"
+        ],
+        "reason": "Open-plan workstation room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R3",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Row of workstations drawn"
+        ],
+        "reason": "Open-plan workstation room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R4",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Row of workstations drawn"
+        ],
+        "reason": "Open-plan workstation room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R5",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Row of workstations drawn"
+        ],
+        "reason": "Open-plan workstation room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R6",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Row of workstations drawn"
+        ],
+        "reason": "Open-plan workstation room",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_R7",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Room vs covered porch not re-checked; workstation-like furniture drawn"
+        ],
+        "reason": "South end of east wing, door to corridor",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_L1",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Large oval conference table with many chairs drawn"
+        ],
+        "reason": "Large meeting room in south wing",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F1:S_L2",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Large oval conference table with many chairs drawn"
+        ],
+        "reason": "Large meeting room in south wing",
+        "source_refs": [
+          "image:1f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_A",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Round meeting table with chairs drawn"
+        ],
+        "reason": "Small meeting room NW block 2F",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_B",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Round meeting table with chairs drawn"
+        ],
+        "reason": "Small meeting room NW block 2F",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_Loff",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "L-shaped desk drawn, north corner room"
+        ],
+        "reason": "Corner office off corridor",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_conf",
+        "role": "conference/meeting/multipurpose",
+        "basis": "inferred",
+        "assumptions": [
+          "Large oval conference table drawn; large west window W2_CM"
+        ],
+        "reason": "Large conference room in mid block",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_corr",
+        "role": "corridor",
+        "basis": "inferred",
+        "assumptions": [
+          "Long connecting space serving all 2F rooms"
+        ],
+        "reason": "L-shaped corridor",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_R1",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Workstation row drawn"
+        ],
+        "reason": "Open-plan room east wing 2F",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_R2",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Workstation row drawn"
+        ],
+        "reason": "Open-plan room east wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_R3",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Workstation row drawn"
+        ],
+        "reason": "Open-plan room east wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_R4",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Workstation row drawn"
+        ],
+        "reason": "Open-plan room east wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_R5",
+        "role": "office",
+        "basis": "inferred",
+        "assumptions": [
+          "Workstation row drawn"
+        ],
+        "reason": "Open-plan room east wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_O1",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Single desk with chairs drawn"
+        ],
+        "reason": "Enclosed office in south wing 2F",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_O2",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Single desk with chairs drawn"
+        ],
+        "reason": "Enclosed office in south wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_O3",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Single desk with chairs drawn"
+        ],
+        "reason": "Enclosed office in south wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_O4",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Single desk with chairs drawn"
+        ],
+        "reason": "Enclosed office in south wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      },
+      {
+        "op": "set_space_role",
+        "space_id": "F2:S2_O5",
+        "role": "office/enclosed",
+        "basis": "inferred",
+        "assumptions": [
+          "Single desk with chairs drawn"
+        ],
+        "reason": "Enclosed office in south wing",
+        "source_refs": [
+          "image:2f_view.png"
+        ]
+      }
+    ],
+    "geometry_before_sha256": "774b31972418059eb5277d428011e685e9d29eb1353d9b6afe3657ffe9a54fa7",
+    "geometry_after_sha256": "77757803bdebcb74024d9e121758b52a8a0eda73b5e574784cf598fb0b5b7bd5",
+    "changes": [
+      {
+        "kind": "space",
+        "id": "F1:S_A",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_A",
+          "polygon": [
+            [
+              0.0,
+              15.978378
+            ],
+            [
+              5.064935,
+              15.978378
+            ],
+            [
+              5.064935,
+              20.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            0.0,
+            5.064935
+          ],
+          "y": [
+            15.978378,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_A",
+          "polygon": [
+            [
+              0.0,
+              15.978378
+            ],
+            [
+              5.064935,
+              15.978378
+            ],
+            [
+              5.064935,
+              20.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            0.0,
+            5.064935
+          ],
+          "y": [
+            15.978378,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_B",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_B",
+          "polygon": [
+            [
+              5.064935,
+              15.978378
+            ],
+            [
+              9.935065,
+              15.978378
+            ],
+            [
+              9.935065,
+              20.0
+            ],
+            [
+              5.064935,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            5.064935,
+            9.935065
+          ],
+          "y": [
+            15.978378,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_B",
+          "polygon": [
+            [
+              5.064935,
+              15.978378
+            ],
+            [
+              9.935065,
+              15.978378
+            ],
+            [
+              9.935065,
+              20.0
+            ],
+            [
+              5.064935,
+              20.0
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            5.064935,
+            9.935065
+          ],
+          "y": [
+            15.978378,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_C",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_C",
+          "polygon": [
+            [
+              9.935065,
+              15.978378
+            ],
+            [
+              11.060606,
+              15.978378
+            ],
+            [
+              11.060606,
+              20.0
+            ],
+            [
+              9.935065,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            9.935065,
+            11.060606
+          ],
+          "y": [
+            15.978378,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_C",
+          "polygon": [
+            [
+              9.935065,
+              15.978378
+            ],
+            [
+              11.060606,
+              15.978378
+            ],
+            [
+              11.060606,
+              20.0
+            ],
+            [
+              9.935065,
+              20.0
+            ]
+          ],
+          "role": "stairwell",
+          "x": [
+            9.935065,
+            11.060606
+          ],
+          "y": [
+            15.978378,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "stairwell",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_L1",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_L1",
+          "polygon": [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              13.008658,
+              0.0
+            ],
+            [
+              13.008658,
+              4.043243
+            ],
+            [
+              5.0,
+              4.043243
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            5.0,
+            13.008658
+          ],
+          "y": [
+            0.0,
+            4.043243
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_L1",
+          "polygon": [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              13.008658,
+              0.0
+            ],
+            [
+              13.008658,
+              4.043243
+            ],
+            [
+              5.0,
+              4.043243
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            5.0,
+            13.008658
+          ],
+          "y": [
+            0.0,
+            4.043243
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_L2",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_L2",
+          "polygon": [
+            [
+              13.008658,
+              0.0
+            ],
+            [
+              21.060606,
+              0.0
+            ],
+            [
+              21.060606,
+              4.043243
+            ],
+            [
+              13.008658,
+              4.043243
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            13.008658,
+            21.060606
+          ],
+          "y": [
+            0.0,
+            4.043243
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_L2",
+          "polygon": [
+            [
+              13.008658,
+              0.0
+            ],
+            [
+              21.060606,
+              0.0
+            ],
+            [
+              21.060606,
+              4.043243
+            ],
+            [
+              13.008658,
+              4.043243
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            13.008658,
+            21.060606
+          ],
+          "y": [
+            0.0,
+            4.043243
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_M1",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_M1",
+          "polygon": [
+            [
+              5.0,
+              9.945946
+            ],
+            [
+              8.961039,
+              9.945946
+            ],
+            [
+              8.961039,
+              14.118919
+            ],
+            [
+              5.0,
+              14.118919
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            5.0,
+            8.961039
+          ],
+          "y": [
+            9.945946,
+            14.118919
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_M1",
+          "polygon": [
+            [
+              5.0,
+              9.945946
+            ],
+            [
+              8.961039,
+              9.945946
+            ],
+            [
+              8.961039,
+              14.118919
+            ],
+            [
+              5.0,
+              14.118919
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            5.0,
+            8.961039
+          ],
+          "y": [
+            9.945946,
+            14.118919
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_M2",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_M2",
+          "polygon": [
+            [
+              5.0,
+              5.859459
+            ],
+            [
+              8.961039,
+              5.859459
+            ],
+            [
+              8.961039,
+              9.945946
+            ],
+            [
+              5.0,
+              9.945946
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            5.0,
+            8.961039
+          ],
+          "y": [
+            5.859459,
+            9.945946
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_M2",
+          "polygon": [
+            [
+              5.0,
+              5.859459
+            ],
+            [
+              8.961039,
+              5.859459
+            ],
+            [
+              8.961039,
+              9.945946
+            ],
+            [
+              5.0,
+              9.945946
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            5.0,
+            8.961039
+          ],
+          "y": [
+            5.859459,
+            9.945946
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R1",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R1",
+          "polygon": [
+            [
+              11.060606,
+              18.054054
+            ],
+            [
+              15.021645,
+              18.054054
+            ],
+            [
+              15.021645,
+              20.0
+            ],
+            [
+              11.060606,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            18.054054,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R1",
+          "polygon": [
+            [
+              11.060606,
+              18.054054
+            ],
+            [
+              15.021645,
+              18.054054
+            ],
+            [
+              15.021645,
+              20.0
+            ],
+            [
+              11.060606,
+              20.0
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            18.054054,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R2",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R2",
+          "polygon": [
+            [
+              11.060606,
+              15.935135
+            ],
+            [
+              15.021645,
+              15.935135
+            ],
+            [
+              15.021645,
+              18.054054
+            ],
+            [
+              11.060606,
+              18.054054
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            15.935135,
+            18.054054
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R2",
+          "polygon": [
+            [
+              11.060606,
+              15.935135
+            ],
+            [
+              15.021645,
+              15.935135
+            ],
+            [
+              15.021645,
+              18.054054
+            ],
+            [
+              11.060606,
+              18.054054
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            15.935135,
+            18.054054
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R3",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R3",
+          "polygon": [
+            [
+              11.060606,
+              13.967568
+            ],
+            [
+              15.021645,
+              13.967568
+            ],
+            [
+              15.021645,
+              15.935135
+            ],
+            [
+              11.060606,
+              15.935135
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            13.967568,
+            15.935135
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R3",
+          "polygon": [
+            [
+              11.060606,
+              13.967568
+            ],
+            [
+              15.021645,
+              13.967568
+            ],
+            [
+              15.021645,
+              15.935135
+            ],
+            [
+              11.060606,
+              15.935135
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            13.967568,
+            15.935135
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R4",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R4",
+          "polygon": [
+            [
+              11.060606,
+              11.935135
+            ],
+            [
+              15.021645,
+              11.935135
+            ],
+            [
+              15.021645,
+              13.967568
+            ],
+            [
+              11.060606,
+              13.967568
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            11.935135,
+            13.967568
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R4",
+          "polygon": [
+            [
+              11.060606,
+              11.935135
+            ],
+            [
+              15.021645,
+              11.935135
+            ],
+            [
+              15.021645,
+              13.967568
+            ],
+            [
+              11.060606,
+              13.967568
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            11.935135,
+            13.967568
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R5",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R5",
+          "polygon": [
+            [
+              11.060606,
+              10.054054
+            ],
+            [
+              15.021645,
+              10.054054
+            ],
+            [
+              15.021645,
+              11.935135
+            ],
+            [
+              11.060606,
+              11.935135
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            10.054054,
+            11.935135
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R5",
+          "polygon": [
+            [
+              11.060606,
+              10.054054
+            ],
+            [
+              15.021645,
+              10.054054
+            ],
+            [
+              15.021645,
+              11.935135
+            ],
+            [
+              11.060606,
+              11.935135
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            10.054054,
+            11.935135
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R6",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R6",
+          "polygon": [
+            [
+              11.060606,
+              7.935135
+            ],
+            [
+              15.021645,
+              7.935135
+            ],
+            [
+              15.021645,
+              10.054054
+            ],
+            [
+              11.060606,
+              10.054054
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            7.935135,
+            10.054054
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R6",
+          "polygon": [
+            [
+              11.060606,
+              7.935135
+            ],
+            [
+              15.021645,
+              7.935135
+            ],
+            [
+              15.021645,
+              10.054054
+            ],
+            [
+              11.060606,
+              10.054054
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            7.935135,
+            10.054054
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_R7",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_R7",
+          "polygon": [
+            [
+              11.060606,
+              5.859459
+            ],
+            [
+              15.021645,
+              5.859459
+            ],
+            [
+              15.021645,
+              7.935135
+            ],
+            [
+              11.060606,
+              7.935135
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            5.859459,
+            7.935135
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_R7",
+          "polygon": [
+            [
+              11.060606,
+              5.859459
+            ],
+            [
+              15.021645,
+              5.859459
+            ],
+            [
+              15.021645,
+              7.935135
+            ],
+            [
+              11.060606,
+              7.935135
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060606,
+            15.021645
+          ],
+          "y": [
+            5.859459,
+            7.935135
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F1:S_corr",
+        "before": {
+          "floor": "F1",
+          "id": "F1:S_corr",
+          "polygon": [
+            [
+              0.0,
+              14.118919
+            ],
+            [
+              8.961039,
+              14.118919
+            ],
+            [
+              8.961039,
+              5.859459
+            ],
+            [
+              5.0,
+              5.859459
+            ],
+            [
+              5.0,
+              4.043243
+            ],
+            [
+              21.060606,
+              4.043243
+            ],
+            [
+              21.060606,
+              0.0
+            ],
+            [
+              25.0,
+              0.0
+            ],
+            [
+              25.0,
+              5.72973
+            ],
+            [
+              15.021645,
+              5.72973
+            ],
+            [
+              15.021645,
+              5.859459
+            ],
+            [
+              11.060606,
+              5.859459
+            ],
+            [
+              11.060606,
+              15.978378
+            ],
+            [
+              0.0,
+              15.978378
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            0.0,
+            25.0
+          ],
+          "y": [
+            0.0,
+            15.978378
+          ]
+        },
+        "after": {
+          "floor": "F1",
+          "id": "F1:S_corr",
+          "polygon": [
+            [
+              0.0,
+              14.118919
+            ],
+            [
+              8.961039,
+              14.118919
+            ],
+            [
+              8.961039,
+              5.859459
+            ],
+            [
+              5.0,
+              5.859459
+            ],
+            [
+              5.0,
+              4.043243
+            ],
+            [
+              21.060606,
+              4.043243
+            ],
+            [
+              21.060606,
+              0.0
+            ],
+            [
+              25.0,
+              0.0
+            ],
+            [
+              25.0,
+              5.72973
+            ],
+            [
+              15.021645,
+              5.72973
+            ],
+            [
+              15.021645,
+              5.859459
+            ],
+            [
+              11.060606,
+              5.859459
+            ],
+            [
+              11.060606,
+              15.978378
+            ],
+            [
+              0.0,
+              15.978378
+            ]
+          ],
+          "role": "corridor",
+          "x": [
+            0.0,
+            25.0
+          ],
+          "y": [
+            0.0,
+            15.978378
+          ],
+          "role_evidence": {
+            "role": "corridor",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_A",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_A",
+          "polygon": [
+            [
+              0.0,
+              16.139586
+            ],
+            [
+              4.755672,
+              16.139586
+            ],
+            [
+              4.755672,
+              20.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            0.0,
+            4.755672
+          ],
+          "y": [
+            16.139586,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_A",
+          "polygon": [
+            [
+              0.0,
+              16.139586
+            ],
+            [
+              4.755672,
+              16.139586
+            ],
+            [
+              4.755672,
+              20.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            0.0,
+            4.755672
+          ],
+          "y": [
+            16.139586,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_B",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_B",
+          "polygon": [
+            [
+              4.755672,
+              16.139586
+            ],
+            [
+              9.925829,
+              16.139586
+            ],
+            [
+              9.925829,
+              20.0
+            ],
+            [
+              4.755672,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            4.755672,
+            9.925829
+          ],
+          "y": [
+            16.139586,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_B",
+          "polygon": [
+            [
+              4.755672,
+              16.139586
+            ],
+            [
+              9.925829,
+              16.139586
+            ],
+            [
+              9.925829,
+              20.0
+            ],
+            [
+              4.755672,
+              20.0
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            4.755672,
+            9.925829
+          ],
+          "y": [
+            16.139586,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_Loff",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_Loff",
+          "polygon": [
+            [
+              9.925829,
+              16.139586
+            ],
+            [
+              15.008726,
+              16.139586
+            ],
+            [
+              15.008726,
+              20.0
+            ],
+            [
+              9.925829,
+              20.0
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            9.925829,
+            15.008726
+          ],
+          "y": [
+            16.139586,
+            20.0
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_Loff",
+          "polygon": [
+            [
+              9.925829,
+              16.139586
+            ],
+            [
+              15.008726,
+              16.139586
+            ],
+            [
+              15.008726,
+              20.0
+            ],
+            [
+              9.925829,
+              20.0
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            9.925829,
+            15.008726
+          ],
+          "y": [
+            16.139586,
+            20.0
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_O1",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_O1",
+          "polygon": [
+            [
+              4.995637,
+              0.0
+            ],
+            [
+              9.031414,
+              0.0
+            ],
+            [
+              9.031414,
+              4.034896
+            ],
+            [
+              4.995637,
+              4.034896
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            4.995637,
+            9.031414
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_O1",
+          "polygon": [
+            [
+              4.995637,
+              0.0
+            ],
+            [
+              9.031414,
+              0.0
+            ],
+            [
+              9.031414,
+              4.034896
+            ],
+            [
+              4.995637,
+              4.034896
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            4.995637,
+            9.031414
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_O2",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_O2",
+          "polygon": [
+            [
+              9.031414,
+              0.0
+            ],
+            [
+              13.001745,
+              0.0
+            ],
+            [
+              13.001745,
+              4.034896
+            ],
+            [
+              9.031414,
+              4.034896
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            9.031414,
+            13.001745
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_O2",
+          "polygon": [
+            [
+              9.031414,
+              0.0
+            ],
+            [
+              13.001745,
+              0.0
+            ],
+            [
+              13.001745,
+              4.034896
+            ],
+            [
+              9.031414,
+              4.034896
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            9.031414,
+            13.001745
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_O3",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_O3",
+          "polygon": [
+            [
+              13.001745,
+              0.0
+            ],
+            [
+              16.972077,
+              0.0
+            ],
+            [
+              16.972077,
+              4.034896
+            ],
+            [
+              13.001745,
+              4.034896
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            13.001745,
+            16.972077
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_O3",
+          "polygon": [
+            [
+              13.001745,
+              0.0
+            ],
+            [
+              16.972077,
+              0.0
+            ],
+            [
+              16.972077,
+              4.034896
+            ],
+            [
+              13.001745,
+              4.034896
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            13.001745,
+            16.972077
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_O4",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_O4",
+          "polygon": [
+            [
+              16.972077,
+              0.0
+            ],
+            [
+              20.942408,
+              0.0
+            ],
+            [
+              20.942408,
+              4.034896
+            ],
+            [
+              16.972077,
+              4.034896
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            16.972077,
+            20.942408
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_O4",
+          "polygon": [
+            [
+              16.972077,
+              0.0
+            ],
+            [
+              20.942408,
+              0.0
+            ],
+            [
+              20.942408,
+              4.034896
+            ],
+            [
+              16.972077,
+              4.034896
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            16.972077,
+            20.942408
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_O5",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_O5",
+          "polygon": [
+            [
+              20.942408,
+              0.0
+            ],
+            [
+              25.0,
+              0.0
+            ],
+            [
+              25.0,
+              4.034896
+            ],
+            [
+              20.942408,
+              4.034896
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            20.942408,
+            25.0
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_O5",
+          "polygon": [
+            [
+              20.942408,
+              0.0
+            ],
+            [
+              25.0,
+              0.0
+            ],
+            [
+              25.0,
+              4.034896
+            ],
+            [
+              20.942408,
+              4.034896
+            ]
+          ],
+          "role": "office/enclosed",
+          "x": [
+            20.942408,
+            25.0
+          ],
+          "y": [
+            0.0,
+            4.034896
+          ],
+          "role_evidence": {
+            "role": "office/enclosed",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_R1",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_R1",
+          "polygon": [
+            [
+              11.060209,
+              13.93675
+            ],
+            [
+              15.008726,
+              13.93675
+            ],
+            [
+              15.008726,
+              16.139586
+            ],
+            [
+              11.060209,
+              16.139586
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            13.93675,
+            16.139586
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_R1",
+          "polygon": [
+            [
+              11.060209,
+              13.93675
+            ],
+            [
+              15.008726,
+              13.93675
+            ],
+            [
+              15.008726,
+              16.139586
+            ],
+            [
+              11.060209,
+              16.139586
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            13.93675,
+            16.139586
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_R2",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_R2",
+          "polygon": [
+            [
+              11.060209,
+              11.995638
+            ],
+            [
+              15.008726,
+              11.995638
+            ],
+            [
+              15.008726,
+              13.93675
+            ],
+            [
+              11.060209,
+              13.93675
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            11.995638,
+            13.93675
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_R2",
+          "polygon": [
+            [
+              11.060209,
+              11.995638
+            ],
+            [
+              15.008726,
+              11.995638
+            ],
+            [
+              15.008726,
+              13.93675
+            ],
+            [
+              11.060209,
+              13.93675
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            11.995638,
+            13.93675
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_R3",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_R3",
+          "polygon": [
+            [
+              11.060209,
+              10.054526
+            ],
+            [
+              15.008726,
+              10.054526
+            ],
+            [
+              15.008726,
+              11.995638
+            ],
+            [
+              11.060209,
+              11.995638
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            10.054526,
+            11.995638
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_R3",
+          "polygon": [
+            [
+              11.060209,
+              10.054526
+            ],
+            [
+              15.008726,
+              10.054526
+            ],
+            [
+              15.008726,
+              11.995638
+            ],
+            [
+              11.060209,
+              11.995638
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            10.054526,
+            11.995638
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_R4",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_R4",
+          "polygon": [
+            [
+              11.060209,
+              7.938931
+            ],
+            [
+              15.008726,
+              7.938931
+            ],
+            [
+              15.008726,
+              10.054526
+            ],
+            [
+              11.060209,
+              10.054526
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            7.938931,
+            10.054526
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_R4",
+          "polygon": [
+            [
+              11.060209,
+              7.938931
+            ],
+            [
+              15.008726,
+              7.938931
+            ],
+            [
+              15.008726,
+              10.054526
+            ],
+            [
+              11.060209,
+              10.054526
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            7.938931,
+            10.054526
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_R5",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_R5",
+          "polygon": [
+            [
+              11.060209,
+              5.997819
+            ],
+            [
+              15.008726,
+              5.997819
+            ],
+            [
+              15.008726,
+              7.938931
+            ],
+            [
+              11.060209,
+              7.938931
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            5.997819,
+            7.938931
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_R5",
+          "polygon": [
+            [
+              11.060209,
+              5.997819
+            ],
+            [
+              15.008726,
+              5.997819
+            ],
+            [
+              15.008726,
+              7.938931
+            ],
+            [
+              11.060209,
+              7.938931
+            ]
+          ],
+          "role": "office",
+          "x": [
+            11.060209,
+            15.008726
+          ],
+          "y": [
+            5.997819,
+            7.938931
+          ],
+          "role_evidence": {
+            "role": "office",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_conf",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_conf",
+          "polygon": [
+            [
+              4.995637,
+              5.997819
+            ],
+            [
+              8.987784,
+              5.997819
+            ],
+            [
+              8.987784,
+              14.154853
+            ],
+            [
+              4.995637,
+              14.154853
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            4.995637,
+            8.987784
+          ],
+          "y": [
+            5.997819,
+            14.154853
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_conf",
+          "polygon": [
+            [
+              4.995637,
+              5.997819
+            ],
+            [
+              8.987784,
+              5.997819
+            ],
+            [
+              8.987784,
+              14.154853
+            ],
+            [
+              4.995637,
+              14.154853
+            ]
+          ],
+          "role": "conference/meeting/multipurpose",
+          "x": [
+            4.995637,
+            8.987784
+          ],
+          "y": [
+            5.997819,
+            14.154853
+          ],
+          "role_evidence": {
+            "role": "conference/meeting/multipurpose",
+            "basis": "inferred"
+          }
+        }
+      },
+      {
+        "kind": "space",
+        "id": "F2:S2_corr",
+        "before": {
+          "floor": "F2",
+          "id": "F2:S2_corr",
+          "polygon": [
+            [
+              0.0,
+              14.154853
+            ],
+            [
+              8.987784,
+              14.154853
+            ],
+            [
+              8.987784,
+              5.997819
+            ],
+            [
+              4.995637,
+              5.997819
+            ],
+            [
+              4.995637,
+              4.034896
+            ],
+            [
+              25.0,
+              4.034896
+            ],
+            [
+              25.0,
+              5.866957
+            ],
+            [
+              15.008726,
+              5.866957
+            ],
+            [
+              15.008726,
+              5.997819
+            ],
+            [
+              11.060209,
+              5.997819
+            ],
+            [
+              11.060209,
+              16.139586
+            ],
+            [
+              0.0,
+              16.139586
+            ]
+          ],
+          "role": "unknown",
+          "x": [
+            0.0,
+            25.0
+          ],
+          "y": [
+            4.034896,
+            16.139586
+          ]
+        },
+        "after": {
+          "floor": "F2",
+          "id": "F2:S2_corr",
+          "polygon": [
+            [
+              0.0,
+              14.154853
+            ],
+            [
+              8.987784,
+              14.154853
+            ],
+            [
+              8.987784,
+              5.997819
+            ],
+            [
+              4.995637,
+              5.997819
+            ],
+            [
+              4.995637,
+              4.034896
+            ],
+            [
+              25.0,
+              4.034896
+            ],
+            [
+              25.0,
+              5.866957
+            ],
+            [
+              15.008726,
+              5.866957
+            ],
+            [
+              15.008726,
+              5.997819
+            ],
+            [
+              11.060209,
+              5.997819
+            ],
+            [
+              11.060209,
+              16.139586
+            ],
+            [
+              0.0,
+              16.139586
+            ]
+          ],
+          "role": "corridor",
+          "x": [
+            0.0,
+            25.0
+          ],
+          "y": [
+            4.034896,
+            16.139586
+          ],
+          "role_evidence": {
+            "role": "corridor",
+            "basis": "inferred"
+          }
+        }
+      }
+    ],
+    "scope_check": "not_supported_for_all_operations",
+    "outside_declared_scope": null,
+    "parameters_without_claims": [],
+    "candidate": "candidate_07",
+    "source_model_sha256": "aa577147079d0eaf5991f6f2e51f3ffb33486ad7fa7860445ac0078d93b222b5",
+    "source_geometry_ready": true,
+    "error": null,
+    "source_validation": {
+      "status": "pass",
+      "findings": [],
+      "numerical_tolerance_m": 1e-07,
+      "scope": "source geometry, contacts and explicit opening hosts",
+      "not_evaluated": [
+        "drawing partition fidelity and completeness",
+        "unobserved openings",
+        "voids and false slabs",
+        "thermal properties and solver acceptance"
+      ]
+    },
+    "submitted_operations_equal_resolved": true
+  },
+  "details_file": "tool_reports/build_bim_62ab558c42e497bf0eca302332636203a368d6b6ae3ec584b09b368baca8d85d.json",
+  "details_sha256": "62ab558c42e497bf0eca302332636203a368d6b6ae3ec584b09b368baca8d85d",
+  "details_read": "read_candidate_items(candidate=\"\", collection=\"report\", report_file=details_file); offset/limit page by characters."
+}

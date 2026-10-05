@@ -1,0 +1,34 @@
+{
+  "test_file": "tests/test_bim_agent_mesh.py",
+  "test": "test_mesh_frame_and_overlay_reach_stdio_and_preserve_saved_geometry",
+  "test_duration_seconds": 33.434,
+  "configured_budget_seconds": 30,
+  "started_epoch": 1791163477.3995035,
+  "deadline_epoch": 1791163507.3995035,
+  "inputs_sha256": "4045c679fa77ce6124ce29feb3b476b703b43724a06c3d0c30fb6aa0fd1aae0b",
+  "tools_log_sha256": "cc076cc04cbea91d60a57b25dc3a4e035f9479d269cc44f5a555ddcd836c2a4f",
+  "last_actions": [
+    {
+      "action": "view_mesh",
+      "epoch": 1791163492.0167735,
+      "elapsed_seconds": 14.61726999282837
+    },
+    {
+      "action": "set_candidate_mesh_frame",
+      "epoch": 1791163504.9516754,
+      "elapsed_seconds": 27.5521719455719
+    },
+    {
+      "action": "overlay_mesh_candidate",
+      "epoch": 1791163507.4444015,
+      "elapsed_seconds": 30.04489803314209
+    }
+  ],
+  "failure": "measure_mesh_pixels refused because the saved 30-second run deadline had already elapsed",
+  "conclusion": "The reported failure is the time gate, not a failed geometry assertion. Rerun the entire file on unchanged code; no production or test deadline is relaxed.",
+  "model_requests": 0,
+  "recheck_passed": true,
+  "recheck_seconds": 18.585,
+  "complete_file_recheck_passed": 7,
+  "production_and_test_sources_unchanged": true
+}
