@@ -1,0 +1,43 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BIM 生成后的独立参照诊断</title><style>body{font:16px system-ui;margin:30px;max-width:1200px}pre{white-space:pre-wrap;font-size:13px}figure{max-width:850px}section{margin-bottom:40px}</style><h1>BIM 生成后的独立参照诊断</h1><p>还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。</p><p>参照范围：Offline A5-R re-evaluation of the immutable saved run; no new generation, GT unchanged.</p><p>本页在生成结束后计算，未送回生成模型。蓝线为参照，橙线为候选。详情与限制见 <a href="summary.json">summary.json</a>。<a href="reading_readings.json">规整前读数</a> · <a href="delivery_quality.json">交付稿质量</a>；交付通过不等于读图准确。</p><section><h2>candidate_01</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_01&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;fce3a7ea3ca4c2af6665a36391e4941d4bd9d4c37deba20454c5f5e40eed0c8a&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_01_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 8,
+  &quot;candidate_spaces&quot;: 8,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 10,
+    &quot;window&quot;: 14
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 11,
+    &quot;built_window_count&quot;: 14,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 26.772651679342438,
+      &quot;extra_length_m&quot;: 26.701323986999995,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.040522999), (4.18 8.080523001, 4.18 12.992379999), (4.18 13.032380001, 4.18 15.935982999), (5.820219999000001 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.541320001), (5.819999999999997 3.5013199989999997, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.262424000999999 3.4400000000000013), (4.222423999 3.4400000000000013, 4.18 3.4400000000000013), (5.82024569234243 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.935982999), (5.820219999000001 13.999999999999996, 5.819999999999997 13.999999999999996))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.84022 4.919999999000002, 5.84022 3.52132), (5.84022 3.52132, 5.840000000999996 3.52132), (5.799999998999997 3.52132, 4.242424 3.52132), (4.242424 3.52132, 4.242424 3.4600000010000014), (4.242424 3.419999999000001, 4.242424 0.020000001), (4.242424 15.919999998999995, 4.242424 13.01238), (4.242424 13.01238, 4.242424 8.060523), (4.242424 8.060523, 4.242424 3.52132), (5.84022 14.020000000999996, 5.84022 15.919999998999995), (5.84022 8.080000000999998, 5.84022 13.979999998999997), (4.200000000999999 13.01238, 4.242424 13.01238), (4.200000000999999 8.060523, 4.242424 8.060523))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 26.772651679342438,
+      &quot;extra_length_m&quot;: 26.701323986999995,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((4.18 0.020000001, 4.18 3.4400000000000013), (4.18 3.4400000000000013, 4.18 8.040522999), (4.18 8.080523001, 4.18 12.992379999), (4.18 13.032380001, 4.18 15.935982999), (5.820219999000001 4.940000000000001, 5.819999999999997 4.940000000000001), (5.819999999999997 4.940000000000001, 5.819999999999997 3.541320001), (5.819999999999997 3.5013199989999997, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.262424000999999 3.4400000000000013), (4.222423999 3.4400000000000013, 4.18 3.4400000000000013), (5.82024569234243 8.059999999999999, 5.819999999999997 8.059999999999999), (5.819999999999997 8.059999999999999, 5.819999999999997 13.999999999999996), (5.819999999999997 13.999999999999996, 5.819999999999997 15.935982999), (5.820219999000001 13.999999999999996, 5.819999999999997 13.999999999999996))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.84022 4.919999999000002, 5.84022 3.52132), (5.84022 3.52132, 5.840000000999996 3.52132), (5.799999998999997 3.52132, 4.242424 3.52132), (4.242424 3.52132, 4.242424 3.4600000010000014), (4.242424 3.419999999000001, 4.242424 0.020000001), (4.242424 15.919999998999995, 4.242424 13.01238), (4.242424 13.01238, 4.242424 8.060523), (4.242424 8.060523, 4.242424 3.52132), (5.84022 14.020000000999996, 5.84022 15.919999998999995), (5.84022 8.080000000999998, 5.84022 13.979999998999997), (4.200000000999999 13.01238, 4.242424 13.01238), (4.200000000999999 8.060523, 4.242424 8.060523))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 8 / 候选 8 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 10.6 20.6"><polygon points="0.3,20.3 4.4799999999999995,20.3 4.4799999999999995,12.240000000000002 0.3,12.240000000000002" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z0</title></polygon><polygon points="0.3,12.240000000000002 4.4799999999999995,12.240000000000002 4.4799999999999995,7.300000000000003 0.3,7.300000000000003" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z1</title></polygon><polygon points="0.3,7.300000000000003 4.4799999999999995,7.300000000000003 4.4799999999999995,4.360000000000006 0.3,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z2</title></polygon><polygon points="0.3,4.360000000000006 10.3,4.360000000000006 10.3,0.30000000000000354 0.3,0.30000000000000354" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z3</title></polygon><polygon points="4.4799999999999995,20.3 10.3,20.3 10.3,15.36 6.1199999999999966,15.36 6.1199999999999966,16.86 4.4799999999999995,16.86" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z4</title></polygon><polygon points="4.4799999999999995,16.86 6.1199999999999966,16.86 6.1199999999999966,15.36 10.3,15.36 10.3,12.240000000000002 6.1199999999999966,12.240000000000002 6.1199999999999966,4.360000000000006 4.4799999999999995,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z5</title></polygon><polygon points="6.1199999999999966,12.240000000000002 10.3,12.240000000000002 10.3,6.300000000000003 6.1199999999999966,6.300000000000003" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z6</title></polygon><polygon points="6.1199999999999966,6.300000000000003 10.3,6.300000000000003 10.3,4.360000000000006 6.1199999999999966,4.360000000000006" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 z7</title></polygon><polygon points="4.542424,20.3 10.3,20.3 10.3,15.348143 6.14022,15.348143 6.14022,16.77868 4.542424,16.77868" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 lower_hall</title></polygon><polygon points="4.542424,16.77868 6.14022,16.77868 6.14022,15.348143 10.3,15.348143 10.3,12.239477 6.14022,12.239477 6.14022,4.344017 4.542424,4.344017" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 middle_hall</title></polygon><polygon points="0.3,7.2876199999999995 4.542424,7.2876199999999995 4.542424,4.344017 0.3,4.344017" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 room_C1</title></polygon><polygon points="0.3,12.239477 4.542424,12.239477 4.542424,7.2876199999999995 0.3,7.2876199999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 room_C2</title></polygon><polygon points="0.3,20.3 4.542424,20.3 4.542424,12.239477 0.3,12.239477" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 room_C3</title></polygon><polygon points="6.14022,6.297249 10.3,6.297249 10.3,4.344017 6.14022,4.344017" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 room_D</title></polygon><polygon points="6.14022,12.239477 10.3,12.239477 10.3,6.297249 6.14022,6.297249" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 room_E</title></polygon><polygon points="0.3,4.344017 10.3,4.344017 10.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 room_top</title></polygon></svg></figure></section></html>

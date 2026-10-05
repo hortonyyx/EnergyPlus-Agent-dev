@@ -13,17 +13,11 @@ import base64
 import hashlib
 import json
 import os
-import re
-import shutil
 import time
 from decimal import Decimal
 from pathlib import Path
 
-from PIL import Image
-
 from scripts.tool_scripts.bim_agent_guidance import build_guide
-from scripts.tool_scripts.bim_agent_inputs import freeze_building_input
-from scripts.tool_scripts.bim_agent_mesh import freeze_mesh
 from src.agent.runtime_tools import (
     FrozenBimTools, coordinator_role, local_observer_role, frozen_bim_client,
     write_frozen_materials, write_frozen_tool_catalog,
@@ -59,40 +53,16 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
                    max_candidates: int, floor_plan_images: list[str] | None = None,
                    started_epoch: float | None = None,
                    seconds: float | None = None) -> tuple[Path, str, str]:
-    """Freeze originals in a fresh run, using the unchanged existing input helpers."""
-    run = output / "bim"
-    run.mkdir(parents=True, exist_ok=False)
-    (run / "images").mkdir()
-    inventory = {}
-    for source in sorted(images.glob("*.png")) if images else []:
-        target = run / "images" / source.name
-        shutil.copyfile(source, target)
-        with Image.open(target) as image:
-            size = list(image.size)
-        inventory[source.name] = {"size": size, "sha256": hashlib.sha256(target.read_bytes()).hexdigest()}
-    if not inventory and mesh is None:
-        raise ValueError("provide original PNG images or a GLB mesh")
-    if floor_plan_images is not None and any(name not in inventory for name in floor_plan_images):
-        raise ValueError("floor_plan_images must use admitted input filenames")
-    floor_scope_source = "explicit_input_filenames" if floor_plan_images is not None else "input_filename_hint"
-    if floor_plan_images is None:
-        floor_plan_images = sorted(name for name in inventory
-            if re.fullmatch(r"\d+f(?:_view)?\.png", name, re.I)) if image_kind == "drawings" else []
+    """Freeze originals through the same admission function as Claude Code."""
+    from src.agent.bim_inputs import prepare_bim_inputs
     if (started_epoch is None) != (seconds is None):
         raise ValueError("started_epoch and seconds must be supplied together")
-    manifest = {"images": inventory, "image_kind": image_kind if inventory else None,
-        "scope": scope, "max_candidates": max_candidates,
-        "started_epoch": started_epoch, "time_budget_seconds": seconds,
-        "deadline_epoch": started_epoch + seconds if started_epoch is not None else None,
-        "floor_plan_images": floor_plan_images,
-        "floor_scope_source": floor_scope_source if floor_plan_images else "not_declared",
-        "provider": "runtime", "input_mode": "runtime_original_inputs",
-        "only_input": "admitted original images/mesh, user scope and optional building brief; no GT/evaluation"}
-    if mesh:
-        manifest["mesh_input"] = freeze_mesh(mesh, run)
-    if building_input:
-        manifest["building_input"] = freeze_building_input(building_input, run, inventory)
-    (run / "inputs.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+    run = output / "bim"
+    manifest = prepare_bim_inputs(run, images_path=images, mesh_path=mesh,
+        building_input_path=building_input, scope=scope, image_kind=image_kind,
+        max_candidates=max_candidates, floor_images=floor_plan_images,
+        started_epoch=started_epoch, seconds=seconds)
+    inventory = manifest["images"]
     guide = build_guide(images=image_kind if inventory else None, mesh=bool(mesh))
     task = scope
     (output / "guide.txt").write_text(guide, encoding="utf-8")
@@ -189,7 +159,7 @@ async def execute(args) -> dict:
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
                     parameters=parameters, route=route, code_paths=("src/agent/runtime_entry.py",
-                        "src/agent/runtime_delivery.py",
+                        "src/agent/runtime_delivery.py", "src/agent/bim_inputs.py",
                         "src/agent/runtime_tools.py", "scripts/tool_scripts", "src/agent/geometry",
                         "src/agent/runtime_context.py", "src/agent/runtime_behaviour.py",
                         "src/agent/correction", "src/agent/execution"))
@@ -229,6 +199,18 @@ async def execute(args) -> dict:
                     strict_model_profile=strict_model_profile)
                 engine.low_output_limit_reason = args.low_output_limit_reason
                 result = await engine.run(messages, image_originals=originals, resume=args.resume)
+        # A normal BIM workspace is directly scoreable by either runner's evaluator.
+        # The runtime receipt remains the authority for stop reason and accounting.
+        from src.agent.bim_inputs import dump
+        delivery = result.get("finalization", {}).get("delivery")
+        dump(run / "summary.json", {
+            "input_mode": manifest.get("input_mode"), "source_input_mode": manifest.get("source_input_mode"),
+            "input_contents": manifest.get("input_contents"),
+            "agent_response_completed": result["status"] == "completed",
+            "runtime_status": result["status"], "elapsed_seconds": result.get("elapsed_seconds"),
+            "delivery": ({**delivery, "report": "delivery.json", "viewer": "delivery.html"}
+                         if delivery else None),
+            "receipt": "../receipt.json", "drawing_fidelity": "not_evaluated"})
         from src.agent.runtime_behaviour import write_behaviour_report
         write_behaviour_report(output / "events.jsonl", output / "behaviour")
         return result
