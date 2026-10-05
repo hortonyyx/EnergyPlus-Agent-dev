@@ -40,12 +40,27 @@
 | 常读参考 | 15,705 | 15,705 |
 | **四项合计** | **59,201** | **59,178（−23）** |
 
-全目录仍 43 个工具，默认启用仍 38 个；没有新增工具。新增精度诊断摘要最多 8 条，保留总数/分类、几何位置、尺度与墙厚数值，详细依据和全部条目进入 A3-T 的哈希报告，现有 `read_candidate_items` 可分页读取。真实 MCP 返回前后测量正在完成。
+全目录仍 43 个工具，默认启用仍 38 个；没有新增工具。新增精度诊断摘要最多 8 条，保留总数/分类、几何位置、尺度与墙厚数值，详细依据和全部条目进入 A3-T 的哈希报告，现有 `read_candidate_items` 可分页读取。
+
+[真实 MCP 返回比较](reply_comparison.json)，以新线路 sm25 保存的相同输入分别运行基准和新版：4 次历史调用，加从最终草稿/源提案重新保存的 2 次调用。计全部文字块字符，不计图片或协议封套。
+
+| 返回 | 改前 | 改后 | 增量 |
+|---|---:|---:|---:|
+| 平面修订 `revise_plan_bim` | 36,684 | 38,595 | +1,911 |
+| 多层装配 `assemble_plan_bim` | 32,842 | 39,958 | +7,116 |
+| 源修订 `revise_bim` | 58,004 | 65,092 | +7,088 |
+| 交付 `finish_bim` | 3,850 | 3,850 | 0 |
+| 平面保存 `build_plan_bim` | 28,867 | 30,778 | +1,911 |
+| 源保存 `build_bim` | 29,715 | 36,803 | +7,088 |
+
+六组源模型文件字节、几何内容、返回图片全部相同。交付维持原短摘要，完整交付报告含新检查；定向测试确认能通过已有工具按哈希读回。新增文字是诊断摘要和实际覆盖说明，不把未变的候选几何再拷一遍。
 
 ## D. 版本与检查
 
-当前新版本 `t1-20261005-a4t.2`，54 个文件；原版本全部保留，`.1` 是补上“备选线必须平行”之前的开发快照。离线检查设置本工作树 `PYTHONPATH`，pytest 显式 `-n 2 -s`，临时文件仅放本工作树。
-最终检查覆盖直接引用改动模块的全部 30 个文件，并扩到 BIM/runtime/harness 和相邻装配检查，共 81 个文件；运行中。两底座三例逐字节核对运行中，不把离线核验写成工作模型整案验收。
+当前新版本 `t1-20261005-a4t.2`，54 个文件；[核验](version_verification.json)全部哈希一致，原有 8 个版本逐条保持不变。`.1` 是补上“备选线必须平行”之前的开发快照。离线检查设置本工作树 `PYTHONPATH`，pytest 显式 `-n 2 -s`，临时文件仅放本工作树。
+最终检查覆盖直接引用改动模块的全部 30 个文件，并扩到 BIM/runtime/harness 和相邻装配检查，共 81 个文件；运行中，当前出现 1 项失败，等待汇总断言后定位，不计为通过。
+
+[两底座三例核对](runner_parity.json)已通过：sm24、sm25、sm21 的系统指引、工具目录、名称/说明/参数、任务正文逐字节一致；输入图片哈希相同。只走模型请求准备边界，Claude Code 的真实模型启动被拦住，新底座用脚本适配器，未发模型请求。不把离线核验写成工作模型整案验收。
 模型请求：0；后续仍为 0。无外部付费调用。
 
 ## 进度、提交与遗留
@@ -53,6 +68,22 @@
 - 开工：已读 `AI_agent/Agent.md`、派工单及 A–D 验收要求，正在加载项目上下文和历史证据。
 - `64bc4f69`：报告初稿。首次普通 Git 提交在共享文件系统索引刷新耗时过长，停止后改显式路径提交成功。
 - `5732cb9b`：A 的检查实现与首轮源证据。
-- 第三提交保存 B、文字预算、新版本及源建议平行性修正；最终检查和返回体积证据随后提交。
+- `8d5acc4f`：B、文字预算、新版本及源建议平行性修正；最终检查和返回体积证据随后提交。
 - 初轮 23 项定向测试通过。发现源建议的垂直边问题后，主动终止尚未完成的综合轮，保留 [中止记录](validation/initial_interrupted/related.json)，以修正后 `final2` 为验收轮。开发快照的版本不匹配不计为通过。
 - 交付时间目标约 110 分钟；若接近时限，优先保证 A 完整提交，如实交回 B 的剩余范围。
+
+## 离线复现
+
+下列命令均在本工作树执行，无模型调用。`materialize.py` 只从现有 Git 证据对象解出所需文件到 `.tmp_a4t/history`，逐文件核哈希；原始实验目录只读。新一轮测试使用新的标签，保留已有证据。
+
+```bash
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-05_absorb_a4t/materialize.py
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-05_absorb_a4t/replay.py sources
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-05_absorb_a4t/replay.py plans
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-05_absorb_a4t/adjudicate.py
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-03_tool_package_t1/measure_instructions.py --baseline aa48d72f --output AI_agent/logs/experiments/2026-10-05_absorb_a4t/instruction_comparison.json
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-05_absorb_a4t/measure_replies.py
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-03_runtime_r3/compare_runners.py --output AI_agent/logs/experiments/2026-10-05_absorb_a4t/runner_parity.json
+PYTHONPATH="$PWD" python AI_agent/logs/experiments/2026-10-05_absorb_a4t/validate.py repeat_001
+PYTHONPATH="$PWD" python -m src.agent_runtime.agent_registry verify
+```
