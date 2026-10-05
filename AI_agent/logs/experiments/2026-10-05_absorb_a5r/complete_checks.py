@@ -6,6 +6,7 @@ it is never repeated just because its first check hit the registration gate.
 import argparse
 from datetime import datetime, timezone
 import hashlib
+import gzip
 import json
 import os
 from pathlib import Path
@@ -26,7 +27,8 @@ def case_id(case):
 
 
 def cases(path):
-    return ET.parse(path).getroot().findall('.//testcase')
+    raw = path.read_bytes() if path.exists() else gzip.decompress(path.with_name(path.name + '.gz').read_bytes())
+    return ET.fromstring(raw).findall('.//testcase')
 
 
 def status(case):

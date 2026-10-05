@@ -42,7 +42,7 @@
 
 | 检查 | 结果 | 证据 |
 |---|---|---|
-| 默认登记完整检查 | 880 项：830 通过、50 被旧登记阻挡；无其他失败、无跳过 | `validation/all.json`、`.log`、`.xml`；`baseline_failure_causes.json` |
+| 默认登记完整检查 | 880 项：830 通过、50 被旧登记阻挡；无其他失败、无跳过 | `validation/all.json`、`all.log.gz`、`all.xml.gz`；`baseline_failure_causes.json` |
 | 相同代码下补验受阻的短检查 | 48/48 通过 | `validation/proposed-failed.json`、`.log`、`.xml` |
 | 独立登记下完整历史工具重放文件 | 4/4 通过，覆盖另 2 项受阻检查 | `validation/proposed-frozen.log`、`.xml` |
 | 部分推理兼容修正后的全部评分检查 | 23/23 通过，含新增反例 | `validation/judge-compat.log`、`.xml` |
@@ -52,7 +52,7 @@
 
 已用现有登记接口在本报告目录生成 **独立的登记建议文件**，核对四种真实本地 MCP 目录；没有改生产登记，也没有关闭哈希校验。三例核对已通过，见 [runner_parity.json](runner_parity.json)：每例 Claude Code 恰好到达一次被拦截的进程启动边界，未启动模型；任务、指引、工具目录和三份 8.6–8.8 KB 完整输入清单（同范围、同钟表，仅 provider 路由不同）均逐字节一致，新底座均产出可直接评分的 summary。核对脚本只在自己的进程内显式选择该建议登记，结果明确是**以建议登记为条件**，当前默认入口未因此放行。默认校验阻挡的唯一文件为 `run_bim_agent.py`，证据在 `validation/default_registration_check.json`。
 
-为了在不越权修改登记的前提下把集成改动验证完，另备离线 pytest 配置 `proposed_registry_checks.py`，把登记选择指向该建议文件；原校验函数、四种真实工具目录、历史版本和文件篡改断言全部保留。登记复制测试仅改其 JSON 输入来源。补验与原默认登记失败分别保存。75 步历史真实工具重放已在此条件下通过，模型响应均为录制的本地脚本：4 项通过，实际流程 799 秒，75 次工具执行、76 个脚本响应、69 次压缩、3 次旧图片逐字节取回；原有 7 个错误准确复现，无新增错误。见 [frozen_summary.json](validation/frozen_summary.json)、`proposed-frozen.log` / `.xml`；完整报告、事件、回执和版本以 gzip 保存于 `validation/`。这不是一次新的工作模型整案运行。
+为了在不越权修改登记的前提下把集成改动验证完，另备离线 pytest 配置 `proposed_registry_checks.py`，把登记选择指向该建议文件；原校验函数、四种真实工具目录、历史版本和文件篡改断言全部保留。登记复制测试仅改其 JSON 输入来源。补验与原默认登记失败分别保存；原失败日志和 XML 按原字节无损压缩，校验见 `validation/raw_failure_evidence.json`。75 步历史真实工具重放已在此条件下通过，模型响应均为录制的本地脚本：4 项通过，实际流程 799 秒，75 次工具执行、76 个脚本响应、69 次压缩、3 次旧图片逐字节取回；原有 7 个错误准确复现，无新增错误。见 [frozen_summary.json](validation/frozen_summary.json)、`proposed-frozen.log` / `.xml`；完整报告、事件、回执和版本以 gzip 保存于 `validation/`。这不是一次新的工作模型整案运行。
 
 收尾时修正了部分推理模式的兼容语义：完整参照差异继续保留为诊断，交付质量标为 `not_evaluated`，不把未提供的内部格局变成交付验收目标。复现见 `validation/partial_inference_before.json`；新反例及还原模式检查均通过。这不改变上表七份还原任务重评的结果。
 
@@ -67,4 +67,3 @@
 - `b8d6296e`：部分推理参照比较保持诊断性质。
 
 最后的交付记录提交保存本报告、完整检查与清理证据。解包及测试目录清理见 [cleanup.json](cleanup.json)，必要的重放报告/事件/回执/版本已压缩保留。未合入、未推送。
-
