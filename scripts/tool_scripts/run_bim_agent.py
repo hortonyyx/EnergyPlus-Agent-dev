@@ -2958,169 +2958,21 @@ def run_experiment(args):
         raise ValueError("continuation_rounds must be an integer from 0 to 4")
     if provider == "glm" and getattr(args, "exploratory_opus", False):
         raise ValueError("--provider glm cannot be combined with --exploratory-opus")
+    from src.agent.bim_inputs import prepare_bim_inputs
+    run = args.out.resolve()
     seed_path = getattr(args, "resume_candidate", None)
-    resume_plan_path = getattr(args, "resume_plan", None)
     plan_image = getattr(args, "plan_image", None)
-    if seed_path and resume_plan_path:
-        raise ValueError("--resume-plan and --resume-candidate are mutually exclusive")
-    if resume_plan_path:
-        if not args.images or not plan_image:
-            raise ValueError("--resume-plan requires --images and --plan-image")
-        if Path(plan_image).name != plan_image or not plan_image.endswith(".png"):
-            raise ValueError("--plan-image must be an exact admitted PNG filename")
-        if not (args.images / plan_image).is_file():
-            raise ValueError(f"--plan-image {plan_image!r} is not present in --images")
-        if not resume_plan_path.is_file():
-            raise ValueError("--resume-plan must name an existing JSON file")
-    elif plan_image:
-        raise ValueError("--plan-image requires --resume-plan")
-    run = args.out.resolve(); run.mkdir(parents=True, exist_ok=False)
-    (run/"images").mkdir()
-    images = {}
-    for path in sorted(args.images.glob("*.png")) if args.images else []:
-        target = run/"images"/path.name
-        shutil.copy2(path,target)
-        with PILImage.open(target) as im: size=list(im.size)
-        images[path.name] = {"size":size,"sha256":digest(target)}
-    mesh_path = getattr(args, 'mesh', None)
-    if not images and mesh_path is None:
-        raise ValueError("provide PNG drawings or a native --mesh GLB")
-    mesh_input = None
-    if mesh_path is not None:
-        from scripts.tool_scripts.bim_agent_mesh import freeze_mesh
-        mesh_input = freeze_mesh(mesh_path, run)
-    building_input_path = getattr(args, "building_input", None)
-    building_input = (freeze_building_input(building_input_path, run, images)
-                      if building_input_path is not None else None)
-    plan_recovery = (freeze_plan_input(resume_plan_path, run, images, plan_image)
-                     if resume_plan_path is not None else None)
-    generation_mode = ("saved_plan_recovery" if plan_recovery else
-                       "saved_candidate_recovery" if seed_path else "original_images_agent_experiment")
-    source_input_mode = ("original_images_with_building_declaration"
-                         if building_input else "original_images_only")
-    if mesh_input:
-        source_input_mode = 'native_mesh_with_images' if images else 'native_mesh'
-        if building_input:
-            source_input_mode += '_with_building_declaration'
-        if not seed_path and not plan_recovery:
-            generation_mode = 'native_mesh_agent_experiment'
-    image_kind = (getattr(args, "image_kind", None) or ("unknown" if mesh_path is not None else "drawings")
-                  if images else None)
-    floor_images = getattr(args, "floor_plan_images", None)
-    if floor_images is not None and any(image not in images for image in floor_images):
-        raise ValueError("floor_plan_images must use admitted input filenames")
-    # File names are only an explicit, visible scope hint, never a hidden floor count.
-    floor_scope_source = "explicit_input_filenames" if floor_images is not None else "input_filename_hint"
-    if floor_images is None:
-        floor_images = sorted(name for name in images if re.fullmatch(r"\d+f(?:_view)?\.png", name, re.I)) if image_kind == "drawings" else []
-    started_epoch = None if getattr(args, "prepare_only", False) else time.time()
-    manifest = {"images":images,"image_kind":image_kind,"scope":args.scope,"provider":provider,
-                             "floor_plan_images": floor_images,
-                             "floor_scope_source": floor_scope_source if floor_images else "not_declared",
-                             "started_epoch": started_epoch,
-                             "time_budget_seconds": args.timeout,
-                             "max_candidates":max_candidates,
-                             "continuation_rounds": continuation_rounds,
-                             "review_detail_enabled": getattr(args, "review_detail", False),
-                             "input_mode": generation_mode,
-                             "exploratory_opus": getattr(args, "exploratory_opus", False),
-                             "source_input_mode": source_input_mode,
-                             "input_contents": {
-                                 "original_png_images": {"included": bool(images), "count": len(images)},
-                                 "building_declaration": {"included": bool(building_input)},
-                                 "saved_generated_proposal": {"included": bool(seed_path)},
-                                 "ground_truth_or_evaluation": {"included": False},
-                             },
-                             "deadline_epoch": (started_epoch + args.timeout if started_epoch is not None else None),
-                             "implementation_sha256": {
-                                 "scripts/tool_scripts/bim_agent_claims.py":digest(ROOT/"scripts/tool_scripts/bim_agent_claims.py"),
-                                 "scripts/tool_scripts/bim_agent_facade_checks.py":digest(ROOT/"scripts/tool_scripts/bim_agent_facade_checks.py"),
-                                 "scripts/tool_scripts/bim_agent_feedback.py":digest(ROOT/"scripts/tool_scripts/bim_agent_feedback.py"),
-                                 "scripts/tool_scripts/bim_agent_budget.py":digest(ROOT/"scripts/tool_scripts/bim_agent_budget.py"),
-                                 "src/agent/correction/schema.py":digest(ROOT/"src/agent/correction/schema.py"),
-                                 "src/agent/geometry/source_model.py":digest(ROOT/"src/agent/geometry/source_model.py"),
-                                 "src/agent/roles.py":digest(ROOT/"src/agent/roles.py"),
-                                 "src/agent/data/room_types.json":digest(ROOT/"src/agent/data/room_types.json"),
-                                 "src/agent/geometry/source_naming.py":digest(ROOT/"src/agent/geometry/source_naming.py"),
-                                 "scripts/tool_scripts/render_geometry_viewer.py":digest(ROOT/"scripts/tool_scripts/render_geometry_viewer.py"),
-                                 "scripts/tool_scripts/run_bim_agent.py":digest(Path(__file__)),
-                                 "scripts/tool_scripts/bim_agent_guidance.py":digest(ROOT/"scripts/tool_scripts/bim_agent_guidance.py"),
-                                 "scripts/tool_scripts/bim_agent_continuation.py":digest(ROOT/"scripts/tool_scripts/bim_agent_continuation.py"),
-                                 "src/agent/geometry/parametric_proposal.py":digest(ROOT/"src/agent/geometry/parametric_proposal.py"),
-                                 "scripts/tool_scripts/bim_agent_inputs.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inputs.py"),
-                                 "src/agent/execution/bim_claims.py":digest(ROOT/"src/agent/execution/bim_claims.py"),
-                                 "src/agent/execution/bim_claim_state.py":digest(ROOT/"src/agent/execution/bim_claim_state.py"),
-                                 "src/agent/execution/bim_height_coverage.py":digest(ROOT/"src/agent/execution/bim_height_coverage.py"),
-                                 "src/agent/geometry/component_attributes.py":digest(ROOT/"src/agent/geometry/component_attributes.py"),
-                                 "scripts/tool_scripts/bim_agent_mesh.py":digest(ROOT/"scripts/tool_scripts/bim_agent_mesh.py"),
-                                 "scripts/tool_scripts/bim_agent_inference.py":digest(ROOT/"scripts/tool_scripts/bim_agent_inference.py"),
-                                 "src/agent/geometry/mesh_observation.py":digest(ROOT/"src/agent/geometry/mesh_observation.py"),
-                                 "src/agent/geometry/mesh_bim_frame.py":digest(ROOT/"src/agent/geometry/mesh_bim_frame.py"),
-                                 "src/agent/execution/source_proposal.py":digest(ROOT/"src/agent/execution/source_proposal.py"),
-                                 "src/agent/geometry/proposal_edits.py":digest(ROOT/"src/agent/geometry/proposal_edits.py"),
-                                 "src/agent/geometry/opening_review.py":digest(ROOT/"src/agent/geometry/opening_review.py"),
-                                 "src/agent/geometry/bim_delivery.py":digest(ROOT/"src/agent/geometry/bim_delivery.py"),
-                                 "src/agent/geometry/source_image_overlay.py":digest(ROOT/"src/agent/geometry/source_image_overlay.py"),
-                                 "src/agent/geometry/source_floor_selection.py":digest(ROOT/"src/agent/geometry/source_floor_selection.py"),
-                                 "src/agent/geometry/source_space_relations.py":digest(ROOT/"src/agent/geometry/source_space_relations.py"),
-                                 "src/agent/geometry/source_elevation_view.py":digest(ROOT/"src/agent/geometry/source_elevation_view.py"),
-                                 "src/agent/geometry/source_elevation_overlay.py":digest(ROOT/"src/agent/geometry/source_elevation_overlay.py"),
-                                 "src/agent/geometry/source_plan_view.py":digest(ROOT/"src/agent/geometry/source_plan_view.py"),
-                                 "src/agent/geometry/source_bim.py":digest(ROOT/"src/agent/geometry/source_bim.py"),
-                                 "src/agent/geometry/wall_reference.py":digest(ROOT/"src/agent/geometry/wall_reference.py"),
-                                 "src/agent/geometry/dimension_chain.py":digest(ROOT/"src/agent/geometry/dimension_chain.py"),
-                                 "src/agent/geometry/facade_span_comparison.py":digest(ROOT/"src/agent/geometry/facade_span_comparison.py"),
-                                 "src/agent/geometry/profile_observation_binding.py":digest(ROOT/"src/agent/geometry/profile_observation_binding.py"),
-                                 "src/agent/geometry/plan_feedback.py":digest(ROOT/"src/agent/geometry/plan_feedback.py"),
-                                 "src/agent/geometry/space_trace.py":digest(ROOT/"src/agent/geometry/space_trace.py"),
-                                 "src/agent/geometry/plan_partition.py":digest(ROOT/"src/agent/geometry/plan_partition.py"),
-                                 "src/agent/geometry/plan_assembly.py":digest(ROOT/"src/agent/geometry/plan_assembly.py"),
-                                 "src/agent/geometry/plan_revision.py":digest(ROOT/"src/agent/geometry/plan_revision.py"),
-                                 "src/agent/geometry/plan_wall_support.py":digest(ROOT/"src/agent/geometry/plan_wall_support.py"),
-                                 "src/agent/geometry/plan_drawing_differences.py":digest(ROOT/"src/agent/geometry/plan_drawing_differences.py"),
-                                 "src/agent/execution/bim_claim_facts.py":digest(ROOT/"src/agent/execution/bim_claim_facts.py"),
-                                 "src/agent/geometry/plan_draft_view.py":digest(ROOT/"src/agent/geometry/plan_draft_view.py"),
-                                 "src/agent/geometry/pixel_region.py":digest(ROOT/"src/agent/geometry/pixel_region.py"),
-                                 "src/agent/geometry/pixel_region_overview.py":digest(ROOT/"src/agent/geometry/pixel_region_overview.py")},
-                             "only_input": (
-                                 "authorized original PNG images, user scope, explicitly supplied building "
-                                 "declaration, and optional saved generated proposal; no GT/evaluation"
-                                 if building_input else
-                                 "authorized original PNG images, user scope, and optional saved generated "
-                                 "proposal; no building declaration and no GT/evaluation"
-                             )}
-    if building_input:
-        manifest["building_input"] = building_input
-    if plan_recovery:
-        manifest["plan_recovery"] = plan_recovery
-        manifest["input_contents"]["saved_pixel_plan"] = {"included": True,
-                                                         "status": "unverified_not_compiled"}
-        manifest["only_input"] = (
-            "authorized original PNG images, user scope, optional building declaration/mesh, "
-            "and one unverified saved pixel-plan declaration; no old source BIM, report, GT or evaluation"
-        )
-    if mesh_input:
-        manifest['mesh_input'] = mesh_input
-        manifest['input_contents']['original_mesh'] = {'included': True, 'sha256': mesh_input['sha256']}
-        manifest['only_input'] = ('Admitted original GLB and optional original PNGs, explicit building '
-                                  'declaration, user scope and optional saved proposal. Mesh views are '
-                                  'generated on demand internally; no GT/evaluation or preselected camera package.')
-        if plan_recovery:
-            manifest['only_input'] = (
-                "admitted original GLB and PNGs, user scope, optional building declaration, "
-                "and one unverified saved pixel-plan declaration; no old source BIM, report, GT or evaluation"
-            )
-    if seed_path:
-        raw = (seed_path/"proposal.json").read_bytes()
-        # Only the proposal is imported, never a report that might hold evaluation.
-        proposal = json.loads(raw)
-        manifest["seed"] = {"candidate": "seed", "proposal_sha256":hashlib.sha256(raw).hexdigest(),
-                            "source":str(seed_path.resolve()), "mode":"previous_generated_proposal_recovery"}
-        from src.agent.execution.source_proposal import export_source_proposal
-        report = export_source_proposal(proposal, run/"seed", provenance=manifest["seed"])
-        if not (run/"seed"/"source_model.json").exists():
-            raise ValueError(f"seed cannot be materialized: {report.get('error')}")
-    dump(run/"inputs.json", manifest)
+    manifest = prepare_bim_inputs(run, images_path=args.images,
+        mesh_path=getattr(args, "mesh", None), building_input_path=getattr(args, "building_input", None),
+        scope=args.scope, image_kind=getattr(args, "image_kind", None), max_candidates=max_candidates,
+        floor_images=getattr(args, "floor_plan_images", None),
+        started_epoch=None if getattr(args, "prepare_only", False) else time.time(), seconds=args.timeout,
+        provider=provider, continuation_rounds=continuation_rounds,
+        review_detail_enabled=getattr(args, "review_detail", False),
+        exploratory_opus=getattr(args, "exploratory_opus", False), seed_path=seed_path,
+        resume_plan_path=getattr(args, "resume_plan", None), plan_image=plan_image)
+    building_input, plan_recovery, mesh_input = (manifest.get(name) for name in
+        ("building_input", "plan_recovery", "mesh_input"))
     continuation = ("The previous pixel-plan declaration is available at inputs.plan_recovery.declaration "
                     f"and is bound to original image {plan_image}. It is unverified and may fail compilation; "
                     "importing it does not establish a valid source BIM. Follow this run's scope: you may "
