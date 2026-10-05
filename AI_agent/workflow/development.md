@@ -117,18 +117,19 @@
 
 Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可写，仓库外的独立探测目录拒绝写入。首次设置写权限花了约 47 秒，设置完成后探测正常。验证使用 `codex sandbox -P :workspace`，没有调用模型；容器时期“只能完全访问”的限制不再用于这台本机。
 
-工作树建在 Windows 本地 NTFS 目录，例如 `$env:LOCALAPPDATA\EnergyPlus-Agent\worktrees\<任务名>`，不放网络盘或同步盘。派工前由主助手准备已包含派工单的提交和独立工作树，写清范围与交付要求。下面在准备好的工作树根目录执行；PowerShell 参数语法和 Agent.md 加载已验证，实际开发派工按任务需要启动：
+工作树建在 Windows 本地 NTFS 目录，例如 `$env:LOCALAPPDATA\EnergyPlus-Agent\worktrees\<任务名>`，不放网络盘或同步盘。派工前由主助手准备已包含派工单的提交和独立工作树，写清范围与交付要求。新工作树也要按自己的锁文件创建并激活 `.venv`，不能假定继承主树虚拟环境。下面在准备好的工作树根目录执行；PowerShell 参数语法和 Agent.md 加载已验证，实际开发派工按任务需要启动：
 
 ```powershell
 $taskTree = (Get-Location).Path
+uv sync --frozen --python 3.12
+if ($LASTEXITCODE -ne 0) { throw 'Virtual environment setup failed.' }
+. .\scripts\activate_windows.ps1
 $taskLogs = Join-Path $taskTree 'AI_agent/logs/experiments/<本次派工>'
 New-Item -ItemType Directory -Force -Path $taskLogs | Out-Null
-$env:PYTHONUTF8 = '1'
-$env:PYTHONPATH = $taskTree
-codex exec -m gpt-6-astra -c 'model_reasoning_effort="xhigh"' -c 'project_doc_fallback_filenames=["Agent.md"]' -s workspace-write -C (Join-Path $taskTree 'AI_agent') --add-dir $taskTree --json -o (Join-Path $taskLogs 'final.md') '<派工提示：先完整读 Agent.md；随后从工作树根目录执行任务>' > (Join-Path $taskLogs 'events.jsonl') 2> (Join-Path $taskLogs 'stderr.log')
+codex exec -m gpt-6-astra -c "model_reasoning_effort='xhigh'" -c "project_doc_fallback_filenames=['Agent.md']" -s workspace-write -C (Join-Path $taskTree 'AI_agent') --add-dir $taskTree --json -o (Join-Path $taskLogs 'final.md') '<派工提示：先完整读 Agent.md；随后从工作树根目录执行任务>' > (Join-Path $taskLogs 'events.jsonl') 2> (Join-Path $taskLogs 'stderr.log')
 ```
 
-`AI_agent` 作为启动目录，是为适配本机 CLI 对嵌套备用文件名的实际加载行为；`--add-dir` 提供整个工作树的写入范围。旧 `Bash(codex *)` 允许规则不代表 PowerShell 的执行权限，实际权限以客户端显示为准。续接时先切到同一工作树的 `AI_agent`，再用 `codex exec resume <线程> -m gpt-6-astra -c 'model_reasoning_effort="xhigh"' --json -o <最终回复文件> '<续接提示>'`；resume 不接受 `-C`。
+`AI_agent` 作为启动目录，是为适配本机 CLI 对嵌套备用文件名的实际加载行为；`--add-dir` 提供整个工作树的写入范围。配置值内部使用 TOML 单引号，避免 Windows PowerShell 5.1 把双引号剥掉而误传成字符串；同样适用于 PowerShell 7。旧 `Bash(codex *)` 允许规则不代表 PowerShell 的执行权限，实际权限以客户端显示为准。续接时先切到同一工作树的 `AI_agent`，再用 `codex exec resume <线程> -m gpt-6-astra -c "model_reasoning_effort='xhigh'" --json -o <最终回复文件> '<续接提示>'`；resume 不接受 `-C`。
 
 - 每个阶段：验收标准与派工单入主线 → 建工作树 → 启动 → 复核改动范围与关键证据 → 必要检查 → 合入并推送 → 收回工作树。长包开工即保存报告初稿，逐步提交，保留中断后的续接入口。
 - 检查时将 `PYTHONPATH` 指向该工作树，先确认导入模块的 `__file__`；不能把共享 editable 安装的主树结果当作分支验证。pytest 用 `--basetemp AI_agent/archive/local_backup/<任务名>/pytest` 将临时产物留在已忽略的工作树目录。
@@ -138,7 +139,14 @@ codex exec -m gpt-6-astra -c 'model_reasoning_effort="xhigh"' -c 'project_doc_fa
 
 用 Git 提交/tag 标识代码，用 run 或工作记录保留输入、命令、关键配置、模型/人工参与、输出和未验证范围；不另造能力版本准入清单。重要证据不只留在临时目录。
 **大运行记录的存放（10-03 用户同意 Opus 建议）：** 仓库打包体积已达 1.02 GB。完整运行目录压缩后仍然较大的（大约 10 MB 以上），压缩包单独放在证据分支（如 `evidence/migration-2026-10-03`，只含压缩包的独立提交）并推送备份；主线只保留评分结果、逐文件哈希清单，以及证据分支与提交的说明。较小的证据照常入主线。
-**10-04 补充：** GitHub 拒收单个超过 100 MB 的文件。证据压缩包超过这个大小时，用 `split -b 90m` 拆段放证据分支，哈希清单里同时记整包哈希、各段哈希和拼接命令，拼接后先核整包哈希再解。
+**10-04 补充、10-06 原生写法：** GitHub 拒收单个超过 100 MB 的文件。证据压缩包超过这个大小时，调用 Git for Windows 自带的 `split.exe` 拆段放证据分支；不用 WSL。以下 PowerShell 写法已用含空格文件名做拆分、拼接及逐字节核对。实际证据清单同时记录整包哈希、各段哈希和拼接命令，拼接后先核整包哈希再解：
+
+```powershell
+$taskGitRoot = Split-Path -Parent (Split-Path -Parent (Get-Command git.exe).Source)
+$taskArchive = (Resolve-Path '.\本次证据.tar.gz').Path
+& (Join-Path $taskGitRoot 'usr\bin\split.exe') -b 90m -d -a 3 -- $taskArchive ($taskArchive + '.part-')
+Get-FileHash -Algorithm SHA256 -LiteralPath $taskArchive
+```
 派 Astra 做可能接近 2 小时的包时，要求它开工即提交报告初稿、过程中更新：后台任务 2 小时会被强停（10-03 C2 即如此），提前提交能保证交付说明不丢。
 **10-05 补充（吸收包第二至五批的教训）：**
 - **10-05 起合并后的核对改为全量**：在 Windows 本地磁盘的目标检出上，对 `tests/` 全部检查跑一轮：`python -m pytest -n 2 tests`；先激活原生环境，并确认 PYTHONPATH 与 basetemp 指向目标检出。历史 Linux 本机盘基线约 25 分钟，不把它当作 Windows 耗时保证；容器 9p 挂载的性能结论不再作为本机判断依据。
@@ -150,6 +158,8 @@ main 是持续集成主干，由 Codex 主助手负责合并与推送。短期�
 日常开发使用 Windows 原生 Python 3.12 与 uv，仓库根执行 `. ./scripts/activate_windows.ps1`；配置与入口见[会话设置](session_setup.md)。共享 editable 安装可能被另树启动改变；怀疑串树时检查模块 `__file__`。不要反复自动同步依赖或为普通文件改动新装环境，确需不同依赖时再隔离环境。运行配置的 `run_root` 也应放本地磁盘；Windows 检查副本位于 `workflow/configs/windows_migration/`，旧实验配置保留原状。
 
 Windows 安全中心的“病毒和威胁防护 → 管理设置 → 排除项”可由用户把仓库目录与实际虚拟环境目录加入排除，减少大量小文件的逐个扫描；当前 `.venv` 在仓库内，父目录排除已经覆盖它。符号链接保护检查需要系统允许创建真实链接；Win+R 输入 `ms-settings:developers` 开启开发者模式后验证权限，不通过跳过保护检查来冒充全量通过。
+
+10-06 本机已开启开发者模式，非管理员 Python 符号链接探测通过。经用户授权尝试添加排除项时，Defender 服务返回 `0x800106ba`；回读为 Not running、实时防护关闭，未能添加排除项，也未修改服务启停。以后启用防护再按上述路径补充，不能把这次尝试当作已添加。
 
 ## 用户说“收工”时
 

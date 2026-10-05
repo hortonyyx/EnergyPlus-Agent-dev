@@ -1,0 +1,671 @@
+{
+  "code_commit": "cdd2e2e6050cbd563767d9657b5865e3d80db752",
+  "baseline_commit": "6d277f84",
+  "changed_files": [
+    "AI_agent/logs/experiments/2026-10-02_harness_stage0/build_samples.py",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage0/extract_sources.py",
+    "AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_pack.py",
+    "AI_agent/logs/experiments/2026-10-04_absorb_a3r/sequence_probe.py",
+    "AI_agent/logs/experiments/2026-10-06_windows_native_migration/verification.json",
+    "AI_agent/logs/worklog/2026-10-05_windows_native_migration.md",
+    "AI_agent/project/roadmap.md",
+    "AI_agent/workflow/codex_entry.toml",
+    "AI_agent/workflow/configs/windows_migration/qwen27b.json",
+    "AI_agent/workflow/configs/windows_migration/runtime_anthropic.json",
+    "AI_agent/workflow/development.md",
+    "AI_agent/workflow/session_setup.md",
+    "pyproject.toml",
+    "scripts/activate_windows.ps1",
+    "scripts/glm_code.py",
+    "scripts/tool_scripts/bim_agent_claims.py",
+    "scripts/tool_scripts/bim_agent_continuation.py",
+    "scripts/tool_scripts/bim_agent_inference.py",
+    "scripts/tool_scripts/bim_agent_mesh.py",
+    "scripts/tool_scripts/gt_from_dxf.py",
+    "scripts/tool_scripts/run_bim_agent.py",
+    "scripts/tool_scripts/run_stage.py",
+    "src/agent/execution/isolation.py",
+    "src/agent/execution/isolation_templates/guard.py",
+    "src/agent/execution/source_bim.py",
+    "src/agent/execution/source_checkpoint.py",
+    "src/agent/execution/stage_runner.py",
+    "src/agent/judge/conventions.py",
+    "src/agent/judge/gt_schema.py",
+    "src/agent/judge/score_schema.py",
+    "src/agent/judge/tarch_normalize.py",
+    "src/agent/judge/tarch_review_bundle.py",
+    "src/agent/runtime_behaviour.py",
+    "src/agent/runtime_configuration.py",
+    "src/agent/runtime_context.py",
+    "src/agent/runtime_coordinator.py",
+    "src/agent/runtime_tools.py",
+    "src/agent_runtime/agent_registry.py",
+    "src/agent_runtime/agent_versions.json",
+    "src/agent_runtime/call_quota.py",
+    "src/agent_runtime/store.py",
+    "src/agent_runtime/versions.py",
+    "src/utils/file_lock.py",
+    "tests/facts_equivalence.py",
+    "tests/fixtures/legacy_grade_v2_linux.png",
+    "tests/fixtures/sm24_f67_grade_linux.png",
+    "tests/native_shell.py",
+    "tests/test_affine_magnitude_gate.py",
+    "tests/test_agent_runtime.py",
+    "tests/test_bim_agent_glm_route.py",
+    "tests/test_bim_agent_tools.py",
+    "tests/test_c2_b4b_phase_d.py",
+    "tests/test_c2_b5_artifact_trust.py",
+    "tests/test_e2e_break_r2_locks.py",
+    "tests/test_e4_relative_north_axis_e2e.py",
+    "tests/test_ea2_opening_pipeline.py",
+    "tests/test_facts_equivalence.py",
+    "tests/test_gt_facts_staging_case_admission.py",
+    "tests/test_gt_facts_staging_sm25.py",
+    "tests/test_harness_stage0_samples.py",
+    "tests/test_isolation.py",
+    "tests/test_native_file_lock.py",
+    "tests/test_output_coordinate_dispatch_guard.py",
+    "tests/test_reading_typed_score_f67.py",
+    "tests/test_runtime_anthropic.py",
+    "tests/test_runtime_c1.py",
+    "tests/test_runtime_c3r.py",
+    "tests/test_runtime_r3.py",
+    "tests/test_runtime_role_cases.py",
+    "tests/test_runtime_stage3_evidence.py",
+    "tests/test_substrate_fix_cleanroom.py",
+    "tests/test_substrate_fix_tools.py",
+    "tests/test_substrate_sweep_policy.py",
+    "tests/test_substrate_sweep_tools.py",
+    "tests/test_tarch_converter_reproducibility.py",
+    "uv.lock"
+  ],
+  "glm_smoke": {
+    "provider": "glm-subscription-anthropic",
+    "model": "glm-5.3-flash",
+    "requests_attempted": 1,
+    "retries": 0,
+    "max_tokens": 128,
+    "success": true,
+    "reply_is_ok": true,
+    "stop_reason": "end_turn",
+    "usage": {
+      "input_tokens": 17,
+      "output_tokens": 3,
+      "cache_read_input_tokens": 0
+    },
+    "completed_utc": "2026-10-05T16:23:15.545022+00:00"
+  },
+  "mcp_smoke": {
+    "agent_version": "t1-20261006-win.3",
+    "real_model_requests": 0,
+    "catalogs": [
+      {
+        "mode": "coordinator",
+        "tools": 43,
+        "sha256": "cd8659c8e9e14ea8e0d14bd230324f712380a56b985d5724e9b117d2eab8b58b",
+        "registered_catalog_matches": true
+      },
+      {
+        "mode": "coordinator_mesh",
+        "tools": 50,
+        "sha256": "88d8334db7d5a0a18d4d9a23706858687e17b256cd8c81236c27659f0041d783",
+        "registered_catalog_matches": true
+      },
+      {
+        "mode": "readonly",
+        "tools": 14,
+        "sha256": "574e5934c7a8b504b8ca6e1d6ff113aa87a733b2a23d89e03122b1ebeceb59e3",
+        "registered_catalog_matches": true
+      },
+      {
+        "mode": "readonly_mesh",
+        "tools": 19,
+        "sha256": "36c1d34be765e450c7db2e76ee05c9e60c6d3a3dc18cc4eba1be4311d4a7410b",
+        "registered_catalog_matches": true
+      }
+    ],
+    "registered_agent_files_verified": 58
+  },
+  "claude_startup": {
+    "exit": 0,
+    "local_mock_requests": 1,
+    "captures": [
+      {
+        "memory_index_loaded": true,
+        "agent_substantive_lines": 39,
+        "agent_lines_loaded": 39
+      }
+    ],
+    "real_model_requests": 0
+  },
+  "sandbox": {
+    "workspace_write": true,
+    "outside_write_denied": true
+  },
+  "pending": [
+    "user confirmation before Docker removal",
+    "disk space readback after cleanup"
+  ],
+  "status": "native_verified_docker_removal_pending_user_confirmation",
+  "recorded_utc": "2026-10-05T18:02:57.920423+00:00",
+  "environment": {
+    "os": "Windows-11-10.0.26300-SP0",
+    "python": "3.12.10",
+    "environment": ".venv/Scripts/python.exe",
+    "uv": "0.11.22",
+    "node": "24.15.0",
+    "codex_cli": "0.156.1",
+    "claude_code": "2.1.280"
+  },
+  "full_suite": {
+    "source": "windows-full-04.xml",
+    "counts": {
+      "passed": 5537,
+      "skipped": 17,
+      "xfailed": 13
+    },
+    "total": 5567,
+    "seconds": 2033.176,
+    "nonpassing_details": [
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_world_anchor_keeps_nonzero_zone_origin",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_relative_variants_have_all_zero_zone_frames",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_surface_and_zone_name_sets_identical_across_variants",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_1_zero_angle_geometric_equivalence",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_2_ninety_degree_rotation",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_3_two_seventy_degree_rotation",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_4_area_volume_invariant",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_5_ignored_warning_behavior",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_f97_vector_contract::test_r7_a_fifo_named_json_does_not_block_forever",
+        "outcome": "skipped",
+        "reason": "SIGALRM unavailable"
+      },
+      {
+        "test": "tests.test_no_billed_provider_calls::test_live_marker_lifts_the_gate",
+        "outcome": "skipped",
+        "reason": "live provider test; select with -m live"
+      },
+      {
+        "test": "tests.test_orchestrate_baseline::test_record_baseline_on_anchor",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_python_c_append_to_guard_py_is_refused_under_a_nonprivileged_process",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[manifest]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[settings]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[wrapper]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[skill-doc]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[source-image]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_sweep_policy::test_f53b_unknown_tool_should_be_denied_by_guard[direct]",
+        "outcome": "xfailed",
+        "reason": "F-56: guard performs no --tool value check, so it allows a tool the wrapper will refuse"
+      },
+      {
+        "test": "tests.test_substrate_sweep_policy::test_f53b_unknown_tool_should_be_denied_by_guard[request]",
+        "outcome": "xfailed",
+        "reason": "F-56: guard performs no --tool value check, so it allows a tool the wrapper will refuse"
+      },
+      {
+        "test": "tests.test_substrate_sweep_policy::test_f52b_python_c_root_write_should_be_denied",
+        "outcome": "xfailed",
+        "reason": "F-52B: guard allows python -c to write the staging root (OS-level write surface unguarded)"
+      },
+      {
+        "test": "tests.test_tarch_converter_p2_geometry::test_free_end_non_zoning_with_proof_deferred",
+        "outcome": "xfailed",
+        "reason": "§2.6 free-end non_zoning proof path is deferred; current S4 blocks every dangle fail-closed"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_sm20_anchor_positive_baseline",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_sm20_anchor_reports_writable",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_geometry_digest_computed",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_confirmation_required_blocks_until_approved",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_optional_policy_never_blocks_on_approval",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_require_ep_passes_on_clean_run",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_run_with_clean_ep_validates",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_sm21_anchor_positive_baseline",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_zone_agent::test_zone_agent_creates_two_zones_live",
+        "outcome": "skipped",
+        "reason": "live provider test; select with -m live"
+      }
+    ]
+  },
+  "previous_suite": {
+    "source": "windows-full-03.xml",
+    "counts": {
+      "passed": 5534,
+      "skipped": 17,
+      "xfailed": 13,
+      "errors": 1
+    },
+    "total": 5565,
+    "seconds": 2322.987,
+    "nonpassing_details": [
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_world_anchor_keeps_nonzero_zone_origin",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_relative_variants_have_all_zero_zone_frames",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_surface_and_zone_name_sets_identical_across_variants",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_1_zero_angle_geometric_equivalence",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_2_ninety_degree_rotation",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_3_two_seventy_degree_rotation",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_4_area_volume_invariant",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_e4_relative_north_axis_e2e::test_e4_assertion_5_ignored_warning_behavior",
+        "outcome": "skipped",
+        "reason": "EnergyPlus 25.1 executable / EPW / probe fixtures not available"
+      },
+      {
+        "test": "tests.test_f97_vector_contract::test_r7_a_fifo_named_json_does_not_block_forever",
+        "outcome": "skipped",
+        "reason": "SIGALRM unavailable"
+      },
+      {
+        "test": "tests.test_no_billed_provider_calls::test_live_marker_lifts_the_gate",
+        "outcome": "skipped",
+        "reason": "live provider test; select with -m live"
+      },
+      {
+        "test": "tests.test_orchestrate_baseline::test_record_baseline_on_anchor",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_python_c_append_to_guard_py_is_refused_under_a_nonprivileged_process",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[manifest]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[settings]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[wrapper]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[skill-doc]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_fix_cleanroom::test_other_key_files_are_refused_under_a_nonprivileged_process[source-image]",
+        "outcome": "skipped",
+        "reason": "setpriv (util-linux) not on PATH"
+      },
+      {
+        "test": "tests.test_substrate_sweep_policy::test_f53b_unknown_tool_should_be_denied_by_guard[direct]",
+        "outcome": "xfailed",
+        "reason": "F-56: guard performs no --tool value check, so it allows a tool the wrapper will refuse"
+      },
+      {
+        "test": "tests.test_substrate_sweep_policy::test_f53b_unknown_tool_should_be_denied_by_guard[request]",
+        "outcome": "xfailed",
+        "reason": "F-56: guard performs no --tool value check, so it allows a tool the wrapper will refuse"
+      },
+      {
+        "test": "tests.test_substrate_sweep_policy::test_f52b_python_c_root_write_should_be_denied",
+        "outcome": "xfailed",
+        "reason": "F-52B: guard allows python -c to write the staging root (OS-level write surface unguarded)"
+      },
+      {
+        "test": "tests.test_runtime_long_task::test_long_run_recovers_write_interrupted_before_intent",
+        "outcome": "errors",
+        "reason": "failed on setup with \"worker 'gw0' crashed while running 'tests/test_runtime_long_task.py::test_long_run_recovers_write_interrupted_before_intent'\""
+      },
+      {
+        "test": "tests.test_tarch_converter_p2_geometry::test_free_end_non_zoning_with_proof_deferred",
+        "outcome": "xfailed",
+        "reason": "§2.6 free-end non_zoning proof path is deferred; current S4 blocks every dangle fail-closed"
+      },
+      {
+        "test": "tests.test_zone_agent::test_zone_agent_creates_two_zones_live",
+        "outcome": "skipped",
+        "reason": "live provider test; select with -m live"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_sm20_anchor_positive_baseline",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_sm20_anchor_reports_writable",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_geometry_digest_computed",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_confirmation_required_blocks_until_approved",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_optional_policy_never_blocks_on_approval",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_require_ep_passes_on_clean_run",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_run_with_clean_ep_validates",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      },
+      {
+        "test": "tests.test_validation_run_baseline::test_sm21_anchor_positive_baseline",
+        "outcome": "xfailed",
+        "reason": "deterministic-naming golden re-record pending sm21 batch"
+      }
+    ]
+  },
+  "native_crash_retest": {
+    "source": "windows-crash-retest-01.xml",
+    "counts": {
+      "passed": 1
+    },
+    "total": 1,
+    "seconds": 225.75,
+    "nonpassing_details": []
+  },
+  "strict_fact_tests": {
+    "source": "windows-facts-strict.xml",
+    "counts": {
+      "passed": 18
+    },
+    "total": 18,
+    "seconds": 18.99,
+    "nonpassing_details": []
+  },
+  "diagnostic_crash": {
+    "test": "tests/test_runtime_long_task.py::test_long_run_recovers_write_interrupted_before_intent",
+    "suite": "windows-full-03",
+    "python": "3.12.10",
+    "extra_pytest_option": "faulthandler_timeout=120",
+    "native_exception": "0xc0000005",
+    "faulting_module": "python312.dll",
+    "instruction_rva": "0x27e990",
+    "nearby_export": {
+      "name": "_Py_DumpTracebackThreads",
+      "rva": "0x27e514"
+    },
+    "observations": [
+      "The optional timer wrote Timeout (0:02:00), began dumping Python frames, then faulted mid-line.",
+      "Windows Application Error event 1000 confirmed the native exception.",
+      "The same unchanged test passed in windows-full-02.",
+      "Two bounded five-second diagnostic probes did not reproduce the fault.",
+      "No project assertion, budget, timeout, or protection was changed for the retest."
+    ],
+    "inference": "The extra asynchronous traceback diagnostic is the leading explanation; a matching upstream root cause has not been proved.",
+    "resolution": {
+      "unchanged_case_retest_passed": true,
+      "final_full_suite_with_default_diagnostics_passed": true,
+      "project_assertions_or_runtime_protections_removed": false
+    }
+  },
+  "test_command": "python -m pytest -n 2 tests -vv --tb=short --junitxml=<local evidence>",
+  "test_diagnostic_note": "Final run uses the documented defaults; no optional faulthandler_timeout override.",
+  "config_checks": {
+    "ready_cases": 3,
+    "configuration_files": [
+      "AI_agent/workflow/configs/windows_migration/runtime_anthropic.json",
+      "AI_agent/workflow/configs/windows_migration/qwen27b.json"
+    ],
+    "launches": 0
+  },
+  "offline_historical_replay": {
+    "steps": 75,
+    "passed": true,
+    "real_model_requests": 0
+  },
+  "codex_entry": {
+    "powershell_5_1": {
+      "exit": 0,
+      "full_agent_text_loaded": true
+    },
+    "powershell_7_6_5": {
+      "exit": 0,
+      "full_agent_text_loaded": true
+    },
+    "real_model_requests": 0
+  },
+  "symlink_permission": {
+    "developer_mode_enabled_by_user": true,
+    "nonadmin_python_probe_passed": true
+  },
+  "defender": {
+    "exclusion_added": false,
+    "attempt_error": "0x800106ba",
+    "observed_running_mode": "Not running",
+    "service_or_protection_state_changed": false
+  },
+  "prohibited_runs": {
+    "deepseek": 0,
+    "paratera": 0,
+    "whole_case_model_runs": 0
+  },
+  "docker": {
+    "deleted": false,
+    "user_confirmation": "pending",
+    "containers": [
+      "ep_agent_dev",
+      "vibrant_murdock"
+    ],
+    "images": [
+      "6d9cf088f586",
+      "b8c8d7bfc335"
+    ],
+    "volumes": [
+      "vscode"
+    ],
+    "data_vhdx_logical_bytes": 162866921472,
+    "drive_d_free_before_bytes": 69045096448,
+    "reclaimed_bytes": null
+  },
+  "container_backup_structure": [
+    {
+      "file": "codex_home.tar.gz",
+      "gzip_crc_verified": true,
+      "tar_members": 9599,
+      "uncompressed_bytes": 1666826240,
+      "jsonl_files": 447,
+      "codex_rollout_files": 445
+    },
+    {
+      "file": "claude_session_scratch_ecb43e32.tar.gz",
+      "gzip_crc_verified": true,
+      "tar_members": 53,
+      "uncompressed_bytes": 7843840,
+      "jsonl_files": 4
+    }
+  ],
+  "container_only_backups": [
+    {
+      "file": "codex_home.tar.gz",
+      "bytes": 671873593,
+      "sha256": "6186e195876738836774f4161577ab41089f791608bc49394adecb39d2bb8b8c",
+      "verified": true
+    },
+    {
+      "file": "claude_session_scratch_ecb43e32.tar.gz",
+      "bytes": 2246951,
+      "sha256": "e6dae26e4bf3a3df6c4be559c48a539921f601e9dfb6c3b9bb0e662e946a8c7a",
+      "verified": true
+    }
+  ],
+  "backup_caveat": "Original backup noted SQLite might change during packing; preserve session JSONL for recovery. Existing Windows history was not overwritten.",
+  "local_raw_evidence": [
+    {
+      "file": "windows-full-04.xml",
+      "sha256": "0355893933415c06d822b5af107203604f1dcae163399d36a46e69d236e18c33"
+    },
+    {
+      "file": "windows-full-04.log",
+      "sha256": "6e01b3863d22186e4f1bdb08d909f0bc720a66bce1e7dfe50ade28f607f9f02e"
+    },
+    {
+      "file": "windows-full-03.xml",
+      "sha256": "9aef9274e5f1feef3e701a72c02c74a13caf1be4daffa99a8802ae2dabb32574"
+    },
+    {
+      "file": "windows-crash-retest-01.xml",
+      "sha256": "dc643e3203761f4db15f5a7940461e90325cdd7d48421cfe715eca2a2af8c0fb"
+    },
+    {
+      "file": "windows-facts-strict.xml",
+      "sha256": "f18287f396e89a495d94c94ee67b459089743cdcf58419d743697e238299a0d4"
+    },
+    {
+      "file": "windows-frozen-replay-03.log",
+      "sha256": "81421605f4cf9ddb5a68037f4fe6607489d04ea0caf6a1aa14abfc93d9ef7c66"
+    },
+    {
+      "file": "native-catalog-final.json",
+      "sha256": "e99c0d998024ce33342c98de5a47958a1f9caf542bb15c4459f88bacc24a59e7"
+    },
+    {
+      "file": "glm-connectivity-result.json",
+      "sha256": "85849605fcdbb67a678d08cd3659873c8cf2896b0fe201e67ec99c7b22c99390"
+    },
+    {
+      "file": "claude-startup-result.json",
+      "sha256": "0038dbedfb5e12b207d57f557ddbabca34a9acb50135bd1ce25f14e8a1ea17cb"
+    },
+    {
+      "file": "sandbox-probe.stdout",
+      "sha256": "a202a7e5f65277f389247f1c837d892ecf077ae7d6d2227b44536ee0e2548771"
+    },
+    {
+      "file": "container-backup-inventory.json",
+      "sha256": "d843d465097d49aa77b4eee6309cac6c823389fe0c85b0c72260ed0bb8f8cd46"
+    }
+  ]
+}

@@ -30,8 +30,10 @@ Windows 从仓库根使用以下入口；工作目录设为 `AI_agent`，额外�
 
 ```powershell
 $taskRoot = (Get-Location).Path
-codex -c 'project_doc_fallback_filenames=["Agent.md"]' -C (Join-Path $taskRoot 'AI_agent') --add-dir $taskRoot
+codex -c "project_doc_fallback_filenames=['Agent.md']" -C (Join-Path $taskRoot 'AI_agent') --add-dir $taskRoot
 ```
+
+10-06 已分别在 Windows PowerShell 5.1 和 PowerShell 7.6.5 验证这条配置写法：`debug prompt-input` 返回成功，解码后的上下文包含完整 Agent.md。配置值内部使用 TOML 单引号，避免 PowerShell 5.1 剥掉内部双引号后把数组误传成字符串。两个检查均未调用模型。
 
 本机 `~/.codex/config.toml` 的个人偏好为 `model = "gpt-6-astra"`、`model_reasoning_effort = "xhigh"`。桌面客户端从仓库根打开的会话仍应在首条消息明确要求：“先完整读 AI_agent/Agent.md，按开始会话读取指定文档。”本次桌面会话按此要求实际读完；未声称其根目录自动载入已经恢复。
 
