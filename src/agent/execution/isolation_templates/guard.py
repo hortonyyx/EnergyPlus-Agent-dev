@@ -232,7 +232,7 @@ TOOL_FREE_TEXT_KEYS = {
 # not have to be exhaustive.)
 PATH_ROLE_KEYS = ("file_path", "notebook_path", "path", "glob")
 DENY_TOKENS = (
-    "/workspaces/EnergyPlus-Agent-dev",
+    "__ISOLATION_SOURCE_REPOSITORY__",
     "case_tests",
     "test_baseline",
     "gt" + ".json",
@@ -587,7 +587,7 @@ def _lexical_check(text: str, root: Path, tokens: tuple = DENY_TOKENS) -> tuple[
     if match:
         return False, _token_reason("home token", text, match)
     for token in tokens:
-        if token in text:
+        if token.casefold() in text.replace("\\", "/").casefold():
             return False, f"forbidden token: {token}"
     for part in text.replace('"', " ").replace("'", " ").split():
         # A3-removal: a token made of nothing but slashes is the division
@@ -596,7 +596,7 @@ def _lexical_check(text: str, root: Path, tokens: tuple = DENY_TOKENS) -> tuple[
         # denied ordinary arithmetic the moment executed code became legal. It
         # is deliberately the NARROWEST possible carve-out: `/etc/passwd` still
         # has a non-slash character and is still denied, on this same line.
-        if part.startswith("/") and part.strip("/") and not _under(Path(part), root):
+        if (part.startswith("/") or re.match(r"^[A-Za-z]:[\\/]", part)) and part.strip("/") and not _under(Path(part), root):
             return False, f"absolute path outside staging: {part}"
     return True, "ok"
 
@@ -636,9 +636,9 @@ def _validate_probe_params(items, root: Path) -> list[str]:
             ok, reason = _check_output_target(resolved, root)
             if not ok:
                 raise ValueError(f"{reason}: {value}")
-            normalized.append(str(resolved))
+            normalized.append(resolved.as_posix())
         elif key in PROBE_PATH_ROLE_KEYS or _looks_like_path(value):
-            normalized.append(str(_path_arg(value, root)))
+            normalized.append(_path_arg(value, root).as_posix())
     return normalized
 
 
@@ -657,7 +657,7 @@ def _validate_request_file(path: Path, root: Path) -> list[str]:
     """Form A (`--request <json>`): unchanged behaviour, now expressed on top of
     the shared :func:`_validate_probe_params`."""
     data = json.loads(path.read_text(encoding="utf-8"))
-    normalized = [str(path.resolve(strict=True))]
+    normalized = [path.resolve(strict=True).as_posix()]
     normalized.extend(_validate_probe_request_data(data, root))
     return sorted(set(normalized))
 
@@ -722,7 +722,7 @@ def parse_probe_batch(data) -> list[tuple[str, dict]]:
 def _validate_batch_file(path: Path, root: Path) -> list[str]:
     """Validate an entire batch before the hook authorizes any execution."""
     data = json.loads(path.read_text(encoding="utf-8"))
-    normalized = [str(path.resolve(strict=True))]
+    normalized = [path.resolve(strict=True).as_posix()]
     for _request_id, request in parse_probe_batch(data):
         # The security-critical reuse: exactly the single-request validator.
         normalized.extend(_validate_probe_request_data(request, root))
@@ -839,6 +839,7 @@ def _looks_like_path(value: str) -> bool:
     already unconditional over every string)."""
     return (
         "/" in value
+        or "\\" in value
         or value.startswith(".")
         or value.endswith((".json", ".png", ".jpg", ".jpeg", ".txt", ".md"))
     )
@@ -1067,7 +1068,7 @@ def _scan_reader_authored_code(root: Path) -> tuple[bool, str]:
             # and must not be logged as if it were execution.
             if path.suffix == ".py":
                 _EXECUTED_CODE.append(
-                    {"path": str(path.relative_to(root)), "sha256": _hash_text(text)}
+                    {"path": path.relative_to(root).as_posix(), "sha256": _hash_text(text)}
                 )
     return True, "ok"
 
@@ -1137,16 +1138,16 @@ def _check_python_execution(parts: list[str], root: Path) -> tuple[bool, str, li
             f"(or be tools/run_cv_probe.py): {parts[1]} ({reason})"
         ), []
     if resolved.suffix != ".py":
-        return False, "only .py scripts may be executed", [str(resolved)]
+        return False, "only .py scripts may be executed", [resolved.as_posix()]
     if not resolved.exists():
-        return False, f"script does not exist: {parts[1]}", [str(resolved)]
+        return False, f"script does not exist: {parts[1]}", [resolved.as_posix()]
     ok, reason = _scan_reader_authored_code(root)
     if not ok:
-        return False, reason, [str(resolved)]
+        return False, reason, [resolved.as_posix()]
     ok, reason = _scan_executed_code(" ".join(parts[2:]), root, "script arguments")
     if not ok:
-        return False, reason, [str(resolved)]
-    return True, "allowed reader-authored script", [str(resolved)]
+        return False, reason, [resolved.as_posix()]
+    return True, "allowed reader-authored script", [resolved.as_posix()]
 
 
 def _check_probe_wrapper(parts: list[str], root: Path) -> tuple[bool, str, list[str]]:
@@ -1314,7 +1315,7 @@ def _check_one_command(parts: list[str], root: Path, *, relaxed: bool) -> tuple[
             if arg.startswith("-"):
                 continue
             try:
-                normalized.append(str(_path_arg(arg, root)))
+                normalized.append(_path_arg(arg, root).as_posix())
             except ValueError as exc:
                 return False, str(exc), normalized
         return True, "allowed read-only command", normalized
@@ -1328,7 +1329,7 @@ def _check_one_command(parts: list[str], root: Path, *, relaxed: bool) -> tuple[
             if arg.startswith("-"):
                 continue
             try:
-                normalized.append(str(_path_arg(arg, root)))
+                normalized.append(_path_arg(arg, root).as_posix())
             except ValueError as exc:
                 return False, str(exc), normalized
         return True, "allowed under relaxed profile", normalized

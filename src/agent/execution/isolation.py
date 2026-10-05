@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import fcntl
+from src.utils import file_lock
 import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -87,10 +88,10 @@ SEMANTIC_WARNING_TOKENS = (
 )
 
 FEEDBACK_FORBIDDEN_SUBSTRINGS = (
+    Path(__file__).resolve().parents[3].as_posix().lower(),
     "gt" + ".json",
     "test_baseline",
     "case_tests",
-    "/workspaces/energyplus-agent-dev",
     "attempts/",
     "judge.json",
     "judge_rubric.md",
@@ -223,8 +224,9 @@ def build_isolation_workspace(
     case_dir = Path(case_dir).resolve()
     run_dir = Path(run_dir).resolve() if run_dir else None
     if staging_root is None:
-        Path("/tmp/ep_isolation").mkdir(parents=True, exist_ok=True)
-        staging_root = Path(tempfile.mkdtemp(prefix=f"{case_dir.name}_", dir="/tmp/ep_isolation"))
+        temporary_root = Path(tempfile.gettempdir()) / "ep_isolation"
+        temporary_root.mkdir(parents=True, exist_ok=True)
+        staging_root = Path(tempfile.mkdtemp(prefix=f"{case_dir.name}_", dir=temporary_root))
     else:
         staging_root = Path(staging_root).resolve()
         staging_root.mkdir(parents=True, exist_ok=True)
@@ -440,7 +442,7 @@ def prepare_single_plan_experiment(
 
 
 def check_feedback_text(text: str) -> None:
-    lowered = text.lower()
+    lowered = text.replace("\\", "/").lower()
     for token in FEEDBACK_FORBIDDEN_SUBSTRINGS:
         if token in lowered:
             raise ValueError(f"feedback contains forbidden token: {token}")
@@ -1075,11 +1077,11 @@ def _append_reader_invocation(staging_root: Path, record: dict) -> Path:
     path = reader_invocations_path(staging_root)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
-        fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+        file_lock.flock(fh, file_lock.LOCK_EX)
         fh.write(json.dumps(record, sort_keys=True, ensure_ascii=False) + "\n")
         fh.flush()
         os.fsync(fh.fileno())
-        fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+        file_lock.flock(fh, file_lock.LOCK_UN)
     return path
 
 
@@ -1382,15 +1384,19 @@ def clean_spawn_env(staging_root: Path, *, subscription_only: bool = False) -> d
     ``subscription_only`` is for the Claude CLI's logged-in subscription
     route.  It intentionally omits all provider API credentials and endpoint
     selectors, while preserving the CLI's OAuth token when the host supplied
-    one.  The normal path remains byte-for-byte compatible with the historical
-    API-key-capable launcher.
+    one. The reader uses the launching interpreter's environment on each OS.
     """
     keep = {"PATH", "HOME", "LANG", "LC_ALL"}
+    if os.name == "nt":
+        keep.update({"SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "USERPROFILE",
+                     "APPDATA", "LOCALAPPDATA", "TEMP", "TMP"})
     if subscription_only:
         keep.add("CLAUDE_CODE_OAUTH_TOKEN")
     else:
         keep.add("ANTHROPIC_API_KEY")
     env = {key: value for key, value in os.environ.items() if key in keep}
+    env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env.get("PATH", "")
+    env["PYTHONUTF8"] = "1"
     env["PYTHONPATH"] = str(Path(staging_root).resolve())
     return env
 
@@ -1674,6 +1680,8 @@ def _write_guard_and_wrappers(staging_root: Path, manifest: WorkspaceManifest) -
         ("run_cv_probe.py", staging_root / "tools" / "run_cv_probe.py"),
     ]:
         text = resources.files("src.agent.execution.isolation_templates").joinpath(name).read_text(encoding="utf-8")
+        if name == "guard.py":
+            text = text.replace('"__ISOLATION_SOURCE_REPOSITORY__"', repr(_repo_root().as_posix()))
         _write_generated(dest, text, "tool", manifest)
         dest.chmod(0o755)
 
@@ -1708,7 +1716,8 @@ def _write_settings(staging_root: Path, manifest: WorkspaceManifest) -> None:
                     "hooks": [
                         {
                             "type": "command",
-                            "command": f"{sys.executable} {staging_root / 'guard.py'}",
+                            "command": subprocess.list2cmdline([sys.executable, str(staging_root / 'guard.py')])
+                            if os.name == "nt" else shlex.join([sys.executable, str(staging_root / 'guard.py')]),
                         }
                     ],
                 }
@@ -1948,12 +1957,12 @@ def _new_attempt_dir_retry(stage_dir: Path, retries: int = 5) -> Path:
 def _merge_lock(run_dir: Path):
     lock_path = run_dir / ".isolation_merge.lock"
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with lock_path.open("w", encoding="utf-8") as fh:
-        fcntl.flock(fh, fcntl.LOCK_EX)
+    with lock_path.open("a+b") as fh:
+        file_lock.flock(fh, file_lock.LOCK_EX)
         try:
             yield
         finally:
-            fcntl.flock(fh, fcntl.LOCK_UN)
+            file_lock.flock(fh, file_lock.LOCK_UN)
 
 
 def _require_under(path: Path, root: Path) -> None:

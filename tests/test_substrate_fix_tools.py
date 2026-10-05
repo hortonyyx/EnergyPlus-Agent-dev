@@ -51,6 +51,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.native_shell import run_bash
+
 from src.agent.execution.isolation import build_isolation_workspace
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -595,7 +597,7 @@ def test_f53_positive_doc_batch_example_survives_a_real_shell_and_runs(staging: 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(request), encoding="utf-8")
 
-    proc = subprocess.run(command, shell=True, cwd=staging, capture_output=True, text=True, check=False)
+    proc = run_bash(command, cwd=staging, capture_output=True, text=True, check=False)
     assert proc.returncode == 0, (command, proc.stdout, proc.stderr)
     assert "cannot open name" not in proc.stderr
     out = json.loads(proc.stdout)
@@ -617,8 +619,7 @@ def test_f53_negative_other_doc_examples_still_run(staging: Path) -> None:
 
     blocks = _BASH_BLOCK_RE.findall(_read_doc_text())
     wall_line_block = next(b for b in blocks if "wall_line_profiler" in b)
-    proc = subprocess.run(
-        wall_line_block, shell=True, cwd=staging, capture_output=True, text=True, check=False,
+    proc = run_bash(wall_line_block, cwd=staging, capture_output=True, text=True, check=False,
     )
     assert proc.returncode == 0, (wall_line_block, proc.stdout, proc.stderr)
 
@@ -659,11 +660,10 @@ def test_f53_neuter_reverting_the_doc_reproduces_the_shell_misparse(staging: Pat
     )
     command, _ = _extract_batch_example(backup_text)
     assert "<name>" in command, "pre-fix fixture does not contain the expected placeholder text"
-    proc = subprocess.run(
-        command, shell=True, cwd=staging, capture_output=True, text=True, check=False,
+    proc = run_bash(command, cwd=staging, capture_output=True, text=True, check=False,
     )
     assert proc.returncode != 0, "expected the pre-fix shell misparse to resurface"
-    assert "cannot open name" in proc.stderr, proc.stderr
+    assert "name: No such file or directory" in proc.stderr, proc.stderr
 
     # And the general sweep must find exactly this one offender again.
     offenders = []

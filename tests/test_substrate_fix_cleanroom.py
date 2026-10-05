@@ -15,6 +15,7 @@ internals, no direct `import` of cv_toolbox/cv_probe (摊 II's territory).
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import stat
 import subprocess
@@ -165,7 +166,12 @@ def test_guard_py_mode_bits_lose_write_permission_after_build(staging: Path):
     assert not (mode & (stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH)), oct(mode)
     # It must still be READABLE and EXECUTABLE — the lockdown removes write,
     # nothing else. The hook still has to run guard.py itself.
-    assert mode & stat.S_IRUSR and mode & stat.S_IXUSR, oct(mode)
+    assert mode & stat.S_IRUSR, oct(mode)
+    if os.name == "nt":
+        # NTFS has no POSIX executable bit; verify the actual Python hook.
+        assert _guard_bash(staging, "python -c 'print(1)'").returncode == 0
+    else:
+        assert mode & stat.S_IXUSR, oct(mode)
 
 
 def test_guards_own_decision_for_the_repro_command_is_unchanged(staging: Path):
@@ -214,7 +220,13 @@ def test_known_limitation_plain_root_bypasses_the_chmod_lockdown(staging: Path):
     guard_path = staging / "guard.py"
     mode = stat.S_IMODE(guard_path.stat().st_mode)
     assert not (mode & stat.S_IWUSR), "the mode bit itself is correctly absent"
+    before = guard_path.read_bytes()
     proc = _raw_python(staging, 'open("guard.py","a").write("# tampered\\n")')
+    if os.name == "nt" or os.geteuid() != 0:
+        assert proc.returncode != 0, proc.stderr
+        assert "Permission" in proc.stderr
+        assert guard_path.read_bytes() == before
+        return
     assert proc.returncode == 0, (
         "if this fails, the environment changed (no longer plain root, or DAC "
         "is enforced some other way) -- re-verify and consider promoting the "

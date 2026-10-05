@@ -473,22 +473,22 @@ def test_f53b_wrapper_still_refuses_unknown_tool(staging: Path):
 
 def test_s5_interpreter_and_libraries_in_reader_env(staging: Path):
     env = clean_spawn_env(staging)
+    # Match spawn_command: Windows CreateProcess does not use the child PATH
+    # to locate an unqualified executable, so resolve it before launching.
+    reader_executable = shutil.which("python", path=env["PATH"])
+    assert reader_executable is not None
     proc = subprocess.run(
-        ["python", "-c", "import sys; print(sys.executable)"],
+        [reader_executable, "-c", "import sys; print(sys.executable)"],
         capture_output=True, text=True, cwd=staging, env=env, check=False,
     )
     assert proc.returncode == 0, proc.stderr
     reader_python = proc.stdout.strip()
-    # Locks the measured fact (2026-08-16): the reader's PATH resolves python to
-    # the working /opt/venv interpreter. Red here = environment changed —
-    # re-verify rather than blindly updating.
-    assert reader_python == "/opt/venv/bin/python", (
-        f"reader env python changed to {reader_python} — the repo .venv has a "
-        "broken numpy; re-run B_evidence/s5_env_probe.py and re-check"
-    )
+    # The isolated reader must use the same installed environment as its
+    # launcher, then prove the declared libraries really import below.
+    assert Path(reader_python).resolve() == Path(sys.executable).resolve()
     for lib in ("numpy", "PIL", "scipy"):
         check = subprocess.run(
-            ["python", "-c", f"import {lib}"],
+            [reader_executable, "-c", f"import {lib}"],
             capture_output=True, text=True, cwd=staging, env=env, check=False,
         )
         assert check.returncode == 0, (

@@ -418,7 +418,7 @@ def test_guard_ignores_transcript_path_envelope_for_legal_tool_input(tmp_path: P
         {
             "transcript_path": transcript,
             "tool_name": "Bash",
-            "tool_input": {"command": f"python {staging / 'tools/run_cv_probe.py'} --request request.json"},
+            "tool_input": {"command": f"python {(staging / 'tools/run_cv_probe.py').as_posix()} --request request.json"},
         },
     )
     assert proc.returncode == 0, proc.stderr
@@ -849,8 +849,8 @@ FEEDBACK_REFUSAL_CASES = (
     ("token", "case_tests", "inspect case_tests before revising"),
     (
         "token",
-        "/workspaces/energyplus-agent-dev",
-        "read /workspaces/EnergyPlus-Agent-dev/private-result.json",
+        Path(isolation.__file__).resolve().parents[3].as_posix().lower(),
+        f"read {Path(isolation.__file__).resolve().parents[3].as_posix()}/private-result.json",
     ),
     ("token", "attempts/", "copy the accepted attempts/003/output.json"),
     ("token", "judge.json", "use judge.json as your source"),
@@ -965,13 +965,13 @@ def test_build_stages_worked_example_byte_identical_and_in_manifest(tmp_path: Pa
     assert staged.exists(), "worked-example was not staged"
     assert staged.read_bytes() == WORKED_EXAMPLE_SOURCE.read_bytes(), "staged bytes drifted from source"
     assert staged.read_bytes() == WORKED_EXAMPLE_SOURCE.read_bytes()  # parity with stated rel path
-    assert str(staged.relative_to(staging)) == str(staged_rel)
+    assert staged.relative_to(staging).as_posix() == str(staged_rel)
 
     manifest = json.loads((staging / "MANIFEST.json").read_text(encoding="utf-8"))
-    entry = next((e for e in manifest["files"] if e["path"] == str(WORKED_EXAMPLE_STAGED)), None)
+    entry = next((e for e in manifest["files"] if e["path"] == WORKED_EXAMPLE_STAGED.as_posix()), None)
     assert entry is not None, "worked-example missing from MANIFEST"
     assert entry["category"] == "reference"
-    assert entry["source_path"] == str(WORKED_EXAMPLE_SOURCE)
+    assert entry["source_path"] == WORKED_EXAMPLE_SOURCE.as_posix()
     assert entry["sha256"] == hash_file(staged)
 
 
@@ -2958,7 +2958,7 @@ def test_access_log_hashes_every_scanned_script(tmp_path: Path):
     assert set(recorded) == {"out/main.py", "out/helper.py"}
     for rel, digest in recorded.items():
         assert digest == hashlib.sha256(
-            (staging / rel).read_text(encoding="utf-8").encode("utf-8")
+            (staging / rel).read_bytes()
         ).hexdigest()
 
 

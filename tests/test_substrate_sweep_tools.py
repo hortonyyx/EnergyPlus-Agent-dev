@@ -42,6 +42,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
+from tests.native_shell import run_bash
 from PIL import Image
 
 from src.agent.execution.isolation import build_isolation_workspace
@@ -346,8 +348,7 @@ def _run_doc_block(staging_root: Path, command: str) -> subprocess.CompletedProc
     happens to contain -- are interpreted exactly as they would be if a
     reading agent pasted the block into the Bash tool."""
 
-    return subprocess.run(
-        command, shell=True, cwd=staging_root, capture_output=True, text=True, check=False,
+    return run_bash(command, cwd=staging_root, capture_output=True, text=True, check=False,
     )
 
 
