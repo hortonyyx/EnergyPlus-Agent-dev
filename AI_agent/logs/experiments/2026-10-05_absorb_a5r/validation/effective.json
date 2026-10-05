@@ -1,0 +1,31 @@
+{
+  "authority": "conditional_on_proposed_registry",
+  "production_entry": "requires_combined_A5_registration",
+  "baseline": {
+    "pass": 830,
+    "failure": 50,
+    "error": 0,
+    "skipped": 0
+  },
+  "integration_rehearsal": {
+    "pass": 881,
+    "failure": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "remaining": [],
+  "checked_files": 82,
+  "test_cases": 881,
+  "model_requests": 0,
+  "post_validation_changes": {
+    "scripts/tool_scripts/evaluate_bim_agent.py": {
+      "before": "218bee9ad8156ba821ccbbb445b158f2faa8944b0b55dd452a76c79ec3cc96b3",
+      "after": "e30215dcc0b8c0a1144162ea0d6ccafff80033bf58e2fe5228e4e474b451bf64"
+    },
+    "tests/test_bim_evaluation_conventions.py": {
+      "before": "9da6c990b87ba3c6b4aa5a8bb166696942831a4f21b7cbbd1ffe52bea04c6ac9",
+      "after": "beaba5d1d356f16ad9a3ad48a7dbe017d0a84a9cc826ecbb1aadb1b4925cb9d1"
+    }
+  },
+  "post_validation_verification": "validation/judge-compat.xml: all checks importing the changed evaluator; other implementation files unchanged"
+}

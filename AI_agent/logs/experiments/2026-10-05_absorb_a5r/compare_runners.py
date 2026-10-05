@@ -26,6 +26,7 @@ def main():
     before = production.read_bytes()
     proposal = HERE / 'validation/registration_proposal.json'
     agent_registry.agent_version_record(ROOT, registry_path=proposal)
+    (HERE / '.tmp').mkdir(exist_ok=True)
     rows = []
     with patch.object(agent_registry, 'REGISTRY_RELATIVE_PATH', proposal), tempfile.TemporaryDirectory(
             prefix='runner-parity-', dir=HERE / '.tmp') as tmp:

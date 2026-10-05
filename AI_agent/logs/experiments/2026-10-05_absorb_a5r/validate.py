@@ -17,7 +17,7 @@ ROOT = HERE.parents[3]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("group", choices=("all", "followup"))
+    parser.add_argument("group", choices=("all",))
     args = parser.parse_args()
     previous = json.loads((HERE.parent / "2026-10-03_runtime_r2/r2bc/validation.json").read_bytes())
     files = [a for a in previous["groups"][0]["command"] if a.startswith("tests/")]
@@ -41,9 +41,6 @@ def main():
         if set(expanded) == set(files):
             break
         files = expanded
-    if args.group == "followup":
-        files = ["tests/test_runtime_frozen_long_task.py", "tests/test_harness_stage0_samples.py", "tests/test_behaviour_c2.py",
-                 "tests/test_bim_claim_transactions.py"]
     files = list(dict.fromkeys(files))
     temp = HERE / ".tmp" / ("validation-" + args.group)
     temp.mkdir(parents=True, exist_ok=True)
@@ -62,8 +59,6 @@ def main():
     start = datetime.now(timezone.utc).isoformat()
     clock = time.monotonic()
     environment = {"PYTHONPATH": str(ROOT), "PYTHONDONTWRITEBYTECODE": "1", "TMPDIR": str(temp)}
-    if args.group == "followup":
-        environment["STAGE2_FROZEN_REPLAY_OUT"] = str(HERE / ".tmp/frozen-followup/run")
     with (out / (args.group + ".log")).open("w") as log:
         result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
             env={**os.environ, **environment})

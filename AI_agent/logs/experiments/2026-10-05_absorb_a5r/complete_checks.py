@@ -34,6 +34,7 @@ def status(case):
 
 
 def rerun():
+    (HERE / '.tmp').mkdir(exist_ok=True)
     failed = [c for c in cases(HERE/'validation/all.xml') if status(c) in {'failure','error'}]
     record = []
     nodes = []
@@ -74,7 +75,7 @@ def rerun():
 def summarize():
     original={case_id(c):status(c) for c in cases(HERE/'validation/all.xml')}
     final=dict(original)
-    for name in ('proposed-failed','proposed-frozen'):
+    for name in ('proposed-failed','proposed-frozen','judge-compat'):
         for case in cases(HERE/f'validation/{name}.xml'):
             final[case_id(case)]=status(case)
     counts=lambda data:{value:sum(s==value for s in data.values()) for value in ('pass','failure','error','skipped')}
@@ -82,6 +83,9 @@ def summarize():
         baseline=counts(original),integration_rehearsal=counts(final),
         remaining=[node for node,value in final.items() if value not in {'pass','skipped'}],
         checked_files=len({n.split('::')[0] for n in final}),test_cases=len(final),model_requests=0)
+    before = json.loads((HERE/'validation/all.json').read_bytes())['source_sha256']
+    result['post_validation_changes'] = {name: {'before': value, 'after': hashlib.sha256((ROOT/name).read_bytes()).hexdigest()} for name, value in before.items() if (ROOT/name).is_file() and hashlib.sha256((ROOT/name).read_bytes()).hexdigest() != value}
+    result['post_validation_verification'] = 'validation/judge-compat.xml: all checks importing the changed evaluator; other implementation files unchanged'
     (HERE/'validation/effective.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result))
 
