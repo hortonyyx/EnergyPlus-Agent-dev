@@ -35,6 +35,9 @@ def _geometry(source):
     result["opening_hosts"] = source.get("opening_hosts", {})
     result["coordinate_system"] = {k: source.get("coordinate_system", {}).get(k)
                                    for k in ("units", "up_axis", "north_axis")}
+    north = result["coordinate_system"]["north_axis"]
+    if isinstance(north, dict):
+        result["coordinate_system"]["north_axis"] = north.get("value_deg")
     return result
 
 

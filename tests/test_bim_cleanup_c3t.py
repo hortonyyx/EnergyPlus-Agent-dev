@@ -132,6 +132,12 @@ def test_physical_signature_tracks_connectivity_and_excludes_room_use():
     changed = copy.deepcopy(model)
     changed['opening_hosts'] = {'door': ['wall']}
     assert _geometry(changed) != _geometry(model)
+    model['coordinate_system']['north_axis'] = dict(value_deg=20, provenance='assumed', source_ids=[])
+    changed = copy.deepcopy(model)
+    changed['coordinate_system']['north_axis'].update(provenance='observed', source_ids=['plan.png'])
+    assert _geometry(changed) == _geometry(model)
+    changed['coordinate_system']['north_axis']['value_deg'] = 30
+    assert _geometry(changed) != _geometry(model)
 
 
 def test_legacy_failed_attempt_reads_domain_status_from_saved_report(tmp_path):
