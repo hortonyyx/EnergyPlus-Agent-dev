@@ -2241,8 +2241,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 "remaining_seconds": toolkit.remaining_seconds()}
 
     @server.tool()
-    def view_image(name: ImageFilename, box: list[int] | None = None, coordinate_grid: bool = True,
-                   display_scale: float = 1.0):
+    def view_image(name: ImageFilename = "", box: list[int] | None = None, coordinate_grid: bool = True,
+                   display_scale: float = 1.0, claim_id: str = "", source_index: int = 0):
         """View all or crop [left,top,right,bottom] in ORIGINAL pixels.
         Returned images are at most 1600 px on their long side; grid labels keep original
         coordinates. display_scale enlarges up to that limit, so a box whose longest side
@@ -2250,21 +2250,25 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         Use coordinate_grid=false for unmarked evidence; stored originals are unchanged.
         Returned view_id can be used directly in claim sources or replace_claim_sources;
         do not copy crop coordinates again when citing exactly this view.
+        Or supply claim_id/source_index to reopen that hash-checked saved evidence;
+        omit name/box in this mode. display_scale still applies.
         """
+        if claim_id:
+            if name or box is not None:
+                raise ValueError("claim_id selects the saved image/box; omit name and box")
+            return toolkit.view_claim_evidence(claim_id, source_index, display_scale)
         return toolkit.view(name, box, coordinate_grid, display_scale)
 
     @server.tool()
     def pixel_profile(name: ImageFilename, box: list[int], axis: Literal["x", "y"],
                       rgb: list[int], tolerance: float = 70) -> dict:
-        """Measure colored ink runs along the selected axis.
-        You select RGB/tolerance; results have no wall/door semantic labels.
-        """
+        """Historical replay only; use view_pixel_profile, optionally include_image=false."""
         return toolkit.profile(name, box, axis, rgb, tolerance)
 
     @server.tool()
     def view_pixel_profile(name: ImageFilename, box: list[int], axis: Literal["x", "y"],
                            rgb: list[int], tolerance: float = 70,
-                           min_fraction: float = 0.1):
+                           min_fraction: float = 0.1, include_image: bool = True):
         """Show a color profile in ORIGINAL pixels.
         axis=x searches x coordinates and reports unbridged y support at each
         peak; axis=y does the converse. min_fraction is the required matching
@@ -2273,8 +2277,10 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         crop_context flags cut ink and suggests a wider original-image view.
         Use profile_id and candidate IDs in compare_facade_spans coordinate slots
         to adopt measured coordinates without copying numbers.
+        include_image=false returns the same saved measurement without its picture.
         """
-        return toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
+        picture, metadata = toolkit.view_profile(name, box, axis, rgb, tolerance, min_fraction)
+        return [picture, metadata] if include_image else json.loads(metadata)
 
     @server.tool()
     def view_pixel_region_overview(name: ImageFilename, background_rgb: list[int], tolerance: float = 60,
@@ -2308,25 +2314,17 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
     @server.tool()
     def preview_space_trace(name: ImageFilename, polygon_pixels: list[list[float]], openings: list[dict],
                             x_anchors: list[list[float]], y_anchors: list[list[float]], basis: str):
-        """Draw your COMPLETE ordered room contour on its original image before building.
-        Include interior and exterior boundaries; close logically across apertures.
-        openings = [{id,p1:[x,y],p2:[x,y]}] uses the two wall jambs, not hinge-to-leaf-tip.
-        All positions are ORIGINAL pixels; each axis has two [pixel,world_metres] anchors.
-        Use a declared representative wall plane; do not trace both faces as two walls.
-        Returns clean/marked images, geometry errors and mapped points, no source mutation.
-        """
+        """Historical replay: preview an original-pixel contour without changing BIM."""
         return toolkit.preview_trace(name, polygon_pixels, openings, x_anchors, y_anchors, basis)
 
     @server.tool()
     def view_space_trace(trace_id: str):
-        """View the actual saved clean/marked image and coordinates for a local trace."""
+        """Historical replay: reopen a saved local trace."""
         return toolkit.view_trace(trace_id)
 
     @server.tool()
     def select_space_trace(trace_id: str) -> dict:
-        """Select a previewed local trace after visually checking its actual overlay.
-        This selects an observation; it is not a BIM or a drawing-fidelity pass.
-        """
+        """Historical replay: record trace selection, without changing BIM."""
         return toolkit.select_trace(trace_id)
 
     @server.tool()
@@ -2520,11 +2518,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         @server.tool()
         def view_claim_evidence(claim_id: str, source_index: int = 0,
                                 display_scale: float = 1.0) -> CallToolResult:
-            """View one actual saved claim region, using its original image hash.
-            source_index is zero-based; display_scale 1..8 enlarges tiny annotations.
-            Fractional boxes are enclosed in whole pixels and both boxes are reported.
-            This shows evidence; it neither adopts nor independently verifies the claim.
-            """
+            """Historical replay only; use view_image(claim_id=..., source_index=...)."""
             return toolkit.view_claim_evidence(claim_id, source_index, display_scale)
 
         @server.tool()
@@ -2551,7 +2545,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         @server.tool()
         def check_wall_dimensions(candidate: str, references_json: str = "", dimensions_json: str = "",
                                   include_inventory: bool = False, floor_id: str | None = None,
-                                  offset: int = 0, limit: int = 30) -> dict:
+                                  offset: int = 0, limit: int = 30, positions_json: str = "") -> dict:
             """List real wall hosts or convert explicit wall-face dimensions without changing geometry.
             See get_bim_reference("wall_dimensions") for the input format. Empty strings
             reuse saved evidence. Persist new evidence separately via revise_bim.
@@ -2559,6 +2553,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             Its wall list is paged (limit 1..50); floor_id narrows the inventory only,
             without changing explicit reference/dimension conversion. Read next_offset
             until null when you need the full selected inventory.
+            positions_json checks explicit annotated chain endpoints on named walls;
+            wall_placement reports deviations only, including partial shared walls.
             """
             from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
             path = toolkit.candidate_path(candidate)
@@ -2576,6 +2572,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             walls = resolve_wall_references(source, references)
             result = {"candidate": candidate, "source_model_sha256": source["source_model_sha256"],
                       "dimension_report": convert_wall_dimensions(walls, dimensions), "walls": walls}
+            from scripts.tool_scripts.bim_agent_precision import annotated_wall_placement
+            result['wall_placement'] = annotated_wall_placement(toolkit, source, references, dimensions,
+                positions=json.loads(positions_json) if positions_json else None)
             if include_inventory or not references:
                 if not 1 <= limit <= 50 or offset < 0:
                     raise ValueError('inventory requires offset >= 0 and limit 1..50')
@@ -2595,7 +2594,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
         @server.tool()
         def inspect_candidate(candidate: str = "seed", include_geometry: bool = True,
-                              floor_id: str | None = None) -> dict:
+                              floor_id: str | None = None, include_plan: bool = False):
             """Read a saved candidate's proposal and production geometry checks.
             include_geometry=False returns notes/frame and a floor summary without
             the expanded rooms/apertures; useful for registration of large candidates.
@@ -2603,6 +2602,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             keeps only the summary; read_candidate_items pages cells/windows/openings.
             A selected page is NOT a whole replacement proposal.
             No independent evaluation or reference answer is exposed.
+            include_plan=true also renders the selected floor (floor_id required
+            for several floors); this is a source projection, not original evidence.
             """
             path = toolkit.candidate_path(candidate)
             proposal = json.loads((path/"proposal.json").read_text())
@@ -2636,7 +2637,18 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                       "source_validation": report.get("source_validation"),
                       "counts": report.get("counts"),
                       "remaining_seconds": toolkit.remaining_seconds()}
+            if source_path.exists():
+                from scripts.tool_scripts.bim_agent_precision import annotated_wall_placement
+                result['wall_placement'] = annotated_wall_placement(toolkit, json.loads(source_path.read_text()),
+                    proposal.get('wall_references', []), proposal.get('wall_dimensions', []))
             toolkit.log("inspect_candidate", {"candidate": candidate, 'include_geometry': include_geometry})
+            if include_plan:
+                if floor_id is None and len(floors) != 1:
+                    raise ValueError("include_plan requires floor_id for a multi-floor candidate")
+                picture, metadata = toolkit.plan_view(candidate, floor_id or floors[0]['id'])
+                result['source_plan_view'] = metadata
+                return CallToolResult(content=[picture.to_image_content(),
+                    TextContent(type="text", text=json.dumps(result, ensure_ascii=False))], structuredContent=result)
             return result
 
         @server.tool()
@@ -2927,10 +2939,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
         @server.tool()
         def view_candidate(candidate: str, floor_id: str) -> Image:
-            """Render a saved candidate's source-space plan, with windows blue/doors red.
-            Use exact candidate from build_bim; floor_id is the proposed floor name.
-            This is an inspection projection, not evidence from the original drawing.
-            """
+            """Historical replay only; use inspect_candidate(floor_id=..., include_plan=true)."""
             image, metadata = toolkit.plan_view(candidate, floor_id)
             toolkit.log("view_candidate", metadata)
             return image
@@ -2938,8 +2947,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
     if enabled_only:
         # The unfiltered service remains available for immutable version checks.
         capabilities = tool_capabilities(toolkit.manifest)
-        for name in ("review_detail", "record_work_review", "record_claim", "decide_claim", "confirm_claims"):
-            if not readonly and not filter_tool_catalog([{"name": name}], **capabilities):
+        for name in tuple(server._tool_manager._tools):
+            if not filter_tool_catalog([{"name": name}], **capabilities):
                 server.remove_tool(name)
     server.run()
 

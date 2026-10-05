@@ -94,6 +94,10 @@ def summarize_reply(result):
         for row in precision.get('tolerances', {}).values():
             row.pop('basis', None)
             row.pop('rule', None)
+    if isinstance(precision, dict) and isinstance(precision.get('wall_placement'), dict):
+        placement = precision['wall_placement']
+        placement['items'] = placement['items'][:4]
+        placement['truncated'] = placement['total'] > 4
     for key in ('opening_inventory', 'inventory'):
         if isinstance(reply.get(key), dict):
             reply[key] = inventory_summary(reply[key])

@@ -2,7 +2,7 @@ import json
 
 from scripts.tool_scripts import bim_agent_continuation
 from scripts.tool_scripts.bim_agent_guidance import (
-    CORE, DELIVERY, DRAWING_METHOD, FINISHING, IMAGE_KINDS, MESH_GUIDE, MESH_VIEWS, PHOTOS, REFERENCES, TOOLS,
+    CORE, DELIVERY, DRAWING_METHOD, FINISHING, IMAGE_KINDS, MESH_GUIDE, MESH_METHOD, MESH_VIEWS, PHOTOS, REFERENCES, TOOLS,
     build_guide)
 from scripts.tool_scripts.run_bim_agent import run_guide
 
@@ -21,11 +21,13 @@ def test_system_prompt_carries_only_the_methods_for_the_declared_inputs():
 
 
 def test_mesh_inputs_keep_the_partial_inference_method_and_filter_capabilities():
-    # C2 changes capability exposure only; full-enabled mesh wording stays intact.
+    # A5-T assembles the same common rules, with a separate mesh method.
     assert "get_bim_reference('partial_inference')" in MESH_GUIDE and DRAWING_METHOD not in MESH_GUIDE
     assert all(build_guide(images=kind, mesh=mesh, review_detail=True, continuation=True) == MESH_GUIDE
                for kind, mesh in (("mesh_views", False), ("unknown", True), (None, True), ("drawings", True)))
     disabled = build_guide(mesh=True)
+    assert disabled.startswith(CORE) and MESH_METHOD in disabled
+    assert disabled.endswith(TOOLS + "\n" + DELIVERY)
     assert "review_detail" not in disabled and "does not reset it" not in disabled
     assert "get_bim_reference('partial_inference')" in disabled
 

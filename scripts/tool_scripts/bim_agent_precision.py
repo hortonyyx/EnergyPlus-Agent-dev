@@ -8,6 +8,25 @@ from PIL import Image, ImageDraw
 
 from src.agent.geometry.building_precision import precision_report
 from src.agent.geometry.plan_drawing_differences import _axis, _ink, _strokes, _wall_like
+from src.agent.geometry.wall_placement import annotation_tolerances, wall_placement_report
+
+
+def annotated_wall_placement(toolkit, source, references, dimensions, *, positions=None):
+    calibrations, errors = [], []
+    for _, calibration in toolkit.registered_calibrations():
+        try:
+            toolkit.image_path(calibration['image'])
+            if calibration['image_sha256'] != toolkit.manifest['images'][calibration['image']]['sha256']:
+                raise ValueError('calibration original image changed')
+            annotation_tolerances([calibration])
+            calibrations.append(calibration)
+        except (KeyError, ValueError, TypeError, ZeroDivisionError, OSError) as error:
+            errors.append(dict(floor_id=calibration.get('floor_id'), reason=str(error)))
+    result = wall_placement_report(source, references, dimensions, positions=positions,
+        floor_tolerances=annotation_tolerances(calibrations))
+    if errors:
+        result['calibration_errors'] = errors
+    return result
 
 
 @lru_cache(maxsize=24)
@@ -61,6 +80,8 @@ def building_precision(toolkit, candidate, source=None):
             errors.append(dict(floor_id=fid, reason=str(error)))
     report = precision_report(source, floor_evidence=list(evidence.values()),
                               wall_references=proposal.get('wall_references', []))
+    report['wall_placement'] = annotated_wall_placement(toolkit, source,
+        proposal.get('wall_references', []), proposal.get('wall_dimensions', []))
     if errors:
         report['evidence_errors'] = errors
     return report

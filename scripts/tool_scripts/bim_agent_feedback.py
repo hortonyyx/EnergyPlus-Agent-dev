@@ -17,7 +17,7 @@ from mcp.types import CallToolResult, TextContent
 from pydantic import Field
 
 
-ImageFilename = Annotated[str, Field(description="Input image filename from inputs() (这里填输入图片的文件名), not a measurement label. Unique case/extension aliases are accepted.")]
+ImageFilename = Annotated[str, Field(description="Filename from inputs(), never a measurement label; unique case/extension aliases accepted.")]
 
 
 def resolve_image_name(images, name):
