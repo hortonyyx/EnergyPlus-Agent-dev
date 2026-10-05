@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-import fcntl
+from src.utils import file_lock
 import hashlib
 import importlib.util
 import json
@@ -164,7 +164,9 @@ def test_multiple_roots_restore_exactly_and_deduplicate_references_and_inline_im
             restored_root = output / name
             assert _files(restored_root) == files
             assert _directories(restored_root) == original_directories[name]
-        assert (output / "alpha/ordinary.txt").stat().st_mode & 0o777 == 0o640
+        assert (output / "alpha/ordinary.txt").stat().st_mode & 0o777 == (
+            (first / "ordinary.txt").stat().st_mode & 0o777
+        )  # Preserve the source mode actually supported by the host filesystem.
 
 
 def test_generic_repository_reference_is_verified_again_when_archive_is_read():
@@ -235,14 +237,14 @@ def test_archive_tampering_and_unsafe_source_content_fail_loudly():
         active.mkdir()
         lock_path = active / "writer.lock"
         with lock_path.open("a+b") as lock:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            file_lock.flock(lock, file_lock.LOCK_EX | file_lock.LOCK_NB)
             with pytest.raises(ValueError, match="still active"):
                 evidence_pack.pack(
                     {"run": active},
                     work / "active.tar.xz",
                     include_default_references=False,
                 )
-            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+            file_lock.flock(lock, file_lock.LOCK_UN)
 
 
 def test_cli_pack_verify_and_restore_uses_named_sources(capsys):

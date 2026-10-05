@@ -6,7 +6,7 @@ The quota file contains no credentials, prompts, images or responses.
 
 from __future__ import annotations
 
-import fcntl
+from src.utils import file_lock
 import json
 import os
 from datetime import UTC, datetime
@@ -22,7 +22,7 @@ class QuotaAdapter:
 
     def _append(self, row):
         with self.path.open("a+b") as output:
-            fcntl.flock(output.fileno(), fcntl.LOCK_EX)
+            file_lock.flock(output, file_lock.LOCK_EX)
             output.seek(0)
             data = output.read()
             if data and not data.endswith(b"\n"):

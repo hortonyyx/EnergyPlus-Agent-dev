@@ -8,7 +8,7 @@ import argparse
 import asyncio
 import copy
 from datetime import datetime, timezone
-import fcntl
+from src.utils import file_lock
 import gzip
 import hashlib
 import json
@@ -193,7 +193,7 @@ if __name__=='__main__':
     parser.add_argument('--credentials-file',type=Path)
     args=parser.parse_args(); OUT.mkdir(exist_ok=True)
     with (OUT/'batch.lock').open('a+b') as lock:
-        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        file_lock.flock(lock,file_lock.LOCK_EX|file_lock.LOCK_NB)
         if args.action=='prepare':
             path=OUT/'design.json'
             with path.open('xb') as f:f.write(json_bytes(design()))

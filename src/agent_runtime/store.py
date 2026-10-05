@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import fcntl
+from src.utils import file_lock
 import hashlib
 import json
 import os
@@ -41,7 +41,7 @@ class EventStore:
         self.path = self.directory / "events.jsonl"
         self._lock = (self.directory / "writer.lock").open("a+b")
         try:
-            fcntl.flock(self._lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            file_lock.flock(self._lock, file_lock.LOCK_EX | file_lock.LOCK_NB)
             metadata = {"run_id": run_id, "task_id": task_id,
                         "budget_limit": budget_limit.model_dump(mode="json")}
             path = self.directory / "journal.json"
@@ -188,7 +188,7 @@ class EventStore:
         if self is not self._root:
             return
         if not self._lock.closed:
-            fcntl.flock(self._lock.fileno(), fcntl.LOCK_UN)
+            file_lock.flock(self._lock, file_lock.LOCK_UN)
             self._lock.close()
 
     def __enter__(self):
@@ -366,6 +366,11 @@ class EventStore:
 
     @staticmethod
     def _sync_directory(path):
+        # Windows has no POSIX directory fsync. Every file is still flushed
+        # with fsync before atomic replacement. Directory-entry durability on
+        # power loss is therefore filesystem-managed on Windows.
+        if os.name == "nt":
+            return
         fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
         try:
             os.fsync(fd)

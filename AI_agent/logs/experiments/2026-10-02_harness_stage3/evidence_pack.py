@@ -12,7 +12,7 @@ import argparse
 import base64
 from collections import Counter
 from collections.abc import Iterable, Iterator, Mapping
-import fcntl
+from src.utils import file_lock
 import hashlib
 import io
 import json
@@ -330,12 +330,12 @@ def _source_inventory(source: Path) -> tuple[list[Path], list[Path]]:
             if name == "writer.lock":
                 with child.open("a+b") as lock:
                     try:
-                        fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        file_lock.flock(lock, file_lock.LOCK_EX | file_lock.LOCK_NB)
                     except BlockingIOError as error:
                         raise ValueError(f"evidence source is still active: {source}") from error
                     finally:
                         try:
-                            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+                            file_lock.flock(lock, file_lock.LOCK_UN)
                         except OSError:
                             pass
             files.append(child)
