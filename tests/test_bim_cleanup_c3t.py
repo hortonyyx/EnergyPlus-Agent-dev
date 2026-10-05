@@ -134,6 +134,33 @@ def test_physical_signature_tracks_connectivity_and_excludes_room_use():
     assert _geometry(changed) != _geometry(model)
 
 
+def test_legacy_failed_attempt_reads_domain_status_from_saved_report(tmp_path):
+    candidate = tmp_path / 'candidate_01'
+    candidate.mkdir()
+    (candidate / 'report.json').write_text('{"source_geometry_ready": false}')
+    record = dict(run='fixture', _source_root=str(tmp_path), source_format='test', gaps=[],
+        invocations=[dict(steps=[dict(index=1, tool='build_bim', arguments={},
+            result_data={'candidate':'candidate_01'}, is_error=False, t_call=1)])])
+    result = summarise(record)
+    assert (result['call_errors'], result['domain_failures'], result['usable_source_drafts']) == (0, 1, 0)
+
+
+def test_legacy_transaction_checks_saved_geometry_instead_of_trusting_applied_label(tmp_path):
+    run, toolkit = setup_run(tmp_path)
+    result = toolkit.revise('seed', json.dumps([dict(op='set_notes', assumptions=['inferred'], unresolved=[])]))
+    legacy = dict(candidate='seed', entries=[dict(status='applied', result_candidate=result['candidate'])],
+                  audit_file='claims/transaction_0001.json')
+    saved = read_saved_result(legacy, tool='claim_transaction', run=run)
+    assert saved['saved_candidate'] == result['candidate']
+    assert not saved['save_effects']['geometry_applied']
+    assert saved['save_effects']['created_candidates'] == [result['candidate']]
+    path = run / result['candidate'] / 'source_model.json'
+    model = json.loads(path.read_text())
+    model['openings'][0]['vertices'][0][2] += .1
+    path.write_text(json.dumps(model))
+    assert read_saved_result(legacy, tool='claim_transaction', run=run)['save_effects']['geometry_applied']
+
+
 def test_precision_changes_compare_real_reports_and_preserve_resolved_findings(tmp_path):
     from scripts.tool_scripts.bim_agent_precision import building_precision
     from scripts.tool_scripts.bim_agent_replies import precision_summary

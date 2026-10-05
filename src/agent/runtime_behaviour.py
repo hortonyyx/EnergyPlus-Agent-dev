@@ -668,7 +668,7 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
     for step in steps:
         data = step.get("result_data") or {}
         saved_bim = read_saved_result(data, tool=step["tool"], run=run)
-        ready = data.get("source_geometry_ready")
+        ready = saved_bim.get("source_geometry_ready", data.get("source_geometry_ready"))
         call_error = bool(step.get("is_error"))
         domain_failure = not call_error and (data.get("status") in {"error", "failed"}
                          or step["tool"] == "claim_transaction" and data.get("status") == "partial"

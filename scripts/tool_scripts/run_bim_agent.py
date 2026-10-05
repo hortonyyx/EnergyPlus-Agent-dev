@@ -2461,6 +2461,54 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                                   "y_anchors":y_anchors,"result":result})
         return result
 
+    @server.tool()
+    def read_candidate_items(candidate: str, collection: Literal["cells", "windows", "openings", "unsupported", "report"], floor_id: str | None = None,
+                             offset: int = 0, limit: int | None = None, report_file: str = "") -> dict:
+        """Read exact saved proposal cells, windows, openings or unsupported records.
+        collection=report reads a returned details_file via report_file, with
+        candidate="" and offset/limit in characters (limit up to 12000).
+        Each cell includes floor_id. Read next_offset for more; page_is_partial
+        means this is not a complete build_bim input. Prefer revise_bim to keep
+        unexamined objects. This reads the proposal, not mesh/GT observations.
+        """
+        if limit is None:
+            limit = 8000 if collection == 'report' else 20
+        if collection == 'report':
+            from scripts.tool_scripts.bim_agent_replies import read_report
+            return read_report(toolkit.run, report_file, offset, limit)
+        if collection not in {'cells','windows','openings','unsupported'}:
+            raise ValueError('collection must be cells, windows, openings or unsupported')
+        if not 1 <= limit <= 50 or offset < 0:
+            raise ValueError('requires offset >= 0 and limit 1..50')
+        proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
+        geometry = json.loads(proposal_path.read_text())['geometry']
+        if floor_id is not None and floor_id not in {f['name'] for f in geometry['floors']}:
+            raise ValueError('unknown floor_id')
+        floors = [f for f in geometry['floors'] if floor_id is None or f['name'] == floor_id]
+        cells = [{**c,'floor_id':f['name']} for f in floors for c in f['cells']]
+        ids = {c['id'] for c in cells}
+        items = (cells if collection == 'cells' else
+            [r for r in geometry.get('unsupported', []) if floor_id is None or r.get('floor_id') == floor_id]
+            if collection == 'unsupported' else
+            [w for w in geometry.get('windows',[]) if floor_id is None or w['floor'] == floor_id]
+            if collection == 'windows' else
+            [o for o in geometry.get('openings',[]) if floor_id is None or o['space_id'] in ids
+             or o.get('other_space_id') in ids])
+        page = []
+        for item in items[offset:offset+limit]:
+            if len(json.dumps(page+[item])) > 18000:
+                if not page:
+                    raise ValueError('single object exceeds reply size; exact proposal remains on disk')
+                break
+            page.append(item)
+        result = {'candidate':candidate,'proposal_sha256':digest(proposal_path),
+            'collection':collection,'floor_id':floor_id,'total':len(items),'offset':offset,
+            'items':page,'returned':len(page),
+            'next_offset':offset+len(page) if offset+len(page)<len(items) else None,
+            'page_is_partial':True}
+        toolkit.log('read_candidate_items', {k:v for k,v in result.items() if k!='items'})
+        return result
+
     if not readonly:
         @server.tool()
         def inspect_plan_draft(draft_id: str) -> dict:
@@ -2677,54 +2725,6 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 result['source_plan_view'] = metadata
                 return CallToolResult(content=[picture.to_image_content(),
                     TextContent(type="text", text=json.dumps(result, ensure_ascii=False))], structuredContent=result)
-            return result
-
-        @server.tool()
-        def read_candidate_items(candidate: str, collection: Literal["cells", "windows", "openings", "unsupported", "report"], floor_id: str | None = None,
-                                 offset: int = 0, limit: int | None = None, report_file: str = "") -> dict:
-            """Read exact saved proposal cells, windows, openings or unsupported records.
-            collection=report reads a returned details_file via report_file, with
-            candidate="" and offset/limit in characters (limit up to 12000).
-            Each cell includes floor_id. Read next_offset for more; page_is_partial
-            means this is not a complete build_bim input. Prefer revise_bim to keep
-            unexamined objects. This reads the proposal, not mesh/GT observations.
-            """
-            if limit is None:
-                limit = 8000 if collection == 'report' else 20
-            if collection == 'report':
-                from scripts.tool_scripts.bim_agent_replies import read_report
-                return read_report(toolkit.run, report_file, offset, limit)
-            if collection not in {'cells','windows','openings','unsupported'}:
-                raise ValueError('collection must be cells, windows, openings or unsupported')
-            if not 1 <= limit <= 50 or offset < 0:
-                raise ValueError('requires offset >= 0 and limit 1..50')
-            proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
-            geometry = json.loads(proposal_path.read_text())['geometry']
-            if floor_id is not None and floor_id not in {f['name'] for f in geometry['floors']}:
-                raise ValueError('unknown floor_id')
-            floors = [f for f in geometry['floors'] if floor_id is None or f['name'] == floor_id]
-            cells = [{**c,'floor_id':f['name']} for f in floors for c in f['cells']]
-            ids = {c['id'] for c in cells}
-            items = (cells if collection == 'cells' else
-                [r for r in geometry.get('unsupported', []) if floor_id is None or r.get('floor_id') == floor_id]
-                if collection == 'unsupported' else
-                [w for w in geometry.get('windows',[]) if floor_id is None or w['floor'] == floor_id]
-                if collection == 'windows' else
-                [o for o in geometry.get('openings',[]) if floor_id is None or o['space_id'] in ids
-                 or o.get('other_space_id') in ids])
-            page = []
-            for item in items[offset:offset+limit]:
-                if len(json.dumps(page+[item])) > 18000:
-                    if not page:
-                        raise ValueError('single object exceeds reply size; exact proposal remains on disk')
-                    break
-                page.append(item)
-            result = {'candidate':candidate,'proposal_sha256':digest(proposal_path),
-                'collection':collection,'floor_id':floor_id,'total':len(items),'offset':offset,
-                'items':page,'returned':len(page),
-                'next_offset':offset+len(page) if offset+len(page)<len(items) else None,
-                'page_is_partial':True}
-            toolkit.log('read_candidate_items', {k:v for k,v in result.items() if k!='items'})
             return result
 
         @server.tool()

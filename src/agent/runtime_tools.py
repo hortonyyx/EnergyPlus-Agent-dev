@@ -45,14 +45,14 @@ LOCAL_OBSERVER_TOOL_NAMES = (
     "get_bim_reference", "inputs", "view_image", "pixel_profile",
     "view_pixel_profile", "view_pixel_region_overview", "view_pixel_region",
     "preview_space_trace", "view_space_trace", "select_space_trace",
-    "map_dimension_chain", "compare_facade_spans", "map_pixels",
+    "map_dimension_chain", "compare_facade_spans", "map_pixels", "read_candidate_items",
 )
 COORDINATOR_ONLY_TOOL_NAMES = (
     "record_inference", "inspect_inference", "audit_inference_candidate",
     "inspect_plan_draft", "revise_plan_bim", "view_plan_wall_support",
     "claim_transaction", "record_claim", "replace_claim_sources", "view_claim_evidence", "decide_claim",
     "claim_status", "confirm_claims", "check_wall_dimensions", "inspect_candidate",
-    "read_candidate_items", "check_source_space_relation", "check_openings",
+    "check_source_space_relation", "check_openings",
     "record_work_review", "finish_bim", "overlay_candidate", "revise_bim",
     "review_detail", "build_plan_bim", "assemble_plan_bim", "build_parametric_bim",
     "inspect_parametric_plan", "build_bim", "view_elevation_candidate", "view_candidate",
@@ -72,7 +72,7 @@ MESH_COORDINATOR_TOOL_NAMES = (
 COORDINATOR_INSPECTION_TOOL_NAMES = (
     "inspect_inference", "inspect_plan_draft", "view_plan_wall_support",
     "view_claim_evidence", "claim_status", "check_wall_dimensions",
-    "inspect_candidate", "read_candidate_items", "inspect_parametric_plan",
+    "inspect_candidate", "inspect_parametric_plan",
     "view_candidate",
 )
 NON_IDEMPOTENT_WRITE_TOOL_NAMES = tuple(

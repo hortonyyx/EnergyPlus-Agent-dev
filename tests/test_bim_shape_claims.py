@@ -83,6 +83,15 @@ def test_height_coverage_is_exposed_in_mcp_and_delivery(tmp_path):
             report = _json_result(await session.call_tool('check_openings', {
                 'candidate': 'seed', 'heights_only': True}))
             coverage = report['height_coverage']
+            assert coverage['openings'] == []
+            assert coverage['unbound_without_other_issues'] == 1
+            # No evidence or distinct problem: C3-T returns the count, while
+            # the unchanged per-opening diagnosis remains readable through MCP.
+            page = _json_result(await session.call_tool('read_candidate_items', {
+                'candidate': '', 'collection': 'report', 'report_file': report['details_file'],
+                'offset': 0, 'limit': 12000}))
+            assert page['next_offset'] is None
+            coverage = json.loads(page['text'])['height_coverage']
             assert {row['opening_id'] for row in coverage['openings']} == {'window'}
             assert all(row['status'] == 'missing' for row in coverage['openings'])
         delivery = toolkit.delivery('seed', selection_origin='test')

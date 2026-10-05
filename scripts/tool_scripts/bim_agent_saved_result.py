@@ -87,10 +87,23 @@ def read_saved_result(data, *, tool=None, run=None):
     if tool not in SAVE_TOOLS:
         return empty
     if tool == "claim_transaction":
-        committed = [row["result_candidate"] for row in data.get("entries", [])
-                     if row.get("status") == "applied" and row.get("result_candidate")]
+        entries = [row for row in data.get("entries", [])
+                   if row.get("status") == "applied" and row.get("result_candidate")]
+        committed = [row["result_candidate"] for row in entries]
+        applied, parent = False, data.get("candidate")
+        for row in entries:
+            effects = row.get("save_effects")
+            if effects is not None:
+                applied |= effects.get("geometry_applied", False)
+            elif run is not None and parent:
+                root = Path(run).resolve()
+                paths = [(root / str(c) / "source_model.json").resolve()
+                         for c in (parent, row["result_candidate"])]
+                if all(p.is_relative_to(root) and p.is_file() for p in paths):
+                    applied |= _geometry(json.loads(paths[0].read_bytes())) != _geometry(json.loads(paths[1].read_bytes()))
+            parent = row["result_candidate"]
         return saved_result({}, candidate=committed[-1] if committed else None,
-            created=committed, geometry_applied=bool(committed), audit_written=bool(data.get("audit_file")))
+            created=committed, geometry_applied=applied, audit_written=bool(data.get("audit_file")))
     candidate = data.get("candidate")
     if not isinstance(candidate, str) or data.get("error") or data.get("status") in {"failed", "error"}:
         return empty
@@ -105,6 +118,9 @@ def read_saved_result(data, *, tool=None, run=None):
             if ready is None and (folder / "source_model.json").is_file():
                 ready = True
     if ready is not True:
+        # Old returns sometimes named only the attempt; its persisted report
+        # still decides domain failure, even when no usable source was saved.
+        empty["source_geometry_ready"] = ready
         return empty
     app = data.get("claim_application", {})
     applied = (app.get("status") == "applied" and
