@@ -89,7 +89,7 @@ def register_mesh_tools(server, toolkit):
             'candidate_detail_omitted_area_m2': sum(c['surface_area_m2'] for c in candidates[10:]),
             'all_direction_bins': [{'direction_degrees': c['area_weighted_direction_degrees'],
                                     'surface_area_m2': c['surface_area_m2']} for c in candidates],
-            'complete_evidence_file': str((folder/f'{evidence_id}.json').relative_to(toolkit.run))}
+            'complete_evidence_file': (folder/f'{evidence_id}.json').relative_to(toolkit.run).as_posix()}
         return {'evidence_id': evidence_id, **summary, 'remaining_seconds': toolkit.remaining_seconds()}
 
     @server.tool()
@@ -253,13 +253,13 @@ def register_mesh_tools(server, toolkit):
         image_path = folder / f'{overlay_id}.png'
         picture.save(image_path)
         record.update(candidate=candidate, observation=observation, overlay_id=overlay_id,
-            image_file=str(image_path.relative_to(toolkit.run)),
+            image_file=image_path.relative_to(toolkit.run).as_posix(),
             image_sha256=hashlib.sha256(image_path.read_bytes()).hexdigest(),
             observation_metadata_sha256=hashlib.sha256(prefix.with_suffix('.json').read_bytes()).hexdigest(),
             source_file_sha256=hashlib.sha256(source_path.read_bytes()).hexdigest())
         (folder / f'{overlay_id}.json').write_text(json.dumps(record, indent=2) + '\n')
         summary = {k: v for k, v in record.items() if k != 'objects'}
-        summary['complete_projection_file'] = str((folder / f'{overlay_id}.json').relative_to(toolkit.run))
+        summary['complete_projection_file'] = (folder / f'{overlay_id}.json').relative_to(toolkit.run).as_posix()
         toolkit.log('overlay_mesh_candidate', summary)
         data = io.BytesIO(); picture.save(data, 'PNG')
         return [Image(data=data.getvalue(), format='png'), json.dumps(summary)]

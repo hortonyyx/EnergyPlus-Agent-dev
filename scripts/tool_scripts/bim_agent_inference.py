@@ -122,12 +122,12 @@ def record_inference(toolkit, declaration_json: str, candidate: str | None = Non
         "candidate": candidate,
         "source_model_sha256": source["source_model_sha256"],
         "source_file_sha256": file_hash,
-        "source_file": str(path.relative_to(toolkit.run)),
+        "source_file": path.relative_to(toolkit.run).as_posix(),
     }
     record = {"schema_version": "bim_inference_record_v1", "declaration": declaration,
               "candidate_binding": binding, "claim_scope": "model_interpretation_not_factual_truth"}
     saved = _save_numbered(toolkit.run / "inferences", "inference", record)
-    record = {"inference_id": saved.stem, "record_file": str(saved.relative_to(toolkit.run)), **record}
+    record = {"inference_id": saved.stem, "record_file": saved.relative_to(toolkit.run).as_posix(), **record}
     toolkit.log("record_inference", record)
     return record
 
@@ -156,7 +156,7 @@ def inspect_inference(toolkit, inference_id: str | None = None) -> dict:
     records = []
     for path in paths:
         row = json.loads(path.read_text())
-        records.append({"inference_id": path.stem, "record_file": str(path.relative_to(toolkit.run)),
+        records.append({"inference_id": path.stem, "record_file": path.relative_to(toolkit.run).as_posix(),
                         **row, "binding_status": _binding_status(toolkit, row.get("candidate_binding"))})
     result = records[0] if inference_id is not None else {
         "schema_version": "bim_inference_index_v1", "count": len(records), "records": records}
@@ -322,7 +322,7 @@ def audit_inference_candidate(toolkit, candidate: str,
     audit = {
         "schema_version": "bim_inference_candidate_audit_v1", "candidate": candidate,
         "source_model_sha256": source["source_model_sha256"], "source_file_sha256": file_hash,
-        "source_file": str(path.relative_to(toolkit.run)), "scope": _SCOPE, "counts": counts,
+        "source_file": path.relative_to(toolkit.run).as_posix(), "scope": _SCOPE, "counts": counts,
         "space_dimension_ranges": {"bbox_x_span_m": _range(widths), "bbox_y_span_m": _range(depths),
                                    "height_m": _range(heights), "footprint_area_m2": _range(areas)},
         "room_roles": {role: {"count": len(ids), "space_ids": sorted(ids)}
@@ -351,7 +351,7 @@ def audit_inference_candidate(toolkit, candidate: str,
     summary = {
         "schema_version": "bim_inference_candidate_audit_summary_v1", "candidate": candidate,
         "source_model_sha256": source["source_model_sha256"],
-        "audit_file": str(saved.relative_to(toolkit.run)), "scope": _SCOPE, "counts": counts,
+        "audit_file": saved.relative_to(toolkit.run).as_posix(), "scope": _SCOPE, "counts": counts,
         "space_dimension_ranges": audit["space_dimension_ranges"],
         "room_role_counts": {role: row["count"] for role, row in audit["room_roles"].items()},
         "window_count_distribution": audit["window_counts"]["distribution"],

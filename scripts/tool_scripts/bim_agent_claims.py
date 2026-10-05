@@ -241,7 +241,7 @@ def claim_transaction(toolkit, candidate, entries):
     reply = {**(save_feedback or {}), **{key: value for key, value in transaction.items() if key != "entries"}}
     reply["entries"] = [{key: value for key, value in row.items() if key != "request"}
                         for row in transaction["entries"]]
-    reply.update(audit_file=str(path.relative_to(toolkit.run)),
+    reply.update(audit_file=path.relative_to(toolkit.run).as_posix(),
                  note="Entries commit independently; failed entries keep their recorded decisions. Numerical consistency is not drawing verification.")
     if current:
         reply["height_coverage"] = toolkit.located_heights(current)

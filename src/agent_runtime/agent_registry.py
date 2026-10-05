@@ -193,7 +193,7 @@ def register_agent_version(
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(
         json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+        encoding="utf-8", newline="\n",
     )
     temporary.replace(path)
     return {"version_id": version_id, **record}

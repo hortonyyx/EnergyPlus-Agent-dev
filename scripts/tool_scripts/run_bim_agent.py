@@ -26,8 +26,7 @@ import time
 from typing import Literal
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT))  # Own checkout must precede any editable install.
 
 from PIL import Image as PILImage, ImageDraw
 from mcp.server.fastmcp import Image
@@ -40,7 +39,7 @@ from scripts.tool_scripts.bim_agent_feedback import ImageFilename
 
 
 def dump(path: Path, value):
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def digest(path: Path):
@@ -199,6 +198,14 @@ def coordinate_grid_view(pic, region):
 
 def terminate_subscription(process):
     """Stop this invocation and nested review sessions, including their MCPs."""
+    if os.name == "nt":
+        # Scope termination to this invocation's PID and its descendants.
+        if process.poll() is None:
+            subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                           check=False, timeout=15)
+        process.wait(timeout=15)
+        return
     rows = subprocess.check_output(["ps", "-eo", "pid=,ppid="], text=True)
     parents = {int(pid): int(parent) for pid, parent in (row.split() for row in rows.splitlines())}
     descendants = {process.pid}
@@ -264,8 +271,9 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         raise ValueError("GLM routing cannot be combined with exploratory Opus")
     from src.agent.execution.subscription_json import _isolated_env, _redact_secrets, subscription_model_id
     routed_model = "glm-5.3-flash" if provider == "glm" else subscription_model_id(model)
-    launcher = str(ROOT / "scripts/glm_code.sh") if provider == "glm" else "claude"
-    command = [launcher, "-p", "--model", routed_model, "--tools", "",
+    launcher = ([sys.executable, str(ROOT / "scripts/glm_code.py")] if os.name == "nt"
+                else [str(ROOT / "scripts/glm_code.sh")]) if provider == "glm" else ["claude"]
+    command = [*launcher, "-p", "--model", routed_model, "--tools", "",
                "--allowedTools", "mcp__bim__*", "--permission-mode", "dontAsk",
                "--strict-mcp-config", "--setting-sources", "",
                "--settings", '{"disableAllHooks":true}',
@@ -694,7 +702,7 @@ class Toolkit:
                 for _, _, field, _, _ in parameter_slots(operation)
                 if (index, field) not in bound_slots]
             result = self.build(updated, action="revise_bim", parent=candidate, operations=operations,
-                                claim_application={"file": str(application_path.relative_to(self.run)), **evidence})
+                                claim_application={"file": application_path.relative_to(self.run).as_posix(), **evidence})
             application.update(candidate=result.get("candidate"), source_model_sha256=result.get("source_model_sha256"),
                 status="applied" if result.get("source_geometry_ready") else "failed",
                 source_geometry_ready=result.get("source_geometry_ready", False),
@@ -714,7 +722,7 @@ class Toolkit:
         # model-facing copy drops evidence already in the application file.
         if "provenance" in result:
             result["provenance"] = {**result["provenance"],
-                "claim_application": {"file": str(application_path.relative_to(self.run))}}
+                "claim_application": {"file": application_path.relative_to(self.run).as_posix()}}
         return result
 
     def log(self, action, data):
@@ -738,7 +746,7 @@ class Toolkit:
         from scripts.tool_scripts.bim_agent_facade_checks import located_height_report
         try:
             report = located_height_report(self, candidate, current_state)
-            report["table_file"] = str((self.candidate_path(candidate) / "height_coverage.json").relative_to(self.run))
+            report["table_file"] = (self.candidate_path(candidate) / "height_coverage.json").relative_to(self.run).as_posix()
             dump(self.run / report["table_file"], report)
             return report
         except (OSError, ValueError, KeyError, TypeError) as error:
@@ -1067,14 +1075,14 @@ class Toolkit:
             dump(path, revision)
             # Bind immutable operations and their preservation audit in the new
             # draft's provenance before compiling, including on compiler failure.
-            binding = dict(file=str(path.relative_to(self.run)), sha256=digest(path),
+            binding = dict(file=path.relative_to(self.run).as_posix(), sha256=digest(path),
                            parent_draft_id=draft_id, parent_plan_sha256=expected_plan_sha256)
             result = self.build_plan(parent["image"], json.dumps(updated, ensure_ascii=False), revision=binding)
         except Exception as error:
             # Once bound, preserve the exact revision file even for internal faults.
             if revision["status"] == "pending":
                 revision.update(status="rejected", error=str(error)); dump(path, revision)
-            self.log("revise_plan_bim", dict(revision_file=str(path.relative_to(self.run)), error=str(error)))
+            self.log("revise_plan_bim", dict(revision_file=path.relative_to(self.run).as_posix(), error=str(error)))
             raise
         result["plan_revision"] = dict(**binding, unchanged_ids=preservation["unchanged_ids"],
             changed_targets=[dict(field=r["field"], id=r["id"]) for r in preservation["changes"]])
@@ -1093,7 +1101,7 @@ class Toolkit:
             feedback_path = feedback_path.with_name("opening_changes.json")
             dump(feedback_path, changes)
             result["plan_revision"]["geometry_changes"] = dict(
-                file=str(feedback_path.relative_to(self.run)), sha256=digest(feedback_path),
+                file=feedback_path.relative_to(self.run).as_posix(), sha256=digest(feedback_path),
                 changed_count=len(changes["changed_openings"]),
                 changed_openings=changes["changed_openings"][:24],
                 truncated=len(changes["changed_openings"]) > 24,
@@ -1122,8 +1130,8 @@ class Toolkit:
         draft = folder / f"draft_{len(list(folder.glob('draft_*'))) + 1:03d}"
         draft.mkdir(exist_ok=False)
         raw_path = draft / "plan.json"
-        raw_path.write_text(plan_json, encoding="utf-8")
-        record = {"plan_file": str(raw_path.relative_to(self.run)),
+        raw_path.write_text(plan_json, encoding="utf-8", newline="\n")
+        record = {"plan_file": raw_path.relative_to(self.run).as_posix(),
                   "plan_sha256": digest(raw_path), "image": image,
                   "image_sha256": digest(image_path)}
         if revision is not None:
@@ -1164,9 +1172,9 @@ class Toolkit:
             dump(binding_path, {"bindings": bindings, "length_bindings": length_bindings, "drawing_fidelity": "not_evaluated",
                 "interpretation": "Coordinates resolve caller-selected measurements only; object identity and representative planes remain caller observations."})
             record.update(plan_sha256=digest(raw_path),
-                submitted_plan_file=str(submitted.relative_to(self.run)),
+                submitted_plan_file=submitted.relative_to(self.run).as_posix(),
                 submitted_plan_sha256=digest(submitted),
-                measurement_bindings={"file": str(binding_path.relative_to(self.run)),
+                measurement_bindings={"file": binding_path.relative_to(self.run).as_posix(),
                     "sha256": digest(binding_path), "count": len(bindings), "length_count": len(length_bindings)})
             dump(draft / "input.json", record)
 
@@ -1175,7 +1183,7 @@ class Toolkit:
                 dimensions = plan_geometry_feedback(plan, original.size)
             dimensions_path = draft / "geometry_feedback.json"
             dump(dimensions_path, dimensions)
-            record["geometry_feedback"] = dict(file=str(dimensions_path.relative_to(self.run)),
+            record["geometry_feedback"] = dict(file=dimensions_path.relative_to(self.run).as_posix(),
                 sha256=digest(dimensions_path), **compact_plan_feedback(dimensions))
         except (ValueError, TypeError, KeyError, IndexError) as error:
             from scripts.tool_scripts.bim_agent_feedback import plan_feedback_error
@@ -1191,7 +1199,7 @@ class Toolkit:
                     image_sha256=record["image_sha256"], plan_sha256=record["plan_sha256"])
             differences_path = draft / "drawing_differences.json"
             dump(differences_path, differences)
-            difference_reply = dict(file=str(differences_path.relative_to(self.run)),
+            difference_reply = dict(file=differences_path.relative_to(self.run).as_posix(),
                 sha256=digest(differences_path), **compact_differences(differences))
         except (ValueError, TypeError, KeyError, IndexError) as error:
             difference_reply = dict(status="unavailable", reason=str(error))
@@ -1206,14 +1214,14 @@ class Toolkit:
             preview_path = draft / "draft_view.png"
             preview.save(preview_path)
             preview_metadata["preview"] = {
-                "image_file": str(preview_path.relative_to(self.run)),
+                "image_file": preview_path.relative_to(self.run).as_posix(),
                 "image_sha256": digest(preview_path),
             }
             metadata_path = draft / "draft_view.json"
             dump(metadata_path, preview_metadata)
             record["draft_view"] = {
                 **preview_metadata["preview"],
-                "metadata_file": str(metadata_path.relative_to(self.run)),
+                "metadata_file": metadata_path.relative_to(self.run).as_posix(),
                 "metadata_sha256": digest(metadata_path),
                 "draft_only": True,
                 "drawing_fidelity": "not_evaluated",
@@ -1246,9 +1254,9 @@ class Toolkit:
                     metadata_path = draft / "opening_host_failure.json"
                     dump(metadata_path, local_metadata)
                     record["host_failure_view"] = {
-                        "image_file": str(local_path.relative_to(self.run)),
+                        "image_file": local_path.relative_to(self.run).as_posix(),
                         "image_sha256": digest(local_path),
-                        "metadata_file": str(metadata_path.relative_to(self.run)),
+                        "metadata_file": metadata_path.relative_to(self.run).as_posix(),
                         "metadata_sha256": digest(metadata_path),
                         "opening_id": error.opening_id,
                         "p1_original_pixels": error.p1_pixel,
@@ -1267,7 +1275,7 @@ class Toolkit:
             self.log("build_plan_bim", result)
             return result
         dump(draft / "compilation.json", metadata)
-        record.update(compilation_file=str((draft / "compilation.json").relative_to(self.run)),
+        record.update(compilation_file=(draft / "compilation.json").relative_to(self.run).as_posix(),
                       compilation_sha256=digest(draft / "compilation.json"))
         result = self.build(proposal, action="build_plan_bim", plan_input=record,
                             calibration={key: plan[key] for key in
@@ -1315,7 +1323,7 @@ class Toolkit:
         path = folder / f"assembly_{len(list(folder.glob('assembly_*.json'))) + 1:03d}.json"
         dump(path, {"floors": bindings, "operation": "namespace_ids_and_translate_z_only",
                     "height_policy": "preserve_declared_heights; revise a draft explicitly to change them"})
-        binding = {"file": str(path.relative_to(self.run)), "sha256": digest(path)}
+        binding = {"file": path.relative_to(self.run).as_posix(), "sha256": digest(path)}
         result = self.build(proposal, action="assemble_plan_bim", plan_assembly=binding,
                             assembly_calibrations=calibrations)
         # Assembly keeps each draft's XY, so each draft's saved comparison still applies.
@@ -1417,7 +1425,7 @@ class Toolkit:
             stem += "_" + hashlib.sha256(floor_id.encode()).hexdigest()[:12]
         image_path = path / (stem + ".png")
         pic.save(image_path)
-        metadata.update(candidate=candidate, plan_image=str(image_path.relative_to(self.run)))
+        metadata.update(candidate=candidate, plan_image=image_path.relative_to(self.run).as_posix())
         dump(path / (stem + ".json"), metadata)
         return Image(data=image_path.read_bytes(), format="png"), metadata
 
@@ -1486,7 +1494,7 @@ class Toolkit:
         result.update(original_images=sources, observations=resolved,
                       submitted_observations=observations, measurement_bindings=bindings,
                       evidence_status="caller_observations_not_independently_verified",
-                      record=str(path.relative_to(self.run)))
+                      record=path.relative_to(self.run).as_posix())
         with path.open("x") as output:
             json.dump(result, output, ensure_ascii=False, indent=2, allow_nan=False)
             output.write("\n")
@@ -1536,9 +1544,9 @@ class Toolkit:
         target = folder / f'review_{len(list(folder.glob("review_*.json"))) + 1:03d}.json'
         result = {**report, 'candidate': candidate, 'image': image,
                   'image_sha256': self.manifest['images'][image]['sha256'],
-                  'calibration_file': str(path.relative_to(self.run)),
+                  'calibration_file': path.relative_to(self.run).as_posix(),
                   'calibration_sha256': digest(path),
-                  'review_file': str(target.relative_to(self.run)),
+                  'review_file': target.relative_to(self.run).as_posix(),
                   'remaining_seconds': self.remaining_seconds()}
         dump(target, result)
         self.log('check_source_space_relation', result)
@@ -1559,7 +1567,7 @@ class Toolkit:
                 continue
             self.image_path(pair[0])
             for row in report['observations']:
-                latest[(*pair, row['id'])] = {**row, 'review_file': str(path.relative_to(self.run))}
+                latest[(*pair, row['id'])] = {**row, 'review_file': path.relative_to(self.run).as_posix()}
         conflicts = [row for row in latest.values() if row['consistency'] == 'conflicts_with_supplied_expectation']
         unassessed = sum(row['consistency'] == 'not_assessed' for row in latest.values())
         status = ('not_reviewed' if not latest else 'observations_require_follow_up' if conflicts or unassessed
@@ -1647,7 +1655,7 @@ class Toolkit:
             calibration_path, calibration_record = calibration
             metadata["reused_calibration"] = {
                 "calibration_id": calibration_record["calibration_id"],
-                "calibration_file": str(calibration_path.relative_to(self.run)),
+                "calibration_file": calibration_path.relative_to(self.run).as_posix(),
                 "registered_by_candidate": calibration_record["registered_by_candidate"],
                 "registered_source_model_sha256": calibration_record["registered_source_model_sha256"],
                 "image_sha256": calibration_record["image_sha256"],
@@ -1674,7 +1682,7 @@ class Toolkit:
                 "trigger_action": action,
                 "image": record.get("image"),
                 "floor_id": record.get("floor_id"),
-                "calibration_file": str(calibration_path.relative_to(self.run)),
+                "calibration_file": calibration_path.relative_to(self.run).as_posix(),
             }
             try:
                 _, metadata = self.project_overlay(
@@ -1734,7 +1742,7 @@ class Toolkit:
             if calibration["floor_id"] not in floor_ids:
                 uncovered.append({
                     "image": calibration["image"], "floor_id": calibration["floor_id"],
-                    "calibration_file": str(calibration_path.relative_to(self.run)),
+                    "calibration_file": calibration_path.relative_to(self.run).as_posix(),
                 })
         error_path = self.candidate_path(candidate) / "projection_errors.json"
         errors = json.loads(error_path.read_text()).get("projection_errors", []) if error_path.is_file() else []
@@ -1825,7 +1833,7 @@ class Toolkit:
             data = io.BytesIO()
             pic.save(data, "PNG")
             source_picture = Image(data=data.getvalue(), format="png")
-        metadata.update(candidate=candidate, elevation_image=str(image_path.relative_to(self.run)),
+        metadata.update(candidate=candidate, elevation_image=image_path.relative_to(self.run).as_posix(),
                         elevation_image_sha256=digest(image_path))
         pictures = []
         if image:
@@ -1852,7 +1860,7 @@ class Toolkit:
         index = len(list(folder.glob("review_*.json"))) + 1
         while True:
             target = folder / f"review_{index:04d}.json"
-            metadata["review_file"] = str(target.relative_to(self.run))
+            metadata["review_file"] = target.relative_to(self.run).as_posix()
             try:
                 with target.open("x") as saved:
                     saved.write(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n")
@@ -2124,8 +2132,8 @@ class Toolkit:
                         "The suggested box is only an initial 32px context expansion; inspect further as needed "
                         "to establish both endpoints and adjoining space boundaries. No continuation is inferred.",
             },
-            "profile_image": str(image_path.relative_to(self.run)),
-            "profile_record": str(record_path.relative_to(self.run)),
+            "profile_image": image_path.relative_to(self.run).as_posix(),
+            "profile_record": record_path.relative_to(self.run).as_posix(),
             "profile_image_sha256": digest(image_path),
             "panel_layout": {
                 "original_crop_combined_pixels": [0, 0, crop.width, crop.height],
@@ -2230,6 +2238,11 @@ class Toolkit:
 
 
 def serve(run: Path, readonly=False, *, enabled_only=False):
+    if os.name == "nt":
+        # SciPy's Fortran DLL initialization can wait on CRT stdio locks.
+        # Import before MCP starts its blocking stdin reader, not during the
+        # first geometry call while that reader already owns a stdio lock.
+        import scipy.signal  # noqa: F401
     from mcp.server.fastmcp import Image
     from scripts.tool_scripts.bim_agent_feedback import FeedbackMCP
     toolkit = Toolkit(run, readonly)
@@ -2770,7 +2783,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 folder = run / "opening_reviews"
                 folder.mkdir(exist_ok=True)
                 target = folder / f"review_{len(list(folder.glob('review_*.json'))) + 1:03d}.json"
-                result = {"candidate": candidate, "review_file": str(target.relative_to(run)), **report}
+                result = {"candidate": candidate, "review_file": target.relative_to(run).as_posix(), **report}
                 dump(target, {**result, "observations": observations})
             result["remaining_seconds"] = toolkit.remaining_seconds()
             result["input_view_status"] = toolkit.input_view_status()
@@ -2832,7 +2845,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                     basis=basis, metadata=metadata)
                 metadata["registered_calibration"] = {
                     "calibration_id": calibration["calibration_id"],
-                    "calibration_file": str(calibration_path.relative_to(run)),
+                    "calibration_file": calibration_path.relative_to(run).as_posix(),
                     "reuse_on_revision": True,
                 }
                 # This sidecar was created during this same explicit request;
@@ -2907,7 +2920,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 plan = json.loads(plan_json)
                 proposal = expand_parametric_proposal(plan)
             except (ValueError, TypeError, KeyError) as error:
-                result = {'error': str(error), 'draft': str(draft.relative_to(toolkit.run)),
+                result = {'error': str(error), 'draft': draft.relative_to(toolkit.run).as_posix(),
                           'remaining_seconds': toolkit.remaining_seconds()}
                 toolkit.log('build_parametric_bim', result)
                 return candidate_result(result)
@@ -3106,7 +3119,7 @@ def run_experiment(args):
                "has_viewable_candidate":any(c["viewer_exists"] for c in candidates) or bool(delivery and delivery["viewer_exists"]),
                "elapsed_seconds":total_elapsed,"drawing_fidelity":"not_evaluated",
                "continuation": continuation_status,
-               "opening_reviews":[str(p.relative_to(run)) for p in sorted((run/"opening_reviews").glob("review_*.json"))],
+               "opening_reviews":[p.relative_to(run).as_posix() for p in sorted((run/"opening_reviews").glob("review_*.json"))],
                "delivery": {"candidate":delivery["candidate"], "selection_origin":delivery["selection_origin"],
                             "report":"delivery.json", "viewer":"delivery.html"} if delivery else None,
                "subscription_invocations":len(receipts),

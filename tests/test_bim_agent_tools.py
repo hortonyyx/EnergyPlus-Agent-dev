@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import base64
 from contextlib import asynccontextmanager
+from datetime import timedelta
 import hashlib
 import io
 import json
@@ -56,9 +57,10 @@ async def _server_session(run: Path, *, readonly: bool):
     args = [str(SERVER), "serve", str(run)]
     if readonly:
         args.append("--readonly")
-    parameters = StdioServerParameters(command=sys.executable, args=args, cwd=str(ROOT))
+    parameters = StdioServerParameters(command=sys.executable, args=args, cwd=str(ROOT),
+                                      env={"PYTHONUTF8": "1"})
     async with stdio_client(parameters) as (read, write):
-        async with ClientSession(read, write) as session:
+        async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=60)) as session:
             await session.initialize()
             yield session
 
@@ -1448,6 +1450,23 @@ def test_recovery_imports_only_proposal_and_rebuilds_production_checks(tmp_path,
 
 def _ended_or_zombie(pid: int) -> bool:
     """A zombie has stopped executing; init will reap an orphan shortly."""
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.OpenProcess.restype = wintypes.HANDLE
+        handle = kernel.OpenProcess(0x1000, False, pid)
+        if not handle:
+            assert ctypes.get_last_error() == 87, "could not query child process"
+            return True
+        kernel.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        try:
+            code = wintypes.DWORD()
+            assert kernel.GetExitCodeProcess(handle, ctypes.byref(code))
+            return code.value != 259  # STILL_ACTIVE
+        finally:
+            kernel.CloseHandle(handle)
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
@@ -1517,6 +1536,10 @@ time.sleep(60)
     finally:
         for pid in (parent.pid, child_pid):
             if pid is None or _ended_or_zombie(pid):
+                continue
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"],
+                               capture_output=True, timeout=15)
                 continue
             try:
                 os.killpg(os.getpgid(pid), 9)

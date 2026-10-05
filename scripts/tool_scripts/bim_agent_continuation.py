@@ -50,7 +50,7 @@ def persisted_state(run: Path, delivery: dict):
     evidence = {}
     for folder in ("claims", "opening_reviews", "space_relation_reviews"):
         for path in sorted((run / folder).glob("*.json*")):
-            evidence[str(path.relative_to(run))] = hashlib.sha256(path.read_bytes()).hexdigest()
+            evidence[path.relative_to(run).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return {"source_model_sha256": delivery["source_model_sha256"], "evidence": evidence}
 
 
@@ -73,7 +73,7 @@ def record_work_review(toolkit, candidate, decision, reason, next_action=""):
            "drawing_fidelity": "not_evaluated", "task_completion": "model_judgment_only"}
     path = folder / f"review_{len(list(folder.glob('review_*.json'))) + 1:03d}.json"
     _write(path, row)
-    toolkit.log("record_work_review", {"file": str(path.relative_to(toolkit.run)), **row})
+    toolkit.log("record_work_review", {"file": path.relative_to(toolkit.run).as_posix(), **row})
     return row
 
 

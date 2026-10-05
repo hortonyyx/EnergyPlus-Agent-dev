@@ -1,5 +1,7 @@
 """Offline checks that both coordinator and local observation stay on GLM."""
 import json
+import os
+import sys
 
 import pytest
 
@@ -34,7 +36,10 @@ def test_explicit_glm_route_and_receipt(tmp_path, monkeypatch, readonly, actual)
     receipt = runner.subscription(child if readonly else run, "offline only",
         model="haiku" if readonly else "sonnet", name="agent", readonly=readonly)
     command, kwargs = calls[0]
-    assert command[0] == str(runner.ROOT / "scripts/glm_code.sh")
+    if os.name == "nt":
+        assert command[:2] == [sys.executable, str(runner.ROOT / "scripts/glm_code.py")]
+    else:
+        assert command[0] == str(runner.ROOT / "scripts/glm_code.sh")
     assert command[command.index("--model") + 1] == "glm-5.3-flash"
     assert kwargs["env"]["GLM_SMALL_MODEL"] == "glm-5.3-flash"
     assert receipt["requested_model"] == "glm-5.3-flash"
