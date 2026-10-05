@@ -1,0 +1,75 @@
+bringing up nodes...
+bringing up nodes...
+
+...............................................................................................usage: runner run [-h] [--images IMAGES] [--mesh MESH]
+                  [--image-kind {drawings,mesh_views,photos,unknown}]
+                  [--building-input BUILDING_INPUT] --out OUT [--scope SCOPE]
+                  [--timeout TIMEOUT] [--floor-plan-image FLOOR_PLAN_IMAGES]
+                  [--prepare-only] [--max-candidates MAX_CANDIDATES]
+                  [--continuation-rounds {0,1,2,3,4}] [--review-detail]
+                  [--provider {claude,glm}] [--exploratory-opus]
+                  [--effort {low,medium}]
+                  [--resume-candidate RESUME_CANDIDATE | --resume-plan RESUME_PLAN]
+                  [--plan-image PLAN_IMAGE]
+runner run: error: argument --resume-candidate: not allowed with argument --resume-plan
+.............  + Exception Group Traceback (most recent call last):
+  |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a5t/scripts/tool_scripts/run_bim_agent.py", line 3291, in <module>
+  |     if __name__=="__main__": main()
+  |                              ^^^^^^
+  |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a5t/scripts/tool_scripts/run_bim_agent.py", line 3287, in main
+  |     if args.command=="serve": serve(args.run.resolve(),args.readonly, enabled_only=args.enabled_only)
+  |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/workspaces/EnergyPlus-Agent-dev/.worktrees/astra-a5t/scripts/tool_scripts/run_bim_agent.py", line 2957, in serve
+  |     server.run()
+  |   File "/opt/venv/lib/python3.12/site-packages/mcp/server/fastmcp/server.py", line 296, in run
+  |     anyio.run(self.run_stdio_async)
+  |   File "/opt/venv/lib/python3.12/site-packages/anyio/_core/_eventloop.py", line 77, in run
+  |     return async_backend.run(func, args, {}, backend_options)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2358, in run
+  |     return runner.run(wrapper())
+  |            ^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2341, in wrapper
+  |     return await func(*args)
+  |            ^^^^^^^^^^^^^^^^^
+  |   File "/opt/venv/lib/python3.12/site-packages/mcp/server/fastmcp/server.py", line 755, in run_stdio_async
+  |     async with stdio_server() as (read_stream, write_stream):
+  |                ^^^^^^^^^^^^^^
+  |   File "/usr/lib/python3.12/contextlib.py", line 217, in __aexit__
+  |     await anext(self.gen)
+  |   File "/opt/venv/lib/python3.12/site-packages/mcp/server/stdio.py", line 85, in stdio_server
+  |     async with anyio.create_task_group() as tg:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "/opt/venv/lib/python3.12/site-packages/mcp/server/stdio.py", line 81, in stdout_writer
+    |     await stdout.flush()
+    |   File "/opt/venv/lib/python3.12/site-packages/anyio/_core/_fileio.py", line 140, in flush
+    |     return await to_thread.run_sync(self._fp.flush)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/opt/venv/lib/python3.12/site-packages/anyio/to_thread.py", line 63, in run_sync
+    |     return await get_async_backend().run_sync_in_worker_thread(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 2518, in run_sync_in_worker_thread
+    |     return await future
+    |            ^^^^^^^^^^^^
+    |   File "/opt/venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1002, in run
+    |     result = context.run(func, *args)
+    |              ^^^^^^^^^^^^^^^^^^^^^^^^
+    | BrokenPipeError: [Errno 32] Broken pipe
+    +------------------------------------
+
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/usr/lib/python3.12/threading.py:359: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+108 passed in 282.26s (0:04:42)

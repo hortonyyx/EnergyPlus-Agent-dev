@@ -1,0 +1,4038 @@
+{
+  "model_requests": 0,
+  "summary": {
+    "candidates": 13,
+    "direct_checked": 0,
+    "direct_findings": 0,
+    "conditional_checked": 88,
+    "target_findings": 7,
+    "control_findings": 0,
+    "strict_2cm_target_findings": 9,
+    "strict_2cm_control_findings": 14
+  },
+  "rows": [
+    {
+      "run": ".tmp_a5t/history/2026-10-04_node_regression_a1/sm24_claude_code",
+      "candidate": "candidate_04",
+      "case": "sm24",
+      "source_sha256": "5c1a422eebd86e43e8a64ddb0c0cdae911e60213fd7034200aa4a37d0ad90c2b",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json",
+          "sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-15.94",
+          "boundary_id": "space/SP_off_n/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+          ]
+        },
+        {
+          "id": "F1-y-13",
+          "boundary_id": "space/SP_off_wa/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+          ]
+        },
+        {
+          "id": "F1-y-8.06",
+          "boundary_id": "space/SP_meet_w/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/SP_east1/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+          ]
+        },
+        {
+          "id": "F1-y-4.94",
+          "boundary_id": "space/SP_corridor/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 5,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.11049723756906077,
+            "y": 0.11004126547455295
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 5,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/SP_east1/wall/0",
+            "boundary_ids": [
+              "space/SP_east1/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 14.0,
+            "actual_coordinate_m": 13.975241,
+            "deviation_m": -0.024759,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-14",
+                "boundary_id": "space/SP_east1/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/SP_corridor/wall/2",
+            "boundary_ids": [
+              "space/SP_corridor/wall/2"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 4.94,
+            "actual_coordinate_m": 4.910591,
+            "deviation_m": -0.029409,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-4.94",
+                "boundary_id": "space/SP_corridor/wall/2",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 2,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": ".tmp_a5t/history/2026-10-04_node_regression_c2/sm24_claude_code",
+      "candidate": "candidate_02",
+      "case": "sm24",
+      "source_sha256": "8c4dd6cefce5490a0dd3f8466aea2cbbbeae32f9d04e7f1ef1bf67a38c392f7c",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json",
+          "sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "L1-y-15.94",
+          "boundary_id": "space/S_L1/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+          ]
+        },
+        {
+          "id": "L1-y-13",
+          "boundary_id": "space/S_L1/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+          ]
+        },
+        {
+          "id": "L1-y-8.06",
+          "boundary_id": "space/S_L2/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+          ]
+        },
+        {
+          "id": "L1-y-14",
+          "boundary_id": "space/S_R1/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+          ]
+        },
+        {
+          "id": "L1-y-4.94",
+          "boundary_id": "space/S_BR/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 5,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "L1": {
+            "x": 0.11235955056179775,
+            "y": 0.11095700416088766
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 5,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "L1",
+            "wall_id": "space/S_L1/wall/2",
+            "boundary_ids": [
+              "space/S_L1/wall/2"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 15.94,
+            "actual_coordinate_m": 15.919556,
+            "deviation_m": -0.020444,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "L1-y-15.94",
+                "boundary_id": "space/S_L1/wall/2",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "L1",
+            "wall_id": "space/S_L2/wall/0",
+            "boundary_ids": [
+              "space/S_L2/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 8.06,
+            "actual_coordinate_m": 7.988904,
+            "deviation_m": -0.071096,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "L1-y-8.06",
+                "boundary_id": "space/S_L2/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 3,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "L1",
+            "wall_id": "space/S_BR/wall/2",
+            "boundary_ids": [
+              "space/S_BR/wall/2"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 4.94,
+            "actual_coordinate_m": 4.979196,
+            "deviation_m": 0.039196,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "L1-y-4.94",
+                "boundary_id": "space/S_BR/wall/2",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 3,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-26_sm21_whole_building_claude_run57",
+      "candidate": "candidate_04",
+      "case": "sm21",
+      "source_sha256": "410cc53f91a1bbe19503a0592167db2be7d0da995da6eb4ce2a8c87b52e154f0",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json",
+          "sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json",
+          "sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-3",
+          "boundary_id": "space/F1%3ACORR/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_S",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "F1-y-5",
+          "boundary_id": "space/F1%3ACORR/wall/2",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_N",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "F1-x-5",
+          "boundary_id": "space/F1%3AN1/wall/1",
+          "axis": "x",
+          "lengths": [
+            5000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N5",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=5.0"
+          ]
+        },
+        {
+          "id": "F1-x-10",
+          "boundary_id": "space/F1%3AN2/wall/1",
+          "axis": "x",
+          "lengths": [
+            10000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N10",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=10.0"
+          ]
+        },
+        {
+          "id": "F2-y-3",
+          "boundary_id": "space/F2%3ACORR/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_S",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "F2-y-5",
+          "boundary_id": "space/F2%3ACORR/wall/2",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_N",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "F2-x-7.5",
+          "boundary_id": "space/F2%3AN1/wall/1",
+          "axis": "x",
+          "lengths": [
+            7500.0
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_N7",
+            "2f_view.png north chain 1950/3600/1889/120/1891/3600/1950 = 15000: 120 mm divider centred at x=7.5"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 7,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.043153049482163405,
+            "y": 0.043254933765882665
+          },
+          "F2": {
+            "x": 0.04330254041570439,
+            "y": 0.04328418774516435
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 7,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-26_sm24_whole_building_claude_run55",
+      "candidate": "candidate_01",
+      "case": "sm24",
+      "source_sha256": "d43ef2e763e24a9d0fbe33353ffc6dad86c99957e712ba71a4c3d45b194fcde8",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json",
+          "sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-15.94",
+          "boundary_id": "space/W1/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+          ]
+        },
+        {
+          "id": "F1-y-13",
+          "boundary_id": "space/W1/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+          ]
+        },
+        {
+          "id": "F1-y-8.06",
+          "boundary_id": "space/W2/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/E1/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+          ]
+        },
+        {
+          "id": "F1-y-4.94",
+          "boundary_id": "space/SE/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 5,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.1095890410958904,
+            "y": 0.10989010989010989
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 5,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/W1/wall/0",
+            "boundary_ids": [
+              "space/W1/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 13.0,
+            "actual_coordinate_m": 13.021978,
+            "deviation_m": 0.021978,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-13",
+                "boundary_id": "space/W1/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 1,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-26_sm24_whole_building_repeat_claude_run56",
+      "candidate": "candidate_02",
+      "case": "sm24",
+      "source_sha256": "e51c31ace6f8a633cd624ed289698362230805159a15752432bfea68dc9e57e6",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json",
+          "sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-15.94",
+          "boundary_id": "space/north/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+          ]
+        },
+        {
+          "id": "F1-y-13",
+          "boundary_id": "space/roomA/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+          ]
+        },
+        {
+          "id": "F1-y-8.06",
+          "boundary_id": "space/roomB/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/roomE/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+          ]
+        },
+        {
+          "id": "F1-y-4.94",
+          "boundary_id": "space/hall/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 5,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.1095890410958904,
+            "y": 0.11004126547455295
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 5,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/roomA/wall/0",
+            "boundary_ids": [
+              "space/roomA/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 13.0,
+            "actual_coordinate_m": 13.03989,
+            "deviation_m": 0.03989,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-13",
+                "boundary_id": "space/roomA/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/roomB/wall/0",
+            "boundary_ids": [
+              "space/roomB/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 8.06,
+            "actual_coordinate_m": 8.033012,
+            "deviation_m": -0.026988,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-8.06",
+                "boundary_id": "space/roomB/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 3,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/roomE/wall/0",
+            "boundary_ids": [
+              "space/roomE/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 14.0,
+            "actual_coordinate_m": 13.975241,
+            "deviation_m": -0.024759,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-14",
+                "boundary_id": "space/roomE/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 3,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-26_sm25_height_cold_claude_run53",
+      "candidate": "candidate_04",
+      "case": "sm25",
+      "source_sha256": "5e33edaee22579c1072ddfb9d95d890cdcf6d655933c983029bf2318feb1d2d1",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json",
+          "sha256": "9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json",
+          "sha256": "c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-18",
+          "boundary_id": "space/F1%3AF1_S04/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off18",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 18"
+          ]
+        },
+        {
+          "id": "F1-y-16",
+          "boundary_id": "space/F1%3AF1_S05/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off16",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 16"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/F1%3AF1_S06/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off14",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 14"
+          ]
+        },
+        {
+          "id": "F1-y-12",
+          "boundary_id": "space/F1%3AF1_S08/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off12",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 12"
+          ]
+        },
+        {
+          "id": "F1-y-10",
+          "boundary_id": "space/F1%3AF1_S09/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 5,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off10",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 10"
+          ]
+        },
+        {
+          "id": "F1-y-8",
+          "boundary_id": "space/F1%3AF1_S11/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 6,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off8",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 8"
+          ]
+        },
+        {
+          "id": "F2-y-14",
+          "boundary_id": "space/F2%3AF2_S05/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off14",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 14"
+          ]
+        },
+        {
+          "id": "F2-y-12",
+          "boundary_id": "space/F2%3AF2_S07/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off12",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 12"
+          ]
+        },
+        {
+          "id": "F2-y-10",
+          "boundary_id": "space/F2%3AF2_S08/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off10",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 10"
+          ]
+        },
+        {
+          "id": "F2-y-8",
+          "boundary_id": "space/F2%3AF2_S09/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 5,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off8",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 8"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 10,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.08641548565502939,
+            "y": 0.08659883091578265
+          },
+          "F2": {
+            "x": 0.08716116098666435,
+            "y": 0.08729812309035355
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 10,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-26_sm25_height_repeat_claude_run54",
+      "candidate": "candidate_05",
+      "case": "sm25",
+      "source_sha256": "d78798955abf91f3a7dfce879955d1395a17920db398c015a7dd20037d65bd0d",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json",
+          "sha256": "9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json",
+          "sha256": "c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-18",
+          "boundary_id": "space/F1%3AF1_S04/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off18",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 18"
+          ]
+        },
+        {
+          "id": "F1-y-16",
+          "boundary_id": "space/F1%3AF1_S05/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off16",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 16"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/F1%3AF1_S06/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off14",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 14"
+          ]
+        },
+        {
+          "id": "F1-y-12",
+          "boundary_id": "space/F1%3AF1_S08/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off12",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 12"
+          ]
+        },
+        {
+          "id": "F1-y-10",
+          "boundary_id": "space/F1%3AF1_S09/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 5,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off10",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 10"
+          ]
+        },
+        {
+          "id": "F1-y-8",
+          "boundary_id": "space/F1%3AF1_S10/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 6,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off8",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 8"
+          ]
+        },
+        {
+          "id": "F2-y-14",
+          "boundary_id": "space/F2%3AF2_S05/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off14",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 14"
+          ]
+        },
+        {
+          "id": "F2-y-12",
+          "boundary_id": "space/F2%3AF2_S07/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off12",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 12"
+          ]
+        },
+        {
+          "id": "F2-y-10",
+          "boundary_id": "space/F2%3AF2_S08/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off10",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 10"
+          ]
+        },
+        {
+          "id": "F2-y-8",
+          "boundary_id": "space/F2%3AF2_S09/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 5,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off8",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 8"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 10,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.08643042350907519,
+            "y": 0.08660820612753058
+          },
+          "F2": {
+            "x": 0.08718395815170009,
+            "y": 0.0872885979268958
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 10,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/F1%3AF1_S06/wall/0",
+            "boundary_ids": [
+              "space/F1%3AF1_S06/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 14.0,
+            "actual_coordinate_m": 13.954747,
+            "deviation_m": -0.045253,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-14",
+                "boundary_id": "space/F1%3AF1_S06/wall/0",
+                "axis": "y",
+                "lengths": [
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  6000
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 3,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off14",
+                  "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 14"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/F1%3AF1_S10/wall/0",
+            "boundary_ids": [
+              "space/F1%3AF1_S10/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 8.0,
+            "actual_coordinate_m": 8.022085,
+            "deviation_m": 0.022085,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-8",
+                "boundary_id": "space/F1%3AF1_S10/wall/0",
+                "axis": "y",
+                "lengths": [
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  6000
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 6,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off8",
+                  "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 8"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F2",
+            "wall_id": "space/F2%3AF2_S07/wall/0",
+            "boundary_ids": [
+              "space/F2%3AF2_S07/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 12.0,
+            "actual_coordinate_m": 11.958538,
+            "deviation_m": -0.041462,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F2-y-12",
+                "boundary_id": "space/F2%3AF2_S07/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3940,
+                  2060,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2060,
+                  3940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 3,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off12",
+                  "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 12"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F2",
+            "wall_id": "space/F2%3AF2_S08/wall/0",
+            "boundary_ids": [
+              "space/F2%3AF2_S08/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 10.0,
+            "actual_coordinate_m": 9.972722,
+            "deviation_m": -0.027278,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F2-y-10",
+                "boundary_id": "space/F2%3AF2_S08/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3940,
+                  2060,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2060,
+                  3940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off10",
+                  "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 10"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F2",
+            "wall_id": "space/F2%3AF2_S09/wall/0",
+            "boundary_ids": [
+              "space/F2%3AF2_S09/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 8.0,
+            "actual_coordinate_m": 7.92144,
+            "deviation_m": -0.07856,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F2-y-8",
+                "boundary_id": "space/F2%3AF2_S09/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3940,
+                  2060,
+                  2000,
+                  2000,
+                  2000,
+                  2000,
+                  2060,
+                  3940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 5,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off8",
+                  "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 8"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 5,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-27_sm21_whole_building_repeat_claude_run58",
+      "candidate": "candidate_04",
+      "case": "sm21",
+      "source_sha256": "99a416a9253a56af69611fe38c130c523389b4ed8c1dc0ce3988a67f52ab4053",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json",
+          "sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json",
+          "sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-3",
+          "boundary_id": "space/F1%3ACOR/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_S",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "F1-y-5",
+          "boundary_id": "space/F1%3ACOR/wall/2",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_N",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "F1-x-5",
+          "boundary_id": "space/F1%3AN1/wall/1",
+          "axis": "x",
+          "lengths": [
+            5000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N5",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=5.0"
+          ]
+        },
+        {
+          "id": "F1-x-10",
+          "boundary_id": "space/F1%3AN2/wall/1",
+          "axis": "x",
+          "lengths": [
+            10000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N10",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=10.0"
+          ]
+        },
+        {
+          "id": "F2-y-3",
+          "boundary_id": "space/F2%3ACOR/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_S",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "F2-y-5",
+          "boundary_id": "space/F2%3ACOR/wall/2",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_N",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "F2-x-7.5",
+          "boundary_id": "space/F2%3AM1/wall/1",
+          "axis": "x",
+          "lengths": [
+            7500.0
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_N7",
+            "2f_view.png north chain 1950/3600/1889/120/1891/3600/1950 = 15000: 120 mm divider centred at x=7.5"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 7,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.04319654427645788,
+            "y": 0.043243243243243246
+          },
+          "F2": {
+            "x": 0.04332129963898917,
+            "y": 0.04341926729986431
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 7,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99",
+      "candidate": "candidate_05",
+      "case": "sm21",
+      "source_sha256": "8f88da239b36708db0395ea24e747f3731a4eb4d1d37a544caea1dc490e16b54",
+      "source_unchanged": true,
+      "negative_control": false,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json",
+          "sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json",
+          "sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "1F-y-3",
+          "boundary_id": "space/1F%3A1F_S04/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_S",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "1F-y-5",
+          "boundary_id": "space/1F%3A1F_S01/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_N",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "1F-x-5",
+          "boundary_id": "space/1F%3A1F_S01/wall/1",
+          "axis": "x",
+          "lengths": [
+            5000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N5",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=5.0"
+          ]
+        },
+        {
+          "id": "1F-x-10",
+          "boundary_id": "space/1F%3A1F_S02/wall/1",
+          "axis": "x",
+          "lengths": [
+            10000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N10",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=10.0"
+          ]
+        },
+        {
+          "id": "2F-y-3",
+          "boundary_id": "space/2F%3A2F_S03/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_S",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "2F-y-5",
+          "boundary_id": "space/2F%3A2F_S01/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_N",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "2F-x-7.5",
+          "boundary_id": "space/2F%3A2F_S01/wall/1",
+          "axis": "x",
+          "lengths": [
+            7500.0
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_N7",
+            "2f_view.png north chain 1950/3600/1889/120/1891/3600/1950 = 15000: 120 mm divider centred at x=7.5"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 7,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "1F",
+            "wall_id": "space/1F%3A1F_S04/wall/0",
+            "boundary_ids": [
+              "space/1F%3A1F_S04/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 3.0,
+            "actual_coordinate_m": 2.943396,
+            "deviation_m": -0.056604,
+            "tolerance_m": 0.0431266846361186,
+            "annotations": [
+              {
+                "id": "1F-y-3",
+                "boundary_id": "space/1F%3A1F_S04/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  250,
+                  1500,
+                  250,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_S",
+                  "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+                  "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=3.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "1F",
+            "wall_id": "space/1F%3A1F_S01/wall/0",
+            "boundary_ids": [
+              "space/1F%3A1F_S01/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 5.0,
+            "actual_coordinate_m": 5.067385,
+            "deviation_m": 0.067385,
+            "tolerance_m": 0.0431266846361186,
+            "annotations": [
+              {
+                "id": "1F-y-5",
+                "boundary_id": "space/1F%3A1F_S01/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  250,
+                  1500,
+                  250,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_N",
+                  "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+                  "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=5.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "2F",
+            "wall_id": "space/2F%3A2F_S03/wall/0",
+            "boundary_ids": [
+              "space/2F%3A2F_S03/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 3.0,
+            "actual_coordinate_m": 2.947368,
+            "deviation_m": -0.052632,
+            "tolerance_m": 0.043184885290148446,
+            "annotations": [
+              {
+                "id": "2F-y-3",
+                "boundary_id": "space/2F%3A2F_S03/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  400,
+                  1200,
+                  400,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_S",
+                  "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+                  "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=3.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "2F",
+            "wall_id": "space/2F%3A2F_S01/wall/0",
+            "boundary_ids": [
+              "space/2F%3A2F_S01/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 5.0,
+            "actual_coordinate_m": 5.063428,
+            "deviation_m": 0.063428,
+            "tolerance_m": 0.043184885290148446,
+            "annotations": [
+              {
+                "id": "2F-y-5",
+                "boundary_id": "space/2F%3A2F_S01/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  400,
+                  1200,
+                  400,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_N",
+                  "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+                  "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=5.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 4,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "1F": {
+            "x": 0.04310344827586207,
+            "y": 0.0431266846361186
+          },
+          "2F": {
+            "x": 0.043258832011535686,
+            "y": 0.043184885290148446
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 7,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "1F",
+            "wall_id": "space/1F%3A1F_S04/wall/0",
+            "boundary_ids": [
+              "space/1F%3A1F_S04/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 3.0,
+            "actual_coordinate_m": 2.943396,
+            "deviation_m": -0.056604,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "1F-y-3",
+                "boundary_id": "space/1F%3A1F_S04/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  250,
+                  1500,
+                  250,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_S",
+                  "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+                  "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=3.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "1F",
+            "wall_id": "space/1F%3A1F_S01/wall/0",
+            "boundary_ids": [
+              "space/1F%3A1F_S01/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 5.0,
+            "actual_coordinate_m": 5.067385,
+            "deviation_m": 0.067385,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "1F-y-5",
+                "boundary_id": "space/1F%3A1F_S01/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  250,
+                  1500,
+                  250,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_N",
+                  "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+                  "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=5.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "2F",
+            "wall_id": "space/2F%3A2F_S03/wall/0",
+            "boundary_ids": [
+              "space/2F%3A2F_S03/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 3.0,
+            "actual_coordinate_m": 2.947368,
+            "deviation_m": -0.052632,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "2F-y-3",
+                "boundary_id": "space/2F%3A2F_S03/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  400,
+                  1200,
+                  400,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_S",
+                  "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+                  "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=3.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "2F",
+            "wall_id": "space/2F%3A2F_S01/wall/0",
+            "boundary_ids": [
+              "space/2F%3A2F_S01/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 5.0,
+            "actual_coordinate_m": 5.063428,
+            "deviation_m": 0.063428,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "2F-y-5",
+                "boundary_id": "space/2F%3A2F_S01/wall/0",
+                "axis": "y",
+                "lengths": [
+                  3000,
+                  400,
+                  1200,
+                  400,
+                  3000
+                ],
+                "unit": "mm",
+                "origin_m": 0,
+                "direction": 1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_N",
+                  "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+                  "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=5.0"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 4,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-09-30_sm24_instruction_fix_run100",
+      "candidate": "candidate_03",
+      "case": "sm24",
+      "source_sha256": "bc311680fe17e801d48d00909a833fea5838e8a25aaded6690c94b196f40ddfe",
+      "source_unchanged": true,
+      "negative_control": false,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json",
+          "sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-15.94",
+          "boundary_id": "space/L1_reception/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+          ]
+        },
+        {
+          "id": "F1-y-13",
+          "boundary_id": "space/WestRoomA/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+          ]
+        },
+        {
+          "id": "F1-y-8.06",
+          "boundary_id": "space/WestRoomB/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/MidEastRoom/wall/4",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+          ]
+        },
+        {
+          "id": "F1-y-4.94",
+          "boundary_id": "space/MidEastRoom/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 5,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/L1_reception/wall/0",
+            "boundary_ids": [
+              "space/L1_reception/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 15.94,
+            "actual_coordinate_m": 16.083333,
+            "deviation_m": 0.143333,
+            "tolerance_m": 0.1111111111111111,
+            "annotations": [
+              {
+                "id": "F1-y-15.94",
+                "boundary_id": "space/L1_reception/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/WestRoomB/wall/0",
+            "boundary_ids": [
+              "space/WestRoomB/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 8.06,
+            "actual_coordinate_m": 8.222222,
+            "deviation_m": 0.162222,
+            "tolerance_m": 0.1111111111111111,
+            "annotations": [
+              {
+                "id": "F1-y-8.06",
+                "boundary_id": "space/WestRoomB/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 3,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/MidEastRoom/wall/4",
+            "boundary_ids": [
+              "space/MidEastRoom/wall/4"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 14.0,
+            "actual_coordinate_m": 14.222222,
+            "deviation_m": 0.222222,
+            "tolerance_m": 0.1111111111111111,
+            "annotations": [
+              {
+                "id": "F1-y-14",
+                "boundary_id": "space/MidEastRoom/wall/4",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 3,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.1095890410958904,
+            "y": 0.1111111111111111
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 5,
+        "items": [
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/L1_reception/wall/0",
+            "boundary_ids": [
+              "space/L1_reception/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 15.94,
+            "actual_coordinate_m": 16.083333,
+            "deviation_m": 0.143333,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-15.94",
+                "boundary_id": "space/L1_reception/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 1,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/WestRoomA/wall/0",
+            "boundary_ids": [
+              "space/WestRoomA/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 13.0,
+            "actual_coordinate_m": 13.083333,
+            "deviation_m": 0.083333,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-13",
+                "boundary_id": "space/WestRoomA/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/WestRoomB/wall/0",
+            "boundary_ids": [
+              "space/WestRoomB/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 8.06,
+            "actual_coordinate_m": 8.222222,
+            "deviation_m": 0.162222,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-8.06",
+                "boundary_id": "space/WestRoomB/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  2940,
+                  4940,
+                  8060
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 3,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+                  "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/MidEastRoom/wall/4",
+            "boundary_ids": [
+              "space/MidEastRoom/wall/4"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 14.0,
+            "actual_coordinate_m": 14.222222,
+            "deviation_m": 0.222222,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-14",
+                "boundary_id": "space/MidEastRoom/wall/4",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 2,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          },
+          {
+            "type": "annotated_wall_position_mismatch",
+            "floor_id": "F1",
+            "wall_id": "space/MidEastRoom/wall/0",
+            "boundary_ids": [
+              "space/MidEastRoom/wall/0"
+            ],
+            "axis": "y",
+            "expected_coordinate_m": 4.94,
+            "actual_coordinate_m": 4.972222,
+            "deviation_m": 0.032222,
+            "tolerance_m": 0.02,
+            "annotations": [
+              {
+                "id": "F1-y-4.94",
+                "boundary_id": "space/MidEastRoom/wall/0",
+                "axis": "y",
+                "lengths": [
+                  4060,
+                  1940,
+                  5940,
+                  3120,
+                  4940
+                ],
+                "unit": "mm",
+                "origin_m": 20,
+                "direction": -1,
+                "node": 4,
+                "offset_m": 0,
+                "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+                "source_refs": [
+                  "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+                  "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+                ]
+              }
+            ],
+            "action": "Recheck this wall and the named annotation reference; revise or explain explicitly."
+          }
+        ],
+        "skipped": [],
+        "total": 5,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21",
+      "candidate": "candidate_04",
+      "case": "sm21",
+      "source_sha256": "15ee6e680adc2c38e4fa41d5cfc39104ce097204e9677b39ce0662cd05214eba",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json",
+          "sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json",
+          "sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-3",
+          "boundary_id": "space/F1%3ACOR/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_S",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "F1-y-5",
+          "boundary_id": "space/F1%3ACOR/wall/2",
+          "axis": "y",
+          "lengths": [
+            3000,
+            250,
+            1500,
+            250,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_cor_N",
+            "1f_view.png west chain 3000/250/1500/250/3000 = 8000",
+            "1f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: 120 mm corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "F1-x-5",
+          "boundary_id": "space/F1%3AR_N1/wall/1",
+          "axis": "x",
+          "lengths": [
+            5000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N5",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=5.0"
+          ]
+        },
+        {
+          "id": "F1-x-10",
+          "boundary_id": "space/F1%3AR_N2/wall/1",
+          "axis": "x",
+          "lengths": [
+            10000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json#partitions/P_N10",
+            "1f_view.png north chain 1240/2400/1300/120/1240/2400/1240/120/1300/2400/1240 = 15000: 120 mm divider centred at x=10.0"
+          ]
+        },
+        {
+          "id": "F2-y-3",
+          "boundary_id": "space/F2%3ACOR/wall/0",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_S",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=3.0"
+          ]
+        },
+        {
+          "id": "F2-y-5",
+          "boundary_id": "space/F2%3ACOR/wall/2",
+          "axis": "y",
+          "lengths": [
+            3000,
+            400,
+            1200,
+            400,
+            3000
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_cor_N",
+            "2f_view.png west chain 3000/400/1200/400/3000 = 8000",
+            "2f_view.png east chain 2940/120/340/1200/340/120/2940 = 8000: corridor wall centred at y=5.0"
+          ]
+        },
+        {
+          "id": "F2-x-7.5",
+          "boundary_id": "space/F2%3AR_N1/wall/1",
+          "axis": "x",
+          "lengths": [
+            7500.0
+          ],
+          "unit": "mm",
+          "origin_m": 0,
+          "direction": 1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json#partitions/P_N7",
+            "2f_view.png north chain 1950/3600/1889/120/1891/3600/1950 = 15000: 120 mm divider centred at x=7.5"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 7,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.04319654427645788,
+            "y": 0.043243243243243246
+          },
+          "F2": {
+            "x": 0.04332129963898917,
+            "y": 0.04330175913396482
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 7,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24",
+      "candidate": "candidate_02",
+      "case": "sm24",
+      "source_sha256": "82b1c2f5bbd47ae595fe12d4203e0a53940eefd647ea276a906e54b6d4684915",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json",
+          "sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-15.94",
+          "boundary_id": "space/LOBBY/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_lobby",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: lobby wall at 20-4.06"
+          ]
+        },
+        {
+          "id": "F1-y-13",
+          "boundary_id": "space/R_WA/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W13",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 20-4.06-2.94"
+          ]
+        },
+        {
+          "id": "F1-y-8.06",
+          "boundary_id": "space/R_WB/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            2940,
+            4940,
+            8060
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_W806",
+            "1f_view.png west chains 540/1500/2380/1200/1740/1500/1220/1500/3080/4800/540 and 4060/2940/4940/8060: 8060 from the south"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/R_EA/wall/0",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E14",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 20-4.06-1.94"
+          ]
+        },
+        {
+          "id": "F1-y-4.94",
+          "boundary_id": "space/COR/wall/2",
+          "axis": "y",
+          "lengths": [
+            4060,
+            1940,
+            5940,
+            3120,
+            4940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/plan_drafts/draft_001/plan.json#partitions/P_E494",
+            "1f_view.png east chains 540/1500/2380/1200/740/4800/1540/1600/5700 and 4060/1940/5940/3120/4940: 4940 from the south"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 5,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.11049723756906077,
+            "y": 0.11019283746556474
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 5,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    },
+    {
+      "run": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25",
+      "candidate": "candidate_04",
+      "case": "sm25",
+      "source_sha256": "bbd8f6991261178fea8ef09b2fd4c1dfc4d1a90fdaf1ea527c9234630a8471a4",
+      "source_unchanged": true,
+      "negative_control": true,
+      "annotation_sources": [
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json",
+          "sha256": "9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347"
+        },
+        {
+          "path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json",
+          "sha256": "c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa"
+        }
+      ],
+      "direct_history": {
+        "schema_version": "wall_placement_v1",
+        "status": "not_assessed",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 0,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "reason": "No usable structured wall annotations; prose, ink measurements and absent records are not checks."
+      },
+      "developer_supplied_positions": [
+        {
+          "id": "F1-y-18",
+          "boundary_id": "space/F1%3AO1/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 1,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off18",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 18"
+          ]
+        },
+        {
+          "id": "F1-y-16",
+          "boundary_id": "space/F1%3AO2/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off16",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 16"
+          ]
+        },
+        {
+          "id": "F1-y-14",
+          "boundary_id": "space/F1%3AO3/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off14",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 14"
+          ]
+        },
+        {
+          "id": "F1-y-12",
+          "boundary_id": "space/F1%3AO4/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off12",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 12"
+          ]
+        },
+        {
+          "id": "F1-y-10",
+          "boundary_id": "space/F1%3AO5/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 5,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off10",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 10"
+          ]
+        },
+        {
+          "id": "F1-y-8",
+          "boundary_id": "space/F1%3AO6/wall/0",
+          "axis": "y",
+          "lengths": [
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            2000,
+            6000
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 6,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json#partitions/P_off8",
+            "1f_view.png east chains 2000 x7 + 6000 and 740/900/720/900/1480/900/720/900/1480/900/720/900/1100/900/740/3860/1600/540: office divider at 8"
+          ]
+        },
+        {
+          "id": "F2-y-14",
+          "boundary_id": "space/F2%3AO1/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 2,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off14",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 14"
+          ]
+        },
+        {
+          "id": "F2-y-12",
+          "boundary_id": "space/F2%3AO2/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 3,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off12",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 12"
+          ]
+        },
+        {
+          "id": "F2-y-10",
+          "boundary_id": "space/F2%3AO3/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 4,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off10",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 10"
+          ]
+        },
+        {
+          "id": "F2-y-8",
+          "boundary_id": "space/F2%3AO4/wall/0",
+          "axis": "y",
+          "lengths": [
+            3940,
+            2060,
+            2000,
+            2000,
+            2000,
+            2000,
+            2060,
+            3940
+          ],
+          "unit": "mm",
+          "origin_m": 20,
+          "direction": -1,
+          "node": 5,
+          "offset_m": 0,
+          "basis": "Developer replay: same representative plane as transcribed 10-01 labelled chain; original worker did not supply this structured binding.",
+          "source_refs": [
+            "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json#partitions/P_off8",
+            "2f_view.png east chains 3940/2060/2000 x4/2060/3940 and 4740/900/720/900/1480/900/720/900/1100/900/740/6000: office divider at 8"
+          ]
+        }
+      ],
+      "conditional_replay": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "max(2 cm, four original pixels): two endpoint picks at two pixels each",
+        "checked_positions": 10,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair.",
+        "floor_axis_tolerance_m": {
+          "F1": {
+            "x": 0.08658008658008658,
+            "y": 0.08648648648648649
+          },
+          "F2": {
+            "x": 0.08726003490401396,
+            "y": 0.08724100327153762
+          }
+        }
+      },
+      "strict_2cm_diagnostic": {
+        "schema_version": "wall_placement_v1",
+        "status": "reported",
+        "tolerance_m": 0.02,
+        "tolerance_source": "tool_default",
+        "checked_positions": 10,
+        "items": [],
+        "skipped": [],
+        "total": 0,
+        "delivery_blocked": false,
+        "geometry_changed": false,
+        "scope": "Explicit saved annotation spans relative to their named reference wall; not all walls, drawing truth or an automatic repair."
+      },
+      "unmatched": []
+    }
+  ],
+  "limitation": "Conditional developer-assisted replay, not unchanged historical model adoption. No prose/OCR inference in production. Missing wall IDs stay unassessed. No claim of whole-case dimensional fidelity."
+}
