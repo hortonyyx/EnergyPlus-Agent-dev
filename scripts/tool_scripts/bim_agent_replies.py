@@ -86,6 +86,14 @@ def projection_summary(value):
 def summarize_reply(result):
     """Pure presentation: errors, findings, IDs, heights and geometry stay explicit."""
     reply = copy.deepcopy(result)
+    precision = reply.get('building_precision')
+    if isinstance(precision, dict) and precision.get('status') == 'reported':
+        precision['items'] = table(precision['items'][:8])
+        precision['truncated'] = precision['total'] > 8
+        # Exact evidence and all findings are in the ordinary A3-T details file.
+        for row in precision.get('tolerances', {}).values():
+            row.pop('basis', None)
+            row.pop('rule', None)
     for key in ('opening_inventory', 'inventory'):
         if isinstance(reply.get(key), dict):
             reply[key] = inventory_summary(reply[key])

@@ -810,6 +810,8 @@ class Toolkit:
         result["current_claim_state"] = current_claims
         result["height_coverage"] = self.located_heights(candidate, current_claims)
         result["facade_counts"] = self.facade_counts(candidate)
+        from scripts.tool_scripts.bim_agent_precision import building_precision
+        result["building_precision"] = building_precision(self, candidate, source)
         from scripts.tool_scripts.bim_agent_budget import saved_floor_status
         result["floor_completeness"] = saved_floor_status(self, candidate)
         # Keep full claims in their files; summarize unresolved execution in handoff.
@@ -1361,6 +1363,8 @@ class Toolkit:
                                        metadata=report, **calibration)
             for registered in assembly_calibrations or []:
                 self._save_calibration(candidate=candidate, metadata=report, **registered)
+            from scripts.tool_scripts.bim_agent_precision import building_precision
+            result["building_precision"] = building_precision(self, candidate, source)
             projections, errors = self.project_registered_calibrations(candidate, action)
             result["source_image_projections"] = projections
             result["projection_errors"] = errors
