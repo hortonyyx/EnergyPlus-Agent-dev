@@ -14,9 +14,12 @@ MODULES=('run_bim_agent','bim_agent_replies','bim_agent_guidance',
          'bim_agent_feedback','source_naming','wall_placement','bim_agent_precision','agent_versions')
 
 
-def files():
+def files(label='final'):
+    modules = ('bim_agent_guidance', 'agent_versions') if label == 'naming_reference' else MODULES
     direct={str(p.relative_to(ROOT)) for p in (ROOT/'tests').rglob('test*.py')
-            if any(name in p.read_text() for name in MODULES)}
+            if any(name in p.read_text() for name in modules)}
+    if label == 'naming_reference':
+        return sorted(direct), sorted(direct)
     selected=direct | {str(p.relative_to(ROOT)) for pattern in
         ('test_bim_*.py','test_runtime_*.py','test_harness_*.py') for p in (ROOT/'tests').glob(pattern)}
     selected.update('tests/'+name+'.py' for name in ('test_agent_runtime','test_building_contracts',
@@ -40,7 +43,7 @@ def main():
     output.mkdir(parents=True,exist_ok=True)
     work=ROOT/'.tmp_a5t/validation'/label
     work.mkdir(parents=True,exist_ok=True)
-    selected,direct=files()
+    selected,direct=files(label)
     command=[sys.executable,'-m','pytest','-q','-n','2','-s',*selected,
              '--basetemp='+str(work/'pytest'),'-o','cache_dir='+str(work/'cache'),
              '--junitxml='+str(output/'related.xml')]
