@@ -1,6 +1,6 @@
 # C3-R 交付报告
 
-2026-10-05 09:34 UTC 开工。Astra；基准 `a5baa32d`，分支 `dev/astra-c3r-20261005`，工作树 `/root/worktrees/astra-c3r`。按 [派工单](brief.md) 与 [验收 A–E](../../../project/unified_agent_acceptance.md#清理包-c3-r底座开销思考回传按实际额度收尾检查全量第二次完整审查后10-05-派出astra) 交付。开工报告已先行提交；只提交本分支，未合入、未推送。
+2026-10-05 09:34 UTC 开工，10:59 UTC 验证及临时目录清理完成，约 85 分钟。Astra；基准 `a5baa32d`，分支 `dev/astra-c3r-20261005`，工作树 `/root/worktrees/astra-c3r`。按 [派工单](brief.md) 与 [验收 A–E](../../../project/unified_agent_acceptance.md#清理包-c3-r底座开销思考回传按实际额度收尾检查全量第二次完整审查后10-05-派出astra) 交付。开工报告已先行提交；只提交本分支，未合入、未推送。
 
 ## 当前结果
 
@@ -107,7 +107,7 @@
 - 1 项 `test_orchestrate_baseline`：幂等测试原来把正在变化的 Git 未跟踪文件数量当成相同输入；现在固定实际采集的 Git 元数据输入，仍逐字节比较输出并检验用户编辑保留，生产基线记录逻辑不改。
 - 1 项 `test_runtime_r3`：只将两处旧时间文案断言换成新预算句；超时硬停、晚工具拒绝、未保存候选和审计证据断言全部保留。
 
-同次补齐 CLI 相对输出路径的原有 cwd 语义及配置的代码树语义，新增两个边界检查。上述 10 文件复查 **181 passed、1 个原有 xfailed，106.60 s**；额外配置消费者 **7 passed，2.88 s**。未再次重复全量；未改代码/范围的长任务与 run99 复用完整全量的通过结果。最终有效结果并集为 **5526 passed、2 skipped、13 xfailed**（比完整一轮新增 2 项路径检查），剩余失败 0；这不是宣称某一次完整全量全绿。逐项覆盖见 [闭环记录](verification_closure.json)、[各次汇总](validation_summary.json)。
+同次补齐 CLI 相对输出路径的原有 cwd 语义及配置的代码树语义，新增两个边界检查。上述 10 文件复查 **181 passed、1 个原有 xfailed，106.60 s**；额外配置消费者 **7 passed，2.88 s**。未再次重复全量；未改代码/范围的长任务与 run99 复用完整全量的通过结果。最终有效结果并集为 **5526 passed、2 skipped、13 xfailed**（比完整一轮新增 2 项路径检查），剩余失败 0；这不是宣称某一次完整全量全绿。逐项覆盖见 [闭环记录](verification_closure.json)、[各次汇总](validation_summary.json)。2 个 skipped 都需要 live 模型，依 0 请求约束不运行；13 个 xfailed 为原有的 9 个命名基准待重录、3 个隔离 guard 已知缺口、1 个 free-end 证明路径待实现，本包没有新增跳过或预期失败。
 
 ## E：验证清单与复现
 
@@ -124,6 +124,8 @@
 | 6 失修复及路径兼容，10 文件 | 181 passed、1 原有 xfailed，106.60 s | [final_repairs.log](checks/final_repairs.log) |
 | 额外配置消费者 | 7 passed，2.88 s | [subscription_final.log](checks/subscription_final.log) |
 | 最终有效结果并集 | 5526 passed、2 skipped、13 xfailed；剩余失败 0 | [verification_closure.json](verification_closure.json) |
+
+最终直接按模块名检索到的 43 个消费者文件已全部纳入完整检查，无未收集文件；其中预算断言的 1 失已在复查中通过。全部底座/契约检查（阶段 0–3、R1–R3、C1、A1-R～A5-R）最终有效 459 项通过，34 个 BIM 消费者文件 319 项通过。
 
 正式 `src/agent_runtime/agent_versions.json` 属于 C3-T，未修改。本包指引/预算改动会使旧正式登记拒绝启动，合并后须由 Opus/C3-T 统一登记共同版本。离线检查用显式、绝对的 `BIM_AGENT_REGISTRY_PATH` 选取临时登记 JSON，仍由原登记器生成并逐文件/目录哈希验证；没有自动登记或跳过检查，默认正式登记位置不变，错哈希/相对路径均有拒绝检查。
 
@@ -146,7 +148,7 @@ python -m pytest -n 2 -s --basetemp="$PWD/.c3r_validation/pytest"
 - `03c9cf8a`：检查点复用、显式运行根、思考配置、额度提示与历史证据。
 - `b080ede6`：11 项旧失败的测试修复及旧约定退役标记。
 - `40bd682a`：旧隔离测试源副本、未启用额度兼容、9p 快照计时。
-- 6 项全量失败修复、默认路径兼容：待提交。
-- 最终检查证据与收工报告：待提交。
+- `f77c0c66`：6 项全量失败修复、默认路径兼容及收工报告主体。
+- 最终证据提交：本报告及完整日志/XML、验证汇总、来源哈希；提交标题 `docs(c3r): deliver timing, replay and full-suite validation evidence`。
 
-未改 C3-T 的工具返回、工具名表、当前稿选择、协调入口或登记表；仅改获派预算模块和 FINISHING 两句。后续节点实模型回归仍需项目经理按既定流程安排，本包没有代行。临时历史运行和测试目录在验证结束后清理；保留原证据包来源及哈希、逐请求/逐检查点结果、全部检查日志/XML。
+未改 C3-T 的工具返回、工具名表、当前稿选择、协调入口或登记表；仅改获派预算模块和 FINISHING 两句。后续节点实模型回归仍需项目经理按既定流程安排，本包没有代行。临时历史运行和测试目录已全部清理（仅本任务的 `.c3r_tmp`）；保留原证据包来源及哈希、逐请求/逐检查点结果、全部检查日志/XML。

@@ -1,0 +1,53 @@
+{
+  "full_suite": "checks/full_final.xml",
+  "full_suite_outcomes": {
+    "passed": 5518,
+    "failure": 6,
+    "skipped": 2,
+    "xfailed": 13
+  },
+  "followups": [
+    "checks/final_repairs.xml",
+    "checks/subscription_final.xml"
+  ],
+  "repaired_full_suite_failures": [
+    "tests.test_affected_tests_map::test_production_string_paths_cannot_bridge_through_test_nodes",
+    "tests.test_orchestrate_baseline::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent",
+    "tests.test_reading_ruler_r1_batchB::test_L10_isolation_policy_truth_regression_blocks",
+    "tests.test_reading_ruler_r1_batchB::test_L11_exploratory_control_same_facts_zero_blocker",
+    "tests.test_reading_ruler_r1_batchB::test_L12_policy_drift_rejected_before_attempt",
+    "tests.test_runtime_r3::test_half_near_deadline_and_late_tool_refusal_through_runtime"
+  ],
+  "all_six_repaired": true,
+  "latest_test_outcomes": {
+    "passed": 5526,
+    "skipped": 2,
+    "xfailed": 13
+  },
+  "scopes": {
+    "runtime_and_contracts": {
+      "files": 43,
+      "outcomes": {
+        "passed": 459
+      }
+    },
+    "bim_consumers": {
+      "files": 34,
+      "outcomes": {
+        "passed": 319
+      }
+    }
+  },
+  "new_tests_after_full": [
+    "tests.test_runtime_c3r::test_configuration_output_keeps_repository_semantics_from_foreign_cwd",
+    "tests.test_runtime_c3r::test_default_cli_output_keeps_cwd_semantics_and_still_refuses_foreign_cwd"
+  ],
+  "note": "Union of one completed full suite and bounded follow-ups on changed files; NOT a second fully green full-suite invocation. Unchanged long-task/run99 code and scope reuse the full-suite results.",
+  "final_code_commit": "f77c0c66",
+  "full_suite_code_commit": "40bd682a",
+  "after_full_code_changes": [
+    "src/agent_runtime/run_paths.py: retain original cwd behavior without explicit root",
+    "src/agent/runtime_configuration.py: keep configuration outputs repository-relative"
+  ],
+  "unchanged_runtime_loop_and_adapter_reuse_full_suite_results": true
+}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="37" time="5.914" timestamp="2026-10-05T09:50:52.544929+00:00" hostname="d5136ba15fc0"><testcase classname="tests.test_runtime_c3r" name="test_checkpoints_reuse_observed_state_but_each_tool_keeps_both_snapshots" time="0.271" /><testcase classname="tests.test_runtime_c3r" name="test_reasoning_policy_changes_only_wire_history_and_keeps_current_parallel_batch[current_tool_chain-kept1]" time="0.377" /><testcase classname="tests.test_runtime_c3r" name="test_explicit_storage_root_preserves_default_and_rejects_escape" time="0.305" /><testcase classname="tests.test_runtime_c3r" name="test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not" time="0.000"><failure message="pydantic_core._pydantic_core.ValidationError: 1 validation error for SourceRef&#10;source_kind&#10;  Input should be 'user', 'runtime', 'tool', 'history', 'external_coordinator' or 'generated' [type=literal_error, input_value='model', input_type=str]&#10;    For further information visit https://errors.pydantic.dev/2.13/v/literal_error">def test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not():
+        assistant = response(("a", "view", {}), reasoning=True)["choices"][0]["message"]
+        messages = [assistant, {"role": "tool", "tool_call_id": "a", "content": "result"},
+                    {"role": "user", "content": "next"}]
+&gt;       sources = [SourceRef(source_id="response", source_kind="model", locator="response"),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   SourceRef(source_id="result", source_kind="tool", locator="result"),
+                   SourceRef(source_id="user", source_kind="user", locator="user")]
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for SourceRef
+E       source_kind
+E         Input should be 'user', 'runtime', 'tool', 'history', 'external_coordinator' or 'generated' [type=literal_error, input_value='model', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/literal_error
+
+tests/test_runtime_c3r.py:91: ValidationError</failure></testcase><testcase classname="tests.test_runtime_c3r" name="test_anthropic_wire_bytes_do_not_change_with_chat_reasoning_policy" time="0.503" /><testcase classname="tests.test_runtime_c3r" name="test_explicit_storage_root_cannot_authorize_another_checkout_or_symlink" time="0.357" /><testcase classname="tests.test_runtime_c3r" name="test_tool_tail_uses_tightest_dimension_and_does_not_invent_disabled_caps[tokens]" time="0.002" /><testcase classname="tests.test_runtime_c3r" name="test_tool_tail_uses_tightest_dimension_and_does_not_invent_disabled_caps[money_cny]" time="0.002" /><testcase classname="tests.test_runtime_c3r" name="test_tool_tail_uses_tightest_dimension_and_does_not_invent_disabled_caps[money_usd]" time="0.001" /><testcase classname="tests.test_runtime_c3r" name="test_tool_tail_uses_tightest_dimension_and_does_not_invent_disabled_caps[calls]" time="0.001" /><testcase classname="tests.test_runtime_c3r" name="test_tool_tail_uses_tightest_dimension_and_does_not_invent_disabled_caps[tool_calls]" time="0.002" /><testcase classname="tests.test_runtime_c3r" name="test_tool_tail_uses_tightest_dimension_and_does_not_invent_disabled_caps[seconds]" time="0.001" /><testcase classname="tests.test_runtime_c3r" name="test_reasoning_policy_changes_only_wire_history_and_keeps_current_parallel_batch[all-kept0]" time="0.316" /><testcase classname="tests.test_runtime_c3r" name="test_budget_bridge_reads_settled_usage_and_counts_pending_tool_once" time="0.188" /><testcase classname="tests.test_runtime_c3r" name="test_explicit_registry_still_rejects_changed_source_and_relative_override" time="0.006" /><testcase classname="tests.test_bim_time_budget" name="test_scripted_tool_returns_at_half_near_and_hard_deadline" time="0.046" /><testcase classname="tests.test_bim_time_budget" name="test_scripted_model_timeout_delivers_latest_complete_even_after_partial_selection" time="0.745" /><testcase classname="tests.test_bim_time_budget" name="test_single_floor_fallback_reports_missing_upper_floor" time="0.208" /><testcase classname="tests.test_bim_time_budget" name="test_no_complete_candidate_still_delivers_latest_viewable_severe_draft" time="0.452" /><testcase classname="tests.test_bim_time_budget" name="test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry" time="0.008"><failure message="src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version t1-20261005-a5.1 file mismatch: {&quot;scripts/tool_scripts/bim_agent_budget.py&quot;: &quot;34ee95e7f3996435236d77b0c89d747ac70329a94100b12b0e76cf329e4aa3a4&quot;, &quot;scripts/tool_scripts/bim_agent_guidance.py&quot;: &quot;7e8f6bb27b2e7327c6a6dc4c65463823f0779417254468eba7db912b8291af6f&quot;}">tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/checks_bc/popen-gw0/test_subscription_wait_uses_re0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7d17b1f2d1f0&gt;
+
+    def test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry(tmp_path, monkeypatch):
+        run = _clocked_run(tmp_path)
+        clock, waits = [6500], []
+        monkeypatch.setattr(runner.time, "time", lambda: clock[0])
+        class ScriptedProcess:
+            returncode = 0
+            def __init__(self, command, **kwargs):
+                kwargs["stdout"].write(json.dumps(dict(type="system", subtype="init", model="claude-sonnet-5")) + "\n")
+            def communicate(self, prompt, timeout):
+                waits.append(timeout)
+        monkeypatch.setattr(runner.subprocess, "Popen", ScriptedProcess)
+&gt;       runner.subscription(run, "fixture", model="sonnet", name="first", timeout=6000)
+
+tests/test_bim_time_budget.py:129: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/tool_scripts/run_bim_agent.py:298: in subscription
+    agent_version = agent_version_record(ROOT)["version_id"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/root/worktrees/astra-c3r'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version t1-20261005-a5.1 file mismatch: {"scripts/tool_scripts/bim_agent_budget.py": "34ee95e7f3996435236d77b0c89d747ac70329a94100b12b0e76cf329e4aa3a4", "scripts/tool_scripts/bim_agent_guidance.py": "7e8f6bb27b2e7327c6a6dc4c65463823f0779417254468eba7db912b8291af6f"}
+
+src/agent_runtime/agent_registry.py:100: AgentVersionMismatch</failure></testcase><testcase classname="tests.test_runtime_anthropic" name="test_truncated_native_write_batch_never_executes_and_r2_repairs" time="0.120" /><testcase classname="tests.test_runtime_anthropic" name="test_two_native_turns_tool_images_signatures_caching_accounting_and_reader" time="0.307" /><testcase classname="tests.test_runtime_anthropic" name="test_native_http_failures_use_c1_rules_without_credentials[503-overloaded_error-True-completed]" time="0.132" /><testcase classname="tests.test_runtime_anthropic" name="test_native_http_failures_use_c1_rules_without_credentials[429-rate_limit_error-True-completed]" time="0.125" /><testcase classname="tests.test_runtime_anthropic" name="test_native_http_failures_use_c1_rules_without_credentials[400-invalid_request_error-False-invalid_request]" time="0.065" /><testcase classname="tests.test_runtime_anthropic" name="test_native_http_failures_use_c1_rules_without_credentials[429-insufficient_quota-False-quota_exhausted]" time="0.067" /><testcase classname="tests.test_runtime_anthropic" name="test_explicit_native_credentials_and_capture_parameters" time="0.002" /><testcase classname="tests.test_runtime_anthropic" name="test_usage_cache_components_not_double_counted_and_missing_stays_missing" time="0.000" /><testcase classname="tests.test_runtime_anthropic" name="test_opaque_thinking_roundtrips_without_becoming_public_text" time="0.006" /><testcase classname="tests.test_runtime_anthropic" name="test_native_response_and_signature_recovery_from_durable_journal[False]" time="0.274" /><testcase classname="tests.test_runtime_anthropic" name="test_native_http_failures_use_c1_rules_without_credentials[401-authentication_error-False-permission_denied]" time="0.067" /><testcase classname="tests.test_runtime_anthropic" name="test_native_malformed_batches_never_execute_any_tool[duplicate]" time="0.070" /><testcase classname="tests.test_runtime_anthropic" name="test_native_malformed_batches_never_execute_any_tool[bad_input]" time="0.072" /><testcase classname="tests.test_runtime_anthropic" name="test_native_malformed_batches_never_execute_any_tool[unknown_block]" time="0.070" /><testcase classname="tests.test_runtime_anthropic" name="test_native_response_and_signature_recovery_from_durable_journal[True]" time="0.182" /><testcase classname="tests.test_runtime_anthropic" name="test_native_malformed_batches_never_execute_any_tool[wrong_finish]" time="0.073" /><testcase classname="tests.test_runtime_anthropic" name="test_native_large_result_compaction_records_actual_wire_content" time="0.260" /></testsuite></testsuites>
