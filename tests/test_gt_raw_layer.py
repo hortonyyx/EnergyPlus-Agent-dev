@@ -27,10 +27,77 @@ from pydantic import ValidationError
 
 import src.agent.judge.gt_raw_layer as raw_layer
 from src.agent.judge.gt_raw_layer import (load_gt_raw_layer,
-                                          verify_raw_layer_reproduction)
+                                          verify_raw_layer_reproduction as _verify)
 
 CASE = "sm25-L_anchor"
 GT_ROOT = Path("case_tests/test_baseline/gt")
+ARCHIVED_GT_ROOT = GT_ROOT
+
+
+@pytest.fixture(scope="module", autouse=True)
+def current_test_review(tmp_path_factory):
+    """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+    The archived bundle must still fail on its moved VG implementation. For
+    mutation coverage we need a current implementation, so only this temporary
+    copy gets a new test identity and a recomputed candidate/inventory chain.
+    Its original raw geometry must reproduce before any mutation test runs.
+    """
+    import hashlib
+    from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+    from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+    global GT_ROOT
+    root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+    for case in (CASE, "sm24_anchor"):
+        shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+    path = root / CASE / "gt.json"
+    document = json.loads(path.read_text())
+    current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+    document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+    document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+    promoted = GroundTruthV3.model_validate(document)
+    candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+        "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+        "content_sha256": "0" * 64})
+    candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+    document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+    path.write_text(json.dumps(document))
+    review = root / CASE / "review"
+    index = json.loads((review / "review_index.json").read_text())
+    index["candidate_gt_sha256"] = candidate.content_sha256
+    for item in index["files"]:
+        if item["path"] == "gt/gt.json":
+            item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+    index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+    (review / "review_index.json").write_text(json.dumps(index))
+    ack = json.loads((review / "review_ack.json").read_text())
+    ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+               review_index_sha256=index["inventory_sha256"])
+    (review / "review_ack.json").write_text(json.dumps(ack))
+    # G10 records the approval identity, not drawing geometry. Give that one
+    # evidence record the same explicit synthetic identity as the test ack.
+    report_path = review / "conversion_report.json"
+    report = json.loads(report_path.read_text())
+    gate = next(gate for gate in report["gates"] if gate["id"] == "G10")
+    gate["evidence"].update({key: ack[key] for key in
+                             ("reviewer", "signed_at", "review_index_sha256")})
+    report_path.write_text(json.dumps(report))
+    verdict = _verify(CASE, gt_dir=root)
+    assert verdict.status == "reproduced", verdict.detail
+    GT_ROOT = root
+    yield
+    GT_ROOT = ARCHIVED_GT_ROOT
+
+
+def verify_raw_layer_reproduction(case, **kwargs):
+    return _verify(case, gt_dir=kwargs.pop("gt_dir", GT_ROOT), **kwargs)
+
+
+def test_archived_human_review_still_reports_implementation_drift():
+    verdict = _verify(CASE, gt_dir=ARCHIVED_GT_ROOT)
+    assert verdict.status == "implementation_drift"
+    assert verdict.drifted_fingerprints == ("vg_implementation_sha256",)
 
 
 def _clone_gt(tmp_path: Path) -> Path:

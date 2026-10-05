@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import time
 from dataclasses import asdict, dataclass
@@ -20,7 +21,8 @@ from src.harness_contracts import (
     TruncationPayload,
 )
 from src.harness_contracts.base import ContractModel
-from .adapter import convert_tool_result, parse_response, prepare_request, reported_tokens
+from .adapter import (convert_tool_result, parse_response, prepare_request,
+                      reasoning_history_messages, reported_tokens)
 from .accounting import (account_request_usage, bills_images_separately,
     get_cny_price_schedule, require_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
@@ -63,6 +65,7 @@ class Runtime:
     versions: object
     limits: RunLimits
     echo_fields: tuple[str, ...] = ("reasoning_content",)
+    reasoning_history: Literal["all", "current_tool_chain"] = "all"
     context_policy: object | None = None
     pricing: PriceSchedule | None = None
     context_update: object | None = None
@@ -79,6 +82,7 @@ class Runtime:
     # Resume still restores the original persisted start; it never buys time.
     start_epoch: float | None = None
     finalize_run: object | None = None
+    tool_budget_update: object | None = None
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
@@ -103,6 +107,9 @@ class Runtime:
         self.answer_repair_error = None
         self.last_summary_at = 0
         self.context = None
+        # Checkpoints reuse the last observed tool state. Every actual tool
+        # still gets fresh before/after snapshots, and resume re-reads disk.
+        self._tool_state = None
         if self.max_answer_repairs not in (0, 1):
             raise ValueError("max_answer_repairs must be zero or one")
         if self.context_policy is not None:
@@ -211,6 +218,8 @@ class Runtime:
             "context_policy": self.context_policy.model_dump(mode="json") if self.context_policy else None,
             "pricing": self.pricing.model_dump(mode="json") if self.pricing else None,
             "echo_fields": list(self.echo_fields),
+            "reasoning_history": self.reasoning_history,
+            "tool_budget_update_enabled": self.tool_budget_update is not None,
             "answer_validation_enabled": self.answer_validator is not None,
             "max_answer_repairs": self.max_answer_repairs,
             "low_output_limit_reason": self.low_output_limit_reason,
@@ -249,13 +258,45 @@ class Runtime:
             "reserved_tokens": self.task_budget.ledger.committed.tokens or 0,
             "usage_complete": len(requests) == len(usages) and all(reported_tokens(usage) is not None for usage in usages.values())}
 
+    def remaining_budget_status(self):
+        """Read the existing ledger conservatively, without enlarging any cap.
+
+        Root reservations include children, summaries, unknown calls and retries;
+        private usage of an external coordinating model is not observable here.
+        """
+        self._load_budget()
+        dimensions = {}
+        for name in ("seconds", "tokens", "money_usd", "money_cny", "calls"):
+            caps = [(getattr(b.total_limit, name), getattr(b.available, name))
+                    for b in (self.budget, self.task_budget)
+                    if getattr(b.total_limit, name) is not None]
+            if not caps:
+                continue
+            remaining = min(value for _, value in caps)
+            if name == "seconds":
+                remaining = min(remaining, Decimal(str(self._remaining())))
+                caps = [(limit, min(value, remaining)) for limit, value in caps]
+            dimensions[name] = {"remaining": str(max(0, remaining)),
+                "remaining_fraction": float(min(
+                    max(0, value) / limit if limit > 0 else 0 for limit, value in caps))}
+        tool_caps = [(self.limits.tool_calls, self.counts["tool_calls"])]
+        if self.root_tool_calls is not None:
+            tool_caps.append((self.root_tool_calls, sum(
+                e.payload.event_type == "tool_invocation" for e in self.store.all_events)))
+        dimensions["tool_calls"] = {"remaining": str(min(max(0, limit - used) for limit, used in tool_caps)),
+            "remaining_fraction": min(max(0, limit - used) / limit if limit else 0 for limit, used in tool_caps)}
+        return {"schema_version": 1, "scope": "runtime_managed_requests_only",
+                "external_coordinator_usage": "unavailable", "dimensions": dimensions}
+
     def _project(self):
         if self.context is None:
             return self.messages, self.sources, None
         p = self.context.project(required_tags=self.required_context_tags,
             required_view_ids=self.required_view_ids, consume_retrievals=False,
             token_estimator=lambda messages: estimate_chat_request({"model": self.model,
-                "messages": messages, "tools": self.specs, **self.parameters},
+                "messages": (messages if self.versions.remote_model.route_id == "glm-subscription-anthropic"
+                    else reasoning_history_messages(messages, self.reasoning_history)),
+                "tools": self.specs, **self.parameters},
                 strict=self.strict_model_profile).input_tokens_estimate)
         last = p.decision_event_ids[-1] if p.decision_event_ids else next((
             e.event_id for e in reversed(self.store.events) if e.payload.event_type == "context"), None)
@@ -271,6 +312,7 @@ class Runtime:
                 messages=messages, message_sources=sources, tools=tools,
                 tool_source=self.tool_source, parameters=parameters, versions=self.versions,
                 image_originals=self.originals,
+                reasoning_history=self.reasoning_history,
                 strict_model_profile=self.strict_model_profile)
             profile_limit = prepared.context_window_tokens
             configured_limit = self.limits.context_tokens
@@ -782,11 +824,14 @@ class Runtime:
             repeatability = self.tools.repeatability(call.tool_name)
             write = repeatability != "read_only"
             key = f"{self.store.run_id}:{call.call_id}" if write else None
-            before = self.store.put_json(self.tools.snapshot_state())
+            self._tool_state = copy.deepcopy(self.tools.snapshot_state())
+            before = self.store.put_json(self._tool_state)
             intent = self.store.append(ToolInvocationPayload(call_id=call.call_id,
                 tool_name=call.tool_name, full_arguments=call.full_arguments,
                 repeatability=repeatability, operation_key=key, state_before=before))
             self._refresh_counts()
+            if self.tool_budget_update is not None:
+                self.tool_budget_update(self)
             try:
                 raw = await asyncio.wait_for(self.tools.call_tool(call.tool_name, call.full_arguments), timeout=self._remaining())
             except (Exception, asyncio.CancelledError) as exc:
@@ -805,6 +850,7 @@ class Runtime:
                     repeatability=repeatability, operation_key=key, outcome="failed",
                     invocation_event_id=intent.event_id, presentation_status="prepared"))
                 return "tool_presentation_failed"
+            self._tool_state = copy.deepcopy(self.tools.snapshot_state())
             execution = self.store.append(ToolExecutionPayload(call_id=call.call_id,
                 tool_name=call.tool_name, full_arguments=call.full_arguments,
                 raw_result=self.store.capture(raw, force_blob=True),
@@ -813,7 +859,7 @@ class Runtime:
                 outcome="failed" if raw.get("isError") else "succeeded",
                 applied_write_id=key if write and not raw.get("isError") else None,
                 invocation_event_id=intent.event_id, presentation_status="prepared"),
-                source_refs=(self.store.source("tool-state-after", self.tools.snapshot_state()),))
+                source_refs=(self.store.source("tool-state-after", self._tool_state),))
             self._fault("after_execution")
             self._accept_execution(execution)
             self._checkpoint()
@@ -883,6 +929,8 @@ class Runtime:
             target_event_id=event_id, persisted_state=state, conclusion="inconclusive"))
 
     def _checkpoint(self):
+        if self._tool_state is None:
+            self._tool_state = copy.deepcopy(self.tools.snapshot_state())
         snapshot = {"messages": self.messages if self.context is None else None,
             "sources": [s.model_dump(mode="json") for s in self.sources] if self.context is None else None,
             "context": self.context.dump() if self.context else None,
@@ -898,7 +946,7 @@ class Runtime:
             "answer_repair_error": self.answer_repair_error,
             "last_summary_at": self.last_summary_at,
             "elapsed_seconds": self.limits.seconds - self._remaining(), "started_epoch": self.started_epoch,
-            "tool_state": self.tools.snapshot_state(), "config": self._config(),
+            "tool_state": self._tool_state, "config": self._config(),
             "versions": self.versions.model_dump(mode="json"), "last_event_id": self.store.events[-1].event_id}
         ref = self.store.put_json_tree(snapshot)
         self.store.append(CheckpointPayload(state=ref, after_event_id=snapshot["last_event_id"]))
@@ -1032,12 +1080,14 @@ class Runtime:
                 if event.payload.repeatability != "read_only":
                     self._inspect_unknown(event.event_id, None)
                 return "resume_pending_operation"
-        safe = expected_state == self.tools.snapshot_state()
+        observed_state = self.tools.snapshot_state()
+        safe = expected_state == observed_state
         inspected = self.store.append(StateInspectionPayload(purpose="resume",
             target_event_id=saved["last_event_id"], persisted_state=ref,
             conclusion="safe_to_resume" if safe else "inconclusive"))
         if not safe:
             return "resume_state_changed"
+        self._tool_state = copy.deepcopy(observed_state)
         failures = {e.payload.model_failure.request_event_id: e.payload.model_failure
                     for e in self.store.events if e.payload.event_type == "run_lifecycle" and e.payload.model_failure}
         responded = {e.payload.request_event_id for e in self.store.events if e.payload.event_type == "model_response"

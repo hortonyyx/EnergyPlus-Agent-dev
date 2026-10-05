@@ -734,7 +734,7 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 
 ## 清理包 C3-R：底座开销、思考回传、按实际额度收尾、检查全量（第二次完整审查后，10-05 派出，Astra）
 
-**状态：已派出，待交付。** 依据同上。派工单 [C3-R brief](../logs/experiments/2026-10-05_cleanup_c3r/brief.md)。文件范围：`src/agent_runtime/`、`src/harness_contracts/`、`src/agent/runtime_entry.py`、`src/agent/runtime_configuration.py`、`src/agent/runtime_tools.py` 里 `snapshot_state` 与检查点相关部分、`scripts/tool_scripts/bim_agent_budget.py`、`bim_agent_guidance.py` 里 `FINISHING` 段讲剩余时间、过半与 15% 的两句、整案配置文件、`tests/` 中旧检查（C3-T 改动模块的检查除外）。不碰工具返回、目录与其余指引（归 C3-T），不改登记表。
+**状态：10-05 验收通过，合入主线（B 未取得减量，转入以后）。** 依据同上。派工单 [C3-R brief](../logs/experiments/2026-10-05_cleanup_c3r/brief.md)。文件范围：`src/agent_runtime/`、`src/harness_contracts/`、`src/agent/runtime_entry.py`、`src/agent/runtime_configuration.py`、`src/agent/runtime_tools.py` 里 `snapshot_state` 与检查点相关部分、`scripts/tool_scripts/bim_agent_budget.py`、`bim_agent_guidance.py` 里 `FINISHING` 段讲剩余时间、过半与 15% 的两句、整案配置文件、`tests/` 中旧检查（C3-T 改动模块的检查除外）。不碰工具返回、目录与其余指引（归 C3-T），不改登记表。
 
 ### 通过条件
 
@@ -747,3 +747,15 @@ Astra 交付于分支 `dev/astra-c2-20261003`，末提交 `50ff5fac`，约 114 �
 **D. 检查全量。** 在本机盘对全部检查文件跑一遍（`-n 2`），给出总耗时与结果；Opus 报告列的 11 项与环境无关的失败先在主线确认，逐项处理：按当前实现重签（写明原因）、连同它锁的旧报告一起退役，或修正；`test_affected_tests_map` 的映射约定建议撤销（合并核对已改用按名检索）；`test_scripts_bootstrap_lock` 改为只验证真实可执行入口的跨目录启动，不改 `scripts/tool_scripts/` 里的文件。不为变绿放宽保护性断言。
 
 **E. 检查。** 阶段 0–3、R1–R3、C1、A1-R～A5-R 的检查与引用了改动模块的全部检查文件通过；0 次模型请求。
+
+### C3-R 验收结论（10-05，Opus）
+
+约 89 分钟交付（`dev/astra-c3r-20261005`，末提交 `5a3ae984`），报告见 [C3-R](../logs/experiments/2026-10-05_cleanup_c3r/README.md)。**通过；B 机制接通但对我们的整案不减量，减思考回传转入以后。** 与 C3-T 自动合并无冲突（指引 `FINISHING` 两句与 C3-T 的高度表说明各在其位）。
+
+- **A 底座开销：先计时，结论修正了审查的判断。** run99 在本机盘完整重放：检查点累计约 27 秒、事件追加约 58 秒，检查点复用让全目录扫描 453 → 151 次，但整次重放 122 → 130 秒，没有提速。27B A2 后目录的 238 个检查点只读回放：**9p 上 523 → 219 秒，本机盘 3.9 → 1.5 秒。** 所以底座开销的主因是运行目录在 9p 挂载上，重扫只是放大器；真正起效的是新加的显式运行根目录（`--run-root`／配置 `run_root`，必须是绝对路径，不得落入其他工作树或独立仓库，默认行为不变）。节点回归的运行目录放本机盘 `/root/bim-agent-runs`，结束后照例打包归档。
+- **B 思考回传：** `reasoning_history` 可选 `all`／`current_tool_chain`，GLM Anthropic 线路请求逐字节不变。但我们的整案只有开头一条用户消息、之后全是同一串工具调用，所以 `current_tool_chain` 与 `all` 等价：27B A2 后 51 次请求重建，字符数逐次完全相同。Qwen 官方示例在工具调用链中保留思考，QwenCloud 文档提示省略可能降低准确率。**取舍：** 不把“只留最近几步思考”这类新策略混进分界回归；列为以后的对照实验（L13）。审查里“41% 是旧思考”的事实仍成立，靠压缩与按金额封顶兜底。
+- **C 按实际额度收尾：** 工具尾部一句列出启用的时间、token、金额、调用的保守余额，过半与 15% 两条按最紧一维触发，替换原句。两次 27B 历史重放：原提示“剩余 41.1／36.9 分钟”的那一步，新提示显示 token 余 3.6％／2.6％并触发收尾。账本范围标明只含底座管理的请求。
+- **D 检查全量：** 本机盘 336 个文件、5,539 项一轮跑完（25 分钟）；11 项旧失败与全量新暴露的 6 项全部处理。**Opus 抽查：** 人工审核过的 GT 仍须报实现漂移（`test_archived_human_review_still_reports_implementation_drift` 保留），重签只发生在临时副本、身份标为 `synthetic-offline-test`；两项旧约定在原执行报告加退役标记；`test_scripts_bootstrap_lock` 改为真实入口跨目录启动加反证，没有为迁就检查改工具脚本。新增环境变量 `BIM_AGENT_REGISTRY_PATH`（只接受绝对路径）供各包用临时登记表验证，**风险：** 整案启动时若误设会改用别的登记表，节点回归启动前确认未设置。
+- **E：** 阶段 0–3、R1–R3、C1、A1-R～A5-R 底座与契约 459 项、BIM 消费者 319 项通过；0 次模型请求。证据 3.0 MB。
+- **合并后核对：** 见下一节。
+

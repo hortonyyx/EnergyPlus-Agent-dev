@@ -28,7 +28,7 @@ HISTORICAL_CONDITION = (
 
 def _copy_registered_agent(tmp_path: Path) -> tuple[Path, Path]:
     root = tmp_path / "repository"
-    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    registry = load_agent_registry(ROOT)
     for relative in registry["versions"][registry["current_version"]]["files"]:
         source = ROOT / relative
         target = root / relative

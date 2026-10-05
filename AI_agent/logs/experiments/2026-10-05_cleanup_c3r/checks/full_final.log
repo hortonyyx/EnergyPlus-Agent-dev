@@ -1,0 +1,686 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /root/worktrees/astra-c3r
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+created: 2/2 workers
+2 workers [5539 items]
+
+............................................................2026-10-05 10:21:45.693 | WARNING  | src.agent.pipeline:run_pipeline_artifacts:3090 - kernel: 1 InterZone gate issue(s) on the deterministic build (advisory — the downstream gate re-checks the assembled IDF; see 2_modelling/kernel_gate_report.json)
+2026-10-05 10:21:45.695 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 2_modelling self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: kernel.pairing_gate
+2026-10-05 10:21:45.705 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 4_mep self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: mep.construction_coverage
+.2026-10-05 10:21:45.752 | WARNING  | src.agent.pipeline:run_pipeline_artifacts:3090 - kernel: 1 InterZone gate issue(s) on the deterministic build (advisory — the downstream gate re-checks the assembled IDF; see 2_modelling/kernel_gate_report.json)
+.2026-10-05 10:21:45.781 | WARNING  | src.agent.pipeline:run_pipeline_artifacts:3090 - kernel: 1 InterZone gate issue(s) on the deterministic build (advisory — the downstream gate re-checks the assembled IDF; see 2_modelling/kernel_gate_report.json)
+...................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................2026-10-05 10:22:11.776 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 4_mep self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: mep.construction_thermal_mass
+...............................................................................................................................................................................................2026-10-05 10:22:14.306 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (1 validation error for CorrectedGeometryV3
+north_axis.note
+  Extra inputs are not permitted [type=extra_forbidden, input_value='extra key not in the schema', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden); retrying
+.2026-10-05 10:22:14.308 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (simulated 5xx / timeout); retrying
+.2026-10-05 10:22:14.310 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (correction emitted 0 windows but the reading stage has 5 window stroke(s) — facade windows were dropped (a known 1_correction instability, not a kernel issue)); retrying
+.....2026-10-05 10:22:14.328 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)); retrying
+.2026-10-05 10:22:14.329 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)); retrying
+2026-10-05 10:22:14.329 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 2/3 rejected (Expecting property name enclosed in double quotes: line 1 column 2 (char 1)); retrying
+.2026-10-05 10:22:14.330 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/2 rejected (no windows); retrying
+...2026-10-05 10:22:14.333 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (simulated 5xx / timeout); retrying
+.2026-10-05 10:22:14.334 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/2 rejected (always broken); retrying
+................................................................................................................................................................................................................................2026-10-05 10:22:36.219 | ERROR    | src.mcp.tools.workflow:run_simulation:469 - EnergyPlus FAILED: no eplusout.end written (likely crash/segfault)
+.........................................2026-10-05 10:22:40.336 | WARNING  | src.agent.runner:auto_approval:236 - validate interrupt AUTO-REJECTED: 2 cross-ref error(s):
+  - cross-ref error: bad ref A
+  - cross-ref error: bad ref B
+.................................2026-10-05 10:22:42.279 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_W1 type=Wall change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+..2026-10-05 10:22:42.436 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_Floor type=Floor change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+2026-10-05 10:22:42.437 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_Roof type=Roof change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+2026-10-05 10:22:42.437 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_W1 type=Wall change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+2026-10-05 10:22:42.438 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_W2 type=Wall change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+2026-10-05 10:22:42.438 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_W3 type=Wall change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+2026-10-05 10:22:42.438 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_W4 type=Wall change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+2026-10-05 10:22:42.439 | WARNING  | src.validator.data_model:_record_normalization_change:1248 - VERTEX_NORMALIZATION_CHANGED: surface=Z01_W1_Win1 type=Window change=start_vertex_rotated (validator's canonicalization altered a vertex list the kernel produced — see F-13 §2.3)
+................................2026-10-05 10:22:45.439 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (producer_segment_ref_prefilled: {}); retrying
+.2026-10-05 10:22:45.441 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (producer_segment_ref_prefilled: {}); retrying
+2026-10-05 10:22:45.442 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 2/3 rejected (producer_segment_ref_prefilled: {}); retrying
+.2026-10-05 10:22:45.444 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (producer_b2_forbidden_field_populated: {'message': 'b2 draw contract requires empty facade_segments and null north_axis', 'fields': ['north_axis']}); retrying
+..................2026-10-05 10:22:45.499 | WARNING  | src.agent.pipeline:_call_json_llm:368 - t: attempt 1/3 rejected (producer_window_floor_populated: {}); retrying
+................................................................................................................................................................................2026-10-05 10:22:53.829 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 0_reading self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: 1f_view.reading.pen_kind_valid
+................2026-10-05 10:22:53.876 | WARNING  | src.agent.pipeline:_write_vector_contract_ledger:765 - F-97: could not file the reading contract ledger under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw1/test_r7_a_hostile_run_dir_does0: FileExistsError: [Errno 17] File exists: '/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw1/test_r7_a_hostile_run_dir_does0/_run'
+.2026-10-05 10:22:53.878 | WARNING  | src.agent.pipeline:_write_vector_contract_ledger:765 - F-97: could not file the reading contract ledger under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw1/test_r7_ledger_writer_itself_n0: FileExistsError: [Errno 17] File exists: '/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw1/test_r7_ledger_writer_itself_n0/_run'
+.2026-10-05 10:22:53.884 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 0_reading self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: 1f_view.reading.pen_kind_valid
+............................................................................................................................................................................................................................................................................................................................F..........................................................................................................................................................................................................................................................interrupted...................................................................................................................................................................................................................................usage: runner run [-h] [--images IMAGES] [--mesh MESH]
+                  [--image-kind {drawings,mesh_views,photos,unknown}]
+                  [--building-input BUILDING_INPUT] --out OUT [--scope SCOPE]
+                  [--timeout TIMEOUT] [--floor-plan-image FLOOR_PLAN_IMAGES]
+                  [--prepare-only] [--max-candidates MAX_CANDIDATES]
+                  [--continuation-rounds {0,1,2,3,4}] [--review-detail]
+                  [--provider {claude,glm}] [--exploratory-opus]
+                  [--effort {low,medium}]
+                  [--resume-candidate RESUME_CANDIDATE | --resume-plan RESUME_PLAN]
+                  [--plan-image PLAN_IMAGE]
+runner run: error: argument --resume-candidate: not allowed with argument --resume-plan
+......................................................................................................................................................................................................................................................................................................................................................................................................................................................................s....................................................................................................................................................................................................................................................................2026-10-05 10:26:52.768 | WARNING  | src.agent.pipeline:_call_json_llm:368 - correction_decision_r0: attempt 1/2 rejected (1 validation error for CorrectionDecisionResponseV1
+item_decisions.0.reason_code
+  String should match pattern '^[A-Z][A-Z_]*$' [type=string_pattern_mismatch, input_value='wall endpoint is at (12, 34)', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch); retrying
+......................................................x....................F..........2026-10-05 10:27:50.946 | ERROR    | src.validator.data_model:validate_choice_field:120 - Daylighting Reference Point Coordinate System 'Sideways' is not a valid choice. Valid choices are: ['Relative', 'World'].
+.2026-10-05 10:27:51.444 | WARNING  | src.validator.data_model:validate_choice_field:129 - Key Field 'Regular' is not in the standard casing. Using 'regular' instead.
+.2026-10-05 10:27:51.706 | WARNING  | src.validator.data_model:validate_choice_field:129 - Key Field 'Regular' is not in the standard casing. Using 'regular' instead.
+...........2026-10-05 10:27:52.249 | WARNING  | src.validator.data_model:validate_choice_field:129 - Key Field 'Regular' is not in the standard casing. Using 'regular' instead.
+....................................................................................................................................................................................................................................................2026-10-05 10:28:14.024 | WARNING  | src.agent.react:_preserve_all_tool_calls:127 - [react:test] provider returned 3 tool_calls in one turn despite parallel_tool_calls=False; preserving all ids for ToolNode: ['noop_a', 'noop_b', 'noop_a']
+...2026-10-05 10:28:14.036 | WARNING  | src.agent.react:_preserve_all_tool_calls:127 - [react:unknown] provider returned 2 tool_calls in one turn despite parallel_tool_calls=False; preserving all ids for ToolNode: ['noop_a', 'noop_b']
+.2026-10-05 10:28:14.046 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 1/3 failed: RuntimeError: transient connection reset
+2026-10-05 10:28:14.046 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 2/3 failed: RuntimeError: transient connection reset
+.2026-10-05 10:28:14.052 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 1/3 failed: RuntimeError: boom 0
+2026-10-05 10:28:14.052 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 2/3 failed: RuntimeError: boom 1
+2026-10-05 10:28:14.053 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 3/3 failed: RuntimeError: boom 2
+2026-10-05 10:28:14.053 | ERROR    | src.agent.react:llm_node:191 - [react:unknown] llm call exhausted 3 attempt(s); message pairing at failure time:
+1 total messages; unpaired tool_call_ids at end: []
+total AIMessage tool_calls emitted: 0; total ToolMessages: 0
+multi-call turns (parallel_tool_calls should be False): []
+DUPLICATE tool_call ids within AIMessage.tool_calls: {}
+DUPLICATE tool_call_id across ToolMessages: {}
+ToolMessages whose tool_call_id matches NO known AIMessage tool_call: []
+tail:
+  [0] SystemMessage id=None content_len=4
+.2026-10-05 10:28:14.060 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 1/3 failed: RuntimeError: always fails
+2026-10-05 10:28:14.060 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 2/3 failed: RuntimeError: always fails
+2026-10-05 10:28:14.060 | WARNING  | src.agent.react:llm_node:179 - [react:unknown] llm call attempt 3/3 failed: RuntimeError: always fails
+2026-10-05 10:28:14.060 | ERROR    | src.agent.react:llm_node:191 - [react:unknown] llm call exhausted 3 attempt(s); message pairing at failure time:
+1 total messages; unpaired tool_call_ids at end: []
+total AIMessage tool_calls emitted: 0; total ToolMessages: 0
+multi-call turns (parallel_tool_calls should be False): []
+DUPLICATE tool_call ids within AIMessage.tool_calls: {}
+DUPLICATE tool_call_id across ToolMessages: {}
+ToolMessages whose tool_call_id matches NO known AIMessage tool_call: []
+tail:
+  [0] SystemMessage id=None content_len=4
+..............................................................................................FFF............................................................................................................................................................................2026-10-05 10:28:55.367 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 4_mep self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: mep.schedule_completeness
+.2026-10-05 10:28:55.439 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 2_modelling self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: kernel.normals
+.2026-10-05 10:28:55.473 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 1_correction self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: correction.audit_completeness
+...2026-10-05 10:28:55.497 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 0_reading self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: 1f_view.reading.pen_kind_valid
+....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................2026-10-05 10:32:55.749 | WARNING  | src.agent.execution.subscription_json:call_subscription_json:310 - correction: Claude subscription attempt 1/2 rejected (ValueError); retrying
+.2026-10-05 10:32:55.753 | WARNING  | src.agent.execution.subscription_json:call_subscription_json:310 - correction: Claude subscription attempt 1/2 rejected (RuntimeError); retrying
+........................................................................xx............x..........................................................................................................................................................................................................x...................................................................................................................xxxxx.......xx.x..........................................................................................................................................................................................................................................................................2026-10-05 10:39:36.095 | WARNING  | src.agent.react:_preserve_all_tool_calls:127 - [react:zone] provider returned 2 tool_calls in one turn despite parallel_tool_calls=False; preserving all ids for ToolNode: ['create_zone', 'create_zone']
+.s..........................................................F...............................................................................................................................
+=================================== FAILURES ===================================
+________ test_production_string_paths_cannot_bridge_through_test_nodes _________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_production_string_paths_cannot_bridge_through_test_nodes():
+        changed = "scripts/tool_scripts/cv_probe.py"
+        result = _result(*changed.split("/"))
+        assert result.scope == "SUBSET"
+        assert "tests/test_cv_toolbox.py" in result.tests
+        assert "tests/test_gt_from_dxf.py" not in result.tests
+>       assert len(result.tests) <= 9
+E       AssertionError: assert 13 <= 9
+E        +  where 13 = len(('tests/test_affected_tests_map.py', 'tests/test_cross_axis_exit.py', 'tests/test_cv_toolbox.py', 'tests/test_f158_early_gate_regression.py', 'tests/test_f158_gate_behavioral_selfcheck.py', 'tests/test_f51_single_frame.py', ...))
+E        +    where ('tests/test_affected_tests_map.py', 'tests/test_cross_axis_exit.py', 'tests/test_cv_toolbox.py', 'tests/test_f158_early_gate_regression.py', 'tests/test_f158_gate_behavioral_selfcheck.py', 'tests/test_f51_single_frame.py', ...) = MappingResult(scope='SUBSET', tests=('tests/test_affected_tests_map.py', 'tests/test_cross_axis_exit.py', 'tests/test_.../isolation_source_fixture.py ; tests/isolation_source_fixture.py --string-path--> scripts/tool_scripts/cv_probe.py',)}).tests
+
+tests/test_affected_tests_map.py:140: AssertionError
+__ test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent ___
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_marker_me0')
+
+    def test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent(tmp_path):
+        case = tmp_path / "sm21_anchor"
+        shutil.copytree(_SM21, case)
+        run = case / _GPT54_RUN
+        first = record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+        evidence_id = first["evidence_index"][0]["id"]
+        report_path = run / "report" / "REPORT.md"
+        authored = report_path.read_text(encoding="utf-8")
+        authored = _replace_agent_region(
+            authored,
+            "conclusion",
+            "## 一句话结论\n\nCustom narrative survives.\n",
+        )
+        authored = _replace_agent_region(
+            authored,
+            "recommendations",
+            _recommendation_block(evidence_id),
+        )
+        report_path.write_text(authored, encoding="utf-8")
+
+        record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+        after_one = report_path.read_text(encoding="utf-8")
+        assert "Custom narrative survives." in after_one
+        assert "- action: add a sharper gate" in after_one
+
+        record_baseline.record_baseline(run, date="2026-06-21", orchestrator="test")
+>       assert report_path.read_text(encoding="utf-8") == after_one
+E       AssertionError: assert '<!-- GEN:STA...ppendix -->\n' == '<!-- GEN:STA...ppendix -->\n'
+E
+E         Skipping 344 identical leading characters in diff, use -v to show
+E         Skipping 25187 identical trailing characters in diff, use -v to show
+E         - irty:160000 skills=2
+E         ?           ^
+E         + irty:160002 skills=2
+E         ?           ^
+
+tests/test_orchestrate_baseline.py:881: AssertionError
+______________ test_L10_isolation_policy_truth_regression_blocks _______________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L10_isolation_policy_trut0')
+
+    def test_L10_isolation_policy_truth_regression_blocks(tmp_path: Path):
+        """L-10: regression + orthogonal isolation fixture, 4 non-closing chains ⇒
+        checks.json head is precisely regression/orthogonal + policy hash; attempt
+        filed but NOT accepted; blocker is exactly the four closures (摘掉 merge 消费
+        EffectiveRunPolicy ⇒ 头部会退回 rectangular/exploratory 且 0 block)。"""
+>       run_dir, _attempt_dir, report = _merge_with_policy(
+            tmp_path, "reg", "regression", "orthogonal_polygon",
+        )
+
+tests/test_reading_ruler_r1_batchB.py:530:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/test_reading_ruler_r1_batchB.py:494: in _merge_with_policy
+    build_isolation_workspace(
+src/agent/execution/isolation.py:231: in build_isolation_workspace
+    _require_outside_repo(staging_root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L10_isolation_policy_trut0/staging_reg')
+
+    def _require_outside_repo(path: Path) -> None:
+        try:
+            path.resolve(strict=False).relative_to(_repo_root())
+        except ValueError:
+            return
+>       raise ValueError(f"staging root must be outside repo: {path}")
+E       ValueError: staging root must be outside repo: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L10_isolation_policy_trut0/staging_reg
+
+src/agent/execution/isolation.py:1971: ValueError
+_____________ test_L11_exploratory_control_same_facts_zero_blocker _____________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L11_exploratory_control_s0')
+
+    def test_L11_exploratory_control_same_facts_zero_blocker(tmp_path: Path):
+        """L-11: byte-identical product, only the pre-issuance policy is exploratory
+        ⇒ 0 blocker; head exploratory; fact rows identical to the regression run
+        (摘掉 disposition 按 profile 走 ⇒ 会有 blocker 或事实行改变)。"""
+>       _, _, report_reg = _merge_with_policy(
+            tmp_path, "reg", "regression", "orthogonal_polygon",
+        )
+
+tests/test_reading_ruler_r1_batchB.py:554:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/test_reading_ruler_r1_batchB.py:494: in _merge_with_policy
+    build_isolation_workspace(
+src/agent/execution/isolation.py:231: in build_isolation_workspace
+    _require_outside_repo(staging_root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L11_exploratory_control_s0/staging_reg')
+
+    def _require_outside_repo(path: Path) -> None:
+        try:
+            path.resolve(strict=False).relative_to(_repo_root())
+        except ValueError:
+            return
+>       raise ValueError(f"staging root must be outside repo: {path}")
+E       ValueError: staging root must be outside repo: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L11_exploratory_control_s0/staging_reg
+
+src/agent/execution/isolation.py:1971: ValueError
+________________ test_L12_policy_drift_rejected_before_attempt _________________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L12_policy_drift_rejected0')
+
+    def test_L12_policy_drift_rejected_before_attempt(tmp_path: Path):
+        """L-12: build under regression, then change run_config.yaml before merge ⇒
+        rejected with run_policy_drift BEFORE any attempt is created (摘掉 policy
+        hash 绑定 / 重验 ⇒ drift 会静默通过)."""
+        case_dir = tmp_path / "case_drift"
+        shutil.copytree(SM21, case_dir)
+        run_dir = case_dir / "run"
+        run_dir.mkdir()
+        (run_dir / "run_config.yaml").write_text(
+            "run_profile: regression\ncapability_profile: orthogonal_polygon\n"
+        )
+        provision_run_policy(run_dir, run_profile="regression", capability_profile="orthogonal_polygon")
+        vm = provision_view_manifest(case_dir, run_dir)
+        ensure_run_manifest_v2(run_dir, view_manifest_sha256=vm.content_sha256)
+        staging = tmp_path / "staging_drift"
+>       build_isolation_workspace(case_dir, run_dir=run_dir, staging_root=staging)
+
+tests/test_reading_ruler_r1_batchB.py:583:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/agent/execution/isolation.py:231: in build_isolation_workspace
+    _require_outside_repo(staging_root)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L12_policy_drift_rejected0/staging_drift')
+
+    def _require_outside_repo(path: Path) -> None:
+        try:
+            path.resolve(strict=False).relative_to(_repo_root())
+        except ValueError:
+            return
+>       raise ValueError(f"staging root must be outside repo: {path}")
+E       ValueError: staging root must be outside repo: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_L12_policy_drift_rejected0/staging_drift
+
+src/agent/execution/isolation.py:1971: ValueError
+________ test_half_near_deadline_and_late_tool_refusal_through_runtime _________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_half_near_deadline_and_la0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7c0958fe3f50>
+
+    def test_half_near_deadline_and_late_tool_refusal_through_runtime(tmp_path, monkeypatch):
+        actions = [{"tool": "inputs"}, {"tool": "inputs", "now": 4000},
+            {"tool": "inputs", "now": 6101},
+            {**_build(), "now": 6999, "at_tool": 7000}]
+        out, receipt, requests, events = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+        shown = [m["content"] for request in requests for m in request["messages"] if m["role"] == "tool"]
+        text = "\n".join(shown)
+>       assert "已用 0.0／剩余 100.0 分钟" in text
+E       assert '已用 0.0／剩余 100.0 分钟' in '{\n  "images": {\n    "plan.png": {\n      "size": [\n        12,\n        8\n      ],\n      "sha256": "fad584fec027...，工具调用 17（最紧 时间 15.0%）；最紧额度已过半，尚无草稿的楼层图：plan.png, upstairs.png，先按已读信息保存全楼草稿、再细化；剩余不足15%，停止新范围探索，仅有界复核已列严重问题，来不及就交付并列未决。'
+
+tests/test_runtime_r3.py:148: AssertionError
+=============================== warnings summary ===============================
+tests/test_c2_b2_v3.py::test_f3_tampered_v3_and_feature_state_fail_closed
+  /root/worktrees/astra-c3r/src/agent/correction/schema.py:320: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `Floor` - serialized value may not be as expected [field_name='floors', input_value={'id': 'f1'}, input_type=dict])
+    result = handler(self)
+
+tests/test_f9_route2_s2_authoritative_projector.py::test_real_integrated_entry_clean_run_shows_pass
+  /root/worktrees/astra-c3r/src/agent/pipeline.py:3017: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw1/test_real_integrated_entry_cle0/run_x; using flow defaults
+    run_cfg = load_run_config(run_config_dir)
+
+tests/test_f9_route2_s2_authoritative_projector.py::test_real_integrated_entry_neuter_projector_flips_to_fail
+  /root/worktrees/astra-c3r/src/agent/pipeline.py:3017: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw1/test_real_integrated_entry_neu0/run_x; using flow defaults
+    run_cfg = load_run_config(run_config_dir)
+
+tests/test_gt_from_dxf.py: 10 warnings
+tests/test_gt_overlay.py: 6 warnings
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'Flo...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `NorthAxisBindingV1` - serialized value may not be as expected [field_name='north_axis', input_value={'value_deg': 27.5, 'sour...ce_entity_handle': '30'}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_gt_from_dxf.py::test_plan_only_z_and_u_hidden_depth_are_preserved
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'Flo...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_gt_from_dxf.py::test_elevation_multi_view_z_disagreement_fails_closed
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'Flo...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `NorthAxisBindingV1` - serialized value may not be as expected [field_name='north_axis', input_value={'value_deg': 27.5, 'sour...ce_entity_handle': '30'}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_gt_overlay.py::test_v3_overlay_affine_hash_watermark_and_atomic_output
+tests/test_gt_overlay.py::test_v3_overlay_rejects_raster_hash_mismatch_and_sanitized_collision
+tests/test_gt_overlay.py::test_v3_overlay_rejects_document_manifest_binding_mismatch
+tests/test_gt_overlay.py::test_v3_elevation_overlay_uses_declared_floor_z_and_affine
+tests/test_gt_overlay.py::test_v3_overlay_rejects_competing_binding_empty_view_id_and_singular_affine
+tests/test_gt_overlay.py::test_v3_review_annotations_are_review_only_and_never_guess
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'Flo...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `NorthAxisBindingV1` - serialized value may not be as expected [field_name='north_axis', input_value={'value_deg': 27.5, 'sour...ce_entity_handle': '30'}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `RasterOverlayBindingV1` - serialized value may not be as expected [field_name='raster_overlays', input_value={'id': 'plan-raster', 'so...'m11': 0.1, 'm12': 0.0}}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_gt_overlay.py::test_v3_elevation_overlay_uses_declared_floor_z_and_affine
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'Flo...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `NorthAxisBindingV1` - serialized value may not be as expected [field_name='north_axis', input_value={'value_deg': 27.5, 'sour...ce_entity_handle': '30'}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `RasterOverlayBindingV1` - serialized value may not be as expected [field_name='raster_overlays', input_value={'id': 'plan-raster', 'so...space': 'source_metre'}}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `RasterOverlayBindingV1` - serialized value may not be as expected [field_name='raster_overlays', input_value={'id': 'elev-raster', 'so...'m11': 0.1, 'm12': 0.0}}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_gt_overlay.py::test_v3_overlay_rejects_competing_binding_empty_view_id_and_singular_affine
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'Flo...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `NorthAxisBindingV1` - serialized value may not be as expected [field_name='north_axis', input_value={'value_deg': 27.5, 'sour...ce_entity_handle': '30'}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `RasterOverlayBindingV1` - serialized value may not be as expected [field_name='raster_overlays', input_value={'id': 'plan-raster', 'so...space': 'source_metre'}}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `RasterOverlayBindingV1` - serialized value may not be as expected [field_name='raster_overlays', input_value={'id': 'plan-raster-2', '...space': 'source_metre'}}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_gt_overlay.py::test_v3_plan_opening_bars_sit_on_wall_band_real_sm24
+tests/test_gt_overlay.py::test_v3_plan_opening_bar_keeps_outer_skin_position_when_wall_thickness_is_none
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': '1F'...'ceiling_height_m': 4.5}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': 0.24}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': 0.24}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'elevation', 'id...entity_index': None}]}]}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `RasterOverlayBindingV1` - serialized value may not be as expected [field_name='raster_overlays', input_value={'id': 'raster_plan_F1', ...space': 'source_metre'}}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+tests/test_batch_d_typed_grade.py::test_L_D1_six_panels_render_with_titles_and_exact_canvas_size
+tests/test_batch_d_typed_grade.py::test_L_D1_six_panels_render_with_titles_and_exact_canvas_size
+tests/test_batch_d_typed_grade.py::test_L_D1_six_panels_render_with_titles_and_exact_canvas_size
+tests/test_batch_d_typed_grade.py::test_L_D1_six_panels_render_with_titles_and_exact_canvas_size
+tests/test_batch_d_typed_grade.py::test_L_D1_six_panels_render_with_titles_and_exact_canvas_size
+tests/test_batch_d_typed_grade.py::test_L_D1_six_panels_render_with_titles_and_exact_canvas_size
+tests/test_batch_d_typed_grade.py::test_L_D2_missing_facade_renders_explicit_placeholder_not_omission
+tests/test_batch_d_typed_grade.py::test_L_D2_missing_facade_renders_explicit_placeholder_not_omission
+  /root/worktrees/astra-c3r/tests/test_batch_d_typed_grade.py:44: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for px in region.getdata():
+
+tests/test_batch_d_typed_grade.py: 18 warnings
+  /root/worktrees/astra-c3r/tests/test_batch_d_typed_grade.py:53: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    for px in region.getdata():
+
+tests/test_batch_d_typed_grade.py::test_L_D1_does_not_read_product_mirror_or_local_x_declarations
+tests/test_batch_d_typed_grade.py::test_L_D1_does_not_read_product_mirror_or_local_x_declarations
+  /root/worktrees/astra-c3r/tests/test_batch_d_typed_grade.py:161: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    assert list(image_a.getdata()) == list(image_b.getdata())
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_uses0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_uses_frozen_policy_not_cli_fallback
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_uses0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py: 12 warnings
+tests/test_provenance_baseline.py: 2 warnings
+tests/test_reading_mode.py: 1 warning
+  /root/worktrees/astra-c3r/scripts/tool_scripts/report_assembly.py:910: RuntimeWarning: REPORT.md missing AGENT region 'conclusion'; using placeholder
+    sections.append(_wrap_region("AGENT", key, _agent_region(key, baseline, agent_regions)))
+
+tests/test_orchestrate_baseline.py: 13 warnings
+tests/test_provenance_baseline.py: 2 warnings
+tests/test_reading_mode.py: 1 warning
+  /root/worktrees/astra-c3r/scripts/tool_scripts/report_assembly.py:910: RuntimeWarning: REPORT.md missing AGENT region 'focus'; using placeholder
+    sections.append(_wrap_region("AGENT", key, _agent_region(key, baseline, agent_regions)))
+
+tests/test_orchestrate_baseline.py: 12 warnings
+tests/test_provenance_baseline.py: 2 warnings
+tests/test_reading_mode.py: 1 warning
+  /root/worktrees/astra-c3r/scripts/tool_scripts/report_assembly.py:910: RuntimeWarning: REPORT.md missing AGENT region 'diagnosis'; using placeholder
+    sections.append(_wrap_region("AGENT", key, _agent_region(key, baseline, agent_regions)))
+
+tests/test_orchestrate_baseline.py: 12 warnings
+tests/test_provenance_baseline.py: 2 warnings
+tests/test_reading_mode.py: 1 warning
+  /root/worktrees/astra-c3r/scripts/tool_scripts/report_assembly.py:910: RuntimeWarning: REPORT.md missing AGENT region 'recommendations'; using placeholder
+    sections.append(_wrap_region("AGENT", key, _agent_region(key, baseline, agent_regions)))
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_regression_tier_surfaces_blocking_check_row
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_regr0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_regression_tier_surfaces_blocking_check_row
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_regr0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_marks_unfrozen_run_legacy
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_mark0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_marks_unfrozen_run_legacy
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_mark0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_context_tamper_does_not_change_blocking
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_cont0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_R1_5_record_baseline_context_tamper_does_not_change_blocking
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_R1_5_record_baseline_cont0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_on_anchor
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_on_anchor0/sm20_anchor/run_2026-06-15_baseline; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_on_anchor
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_on_anchor0/sm20_anchor/run_2026-06-15_baseline/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_report_lists_eyeball_items
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_report_li0/sm21_anchor/run_2026-06-20_gpt54_reading; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_report_lists_eyeball_items
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_report_li0/sm21_anchor/run_2026-06-20_gpt54_reading/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_state_aware_report_suppresses_dead_viewer
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_state_awa0/sm21_anchor/run_2026-06-20_sonnet_reading; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_state_aware_report_suppresses_dead_viewer
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_state_awa0/sm21_anchor/run_2026-06-20_sonnet_reading/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_missing_corrections_sidecar_does_not_change_gates
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_missing_c0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_missing_corrections_sidecar_does_not_change_gates
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_missing_c0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_correction_audit_summary_is_separate_from_flags
+tests/test_orchestrate_baseline.py::test_record_baseline_correction_audit_summary_is_separate_from_flags
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_correctio0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_correction_audit_summary_is_separate_from_flags
+tests/test_orchestrate_baseline.py::test_record_baseline_correction_audit_summary_is_separate_from_flags
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_correctio0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_malformed_corrections_sidecar_is_best_effort
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_malformed0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_malformed_corrections_sidecar_is_best_effort
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_malformed0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_marker_me0/sm21_anchor/run_2026-06-20_gpt54_reading; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_marker_me0/sm21_anchor/run_2026-06-20_gpt54_reading/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_missing_agent_region_gets_placeholder
+tests/test_orchestrate_baseline.py::test_record_baseline_missing_agent_region_gets_placeholder
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_missing_a0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_missing_agent_region_gets_placeholder
+tests/test_orchestrate_baseline.py::test_record_baseline_missing_agent_region_gets_placeholder
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_missing_a0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_duplicate_agent_marker_fails_before_write
+tests/test_orchestrate_baseline.py::test_record_baseline_duplicate_agent_marker_fails_before_write
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_duplicate0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_duplicate_agent_marker_fails_before_write
+tests/test_orchestrate_baseline.py::test_record_baseline_duplicate_agent_marker_fails_before_write
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_duplicate0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_nested_agent_marker_fails_before_write
+tests/test_orchestrate_baseline.py::test_record_baseline_nested_agent_marker_fails_before_write
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_nested_ag0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_nested_agent_marker_fails_before_write
+tests/test_orchestrate_baseline.py::test_record_baseline_nested_agent_marker_fails_before_write
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_nested_ag0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_agent_marker_like_text_inside_gen_payload_is_ignored
+tests/test_orchestrate_baseline.py::test_agent_marker_like_text_inside_gen_payload_is_ignored
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_agent_marker_like_text_in0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_agent_marker_like_text_inside_gen_payload_is_ignored
+tests/test_orchestrate_baseline.py::test_agent_marker_like_text_inside_gen_payload_is_ignored
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_agent_marker_like_text_in0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_orchestrate_baseline.py::test_record_baseline_stale_recommendation_evidence_fails_with_agent_block
+tests/test_orchestrate_baseline.py::test_record_baseline_stale_recommendation_evidence_fails_with_agent_block
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_stale_rec0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_orchestrate_baseline.py::test_record_baseline_stale_recommendation_evidence_fails_with_agent_block
+tests/test_orchestrate_baseline.py::test_record_baseline_stale_recommendation_evidence_fails_with_agent_block
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_stale_rec0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_provenance_baseline.py::test_record_baseline_writes_provenance_and_report_summary
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_writes_pr0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_provenance_baseline.py::test_record_baseline_writes_provenance_and_report_summary
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_writes_pr0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_provenance_baseline.py::test_record_baseline_git_failure_is_best_effort
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:201: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_git_failu0/synthetic_case/run_audit; using flow defaults
+    run_cfg = load_run_config(run_dir)
+
+tests/test_provenance_baseline.py::test_record_baseline_git_failure_is_best_effort
+  /root/worktrees/astra-c3r/scripts/tool_scripts/record_baseline.py:596: RuntimeWarning: /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_record_baseline_git_failu0/synthetic_case/run_audit/run_config.yaml missing; baseline.models will use llm.yaml fallbacks plus unknown placeholders
+    "models": _models_from_llm_yaml(run_dir, orchestrator=orchestrator),
+
+tests/test_render_grade.py: 16 warnings
+  /root/worktrees/astra-c3r/tests/test_render_grade.py:238: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    return sum(1 for px in view.getdata() if px == color)
+
+tests/test_render_grade.py::test_render_grade_draws_no_data_for_missing_score_floor
+tests/test_render_grade.py::test_render_grade_missing_facade_key_is_no_data
+  /root/worktrees/astra-c3r/tests/test_render_grade.py:243: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+    return sum(1 for px in view.getdata() if all(abs(int(px[i]) - color[i]) <= tol for i in range(3)))
+
+tests/test_run_stage_flow.py::test_automatic_reading_block_stops_before_correction_or_source_export
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_automatic_reading_block_s0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_source_flow_continues_after_automatic_reader_returns
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_source_flow_continues_aft0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_source_bim_flow_does_not_enter_legacy_modelling_or_ep
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_source_bim_flow_does_not_0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_ep_flow_branches_from_the_exported_source_bim
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_ep_flow_branches_from_the0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_cmd_run_judge_off_still_writes_correction_renders
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3072: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_cmd_run_judge_off_still_w0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_cmd_resample_invalidates_downstream_before_force_run
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3147: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_cmd_resample_invalidates_0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_human_review_checkpoint_and_approve_resume
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_human_review_checkpo0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_human_review_checkpoint_and_approve_resume
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3147: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_human_review_checkpo0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_human_review_checkpoint_and_approve_resume
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3072: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_human_review_checkpo0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_first_pass_packet_has_gt_evidence_before_manifest_save
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_first_pass_packet_ha0/sm21_anchor/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_judge_block_auto_invalidates_and_force_resamples
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_judge_block_auto_inv0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_terminal_stop_returns_20
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_terminal_stop_return0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_flow_geometry_auto_records_auto_policy
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_flow_geometry_auto_record0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_cmd_run_refuses_persisted_v1_run
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3072: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_cmd_run_refuses_persisted0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_cmd_flow_refuses_persisted_v1_run
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_cmd_flow_refuses_persiste0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_cmd_resample_refuses_persisted_v1_before_any_write
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3147: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_cmd_resample_refuses_pers0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_new_run_flow_smoke_produces_v2_base_v2_records
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3348: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_new_run_flow_smoke_produc0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_run_stage_flow.py::test_v1_run_resumable_after_explicit_migration
+  /root/worktrees/astra-c3r/scripts/tool_scripts/run_stage.py:3072: RuntimeWarning: run_config.yaml not found under /root/worktrees/astra-c3r/.c3r_tmp/full_final/popen-gw0/test_v1_run_resumable_after_ex0/case/run; using flow defaults
+    run_config = load_run_config(run_dir)
+
+tests/test_inspect_dxf.py::test_manifest_inspector_cli_exit_and_json_contract
+  /opt/venv/lib/python3.12/site-packages/pydantic/main.py:475: UserWarning: Pydantic serializer warnings:
+    PydanticSerializationUnexpectedValue(Expected `FloorBindingV1` - serialized value may not be as expected [field_name='floors', input_value={'id': 'F1', 'name': 'F1'...'ceiling_height_m': 3.0}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `PlanViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    PydanticSerializationUnexpectedValue(Expected `ElevationViewBindingV1` - serialized value may not be as expected [field_name='views', input_value={'kind': 'plan', 'id': 'p...wall_thickness_m': None}, input_type=dict])
+    return self.__pydantic_serializer__.to_python(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-10-05_cleanup_c3r/checks/full_final.xml -
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_affected_tests_map.py::test_production_string_paths_cannot_bridge_through_test_nodes
+FAILED tests/test_orchestrate_baseline.py::test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent
+FAILED tests/test_reading_ruler_r1_batchB.py::test_L10_isolation_policy_truth_regression_blocks
+FAILED tests/test_reading_ruler_r1_batchB.py::test_L11_exploratory_control_same_facts_zero_blocker
+FAILED tests/test_reading_ruler_r1_batchB.py::test_L12_policy_drift_rejected_before_attempt
+FAILED tests/test_runtime_r3.py::test_half_near_deadline_and_late_tool_refusal_through_runtime
+= 6 failed, 5518 passed, 2 skipped, 13 xfailed, 209 warnings in 1504.23s (0:25:04) =

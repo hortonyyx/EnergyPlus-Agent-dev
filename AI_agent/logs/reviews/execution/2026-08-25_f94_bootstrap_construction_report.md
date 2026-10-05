@@ -1,3 +1,5 @@
+> 2026-10-05 C3-R 退役标记：本报告的“对每个含 src import 的脚本/辅助模块强制 sys.path 文本结构”不再是现行验收约定。历史执行记录保留；现行处理及替代检查见 [C3-R 报告](../../experiments/2026-10-05_cleanup_c3r/README.md)。其余历史结论不变。
+
 # 施工交件报告 · 装机路径止血（F-94 A 案）
 
 - **派工单**：[`../request/2026-08-25_f94_bootstrap_dispatch.md`](../request/2026-08-25_f94_bootstrap_dispatch.md)

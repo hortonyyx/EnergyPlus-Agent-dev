@@ -1,0 +1,68 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /root/worktrees/astra-c3r
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+created: 2/2 workers
+2 workers [162 items]
+
+.......................................................................................2026-10-05 10:02:34.585 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 0_reading self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: 1f_view.reading.pen_kind_valid
+................2026-10-05 10:02:34.618 | WARNING  | src.agent.pipeline:_write_vector_contract_ledger:765 - F-97: could not file the reading contract ledger under /root/worktrees/astra-c3r/.c3r_tmp/d_all/popen-gw0/test_r7_a_hostile_run_dir_does0: FileExistsError: [Errno 17] File exists: '/root/worktrees/astra-c3r/.c3r_tmp/d_all/popen-gw0/test_r7_a_hostile_run_dir_does0/_run'
+.2026-10-05 10:02:34.621 | WARNING  | src.agent.pipeline:_write_vector_contract_ledger:765 - F-97: could not file the reading contract ledger under /root/worktrees/astra-c3r/.c3r_tmp/d_all/popen-gw0/test_r7_ledger_writer_itself_n0: FileExistsError: [Errno 17] File exists: '/root/worktrees/astra-c3r/.c3r_tmp/d_all/popen-gw0/test_r7_ledger_writer_itself_n0/_run'
+.2026-10-05 10:02:34.626 | WARNING  | src.agent.pipeline:_gate_self_check_report:2662 - 0_reading self-check reported 1 blocking check(s) under run_profile=exploratory; continuing: 1f_view.reading.pen_kind_valid
+.....F......................................F............
+=================================== FAILURES ===================================
+_________ test_real_viewer_module_launch_executes_deferred_src_imports _________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_all/popen-gw0/test_real_viewer_module_launch0')
+
+    def test_real_viewer_module_launch_executes_deferred_src_imports(tmp_path):
+        geometry = tmp_path / "geometry.json"
+        geometry.write_text(json.dumps({"zones": [], "walls": [], "windows": [], "doors": []}))
+        output = tmp_path / "viewer.html"
+        result, loaded = _launch(tmp_path, ["-m", "scripts.tool_scripts.render_geometry_viewer",
+            str(geometry), "--out", str(output)], module=True)
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<frozen runpy>", line 198, in _run_module_as_main
+E           File "<frozen runpy>", line 88, in _run_code
+E           File "/root/worktrees/astra-c3r/scripts/tool_scripts/render_geometry_viewer.py", line 853, in <module>
+E             raise SystemExit(main())
+E                              ^^^^^^
+E           File "/root/worktrees/astra-c3r/scripts/tool_scripts/render_geometry_viewer.py", line 844, in main
+E             out.write_text(build_viewer_html(data, title=title, roles=roles), encoding="utf-8")
+E                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/root/worktrees/astra-c3r/scripts/tool_scripts/render_geometry_viewer.py", line 753, in build_viewer_html
+E             from src.agent.geometry.openings import visible_wall_parts
+E           File "/root/worktrees/astra-c3r/.c3r_tmp/d_all/popen-gw0/test_real_viewer_module_launch0/foreign/src/__init__.py", line 1, in <module>
+E             raise RuntimeError('WRONG_CHECKOUT_IMPORTED')
+E         RuntimeError: WRONG_CHECKOUT_IMPORTED
+E
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/opt/venv/bin/python', '-m', 'scripts.tool_scripts.render_geometry_viewer', '/root/worktrees/a...y", line 1, in <module>\n    raise RuntimeError(\'WRONG_CHECKOUT_IMPORTED\')\nRuntimeError: WRONG_CHECKOUT_IMPORTED\n').returncode
+
+tests/test_scripts_bootstrap_lock.py:65: AssertionError
+________ test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not ________
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not():
+        assistant = response(("a", "view", {}), reasoning=True)["choices"][0]["message"]
+        messages = [assistant, {"role": "tool", "tool_call_id": "a", "content": "result"},
+                    {"role": "user", "content": "next"}]
+>       sources = [SourceRef(source_id="response", source_kind="history", event_id="event-response"),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   SourceRef(source_id="result", source_kind="tool", event_id="event-result"),
+                   SourceRef(source_id="user", source_kind="user", event_id="event-user")]
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for SourceRef
+E       locator
+E         Field required [type=missing, input_value={'source_id': 'response',...t_id': 'event-response'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+
+tests/test_runtime_c3r.py:91: ValidationError
+- generated xml file: /root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-10-05_cleanup_c3r/checks/d_repaired.xml -
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_scripts_bootstrap_lock.py::test_real_viewer_module_launch_executes_deferred_src_imports
+FAILED tests/test_runtime_c3r.py::test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not
+=================== 2 failed, 160 passed in 95.77s (0:01:35) ===================

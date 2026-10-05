@@ -293,12 +293,11 @@ def test_o21bs_r4_sm25s_legacy_exemption_survives_this_closure_edit_by_design():
     what "the assertion still has teeth, just not on sm25" looks like.
     """
     sm25 = verify_raw_layer_reproduction("sm25-L_anchor")
-    assert sm25.status == "reproduced", (
-        "sm25 is legacy-exempted by design (②-1b-R) -- if this ever starts "
-        "reporting drift, either the exemption set moved (forbidden by this "
-        "dispatch) or sm25 was re-signed, and this test's premise needs "
-        "re-checking either way, not silently accepted")
-    assert "converter_sha256" not in sm25.drifted_fingerprints
+    # C3-R: the converter exemption survives; the independent VG fingerprint
+    # has since moved and must remain fatal. Do not expand the exemption or
+    # pretend the archived human review applies to this implementation.
+    assert sm25.status == "implementation_drift"
+    assert sm25.drifted_fingerprints == ("vg_implementation_sha256",)
 
     sm24 = verify_raw_layer_reproduction("sm24_anchor")
     assert sm24.status == "implementation_drift"

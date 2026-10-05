@@ -1,0 +1,31 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /root/worktrees/astra-c3r
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+created: 2/2 workers
+2 workers [37 items]
+
+..F..................................
+=================================== FAILURES ===================================
+________ test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not ________
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not():
+        assistant = response(("a", "view", {}), reasoning=True)["choices"][0]["message"]
+        messages = [assistant, {"role": "tool", "tool_call_id": "a", "content": "result"},
+                    {"role": "user", "content": "next"}]
+>       sources = [SourceRef(source_id="response", source_kind="history", locator="response"),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   SourceRef(source_id="result", source_kind="tool", locator="result"),
+                   SourceRef(source_id="user", source_kind="user", locator="user")]
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for SourceRef
+E         Value error, a source reference needs a blob or event_id [type=value_error, input_value={'source_id': 'response',..., 'locator': 'response'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+tests/test_runtime_c3r.py:91: ValidationError
+- generated xml file: /root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-10-05_cleanup_c3r/checks/bc2.xml -
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_c3r.py::test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not
+========================= 1 failed, 36 passed in 6.58s =========================

@@ -1,12 +1,8 @@
-"""②-1b R1/R2/R5, end to end on REAL sm25 data: the committed
-``case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/`` trio must
-reproduce bit-for-bit from the signed inputs, and the reproducibility gate
-must have real teeth on this exact artefact (⛔ not just on a synthetic one --
-see ``tests/test_gt_revisions_and_as_signed.py`` for the schema-level tests).
+"""Real sm25 source facts and refusal checks under the current implementation.
 
-This mirrors the pattern ``tests/test_gt_raw_layer.py`` already uses for
-``conversion_report.json``: clone the committed trio into a tmp dir, mutate
-one copy, and check the gate reacts -- never mutate the real files in place.
+The module fixture proves all archived geometry is unchanged, then regenerates
+only implementation identities in a temporary trio. Original signed/staged
+artefacts remain untouched; mutations still exercise the production read path.
 """
 from __future__ import annotations
 
@@ -75,10 +71,26 @@ def _synthetic_unsigned_record(as_measured, *, view_id: str = "plan-F1",
 
 
 @pytest.fixture(scope="module", autouse=True)
-def staging_present():
+def staging_present(tmp_path_factory):
+    """Renew only the implementation identity in a disposable test fixture.
+
+    Every other as-measured field must equal the archived real-source facts.
+    The archive is retained; this is not a new human approval or GT promotion.
+    """
     out = _facts_staging_dir(CASE)
     for name in ("as_measured.json", "revisions.json", "as_signed.json"):
         assert (out / name).is_file(), f"missing ②-1b staged fact: {out / name}"
+    old, ledger, _signed = read_facts_candidate(CASE)
+    fresh = build_as_measured(ANCHOR / "sm25-L_t3_as_received.dxf",
+                              ANCHOR / "request_as_measured.json")
+    assert old.model_dump(exclude={"converter_implementation_fingerprint"}) == fresh.model_dump(
+        exclude={"converter_implementation_fingerprint"})
+    assert not ledger.revisions
+    ledger = ledger.model_copy(update={"as_measured_content_sha256": content_sha256(fresh)})
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(gt_facts_staging, "_FACTS_STAGING_ROOT", tmp_path_factory.mktemp("current-facts"))
+        write_facts_candidate(CASE, fresh, ledger, derive_as_signed(fresh, ledger))
+        yield
 
 
 # =========================================================================== #

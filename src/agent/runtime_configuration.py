@@ -19,6 +19,7 @@ from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import validate_output_limit
 from src.agent_runtime.accounting import require_cny_price_schedule
 from src.agent_runtime.loop import RunLimits
+from src.agent_runtime.run_paths import resolve_run_output
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters, validate_provider_model
 
 
@@ -44,6 +45,10 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
+        if case.get("reasoning_history", "all") not in {"all", "current_tool_chain"}:
+            raise ValueError("unsupported reasoning_history")
+        if mode != "single_model" and case.get("reasoning_history", "all") != "all":
+            raise ValueError("reasoning_history currently supports single_model only")
         if case.get("provider") not in LIVE_PROVIDERS:
             raise ValueError("live configuration requires a reviewed provider")
         model = case.get("model")
@@ -63,12 +68,15 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         if seconds > value["maximum_seconds_per_case"]:
             raise ValueError("case exceeds the configuration's time ceiling")
         validate_budget(case)
-        for key in ("input", "output"):
-            target = (ROOT / case[key]).resolve()
-            if not target.is_relative_to(ROOT):
-                raise ValueError(f"{key} escapes the worktree")
-            if key == "input" and not target.exists():
-                raise ValueError(f"input does not exist: {target}")
+        target = (ROOT / case["input"]).resolve()
+        if not target.is_relative_to(ROOT):
+            raise ValueError("input escapes the worktree")
+        if not target.exists():
+            raise ValueError(f"input does not exist: {target}")
+        if case.get("run_root") is not None and mode != "single_model":
+            raise ValueError("explicit run_root currently supports single_model only")
+        resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
+                           run_root=case.get("run_root"))
         floors = case.get("floor_plan_images")
         if floors is not None and (not isinstance(floors, list) or any(
                 not isinstance(name, str) or Path(name).name != name
@@ -102,14 +110,20 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     budget = validate_budget(case)
     validate_output_limit(case["model"], case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
     limits = case["limits"]
+    output = resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
+                                run_root=case.get("run_root"))
     argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
-            "--out", str(ROOT / case["output"]), "--provider", case["provider"],
+            "--out", str(output), "--provider", case["provider"],
             "--model", case["model"], "--credentials-file", case["credentials_file"],
             "--scope", case["scope"], "--image-kind", case["image_kind"],
             "--model-calls", str(limits["model_calls"]),
             "--tool-calls", str(limits["tool_calls"]),
             "--seconds", str(limits["seconds"]),
             "--output-tokens", str(case["output_tokens"])]
+    if case.get("run_root") is not None:
+        if case["mode"] != "single_model":
+            raise ValueError("explicit run_root currently supports single_model only")
+        argv += ["--run-root", str(case["run_root"])]
     argv += ["--no-token-limit"] if budget.tokens is None else ["--tokens", str(budget.tokens)]
     if budget.money_cny is not None:
         argv += ["--money-cny", str(budget.money_cny)]
@@ -123,7 +137,8 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     for name in case.get("floor_plan_images", []):
         argv += ["--floor-plan-image", name]
     if case["mode"] == "single_model":
-        argv += ["--max-candidates", str(case["max_candidates"]),
+        argv += ["--reasoning-history", case.get("reasoning_history", "all"),
+                 "--max-candidates", str(case["max_candidates"]),
                  "--context-tokens", str(case["context_tokens"]),
                  "--compact-at-tokens", str(case.get("compact_at_tokens", 150_000)),
                  "--model-retries", str(limits.get("model_retries", 2)),

@@ -1,4 +1,4 @@
-"""T1 time cap and saved floor coverage, derived only from files in one run.
+"""Run limits and saved floor coverage, derived only from files in one run.
 
 Failure: GLM sm25 spent its 3000 seconds on one floor. No in-memory reminder
 latches or assumed room counts: an explicit manifest floor/image scope, source
@@ -94,25 +94,54 @@ def saved_floor_status(toolkit, candidate=None):
 def time_status(toolkit, *, now=None):
     manifest = toolkit.manifest
     start, deadline = manifest.get("started_epoch"), manifest.get("deadline_epoch")
-    if start is None or deadline is None:
-        return dict(active=False, line="已用／剩余分钟：未启用计时。", reminders=[])
     now = time.time() if now is None else now
-    total = deadline - start
-    elapsed, remaining = max(0, now - start), max(0, deadline - now)
+    elapsed, remaining = None, float("inf")
+    dimensions = {}
+    status_path = toolkit.run / ".harness_tmp" / "budget_status.json"
+    if status_path.is_file():
+        status = _read(status_path)
+        if (status.get("schema_version") != 1
+                or status.get("run_directory") != str(toolkit.run.resolve())
+                or status.get("started_epoch") != start):
+            raise ValueError("runtime budget status does not belong to this run")
+        dimensions = {name: dict(row) for name, row in status["dimensions"].items()}
+    if start is not None and deadline is not None:
+        total = deadline - start
+        elapsed, remaining = max(0, now - start), max(0, deadline - now)
+        old = dimensions.get("seconds", {})
+        remaining = min(remaining, float(old.get("remaining", remaining)))
+        dimensions["seconds"] = dict(remaining=remaining, remaining_fraction=min(
+            remaining / total if total > 0 else 0, old.get("remaining_fraction", 1)))
+    if not dimensions:
+        return dict(active=False, line="已用／剩余分钟：未启用计时。", reminders=[])
+    if "seconds" in dimensions:
+        remaining = float(dimensions["seconds"]["remaining"])
+    tightest = min(dimensions, key=lambda name: dimensions[name]["remaining_fraction"])
+    fraction = dimensions[tightest]["remaining_fraction"]
     floor_status = saved_floor_status(toolkit)
     reminders = []
-    if total > 0 and elapsed >= total * .5 and floor_status["missing_draft_images"] and not toolkit.readonly:
-        reminders.append("时间已过半，尚无草稿的楼层图：" + ", ".join(floor_status["missing_draft_images"]) +
-                         "。先按已读信息保存全楼草稿、再细化。")
-    if total > 0 and remaining < total * .15:
-        # C2: the time tail must use the same bounded review rule as FINISHING.
-        reminders.append("剩余不足15%，停止新范围探索；仅有界复核已列严重问题，来不及就交付并列未决。" if not toolkit.readonly else
-                         "剩余不足15%，停止新范围探索，返回已有观察与未核项。")
+    if fraction <= .5 and floor_status["missing_draft_images"] and not toolkit.readonly:
+        reminders.append("最紧额度已过半，尚无草稿的楼层图：" + ", ".join(floor_status["missing_draft_images"]) +
+                         "，先按已读信息保存全楼草稿、再细化")
+    if fraction < .15:
+        reminders.append("剩余不足15%，停止新范围探索，仅有界复核已列严重问题，来不及就交付并列未决" if not toolkit.readonly else
+                         "剩余不足15%，停止新范围探索，返回已有观察与未核项")
     if remaining <= 0:
-        reminders.append("时间上限已到，停止执行；交最近完整全楼稿，无完整稿则交最近保存稿并标明不完整。")
+        reminders.append("时间上限已到，停止执行，交最近完整全楼稿，无完整稿则交最近保存稿并标明不完整")
+    labels = {"seconds": "时间", "tokens": "token", "money_usd": "金额估计USD",
+              "money_cny": "金额估计CNY", "calls": "模型调用", "tool_calls": "工具调用"}
+    amounts = []
+    for name in labels:
+        if name not in dimensions:
+            continue
+        value = float(dimensions[name]["remaining"])
+        display = (f"{value / 60:.1f} 分钟" if name == "seconds" else
+                   f"{value:.4f}" if name.startswith("money_") else f"{int(value):,}")
+        amounts.append(f"{labels[name]} {display}")
+    line = "保守剩余（本运行）：" + "，".join(amounts) + f"（最紧 {labels[tightest]} {fraction:.1%}）"
     return dict(active=True, elapsed_seconds=elapsed, remaining_seconds=remaining,
-        line=f"已用 {elapsed / 60:.1f}／剩余 {remaining / 60:.1f} 分钟。" + " ".join(reminders),
-        reminders=reminders, floors=floor_status)
+        line="；".join([line, *reminders]) + "。", reminders=reminders, floors=floor_status,
+        dimensions=dimensions, tightest_dimension=tightest)
 
 
 def fallback_selection(toolkit):

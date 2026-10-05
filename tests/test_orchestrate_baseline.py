@@ -852,7 +852,13 @@ def _replace_agent_region(text: str, key: str, body: str) -> str:
     return new
 
 
-def test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent(tmp_path):
+def test_record_baseline_marker_merge_preserves_agent_edits_and_is_idempotent(tmp_path, monkeypatch):
+    # Idempotence means identical inputs. Concurrent in-tree pytest files can
+    # change Git dirtiness between writes; freeze that external input while
+    # retaining byte-for-byte report and authored-region assertions.
+    from copy import deepcopy
+    git_provenance = record_baseline._collect_git_provenance()
+    monkeypatch.setattr(record_baseline, "_collect_git_provenance", lambda: deepcopy(git_provenance))
     case = tmp_path / "sm21_anchor"
     shutil.copytree(_SM21, case)
     run = case / _GPT54_RUN

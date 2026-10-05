@@ -66,11 +66,46 @@ def decode_image_url(url: str) -> tuple[bytes, str]:
     return base64.b64decode(encoded, validate=True), header[5:].split(";", 1)[0]
 
 
+def reasoning_history_messages(messages: list[dict], policy: str, message_sources=None) -> list[dict]:
+    """Keep audited history intact; select reasoning only for the wire request.
+
+    A chain includes successive tool-call batches for one real user turn.
+    Tool pictures and runtime state carried as user messages do not end it.
+    Older completed turns lose reasoning; their visible content remains intact.
+    """
+    if policy not in {"all", "current_tool_chain"}:
+        raise ValueError(f"unsupported reasoning_history: {policy}")
+    if policy == "all":
+        return messages
+    keep = set()
+    for i in range(len(messages) - 1, -1, -1):
+        message = messages[i]
+        if message.get("role") == "assistant":
+            if not message.get("tool_calls"):
+                break
+            keep.add(i)
+        # Tool pictures and machine-generated state do not start a user turn.
+        if message.get("role") == "user":
+            if message_sources is not None:
+                real_user = message_sources[i].source_kind == "user"
+            else:
+                content = message.get("content")
+                real_user = not (isinstance(content, list) and content and all(
+                    block.get("type") == "image_url" for block in content))
+            if real_user:
+                break
+    return [{key: value for key, value in message.items()
+             if i in keep or message.get("role") != "assistant"
+             or key not in {"reasoning_content", "reasoning"}}
+            for i, message in enumerate(messages)]
+
+
 def prepare_request(*, store: EventStore, model: str, messages: list[dict],
                     message_sources: list, tools: list[dict], tool_source,
                     parameters: dict, versions, image_originals: dict | None = None,
                     model_profile: ModelProfile | None = None,
-                    strict_model_profile: bool = False):
+                    strict_model_profile: bool = False,
+                    reasoning_history: str = "all"):
     if versions.remote_model.route_id == "glm-subscription-anthropic":
         from .anthropic import prepare_anthropic_request
         return prepare_anthropic_request(store=store, model=model, messages=messages,
@@ -82,6 +117,13 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
         raise ValueError("request parameters cannot override model, messages, tools, stream or n")
     if len(message_sources) != len(messages):
         raise ValueError("every request message needs a recorded source")
+    selected = reasoning_history_messages(messages, reasoning_history, message_sources)
+    message_sources = [source if selected[i] == message else store.source(
+        "reasoning-history-selection", {"policy": reasoning_history,
+            "original_source": source.model_dump(mode="json"),
+            "removed_fields": sorted(set(message) - set(selected[i]))})
+        for i, (message, source) in enumerate(zip(messages, message_sources))]
+    messages = selected
     body = {"model": model, "messages": copy.deepcopy(messages),
             "stream": False, "n": 1, **copy.deepcopy(parameters)}
     if versions.remote_model.route_id == "glm-subscription":

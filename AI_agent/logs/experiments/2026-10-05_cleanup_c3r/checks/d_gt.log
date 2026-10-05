@@ -1,0 +1,1256 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /root/worktrees/astra-c3r
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+created: 2/2 workers
+2 workers [46 items]
+
+EEEEEEEEEEEEEEEEEEEEEE........................
+==================================== ERRORS ====================================
+___ ERROR at setup of test_a3_single_tampered_thickness_is_caught_and_named ____
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+------------------------------ Captured log setup ------------------------------
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+_ ERROR at setup of test_r2_signed_review_inputs_do_not_hide_tampered_g6_geometry _
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_archived_human_review_still_reports_implementation_drift _
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+------------------------------ Captured log setup ------------------------------
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+WARNING  ezdxf:fonts.py:704 no default font found: no fonts available, not even fallback fonts
+______ ERROR at setup of test_r4_duplicate_gate_id_is_a_content_mismatch _______
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_________ ERROR at setup of test_a1_raw_layer_exposes_every_zone_edge __________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_a4_implementation_drift_is_not_reported_as_content_mismatch _
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+___ ERROR at setup of test_a1c_trust_root_is_explicit_and_never_silently_ok ____
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+__________ ERROR at setup of test_r5_vg_implementation_drift_is_fatal __________
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_____________ ERROR at setup of test_a1d_missing_case_returns_none _____________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+____ ERROR at setup of test_missing_signed_inputs_report_inputs_unavailable ____
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+__________ ERROR at setup of test_a2_reproduces_on_an_unmodified_tree __________
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_tampered_signed_chain_is_rejected_before_reproduction _
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f111_e_same_shape_wrong_identity_request_is_rejected __
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f111_a_signed_request_resolves_from_the_case_owned_path _
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f111_f_a_malformed_sibling_does_not_hide_the_real_request _
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+__ ERROR at setup of test_f111_b_sm24_is_no_longer_blocked_on_missing_inputs ___
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f116_0_the_fixture_inventory_table_above_is_not_stale _
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_____ ERROR at setup of test_f111_c_only_the_case_owned_root_is_consulted ______
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+____ ERROR at setup of test_f116_a_sm25_logs_direction_narrowing_has_teeth _____
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f111_d_tampered_request_at_the_perfect_path_is_rejected _
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f116_b_tests_fixtures_direction_narrowing_still_has_teeth _
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw0/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+_ ERROR at setup of test_f116_c_no_directory_other_than_the_case_owned_root_is_ever_opened _
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path_factory = TempPathFactory(_given_basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _trace=<pluggy._tracin... _basetemp=PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="module", autouse=True)
+    def current_test_review(tmp_path_factory):
+        """Synthetic test approval, never a re-signing of the human-reviewed GT.
+
+        The archived bundle must still fail on its moved VG implementation. For
+        mutation coverage we need a current implementation, so only this temporary
+        copy gets a new test identity and a recomputed candidate/inventory chain.
+        Its original raw geometry must reproduce before any mutation test runs.
+        """
+        import hashlib
+        from src.agent.judge.gt_schema import GroundTruthV3, compute_gt_v3_content_sha256
+        from src.agent.judge.tarch_review_bundle import _canonical_inventory_sha256
+
+        global GT_ROOT
+        root = tmp_path_factory.mktemp("current-raw-review") / "gt"
+        for case in (CASE, "sm24_anchor"):
+            shutil.copytree(ARCHIVED_GT_ROOT / case, root / case)
+        path = root / CASE / "gt.json"
+        document = json.loads(path.read_text())
+        current = raw_layer.compute_gt_implementation_hashes(raw_layer.REPO_ROOT)
+        document["generator"]["vg_implementation_sha256"] = current.vg_implementation_sha256
+        document["verification"].update(reviewer_id="synthetic-offline-test", reviewed_on="2026-10-05")
+        promoted = GroundTruthV3.model_validate(document)
+        candidate = promoted.model_copy(update={"verification": promoted.verification.model_copy(update={
+            "status": "candidate", "reviewer_id": None, "reviewed_on": None, "methods": []}),
+            "content_sha256": "0" * 64})
+        candidate = candidate.model_copy(update={"content_sha256": compute_gt_v3_content_sha256(candidate)})
+        document["content_sha256"] = compute_gt_v3_content_sha256(promoted)
+        path.write_text(json.dumps(document))
+        review = root / CASE / "review"
+        index = json.loads((review / "review_index.json").read_text())
+        index["candidate_gt_sha256"] = candidate.content_sha256
+        for item in index["files"]:
+            if item["path"] == "gt/gt.json":
+                item["sha256"] = hashlib.sha256(candidate.model_dump_json().encode()).hexdigest()
+        index["inventory_sha256"] = _canonical_inventory_sha256(index["files"])
+        (review / "review_index.json").write_text(json.dumps(index))
+        ack = json.loads((review / "review_ack.json").read_text())
+        ack.update(reviewer="synthetic-offline-test", signed_at="2026-10-05T00:00:00Z",
+                   review_index_sha256=index["inventory_sha256"])
+        (review / "review_ack.json").write_text(json.dumps(ack))
+        verdict = _verify(CASE, gt_dir=root)
+>       assert verdict.status == "reproduced", verdict.detail
+E       AssertionError: 3 field(s) of /root/worktrees/astra-c3r/.c3r_tmp/d_gt/popen-gw1/current-raw-review0/gt/sm25-L_anchor/review/conversion_report.json could not be reproduced from the signed source DXF + request under an IDENTICAL implementation: /gates/G10/evidence/review_index_sha256, /gates/G10/evidence/reviewer, /gates/G10/evidence/signed_at
+E       assert 'content_mismatch' == 'reproduced'
+E
+E         - reproduced
+E         + content_mismatch
+
+tests/test_gt_raw_layer.py:79: AssertionError
+- generated xml file: /root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-10-05_cleanup_c3r/checks/d_gt.xml -
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+ERROR tests/test_gt_raw_layer.py::test_a3_single_tampered_thickness_is_caught_and_named
+ERROR tests/test_gt_raw_layer.py::test_r2_signed_review_inputs_do_not_hide_tampered_g6_geometry
+ERROR tests/test_gt_raw_layer.py::test_archived_human_review_still_reports_implementation_drift
+ERROR tests/test_gt_raw_layer.py::test_r4_duplicate_gate_id_is_a_content_mismatch
+ERROR tests/test_gt_raw_layer.py::test_a1_raw_layer_exposes_every_zone_edge
+ERROR tests/test_gt_raw_layer.py::test_a4_implementation_drift_is_not_reported_as_content_mismatch
+ERROR tests/test_gt_raw_layer.py::test_a1c_trust_root_is_explicit_and_never_silently_ok
+ERROR tests/test_gt_raw_layer.py::test_r5_vg_implementation_drift_is_fatal - ...
+ERROR tests/test_gt_raw_layer.py::test_a1d_missing_case_returns_none - Assert...
+ERROR tests/test_gt_raw_layer.py::test_missing_signed_inputs_report_inputs_unavailable
+ERROR tests/test_gt_raw_layer.py::test_a2_reproduces_on_an_unmodified_tree - ...
+ERROR tests/test_gt_raw_layer.py::test_tampered_signed_chain_is_rejected_before_reproduction
+ERROR tests/test_gt_raw_layer.py::test_f111_e_same_shape_wrong_identity_request_is_rejected
+ERROR tests/test_gt_raw_layer.py::test_f111_a_signed_request_resolves_from_the_case_owned_path
+ERROR tests/test_gt_raw_layer.py::test_f111_f_a_malformed_sibling_does_not_hide_the_real_request
+ERROR tests/test_gt_raw_layer.py::test_f111_b_sm24_is_no_longer_blocked_on_missing_inputs
+ERROR tests/test_gt_raw_layer.py::test_f116_0_the_fixture_inventory_table_above_is_not_stale
+ERROR tests/test_gt_raw_layer.py::test_f111_c_only_the_case_owned_root_is_consulted
+ERROR tests/test_gt_raw_layer.py::test_f116_a_sm25_logs_direction_narrowing_has_teeth
+ERROR tests/test_gt_raw_layer.py::test_f111_d_tampered_request_at_the_perfect_path_is_rejected
+ERROR tests/test_gt_raw_layer.py::test_f116_b_tests_fixtures_direction_narrowing_still_has_teeth
+ERROR tests/test_gt_raw_layer.py::test_f116_c_no_directory_other_than_the_case_owned_root_is_ever_opened
+======================== 24 passed, 22 errors in 34.06s ========================

@@ -1,0 +1,96 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /root/worktrees/astra-c3r
+configfile: pyproject.toml
+plugins: langsmith-0.7.33, xdist-3.8.0, anyio-4.13.0
+created: 2/2 workers
+2 workers [37 items]
+
+..F................F.................
+=================================== FAILURES ===================================
+________ test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not ________
+[gw1] linux -- Python 3.12.13 /opt/venv/bin/python
+
+    def test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not():
+        assistant = response(("a", "view", {}), reasoning=True)["choices"][0]["message"]
+        messages = [assistant, {"role": "tool", "tool_call_id": "a", "content": "result"},
+                    {"role": "user", "content": "next"}]
+>       sources = [SourceRef(source_id="response", source_kind="model", locator="response"),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   SourceRef(source_id="result", source_kind="tool", locator="result"),
+                   SourceRef(source_id="user", source_kind="user", locator="user")]
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for SourceRef
+E       source_kind
+E         Input should be 'user', 'runtime', 'tool', 'history', 'external_coordinator' or 'generated' [type=literal_error, input_value='model', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/literal_error
+
+tests/test_runtime_c3r.py:91: ValidationError
+_ test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry _
+[gw0] linux -- Python 3.12.13 /opt/venv/bin/python
+
+tmp_path = PosixPath('/root/worktrees/astra-c3r/.c3r_tmp/checks_bc/popen-gw0/test_subscription_wait_uses_re0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7d17b1f2d1f0>
+
+    def test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry(tmp_path, monkeypatch):
+        run = _clocked_run(tmp_path)
+        clock, waits = [6500], []
+        monkeypatch.setattr(runner.time, "time", lambda: clock[0])
+        class ScriptedProcess:
+            returncode = 0
+            def __init__(self, command, **kwargs):
+                kwargs["stdout"].write(json.dumps(dict(type="system", subtype="init", model="claude-sonnet-5")) + "\n")
+            def communicate(self, prompt, timeout):
+                waits.append(timeout)
+        monkeypatch.setattr(runner.subprocess, "Popen", ScriptedProcess)
+>       runner.subscription(run, "fixture", model="sonnet", name="first", timeout=6000)
+
+tests/test_bim_time_budget.py:129:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+scripts/tool_scripts/run_bim_agent.py:298: in subscription
+    agent_version = agent_version_record(ROOT)["version_id"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = PosixPath('/root/worktrees/astra-c3r'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -> dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+>               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version t1-20261005-a5.1 file mismatch: {"scripts/tool_scripts/bim_agent_budget.py": "34ee95e7f3996435236d77b0c89d747ac70329a94100b12b0e76cf329e4aa3a4", "scripts/tool_scripts/bim_agent_guidance.py": "7e8f6bb27b2e7327c6a6dc4c65463823f0779417254468eba7db912b8291af6f"}
+
+src/agent_runtime/agent_registry.py:100: AgentVersionMismatch
+- generated xml file: /root/worktrees/astra-c3r/AI_agent/logs/experiments/2026-10-05_cleanup_c3r/checks/bc.xml -
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ============================
+FAILED tests/test_runtime_c3r.py::test_new_user_turn_ends_reasoning_chain_but_tool_images_do_not
+FAILED tests/test_bim_time_budget.py::test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry
+========================= 2 failed, 35 passed in 5.91s =========================
