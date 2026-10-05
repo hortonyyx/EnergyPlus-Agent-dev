@@ -54,6 +54,7 @@ class RoleDefinition(ContractModel):
             for value in (
                 self.budget.tokens,
                 self.budget.money_usd,
+                self.budget.money_cny,
                 self.budget.seconds,
                 self.budget.calls,
             )

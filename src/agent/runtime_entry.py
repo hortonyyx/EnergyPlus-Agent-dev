@@ -33,6 +33,7 @@ from src.agent.runtime_delivery import finalize_runtime_building
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.anthropic import HttpAnthropicAdapter
 from src.agent_runtime.budget import PriceSchedule
+from src.agent_runtime.accounting import require_cny_price_schedule
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
@@ -125,10 +126,12 @@ async def execute(args) -> dict:
     validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
     parameters = provider_parameters(args.provider, output_tokens=args.output_tokens,
         temperature=args.temperature, thinking=args.thinking, reasoning_effort=args.reasoning_effort)
-    if args.provider in SUBSCRIPTION_PROVIDERS and (args.price_schedule or args.money_usd is not None):
+    if args.provider in SUBSCRIPTION_PROVIDERS and (args.price_schedule or args.money_usd is not None or args.money_cny is not None):
         raise ValueError("subscription route has no usage-based money estimate; use token/time budgets")
+    if args.money_cny is not None:
+        require_cny_price_schedule(effective_model, route_id=args.provider)
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls,
-        seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd,
+        seconds=args.seconds, tokens=args.tokens, money_usd=args.money_usd, money_cny=args.money_cny,
         near_limit=args.near_limit, min_output_tokens=args.min_output_tokens,
         context_tokens=args.context_tokens, max_model_retries=args.model_retries,
         retry_backoff_seconds=args.retry_backoff_seconds,
@@ -252,7 +255,12 @@ def parser():
     p.add_argument("--model-calls", type=int, default=6)
     p.add_argument("--tool-calls", type=int, default=12)
     p.add_argument("--seconds", type=float, default=180.0)
-    p.add_argument("--tokens", type=int, default=5_000_000)
+    token_limit = p.add_mutually_exclusive_group()
+    token_limit.add_argument("--tokens", type=int, default=5_000_000)
+    token_limit.add_argument("--no-token-limit", dest="tokens", action="store_const", const=None,
+                             help="explicitly disable only the total token ceiling")
+    p.add_argument("--money-cny", type=Decimal,
+                   help="CNY estimate ceiling using registered Paratera rates; not a provider bill")
     p.add_argument("--money-usd", type=Decimal, help="total estimate ceiling; needs a sourced price schedule")
     p.add_argument("--price-schedule", type=Path, help="PriceSchedule JSON; estimates are not provider bills")
     p.add_argument("--near-limit", choices=("stop", "reduce_output"), default="stop")

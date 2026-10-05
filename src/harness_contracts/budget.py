@@ -13,6 +13,7 @@ from .base import ContractModel, NonEmptyStr
 class BudgetAmounts(ContractModel):
     tokens: int | None = Field(default=None, ge=0)
     money_usd: Decimal | None = Field(default=None, ge=0)
+    money_cny: Decimal | None = Field(default=None, ge=0)
     seconds: Decimal | None = Field(default=None, ge=0)
     calls: int | None = Field(default=None, ge=0)
 
@@ -20,11 +21,12 @@ class BudgetAmounts(ContractModel):
         def add_optional(left: int | Decimal | None, right: int | Decimal | None):
             if left is None and right is None:
                 return None
-            return (left or 0) + (right or 0)
+            return (left if left is not None else 0) + (right if right is not None else 0)
 
         return BudgetAmounts(
             tokens=add_optional(self.tokens, other.tokens),
             money_usd=add_optional(self.money_usd, other.money_usd),
+            money_cny=add_optional(self.money_cny, other.money_cny),
             seconds=add_optional(self.seconds, other.seconds),
             calls=add_optional(self.calls, other.calls),
         )
@@ -42,6 +44,7 @@ class BudgetAmounts(ContractModel):
         return BudgetAmounts(
             tokens=subtract_optional(self.tokens, other.tokens),
             money_usd=subtract_optional(self.money_usd, other.money_usd),
+            money_cny=subtract_optional(self.money_cny, other.money_cny),
             seconds=subtract_optional(self.seconds, other.seconds),
             calls=subtract_optional(self.calls, other.calls),
         )
@@ -114,9 +117,19 @@ class BudgetSettlement(ContractModel):
     # separately charged amount independently of what raw usage includes.
     additional_image_tokens: int | None = Field(default=None, ge=0)
     token_overrun: int = Field(default=0, ge=0)
+    # A rate-based charge, deliberately separate from actual/provider billing.
+    estimated_cost_cny: Decimal | None = Field(default=None, ge=0)
+    money_cny_overrun: Decimal = Field(default=Decimal(0), ge=0)
 
     @model_validator(mode="after")
     def missing_usage_requires_estimated_cost(self) -> BudgetSettlement:
+        if self.actual.money_cny is not None:
+            raise ValueError("CNY estimates must not be stored as actual provider bills")
+        if self.estimated_cost_cny is not None and (
+            self.usage.kind != "reported"
+            or _reported_total_tokens(self.usage.raw_usage) is None
+        ):
+            raise ValueError("a settled CNY estimate requires reported token usage")
         if self.image_tokens_estimate == 0 and self.reported_usage_includes_image_tokens:
             raise ValueError(
                 "reported usage cannot include image tokens when the request had none"
@@ -209,14 +222,22 @@ class BudgetLedger(ContractModel):
                     f"settlement token_overrun differs from actual minus reservation: "
                     f"{item.reservation_id}"
                 )
+            expected_cny_overrun = (
+                max(item.estimated_cost_cny - reservation.amounts.money_cny, Decimal(0))
+                if item.estimated_cost_cny is not None and reservation.amounts.money_cny is not None
+                else Decimal(0)
+            )
+            if item.money_cny_overrun != expected_cny_overrun:
+                raise ValueError("settlement money_cny_overrun differs from charge minus reservation")
             effective_actual = item.actual.model_copy(
-                update={"tokens": item.effective_tokens}
+                update={"tokens": item.effective_tokens, "money_cny": item.estimated_cost_cny}
             )
             _ensure_within_reservation(
                 effective_actual,
                 reservation.amounts,
                 f"settlement exceeds reservation: {item.reservation_id}",
                 allow_token_overrun=bool(item.token_overrun),
+                allow_cny_overrun=bool(item.money_cny_overrun),
             )
             if item.cost.kind == "unavailable":
                 if reservation.amounts.money_usd is not None:
@@ -237,7 +258,11 @@ class BudgetLedger(ContractModel):
                     if self.committed.tokens is None
                     else self.committed.tokens
                     - sum(item.token_overrun for item in self.settlements)
-                )
+                ),
+                "money_cny": (
+                    None if self.committed.money_cny is None else self.committed.money_cny
+                    - sum(item.money_cny_overrun for item in self.settlements)
+                ),
             }
         )
         _ensure_within_limit(
@@ -283,14 +308,10 @@ class BudgetLedger(ContractModel):
         """Remaining configured capacity; None continues to mean unbounded."""
 
         committed = self.committed
-        if (
-            self.total_limit.tokens is not None
-            and committed.tokens is not None
-            and committed.tokens > self.total_limit.tokens
-        ):
-            committed = committed.model_copy(
-                update={"tokens": self.total_limit.tokens}
-            )
+        for name in ("tokens", "money_cny"):
+            limit, value = getattr(self.total_limit, name), getattr(committed, name)
+            if limit is not None and value is not None and value > limit:
+                committed = committed.model_copy(update={name: limit})
         return self.total_limit.subtract(committed)
 
 
@@ -316,6 +337,8 @@ def _effective_charge(
             else settlement.effective_tokens
         ),
         money_usd=money,
+        money_cny=(settlement.estimated_cost_cny if settlement.estimated_cost_cny is not None
+                   else reservation.amounts.money_cny),
         seconds=actual_or_hold("seconds"),
         calls=actual_or_hold("calls"),
     )
@@ -327,11 +350,14 @@ def _ensure_within_reservation(
     message: str,
     *,
     allow_token_overrun: bool = False,
+    allow_cny_overrun: bool = False,
 ) -> None:
-    for name in ("tokens", "money_usd", "seconds", "calls"):
+    for name in ("tokens", "money_usd", "money_cny", "seconds", "calls"):
         value = getattr(actual, name)
         ceiling = getattr(limit, name)
         if name == "tokens" and allow_token_overrun and ceiling is not None:
+            continue
+        if name == "money_cny" and allow_cny_overrun and ceiling is not None:
             continue
         if value is not None and (ceiling is None or value > ceiling):
             raise ValueError(f"{message} ({name})")
@@ -340,7 +366,7 @@ def _ensure_within_reservation(
 def _ensure_within_limit(
     actual: BudgetAmounts, limit: BudgetAmounts, message: str
 ) -> None:
-    for name in ("tokens", "money_usd", "seconds", "calls"):
+    for name in ("tokens", "money_usd", "money_cny", "seconds", "calls"):
         value = getattr(actual, name)
         ceiling = getattr(limit, name)
         if ceiling is not None and value is not None and value > ceiling:
@@ -353,6 +379,7 @@ def _has_positive_dimension(amounts: BudgetAmounts) -> bool:
         for value in (
             amounts.tokens,
             amounts.money_usd,
+            amounts.money_cny,
             amounts.seconds,
             amounts.calls,
         )

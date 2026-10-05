@@ -30,6 +30,17 @@ class CnyPriceSchedule:
     source: str
     image_billing_status: str
 
+    def upper_bound(self, *, input_tokens: int, output_tokens: int,
+                    image_tokens: int) -> Decimal:
+        """Reserve without assuming any future cache hit; images are extra."""
+        if self.cached_input_cny_per_million is None or self.image_input_cny_per_million is None:
+            raise ValueError("CNY ceiling needs a complete registered price schedule")
+        # Taking the larger input rate also covers a schedule with costly cache reads.
+        input_rate = max(self.text_input_cny_per_million, self.cached_input_cny_per_million)
+        return (Decimal(input_tokens) * input_rate
+                + Decimal(output_tokens) * self.output_cny_per_million
+                + Decimal(image_tokens) * self.image_input_cny_per_million) / Decimal(1_000_000)
+
 
 _PARATERA_PRICE_SOURCE = (
     "AI_agent/workflow/models.md (2026-10-03 bill-derived rates; estimate only)"
@@ -85,6 +96,15 @@ def get_cny_price_schedule(
     except (TypeError, ValueError):
         canonical = model.casefold()
     return _PARATERA_PRICES.get(canonical)
+
+
+def require_cny_price_schedule(model: str, *, route_id: str) -> CnyPriceSchedule:
+    """Fail before send for subscription, unregistered or incomplete tariffs."""
+    pricing = get_cny_price_schedule(model, route_id=route_id)
+    if pricing is None:
+        raise ValueError("CNY ceiling requires a registered metered Paratera model")
+    pricing.upper_bound(input_tokens=0, output_tokens=0, image_tokens=0)
+    return pricing
 
 
 @dataclass(frozen=True)
@@ -420,8 +440,10 @@ def _estimate_cny(
         details = raw.get(name)
         if isinstance(details, Mapping):
             value = details.get("cached_tokens")
-            if type(value) is int and value >= 0:
-                cached = min(value, text_input)
+            if value is not None:
+                if type(value) is not int or not 0 <= value <= text_input:
+                    return None, False
+                cached = value
                 break
     uncached = text_input - cached
     million = Decimal(1_000_000)

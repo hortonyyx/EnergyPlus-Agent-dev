@@ -17,6 +17,8 @@ from pathlib import Path
 from src.agent.runtime_entry import ROOT
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import validate_output_limit
+from src.agent_runtime.accounting import require_cny_price_schedule
+from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters, validate_provider_model
 
 
@@ -60,6 +62,7 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             raise ValueError("each case needs a positive time ceiling")
         if seconds > value["maximum_seconds_per_case"]:
             raise ValueError("case exceeds the configuration's time ceiling")
+        validate_budget(case)
         for key in ("input", "output"):
             target = (ROOT / case[key]).resolve()
             if not target.is_relative_to(ROOT):
@@ -76,6 +79,18 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
     return value
 
 
+def validate_budget(case: dict) -> RunLimits:
+    limits = case["limits"]
+    if "tokens" not in limits and limits.get("money_cny") is None:
+        raise ValueError("set tokens explicitly (null disables it), or supply a CNY ceiling")
+    parsed = RunLimits.model_validate_json(json.dumps({
+        name: limits.get(name) for name in
+        ("model_calls", "tool_calls", "seconds", "tokens", "money_cny")}))
+    if parsed.money_cny is not None:
+        require_cny_price_schedule(case["model"], route_id=case["provider"])
+    return parsed
+
+
 def selected_case(configuration: dict, case_id: str) -> dict:
     matches = [case for case in configuration["cases"] if case["case_id"] == case_id]
     if not matches:
@@ -84,6 +99,7 @@ def selected_case(configuration: dict, case_id: str) -> dict:
 
 
 def argv_for(case: dict, *, resume: bool = False) -> list[str]:
+    budget = validate_budget(case)
     validate_output_limit(case["model"], case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
     limits = case["limits"]
     argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
@@ -92,8 +108,11 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
             "--scope", case["scope"], "--image-kind", case["image_kind"],
             "--model-calls", str(limits["model_calls"]),
             "--tool-calls", str(limits["tool_calls"]),
-            "--tokens", str(limits["tokens"]), "--seconds", str(limits["seconds"]),
+            "--seconds", str(limits["seconds"]),
             "--output-tokens", str(case["output_tokens"])]
+    argv += ["--no-token-limit"] if budget.tokens is None else ["--tokens", str(budget.tokens)]
+    if budget.money_cny is not None:
+        argv += ["--money-cny", str(budget.money_cny)]
     source_flag = "--mesh" if case["input_kind"] == "mesh" else "--images"
     if case.get("low_output_limit_reason") is not None:
         argv += ["--low-output-limit-reason", case["low_output_limit_reason"]]

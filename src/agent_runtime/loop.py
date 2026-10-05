@@ -22,7 +22,7 @@ from src.harness_contracts import (
 from src.harness_contracts.base import ContractModel
 from .adapter import convert_tool_result, parse_response, prepare_request, reported_tokens
 from .accounting import (account_request_usage, bills_images_separately,
-    get_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
+    get_cny_price_schedule, require_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
 from .estimation import get_model_profile, estimate_chat_request
 from .failures import ModelServiceError, classify_failure
@@ -35,8 +35,9 @@ class RunLimits(ContractModel):
     model_calls: int = Field(ge=1)
     tool_calls: int = Field(ge=0)
     seconds: float = Field(gt=0)
-    tokens: int = Field(ge=1)
+    tokens: int | None = Field(ge=1)
     money_usd: Decimal | None = Field(default=None, ge=0)
+    money_cny: Decimal | None = Field(default=None, ge=0)
     near_limit: Literal["stop", "reduce_output"] = "stop"
     min_output_tokens: int = Field(default=1, ge=1)
     context_tokens: int | None = Field(default=None, ge=1)
@@ -48,7 +49,7 @@ class RunLimits(ContractModel):
 
     def ledger_limit(self):
         return BudgetAmounts(tokens=self.tokens, calls=self.model_calls,
-            seconds=Decimal(str(self.seconds)), money_usd=self.money_usd)
+            seconds=Decimal(str(self.seconds)), money_usd=self.money_usd, money_cny=self.money_cny)
 
 
 @dataclass
@@ -111,7 +112,7 @@ class Runtime:
             raise ValueError("runtime limits differ from persisted budget")
         for name, value in self.limits.ledger_limit().model_dump().items():
             cap = getattr(self.role.budget, name)
-            if cap is not None and value is not None and value > cap:
+            if cap is not None and (value is None or value > cap):
                 raise ValueError(f"runtime exceeds role budget: {name}")
         self._load_budget()
         self._refresh_counts()
@@ -217,16 +218,19 @@ class Runtime:
             "required_view_ids": list(self.required_view_ids)}
 
     def _load_budget(self):
+        self.cny_pricing = (require_cny_price_schedule(self.model,
+            route_id=self.versions.remote_model.route_id)
+            if self.store.budget_limit.money_cny is not None or self.limits.money_cny is not None else None)
         profile_minimum = get_model_profile(self.model).recommended_min_output_tokens or 1
         minimum = self.limits.min_output_tokens
         if self.low_output_limit_reason is None:
             minimum = max(minimum, profile_minimum)
         self.budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events,
             near_limit_policy=self.limits.near_limit, min_output_tokens=minimum,
-            pricing=self.pricing)
+            pricing=self.pricing, cny_pricing=self.cny_pricing)
         self.task_budget = RuntimeBudget.from_events(self.limits.ledger_limit(), self.store.events,
             near_limit_policy=self.limits.near_limit, min_output_tokens=minimum,
-            pricing=self.pricing)
+            pricing=self.pricing, cny_pricing=self.cny_pricing)
 
     def _refresh_counts(self):
         requests = [e for e in self.store.events if e.payload.event_type == "adapter_request"]
@@ -306,7 +310,7 @@ class Runtime:
                 output_token_limit=prepared.output_token_limit, seconds=seconds,
                 reasoning_token_allowance=prepared.token_estimate.reasoning_token_allowance,
                 estimate_source=prepared.estimate_source,
-                pricing=self.pricing)
+                pricing=self.pricing, cny_pricing=self.cny_pricing)
             reservation_id = self.store.next_reservation_id()
             task_decision = self.task_budget.reserve(reservation_id, estimate)
             if task_decision.action == "stop":
@@ -341,6 +345,12 @@ class Runtime:
                     "near_limit_action": "reduce_output" if degradation else "allow",
                     "degradation": degradation,
                     "token_estimate": asdict(prepared.token_estimate),
+                    "cny_reservation": ({
+                        "price_schedule": {k: str(v) if isinstance(v, Decimal) else v
+                                           for k, v in asdict(self.cny_pricing).items()},
+                        "assumed_cache_read_tokens": 0,
+                        "note": "No future cache hit assumed; full prompt plus separate images and output/reasoning allowance. Estimate, not a bill."
+                    } if self.cny_pricing else None),
                     "context_limits": {"model_profile": profile_limit,
                         "configured": configured_limit,
                         "effective": effective_context_limit}}),))
@@ -504,6 +514,10 @@ class Runtime:
         image_charge = {"image_tokens_estimate": accounting.image_tokens_estimate,
             "additional_image_tokens": accounting.additional_image_tokens,
             "reported_usage_includes_image_tokens": accounting.reported_usage_includes_image_tokens}
+        reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
+        if reservation.amounts.money_cny is not None:
+            image_charge["estimated_cost_cny"] = (accounting.estimated_cost_cny
+                if reported_tokens(usage) is not None else None)
         sources = (self.store.source("request-usage-accounting", accounting.receipt_dict()),)
         actual = BudgetAmounts(tokens=reported_tokens(usage), calls=1, seconds=charged_seconds)
         task_decision = self.task_budget.settle(reservation_id,
@@ -534,7 +548,8 @@ class Runtime:
                     "usage": usage.model_dump(mode="json"), "stop_reason": stop_reason}),))
             if (decision.exceeded_dimensions == ("seconds",)
                     and actual.tokens is not None
-                    and accounting.budget_charge_tokens > (decision.reservation.amounts.tokens or 0)):
+                    and (accounting.budget_charge_tokens > (decision.reservation.amounts.tokens or 0)
+                         or image_charge.get("estimated_cost_cny") is not None)):
                 # A late response still incurred its full token charge. The
                 # observed duration remains above in the violation evidence;
                 # leave time unsettled (retain its hold), and keep the time stop.
@@ -570,6 +585,12 @@ class Runtime:
         return None
 
     def _settled_token_stop(self):
+        for budget, task in ((self.budget, False), (self.task_budget, True)):
+            if budget.fatal_reason == "money_cny_usage_unavailable":
+                return budget.fatal_reason
+            if (budget.total_limit.money_cny is not None
+                    and (budget.ledger.committed.money_cny or 0) >= budget.total_limit.money_cny):
+                return self._scoped_budget_reason("money", task=task)
         root_tokens = self.budget.ledger.committed.tokens or 0
         task_tokens = self.task_budget.ledger.committed.tokens or 0
         if self.budget.total_limit.tokens is not None and root_tokens > self.budget.total_limit.tokens:
@@ -1107,31 +1128,38 @@ class Runtime:
 
     def _budget_stop(self):
         self._load_budget()
+        for budget in (self.budget, self.task_budget):
+            if budget.fatal_reason is not None:
+                return budget.fatal_reason
         if self._remaining() <= 0:
             return self._scoped_budget_reason("time", task=True)
         if self.counts["model_calls"] >= self.limits.model_calls:
             return self._scoped_budget_reason("model", task=True)
         if self.task_budget.available.calls <= 0:
             return self._scoped_budget_reason("model", task=True)
-        if self.task_budget.available.tokens <= 0:
+        if self.task_budget.available.tokens is not None and self.task_budget.available.tokens <= 0:
             return self._scoped_budget_reason("token", task=True)
         if (self.task_budget.available.money_usd is not None
                 and self.task_budget.available.money_usd <= 0):
+            return self._scoped_budget_reason("money", task=True)
+        if self.task_budget.available.money_cny is not None and self.task_budget.available.money_cny <= 0:
             return self._scoped_budget_reason("money", task=True)
         if self.task_budget.available.seconds <= 0:
             return self._scoped_budget_reason("time", task=True)
         if self.budget.available.calls <= 0:
             return self._scoped_budget_reason("model")
-        if self.budget.available.tokens <= 0:
+        if self.budget.available.tokens is not None and self.budget.available.tokens <= 0:
             return self._scoped_budget_reason("token")
         if self.budget.available.money_usd is not None and self.budget.available.money_usd <= 0:
+            return self._scoped_budget_reason("money")
+        if self.budget.available.money_cny is not None and self.budget.available.money_cny <= 0:
             return self._scoped_budget_reason("money")
         if self.budget.available.seconds <= 0:
             return self._scoped_budget_reason("time")
         return None
 
     def _budget_reason(self, decision, *, scope=None):
-        names = {"calls": "model", "tokens": "token", "seconds": "time", "money_usd": "money"}
+        names = {"calls": "model", "tokens": "token", "seconds": "time", "money_usd": "money", "money_cny": "money"}
         if decision.exceeded_dimensions:
             reason = names[decision.exceeded_dimensions[0]] + "_budget_exhausted"
             return f"{scope}_{reason}" if scope else reason
@@ -1243,6 +1271,9 @@ class Runtime:
             "token_accounting": "provider-reported usage plus separately estimated images when omitted, and outstanding/unknown holds; estimates are not bills",
             "image_tokens_estimate": task_accounting["image_tokens_estimate"],
             "estimated_cost_cny": task_accounting["estimated_cost_cny"],
+            "committed_estimate_cny": (str(self.budget.ledger.committed.money_cny)
+                if self.budget.ledger.committed.money_cny is not None else None),
+            "cny_ceiling_note": "CNY ceiling uses registered rates and conservative holds, not provider bills. Missing usage retains its hold and stops further requests.",
             "usage_accounting": task_accounting,
             "root_usage_accounting": summarize_request_accounting(accounting_records),
             "request_usage_accounting": [row.receipt_dict() for row in accounting_records

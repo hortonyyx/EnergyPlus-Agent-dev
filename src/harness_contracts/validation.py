@@ -529,9 +529,11 @@ def _require_available_for_reservation(
 ) -> None:
     """Reject a new hold against the actual capacity remaining at that event."""
 
-    for name in ("tokens", "money_usd", "seconds", "calls"):
+    for name in ("tokens", "money_usd", "money_cny", "seconds", "calls"):
         amount = getattr(requested, name)
         remaining = getattr(available, name)
+        if name == "money_cny" and remaining is not None and amount is None:
+            raise ValueError("CNY-limited request requires a money reservation")
         if amount is not None and remaining is not None and amount > remaining:
             raise ValueError(f"budget reservation exceeds available budget ({name})")
 

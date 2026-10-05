@@ -19,6 +19,7 @@ from src.harness_contracts import (
 )
 from src.harness_contracts.base import ContractModel, NonEmptyStr
 from src.harness_contracts.budget import CostEvidence, UsageEvidence
+from .accounting import CnyPriceSchedule
 
 
 class PriceSchedule(ContractModel):
@@ -50,6 +51,7 @@ class RequestEstimate(ContractModel):
     seconds: Decimal = Field(gt=0)
     calls: int = Field(default=1, ge=1)
     money_usd_upper_bound: Decimal | None = Field(default=None, ge=0)
+    money_cny_upper_bound: Decimal | None = Field(default=None, ge=0)
     estimate_source: NonEmptyStr
 
     @model_validator(mode="after")
@@ -76,6 +78,7 @@ class RequestEstimate(ContractModel):
         seconds: Decimal,
         estimate_source: str,
         pricing: PriceSchedule | None = None,
+        cny_pricing: CnyPriceSchedule | None = None,
     ) -> RequestEstimate:
         money = None
         if pricing is not None:
@@ -93,6 +96,10 @@ class RequestEstimate(ContractModel):
             reasoning_token_allowance=reasoning_token_allowance,
             seconds=seconds,
             money_usd_upper_bound=money,
+            money_cny_upper_bound=(cny_pricing.upper_bound(
+                input_tokens=input_token_upper_bound,
+                output_tokens=output_token_limit + reasoning_token_allowance,
+                image_tokens=image_input_tokens_estimate) if cny_pricing else None),
             estimate_source=estimate_source,
         )
 
@@ -101,18 +108,26 @@ class RequestEstimate(ContractModel):
         return BudgetAmounts(
             tokens=self.input_token_upper_bound + self.additional_image_tokens_estimate + self.output_token_limit + self.reasoning_token_allowance,
             money_usd=self.money_usd_upper_bound,
+            money_cny=self.money_cny_upper_bound,
             seconds=self.seconds,
             calls=self.calls,
         )
 
     def with_output_token_limit(
-        self, output_token_limit: int, pricing: PriceSchedule | None
+        self, output_token_limit: int, pricing: PriceSchedule | None,
+        cny_pricing: CnyPriceSchedule | None = None,
     ) -> RequestEstimate:
         if self.money_usd_upper_bound is not None and pricing is None:
             raise ValueError("priced estimate cannot be reduced without its price schedule")
+        if self.money_cny_upper_bound is not None and cny_pricing is None:
+            raise ValueError("CNY estimate cannot be reduced without its price schedule")
         return self.model_copy(
             update={
                 "output_token_limit": output_token_limit,
+                "money_cny_upper_bound": (cny_pricing.upper_bound(
+                    input_tokens=self.input_token_upper_bound,
+                    output_tokens=output_token_limit + self.reasoning_token_allowance,
+                    image_tokens=self.image_input_tokens_estimate) if cny_pricing else None),
                 "money_usd_upper_bound": (
                     pricing.upper_bound(
                         input_tokens=self.input_token_upper_bound,
@@ -136,7 +151,7 @@ class BudgetDecision(ContractModel):
     effective_estimate: RequestEstimate | None = None
     output_token_limit: int | None = Field(default=None, ge=1)
     exceeded_dimensions: tuple[
-        Literal["tokens", "money_usd", "seconds", "calls"], ...
+        Literal["tokens", "money_usd", "money_cny", "seconds", "calls"], ...
     ] = ()
 
     @model_validator(mode="after")
@@ -163,6 +178,7 @@ class RuntimeBudget:
         near_limit_policy: Literal["stop", "reduce_output"] = "stop",
         min_output_tokens: int = 1,
         pricing: PriceSchedule | None = None,
+        cny_pricing: CnyPriceSchedule | None = None,
     ) -> None:
         if near_limit_policy not in {"stop", "reduce_output"}:
             raise ValueError("near_limit_policy must be stop or reduce_output")
@@ -172,6 +188,7 @@ class RuntimeBudget:
         self.near_limit_policy = near_limit_policy
         self.min_output_tokens = min_output_tokens
         self.pricing = pricing
+        self.cny_pricing = cny_pricing
         self._reservations: list[BudgetReservation] = []
         self._settlements: list[BudgetSettlement] = []
         self._fatal_reason: str | None = None
@@ -206,6 +223,8 @@ class RuntimeBudget:
             and estimate.money_usd_upper_bound is None
         ):
             return self._stop("money_estimate_unavailable")
+        if self.total_limit.money_cny is not None and estimate.money_cny_upper_bound is None:
+            return self._stop("money_cny_estimate_unavailable")
 
         effective = estimate
         action: Literal["allow", "reduce_output"] = "allow"
@@ -259,6 +278,7 @@ class RuntimeBudget:
         image_tokens_estimate: int = 0,
         reported_usage_includes_image_tokens: bool = False,
         additional_image_tokens: int | None = None,
+        estimated_cost_cny: Decimal | None = None,
     ) -> BudgetDecision:
         reservation = next(
             (
@@ -288,7 +308,7 @@ class RuntimeBudget:
             )
         })
         exceeded = tuple(name for name in _exceeded_reservation(effective_actual, reservation.amounts)
-                         if name != "tokens")
+                         if name not in {"tokens", "money_cny"})
         if exceeded:
             self._fatal_reason = "actual_usage_exceeds_reservation"
             return self._stop(
@@ -335,6 +355,10 @@ class RuntimeBudget:
                     (effective_actual.tokens or 0)
                     - (reservation.amounts.tokens or 0),
                 ),
+                estimated_cost_cny=estimated_cost_cny,
+                money_cny_overrun=max(Decimal(0), estimated_cost_cny - reservation.amounts.money_cny)
+                    if estimated_cost_cny is not None and reservation.amounts.money_cny is not None
+                    else Decimal(0),
             )
             BudgetLedger(
                 total_limit=self.total_limit,
@@ -347,6 +371,15 @@ class RuntimeBudget:
         self._settlements.append(settlement)
         if self._fatal_reason == "unsettled_reported_usage":
             self._fatal_reason = None
+        if reservation.amounts.money_cny is not None and estimated_cost_cny is None:
+            self._fatal_reason = "money_cny_usage_unavailable"
+            return BudgetDecision(action="stop", reason=self._fatal_reason,
+                available=self.available, reservation=reservation, settlement=settlement)
+        if (self.total_limit.money_cny is not None
+                and (self.ledger.committed.money_cny or 0) >= self.total_limit.money_cny):
+            return BudgetDecision(action="stop", reason="money_budget_exhausted",
+                available=self.available, reservation=reservation, settlement=settlement,
+                exceeded_dimensions=("money_cny",))
         if (self.total_limit.tokens is not None
                 and (self.ledger.committed.tokens or 0) > self.total_limit.tokens):
             return BudgetDecision(action="stop", reason="token_budget_exhausted",
@@ -369,6 +402,7 @@ class RuntimeBudget:
         near_limit_policy: Literal["stop", "reduce_output"] = "stop",
         min_output_tokens: int = 1,
         pricing: PriceSchedule | None = None,
+        cny_pricing: CnyPriceSchedule | None = None,
     ) -> RuntimeBudget:
         """Recover full settled charges and conservative outstanding holds."""
 
@@ -377,6 +411,7 @@ class RuntimeBudget:
             near_limit_policy=near_limit_policy,
             min_output_tokens=min_output_tokens,
             pricing=pricing,
+            cny_pricing=cny_pricing,
         )
         materialized = list(events)
         for item in materialized:
@@ -402,6 +437,10 @@ class RuntimeBudget:
                 )
                 budget._settlements.append(payload.settlement)
         budget._recover_response_overrun(materialized)
+        reservations = {r.reservation_id: r for r in budget._reservations}
+        if any(reservations[s.reservation_id].amounts.money_cny is not None
+               and s.estimated_cost_cny is None for s in budget._settlements):
+            budget._fatal_reason = "money_cny_usage_unavailable"
         return budget
 
     def _reduced_estimate(
@@ -410,7 +449,7 @@ class RuntimeBudget:
         if estimate.output_token_limit <= self.min_output_tokens:
             return None
         minimum = estimate.with_output_token_limit(
-            self.min_output_tokens, self.pricing
+            self.min_output_tokens, self.pricing, self.cny_pricing
         )
         if not _fits(minimum.amounts, self.available):
             return None
@@ -418,7 +457,7 @@ class RuntimeBudget:
         best = minimum
         while low <= high:
             middle = (low + high) // 2
-            candidate = estimate.with_output_token_limit(middle, self.pricing)
+            candidate = estimate.with_output_token_limit(middle, self.pricing, self.cny_pricing)
             if _fits(candidate.amounts, self.available):
                 best = candidate
                 low = middle + 1
@@ -451,9 +490,9 @@ class RuntimeBudget:
             tokens = _reported_tokens(payload.usage)
             if (
                 reservation is not None
-                and tokens is not None
-                and reservation.amounts.tokens is not None
-                and tokens > reservation.amounts.tokens
+                and (reservation.amounts.money_cny is not None or (
+                    tokens is not None and reservation.amounts.tokens is not None
+                    and tokens > reservation.amounts.tokens))
             ):
                 # A durable response must be settled by Runtime recovery before
                 # admitting more requests. Exceeding its estimate is not itself
@@ -478,7 +517,7 @@ class RuntimeBudget:
 
 
 def _fits(requested: BudgetAmounts, available: BudgetAmounts) -> bool:
-    for name in ("tokens", "money_usd", "seconds", "calls"):
+    for name in ("tokens", "money_usd", "money_cny", "seconds", "calls"):
         ceiling = getattr(available, name)
         if ceiling is None:
             continue
@@ -493,7 +532,7 @@ def _exceeded(
 ) -> tuple[str, ...]:
     return tuple(
         name
-        for name in ("tokens", "money_usd", "seconds", "calls")
+        for name in ("tokens", "money_usd", "money_cny", "seconds", "calls")
         if getattr(available, name) is not None
         and (
             getattr(requested, name) is None
@@ -507,7 +546,7 @@ def _exceeded_reservation(
 ) -> tuple[str, ...]:
     return tuple(
         name
-        for name in ("tokens", "money_usd", "seconds", "calls")
+        for name in ("tokens", "money_usd", "money_cny", "seconds", "calls")
         if getattr(actual, name) is not None
         and (
             getattr(reservation, name) is None
