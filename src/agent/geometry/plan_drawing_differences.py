@@ -3,9 +3,9 @@
 Build feedback only: every item is a place to look at the original again, never
 a wall or door identification, an approval or an automatic edit. Ink is any
 colour far from the drawing's background; what it depicts is the caller's call.
-Scope: interior dividers drawn as double lines or filled bands, and door gaps in
-declared dividers. Exterior walls, windows, single-line walls and heights are
-not checked.
+Scope: orthogonal interior double lines (including interrupted pairs), bands,
+door gaps and unsupported open separators. Exterior walls, windows, single-line
+or oblique wall completeness and heights are not checked.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from collections import Counter
 import numpy as np
 from PIL import Image, ImageDraw
 
-SCHEMA = "drawing_differences_v1"
+SCHEMA = "drawing_differences_v2"
 MIN_LINE_M = 1.2        # shortest straight ink run treated as wall-like
 ALERT_LINE_M = 2.0      # lines counted for the floor-level "no dividers declared" observation
 FILLED_MIN_M = 0.05     # a solid band at least this wide is wall-like on its own
@@ -36,9 +36,10 @@ MEANING = ("Places where the original's ink and this declaration disagree, to ch
            "original (look_box): revise only with evidence, or keep the object and say why. "
            "Ink is not identity: furniture, symbols or text also leave ink, and a gap may be a door.")
 SCOPE = ("Interior dividers drawn as double lines or filled bands, and gaps in declared dividers; "
-         "exterior walls, windows, single-line walls and heights are not checked.")
+         "includes door-interrupted double lines and unsupported open separators; "
+         "exterior walls, windows, single-line walls, oblique walls and heights are not checked.")
 ORDER = ("no_dividers_declared", "undeclared_wall_line", "opening_on_continuous_ink", "wall_gap_without_opening",
-         "declared_divider_with_little_ink", "opening_offset_from_gap")
+         "declared_divider_with_little_ink", "unsupported_open_separator", "opening_offset_from_gap")
 
 
 def _ink(image):
@@ -144,6 +145,45 @@ def _wall_like(strokes, mpp_cross):
     return merged
 
 
+def _interrupted_pairs(mask, orient, along_mpp, cross_mpp):
+    """Join bounded doorway gaps for *paired* faces only, never infer a wall.
+
+    sm24 run100 omitted the corridor side: its two faces stop at doors and meet
+    another omitted wall, so neither uninterrupted-stroke/junction test fired.
+    """
+    closed = mask.copy()
+    count = mask.shape[1] if orient == 'v' else mask.shape[0]
+    for index in range(count):
+        flags = closed[:, index] if orient == 'v' else closed[index, :]
+        runs = [(a, b) for a, b in _runs(flags) if (b-a+1)*along_mpp >= .25]
+        for (_, end), (start, _) in zip(runs, runs[1:]):
+            gap_m = (start-end-1)*along_mpp
+            if GAP_MIN_M <= gap_m <= 1.4 or gap_m <= .10 or start-end-1 <= 2:
+                flags[end+1:start] = True
+    strokes = _strokes(closed, orient, MIN_LINE_M/along_mpp)
+    candidates = []
+    for i, a in enumerate(strokes):
+        for b in strokes[i+1:]:
+            ac, bc = (a['first']+a['last'])/2, (b['first']+b['last'])/2
+            spacing = abs(bc-ac)*cross_mpp
+            if not PAIR_M[0] <= spacing <= PAIR_M[1]:
+                continue
+            lo, hi = max(a['start'], b['start']), min(a['end'], b['end'])
+            if (hi-lo)*along_mpp < MIN_LINE_M:
+                continue
+            lengths = [a['end']-a['start'], b['end']-b['start']]
+            if min(lengths) < .6*max(lengths) or hi-lo < .8*min(lengths):
+                continue
+            support = []
+            for stroke in (a,b):
+                sample = (mask[lo:hi+1,stroke['first']:stroke['last']+1].any(axis=1) if orient=='v'
+                          else mask[stroke['first']:stroke['last']+1,lo:hi+1].any(axis=0))
+                support.append(float(sample.mean()))
+            if min(support) >= .55:
+                candidates.append(((ac+bc)/2, lo, hi, spacing))
+    return candidates
+
+
 def _face_flags(ink, orient, at, start, stop, reach, fallback):
     """Ink presence along a declared divider, sampled on its drawn face lines."""
     centre = int(round(at))
@@ -172,7 +212,11 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
     spans = ((max(p[0] for p in ring) - min(p[0] for p in ring)) * mpp_x,
              (max(p[1] for p in ring) - min(p[1] for p in ring)) * mpp_y)
     base = dict(schema=SCHEMA, image=image_name, image_sha256=image_sha256, plan_sha256=plan_sha256,
-                floor_id=plan.get("floor_id"), meaning=MEANING, scope=SCOPE)
+                floor_id=plan.get("floor_id"), meaning=MEANING, scope=SCOPE,
+                coverage=dict(footprint_pixels=ring, declared_divider_count=len(plan.get('partitions', [])),
+                    checked='orthogonal interior ink/declaration differences within this calibrated footprint',
+                    not_checked=['exterior walls/windows', 'single-line or oblique wall completeness',
+                                 'heights', 'room identity/use', 'whole-building fidelity']))
     if not all(FOOTPRINT_M[0] <= span <= FOOTPRINT_M[1] for span in spans):
         return dict(base, status="not_checked", total=0, counts={}, items=[],
                     reason=f"calibration gives an implausible footprint of {spans[0]:.3g} x {spans[1]:.3g} m; "
@@ -217,6 +261,11 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
         mpp_cross = mpp_x if orient == "v" else mpp_y
         for centre, lo, hi, thickness in _wall_like(_strokes(mask, orient, px(MIN_LINE_M, along)), mpp_cross):
             candidates.append(dict(orient=orient, at=centre, lo=lo, hi=hi, thickness_m=round(thickness, 2)))
+    interrupted = []
+    for orient in ('v','h'):
+        along_mpp, cross_mpp = (mpp_y,mpp_x) if orient=='v' else (mpp_x,mpp_y)
+        for at, lo, hi, thickness in _interrupted_pairs(mask, orient, along_mpp, cross_mpp):
+            interrupted.append(dict(orient=orient, at=at, lo=lo, hi=hi, thickness_m=round(thickness,2)))
     if not dividers:
         # A floor-level observation, not an object item: free-standing furniture cannot
         # reach the outer walls, and room walls are longer than most furniture edges.
@@ -254,6 +303,24 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                 accepted.append(candidate)
                 support.append((o, at, lo, hi))
                 changed = True
+    # Two omitted walls can meet each other, with each anchored to a declared
+    # wall at the far end. Requiring that anchor excludes free-standing furniture.
+    anchored = []
+    pair_tolerance = {axis: max(2., px(.10,axis)) for axis in ('x','y')}
+    for c in interrupted:
+        o, at, lo, hi = c['orient'], c['at'], c['lo'], c['hi']
+        ends = [(at,lo),(at,hi)] if o=='v' else [(lo,at),(hi,at)]
+        if any(_touches(p, o, declared_walls, pair_tolerance) for p in ends):
+            anchored.append(c)
+    network = support + [(c['orient'],c['at'],c['lo'],c['hi']) for c in anchored]
+    for c in anchored:
+        o, at, lo, hi = c['orient'], c['at'], c['lo'], c['hi']
+        ends = [(at,lo),(at,hi)] if o=='v' else [(lo,at),(hi,at)]
+        # A candidate cannot provide its own endpoint support.
+        others = [line for line in network if line != (o,at,lo,hi)]
+        if all(_touches(p,o,others,pair_tolerance) for p in ends):
+            accepted.append(c)
+    emitted = []
     for candidate in accepted:
         o, at, lo, hi = candidate["orient"], candidate["at"], candidate["lo"], candidate["hi"]
         cross = "x" if o == "v" else "y"
@@ -263,6 +330,10 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
         covered = sum(_overlap(lo, hi, l, h) for _, p, a, l, h in dividers if p == o and abs(a - at) <= px(COVER_M, cross))
         if covered >= 0.6 * (hi - lo):
             continue
+        if any(p==o and abs(a-at)<=px(.1,cross) and _overlap(lo,hi,l,h)>=.8*min(hi-lo,h-l)
+               for p,a,l,h in emitted):
+            continue
+        emitted.append((o,at,lo,hi))
         items.append(dict(type="undeclared_wall_line", **where(o, at, lo, hi),
                           length_m=round((hi - lo) * (mpp_y if o == "v" else mpp_x), 2),
                           drawn_thickness_m=candidate["thickness_m"], look_box=look_box(o, at, lo, hi),
@@ -279,6 +350,30 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                                       max(1, int(round(px(STRIP_M, cross)))))
         hosted = [(oid, kind, l, h) for oid, kind, o, a, l, h in openings
                   if o == orient and abs(a - at) <= px(FACE_REACH_M, cross) and l >= lo - 2 and h <= hi + 2]
+        # A full-width open connection can hide a made-up partition: deducting
+        # the opening leaves no wall to sample (sm25 candidate_07, D_core).
+        junctions = [lo,hi]
+        for o,a,l,h in declared_walls:
+            if o != orient and l-1 <= at <= h+1 and lo < a < hi:
+                junctions.append(a)
+        junctions = sorted(set(junctions))
+        unsupported_ids = set()
+        for seg_lo, seg_hi in zip(junctions,junctions[1:]):
+            span_m = (seg_hi-seg_lo)*along_mpp
+            if span_m < GAP_MIN_M:
+                continue
+            for oid,kind,l,h in hosted:
+                if kind not in {'open','passage'} or _overlap(seg_lo,seg_hi,l,h) < .85*(seg_hi-seg_lo):
+                    continue
+                margin = max(1, int(round(.12/along_mpp)))
+                segment = flags[max(0,int(round(seg_lo))-start+margin):max(0,int(round(seg_hi))-start-margin)]
+                if segment.size and float(segment.mean()) < .15:
+                    unsupported_ids.add(oid)
+                    items.append(dict(type='unsupported_open_separator', divider=divider_id, opening=oid,
+                        **where(orient,at,seg_lo,seg_hi), length_m=round(span_m,2),
+                        ink_fraction=round(float(segment.mean()),2), look_box=look_box(orient,at,seg_lo,seg_hi),
+                        check='An open connection fills this partition segment with almost no ink support. '
+                              'Check whether this is one continuous space rather than a wall with an opening.'))
         free = np.ones(flags.size, dtype=bool)
         for _, _, l, h in hosted:
             free[max(0, int(round(l)) - start):max(0, int(round(h)) - start + 1)] = False
@@ -309,6 +404,8 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                 continue
             for oid, kind, l, h in overlapping:
                 matched.add(oid)
+                if oid in unsupported_ids:
+                    continue
                 offsets = [round((l - gap_lo) * along_mpp, 2), round((h - gap_hi) * along_mpp, 2)]
                 if max(abs(v) for v in offsets) > OFFSET_M:
                     items.append(dict(type="opening_offset_from_gap", opening=oid, divider=divider_id,
@@ -327,6 +424,8 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
 
     rank = {name: index for index, name in enumerate(ORDER)}
     items.sort(key=lambda row: (rank[row["type"]], -row.get("length_m", row.get("gap_m", 0))))
+    base['coverage']['tested_divider_segments'] = len(dividers)
+    base['coverage']['zero_means'] = 'No differences found by these scoped ink tests; not complete drawing verification.'
     return dict(base, status="reported", total=len(items), counts=dict(Counter(row["type"] for row in items)),
                 items=items)
 
@@ -334,8 +433,9 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
 def compact_differences(report, *, limit=MAX_ITEMS):
     """Short build-response form: counts, first items and whether more exist."""
     if report.get("status") != "reported":
-        return {k: report[k] for k in ("status", "reason", "meaning", "scope") if k in report}
+        return {k: report[k] for k in ("status", "reason", "meaning", "scope", "coverage") if k in report}
     return dict(status="reported", total=report["total"], counts=report["counts"],
                 items=report["items"][:limit], truncated=report["total"] > limit,
                 meaning=report["meaning"], scope=report["scope"],
+                coverage=report.get('coverage', {}),
                 full_list="inspect_plan_draft(draft_id) returns every item of that draft")

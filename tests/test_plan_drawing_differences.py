@@ -109,3 +109,42 @@ def test_compact_form_keeps_counts_and_marks_truncation():
     short = compact_differences(report, limit=1)
     assert short["total"] == report["total"] and len(short["items"]) == 1
     assert short["truncated"] is (report["total"] > 1) and short["meaning"] and "inspect_plan_draft" in short["full_list"]
+
+
+def test_double_lines_interrupted_by_doors_still_find_missing_divider():
+    image = drawing(divider_gap=(150,240))
+    report = drawing_differences(image, plan())
+    assert any(item['type']=='undeclared_wall_line' and abs(item['x_m']-2.5)<.05
+               for item in report['items'])
+
+
+def test_full_width_open_separator_does_not_hide_unsupported_partition():
+    image = drawing(dividers=())
+    report = drawing_differences(image, plan(partitions=divider(), openings=door(50,350,kind='open')))
+    assert kinds(report) == ['unsupported_open_separator']
+    assert report['items'][0]['opening'] == 'D1'
+    # A normal door gap in a supported wall is not a fake partition diagnosis.
+    report = drawing_differences(drawing(divider_gap=(150,240)),
+                                plan(partitions=divider(), openings=door(150,240,kind='open')))
+    assert 'unsupported_open_separator' not in kinds(report)
+
+
+def test_zero_and_unchecked_results_state_the_actual_scope():
+    report = drawing_differences(drawing(),plan(partitions=divider()))
+    assert report['total'] == 0
+    assert report['coverage']['declared_divider_count'] == 1
+    assert report['coverage']['tested_divider_segments'] == 1
+    assert report['coverage']['not_checked'] and report['coverage']['zero_means']
+    assert compact_differences(report)['coverage'] == report['coverage']
+
+
+def test_interrupted_face_does_not_pair_long_wall_with_short_furniture_edge():
+    # Earlier A4 tuning paired a short desk edge with a long corridor face in
+    # sm21. Both have ink, but they are not the two faces of the same wall.
+    import numpy as np
+    from src.agent.geometry.plan_drawing_differences import _interrupted_pairs
+    ink = np.zeros((200,600), dtype=bool)
+    ink[80,50:550] = True
+    ink[80,250:315] = False
+    ink[88,350:490] = True
+    assert not _interrupted_pairs(ink, 'h', .01, .01)

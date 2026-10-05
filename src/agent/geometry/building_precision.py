@@ -136,6 +136,7 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
             for wall in walls:
                 if (wall['floor'] in fids and wall['line'][:2] == edge[:2]
                         and _overlap(wall['line'], edge) > NUMERICAL_M
+                        and (not choices or wall['line'][0] == choices[0]['line'][0])
                         and not any(w['line'][:2] == wall['line'][:2] for w in choices)):
                     choices.append(wall)
             if len(choices) >= 2:

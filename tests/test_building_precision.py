@@ -72,3 +72,14 @@ def test_step_gap_and_thin_space_keep_objects_and_existing_lines():
     model['spaces'][0]['polygon'] = [[2.94,0],[3,0],[3,6],[2.94,6]]
     report = precision_report(model, floor_evidence=evidence())
     assert any(r['type']=='thin_space' and r['space_id']=='L0' for r in report['items'])
+
+
+def test_thin_shape_never_suggests_aligning_perpendicular_edges():
+    model = source(0)
+    model['spaces'][0]['polygon'] = [[2.94,0],[3,0],[3,6],[2.94,6]]
+    # Only one long edge matches a source wall. The two short end walls cannot
+    # become alternative alignment targets for that long edge.
+    report = precision_report(model, floor_evidence=evidence())
+    item = next(r for r in report['items'] if r['type']=='thin_space')
+    assert {line['axis'] for line in item['align_to_options']} == {'x'}
+    assert {line['coordinate_m'] for line in item['align_to_options']} == {3}
