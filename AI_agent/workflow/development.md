@@ -144,6 +144,7 @@ Set-Content -Path "$state\pid.txt" -Value $p.Id
 `AI_agent` 作为启动目录，是为适配本机 CLI 对嵌套备用文件名的实际加载行为；`--add-dir` 提供整个工作树的写入范围。配置值内部使用 TOML 单引号，避免 Windows PowerShell 5.1 把双引号剥掉而误传成字符串；同样适用于 PowerShell 7。提示放文件、用 `-` 从标准输入读，避免长中文提示的转义问题。旧 `Bash(codex *)` 允许规则不代表 PowerShell 的执行权限，实际权限以客户端显示为准。续接时先切到同一工作树的 `AI_agent`，再用 `codex exec resume <线程> -m gpt-6-astra -c "model_reasoning_effort='max'" --json -o <最终回复文件> -`（续接提示同样从标准输入给）；resume 不接受 `-C`。线程号在 `events.jsonl` 第一行。
 
 - 每个阶段：验收标准与派工单入主线 → 建工作树 → 启动 → 复核改动范围与关键证据 → 必要检查 → Opus 按报告的分组在工作树里提交 → 合入并推送 → 收回工作树。长包开工即保存报告初稿，逐步更新报告，保留中断后的续接入口。
+- **收回工作树前**，先把工作树里的派工状态目录（`AI_agent/archive/local_backup/<任务名>-dispatch/`，含 `events.jsonl` 的用量回执与 `final.md`）拷到主树同名的已忽略目录，并记下用量。10-06 收回 `d1c` 时一并删掉，D1c 的用量没取到。
 - 检查时将 `PYTHONPATH` 指向该工作树，先确认导入模块的 `__file__`；不能把共享 editable 安装的主树结果当作分支验证。pytest 用 `--basetemp AI_agent/archive/local_backup/<任务名>/pytest` 将临时产物留在已忽略的工作树目录。
 - 新证据按哈希引用已有字节，不重复打包；每阶段新增证据尽量约 10 MB。
 
