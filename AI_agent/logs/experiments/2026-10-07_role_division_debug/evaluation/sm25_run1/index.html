@@ -1,0 +1,1315 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>BIM 生成后的独立参照诊断</title><style>body{font:16px system-ui;margin:30px;max-width:1200px}pre{white-space:pre-wrap;font-size:13px}figure{max-width:850px}section{margin-bottom:40px}</style><h1>BIM 生成后的独立参照诊断</h1><p>还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。</p><p>参照范围：sm25-L_anchor role-division debug; scored after the run ended, GT unchanged.</p><p>本页在生成结束后计算，未送回生成模型。蓝线为参照，橙线为候选。详情与限制见 <a href="summary.json">summary.json</a>。<a href="reading_readings.json">规整前读数</a> · <a href="delivery_quality.json">交付稿质量</a>；交付通过不等于读图准确。</p><section><h2>candidate_01</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_01&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;369bf4cc6816048883f71471300734b4e4faf9b1df0a180482835c81ec31736e&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_01_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 14,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 16,
+    &quot;window&quot;: 15
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 15,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.878424000000006
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z0&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 79.52520000000001
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 19.69999999999999
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z12&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 15.405400000000002
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z13&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 15.878200000000007
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z14&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 15.996399999999996
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 19.463599999999992
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 16.1146
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z4&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 32.46560000000001
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z5&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 15.405400000000002
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z6&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 19.936399999999992
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z7&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 8.3528
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z8&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z9&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 14 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon><polygon points="5.3,20.3 13.287013,20.3 13.287013,16.408108000000002 5.3,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 conf1</title></polygon><polygon points="13.287013,20.3 21.295671000000002,20.3 21.295671000000002,16.408108000000002 13.287013,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 conf2</title></polygon><polygon points="0.3,6.310811 5.3,6.310811 5.3,6.418919 9.239394,6.418919 9.239394,14.418919 5.3,14.418919 5.3,16.408108000000002 21.295671000000002,16.408108000000002 21.295671000000002,20.3 25.3,20.3 25.3,14.310811000000001 15.3,14.310811000000001 15.3,14.418919 11.360606,14.418919 11.360606,0.3 10.235065,0.3 10.235065,4.2567569999999995 0.3,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 corr_entry</title></polygon><polygon points="0.3,4.2567569999999995 5.3,4.2567569999999995 5.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 meet1</title></polygon><polygon points="5.3,4.2567569999999995 10.235065,4.2567569999999995 10.235065,0.3 5.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 meet2</title></polygon><polygon points="5.3,10.289189 9.239394,10.289189 9.239394,6.418919 5.3,6.418919" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 midoff1</title></polygon><polygon points="5.3,14.418919 9.239394,14.418919 9.239394,10.289189 5.3,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 midoff2</title></polygon><polygon points="11.360606,2.245945999999999 15.3,2.245945999999999 15.3,0.3 11.360606,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off1</title></polygon><polygon points="11.360606,4.2567569999999995 15.3,4.2567569999999995 15.3,2.245945999999999 11.360606,2.245945999999999" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off2</title></polygon><polygon points="11.360606,6.2891889999999995 15.3,6.2891889999999995 15.3,4.2567569999999995 11.360606,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off3</title></polygon><polygon points="11.360606,8.3 15.3,8.3 15.3,6.2891889999999995 11.360606,6.2891889999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off4</title></polygon><polygon points="11.360606,10.289189 15.3,10.289189 15.3,8.3 11.360606,8.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off5</title></polygon><polygon points="11.360606,12.3 15.3,12.3 15.3,10.289189 11.360606,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off6</title></polygon><polygon points="11.360606,14.418919 15.3,14.418919 15.3,12.3 11.360606,12.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 off7</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 0 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon></svg></figure></section><section><h2>candidate_02</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_02&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;11c4226c1e26fbae37aecd5d0acd3219eb9009debb6d9321a3ff27345ccfe66a&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_02_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 15,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 14,
+    &quot;window&quot;: 16
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 16,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z0&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 99.93440000000004
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z1&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 19.69999999999999
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.878424000000006
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.881575999999999
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z12&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z13&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 31.283600000000007
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z2&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 19.463599999999992
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z3&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 31.520000000000003
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z4&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 16.232406000000005
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z5&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 16.233194000000008
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z6&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 8.3528
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z7&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z8&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;missing_source_space&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z9&quot;
+      ],
+      &quot;candidate_ids&quot;: [],
+      &quot;message&quot;: &quot;Reference space has no one-to-one candidate counterpart.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;area_m2&quot;: 7.880000000000003
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 0 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 15 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon><polygon points="0.3,6.233118 5.295637,6.233118 5.295637,14.366882 9.375044,14.366882 9.375044,6.103668 0.3,6.103668" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 conference</title></polygon><polygon points="0.3,6.103668 9.375044,6.103668 9.375044,14.366882 5.295637,14.366882 5.295637,16.243905 25.3,16.243905 25.3,14.259008000000001 15.308726,14.259008000000001 15.308726,14.366882 11.425654000000002,14.366882 11.425654000000002,4.205069999999998 0.3,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 corridor</title></polygon><polygon points="10.313089000000002,4.205069999999998 15.308726,4.205069999999998 15.308726,0.3 10.313089000000002,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 manager_office</title></polygon><polygon points="0.3,4.205069999999998 5.361082,4.205069999999998 5.361082,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 meeting1</title></polygon><polygon points="5.361082,4.205069999999998 10.313089000000002,4.205069999999998 10.313089000000002,0.3 5.361082,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 meeting2</title></polygon><polygon points="11.425654000000002,6.2546930000000005 15.308726,6.2546930000000005 15.308726,4.205069999999998 11.425654000000002,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 office1</title></polygon><polygon points="11.425654000000002,8.28274 15.308726,8.28274 15.308726,6.2546930000000005 11.425654000000002,6.2546930000000005" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 office2</title></polygon><polygon points="11.425654000000002,10.246063000000001 15.308726,10.246063000000001 15.308726,8.28274 11.425654000000002,8.28274" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 office3</title></polygon><polygon points="11.425654000000002,12.14466 15.308726,12.14466 15.308726,10.246063000000001 11.425654000000002,10.246063000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 office4</title></polygon><polygon points="11.425654000000002,14.366882 15.308726,14.366882 15.308726,12.14466 11.425654000000002,12.14466" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 office5</title></polygon><polygon points="5.295637,20.3 9.331414,20.3 9.331414,16.243905 5.295637,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 south1</title></polygon><polygon points="9.331414,20.3 13.301745,20.3 13.301745,16.243905 9.331414,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 south2</title></polygon><polygon points="13.301745,20.3 17.272077,20.3 17.272077,16.243905 13.301745,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 south3</title></polygon><polygon points="17.272077,20.3 21.242408,20.3 21.242408,16.243905 17.272077,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 south4</title></polygon><polygon points="21.242408,20.3 25.3,20.3 25.3,16.243905 21.242408,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 south5</title></polygon></svg></figure></section><section><h2>candidate_03</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_03&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;bde633e6e0bbc9e9968f393215fc7289e5238e17b8aba9ef8f134382b94229eb&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_03_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 29,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 30,
+    &quot;window&quot;: 31
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 31,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 14 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon><polygon points="5.3,20.3 13.287013,20.3 13.287013,16.408108000000002 5.3,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf1</title></polygon><polygon points="13.287013,20.3 21.295671000000002,20.3 21.295671000000002,16.408108000000002 13.287013,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf2</title></polygon><polygon points="0.3,6.310811 5.3,6.310811 5.3,6.418919 9.239394,6.418919 9.239394,14.418919 5.3,14.418919 5.3,16.408108000000002 21.295671000000002,16.408108000000002 21.295671000000002,20.3 25.3,20.3 25.3,14.310811000000001 15.3,14.310811000000001 15.3,14.418919 11.360606,14.418919 11.360606,0.3 10.235065,0.3 10.235065,4.2567569999999995 0.3,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:corr_entry</title></polygon><polygon points="0.3,4.2567569999999995 5.3,4.2567569999999995 5.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet1</title></polygon><polygon points="5.3,4.2567569999999995 10.235065,4.2567569999999995 10.235065,0.3 5.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet2</title></polygon><polygon points="5.3,10.289189 9.239394,10.289189 9.239394,6.418919 5.3,6.418919" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff1</title></polygon><polygon points="5.3,14.418919 9.239394,14.418919 9.239394,10.289189 5.3,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff2</title></polygon><polygon points="11.360606,2.245945999999999 15.3,2.245945999999999 15.3,0.3 11.360606,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off1</title></polygon><polygon points="11.360606,4.2567569999999995 15.3,4.2567569999999995 15.3,2.245945999999999 11.360606,2.245945999999999" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off2</title></polygon><polygon points="11.360606,6.2891889999999995 15.3,6.2891889999999995 15.3,4.2567569999999995 11.360606,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off3</title></polygon><polygon points="11.360606,8.3 15.3,8.3 15.3,6.2891889999999995 11.360606,6.2891889999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off4</title></polygon><polygon points="11.360606,10.289189 15.3,10.289189 15.3,8.3 11.360606,8.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off5</title></polygon><polygon points="11.360606,12.3 15.3,12.3 15.3,10.289189 11.360606,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off6</title></polygon><polygon points="11.360606,14.418919 15.3,14.418919 15.3,12.3 11.360606,12.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off7</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 15 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon><polygon points="0.3,6.233118 5.295637,6.233118 5.295637,14.366882 9.375044,14.366882 9.375044,6.103668 0.3,6.103668" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:conference</title></polygon><polygon points="0.3,6.103668 9.375044,6.103668 9.375044,14.366882 5.295637,14.366882 5.295637,16.243905 25.3,16.243905 25.3,14.259008000000001 15.308726,14.259008000000001 15.308726,14.366882 11.425654000000002,14.366882 11.425654000000002,4.205069999999998 0.3,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:corridor</title></polygon><polygon points="10.313089000000002,4.205069999999998 15.308726,4.205069999999998 15.308726,0.3 10.313089000000002,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:manager_office</title></polygon><polygon points="0.3,4.205069999999998 5.361082,4.205069999999998 5.361082,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting1</title></polygon><polygon points="5.361082,4.205069999999998 10.313089000000002,4.205069999999998 10.313089000000002,0.3 5.361082,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting2</title></polygon><polygon points="11.425654000000002,6.2546930000000005 15.308726,6.2546930000000005 15.308726,4.205069999999998 11.425654000000002,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office1</title></polygon><polygon points="11.425654000000002,8.28274 15.308726,8.28274 15.308726,6.2546930000000005 11.425654000000002,6.2546930000000005" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office2</title></polygon><polygon points="11.425654000000002,10.246063000000001 15.308726,10.246063000000001 15.308726,8.28274 11.425654000000002,8.28274" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office3</title></polygon><polygon points="11.425654000000002,12.14466 15.308726,12.14466 15.308726,10.246063000000001 11.425654000000002,10.246063000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office4</title></polygon><polygon points="11.425654000000002,14.366882 15.308726,14.366882 15.308726,12.14466 11.425654000000002,12.14466" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office5</title></polygon><polygon points="5.295637,20.3 9.331414,20.3 9.331414,16.243905 5.295637,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south1</title></polygon><polygon points="9.331414,20.3 13.301745,20.3 13.301745,16.243905 9.331414,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south2</title></polygon><polygon points="13.301745,20.3 17.272077,20.3 17.272077,16.243905 13.301745,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south3</title></polygon><polygon points="17.272077,20.3 21.242408,20.3 21.242408,16.243905 17.272077,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south4</title></polygon><polygon points="21.242408,20.3 25.3,20.3 25.3,16.243905 21.242408,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south5</title></polygon></svg></figure></section><section><h2>candidate_04</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_04&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;c6f457cc21c81f5ad4c353a6055b5ac526a8a20f9a021c8fd029839e03448136&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_04_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 29,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 30,
+    &quot;window&quot;: 31
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 31,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 14 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon><polygon points="5.3,20.3 13.287013,20.3 13.287013,16.408108000000002 5.3,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf1</title></polygon><polygon points="13.287013,20.3 21.295671000000002,20.3 21.295671000000002,16.408108000000002 13.287013,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf2</title></polygon><polygon points="0.3,6.310811 5.3,6.310811 5.3,6.418919 9.239394,6.418919 9.239394,14.418919 5.3,14.418919 5.3,16.408108000000002 21.295671000000002,16.408108000000002 21.295671000000002,20.3 25.3,20.3 25.3,14.310811000000001 15.3,14.310811000000001 15.3,14.418919 11.360606,14.418919 11.360606,0.3 10.235065,0.3 10.235065,4.2567569999999995 0.3,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:corr_entry</title></polygon><polygon points="0.3,4.2567569999999995 5.3,4.2567569999999995 5.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet1</title></polygon><polygon points="5.3,4.2567569999999995 10.235065,4.2567569999999995 10.235065,0.3 5.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet2</title></polygon><polygon points="5.3,10.289189 9.239394,10.289189 9.239394,6.418919 5.3,6.418919" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff1</title></polygon><polygon points="5.3,14.418919 9.239394,14.418919 9.239394,10.289189 5.3,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff2</title></polygon><polygon points="11.360606,2.245945999999999 15.3,2.245945999999999 15.3,0.3 11.360606,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off1</title></polygon><polygon points="11.360606,4.2567569999999995 15.3,4.2567569999999995 15.3,2.245945999999999 11.360606,2.245945999999999" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off2</title></polygon><polygon points="11.360606,6.2891889999999995 15.3,6.2891889999999995 15.3,4.2567569999999995 11.360606,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off3</title></polygon><polygon points="11.360606,8.3 15.3,8.3 15.3,6.2891889999999995 11.360606,6.2891889999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off4</title></polygon><polygon points="11.360606,10.289189 15.3,10.289189 15.3,8.3 11.360606,8.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off5</title></polygon><polygon points="11.360606,12.3 15.3,12.3 15.3,10.289189 11.360606,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off6</title></polygon><polygon points="11.360606,14.418919 15.3,14.418919 15.3,12.3 11.360606,12.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off7</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 15 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon><polygon points="0.3,6.233118 5.295637,6.233118 5.295637,14.366882 9.375044,14.366882 9.375044,6.103668 0.3,6.103668" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:conference</title></polygon><polygon points="0.3,6.103668 9.375044,6.103668 9.375044,14.366882 5.295637,14.366882 5.295637,16.243905 25.3,16.243905 25.3,14.259008000000001 15.308726,14.259008000000001 15.308726,14.366882 11.425654000000002,14.366882 11.425654000000002,4.205069999999998 0.3,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:corridor</title></polygon><polygon points="10.313089000000002,4.205069999999998 15.308726,4.205069999999998 15.308726,0.3 10.313089000000002,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:manager_office</title></polygon><polygon points="0.3,4.205069999999998 5.361082,4.205069999999998 5.361082,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting1</title></polygon><polygon points="5.361082,4.205069999999998 10.313089000000002,4.205069999999998 10.313089000000002,0.3 5.361082,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting2</title></polygon><polygon points="11.425654000000002,6.2546930000000005 15.308726,6.2546930000000005 15.308726,4.205069999999998 11.425654000000002,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office1</title></polygon><polygon points="11.425654000000002,8.28274 15.308726,8.28274 15.308726,6.2546930000000005 11.425654000000002,6.2546930000000005" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office2</title></polygon><polygon points="11.425654000000002,10.246063000000001 15.308726,10.246063000000001 15.308726,8.28274 11.425654000000002,8.28274" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office3</title></polygon><polygon points="11.425654000000002,12.14466 15.308726,12.14466 15.308726,10.246063000000001 11.425654000000002,10.246063000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office4</title></polygon><polygon points="11.425654000000002,14.366882 15.308726,14.366882 15.308726,12.14466 11.425654000000002,12.14466" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office5</title></polygon><polygon points="5.295637,20.3 9.331414,20.3 9.331414,16.243905 5.295637,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south1</title></polygon><polygon points="9.331414,20.3 13.301745,20.3 13.301745,16.243905 9.331414,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south2</title></polygon><polygon points="13.301745,20.3 17.272077,20.3 17.272077,16.243905 13.301745,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south3</title></polygon><polygon points="17.272077,20.3 21.242408,20.3 21.242408,16.243905 17.272077,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south4</title></polygon><polygon points="21.242408,20.3 25.3,20.3 25.3,16.243905 21.242408,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south5</title></polygon></svg></figure></section><section><h2>candidate_05</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_05&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;48eeb0d94a2368e8a9dfe0e5bd18c1d18e2fd0ecfc5b93e09b14acb6fa3a5126&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_05_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 29,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 30,
+    &quot;window&quot;: 31
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 31,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 14 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon><polygon points="5.3,20.3 13.287013,20.3 13.287013,16.408108000000002 5.3,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf1</title></polygon><polygon points="13.287013,20.3 21.295671000000002,20.3 21.295671000000002,16.408108000000002 13.287013,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf2</title></polygon><polygon points="0.3,6.310811 5.3,6.310811 5.3,6.418919 9.239394,6.418919 9.239394,14.418919 5.3,14.418919 5.3,16.408108000000002 21.295671000000002,16.408108000000002 21.295671000000002,20.3 25.3,20.3 25.3,14.310811000000001 15.3,14.310811000000001 15.3,14.418919 11.360606,14.418919 11.360606,0.3 10.235065,0.3 10.235065,4.2567569999999995 0.3,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:corr_entry</title></polygon><polygon points="0.3,4.2567569999999995 5.3,4.2567569999999995 5.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet1</title></polygon><polygon points="5.3,4.2567569999999995 10.235065,4.2567569999999995 10.235065,0.3 5.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet2</title></polygon><polygon points="5.3,10.289189 9.239394,10.289189 9.239394,6.418919 5.3,6.418919" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff1</title></polygon><polygon points="5.3,14.418919 9.239394,14.418919 9.239394,10.289189 5.3,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff2</title></polygon><polygon points="11.360606,2.245945999999999 15.3,2.245945999999999 15.3,0.3 11.360606,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off1</title></polygon><polygon points="11.360606,4.2567569999999995 15.3,4.2567569999999995 15.3,2.245945999999999 11.360606,2.245945999999999" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off2</title></polygon><polygon points="11.360606,6.2891889999999995 15.3,6.2891889999999995 15.3,4.2567569999999995 11.360606,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off3</title></polygon><polygon points="11.360606,8.3 15.3,8.3 15.3,6.2891889999999995 11.360606,6.2891889999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off4</title></polygon><polygon points="11.360606,10.289189 15.3,10.289189 15.3,8.3 11.360606,8.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off5</title></polygon><polygon points="11.360606,12.3 15.3,12.3 15.3,10.289189 11.360606,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off6</title></polygon><polygon points="11.360606,14.418919 15.3,14.418919 15.3,12.3 11.360606,12.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off7</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 15 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon><polygon points="0.3,6.233118 5.295637,6.233118 5.295637,14.366882 9.375044,14.366882 9.375044,6.103668 0.3,6.103668" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:conference</title></polygon><polygon points="0.3,6.103668 9.375044,6.103668 9.375044,14.366882 5.295637,14.366882 5.295637,16.243905 25.3,16.243905 25.3,14.259008000000001 15.308726,14.259008000000001 15.308726,14.366882 11.425654000000002,14.366882 11.425654000000002,4.205069999999998 0.3,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:corridor</title></polygon><polygon points="10.313089000000002,4.205069999999998 15.308726,4.205069999999998 15.308726,0.3 10.313089000000002,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:manager_office</title></polygon><polygon points="0.3,4.205069999999998 5.361082,4.205069999999998 5.361082,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting1</title></polygon><polygon points="5.361082,4.205069999999998 10.313089000000002,4.205069999999998 10.313089000000002,0.3 5.361082,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting2</title></polygon><polygon points="11.425654000000002,6.2546930000000005 15.308726,6.2546930000000005 15.308726,4.205069999999998 11.425654000000002,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office1</title></polygon><polygon points="11.425654000000002,8.28274 15.308726,8.28274 15.308726,6.2546930000000005 11.425654000000002,6.2546930000000005" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office2</title></polygon><polygon points="11.425654000000002,10.246063000000001 15.308726,10.246063000000001 15.308726,8.28274 11.425654000000002,8.28274" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office3</title></polygon><polygon points="11.425654000000002,12.14466 15.308726,12.14466 15.308726,10.246063000000001 11.425654000000002,10.246063000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office4</title></polygon><polygon points="11.425654000000002,14.366882 15.308726,14.366882 15.308726,12.14466 11.425654000000002,12.14466" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office5</title></polygon><polygon points="5.295637,20.3 9.331414,20.3 9.331414,16.243905 5.295637,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south1</title></polygon><polygon points="9.331414,20.3 13.301745,20.3 13.301745,16.243905 9.331414,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south2</title></polygon><polygon points="13.301745,20.3 17.272077,20.3 17.272077,16.243905 13.301745,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south3</title></polygon><polygon points="17.272077,20.3 21.242408,20.3 21.242408,16.243905 17.272077,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south4</title></polygon><polygon points="21.242408,20.3 25.3,20.3 25.3,16.243905 21.242408,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south5</title></polygon></svg></figure></section><section><h2>candidate_06</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_06&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;23e2d3230691ec9a72a5e1717bf04fa3b7c849bc342f8ba22ebcd78be883f701&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_06_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 29,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 30,
+    &quot;window&quot;: 31
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 31,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 14 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon><polygon points="5.3,20.3 13.287013,20.3 13.287013,16.408108000000002 5.3,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf1</title></polygon><polygon points="13.287013,20.3 21.295671000000002,20.3 21.295671000000002,16.408108000000002 13.287013,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf2</title></polygon><polygon points="0.3,6.310811 5.3,6.310811 5.3,6.418919 9.239394,6.418919 9.239394,14.418919 5.3,14.418919 5.3,16.408108000000002 21.295671000000002,16.408108000000002 21.295671000000002,20.3 25.3,20.3 25.3,14.310811000000001 15.3,14.310811000000001 15.3,14.418919 11.360606,14.418919 11.360606,0.3 10.235065,0.3 10.235065,4.2567569999999995 0.3,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:corr_entry</title></polygon><polygon points="0.3,4.2567569999999995 5.3,4.2567569999999995 5.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet1</title></polygon><polygon points="5.3,4.2567569999999995 10.235065,4.2567569999999995 10.235065,0.3 5.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet2</title></polygon><polygon points="5.3,10.289189 9.239394,10.289189 9.239394,6.418919 5.3,6.418919" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff1</title></polygon><polygon points="5.3,14.418919 9.239394,14.418919 9.239394,10.289189 5.3,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff2</title></polygon><polygon points="11.360606,2.245945999999999 15.3,2.245945999999999 15.3,0.3 11.360606,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off1</title></polygon><polygon points="11.360606,4.2567569999999995 15.3,4.2567569999999995 15.3,2.245945999999999 11.360606,2.245945999999999" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off2</title></polygon><polygon points="11.360606,6.2891889999999995 15.3,6.2891889999999995 15.3,4.2567569999999995 11.360606,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off3</title></polygon><polygon points="11.360606,8.3 15.3,8.3 15.3,6.2891889999999995 11.360606,6.2891889999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off4</title></polygon><polygon points="11.360606,10.289189 15.3,10.289189 15.3,8.3 11.360606,8.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off5</title></polygon><polygon points="11.360606,12.3 15.3,12.3 15.3,10.289189 11.360606,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off6</title></polygon><polygon points="11.360606,14.418919 15.3,14.418919 15.3,12.3 11.360606,12.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off7</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 15 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon><polygon points="0.3,6.233118 5.295637,6.233118 5.295637,14.366882 9.375044,14.366882 9.375044,6.103668 0.3,6.103668" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:conference</title></polygon><polygon points="0.3,6.103668 9.375044,6.103668 9.375044,14.366882 5.295637,14.366882 5.295637,16.243905 25.3,16.243905 25.3,14.259008000000001 15.308726,14.259008000000001 15.308726,14.366882 11.425654000000002,14.366882 11.425654000000002,4.205069999999998 0.3,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:corridor</title></polygon><polygon points="10.313089000000002,4.205069999999998 15.308726,4.205069999999998 15.308726,0.3 10.313089000000002,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:manager_office</title></polygon><polygon points="0.3,4.205069999999998 5.361082,4.205069999999998 5.361082,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting1</title></polygon><polygon points="5.361082,4.205069999999998 10.313089000000002,4.205069999999998 10.313089000000002,0.3 5.361082,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting2</title></polygon><polygon points="11.425654000000002,6.2546930000000005 15.308726,6.2546930000000005 15.308726,4.205069999999998 11.425654000000002,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office1</title></polygon><polygon points="11.425654000000002,8.28274 15.308726,8.28274 15.308726,6.2546930000000005 11.425654000000002,6.2546930000000005" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office2</title></polygon><polygon points="11.425654000000002,10.246063000000001 15.308726,10.246063000000001 15.308726,8.28274 11.425654000000002,8.28274" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office3</title></polygon><polygon points="11.425654000000002,12.14466 15.308726,12.14466 15.308726,10.246063000000001 11.425654000000002,10.246063000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office4</title></polygon><polygon points="11.425654000000002,14.366882 15.308726,14.366882 15.308726,12.14466 11.425654000000002,12.14466" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office5</title></polygon><polygon points="5.295637,20.3 9.331414,20.3 9.331414,16.243905 5.295637,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south1</title></polygon><polygon points="9.331414,20.3 13.301745,20.3 13.301745,16.243905 9.331414,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south2</title></polygon><polygon points="13.301745,20.3 17.272077,20.3 17.272077,16.243905 13.301745,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south3</title></polygon><polygon points="17.272077,20.3 21.242408,20.3 21.242408,16.243905 17.272077,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south4</title></polygon><polygon points="21.242408,20.3 25.3,20.3 25.3,16.243905 21.242408,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south5</title></polygon></svg></figure></section><section><h2>candidate_07</h2><pre>{
+  &quot;candidate&quot;: &quot;candidate_07&quot;,
+  &quot;is_recovery_seed&quot;: false,
+  &quot;source_sha256&quot;: &quot;3dcef23ad46b1123ead416acb8418a51619b6c3546f55f4b002f133cb5f2848e&quot;,
+  &quot;partition_status&quot;: &quot;severe&quot;,
+  &quot;delivery_quality_status&quot;: &quot;severe&quot;,
+  &quot;convention_difference_count&quot;: 0,
+  &quot;delivery_quality_report&quot;: &quot;candidate_07_delivery_quality.json&quot;,
+  &quot;reference_spaces&quot;: 29,
+  &quot;candidate_spaces&quot;: 29,
+  &quot;openings&quot;: {
+    &quot;door&quot;: 30,
+    &quot;window&quot;: 31
+  },
+  &quot;built_window_comparison&quot;: {
+    &quot;status&quot;: &quot;not_evaluated&quot;,
+    &quot;reason&quot;: &quot;typed_v3_window_comparison_not_integrated_in_this_diagnostic&quot;,
+    &quot;reference_window_count&quot;: 31,
+    &quot;built_window_count&quot;: 31,
+    &quot;count_is_not_a_match_score&quot;: true
+  },
+  &quot;topology_findings&quot;: [
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F1-z10&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F2:office1&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F1-z10&quot;,
+        &quot;candidate_id&quot;: &quot;F2:office1&quot;,
+        &quot;reference_floor_id&quot;: &quot;F1&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F2&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 7.571607267378008,
+        &quot;reference_coverage_fraction&quot;: 0.961056077634055,
+        &quot;candidate_coverage_fraction&quot;: 0.9513463366672972,
+        &quot;iou&quot;: 0.9160328452937812,
+        &quot;symmetric_difference_area_m2&quot;: 0.6940431470999955,
+        &quot;boundary_hausdorff_m&quot;: 0.09572853271621824,
+        &quot;boundary_within_tolerance&quot;: false,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;floor_assignment_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space moved to a different floor identifier.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;vertical_extent_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;reference_ids&quot;: [
+        &quot;F2-z11&quot;
+      ],
+      &quot;candidate_ids&quot;: [
+        &quot;F1:off3&quot;
+      ],
+      &quot;message&quot;: &quot;Matched space has a vertical extent change beyond tolerance.&quot;,
+      &quot;match&quot;: {
+        &quot;reference_id&quot;: &quot;F2-z11&quot;,
+        &quot;candidate_id&quot;: &quot;F1:off3&quot;,
+        &quot;reference_floor_id&quot;: &quot;F2&quot;,
+        &quot;candidate_floor_id&quot;: &quot;F1&quot;,
+        &quot;status&quot;: &quot;severe&quot;,
+        &quot;intersection_area_m2&quot;: 8.006550426208,
+        &quot;reference_coverage_fraction&quot;: 0.9864657269488921,
+        &quot;candidate_coverage_fraction&quot;: 1.0,
+        &quot;iou&quot;: 0.9864657269488921,
+        &quot;symmetric_difference_area_m2&quot;: 0.10984957379201177,
+        &quot;boundary_hausdorff_m&quot;: 0.016767954108956266,
+        &quot;boundary_within_tolerance&quot;: true,
+        &quot;z_floor_delta_m&quot;: 3.6,
+        &quot;height_delta_m&quot;: 0.0,
+        &quot;z_top_delta_m&quot;: 3.6
+      }
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;code&quot;: &quot;internal_partition_boundary_changed&quot;,
+      &quot;severity&quot;: &quot;severe&quot;,
+      &quot;message&quot;: &quot;Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.&quot;,
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ],
+  &quot;internal_boundary_comparison&quot;: [
+    {
+      &quot;floor_id&quot;: &quot;F1&quot;,
+      &quot;missing_length_m&quot;: 31.88584475987097,
+      &quot;extra_length_m&quot;: 31.467562988000005,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((13 3.9400000000000004, 20.94 3.9400000000000004), (20.94 3.9400000000000004, 20.94 3.911892001), (20.94 3.871891999, 20.94 0.020000001), (5.020000001 3.9400000000000004, 13 3.9400000000000004), (5 14.020000001, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 13.901051230129038), (14.979999999 15.999600000000001, 11.080606001 15.999600000000001), (14.979999999 18, 11.080606001 18), (13 3.9400000000000004, 13 3.911892001))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((12.979999999 3.891892, 5.020000001 3.891892), (20.995671 0.020000001, 20.995671 3.891892), (20.995671 3.891892, 20.960000001 3.891892), (20.919999999 3.891892, 13.020000001 3.891892), (5.020000001 13.881081, 8.919999999000002 13.881081), (11.080000001 18.054054, 14.979999999 18.054054), (11.080000001 16.043243, 14.979999999 16.043243))&quot;
+    },
+    {
+      &quot;floor_id&quot;: &quot;F2&quot;,
+      &quot;missing_length_m&quot;: 92.25238978033508,
+      &quot;extra_length_m&quot;: 97.50701796400001,
+      &quot;missing_wkt&quot;: &quot;MULTILINESTRING ((5 16.060000000000002, 0.020000001 16.060000000000002), (11.06 12, 11.06 14), (11.06 14, 11.06 16.060000000000002), (13.021745001 3.9400000000000004, 16.91 3.9400000000000004), (16.91 3.9400000000000004, 16.952076999 3.9400000000000004), (16.992077001 3.9400000000000004, 20.922407999 3.9400000000000004), (20.962408001 3.9400000000000004, 24.979999999 3.9400000000000004), (9.940000000000001 16.060000000000002, 5 16.060000000000002), (5.020000001 3.9400000000000004, 9.011413999 3.9400000000000004), (9.051414001 3.9400000000000004, 9.09 3.9400000000000004), (5 14.086382183664893, 5 14.120000000000001), (5 14.120000000000001, 8.940000000000001 14.120000000000001), (8.940000000000001 14.120000000000001, 8.940000000000001 5.953118001), (8.940000000000001 5.913117999000001, 8.940000000000001 5.880000000000001), (8.940000000000001 5.880000000000001, 5.020000001 5.880000000000001), (9.09 3.9400000000000004, 12.981744999 3.9400000000000004), (11.06 16.060000000000002, 9.940000000000001 16.060000000000002), (15.000000000000002 5.913117999000001, 15.000000000000002 5.880000000000001), (15.000000000000002 5.880000000000001, 11.06 5.880000000000001), (11.06 5.880000000000001, 11.06 8), (11.06 8, 11.06 10), (11.06 10, 11.06 12), (5 16.060000000000002, 5 16.074929999000002), (5 16.114930001, 5 19.979999999), (14.979999999000002 14, 11.145654001 14), (11.105653999000001 14, 11.06 14), (11.06 12, 11.105653999000001 12), (14.979999999000002 16.060000000000002, 11.145654001 16.060000000000002), (11.105653999000001 16.060000000000002, 11.06 16.060000000000002), (16.91 0.020000001, 16.91 3.9400000000000004), (9.940000000000001 16.060000000000002, 9.940000000000001 16.074929999000002), (9.940000000000001 16.114930001, 9.940000000000001 19.979999999), (9.09 0.020000001, 9.09 3.9400000000000004), (14.979999999000002 8, 11.145654001 8), (11.105653999000001 8, 11.06 8), (14.979999999000002 10, 11.145654001 10), (11.105653999000001 10, 11.06 10))&quot;,
+      &quot;extra_wkt&quot;: &quot;MULTILINESTRING ((5.020000001 5.933118, 8.919999999000002 5.933118), (8.960000001000001 5.933118, 9.075044 5.933118), (9.075044 5.933118, 9.075044 14.196332), (9.075044 14.196332, 0.020000001 14.196332), (11.125654 16.09493, 10.013089 16.09493), (5.061082 16.09493, 5.020000001 16.09493), (4.979999999 16.09493, 0.020000001 16.09493), (10.013089 16.09493, 9.960000001000001 16.09493), (9.919999999000002 16.09493, 5.061082 16.09493), (11.125654 14.045307, 11.125654 16.039999999000003), (11.125654 16.080000001000002, 11.125654 16.09493), (11.125654 12.020000001, 11.125654 13.979999999), (11.125654 14.020000001, 11.125654 14.045307), (11.125654 10.053937, 11.125654 11.979999999), (11.125654 8.15534, 11.125654 9.979999999), (11.125654 10.020000001, 11.125654 10.053937), (14.979999999000002 5.933118, 11.125654 5.933118), (11.125654 5.933118, 11.125654 7.979999999), (11.125654 8.020000001, 11.125654 8.15534), (5.020000001 4.056095, 9.031414 4.056095), (9.031414 4.056095, 13.001745 4.056095), (13.001745 4.056095, 16.972077 4.056095), (16.972077 4.056095, 20.942408 4.056095), (20.942408 4.056095, 24.979999999 4.056095), (10.013089 19.979999999, 10.013089 16.09493), (11.125654 16.09493, 14.979999999000002 16.09493), (5.061082 16.09493, 5.061082 19.979999999), (11.125654 14.045307, 14.979999999000002 14.045307), (11.125654 10.053937, 14.979999999000002 10.053937), (11.125654 8.15534, 14.979999999000002 8.15534), (9.031414 0.020000001, 9.031414 3.9199999990000003), (9.031414 3.9600000010000005, 9.031414 4.056095), (13.001745 3.9600000010000005, 13.001745 4.056095), (16.972077 0.020000001, 16.972077 3.9199999990000003), (16.972077 3.9600000010000005, 16.972077 4.056095), (20.942408 3.9600000010000005, 20.942408 4.056095))&quot;
+    }
+  ]
+}</pre><figure><figcaption>F1：参照 14 / 候选 14 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 21.240000000000002,16.36 21.240000000000002,20.3 25.3,20.3 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,0.3 10.240000000000002,0.3 10.240000000000002,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z1</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.300399999999999 11.360000000000001,4.300399999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z10</title></polygon><polygon points="11.360000000000001,4.300399999999999 15.300000000000002,4.300399999999999 15.300000000000002,2.3 11.360000000000001,2.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z11</title></polygon><polygon points="11.360000000000001,2.3 15.300000000000002,2.3 15.300000000000002,0.3 11.360000000000001,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z12</title></polygon><polygon points="13.3,20.3 21.240000000000002,20.3 21.240000000000002,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z13</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z2</title></polygon><polygon points="5.3,20.3 13.3,20.3 13.3,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,10.3001 5.3,10.3001" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z4</title></polygon><polygon points="5.3,10.3001 9.240000000000002,10.3001 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z5</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z6</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z7</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z8</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F1-z9</title></polygon><polygon points="5.3,20.3 13.287013,20.3 13.287013,16.408108000000002 5.3,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf1</title></polygon><polygon points="13.287013,20.3 21.295671000000002,20.3 21.295671000000002,16.408108000000002 13.287013,16.408108000000002" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:conf2</title></polygon><polygon points="0.3,6.310811 5.3,6.310811 5.3,6.418919 9.239394,6.418919 9.239394,14.418919 5.3,14.418919 5.3,16.408108000000002 21.295671000000002,16.408108000000002 21.295671000000002,20.3 25.3,20.3 25.3,14.310811000000001 15.3,14.310811000000001 15.3,14.418919 11.360606,14.418919 11.360606,0.3 10.235065,0.3 10.235065,4.2567569999999995 0.3,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:corr_entry</title></polygon><polygon points="0.3,4.2567569999999995 5.3,4.2567569999999995 5.3,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet1</title></polygon><polygon points="5.3,4.2567569999999995 10.235065,4.2567569999999995 10.235065,0.3 5.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:meet2</title></polygon><polygon points="5.3,10.289189 9.239394,10.289189 9.239394,6.418919 5.3,6.418919" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff1</title></polygon><polygon points="5.3,14.418919 9.239394,14.418919 9.239394,10.289189 5.3,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:midoff2</title></polygon><polygon points="11.360606,2.245945999999999 15.3,2.245945999999999 15.3,0.3 11.360606,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off1</title></polygon><polygon points="11.360606,4.2567569999999995 15.3,4.2567569999999995 15.3,2.245945999999999 11.360606,2.245945999999999" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off2</title></polygon><polygon points="11.360606,6.2891889999999995 15.3,6.2891889999999995 15.3,4.2567569999999995 11.360606,4.2567569999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off3</title></polygon><polygon points="11.360606,8.3 15.3,8.3 15.3,6.2891889999999995 11.360606,6.2891889999999995" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off4</title></polygon><polygon points="11.360606,10.289189 15.3,10.289189 15.3,8.3 11.360606,8.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off5</title></polygon><polygon points="11.360606,12.3 15.3,12.3 15.3,10.289189 11.360606,10.289189" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off6</title></polygon><polygon points="11.360606,14.418919 15.3,14.418919 15.3,12.3 11.360606,12.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F1:off7</title></polygon></svg></figure><figure><figcaption>F2：参照 15 / 候选 15 空间；蓝线为参照，橙线为候选</figcaption><svg role="img" aria-label="源分区对照" viewBox="0 0 25.6 20.6"><polygon points="0.3,6.3 5.3,6.3 5.3,6.179999999999999 9.240000000000002,6.179999999999999 9.240000000000002,14.42 5.3,14.42 5.3,16.36 25.3,16.36 25.3,14.3 15.300000000000002,14.3 15.300000000000002,14.42 11.360000000000001,14.42 11.360000000000001,4.2399999999999975 0.3,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z0</title></polygon><polygon points="0.3,4.2399999999999975 5.3,4.2399999999999975 5.3,0.3 0.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z1</title></polygon><polygon points="11.360000000000001,8.3 15.300000000000002,8.3 15.300000000000002,6.3 11.360000000000001,6.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z10</title></polygon><polygon points="11.360000000000001,6.3 15.300000000000002,6.3 15.300000000000002,4.2399999999999975 11.360000000000001,4.2399999999999975" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z11</title></polygon><polygon points="13.3,20.3 17.21,20.3 17.21,16.36 13.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z12</title></polygon><polygon points="17.21,20.3 21.240000000000002,20.3 21.240000000000002,16.36 17.21,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z13</title></polygon><polygon points="21.240000000000002,20.3 25.3,20.3 25.3,16.36 21.240000000000002,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z14</title></polygon><polygon points="5.3,4.2399999999999975 10.240000000000002,4.2399999999999975 10.240000000000002,0.3 5.3,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z2</title></polygon><polygon points="5.3,20.3 9.39,20.3 9.39,16.36 5.3,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z3</title></polygon><polygon points="5.3,14.42 9.240000000000002,14.42 9.240000000000002,6.179999999999999 5.3,6.179999999999999" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z4</title></polygon><polygon points="9.39,20.3 13.3,20.3 13.3,16.36 9.39,16.36" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z5</title></polygon><polygon points="10.240000000000002,4.2399999999999975 15.300000000000002,4.2399999999999975 15.300000000000002,0.3 10.240000000000002,0.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z6</title></polygon><polygon points="11.360000000000001,14.42 15.300000000000002,14.42 15.300000000000002,12.3 11.360000000000001,12.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z7</title></polygon><polygon points="11.360000000000001,12.3 15.300000000000002,12.3 15.300000000000002,10.3 11.360000000000001,10.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z8</title></polygon><polygon points="11.360000000000001,10.3 15.300000000000002,10.3 15.300000000000002,8.3 11.360000000000001,8.3" fill="none" stroke="#1263ad" stroke-width="0.045"><title>参照 F2-z9</title></polygon><polygon points="0.3,6.233118 5.295637,6.233118 5.295637,14.366882 9.375044,14.366882 9.375044,6.103668 0.3,6.103668" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:conference</title></polygon><polygon points="0.3,6.103668 9.375044,6.103668 9.375044,14.366882 5.295637,14.366882 5.295637,16.243905 25.3,16.243905 25.3,14.259008000000001 15.308726,14.259008000000001 15.308726,14.366882 11.425654000000002,14.366882 11.425654000000002,4.205069999999998 0.3,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:corridor</title></polygon><polygon points="10.313089000000002,4.205069999999998 15.308726,4.205069999999998 15.308726,0.3 10.313089000000002,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:manager_office</title></polygon><polygon points="0.3,4.205069999999998 5.361082,4.205069999999998 5.361082,0.3 0.3,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting1</title></polygon><polygon points="5.361082,4.205069999999998 10.313089000000002,4.205069999999998 10.313089000000002,0.3 5.361082,0.3" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:meeting2</title></polygon><polygon points="11.425654000000002,6.2546930000000005 15.308726,6.2546930000000005 15.308726,4.205069999999998 11.425654000000002,4.205069999999998" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office1</title></polygon><polygon points="11.425654000000002,8.28274 15.308726,8.28274 15.308726,6.2546930000000005 11.425654000000002,6.2546930000000005" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office2</title></polygon><polygon points="11.425654000000002,10.246063000000001 15.308726,10.246063000000001 15.308726,8.28274 11.425654000000002,8.28274" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office3</title></polygon><polygon points="11.425654000000002,12.14466 15.308726,12.14466 15.308726,10.246063000000001 11.425654000000002,10.246063000000001" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office4</title></polygon><polygon points="11.425654000000002,14.366882 15.308726,14.366882 15.308726,12.14466 11.425654000000002,12.14466" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:office5</title></polygon><polygon points="5.295637,20.3 9.331414,20.3 9.331414,16.243905 5.295637,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south1</title></polygon><polygon points="9.331414,20.3 13.301745,20.3 13.301745,16.243905 9.331414,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south2</title></polygon><polygon points="13.301745,20.3 17.272077,20.3 17.272077,16.243905 13.301745,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south3</title></polygon><polygon points="17.272077,20.3 21.242408,20.3 21.242408,16.243905 17.272077,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south4</title></polygon><polygon points="21.242408,20.3 25.3,20.3 25.3,16.243905 21.242408,16.243905" fill="none" stroke="#cf5426" stroke-width="0.028"><title>候选 F2:south5</title></polygon></svg></figure></section></html>
