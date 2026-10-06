@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_serializer, model_validator
 
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import validate_output_limit
@@ -25,11 +25,20 @@ class RoleConfiguration(BaseModel):
 
     provider: str = Field(min_length=1)
     model: str = Field(min_length=1)
-    reasoning_effort: str = Field(min_length=1)
+    reasoning_effort: str | None = Field(default=None, min_length=1)
     output_tokens: int = Field(gt=0)
+    temperature: float | None = Field(default=None, ge=0, le=2, allow_inf_nan=False)
+    enable_thinking: bool | None = Field(default=None, strict=True)
+
+    @model_serializer(mode="wrap")
+    def serialize_route(self, handler):
+        # Optional role knobs must not change existing GLM configuration bytes.
+        return {key: value for key, value in handler(self).items() if value is not None}
 
     @model_validator(mode="after")
     def validate_reviewed_route(self, info: ValidationInfo) -> "RoleConfiguration":
+        if self.enable_thinking is not None and self.reasoning_effort is not None:
+            raise ValueError("choose reasoning_effort or enable_thinking, not both")
         allow_scripted = bool((info.context or {}).get("allow_scripted", False))
         if self.provider == "scripted" or self.model == "scripted-model":
             if allow_scripted and self.provider == "scripted" and self.model == "scripted-model":
@@ -45,6 +54,8 @@ class RoleConfiguration(BaseModel):
             self.provider,
             output_tokens=self.output_tokens,
             reasoning_effort=self.reasoning_effort,
+            temperature=self.temperature,
+            thinking=True if self.enable_thinking is None else self.enable_thinking,
         )
         validate_output_limit(self.model, self.output_tokens)
         return self

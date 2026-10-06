@@ -95,7 +95,7 @@ def test_roles_require_all_fixed_identities_and_reject_unknown_identity():
         load_roles(None)
 
 
-@pytest.mark.parametrize("field", ["provider", "model", "reasoning_effort", "output_tokens"])
+@pytest.mark.parametrize("field", ["provider", "model", "output_tokens"])
 def test_role_route_has_no_field_inheritance(field):
     incomplete = role()
     incomplete.pop(field)

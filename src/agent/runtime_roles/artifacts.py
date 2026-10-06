@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 
 from src.agent_runtime.store import json_bytes
 from src.harness_contracts import HashedBlobRef
@@ -80,6 +81,7 @@ class ArtifactRegistry:
                   "runtime_elapsed_seconds": runtime.get("elapsed_seconds") if runtime else None,
                   "task_sha256": hashlib.sha256(json_bytes(task)).hexdigest()}
         if artifact is not None:
+            record["delivered_at_ns"] = time.time_ns()
             raw = json_bytes(artifact)
             path = child.task_directory / "reader_artifact.json"
             if path.exists() and path.read_bytes() != raw:

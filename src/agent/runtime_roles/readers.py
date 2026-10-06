@@ -474,8 +474,15 @@ class ReaderTools:
                         "structuredContent": result, "isError": True}
         if name == "trial_plan_bim":
             try:
-                result = (await self.trial.call(dict(arguments["plan"])) if "plan" in arguments
-                          else await self.trial.call(operations=arguments["operations"]))
+                if "plan" in arguments:
+                    plan = dict(arguments["plan"])
+                    # The task fixes the floor ID; operations cannot edit it, so a
+                    # different spelling would block delivery (10-07 sm24 run4).
+                    if self.submission.target_identity is not None:
+                        plan["floor_id"] = self.submission.target_identity
+                    result = await self.trial.call(plan)
+                else:
+                    result = await self.trial.call(operations=arguments["operations"])
             except ValueError as error:
                 value = {"status": "rejected", "reason": str(error)}
                 return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],

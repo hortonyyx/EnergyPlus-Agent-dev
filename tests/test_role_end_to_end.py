@@ -134,15 +134,19 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert tools["trial_plan_bim"] == len(plan_records)
     assert tools["submit_plan_reading"] == len(plan_records)
     assert tools["submit_elevation_reading"] == 4
-    assert tools["read_role_artifact"] == len(records)
-    assert tools["build_from_artifact"] == len(plan_records)
-    assert tools["match_elevation"] == 4
-    assert tools["apply_elevation_heights"] == 4
+    assert tools["assemble_from_readers"] == 1
+    assert not any(tools[name] for name in (
+        "read_role_artifact", "build_from_artifact", "match_elevation",
+        "apply_elevation_heights", "assemble_plan_bim", "inspect_plan_draft"))
     assert tools["check_openings"] == 1
     assert tools["inspect_candidate"] == 1
     assert tools["finish_bim"] == 1
-    assert tools["assemble_plan_bim"] == (1 if two_floors else 0)
-    assert tools["inspect_plan_draft"] == (2 if two_floors else 0)
+    receipt = next((fixture.output / "role_assemblies").glob("*.json"))
+    assembled = json.loads(receipt.read_bytes())["response"]
+    assert assembled["candidate"] == selection["candidate"]
+    assert assembled["height_write"]["status"] == "completed"
+    source = json.loads((fixture.output / "bim" / assembled["candidate"] / "source_model.json").read_bytes())
+    opening_z = {row["id"]: sorted({p[2] for p in row["vertices"]}) for row in source["openings"]}
 
     matches = [
         json.loads(path.read_bytes())
@@ -153,6 +157,9 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert all(not row["result"]["conflicts"] for row in matches)
     assert all(not row["result"]["source_only"] for row in matches)
     assert all(not row["result"]["elevation_only"] for row in matches)
+    for match in matches:
+        for row in match["result"]["matches"]:
+            assert opening_z[row["source_opening_id"]] == [row["sill_m"], row["head_m"]]
     accounting = result["role_accounting"]
     assert accounting["requests"] > 0
     assert accounting["by_role"]["coordinator"]["requests"] > 0
@@ -233,7 +240,7 @@ def test_resume_after_all_readers_preserves_reader_records(tmp_path):
     def all_readers_before_build(engine):
         return (
             len(_reader_record_hashes(fixture)) == len(fixture.tasks)
-            and _tool_count(fixture.output, "build_from_artifact") == 0
+            and _tool_count(fixture.output, "assemble_from_readers") == 0
         )
 
     crash = CrashOnce("after_checkpoint", all_readers_before_build)
@@ -255,32 +262,31 @@ def test_resume_after_all_readers_preserves_reader_records(tmp_path):
     assert _reader_request_count(fixture) == reader_requests_at_crash
 
 
-def test_resume_after_build_execution_does_not_repeat_build(tmp_path):
+@pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+    from src.agent.runtime_roles.session import RoleSession
+
     fixture = make_fixture("sm24", tmp_path)
+    original = RoleSession._once
+    crashed = False
 
-    def built_once(engine):
-        executions = [
-            event.payload
-            for event in engine.store.events
-            if event.payload.event_type == "tool_execution"
-        ]
-        return bool(executions and executions[-1].tool_name == "build_from_artifact")
+    async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+        nonlocal crashed
+        result = await original(session, operation_id, name, arguments, reference=reference)
+        if name == boundary_tool and not crashed:
+            crashed = True
+            raise SimulatedProcessDeath("inner build receipt saved")
+        return result
 
-    crash = CrashOnce("after_execution", built_once)
+    monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
     with pytest.raises(SimulatedProcessDeath):
-        asyncio.run(
-            execute(
-                fixture.args,
-                adapter_factory=fixture.adapter_factory,
-                fault_hook=crash,
-            )
-        )
-    assert _tool_count(fixture.output, "build_from_artifact") == 1
-    candidates_at_crash = len(list((fixture.output / "bim").glob("candidate_*")))
-
+        asyncio.run(execute(fixture.args, adapter_factory=fixture.adapter_factory))
+    assert crashed
+    count_at_crash = len(list((fixture.output / "bim").glob("candidate_*")))
+    assert count_at_crash == (1 if boundary_tool == "build_plan_bim" else 2)
     result = _resume(fixture)
     _assert_complete_pipeline(fixture, result, two_floors=False)
-    assert _tool_count(fixture.output, "build_from_artifact") == 1
-    # Later height applications create candidates; the original plan build did
-    # not create a second base candidate during recovery.
-    assert candidates_at_crash == 1
+    operations = [json.loads(p.read_bytes()) for p in (fixture.output / "role_operations").glob("*.json")]
+    assert sum(row["tool"] == "build_plan_bim" for row in operations) == 1
+    assert sum(row["tool"] == "claim_transaction" for row in operations) == 1
+    assert len(list((fixture.output / "bim/plan_drafts").glob("draft_*"))) == 1
