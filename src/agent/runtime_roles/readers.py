@@ -376,7 +376,7 @@ class ReaderTools:
             if isinstance(schema, dict) and isinstance(schema.get("properties"), dict):
                 schema["properties"].pop("include_image", None)
             by_name["pixel_profile"] = alias
-        from .submission import SUBMISSION_TOOLS, CHANGE_SCHEMA
+        from .submission import SUBMISSION_TOOLS, OPERATION_SCHEMA
         local = {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
         missing = [name for name in wanted if name not in local and name not in by_name]
         if missing:
@@ -385,12 +385,13 @@ class ReaderTools:
         if self.role_id == "plan_reader":
             tools.append({
                 "name": "trial_plan_bim",
-                "description": "Compile/check/overlay one isolated plan. Rework requires the preceding plan hash and an exact per-item change list with issue and image box; all other walls, room seeds and openings stay unchanged. Submit the successful hash using submit_plan_reading.",
+                "description": "Compile/check/overlay one isolated plan. Before source geometry exists, submit a full plan; format/compile failures never become the baseline. After geometry exists, send operations (update/add/remove/set), each with reason, source_refs and bbox; the tool remembers the baseline and preserves untouched declarations. Failed revisions keep it. Submit the successful hash using submit_plan_reading.",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {"plan": {"type": "object"}, "base_plan_sha256": {"type": "string"},
-                                   "changes": {"type": "array", "items": CHANGE_SCHEMA}},
-                    "required": ["plan"],
+                    "properties": {"plan": {"type": "object"},
+                                   "operations": {"type": "array", "items": OPERATION_SCHEMA,
+                                                  "minItems": 1, "maxItems": 100}},
+                    "oneOf": [{"required": ["plan"]}, {"required": ["operations"]}],
                     "additionalProperties": False,
                 },
             })
@@ -441,9 +442,12 @@ class ReaderTools:
         try:
             if not isinstance(arguments, Mapping):
                 raise _minimum(name, {}, "tool arguments must be an object")
-            if name == "trial_plan_bim" and (set(arguments) - {"plan", "base_plan_sha256", "changes"}
-                                            or not isinstance(arguments.get("plan"), Mapping)):
-                raise _minimum("trial_plan_bim", {"plan": {}}, "requires one plan object and optional scoped rework fields")
+            if name == "trial_plan_bim" and not (
+                (set(arguments) == {"plan"} and isinstance(arguments["plan"], Mapping))
+                or (set(arguments) == {"operations"} and isinstance(arguments["operations"], list))
+            ):
+                raise _minimum("trial_plan_bim", {"plan": {}},
+                               "requires one plan object before geometry, or operations after geometry; never both")
             self._enforce_single_image(arguments, plan_object=name == "trial_plan_bim")
         except ValueError as error:
             if name not in {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}:
@@ -470,8 +474,8 @@ class ReaderTools:
                         "structuredContent": result, "isError": True}
         if name == "trial_plan_bim":
             try:
-                result = await self.trial.call(dict(arguments["plan"]),
-                    **{key: arguments[key] for key in ("base_plan_sha256", "changes") if key in arguments})
+                result = (await self.trial.call(dict(arguments["plan"])) if "plan" in arguments
+                          else await self.trial.call(operations=arguments["operations"]))
             except ValueError as error:
                 value = {"status": "rejected", "reason": str(error)}
                 return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],

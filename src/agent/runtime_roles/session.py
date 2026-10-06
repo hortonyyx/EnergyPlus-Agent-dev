@@ -262,9 +262,18 @@ class RoleSession:
                     scoped.run_directory, task["image"], root=self.root))
             previous = self.registry.read(task["previous_task_id"]) if task.get("previous_artifact") else None
             if trial is not None and previous is not None:
-                trial.reference_plan = previous["plan"]
-                trial.allowed_rework_targets = task["rework_targets"]
-                trial.inherited_topology_issues = self.registry.records[task["previous_task_id"]].get("validation", {}).get("topology_issues", [])
+                validation = self.registry.records[task["previous_task_id"]].get("validation") or {}
+                if validation.get("source_geometry_ready") is True and validation.get("validation_passed") is True:
+                    from .trial import PlanTrial, canonical_plan_sha256
+                    workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
+                    prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
+                                      receipt_directory=workspace / "trial_receipts")
+                    if canonical_plan_sha256(previous["plan"]) != validation["plan_sha256"]:
+                        raise ValueError("rework artifact differs from its successful trial")
+                    trial.inherit_reference(prior, validation["plan_sha256"], task["rework_targets"])
+                # The accepted review also covers warnings from trials made
+                # after the selected successful geometry receipt.
+                trial.inherited_topology_issues = validation.get("topology_issues", [])
             tools = ReaderTools(scoped, role_id=task["role_id"], image_name=task["image"], trial=trial, target=task["target"])
             catalog = await tools.list_tools()
             role = base_role.model_copy(update={"role_id": task["role_id"],

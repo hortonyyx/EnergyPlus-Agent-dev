@@ -22,15 +22,33 @@ BOX = {"type": "array", "items": NUMBER, "minItems": 4, "maxItems": 4}
 PAIR = {"type": "array", "items": NUMBER, "minItems": 2, "maxItems": 2}
 STRINGS = {"type": "array", "items": TEXT}
 EVIDENCE_TYPE = {"enum": ["annotation", "pixels", "annotation_and_pixels", "visual_estimate", "assumption", "declared"]}
-CHANGE_SCHEMA = obj({"item": TEXT, "reason": TEXT, "bbox": BOX}, ("item", "reason", "bbox"))
+WALL_LINE_SCHEMA = obj({"convention": {"enum": ["centerline", "inner_face", "outer_face", "explicit_face"]},
+                        "dimension_basis": TEXT, "basis": TEXT, "bbox": BOX},
+                       ("convention", "dimension_basis", "basis", "bbox"))
+WALL_REFERENCE_EXAMPLE = {
+    "perimeter": {"convention": "outer_face", "dimension_basis": "outer_face",
+                  "basis": "overall dimensions end on the observed outer faces", "bbox": [0, 0, 10, 10]},
+    "partitions": {"convention": "centerline", "dimension_basis": "centerline",
+                   "basis": "internal dimension anchors converted to observed divider midplanes", "bbox": [0, 0, 10, 10]},
+}
+OPERATION_SCHEMA = {"oneOf": [
+    obj({"op": {"const": op}, "reason": TEXT, "source_refs": {**STRINGS, "minItems": 1}, "bbox": BOX, **fields},
+        ("op", "reason", "source_refs", "bbox", *fields))
+    for op, fields in {
+        "update": {"collection": {"enum": ["partitions", "openings", "space_seeds"]}, "id": TEXT,
+                   "changes": {"type": "object", "minProperties": 1}},
+        "add": {"collection": {"enum": ["partitions", "openings", "space_seeds"]}, "value": {"type": "object"}},
+        "remove": {"collection": {"enum": ["partitions", "openings", "space_seeds"]}, "id": TEXT},
+        "set": {"field": TEXT, "value": {}},
+    }.items()
+]}
 PLAN_SCHEMA = obj({
     "plan_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "evidence": {"type": "array", "items": obj({"item": TEXT, "source": TEXT, "bbox": BOX, "basis": TEXT},
                                                    ("item", "source", "bbox"))},
     "unresolved": STRINGS,
-    "wall_reference": obj({"convention": {"enum": ["centerline", "inner_face", "outer_face", "explicit_face"]},
-                           "dimension_basis": TEXT, "basis": TEXT, "bbox": BOX},
-                          ("convention", "dimension_basis", "basis", "bbox")),
+    "wall_reference": obj({"perimeter": WALL_LINE_SCHEMA, "partitions": WALL_LINE_SCHEMA},
+                          ("perimeter", "partitions")),
     "topology_decisions": {"type": "array", "items": obj({"issue_id": TEXT,
         "decision": {"enum": ["retain_opening", "continuous_space"]}, "basis": TEXT, "bbox": BOX},
         ("issue_id", "decision", "basis", "bbox"))},
@@ -58,7 +76,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "Submit the exact successful trial by plan_sha256, without retyping its plan. Include located evidence for every item, all topology decisions and one consistent wall/dimension reference. Rejections are correctable within the task budget.",
+        "description": "Submit the exact successful trial by plan_sha256, without retyping its plan. Include located evidence for every item, all topology decisions and separate perimeter and partition wall/dimension references. Rejections are correctable within the task budget.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this one facade's structured readings. Values are metres and boxes are original pixels. The tool checks fields, counts, ordering and evidence; fix pointed errors and resubmit within the task budget.",
@@ -132,8 +150,7 @@ class ReaderSubmission:
                 "plan_sha256": "copy the passed trial plan_sha256",
                 "evidence": [{"item": "plan.x_anchors", "source": self.image_name,
                               "bbox": [0, 0, 10, 10], "basis": "printed dimension chain"}],
-                "unresolved": [], "wall_reference": {"convention": "centerline", "dimension_basis": "centerline",
-                    "basis": "anchors converted to the same wall line", "bbox": [0, 0, 10, 10]},
+                "unresolved": [], "wall_reference": WALL_REFERENCE_EXAMPLE,
                 "topology_decisions": []}
             suffix = (" Cover every declared object in evidence and every trial topology issue in topology_decisions."
                       if self.role_id == "plan_reader" else "")
@@ -152,8 +169,7 @@ class ReaderSubmission:
             path = ".".join(str(part) for part in error.absolute_path) or "arguments"
             example = ELEVATION_EXAMPLE if self.role_id == "elevation_reader" else {
                 "plan_sha256": "copy the successful trial hash", "evidence": [], "unresolved": [],
-                "wall_reference": {"convention": "centerline", "dimension_basis": "centerline",
-                                   "basis": "dimension anchors refer to the same wall line", "bbox": [0, 0, 10, 10]},
+                "wall_reference": WALL_REFERENCE_EXAMPLE,
                 "topology_decisions": []}
             raise ValueError(f"{tool['name']}.{path}: {error.message}. Minimum correct example: "
                              + json.dumps(example, separators=(",", ":"))) from error

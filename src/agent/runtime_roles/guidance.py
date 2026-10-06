@@ -7,6 +7,8 @@ import json
 
 from scripts.tool_scripts.bim_agent_guidance import CORE, DRAWING_METHOD, build_guide
 from src.agent.runtime_roles.readers import READER_TOOL_NAMES
+from .plan_format import PLAN_EXAMPLE
+from .submission import WALL_REFERENCE_EXAMPLE
 
 
 def _numbered_sections() -> dict[int, str]:
@@ -32,58 +34,78 @@ image, change the parent building draft, assemble floors, match facades, or deli
 whole building. Match the assigned task.target: a plan floor ID, or facade[/floor IDs].
 Original-image coordinates are [left, top, right, bottom] pixels."""
 
-_ARTIFACT_SCHEMA = """Deliver through submit_plan_reading, never by writing an artifact in the final text.
-Copy plan_sha256 from a passed trial; the tool retrieves exactly that saved plan. Do not
-retype the plan or put trial summaries inside it. Supply evidence, unresolved,
-wall_reference and topology_decisions. Evidence rows are flat objects {"item":"plan.openings:W1",
-"source":"the exact task image name","bbox":[left,top,right,bottom],"basis":"optional"}.
-Use plan.x_anchors, plan.y_anchors and plan.footprint_pixels plus
-plan.partitions:<id>, plan.space_seeds:<id> and plan.openings:<id> as item names.
-Every such item needs a localized evidence row. unresolved may add delivery questions,
-but cannot change the saved plan. A failed trial cannot be submitted. For a changed trial,
-copy the preceding base_plan_sha256 and supply changes [{"item":"plan.openings:W1",
-"reason":"specific check/drawing issue","bbox":[left,top,right,bottom]}] for exactly the
-changed fields/objects; all unlisted walls, room seeds and openings must stay unchanged.
-Across tasks, only the coordinator's rework_targets may change.
-Even a failed trial is the next rework base. If an incomplete object has no unique ID yet,
-its pointed change uses an index path such as plan.openings[0]; a malformed whole list uses
-plan.openings. The rejection lists the exact changed paths. Do not change other objects.
-Before representing an inkless gap as a door/open, decide whether its two ends belong to
-the same physical wall. If they do not, use one continuous space: remove the artificial
-separator and opening, preserving genuine walls on each side. Every topology_issues row
-from any trial needs a topology_decisions row with issue_id, decision=retain_opening or
-continuous_space, basis explaining that physical-wall judgement, and the local image bbox.
-The final plan must implement that decision; unresolved text cannot waive it.
-Every opening's p1 and p2 must be on its one declared wall line. Use one consistent
-wall_reference {"convention":"centerline","dimension_basis":"centerline",
-"basis":"how dimension anchors refer or were converted to this same line","bbox":[...]}
-for the whole floor (allowed conventions: centerline, inner_face, outer_face, explicit_face).
-When the submit tool points out a problem, fix just that issue, trial the change and submit
-again within the budget. After acceptance, end with a short acknowledgement."""
+_PLAN_CORE = """Preserve actual spaces, walls, doors/windows and connectivity. Never move or shorten
+an opening just to clear a host error; recheck its wall and endpoints. Acceptance is not
+drawing fidelity. Label assumptions and unresolved marks; choose room uses after geometry.
+Keep stable IDs. Use metres, x east/y north, absolute z and ORIGINAL pixels from grid
+labels or crop origin + original_pixels_per_returned_pixel, not scaled display pixels."""
 
-_PLAN_DRAFT = (_SECTIONS[4]
-    .replace("DRAFT EVERY FLOOR", "DRAFT THIS FLOOR")
-    .replace("build_plan_bim", "trial_plan_bim")
-    .replace("Use claim_transaction's facade_count form (claims reference)\n"
-             "to record each floor/facade's observed window total, including zero; facade_counts\n"
-             "compares these totals after saves and lists uncounted facades. ", "")
-    .replace("Draft every floor before refining any one floor in detail;", "Draft this floor before refining it in detail;")
-    .replace("Each upper floor comes from its own drawing;\ncombine floors with assemble_plan_bim.",
-             "Do not assemble floors; the coordinator does that from accepted artifacts."))
+_PLAN_CALIBRATION = (_SECTIONS[3]
+    .replace("Use one origin for all floors", "Use the coordinator's assigned floor origin")
+    .replace("geometry_feedback.axis_orientation reports a mirrored calibration.",
+             "check the original north arrow rather than trusting an overlay drawn with the same anchors."))
 
-_PLAN_DIFFERENCES = (_SECTIONS[5]
-    .replace("drawing_differences compares", "trial_plan_bim returns drawing_differences, which compares")
-    .replace("then revise or\nexplain retention.",
-             "then change this plan declaration and rerun trial_plan_bim, or record the unresolved reason."))
+_PLAN_DRAFT = """4. DRAFT THIS FLOOR. Call trial_plan_bim with a complete plan. Until a trial returns
+source_geometry_ready=true, every format/compile failure can be followed by another full
+plan, without a hash or change declaration. Complete minimum example from plan_partition:
+{example}
+Replace the synthetic values with drawing observations. Use partitions[].points,
+openings[].p1/p2 and space_seeds[].point, not walls, room polygons or opening room/space_id/
+facade fields. Seeds lie inside rooms and assign IDs/uses; they never create walls.
+Do not repeat the exterior footprint as partitions. Exterior doors/windows lie ON the
+footprint line; interior doors/open passages lie ON their partition. Partitions continue
+through door apertures; junction coordinates coincide. No automatic snapping or trimming.
+Only exterior windows are supported. Door state=unknown/open/closed; omit window state.
+Pixels can use selected profile references (syntax in plan_partition). Label assumed heights.
 
+Once geometry exists, use trial_plan_bim with operations; never retype the whole plan.
+The tool remembers the last source-producing baseline; a failed revision does not replace
+it. Each operation needs reason, source_refs and bbox in original-image pixels, plus:
+update: collection, id, changes (nonempty, no id); add: collection, value (complete row);
+remove: collection, id; set: field, value (top-level except floor_id/collections).
+Collections are partitions/openings/space_seeds. Edit each row/field once per batch, 1-100
+operations. Example (replace with actual evidence):
+{{"operations":[{{"op":"update","collection":"openings","id":"D1","changes":{{"p2":[6,4.6]}},"reason":"observed jamb endpoint","source_refs":["plan.png: door mark"],"bbox":[5,2,7,5]}}]}}
+The audit lists actual edits and unchanged IDs/fields; topology edits can change derived
+rooms/hosts. Cross-task rework starts at the verified previous artifact and only changes
+rework_targets. Failed previous drafts allow full drafting again.""".format(
+    example=json.dumps(PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
+
+_PLAN_DIFFERENCES = """5. RESOLVE THE DIFFERENCES. trial_plan_bim returns drawing_differences and
+building_precision: review clues, not drawing-fidelity verdicts. Recheck look_box or the
+named source object, then revise by operations or explain retention. Align to an existing
+line, never an average; preserve real rooms, openings and connections.
+Before turning an inkless gap into a door/open, decide whether its ends belong to the
+same physical wall. If not, remove the artificial separator and opening in the SAME
+revision; remove a redundant seed if the merged space contains two seeds. Preserve real
+wall portions. Every topology_issues row, including earlier warnings, needs a located
+topology_decisions row: issue_id, decision=retain_opening/continuous_space, basis and bbox.
+The final plan must implement the decision; unresolved text cannot waive it."""
+
+_ARTIFACT_SCHEMA = """Deliver through submit_plan_reading. Copy plan_sha256 from the successful trial;
+the tool retrieves that saved plan. Supply evidence, unresolved, wall_reference and
+topology_decisions; never put summaries inside the plan or deliver it in final text.
+Evidence rows: {{"item":"plan.openings:W1","source":"the exact task image name",
+"bbox":[left,top,right,bottom],"basis":"observed mark"}}. Cover plan.x_anchors,
+plan.y_anchors, plan.footprint_pixels and every plan.partitions:<id>,
+plan.space_seeds:<id>, plan.openings:<id> with localized boxes. unresolved may add questions,
+but does not edit the saved plan. A failed trial cannot be submitted.
+wall_reference separately describes perimeter and partitions, matching step 3:
+{wall_example}
+Allowed conventions: centerline/inner_face/outer_face/explicit_face. Each dimension_basis
+names that category's reference line after the conversion explained in basis. Categories
+may differ; each bbox locates its dimension chain. Only declaration consistency is checked.
+If submission rejects an item, correct that issue (operations if the plan changes) and
+resubmit. After acceptance, end with a short acknowledgement.""".format(
+    wall_example=json.dumps(WALL_REFERENCE_EXAMPLE, separators=(",", ":")))
 
 PLAN_READER_GUIDANCE = "\n\n".join((
     _SHARED_READER_SCOPE,
-    CORE,
+    _PLAN_CORE,
     _SECTIONS[1].replace("READ THE WHOLE SET", "READ THE ONE PLAN")
                 .replace("View every supplied plan and elevation in full.", "View the supplied plan in full."),
     _SECTIONS[2],
-    _SECTIONS[3],
+    _PLAN_CALIBRATION,
     _PLAN_DRAFT,
     _PLAN_DIFFERENCES,
     "Allowed tools: " + ", ".join(READER_TOOL_NAMES["plan_reader"]) + ".",

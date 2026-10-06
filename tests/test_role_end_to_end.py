@@ -106,6 +106,7 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert result["finalization"]["status"] == "delivered"
     assert (fixture.output / "bim/delivery.json").is_file()
     assert (fixture.output / "bim/delivery.html").is_file()
+    assert len(list((fixture.output / "bim").glob("candidate_*"))) <= 24
     selection = json.loads(
         (fixture.output / "bim/delivery_selection.json").read_bytes()
     )

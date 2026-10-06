@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import copy
 from collections.abc import Mapping
 import hashlib
 import json
@@ -14,7 +15,8 @@ from typing import Any
 from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
-from .plan_review import review_changes, topology_issues
+from .plan_format import format_failure, plan_format_errors
+from .plan_review import revise_operations, topology_issues
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -173,6 +175,7 @@ class PlanTrial:
         self._memory_plans: dict[str, dict[str, Any]] = {}
         self._memory_numeric: dict[str, dict[str, Any]] = {}
         self.reference_plan = None
+        self._reference_profiles = {}
         self.allowed_rework_targets = None
         self.inherited_topology_issues = []
         self._memory_images: dict[str, list[dict[str, Any]]] = {}
@@ -238,6 +241,11 @@ class PlanTrial:
     def _existing(self, plan_hash: str) -> dict[str, Any] | None:
         return next((row for row in reversed(self.receipts) if row.get("plan_sha256") == plan_hash), None)
 
+    def _successful(self, plan_hash=None):
+        return next((row for row in reversed(self.receipts)
+                     if row.get("status") == "passed" and row.get("source_geometry_ready") is True
+                     and (plan_hash is None or row.get("plan_sha256") == plan_hash)), None)
+
     def _numeric_plan(self, plan: Mapping[str, Any], number: int) -> tuple[
         dict[str, Any], list[str], list[dict[str, Any]], list[dict[str, Any]],
         list[dict[str, Any]], Path | None, str,
@@ -256,18 +264,21 @@ class PlanTrial:
             image_sha256 = _file_sha256(image_path)
 
         def load_profile(profile_id: str) -> dict[str, Any]:
-            if self.profile_directory is None:
-                raise ValueError(
-                    f"{profile_id} was selected but this trial has no reader profile directory"
-                )
-            folder = self.profile_directory.resolve()
-            path = (folder / f"{profile_id}.json").resolve()
-            if path.parent != folder or not path.is_file():
-                raise ValueError(
-                    f"choose an existing profile_id returned by this reader: {profile_id}"
-                )
+            path = None
+            if self.profile_directory is not None:
+                folder = self.profile_directory.resolve()
+                candidate = (folder / f"{profile_id}.json").resolve()
+                if candidate.parent == folder and candidate.is_file():
+                    path = candidate
+            inherited = self._reference_profiles.get(profile_id)
+            if path is None and inherited:
+                path = inherited["path"]
+            if path is None:
+                raise ValueError(f"choose an existing profile_id returned by this reader: {profile_id}")
             raw = path.read_bytes()
             digest = hashlib.sha256(raw).hexdigest()
+            if inherited and digest != inherited["sha256"]:
+                raise ValueError(f"inherited profile changed or collides with a new reader profile: {profile_id}")
             used_profiles[profile_id] = (raw, digest)
             return {"record": json.loads(raw), "sha256": digest}
 
@@ -372,37 +383,73 @@ class PlanTrial:
             })
         return blocks
 
-    async def run(self, plan: dict[str, Any], *, base_plan_sha256=None, changes=None) -> dict[str, Any]:
-        if not isinstance(plan, Mapping):
-            raise ValueError("trial plan must be an object")
-        normalization_error = None
-        try:
-            normalized, _ = normalize_plan_fields(dict(plan))
-        except (ValueError, TypeError, KeyError) as error:
-            # Keep the exact rejected object recoverable even when aliases are
-            # internally contradictory. A valid alias spelling still hashes as
-            # its canonical field name through ``canonical_plan_sha256``.
-            normalized = dict(plan)
-            normalization_error = error
-        plan_bytes = _plan_bytes(normalized)
-        plan_hash = hashlib.sha256(plan_bytes).hexdigest()
-        existing = self._existing(plan_hash)
-        if existing is not None:
-            return existing
-        prior = self.receipts[-1] if self.receipts else None
-        previous_plan = self.load_plan(prior) if prior is not None else self.reference_plan
-        change_report = []
-        if previous_plan is not None:
-            expected_base = prior["plan_sha256"] if prior is not None else canonical_plan_sha256(previous_plan)
-            if base_plan_sha256 != expected_base:
-                raise ValueError(f"rework needs base_plan_sha256={expected_base}; copy the prior trial hash and list only pointed changes")
+    def baseline(self):
+        """Only a verified source-producing trial can advance the edit baseline."""
+        prior = self._successful()
+        return (self.load_plan(prior), prior["plan_sha256"]) if prior else (
+            self.reference_plan,
+            canonical_plan_sha256(self.reference_plan) if self.reference_plan is not None else None,
+        )
+
+    def inherit_reference(self, prior, plan_sha256, allowed_targets):
+        from src.agent.geometry.plan_revision import SCALARS, COLLECTIONS
+
+        if not isinstance(allowed_targets, list) or not allowed_targets:
+            raise ValueError("plan rework needs nonempty rework_targets")
+        for target in allowed_targets:
+            if not isinstance(target, str):
+                raise ValueError("rework_targets must name plan fields or collection:id objects")
+            field, separator, identity = target.removeprefix("plan.").partition(":")
+            if not target.startswith("plan.") or not (
+                (not separator and field in SCALARS)
+                or (separator and field in COLLECTIONS and identity.strip())
+            ):
+                raise ValueError(f"rework_targets must name an editable plan field or collection:id: {target}")
+        plan, receipt = prior.verified_plan(plan_sha256)
+        self.reference_plan = copy.deepcopy(plan)
+        self.allowed_rework_targets = list(allowed_targets)
+        self.inherited_topology_issues = copy.deepcopy(receipt.get("topology_issues", []))
+        self._reference_profiles = {
+            row["profile_id"]: {"path": _inside(prior.workspace, row["file"]), "sha256": row["sha256"]}
+            for row in receipt.get("measurement_profiles", [])
+        }
+
+    async def run(self, plan=None, *, operations=None) -> dict[str, Any]:
+        if (plan is None) == (operations is None):
+            raise ValueError("trial_plan_bim requires exactly one of plan (draft) or operations (revision)")
+        previous_plan, expected_base = self.baseline()
+        preservation = None
+        if operations is not None:
+            if previous_plan is None:
+                raise ValueError("No source geometry baseline yet; submit a complete plan until a trial produces geometry")
             manifest_path = self.workspace / "inputs.json" if self.workspace else None
             image_size = (json.loads(manifest_path.read_bytes()).get("images", {}).get(self.image_name, {}).get("size")
                           if manifest_path and manifest_path.is_file() else None)
-            change_report = review_changes(previous_plan, normalized, changes or [], image_size=image_size,
-                                          allowed_targets=self.allowed_rework_targets)
-        elif base_plan_sha256 is not None or changes:
-            raise ValueError("the first trial has no earlier draft to revise")
+            plan, preservation = revise_operations(previous_plan, operations, image_size=image_size,
+                                                   allowed_targets=self.allowed_rework_targets)
+        elif previous_plan is not None:
+            raise ValueError('Source geometry already exists; use trial_plan_bim with operations, not a full plan. '
+                             'Minimum correct example: {"operations":[{"op":"update","collection":"openings",'
+                             '"id":"W1","changes":{"p2":[1,3]},"reason":"correct observed endpoint",'
+                             '"source_refs":["original image window"],"bbox":[0,0,10,10]}]}')
+        if not isinstance(plan, Mapping):
+            raise ValueError("trial plan must be an object")
+        errors = plan_format_errors(plan)
+        try:
+            normalized, _ = normalize_plan_fields(dict(plan))
+        except (ValueError, TypeError, KeyError):
+            normalized = copy.deepcopy(dict(plan))
+        try:
+            plan_bytes = _plan_bytes(normalized)
+        except ValueError:
+            if errors:
+                return format_failure(errors)
+            raise
+        plan_hash = hashlib.sha256(plan_bytes).hexdigest()
+        existing = self._existing(plan_hash)
+        if existing is not None and operations is None:
+            return existing
+        change_report = preservation["actual_changes"] if preservation else []
         number = len(self.receipts) + 1
         self._memory_plans[plan_hash] = normalized
         input_plan_file = None
@@ -411,8 +458,8 @@ class PlanTrial:
             input_plan_file = self.receipt_directory / f"trial_{number:03d}_plan.json"
             input_plan_file.write_bytes(plan_bytes)
         try:
-            if normalization_error is not None:
-                raise normalization_error
+            if errors:
+                raise ValueError("plan format errors")
             (
                 numeric_plan,
                 field_aliases,
@@ -458,7 +505,11 @@ class PlanTrial:
                 "reason": f"numeric_plan_resolution: {error}",
                 "repair_hint": plan_error_hint(normalized, str(error)),
                 "changes": change_report,
-                "base_plan_sha256": expected_base if previous_plan is not None else None,
+                "base_plan_sha256": expected_base,
+                "phase": "operations" if previous_plan is not None else "draft",
+                "plan_revision": preservation,
+                "operations": copy.deepcopy(operations),
+                **(format_failure(errors) if errors else {}),
             }
             if self.receipt_directory is not None:
                 path = self.receipt_directory / f"trial_{number:03d}.json"
@@ -517,7 +568,9 @@ class PlanTrial:
             "overlay": result.get("source_plan_views") or plan_input.get("draft_view"),
             "corridor_review": _corridor_review(self.workspace, result, precision, differences),
             "changes": change_report,
-            "base_plan_sha256": expected_base if previous_plan is not None else None,
+            "base_plan_sha256": expected_base,
+            "plan_revision": preservation,
+            "operations": copy.deepcopy(operations),
         }
         receipt["returned_images"] = self._save_returned_images(raw, number, plan_hash)
         if ready and receipt["compiled_plan_sha256"] != numeric_plan_sha256:
@@ -541,6 +594,7 @@ class PlanTrial:
                                              "trial did not produce source geometry"))
             if "repair_hint" in result:
                 receipt["repair_hint"] = result["repair_hint"]
+        receipt["phase"] = "operations" if ready or previous_plan is not None else "draft"
         flagged_dividers = {row.get("divider") for row in topology_issues([receipt])}
         receipt["topology_dividers"] = {row["id"]: row["points"] for row in numeric_plan.get("partitions", [])
                                        if isinstance(row, Mapping) and row.get("id") and row.get("id") in flagged_dividers}
@@ -552,16 +606,15 @@ class PlanTrial:
         self.receipts.append(receipt)
         return receipt
 
-    async def call(self, plan: dict[str, Any], **review) -> dict[str, Any]:
-        receipt = await self.run(plan, **review)
+    async def call(self, plan=None, *, operations=None) -> dict[str, Any]:
+        receipt = await self.run(plan, operations=operations)
         content = self._image_content(receipt)
         if receipt.get("status") == "passed":
             message = json.dumps(receipt, ensure_ascii=False)
         else:
             message = (
-                f"trial_plan_bim failed: {receipt.get('reason', 'unknown')}. "
-                f"Minimum correct example or repair hint: "
-                f"{json.dumps(receipt.get('repair_hint', {}), ensure_ascii=False)}"
+                "trial_plan_bim failed. All problems, revision audit and minimum correct example: "
+                + json.dumps(receipt, ensure_ascii=False)
             )
         content.append({"type": "text", "text": message})
         return {
@@ -587,7 +640,7 @@ class PlanTrial:
         return self._memory_numeric[receipt["plan_sha256"]]
 
     def verified_plan(self, plan_sha256):
-        receipt = self._existing(plan_sha256)
+        receipt = self._successful(plan_sha256)
         if receipt is None or receipt.get("status") != "passed":
             raise ValueError("submit_plan_reading requires the plan_sha256 of a successful isolated trial")
         if self.workspace is not None:
@@ -608,7 +661,7 @@ class PlanTrial:
 
     def require_success(self, plan: Mapping[str, Any]) -> dict[str, Any]:
         plan_hash = canonical_plan_sha256(plan)
-        receipt = self._existing(plan_hash)
+        receipt = self._successful(plan_hash) or self._existing(plan_hash)
         if receipt is not None and receipt.get("status") == "passed":
             return receipt
         if receipt is not None:
@@ -626,7 +679,7 @@ class PlanTrial:
         """
 
         plan_hash = canonical_plan_sha256(plan)
-        receipt = self._existing(plan_hash)
+        receipt = self._successful(plan_hash) or self._existing(plan_hash)
         if receipt is None:
             raise ValueError(f"plan {plan_hash} has not been run through trial_plan_bim")
         return {"validation_passed": receipt.get("status") == "passed", **receipt}
@@ -652,12 +705,15 @@ class PlanTrial:
                 path = _inside(self.workspace, receipt["receipt_file"])
                 row["receipt_sha256"] = _file_sha256(path)
             rows.append(row)
-        canonical = json.dumps(rows, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return {
+        snapshot = {
             "image": self.image_name,
+            "reference_plan_sha256": (canonical_plan_sha256(self.reference_plan)
+                                      if self.reference_plan is not None else None),
+            "allowed_rework_targets": self.allowed_rework_targets,
             "receipts": rows,
-            "snapshot_sha256": hashlib.sha256(canonical).hexdigest(),
         }
+        canonical = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        return {**snapshot, "snapshot_sha256": hashlib.sha256(canonical).hexdigest()}
 
     def artifacts(self) -> list[Path]:
         """Return the small durable set needed to inspect/recover trial decisions."""

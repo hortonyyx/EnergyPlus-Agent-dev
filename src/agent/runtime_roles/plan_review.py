@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
@@ -27,64 +28,29 @@ def box(value, image_size=None):
     return value
 
 
-def plan_changes(before, after):
-    """Compare by stable object ID; no fuzzy matching that can hide lost objects."""
-    result = []
-    for key in sorted((set(before) | set(after)) - set(COLLECTIONS)):
-        if before.get(key) != after.get(key):
-            result.append({"item": "plan." + key, "before": before.get(key), "after": after.get(key)})
-    for key in COLLECTIONS:
-        old_rows, new_rows = before.get(key, []), after.get(key, [])
-        if not isinstance(old_rows, list) or not isinstance(new_rows, list):
-            if old_rows != new_rows:
-                result.append({"item": "plan." + key, "before": old_rows, "after": new_rows})
-            continue
-        def stable(rows):
-            return (all(isinstance(row, Mapping) and isinstance(row.get("id"), str) and row["id"] for row in rows)
-                    and len({row["id"] for row in rows}) == len(rows))
-        if not stable(old_rows) or not stable(new_rows):
-            # A failed malformed draft has no stable IDs yet. Keep its exact
-            # index-addressable differences so fixing that format cannot hide
-            # unrelated changes or strand the reader behind a KeyError.
-            for index in range(max(len(old_rows), len(new_rows))):
-                old = old_rows[index] if index < len(old_rows) else None
-                new = new_rows[index] if index < len(new_rows) else None
-                if old != new:
-                    result.append({"item": f"plan.{key}[{index}]", "before": old, "after": new})
-            continue
-        old = {row["id"]: row for row in old_rows}
-        new = {row["id"]: row for row in new_rows}
-        for identity in sorted(set(old) | set(new)):
-            if old.get(identity) != new.get(identity):
-                result.append({"item": f"plan.{key}:{identity}", "before": old.get(identity), "after": new.get(identity)})
-    return result
+def revise_operations(before, operations, *, image_size=None, allowed_targets=None):
+    """Apply the shared ID-based operations; boxes are reader-only provenance."""
+    from src.agent.geometry.plan_revision import apply_plan_revision
 
-
-def review_changes(before, after, declarations, *, image_size=None, allowed_targets=None):
-    changes = plan_changes(before, after)
-    declared = {}
-    if not isinstance(declarations, list):
-        raise ValueError("changes must be a list of {item, reason, bbox}")
-    for row in declarations:
-        if not isinstance(row, Mapping) or set(row) != {"item", "reason", "bbox"}:
-            raise ValueError("each change needs item, reason and bbox. Minimum correct example: "
-                             '{"item":"plan.openings:D1","reason":"correct flagged endpoint","bbox":[0,0,10,10]}')
-        if not isinstance(row["reason"], str) or not row["reason"].strip():
-            raise ValueError("each change needs a specific drawing/check issue in reason")
-        box(row["bbox"], image_size)
-        if row["item"] in declared:
-            raise ValueError("duplicate change item: " + row["item"])
-        declared[row["item"]] = row
-    actual = {row["item"] for row in changes}
-    if actual != set(declared):
-        raise ValueError("Rework must list exactly the changed items before trial; unrelated objects stay fixed. "
-                         + json.dumps({"undeclared_changes": sorted(actual - set(declared)),
-                                       "listed_but_unchanged": sorted(set(declared) - actual)}, ensure_ascii=False))
-    if allowed_targets is not None and not actual <= set(allowed_targets):
-        raise ValueError("Rework changed items outside the coordinator's pointed issues: "
-                         + ", ".join(sorted(actual - set(allowed_targets))))
-    return [{**row, "reason": declared[row["item"]]["reason"], "bbox": declared[row["item"]]["bbox"]}
-            for row in changes]
+    if not isinstance(operations, list) or not 1 <= len(operations) <= 100:
+        raise ValueError("supply 1 to 100 operations with reason, source_refs and bbox")
+    core = []
+    for index, operation in enumerate(operations):
+        if not isinstance(operation, dict) or "bbox" not in operation:
+            raise ValueError(f"operations[{index}] needs an original-image bbox")
+        box(operation["bbox"], image_size)
+        core.append({key: copy.deepcopy(value) for key, value in operation.items() if key != "bbox"})
+    try:
+        updated, preservation = apply_plan_revision(before, core)
+    except (TypeError, KeyError) as error:
+        raise ValueError(f"invalid revision operation: {error}") from error
+    for row in preservation["changes"]:
+        row["item"] = "plan." + row["field"] + (":" + row["id"] if row["id"] is not None else "")
+        row["bbox"] = copy.deepcopy(operations[row["operation_index"]]["bbox"])
+        if allowed_targets is not None and row["item"] not in allowed_targets:
+            raise ValueError("Rework changed items outside the coordinator's pointed issues: " + row["item"])
+    preservation["actual_changes"] = [row for row in preservation["changes"] if row["before"] != row["after"]]
+    return updated, preservation
 
 
 def topology_issues(receipts):
@@ -140,16 +106,19 @@ def opening_hosts(plan):
 
 def validate_wall_reference(value, *, image_size=None):
     allowed = {"centerline", "inner_face", "outer_face", "explicit_face"}
-    if not isinstance(value, Mapping) or set(value) != {"convention", "dimension_basis", "basis", "bbox"}:
-        raise ValueError('wall_reference needs convention, dimension_basis, basis and bbox. Minimum correct example: '
-                         '{"convention":"centerline","dimension_basis":"centerline",'
-                         '"basis":"dimensions converted to the same representative wall line","bbox":[0,0,10,10]}')
-    if value["convention"] not in allowed or value["dimension_basis"] != value["convention"]:
-        raise ValueError("All floor walls and dimension anchors must use the same declared wall-reference convention")
-    if not isinstance(value["basis"], str) or not value["basis"].strip():
-        raise ValueError("wall_reference.basis must explain the drawn dimension chain and any face-to-line conversion")
-    box(value["bbox"], image_size)
-    return dict(value)
+    if not isinstance(value, Mapping) or set(value) != {"perimeter", "partitions"}:
+        raise ValueError("wall_reference needs separate perimeter and partitions declarations")
+    for category in ("perimeter", "partitions"):
+        row = value[category]
+        if not isinstance(row, Mapping) or set(row) != {"convention", "dimension_basis", "basis", "bbox"}:
+            raise ValueError(f"wall_reference.{category} needs convention, dimension_basis, basis and bbox")
+        if (not isinstance(row["convention"], str) or row["convention"] not in allowed
+                or row["dimension_basis"] != row["convention"]):
+            raise ValueError(f"wall_reference.{category}: dimension_basis must name the same declared reference line after conversion")
+        if not isinstance(row["basis"], str) or not row["basis"].strip():
+            raise ValueError(f"wall_reference.{category}.basis must explain the dimension chain and any face-to-line conversion")
+        box(row["bbox"], image_size)
+    return copy.deepcopy(dict(value))
 
 
 def validate_topology(issues, decisions, plan, *, image_size=None):
