@@ -26,6 +26,10 @@ def role_accounting(store, registry):
         repair = [event.payload for event in events if event.payload.event_type == "answer_repair"]
         deliveries = [row for row in registry.records.values() if row["role_id"] == role]
         failed_tasks = {event.task_id for event in events if event.payload.event_type == "answer_repair"}
+        submissions = [event for event in events if event.payload.event_type == "tool_execution"
+                       and event.payload.tool_name in {"submit_plan_reading", "submit_elevation_reading"}]
+        rejected = [event for event in submissions if event.payload.outcome != "succeeded"]
+        failed_tasks.update(event.task_id for event in rejected)
         completed = [row for row in deliveries if row["status"] == "completed"]
         failures = [event.payload.model_failure for event in events
                     if event.payload.event_type == "run_lifecycle" and event.payload.model_failure]
@@ -49,6 +53,10 @@ def role_accounting(store, registry):
                         "task_wall_span_seconds": max(end for _, end in intervals) - min(start for start, _ in intervals) if intervals else None,
                         "tool_calls": sum(event.payload.event_type == "tool_invocation" for event in events),
                         "format_errors": repair_requests + repair_failures,
+                        "submission_attempts": len(submissions),
+                        "submission_rejections": len(rejected),
+                        "submission_repaired_tasks": sum(row["task_id"] in {event.task_id for event in rejected}
+                                                         for row in completed),
                         "repair_requests": repair_requests,
                         "repair_failures": repair_failures,
                         "repair_incomplete": repair_requests - len(repair_results),

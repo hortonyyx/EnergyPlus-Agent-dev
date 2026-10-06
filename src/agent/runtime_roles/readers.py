@@ -24,10 +24,11 @@ PLAN_READER_TOOL_NAMES = (
     "map_dimension_chain",
     "get_bim_reference",
     "trial_plan_bim",
+    "submit_plan_reading",
 )
 ELEVATION_READER_TOOL_NAMES = tuple(
-    name for name in PLAN_READER_TOOL_NAMES if name != "trial_plan_bim"
-)
+    name for name in PLAN_READER_TOOL_NAMES if name not in {"trial_plan_bim", "submit_plan_reading"}
+) + ("submit_elevation_reading",)
 READER_TOOL_NAMES = {
     "plan_reader": PLAN_READER_TOOL_NAMES,
     "elevation_reader": ELEVATION_READER_TOOL_NAMES,
@@ -289,7 +290,7 @@ def _structured(result: object) -> object:
 class ReaderTools:
     """Expose one reader's frozen read tools and a plan-only isolated trial."""
 
-    def __init__(self, frozen, *, role_id: str, image_name: str, trial=None):
+    def __init__(self, frozen, *, role_id: str, image_name: str, trial=None, target=None):
         if role_id not in READER_TOOL_NAMES:
             raise ValueError(f"reader role must be one of {sorted(READER_TOOL_NAMES)}")
         if role_id == "plan_reader" and trial is None:
@@ -308,6 +309,9 @@ class ReaderTools:
                                 if self._scope_directory is not None else None)
         self._image_sha256 = self._admitted_image_sha256()
         self._load_references()
+        from .submission import ReaderSubmission
+        self.submission = ReaderSubmission(role_id=role_id, image_name=image_name,
+            directory=self._scope_directory, trial=trial, target=target)
 
     def _admitted_image_sha256(self) -> str | None:
         if self._scope_directory is None:
@@ -351,7 +355,7 @@ class ReaderTools:
         }
         raw = json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
         temporary = self._reference_file.with_suffix(".tmp")
-        temporary.write_text(raw, encoding="utf-8")
+        temporary.write_text(raw, encoding="utf-8", newline="\n")
         temporary.replace(self._reference_file)
 
     async def list_tools(self) -> list[dict[str, Any]]:
@@ -372,34 +376,42 @@ class ReaderTools:
             if isinstance(schema, dict) and isinstance(schema.get("properties"), dict):
                 schema["properties"].pop("include_image", None)
             by_name["pixel_profile"] = alias
-        missing = [name for name in wanted if name != "trial_plan_bim" and name not in by_name]
+        from .submission import SUBMISSION_TOOLS, CHANGE_SCHEMA
+        local = {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
+        missing = [name for name in wanted if name not in local and name not in by_name]
         if missing:
             raise ValueError(f"frozen reader catalog missing tools: {missing}")
-        tools = [copy.deepcopy(by_name[name]) for name in wanted if name != "trial_plan_bim"]
+        tools = [copy.deepcopy(by_name[name]) for name in wanted if name not in local]
         if self.role_id == "plan_reader":
             tools.append({
                 "name": "trial_plan_bim",
-                "description": "Compile/check/overlay one plan in this task's isolated trial; it never enters the parent building draft.",
+                "description": "Compile/check/overlay one isolated plan. Rework requires the preceding plan hash and an exact per-item change list with issue and image box; all other walls, room seeds and openings stay unchanged. Submit the successful hash using submit_plan_reading.",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {"plan": {"type": "object"}},
+                    "properties": {"plan": {"type": "object"}, "base_plan_sha256": {"type": "string"},
+                                   "changes": {"type": "array", "items": CHANGE_SCHEMA}},
                     "required": ["plan"],
                     "additionalProperties": False,
                 },
             })
+        tools.append(copy.deepcopy(SUBMISSION_TOOLS[self.role_id]))
         self._catalog = {tool["name"]: tool for tool in tools}
         return tools
 
     def repeatability(self, name: str):
         if name == "trial_plan_bim":
             return "non_idempotent_write"
+        if name in {"submit_plan_reading", "submit_elevation_reading"} and name in READER_TOOL_NAMES[self.role_id]:
+            return "idempotent_write"
         if name not in READER_TOOL_NAMES[self.role_id]:
             raise ValueError(f"tool {name!r} is outside {self.role_id}")
         return self.frozen.repeatability(name)
 
-    def _enforce_single_image(self, arguments: Mapping[str, Any]) -> None:
+    def _enforce_single_image(self, arguments: Mapping[str, Any], *, plan_object=False) -> None:
         for key, value in _walk(arguments):
-            if key in _IMAGE_KEYS and isinstance(value, str) and value != self.image_name:
+            # A plan's nested object name is not an image-selector parameter.
+            # Actual image/profile selectors remain bound to the admitted input.
+            if key in _IMAGE_KEYS and not (plan_object and key == "name") and isinstance(value, str) and value != self.image_name:
                 raise ValueError(
                     f"{self.role_id} can use only image {self.image_name!r}; {key} referenced {value!r}"
                 )
@@ -426,13 +438,44 @@ class ReaderTools:
             await self.list_tools()
         if name not in self._catalog:
             raise ValueError(f"tool {name!r} is outside {self.role_id}")
-        if not isinstance(arguments, Mapping):
-            raise ValueError("tool arguments must be an object")
-        self._enforce_single_image(arguments)
+        try:
+            if not isinstance(arguments, Mapping):
+                raise _minimum(name, {}, "tool arguments must be an object")
+            if name == "trial_plan_bim" and (set(arguments) - {"plan", "base_plan_sha256", "changes"}
+                                            or not isinstance(arguments.get("plan"), Mapping)):
+                raise _minimum("trial_plan_bim", {"plan": {}}, "requires one plan object and optional scoped rework fields")
+            self._enforce_single_image(arguments, plan_object=name == "trial_plan_bim")
+        except ValueError as error:
+            if name not in {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}:
+                raise
+            # This admission check ran before any tool write. Return a known
+            # rejection so the conservative write-outcome guard need not stop.
+            reason = str(error)
+            if "Minimum correct example" not in reason:
+                reason += ". Minimum correct example: " + json.dumps({"image": self.image_name,
+                    "reference": "use only a profile/view returned by this task"})
+            value = {"status": "rejected", "reason": reason,
+                     "next_action": "Correct the named field and retry within this task budget; no trial was executed."}
+            return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
+                    "structuredContent": value, "isError": True}
+        if name in {"submit_plan_reading", "submit_elevation_reading"}:
+            try:
+                result = self.submission.submit(dict(arguments))
+                return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
+                        "structuredContent": result, "isError": False}
+            except (ValueError, KeyError) as error:
+                result = {"status": "rejected", "reason": str(error),
+                          "next_action": "Fix this item and call the submission tool again within the same task budget."}
+                return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
+                        "structuredContent": result, "isError": True}
         if name == "trial_plan_bim":
-            if set(arguments) != {"plan"} or not isinstance(arguments["plan"], Mapping):
-                raise _minimum("trial_plan_bim", {"plan": {}}, "requires exactly one plan object")
-            result = await self.trial.call(dict(arguments["plan"]))
+            try:
+                result = await self.trial.call(dict(arguments["plan"]),
+                    **{key: arguments[key] for key in ("base_plan_sha256", "changes") if key in arguments})
+            except ValueError as error:
+                value = {"status": "rejected", "reason": str(error)}
+                return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
+                        "structuredContent": value, "isError": True}
         else:
             delegated_name = name
             delegated_arguments = dict(arguments)
@@ -458,6 +501,7 @@ class ReaderTools:
             "frozen": frozen,
             "reader_scope": references,
             "trial": self.trial.durable_snapshot() if self.trial is not None else None,
+            "submission": self.submission.snapshot(),
         }
 
     def artifacts(self):
@@ -466,6 +510,8 @@ class ReaderTools:
             paths.append(self._reference_file)
         if self.trial is not None:
             paths.extend(self.trial.artifacts())
+        if self.submission.path and self.submission.path.is_file():
+            paths.append(self.submission.path)
         return sorted(set(paths))
 
     def image_origins(self, raw_result):

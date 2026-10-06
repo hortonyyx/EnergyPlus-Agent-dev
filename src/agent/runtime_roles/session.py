@@ -50,6 +50,7 @@ TASK_SCHEMA = schema({
     "instructions": {"type": "string", "minLength": 1},
     "previous_task_id": {"type": "string"},
     "issues": {"type": "array", "items": {"type": "string"}},
+    "rework_targets": {"type": "array", "items": {"type": "string"}, "minItems": 1},
     "budget": schema({"model_calls": {"type": "integer", "minimum": 1},
                       "tool_calls": {"type": "integer", "minimum": 0},
                       "tokens": {"type": "integer", "minimum": 1},
@@ -68,6 +69,9 @@ EXTRA_TOOLS = [
     {"name": "apply_elevation_heights", "description": "Confirm a saved match and apply safe matched heights with their image evidence. The source hash must still match. Unmatched or conflicting openings remain unresolved. Repeated match IDs cannot modify twice.",
      "inputSchema": schema({"match_id": {"type": "string"}, "confirm": {"const": True}}, ("match_id", "confirm"))},
     {"name": "role_state", "description": "Read all reader task/target/status/artifact references and per-role/root usage. These references also survive context compaction.", "inputSchema": schema({})},
+    {"name": "review_role_assembly", "description": "Acknowledge each reported assembly change against the accepted reader trials with its specific reason before continuing writes or delivery. Source and reader hashes must still match.",
+     "inputSchema": schema({"review_id": {"type": "string"}, "decisions": {"type": "array", "items": schema({
+         "change_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}, ("change_id", "reason"))}}, ("review_id", "decisions"))},
 ]
 
 
@@ -86,6 +90,8 @@ class RoleSession:
         self.reader_fault_hook = reader_fault_hook
         self.manifest = json.loads((self.run_directory / "inputs.json").read_bytes())
         self.schemas = {tool["name"]: tool["inputSchema"] for tool in EXTRA_TOOLS}
+        from .assembly_review import AssemblyReview
+        self.assembly = AssemblyReview(self)
 
     async def list_tools(self):
         # Keep the ordinary toolkit unchanged. Role tools exist only in this wrapper.
@@ -94,13 +100,16 @@ class RoleSession:
 
     def repeatability(self, name):
         if name in self.schemas:
+            if name == "review_role_assembly":
+                return "idempotent_write"
             return "non_idempotent_write" if name in {"build_from_artifact", "apply_elevation_heights"} else "read_only"
         return self.frozen.repeatability(name)
 
     def snapshot_state(self):
         value = self.frozen.snapshot_state()
         return {"bim": value, "reader_artifacts": {key: row.get("artifact") for key, row in self.registry.records.items()
-                                                 if row.get("artifact")}}
+                                                 if row.get("artifact")}, "assembly_review": self.assembly.current(),
+                "reader_floor_sources": self.assembly._load("role_floor_sources.json", {})}
 
     def artifacts(self):
         return self.frozen.artifacts()
@@ -109,9 +118,24 @@ class RoleSession:
         return self.frozen.image_origins(raw)
 
     async def call_tool(self, name, arguments):
-        if name not in self.schemas:
-            return await self.frozen.call_tool(name, arguments)
         try:
+            if name not in self.schemas:
+                if self.frozen.repeatability(name) != "read_only":
+                    self.assembly.guard()
+                if name == "finish_bim":
+                    candidate = arguments.get("candidate")
+                    if candidate:
+                        self.assembly.check(candidate, require_all=True)
+                        self.assembly.guard()
+                result = await self.frozen.call_tool(name, arguments)
+                from scripts.tool_scripts.bim_agent_saved_result import result_metadata
+                meta = {**result_metadata(result), **(result.get("structuredContent") or {})}
+                candidate = meta.get("candidate")
+                if candidate and meta.get("source_geometry_ready"):
+                    report = self.assembly.check(candidate, require_all=name == "assemble_plan_bim")
+                    if report is not None:
+                        result = self._with_assembly_review(result, report)
+                return result
             jsonschema.validate(arguments, self.schemas[name])
             if name == "delegate_readers":
                 return envelope(await self.delegate_many(arguments["tasks"]))
@@ -119,20 +143,33 @@ class RoleSession:
                 return envelope({"record": self.registry.records[arguments["task_id"]],
                                  "artifact": self.registry.read(**arguments)})
             if name == "build_from_artifact":
+                self.assembly.guard()
                 return await self.build_from_artifact(**arguments)
             if name == "match_elevation":
                 return envelope(self.match(**arguments))
             if name == "apply_elevation_heights":
+                self.assembly.guard()
                 return await self.apply_heights(arguments["match_id"])
+            if name == "review_role_assembly":
+                return envelope(self.assembly.acknowledge(**arguments))
             return envelope(self.state())
         except (ValueError, KeyError, jsonschema.ValidationError) as error:
             return envelope({"status": "rejected", "reason": str(error)}, error=True)
 
     def state(self):
         return {"readers": self.registry.state(), "max_concurrent_readers": self.max_concurrent_readers,
-                "usage": role_accounting(self.store, self.registry)}
+                "usage": role_accounting(self.store, self.registry), "assembly_review": self.assembly.current()}
+
+    @staticmethod
+    def _with_assembly_review(result, report):
+        from scripts.tool_scripts.bim_agent_saved_result import result_metadata
+        value = {**result_metadata(result), **(result.get("structuredContent") or {}), "assembly_review": report}
+        return {**result, "structuredContent": value, "content": [
+            {"type": "text", "text": json.dumps(value, ensure_ascii=False)},
+            *[block for block in result.get("content", []) if block.get("type") != "text"]]}
 
     def _task(self, arguments):
+        from .submission import parse_target
         jsonschema.validate(arguments, TASK_SCHEMA)
         valid_task_id(arguments["task_id"])
         image = arguments["image"]
@@ -149,7 +186,10 @@ class RoleSession:
                 raise ValueError("rework must keep the same role, original image and target")
             if not arguments.get("issues"):
                 raise ValueError("rework needs specific issues")
+            if arguments["role_id"] == "plan_reader" and previous.get("artifact") and not arguments.get("rework_targets"):
+                raise ValueError("plan rework needs explicit rework_targets such as plan.openings:D1; all other objects stay fixed")
             task["previous_artifact"] = previous.get("artifact")
+        parse_target(arguments["role_id"], arguments["target"])
         return task
 
     async def delegate_many(self, tasks):
@@ -172,9 +212,8 @@ class RoleSession:
         return {"status": "completed", "results": await asyncio.gather(*(one(task) for task in admitted))}
 
     async def run_reader(self, task):
-        from .readers import ReaderTools, validate_plan_artifact
-        from .guidance import get_role_guide, ELEVATION_EXAMPLE
-        from .elevation import validate_elevation_artifact
+        from .readers import ReaderTools
+        from .guidance import get_role_guide
         from .trial import PlanTrialSession
 
         child = self.registry.admit(task)
@@ -221,10 +260,15 @@ class RoleSession:
             if task["role_id"] == "plan_reader":
                 trial = await stack.enter_async_context(PlanTrialSession(
                     scoped.run_directory, task["image"], root=self.root))
-            tools = ReaderTools(scoped, role_id=task["role_id"], image_name=task["image"], trial=trial)
+            previous = self.registry.read(task["previous_task_id"]) if task.get("previous_artifact") else None
+            if trial is not None and previous is not None:
+                trial.reference_plan = previous["plan"]
+                trial.allowed_rework_targets = task["rework_targets"]
+                trial.inherited_topology_issues = self.registry.records[task["previous_task_id"]].get("validation", {}).get("topology_issues", [])
+            tools = ReaderTools(scoped, role_id=task["role_id"], image_name=task["image"], trial=trial, target=task["target"])
             catalog = await tools.list_tools()
             role = base_role.model_copy(update={"role_id": task["role_id"],
-                "read_only": task["role_id"] != "plan_reader", "tool_whitelist": tuple(
+                "read_only": False, "tool_whitelist": tuple(
                 ToolGrant(tool_name=tool["name"], access="read" if tools.repeatability(tool["name"]) == "read_only" else "write")
                 for tool in catalog)})
             parameters = role_parameters(config)
@@ -233,28 +277,15 @@ class RoleSession:
                       "parameters": t["inputSchema"]}} for t in catalog]
             versions = make_versions(child, root=self.root, prompt=guide, tools=specs, parameters=parameters,
                                      route=route, code_paths=("src/agent/runtime_roles", "src/agent/runtime_tools.py"))
-            previous = self.registry.read(task["previous_task_id"]) if task.get("previous_artifact") else None
             content = [{"type": "text", "text": json.dumps({"task": task, "previous_artifact": previous,
                        "coordinates": "all boxes refer to original image pixels; geometric values in metres"}, ensure_ascii=False)},
                        {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw_image).decode()}}]
             def validate(text):
-                value = json.loads(text)
-                if task["role_id"] == "plan_reader":
-                    result = validate_plan_artifact(value, image_name=task["image"])
-                    trial.delivery_receipt(result["plan"])
-                    boxes = [row["bbox"] for row in result["evidence"]]
-                else:
-                    try:
-                        result = validate_elevation_artifact(value, image_name=task["image"])
-                    except ValueError as error:
-                        raise ValueError(f"{error}. Minimum correct example: "
-                            + json.dumps(ELEVATION_EXAMPLE, ensure_ascii=False, separators=(",", ":"))) from error
-                    boxes = [row["bbox"] for row in result["elevations"] + result["openings"]]
-                for index, box in enumerate(boxes):
-                    if box[2] > size[0] or box[3] > size[1]:
-                        raise ValueError(f"evidence bbox[{index}] exceeds original image {size}; "
-                                         "minimum correct example: [0,0,10,10]")
-                return result
+                submitted = tools.submission.read()
+                if submitted is None:
+                    name = "submit_plan_reading" if trial is not None else "submit_elevation_reading"
+                    raise ValueError(f"No accepted submission. Call {name}; free text is not the reading artifact.")
+                return submitted["artifact"]
             adapter = self.adapter_factory(task["task_id"], config, child)
             if hasattr(adapter, "close"):
                 stack.push_async_callback(adapter.close)
@@ -270,10 +301,11 @@ class RoleSession:
             original_ref = child.put_bytes(raw_image, "image/png")
             runtime = await engine.run([{"role": "system", "content": guide}, {"role": "user", "content": content}],
                 image_originals={original_ref.sha256: original_ref}, resume=bool(child.events))
-            artifact = validate(runtime["answer"]) if runtime["status"] == "completed" else None
+            submitted = tools.submission.read()
+            artifact = submitted["artifact"] if submitted is not None else None
             status = "completed" if artifact is not None else "failed"
             return self.registry.save(task, status=status, artifact=artifact, runtime=runtime,
-                                      validation=trial.delivery_receipt(artifact["plan"]) if artifact and trial else None,
+                                      validation=submitted["validation"] if submitted is not None else None,
                                       reason=runtime["status"] if artifact is None else None)
 
     async def _once(self, operation_id, name, arguments, *, reference):
@@ -320,9 +352,14 @@ class RoleSession:
             if hashlib.sha256(raw).hexdigest() != receipt["compiled_numeric_plan_sha256"]:
                 raise ValueError("compiled reader plan hash mismatch")
             plan = json.loads(raw)
-        return await self._once("plan:" + task_id, "build_plan_bim",
+        result = await self._once("plan:" + task_id, "build_plan_bim",
             {"image": record["image"], "plan_json": json.dumps(plan, ensure_ascii=False)},
             reference={"task_id": task_id, "sha256": sha256})
+        meta = result.get("structuredContent") or {}
+        if meta.get("source_geometry_ready") and meta.get("candidate"):
+            self.assembly.bind(task_id)
+            result = self._with_assembly_review(result, self.assembly.check(meta["candidate"]))
+        return result
 
     def _source(self, candidate):
         if not isinstance(candidate, str) or Path(candidate).name != candidate or not candidate.startswith("candidate_"):
@@ -371,7 +408,7 @@ class RoleSession:
         application = height_application(artifact, value["result"], value["candidate"],
                                          provenance={"source_model_sha256": source.get("source_model_sha256"), "source_bim": source})
         return await self._once("height:" + match_id, "claim_transaction",
-            {"candidate": value["candidate"], "entries_json": application["entries_json"]},
+            {"candidate": value["candidate"], "entries_json": application["batch_entries_json"]},
             reference={"match_id": match_id, "task_id": value["task_id"],
                        "artifact_sha256": self.registry.records[value["task_id"]]["artifact"]["sha256"]})
 
@@ -398,7 +435,12 @@ class RoleSession:
                 path = self.store.directory / "role_operations" / (hashlib.sha256(identity.encode()).hexdigest() + ".json")
                 if not path.is_file() or "result" not in json.loads(path.read_bytes()):
                     continue
-                raw = json.loads(path.read_bytes())["result"]
+                # A process may die after the frozen build receipt was saved but
+                # before its reader binding/comparison. Complete that read-only
+                # bookkeeping from the receipt; _once will never rebuild it.
+                raw = (await self.build_from_artifact(**call.full_arguments)
+                       if call.tool_name == "build_from_artifact"
+                       else json.loads(path.read_bytes())["result"])
             else:
                 continue
             _, _, shown, _ = convert_tool_result(call.call_id, raw, self.store)

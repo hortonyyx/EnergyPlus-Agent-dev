@@ -17,6 +17,7 @@ from PIL import Image
 
 from src.agent.runtime_roles.entry import parser
 from src.agent.runtime_roles.readers import validate_plan_artifact
+from src.agent.runtime_roles.trial import canonical_plan_sha256
 from src.agent_runtime.adapter import ScriptedAdapter
 
 
@@ -24,9 +25,19 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPERIMENT = ROOT / "AI_agent/logs/experiments/2026-10-06_role_division_d1"
 VERIFY = runpy.run_path(str(EXPERIMENT / "verify_elevations.py"))
 CASES = {
+    "sm21": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21",
     "sm24": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24",
     "sm25": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25",
 }
+ELEVATION_SUBMISSION_FIELDS = (
+    "orientation",
+    "view_direction",
+    "x_calibration",
+    "elevations",
+    "openings",
+    "counts",
+    "unresolved",
+)
 
 
 def response(*calls, text=None):
@@ -86,6 +97,33 @@ def _plan_artifact(plan_path: Path, image_path: Path):
         "unresolved": plan["unresolved"],
     }
     return validate_plan_artifact(artifact, image_name=image_path.name)
+
+
+def plan_submission(artifact: dict[str, Any]) -> dict[str, Any]:
+    """Tool arguments for the immutable successful trial represented by artifact."""
+    evidence_box = artifact["evidence"][0]["bbox"]
+    return {
+        "plan_sha256": canonical_plan_sha256(artifact["plan"]),
+        "evidence": artifact["evidence"],
+        "unresolved": artifact["unresolved"],
+        "wall_reference": {
+            "convention": "explicit_face",
+            "dimension_basis": "explicit_face",
+            "basis": (
+                "Accepted 10-01 replay retains each declared wall reference line and "
+                "its calibrated dimension anchors without snapping or reinterpretation."
+            ),
+            "bbox": evidence_box,
+        },
+        # The accepted sm21/sm24/sm25 plans replay with zero scoped topology
+        # warnings. A new warning must fail submission rather than be auto-kept.
+        "topology_decisions": [],
+    }
+
+
+def elevation_submission(artifact: dict[str, Any]) -> dict[str, Any]:
+    """Strip runtime-owned metadata before calling submit_elevation_reading."""
+    return {key: artifact[key] for key in ELEVATION_SUBMISSION_FIELDS}
 
 
 def _selected_source(case_root: Path):
@@ -164,6 +202,17 @@ def reader_record(output: Path, task_id: str) -> dict[str, Any]:
     raise AssertionError(f"script expected a reader record for {task_id}")
 
 
+def assembly_review(output: Path) -> dict[str, Any] | None:
+    current = output / "role_assembly_current.json"
+    if not current.is_file():
+        return None
+    review_id = json.loads(current.read_bytes())["review_id"]
+    path = output / "role_assembly_reviews" / f"{review_id}.json"
+    if not path.is_file():
+        raise AssertionError(f"assembly review pointer has no report: {review_id}")
+    return json.loads(path.read_bytes())
+
+
 def _match_id(output: Path, task_id: str) -> str:
     found = []
     for path in (output / "role_matches").glob("*.json"):
@@ -216,6 +265,7 @@ class D1Fixture:
             )
             if floor is not None:
                 artifact = self.plan_artifacts[floor]
+                submission = plan_submission(artifact)
                 responses = [
                     response(
                         (
@@ -224,7 +274,14 @@ class D1Fixture:
                             {"plan": artifact["plan"]},
                         )
                     ),
-                    response(text=json.dumps(artifact, ensure_ascii=False)),
+                    response(
+                        (
+                            f"{task_id}-submit",
+                            "submit_plan_reading",
+                            submission,
+                        )
+                    ),
+                    response(text="Plan reading submitted from the successful trial."),
                 ]
             else:
                 orientation = next(
@@ -234,10 +291,13 @@ class D1Fixture:
                 )
                 responses = [
                     response(
-                        text=json.dumps(
-                            self.elevation_artifacts[orientation], ensure_ascii=False
+                        (
+                            f"{task_id}-submit",
+                            "submit_elevation_reading",
+                            elevation_submission(self.elevation_artifacts[orientation]),
                         )
-                    )
+                    ),
+                    response(text="Elevation reading submitted."),
                 ]
             offset = sum(
                 event.payload.event_type == "adapter_request" for event in store.events
@@ -434,7 +494,7 @@ def make_fixture(case_name: str, base: Path) -> D1Fixture:
         "--tokens",
         "100000000",
         "--max-candidates",
-        "96",
+        "24",
         "--max-concurrent-readers",
         "4",
     ]
