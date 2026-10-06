@@ -57,9 +57,21 @@ TASK_SCHEMA = schema({
                       "seconds": {"type": "number", "exclusiveMinimum": 0}}),
 }, ("task_id", "role_id", "image", "target", "instructions"))
 
+# Readers get these per-task allowances, capped by what remains of the run; tokens
+# stay under the run's own total. The coordinator no longer chooses them: in the
+# 10-06 sm24 debug run it guessed 100-120k tokens, while a plan reader alone used
+# ~0.9M and an elevation reader up to ~0.25M, so readers stopped after two or three
+# requests. Measured use: plan reader 19-30 requests, elevation reader up to 8.
+ROLE_TASK_BUDGET = {
+    "plan_reader": {"model_calls": 40, "tool_calls": 120, "seconds": 3600},
+    "elevation_reader": {"model_calls": 16, "tool_calls": 50, "seconds": 1800},
+}
+COORDINATOR_TASK_SCHEMA = schema({key: value for key, value in TASK_SCHEMA["properties"].items() if key != "budget"},
+                                 tuple(TASK_SCHEMA["required"]))
+
 EXTRA_TOOLS = [
-    {"name": "delegate_readers", "description": "Dispatch independent single-image plan/elevation readers concurrently. Use a new task_id plus previous_task_id and issues for rework. Completed task IDs return their saved artifacts without another request. Specify floor origin/directions/scale or facade orientation/viewing direction in instructions.",
-     "inputSchema": schema({"tasks": {"type": "array", "items": TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
+    {"name": "delegate_readers", "description": "Dispatch independent single-image plan/elevation readers concurrently. Use a new task_id plus previous_task_id and issues for rework. Completed task IDs return their saved artifacts without another request. Specify floor origin/directions/scale or facade orientation/viewing direction in instructions. Each reader's request/token/time allowance is set by its role.",
+     "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
     {"name": "build_from_artifact", "description": "Build a floor directly from a validated plan_reader artifact. No retranscription or overrides. Repeated identical references return the existing build; rework needs a new reader task.",
@@ -224,19 +236,20 @@ class RoleSession:
         if saved and saved["status"] not in {"running", "interrupted"}:
             return {**saved, "reused_saved_result": True}
         deadline = self.started_epoch + self.limits.seconds
+        budget = {**ROLE_TASK_BUDGET[task["role_id"]], **task.get("budget", {})}
         timing_path = child.task_directory / "reader_timing.json"
         if timing_path.is_file():
             timing = json.loads(timing_path.read_bytes())
         else:
             start = time.time()
-            seconds = min(task.get("budget", {}).get("seconds", self.limits.seconds), deadline - start)
+            seconds = min(budget["seconds"], deadline - start)
             if seconds <= 0:
                 return self.registry.save(task, status="failed", reason="root time budget exhausted")
             timing = {"started_epoch": start, "deadline_epoch": start + seconds, "time_budget_seconds": seconds}
             child.write_json("reader_timing.json", timing)
-        allowance = {"model_calls": min(task.get("budget", {}).get("model_calls", self.limits.model_calls), self.limits.model_calls),
-                     "tool_calls": min(task.get("budget", {}).get("tool_calls", self.limits.tool_calls), self.limits.tool_calls),
-                     "tokens": task.get("budget", {}).get("tokens", self.limits.tokens),
+        allowance = {"model_calls": min(budget["model_calls"], self.limits.model_calls),
+                     "tool_calls": min(budget["tool_calls"], self.limits.tool_calls),
+                     "tokens": budget.get("tokens", self.limits.tokens),
                      "seconds": timing["time_budget_seconds"], "max_model_retries": self.limits.max_model_retries,
                      "retry_backoff_seconds": self.limits.retry_backoff_seconds,
                      "max_consecutive_truncations": self.limits.max_consecutive_truncations,
