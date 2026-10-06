@@ -8,4 +8,6 @@ $env:VIRTUAL_ENV = Join-Path $taskRepository '.venv'
 $env:PATH = $taskPythonScripts + [IO.Path]::PathSeparator + $env:PATH
 $env:PYTHONUTF8 = '1'
 $env:PYTHONPATH = $taskRepository
+# Each numpy process otherwise reserves an OpenBLAS pool sized to all CPU threads.
+if (-not $env:OPENBLAS_NUM_THREADS) { $env:OPENBLAS_NUM_THREADS = '1' }
 Write-Output ('Native Python: ' + (Join-Path $taskPythonScripts 'python.exe'))

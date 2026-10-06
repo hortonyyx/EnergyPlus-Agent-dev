@@ -60,6 +60,9 @@ class McpToolClient:
         temp_directory = self.run_directory / ".harness_tmp"
         temp_directory.mkdir(exist_ok=True)
         process_env = {
+            # Small geometry work; a default OpenBLAS pool reserves ~0.5 GB per
+            # server on a 16-thread machine. An explicit setting still wins.
+            "OPENBLAS_NUM_THREADS": "1",
             **os.environ,
             **self.env,
             "PYTHONDONTWRITEBYTECODE": "1",
