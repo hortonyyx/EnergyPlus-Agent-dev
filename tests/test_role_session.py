@@ -360,3 +360,14 @@ def test_profile_plan_expands_verified_numeric_trial_without_retranscription(env
     path.write_text("{}")
     with pytest.raises(ValueError, match="compiled reader plan hash"):
         asyncio.run(session.build_from_artifact("plan", row["artifact"]["sha256"]))
+
+
+def test_bare_facade_target_takes_the_plan_floors(environment):
+    # 10-07 run4: a bare "South" reader named its floor "GF", unmatched by plan F1.
+    _, make = environment
+    session = make()
+    tasks = session._with_plan_floors([
+        dispatch("plan", role_id="plan_reader", target="plan F1"),
+        dispatch("south", target="South"), dispatch("east", target="East/F1")])
+    assert [task["target"] for task in tasks] == ["plan F1", "South/F1", "East/F1"]
+    assert session._task(tasks[1])["coordinate_contract"]["floors"] == ["F1"]

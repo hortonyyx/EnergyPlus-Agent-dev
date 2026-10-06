@@ -247,12 +247,31 @@ class RoleSession:
         task["coordinate_contract"] = task_coordinates(arguments)
         return task
 
+    def _with_plan_floors(self, tasks):
+        """A facade target without floors names the plan floors (10-07 run4: a bare
+        "South" reader invented floor "GF", which no plan floor matched)."""
+        from .submission import canonical_target
+        floors = {canonical_target("plan_reader", task["target"]) for task in tasks
+                  if isinstance(task, dict) and task.get("role_id") == "plan_reader" and isinstance(task.get("target"), str)}
+        floors |= {row["target"] for row in self.registry.records.values()
+                   if row.get("role_id") == "plan_reader" and row.get("target")}
+        if not floors:
+            return tasks
+        result = []
+        for task in tasks:
+            if isinstance(task, dict) and task.get("role_id") == "elevation_reader" and isinstance(task.get("target"), str):
+                target = canonical_target("elevation_reader", task["target"])
+                if "/" not in target:
+                    task = {**task, "target": target + "/" + ",".join(sorted(floors))}
+            result.append(task)
+        return result
+
     async def delegate_many(self, tasks):
         identities = [task["task_id"] for task in tasks]
         if len(identities) != len(set(identities)):
             raise ValueError("reader task IDs must be unique within a batch")
         # Validate every dispatch before starting any model request.
-        admitted = [self._task(task) for task in tasks]
+        admitted = [self._task(task) for task in self._with_plan_floors(tasks)]
         for task in admitted:
             self.registry.admit(task)
 

@@ -110,11 +110,11 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
     if state["inputs"] != inputs:
         raise ValueError("assembly input receipt changed")
 
-    for ref in references:
-        artifact = session.registry.read(ref["task_id"], sha256=ref["sha256"])
-        for item in artifact.get("unresolved", []):
-            issues.append(decision("reader_unresolved", item,
-                "Inspect this reader's original image and decide whether a specific rework task is needed.", task_id=ref["task_id"]))
+    # Readers' own unresolved notes are reported with the delivery, not raised as
+    # decisions: run3 alone had 13, and listing them as pending would keep every
+    # assembly "needs_decisions" and send the coordinator re-checking each note.
+    notes = [{"task_id": ref["task_id"], "note": item} for ref in references
+             for item in session.registry.read(ref["task_id"], sha256=ref["sha256"]).get("unresolved", [])]
     for facade in sorted({"North", "South", "East", "West"} - {v["orientation"] for v in elevations.values()}):
         issues.append(decision("missing_elevation", "No selected delivery for this facade; its heights remain provisional.",
             "Dispatch an elevation reader if this original view is available; otherwise retain an explicit height assumption.", orientation=facade))
@@ -134,7 +134,7 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
                 "elevation_only": len(v["result"]["elevation_only"]), "conflicts": len(v["result"]["conflicts"])} for v in matches],
             "height_write": write, "assembly_review": None if not review else {
                 key: review[key] for key in ("review_id", "status", "checked_floors", "changes")},
-            "decisions": pending,
+            "decisions": pending, "reader_notes": notes,
             "saved_candidates": len(list(session.run_directory.glob("candidate_*/report.json")))}
         state["response"] = response
         state["complete"] = status != "assembly_review_required" and candidate is not None
