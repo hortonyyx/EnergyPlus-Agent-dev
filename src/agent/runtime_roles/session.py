@@ -36,10 +36,11 @@ def envelope(value, *, error=False):
 
 def role_parameters(config):
     if config["provider"] == "scripted":
-        return {"max_tokens": config["output_tokens"], "reasoning_effort": config["reasoning_effort"]}
+        return {"max_tokens": config["output_tokens"], **{k: config[k] for k in
+            ("reasoning_effort", "temperature", "enable_thinking") if config.get(k) is not None}}
     return provider_parameters(config["provider"], output_tokens=config["output_tokens"],
-        reasoning_effort=config["reasoning_effort"], temperature=config.get("temperature"),
-        thinking=config.get("thinking", True))
+        reasoning_effort=config.get("reasoning_effort"), temperature=config.get("temperature"),
+        thinking=True if config.get("enable_thinking") is None else config["enable_thinking"])
 
 
 def schema(properties, required=()):
@@ -96,6 +97,20 @@ EXTRA_TOOLS = [
          "change_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}, ("change_id", "reason"))}}, ("review_id", "decisions"))},
 ]
 
+# The lower-level methods remain available to offline scripts, but no longer
+# occupy the coordinator's tool catalog or its model-side permission grants.
+INTERNAL_TOOLS = [t for t in EXTRA_TOOLS if t["name"] in {
+    "build_from_artifact", "match_elevation", "apply_elevation_heights"}]
+EXTRA_TOOLS = [t for t in EXTRA_TOOLS if t not in INTERNAL_TOOLS]
+EXTRA_TOOLS.insert(2, {"name": "assemble_from_readers",
+    "description": "Build floors, resolve cited elevation levels, assemble, match facades and write all safe heights in one resumable call. Omit task_ids to use each floor/facade's latest accepted delivery. Returns candidate, level citations, matches and located decisions; missing/conflicting levels retain explicit plan assumptions. Repeat after reader rework or a local candidate correction. level_overrides use absolute cited floor Z and ceiling_height=top Z-floor Z. Assembly changes require review_role_assembly before further writes.",
+    "inputSchema": schema({"task_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": True},
+        "level_overrides": {"type": "array", "items": schema({
+            "floor_id": {"type": "string"}, "z_floor": {"type": "number"},
+            "z_floor_evidence": LEVEL_REFERENCE_SCHEMA,
+            "ceiling_height": {"type": "number", "exclusiveMinimum": 0},
+            "ceiling_height_evidence": LEVEL_REFERENCE_SCHEMA}, ("floor_id",))}})})
+
 
 class RoleSession:
     def __init__(self, *, store, frozen, routes, adapter_factory, limits, root,
@@ -112,7 +127,7 @@ class RoleSession:
         self.write_lock = asyncio.Lock()
         self.reader_fault_hook = reader_fault_hook
         self.manifest = json.loads((self.run_directory / "inputs.json").read_bytes())
-        self.schemas = {tool["name"]: tool["inputSchema"] for tool in EXTRA_TOOLS}
+        self.schemas = {tool["name"]: tool["inputSchema"] for tool in [*EXTRA_TOOLS, *INTERNAL_TOOLS]}
         from .assembly_review import AssemblyReview
         self.assembly = AssemblyReview(self)
 
@@ -125,7 +140,7 @@ class RoleSession:
         if name in self.schemas:
             if name == "review_role_assembly":
                 return "idempotent_write"
-            return "non_idempotent_write" if name in {"build_from_artifact", "apply_elevation_heights"} else "read_only"
+            return "non_idempotent_write" if name in {"build_from_artifact", "apply_elevation_heights", "assemble_from_readers"} else "read_only"
         return self.frozen.repeatability(name)
 
     def snapshot_state(self):
@@ -176,6 +191,10 @@ class RoleSession:
             if name == "read_role_artifact":
                 return envelope({"record": self.registry.records[arguments["task_id"]],
                                  "artifact": self.registry.read(**arguments)})
+            if name == "assemble_from_readers":
+                from .assembly import assemble_from_readers
+                async with self.write_lock:
+                    return await assemble_from_readers(self, **arguments)
             if name == "build_from_artifact":
                 self.assembly.guard()
                 return await self.build_from_artifact(**arguments)
@@ -217,7 +236,7 @@ class RoleSession:
         task = {**arguments, "input_sha256": digest}
         if arguments.get("previous_task_id"):
             previous = self.registry.records[arguments["previous_task_id"]]
-            if previous["image"] != image or previous["role_id"] != arguments["role_id"] or previous["target"] != arguments["target"]:
+            if previous["image"] != image or previous["role_id"] != arguments["role_id"] or canonical_target(previous["role_id"], previous["target"]) != arguments["target"]:
                 raise ValueError("rework must keep the same role, original image and target")
             if not arguments.get("issues"):
                 raise ValueError("rework needs specific issues")
@@ -392,7 +411,7 @@ class RoleSession:
             self.assembly.guard()
             return await self._build_from_artifact(task_id, sha256, **levels)
 
-    async def _build_from_artifact(self, task_id, sha256, **levels):
+    async def _build_from_artifact(self, task_id, sha256, resolved_levels=None, **levels):
         value = self.registry.read(task_id, sha256=sha256, role_id="plan_reader")
         record = self.registry.records[task_id]
         if not record.get("validation", {}).get("validation_passed"):
@@ -411,8 +430,14 @@ class RoleSession:
             if hashlib.sha256(raw).hexdigest() != receipt["compiled_numeric_plan_sha256"]:
                 raise ValueError("compiled reader plan hash mismatch")
             plan = json.loads(raw)
-        from .levels import apply_levels
-        plan, citations = apply_levels(self.registry, plan, **levels)
+        from .levels import apply_levels, apply_resolved_levels
+        if resolved_levels is None:
+            plan, citations = apply_levels(self.registry, plan, **levels)
+        else:
+            if levels:
+                raise ValueError("choose resolved levels or explicit legacy overrides")
+            plan, citations = apply_resolved_levels(plan, resolved_levels), resolved_levels
+            levels = {"resolved_levels": resolved_levels}
         reference = {"task_id": task_id, "sha256": sha256}
         if citations:
             reference["levels"] = citations
@@ -435,13 +460,27 @@ class RoleSession:
             raise ValueError(f"saved candidate does not exist: {candidate}")
         return json.loads(path.read_bytes())
 
-    def match(self, task_id, candidate):
+    def match(self, task_id, candidate, *, height_bounds=False):
         from .elevation import match_elevation
         from .lineage import guard_replaced_plans
         artifact = self.registry.read(task_id, role_id="elevation_reader")
         source = self._source(candidate)
         guard_replaced_plans(self, candidate)
         result = match_elevation(source, artifact, candidate=candidate)
+        if height_bounds:
+            # Horizontal matching alone does not prove a proposed Z fits the host.
+            hosts = {row["id"]: row for row in source["boundaries"]}
+            openings = {row["id"]: row for row in source["openings"]}
+            safe = []
+            for row in result["matches"]:
+                host = hosts[openings[row["source_opening_id"]]["host_boundary_id"]]
+                low, high = min(p[2] for p in host["vertices"]), max(p[2] for p in host["vertices"])
+                if row["sill_m"] < low - 1e-8 or row["head_m"] > high + 1e-8:
+                    result["conflicts"].append({**row, "status": "conflict", "type": "height_outside_host",
+                                              "host_z_m": [low, high]})
+                else:
+                    safe.append(row)
+            result["matches"], result["can_apply"] = safe, bool(safe)
         result.pop("match_id")  # Only the outer durable identifier is public.
         result["source_file_sha256"] = hashlib.sha256(
             (self.run_directory / candidate / "source_model.json").read_bytes()).hexdigest()
@@ -473,6 +512,11 @@ class RoleSession:
                 continue
             if call.tool_name == "delegate_readers":
                 raw = await self.call_tool(call.tool_name, call.full_arguments)
+            elif call.tool_name == "assemble_from_readers":
+                raw = await self.call_tool(call.tool_name, call.full_arguments)
+                if raw.get("isError"):
+                    # Unacknowledged inner writes keep their original refusal.
+                    continue
             elif call.tool_name in {"build_from_artifact", "apply_elevation_heights"}:
                 if call.tool_name == "build_from_artifact":
                     levels = {k: v for k, v in call.full_arguments.items() if k not in {"task_id", "sha256"}}

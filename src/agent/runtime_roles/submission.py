@@ -106,8 +106,9 @@ def canonical_target(role_id, target):
         facade, slash, floors = text.partition("/")
         text = facade.strip().title()
         if slash:
-            text += "/" + ",".join(part.strip() for part in floors.split(","))
-    return text
+            text += "/" + ",".join(part.strip().upper() for part in floors.split(","))
+        return text
+    return text.upper()
 
 
 def parse_target(role_id, target):

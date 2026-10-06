@@ -25,24 +25,20 @@ class RoleConfiguration(BaseModel):
 
     provider: str = Field(min_length=1)
     model: str = Field(min_length=1)
-    # Required key; null on routes that use the thinking switch instead
-    # (Paratera Qwen: enable_thinking with temperature 0.7, no effort levels).
-    reasoning_effort: str | None = Field(min_length=1)
+    reasoning_effort: str | None = Field(default=None, min_length=1)
     output_tokens: int = Field(gt=0)
-    temperature: float | None = Field(default=None, ge=0, le=2)
-    thinking: bool | None = None
+    temperature: float | None = Field(default=None, ge=0, le=2, allow_inf_nan=False)
+    enable_thinking: bool | None = Field(default=None, strict=True)
 
     @model_serializer(mode="wrap")
-    def _omit_unset_sampling(self, handler):
-        # Existing routes keep their exact recorded form (role_configuration.json, versions).
-        data = handler(self)
-        for key in ("temperature", "thinking"):
-            if data.get(key) is None:
-                data.pop(key, None)
-        return data
+    def serialize_route(self, handler):
+        # Optional role knobs must not change existing GLM configuration bytes.
+        return {key: value for key, value in handler(self).items() if value is not None}
 
     @model_validator(mode="after")
     def validate_reviewed_route(self, info: ValidationInfo) -> "RoleConfiguration":
+        if self.enable_thinking is not None and self.reasoning_effort is not None:
+            raise ValueError("choose reasoning_effort or enable_thinking, not both")
         allow_scripted = bool((info.context or {}).get("allow_scripted", False))
         if self.provider == "scripted" or self.model == "scripted-model":
             if allow_scripted and self.provider == "scripted" and self.model == "scripted-model":
@@ -59,7 +55,7 @@ class RoleConfiguration(BaseModel):
             output_tokens=self.output_tokens,
             reasoning_effort=self.reasoning_effort,
             temperature=self.temperature,
-            thinking=True if self.thinking is None else self.thinking,
+            thinking=True if self.enable_thinking is None else self.enable_thinking,
         )
         validate_output_limit(self.model, self.output_tokens)
         return self

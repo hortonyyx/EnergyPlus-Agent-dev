@@ -1,0 +1,8 @@
+```text
+bringing up nodes...
+bringing up nodes...
+
+................................................                         [100%]
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+48 passed in 36.76s
+```

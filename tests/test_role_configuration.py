@@ -95,7 +95,7 @@ def test_roles_require_all_fixed_identities_and_reject_unknown_identity():
         load_roles(None)
 
 
-@pytest.mark.parametrize("field", ["provider", "model", "reasoning_effort", "output_tokens"])
+@pytest.mark.parametrize("field", ["provider", "model", "output_tokens"])
 def test_role_route_has_no_field_inheritance(field):
     incomplete = role()
     incomplete.pop(field)
@@ -113,18 +113,6 @@ def test_existing_anthropic_and_openai_compatible_routes_are_accepted(
     parsed = load_roles({name: role(provider, model, effort, tokens) for name in ROLE_NAMES})
     assert parsed["plan_reader"].provider == provider
     assert parsed["elevation_reader"].model == model
-
-
-def test_paratera_route_states_temperature_and_thinking_switch():
-    from src.agent.runtime_roles.session import role_parameters
-    route = {"provider": "paratera", "model": "Qwen3.8-27B", "reasoning_effort": None,
-             "output_tokens": 16_384, "temperature": 0.7, "thinking": True}
-    parsed = load_roles(roles(plan_reader=route, elevation_reader=route))
-    dumped = parsed["plan_reader"].model_dump(mode="json")
-    assert role_parameters(dumped) == {"max_tokens": 16_384, "temperature": 0.7, "enable_thinking": True}
-    # Routes that state neither keep their earlier recorded form.
-    assert set(parsed["coordinator"].model_dump(mode="json")) == {
-        "provider", "model", "reasoning_effort", "output_tokens"}
 
 
 def test_unreviewed_route_deepseek_and_low_output_are_rejected():

@@ -187,16 +187,14 @@ target: plan floor ID; elevation North/South/East/West, optionally /F1,F2. Runti
 x East, y North by the north arrow, z Up; never redefine directions in instructions.
 Use role_state for progress and read_role_artifact for accepted deliveries.
 
-Before build_from_artifact, read elevation levels and decide floor Z and top Z. Pass
-z_floor and ceiling_height (top minus floor, metres), each with *_evidence containing
-the delivered elevation task_id and elevation_id. Distinguish floor/eave/roof marks;
-do not carry a plan's assumed height when the elevation establishes the building top.
-Build by artifact reference without retyping, assemble floors, then match_elevation.
-Inspect unmatched/conflicting openings; apply_elevation_heights takes match_id as one
-ID or a list for all facades in one draft. Writes continue on the latest draft; changed
-opening XY requires matching again. Equal values keep the current draft. After plan
-rework, build from the new delivery before matching. Compare source/overlays to drawings,
-run existing checks and fix concrete errors before delivery.
+Call assemble_from_readers once after deliveries. It selects the latest accepted plan
+per floor and elevation per facade, resolves levels, builds/assembles floors, matches
+openings and writes safe heights together. Read its decisions: missing/conflicting
+levels retain plan assumptions, unmatched openings remain unresolved. Inspect cited
+marks; resolve levels with level_overrides (floor_id, z_floor/ceiling_height and each
+*_evidence: task_id + elevation_id). Heights equal cited top Z minus floor Z. Re-call
+after reader rework or a local revision; unchanged inputs reuse the saved candidate.
+Compare source/overlays to drawings, run checks and fix concrete errors before delivery.
 
 Re-dispatch failures as a new task with previous_task_id and specific issues. For plan
 rework, name rework_targets (plan.partitions:<id>, plan.space_seeds:<id>,
@@ -227,8 +225,7 @@ def get_role_tool_names(role_id: str) -> tuple[str, ...]:
         return READER_TOOL_NAMES[role_id]
     if role_id == "coordinator":
         return (
-            "delegate_readers", "read_role_artifact", "build_from_artifact",
-            "match_elevation", "apply_elevation_heights", "role_state",
+            "delegate_readers", "read_role_artifact", "assemble_from_readers", "role_state",
             "review_role_assembly",
         )
     raise ValueError(f"unknown role catalog {role_id!r}")

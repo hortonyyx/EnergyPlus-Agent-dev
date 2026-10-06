@@ -67,14 +67,14 @@ def saved_application(session, identities):
     return value
 
 
-async def apply_heights(session, identities):
+async def apply_heights(session, identities, *, candidate=None):
     from scripts.tool_scripts.bim_agent_role_heights import build_role_height_batch_entry
     from .elevation import height_application
 
     values = [load_match(session, identity) for identity in match_ids(identities)]
     identities = sorted({value["match_id"] for value in values})
     saved_application(session, identities)  # Refuse any unfinished prior write.
-    candidate = latest_candidate(session, values[0]["candidate"])
+    candidate = candidate or latest_candidate(session, values[0]["candidate"])
     guard_replaced_plans(session, candidate)
     source = session._source(candidate)
     entries, types, references, unprocessed = [], [], [], []

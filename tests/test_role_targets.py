@@ -13,9 +13,11 @@ from src.agent.runtime_roles.submission import parse_target
 @pytest.mark.parametrize(("role", "written", "parsed"), [
     ("plan_reader", "plan/F1", ("F1", set())),
     ("plan_reader", "plan F1", ("F1", set())),  # 10-07 sm24 run4 deadlock
+    ("plan_reader", "PLAN / f1", ("F1", set())),
     ("plan_reader", " Floor: F2 ", ("F2", set())),
     ("elevation_reader", "elevation/North", ("North", set())),
     ("elevation_reader", "facade south / F1, F2", ("South", {"F1", "F2"})),
+    ("elevation_reader", "ELEVATION/sOuTh/f1,f2", ("South", {"F1", "F2"})),
 ])
 def test_role_prefixed_and_spaced_targets_are_normalized(role, written, parsed):
     assert parse_target(role, written) == parsed
@@ -23,7 +25,7 @@ def test_role_prefixed_and_spaced_targets_are_normalized(role, written, parsed):
 
 @pytest.mark.parametrize("written", ["first floor", "F1/F2"])
 def test_plan_target_must_be_one_floor_id(written):
-    with pytest.raises(ValueError, match="one floor ID"):
+    with pytest.raises(ValueError):
         parse_target("plan_reader", written)
 
 

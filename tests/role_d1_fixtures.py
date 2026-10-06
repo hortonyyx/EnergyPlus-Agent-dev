@@ -187,11 +187,6 @@ def _latest_candidate(run: Path) -> str:
     return max(candidates, key=lambda name: int(name.removeprefix("candidate_")))
 
 
-def _artifact_sha(output: Path, task_id: str) -> str:
-    record = reader_record(output, task_id)
-    return record["artifact"]["sha256"]
-
-
 def reader_record(output: Path, task_id: str) -> dict[str, Any]:
     for path in (output / "tasks").glob("*/reader_record.json"):
         value = json.loads(path.read_bytes())
@@ -209,17 +204,6 @@ def assembly_review(output: Path) -> dict[str, Any] | None:
     if not path.is_file():
         raise AssertionError(f"assembly review pointer has no report: {review_id}")
     return json.loads(path.read_bytes())
-
-
-def _match_id(output: Path, task_id: str) -> str:
-    found = []
-    for path in (output / "role_matches").glob("*.json"):
-        value = json.loads(path.read_bytes())
-        if value["task_id"] == task_id:
-            found.append((path.stat().st_mtime_ns, value["match_id"]))
-    if not found:
-        raise AssertionError(f"script expected a match for {task_id}")
-    return max(found)[1]
 
 
 class CoordinatorAdapter:
@@ -306,104 +290,13 @@ class D1Fixture:
 
     def _coordinator_stages(self):
         run = self.output / "bim"
-        task_ids = [task["task_id"] for task in self.tasks]
-        plan_task_ids = [
-            f"{self.case_name}_plan_{floor_id.lower()}"
-            for floor_id in self.plan_artifacts
-        ]
-        elevation_task_ids = [
-            f"{self.case_name}_elev_{orientation.lower()}"
-            for orientation in self.elevation_artifacts
-        ]
         sequence: list[Callable[[], dict[str, Any]]] = [
             lambda: response(("coordinator-inputs", "inputs", {})),
             lambda: response(
                 ("coordinator-delegate", "delegate_readers", {"tasks": self.tasks})
             ),
+            lambda: response(("assemble-readers", "assemble_from_readers", {})),
         ]
-        for task_id in task_ids:
-            sequence.append(
-                lambda task_id=task_id: response(
-                    (
-                        f"read-{task_id}",
-                        "read_role_artifact",
-                        {"task_id": task_id, "sha256": _artifact_sha(self.output, task_id)},
-                    )
-                )
-            )
-        for task_id in plan_task_ids:
-            sequence.append(
-                lambda task_id=task_id: response(
-                    (
-                        f"build-{task_id}",
-                        "build_from_artifact",
-                        {"task_id": task_id, "sha256": _artifact_sha(self.output, task_id)},
-                    )
-                )
-            )
-        if len(plan_task_ids) > 1:
-            for index in range(1, len(plan_task_ids) + 1):
-                sequence.append(
-                    lambda index=index: response(
-                        (
-                            f"inspect-draft-{index}",
-                            "inspect_plan_draft",
-                            {"draft_id": f"draft_{index:03d}"},
-                        )
-                    )
-                )
-
-            def assemble():
-                floors = []
-                for index, (floor_id, artifact) in enumerate(
-                    self.plan_artifacts.items(), 1
-                ):
-                    plan = artifact["plan"]
-                    saved_plan = run / "plan_drafts" / f"draft_{index:03d}" / "plan.json"
-                    floors.append(
-                        {
-                            "draft_id": f"draft_{index:03d}",
-                            # assemble_plan_bim binds the exact saved draft bytes,
-                            # which intentionally differs from the reader trial's
-                            # canonical declaration hash.
-                            "expected_plan_sha256": hashlib.sha256(
-                                saved_plan.read_bytes()
-                            ).hexdigest(),
-                            "floor_id": floor_id,
-                            "z_floor": plan["z_floor"],
-                            "evidence": (
-                                f"scripted replay of accepted {self.case_name} {floor_id} plan"
-                            ),
-                        }
-                    )
-                return response(
-                    (
-                        "assemble-floors",
-                        "assemble_plan_bim",
-                        {"floors_json": json.dumps(floors, ensure_ascii=False)},
-                    )
-                )
-
-            sequence.append(assemble)
-        for task_id in elevation_task_ids:
-            sequence.append(
-                lambda task_id=task_id: response(
-                    (
-                        f"match-{task_id}",
-                        "match_elevation",
-                        {"task_id": task_id, "candidate": _latest_candidate(run)},
-                    )
-                )
-            )
-            sequence.append(
-                lambda task_id=task_id: response(
-                    (
-                        f"apply-{task_id}",
-                        "apply_elevation_heights",
-                        {"match_id": _match_id(self.output, task_id), "confirm": True},
-                    )
-                )
-            )
         sequence.extend(
             [
                 lambda: response(
