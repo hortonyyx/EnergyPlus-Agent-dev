@@ -1,0 +1,481 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "5927bb5f",
+  "status": "all 283 unique checks have passing evidence on the same implementation; production Agent registry deliberately unchanged",
+  "unique_checks": 283,
+  "files": {
+    "tests/test_bim_cleanup_c3t.py": 15,
+    "tests/test_role_assembly_review.py": 5,
+    "tests/test_role_batch_heights.py": 6,
+    "tests/test_role_configuration.py": 18,
+    "tests/test_role_context_policy.py": 3,
+    "tests/test_role_d1g.py": 15,
+    "tests/test_role_elevation.py": 21,
+    "tests/test_role_end_to_end.py": 9,
+    "tests/test_role_guidance.py": 4,
+    "tests/test_role_plan_revisions.py": 15,
+    "tests/test_role_readers.py": 4,
+    "tests/test_role_review_regressions.py": 11,
+    "tests/test_role_rework_handoff.py": 1,
+    "tests/test_role_scoring_bridge.py": 6,
+    "tests/test_role_session.py": 19,
+    "tests/test_role_single_parity.py": 4,
+    "tests/test_role_submission.py": 8,
+    "tests/test_role_task_budget.py": 2,
+    "tests/test_role_trial.py": 8,
+    "tests/test_roles.py": 1,
+    "tests/test_runtime_a2r_storage.py": 9,
+    "tests/test_runtime_anthropic.py": 17,
+    "tests/test_runtime_c1.py": 25,
+    "tests/test_runtime_compact_evidence.py": 3,
+    "tests/test_runtime_context.py": 14,
+    "tests/test_runtime_frozen_long_task.py": 4,
+    "tests/test_runtime_long_task.py": 10,
+    "tests/test_runtime_r2_truncation.py": 15,
+    "tests/test_runtime_recovery_edges.py": 7,
+    "tests/test_runtime_stage2_integration.py": 4
+  },
+  "final_failed_checks": [],
+  "skipped_checks": [],
+  "reports": [
+    {
+      "file": "checks.xml",
+      "sha256": "a5794db6da9553ee1ae104a3ee9c45d3aaad0a1bef98032bc452348016d21fbf",
+      "tests": 283,
+      "failures": 12,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3051.017,
+      "started_at": "2026-10-07T01:21:45.797262+08:00",
+      "failed_nodes": [
+        {
+          "node": "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_resume_after_all_readers_preserves_reader_records",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_resume_after_build_execution_does_not_repeat_build",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_trial.py::test_real_profile_is_resolved_to_recoverable_independent_numeric_plan",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_role_single_parity.py::test_three_single_cases_prepare_identical_shared_first_request_bytes",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_runtime_frozen_long_task.py::test_historical_replay_exposes_only_legacy_claims_and_preserves_write_grants",
+          "reason": "AgentVersionMismatch"
+        },
+        {
+          "node": "tests/test_runtime_long_task.py::test_long_run_recovers_across_request_boundaries[after_response-<lambda>]",
+          "reason": "time_budget_exhausted"
+        },
+        {
+          "node": "tests/test_runtime_stage2_integration.py::test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again",
+          "reason": "AgentVersionMismatch"
+        }
+      ]
+    },
+    {
+      "file": "registered_checks.xml",
+      "sha256": "5171480557de4df744f646507eb6f585b72b49070075642e83db7c238885c8ef",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1475.557,
+      "started_at": "2026-10-07T01:41:47.923058+08:00",
+      "failed_nodes": []
+    },
+    {
+      "file": "final_recheck.xml",
+      "sha256": "84c2778136975a76a3a533911a09383abe3d3d56f005095ae65f5046e31893ba",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 504.065,
+      "started_at": "2026-10-07T02:13:02.726507+08:00",
+      "failed_nodes": []
+    }
+  ],
+  "wall_window_seconds": 3580.994,
+  "wall_window_note": "batches partly overlapped; do not sum batch seconds as wall time",
+  "rechecked_nodes": {
+    "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.377,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 336.175
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.36,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 190.01
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.34,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 360.601
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_fixture_submissions_match_explicit_tool_contracts[sm21]": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 3.372
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 5.497
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_fixture_submissions_match_explicit_tool_contracts[sm24]": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 0.851
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 0.926
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_fixture_submissions_match_explicit_tool_contracts[sm25]": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 3.189
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 2.819
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.359,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 253.616
+      }
+    ],
+    "tests/test_role_single_parity.py::test_single_configuration_loading_and_argv_match_the_dispatch_baseline": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 1.047
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 1.568
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_resume_after_all_readers_preserves_reader_records": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.393,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 187.892
+      }
+    ],
+    "tests/test_role_end_to_end.py::test_resume_after_build_execution_does_not_repeat_build": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.256,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 227.587
+      }
+    ],
+    "tests/test_role_single_parity.py::test_first_request_sources_are_byte_identical_to_the_dispatch_baseline": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 0.588
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 0.746
+      }
+    ],
+    "tests/test_role_trial.py::test_real_profile_is_resolved_to_recoverable_independent_numeric_plan": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 8.096,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "final_recheck.xml",
+        "status": "passed",
+        "seconds": 32.596
+      }
+    ],
+    "tests/test_role_single_parity.py::test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 0.307
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 0.849
+      }
+    ],
+    "tests/test_role_single_parity.py::test_three_single_cases_prepare_identical_shared_first_request_bytes": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.304,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 43.691
+      }
+    ],
+    "tests/test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.413,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 633.608
+      }
+    ],
+    "tests/test_runtime_frozen_long_task.py::test_historical_replay_exposes_only_legacy_claims_and_preserves_write_grants": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.155,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 5.844
+      }
+    ],
+    "tests/test_runtime_frozen_long_task.py::test_saved_claim_view_is_indexed_without_top_level_view_id": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 0.049
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 0.155
+      }
+    ],
+    "tests/test_runtime_frozen_long_task.py::test_claim_preview_image_keeps_its_original_view_id": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 0.016
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 0.038
+      }
+    ],
+    "tests/test_runtime_long_task.py::test_long_run_recovers_across_request_boundaries[after_response-<lambda>]": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 909.856,
+        "reason": "time_budget_exhausted"
+      },
+      {
+        "report": "final_recheck.xml",
+        "status": "passed",
+        "seconds": 494.486
+      }
+    ],
+    "tests/test_runtime_stage2_integration.py::test_exact_image_retrieval_survives_paid_summary_and_multiple_preflights": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 2.812
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 2.751
+      }
+    ],
+    "tests/test_runtime_stage2_integration.py::test_context_projection_keeps_frozen_guidance_and_exact_sent_tool_envelopes": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 3.042
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 2.001
+      }
+    ],
+    "tests/test_runtime_stage2_integration.py::test_building_state_keeps_hashed_geometry_and_distinguishes_selected_from_current": [
+      {
+        "report": "checks.xml",
+        "status": "passed",
+        "seconds": 0.417
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 0.382
+      }
+    ],
+    "tests/test_runtime_stage2_integration.py::test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again": [
+      {
+        "report": "checks.xml",
+        "status": "failed",
+        "seconds": 0.82,
+        "reason": "AgentVersionMismatch"
+      },
+      {
+        "report": "registered_checks.xml",
+        "status": "passed",
+        "seconds": 30.086
+      }
+    ]
+  },
+  "time_guard": {
+    "original_limit_seconds": 900,
+    "unchanged_test_sha256": "ff92dc9676d203671ea917436ff2d7a17e20dc9a06b251f34917f93e94205ff8",
+    "original_journal_sha256": "33f9e1bdc3b3874c98e482f8019cc87b8aeb432425a8ba6c41d50c2112bd7731",
+    "stop_event_id": "event-000942",
+    "reason": "time_budget_exhausted",
+    "original_responses": 74,
+    "recheck": {
+      "report": "final_recheck.xml",
+      "status": "passed",
+      "seconds": 494.486
+    },
+    "no_code_or_assertion_change_between_attempts": true
+  },
+  "implementation_sha256": {
+    "src/agent_runtime/context.py": "9c5ee0d5c5c750fd77e9c597f667591d52cba76785a873837604932b18969336",
+    "src/agent/runtime_roles/context_policy.py": "47756fce75ca0854f442f338d8eaae509c0a7a1ef69f8966b0d35e25a1f27b57",
+    "src/agent/runtime_roles/entry.py": "a1389923e5ac765548ec04fb6c6ab0ff7ba042f3c6777931c3af10361cd118b2",
+    "src/agent/runtime_roles/session.py": "a125fdc7357a1a0a18ab7e2d0cceb9a7ba37183ad82200a2147d84c11b1851c4",
+    "tests/test_role_context_policy.py": "2cbca3ff7448ae7fedef7f06709169ac009dddb5cc0222ae80a9fa49ba18f3b9"
+  },
+  "production_registry_sha256_unchanged": "ec2c40248e665e244e2d538822eb40c929579a20e30ba27483c9defb7492275f",
+  "model_service_calls": 0,
+  "paratera_calls": 0,
+  "deepseek_calls": 0,
+  "subagents": 0,
+  "git_writes": 0,
+  "cleanup": {
+    "status": "blocked_by_policy",
+    "completed": false,
+    "reason": "Automatic approval rejected recursive cleanup; only reason returned was blocked by policy.",
+    "attempts": [
+      "PowerShell cleanup of verified temporary roots",
+      "narrowed to one fixed absolute registry directory after a separate read-only path check"
+    ],
+    "no_bypass_attempted": true,
+    "remaining_temporary_paths": [
+      "AI_agent/archive/local_backup/b1/pytest",
+      "AI_agent/archive/local_backup/b1/registry",
+      "AI_agent/archive/local_backup/b1/frozen-replay",
+      ".pytest_cache",
+      "AI_agent/logs/experiments/2026-10-07_runtime_cache_b1/__pycache__"
+    ],
+    "preserved_input": "AI_agent/archive/local_backup/b1/runs"
+  },
+  "replay_acceptance": {
+    "sm24_run3": {
+      "baseline_wire_matches": 80,
+      "prefix_ratio_before": 0.398237,
+      "prefix_ratio_after": 0.833427,
+      "coordinator_target_80_percent_met": true,
+      "max_input_ratio": 0.9038547231236206,
+      "archive_events_sha256_unchanged": "5fef376fc515719b399b614e2f3ed8629e23df8705bc2061ba48be93f32b8610"
+    },
+    "sm24_run4": {
+      "baseline_wire_matches": 72,
+      "prefix_ratio_before": 0.758181,
+      "prefix_ratio_after": 0.793083,
+      "coordinator_target_80_percent_met": false,
+      "max_input_ratio": 0.9103765662266116,
+      "archive_events_sha256_unchanged": "7dd102061c88dad06be8374358c6b0c5d3d627967b32c7d29e57359a51a30ed6"
+    }
+  },
+  "text_line_endings": "LF",
+  "git_diff_check": "passed"
+}
