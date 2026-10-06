@@ -142,11 +142,8 @@
     "workspace_write": true,
     "outside_write_denied": true
   },
-  "pending": [
-    "user completion of authorized Docker Desktop cleanup",
-    "disk space readback after cleanup"
-  ],
-  "status": "native_verified_docker_cleanup_authorized_pending_completion",
+  "pending": [],
+  "status": "windows_native_migration_and_docker_cleanup_complete",
   "recorded_utc": "2026-10-05T18:02:57.920423+00:00",
   "environment": {
     "os": "Windows-11-10.0.26300-SP0",
@@ -573,9 +570,12 @@
     "whole_case_model_runs": 0
   },
   "docker": {
-    "deleted": false,
+    "deleted": true,
     "user_confirmation": "approved_2026-10-06",
     "approved_scope": "Remove both old containers, both images and the vscode volume; retain Docker Desktop and repository build configurations.",
+    "completion_confirmation": "User reported completion on 2026-10-06; independent CLI and disk readback passed.",
+    "cleanup_method": "Docker Desktop Clean up data, WSL 2 backend; operated by user.",
+    "inventory_note": "The following container, image and volume lists identify the removed resources.",
     "containers": [
       "ep_agent_dev",
       "vibrant_murdock"
@@ -587,9 +587,11 @@
     "volumes": [
       "vscode"
     ],
-    "data_vhdx_logical_bytes": 162866921472,
-    "drive_d_free_before_bytes": 69045096448,
-    "reclaimed_bytes": null,
+    "data_vhdx_logical_bytes_before_cleanup": 162866921472,
+    "drive_d_free_at_migration_start_bytes": 69045096448,
+    "reclaimed_bytes": 161268887552,
+    "reclaimed_gib": 150.19335556030273,
+    "reclaimed_basis": "Increase in Windows drive D free bytes between the immediate before and after cleanup snapshots; not the VHDX logical size.",
     "immediately_before_cleanup": {
       "recorded_utc": "2026-10-06T02:52:34.1562905Z",
       "drive_d_free_bytes": 69112606720,
@@ -597,6 +599,25 @@
       "containers": ["ep_agent_dev", "vibrant_murdock"],
       "images": ["6d9cf088f586", "b8c8d7bfc335"],
       "volumes": ["vscode"]
+    },
+    "after_cleanup": {
+      "recorded_utc": "2026-10-06T02:58:21.5129931Z",
+      "drive_d_free_bytes": 230381494272,
+      "data_vhdx_logical_bytes": 1656750080,
+      "docker_desktop_status": "running",
+      "containers": [],
+      "images": [],
+      "volumes": [],
+      "build_cache_count": 0,
+      "docker_system_df_bytes": 0
+    },
+    "post_cleanup_checks": {
+      "native_python_version": "3.12.10",
+      "native_venv_agent_import": "passed",
+      "repository_build_configs_present_and_unchanged": true,
+      "local_credentials_file_exists_no_contents_read": true,
+      "both_container_backup_sha256_verified_again": true,
+      "model_requests": 0
     }
   },
   "container_backup_structure": [

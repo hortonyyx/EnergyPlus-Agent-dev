@@ -1,6 +1,6 @@
-# Windows 原生开发环境迁移（10-05—10-06；原生验证完成，清理已授权、待回读）
+# Windows 原生开发环境迁移（10-05—10-06；原生验证与撤容器完成）
 
-用户交由 Windows 上的 Codex 主导，按 [迁移派工单](../../workflow/windows_migration_brief.md) 顺序推进。范围仅环境与平台兼容；不调用 DeepSeek、不跑整案，GLM 订阅只允许一次最小连通请求。撤容器须所有检查通过且用户明确确认；10-06 用户已确认删除范围，现等待 Docker Desktop 清理完成和空间回读。
+用户交由 Windows 上的 Codex 主导，按 [迁移派工单](../../workflow/windows_migration_brief.md) 顺序推进。范围仅环境与平台兼容；不调用 DeepSeek、不跑整案，GLM 订阅只允许一次最小连通请求。原生检查通过后，10-06 用户确认删除范围并完成 Docker Desktop 清理；独立回读确认 D 盘实际释放约 **150.19 GiB**，迁移已完成。
 
 ## 开工与备份
 
@@ -66,9 +66,9 @@
 - 配置与登记：新增 `workflow/configs/windows_migration/` 的两份配置文件；Agent 版本登记追加 win.1—win.3，不覆盖旧登记。10-05 原配置、历史实验数据和原始输入未改。
 - 验证：`tests/native_shell.py` 明确找到 Git for Windows 的 Bash；相关检查适配换行、锁、权限、路径及 PNG 编码差异；`tests/facts_equivalence.py` 仅规范闭环起点并验证派生标识，反例保护所有事实字段。两张原 Linux PNG 入测试夹具，旧哈希与每个像素继续核对。
 - 当前检查仍会执行四个历史证据脚本，因此只修改它们的平台兼容逻辑：`2026-10-02_harness_stage0/{build_samples,extract_sources}.py`、`2026-10-02_harness_stage3/evidence_pack.py`、`2026-10-04_absorb_a3r/sequence_probe.py`；原始实验数据保持不变。
-- 管理文档：`workflow/{session_setup,development}.md`、`workflow/codex_entry.toml`、`project/roadmap.md` 和本记录。最终核验摘要将附完整文件清单，原始含本机配置的诊断材料仍留在忽略目录。
+- 管理文档：`workflow/{session_setup,development}.md`、`workflow/codex_entry.toml`、`project/roadmap.md` 和本记录。最终核验摘要附完整文件清单，原始含本机配置的诊断材料仍留在忽略目录。
 
-## 最终核验与剩余事项
+## 最终核验与保留事项
 
 - 完整结果、76 个改动文件的清单、代码提交、烟测、跳过原因及原始日志哈希见 [核验摘要](../experiments/2026-10-06_windows_native_migration/verification.json)。原始日志留在本地忽略目录；没有提交凭据、个人配置或会话备份。
 - 17 个跳过分别为：8 个 EnergyPlus 25.1 可执行文件/天气/探测夹具不可用，1 个 Windows 没有 SIGALRM，6 个依赖 Linux `setpriv`，2 个必须显式选择的真实提供方测试。EnergyPlus 是派工单允许以后再装的可选下游，真实提供方测试按本次费用约束未启用；Windows 的真实链接、路径越界、只读访问和沙箱写入已另行实测。
@@ -76,12 +76,12 @@
 - 最终测试数为 5567：相对 Linux 记录新增 11 项检查（真实文件锁 2 项、事实比较反例 9 项），Windows 多 15 项环境性跳过，因此通过数为 5537；不是漏收集了原有测试。
 - 三份案例配置、一次 GLM 订阅最小请求、四类真实 MCP 工具目录、Codex/Claude 新会话入口、PowerShell 5.1/7 与写沙箱均已核对。未运行建筑整案，未调用 DeepSeek 或 Paratera，不把环境通过当作建模质量已经恢复。
 - 两份备份 SHA256 再次与原清单一致；gzip 完整流校验和 tar 目录均可读取。Codex 备份有 9599 个条目、445 个 rollout JSONL；临时资料备份有 53 个条目。SQLite 打包一致性的原有提示仍保留，不覆盖本机现有历史。
-- 原生验收收尾时只剩用户确认 Docker 保留范围、手动清理和 D 盘释放量回读。当时 D 盘为 64.30 GiB 可用，未删除容器、镜像、卷或 VHDX。10-06 用户随后已确认范围，最新清理基线见下文；实际释放量仍待回读，不能提前把整个迁移标为完成。
+- 原生验收收尾时只剩用户确认 Docker 保留范围、手动清理和 D 盘释放量回读。当时 D 盘为 64.30 GiB 可用，未删除容器、镜像、卷或 VHDX。10-06 用户随后确认范围并完成清理，清理基线与实际回读结果见下文；第 ① 项迁移现已完成。
 - 本轮测试使用系统临时目录；最后一轮主目录为 `%TEMP%/pytest-of-Horton/pytest-91`，原始核验日志已另存。临时数据按 pytest 自身的保留机制回收，未绕过自动审批策略做递归删除。01:52 回读 C 盘约 24.86 GiB 可用，包含本轮尚保留的测试副本；D 盘释放量独立核对。
 
-## 撤容器清单（检查通过且用户确认之后才执行）
+## 撤容器方案（执行前经用户确认）
 
-只读清点为：停止容器 `ep_agent_dev`（`d183441550d5`）、`vibrant_murdock`（`d5136ba15fc0`）；开发镜像 `6d9cf088f586`（`vsc-energyplus-agent-dev-…:latest`）、EnergyPlus 镜像 `b8c8d7bfc335`（`nrel/energyplus:25.1.0`）；卷 `vscode`。仓库与已挂载的个人配置实际在 Windows；容器专有会话及临时资料的两份备份已校验，保留在本机忽略目录。
+清理前只读清点为：停止容器 `ep_agent_dev`（`d183441550d5`）、`vibrant_murdock`（`d5136ba15fc0`）；开发镜像 `6d9cf088f586`（`vsc-energyplus-agent-dev-…:latest`）、EnergyPlus 镜像 `b8c8d7bfc335`（`nrel/energyplus:25.1.0`）；卷 `vscode`。仓库与已挂载的个人配置实际在 Windows；容器专有会话及临时资料的两份备份已校验，保留在本机忽略目录。
 
 最终检查通过后，先由用户确认 Docker 中是否还有其他要保留的东西，以及上述内容能否删除。确认没有保留内容时，带用户在 Docker Desktop 操作：
 
@@ -90,11 +90,20 @@
 3. 打开 Docker Desktop 的 Troubleshoot（问号/排障菜单），选择 **Clean up data**（旧版可能叫 Clean / Purge data），核对提示后清理 Docker 本地数据。这会清理全部 Docker 本地容器、镜像等数据；若还有别的项目要保留，不执行这一步，也不选择恢复出厂设置。
 4. 操作完成后回读 D 盘可用字节和 Docker 虚拟磁盘实际状态，记录前后差额。开工可用 64.30 GiB；151.7 GiB 的 VHDX 逻辑大小不作为释放量承诺。
 
-入口与行为依据 [Docker Desktop 官方排障文档](https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/)。目前**尚未取得容器删除、数据清理或压缩的完成结果**。
+入口与行为依据 [Docker Desktop 官方排障文档](https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/)。用户已完成操作，独立回读结果见末节。
 
 ## 10-06：清理授权与操作前基线
 
 - 用户明确选择：保留 Docker Desktop 和仓库构建配置；两个旧容器、镜像和卷都可清理。无需为将来部署留下旧开发实例；部署时按当时的代码重新构建、验收，本次未验证生产部署。
 - `.devcontainer/`、`docker/`、`pyproject.toml`、`uv.lock` 均已纳入 Git；本轮回读确认 `85a26408` 与远端 main 一致。软件、仓库、个人配置及本机会话备份保留。
 - 10:52（Asia/Singapore）只读回查仍只有已批准的两个停止容器、两个镜像和 `vscode` 卷。清理前 D 盘可用 **69,112,606,720 字节（64.366 GiB）**；数据 VHDX 逻辑大小 **162,866,921,472 字节**。最终释放量应与这次紧邻清理的基线比较，不将逻辑文件大小当作已释放空间。
-- 已给用户 Docker Desktop 的 Containers → Images → Troubleshoot / Clean up data 操作步骤；等待操作完成后回读 Docker 清单、D 盘可用空间和 VHDX 状态，再将迁移标为完成并提交收尾记录。
+- 已给用户 Docker Desktop 的 Containers → Images → Troubleshoot / Clean up data 操作步骤。用户展示清理选择框后，按此前核实的后端仅选择 WSL 2；Hyper-V 和 Windows Containers 未列入本次清理。
+
+## 10-06：撤容器完成与实际空间回读
+
+- 用户回复清理已完成。10:58（Asia/Singapore）独立执行 Docker CLI：Desktop 为 `running`，容器、镜像、卷列表均为空；`docker system df` 四类计数均为 0、用量均为 0B，包括构建缓存。
+- D 盘可用空间从 **69,112,606,720 字节（64.366 GiB）** 增至 **230,381,494,272 字节（214.559 GiB）**，净增加 **161,268,887,552 字节（150.193 GiB）**。这是 Windows 盘符可用空间的前后差额，采样期间少量系统写入也包含在差额中。
+- `D:/Docker_wsl/DockerDesktopWSL/disk/docker_data.vhdx` 从 162,866,921,472 字节降至 **1,656,750,080 字节（约 1.543 GiB）**；Docker Desktop 正常保留，无需手动删除 VHDX 或卸载软件。
+- 清理后再次激活仓库 `.venv`，Python **3.12.10** 实际从本机 `Scripts/python.exe` 启动，`import src.agent` 通过。`.devcontainer/`、`docker/`、`pyproject.toml`、`uv.lock` 存在且无额外改动；本地 `.env` 只检查存在性，未读取或输出内容。
+- 两份容器会话/临时资料备份仍在本机忽略目录，重新计算 SHA256 与此前值完全一致。现有 Windows 个人配置和会话保留。
+- 本次收尾只修改本记录、`verification.json` 与 `project/roadmap.md`；JSON 解析、数值一致性与 diff 检查后提交、push。迁移第 ① 项已完成，后续按既定路线进入第 ② 项分工体系 v1；未新增模型请求，未运行整案。
