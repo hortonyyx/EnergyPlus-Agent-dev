@@ -1,0 +1,125 @@
+{
+  "scope": "offline projections of hash-verified saved run3/run6 envelopes",
+  "model_service_requests": 0,
+  "feedback": [
+    {
+      "run": "sm24_run3",
+      "event_id": "event-000531",
+      "tool": "delegate_readers",
+      "before_tool_text_chars": 72584,
+      "after_tool_text_chars": 2024,
+      "before_adapter_visible_chars": 72584,
+      "after_adapter_visible_chars": 2024,
+      "artifact_hashes_or_located_decisions_preserved": true
+    },
+    {
+      "run": "sm24_run6",
+      "event_id": "event-000626",
+      "tool": "delegate_readers",
+      "before_tool_text_chars": 70647,
+      "after_tool_text_chars": 1893,
+      "before_adapter_visible_chars": 70647,
+      "after_adapter_visible_chars": 1893,
+      "artifact_hashes_or_located_decisions_preserved": true
+    },
+    {
+      "run": "sm24_run6",
+      "event_id": "event-000782",
+      "tool": "assemble_from_readers",
+      "before_tool_text_chars": 19797,
+      "after_tool_text_chars": 10623,
+      "before_adapter_visible_chars": 19797,
+      "after_adapter_visible_chars": 10623,
+      "artifact_hashes_or_located_decisions_preserved": true
+    }
+  ],
+  "roles": {
+    "coordinator": {
+      "before": {
+        "guide_chars": 1856,
+        "tools": 37,
+        "description_chars": 16468,
+        "schema_chars": 11422
+      },
+      "after": {
+        "guide_chars": 1930,
+        "tools": 12,
+        "description_chars": 5066,
+        "schema_chars": 4081
+      },
+      "after_tool_names": [
+        "inputs",
+        "view_image",
+        "inspect_candidate",
+        "check_openings",
+        "finish_bim",
+        "revise_bim",
+        "view_elevation_candidate",
+        "delegate_readers",
+        "read_role_artifact",
+        "assemble_from_readers",
+        "role_state",
+        "review_role_assembly"
+      ],
+      "before_wire_sha256": "43d58a70530ae0d271b56cb8175d33a33adeb40a9515a6e8655409774cce5a1d",
+      "after_catalog_source": "unchanged frozen tools from verified wire + current role descriptions/schemas"
+    },
+    "elevation_reader": {
+      "before": {
+        "guide_chars": 5770,
+        "tools": 10,
+        "description_chars": 4311,
+        "schema_chars": 5831
+      },
+      "after": {
+        "guide_chars": 5770,
+        "tools": 10,
+        "description_chars": 4384,
+        "schema_chars": 5831
+      },
+      "after_tool_names": [
+        "inputs",
+        "view_image",
+        "pixel_profile",
+        "view_pixel_profile",
+        "view_pixel_region_overview",
+        "view_pixel_region",
+        "map_pixels",
+        "map_dimension_chain",
+        "get_bim_reference",
+        "submit_elevation_reading"
+      ],
+      "before_wire_sha256": "2404a5b09487e9e0e39b0cb95b73602e92b531d431b1e810b1c4589d7a3d66c6",
+      "after_catalog_source": "unchanged frozen tools from verified wire + current role descriptions/schemas"
+    },
+    "plan_reader": {
+      "before": {
+        "guide_chars": 9084,
+        "tools": 11,
+        "description_chars": 4782,
+        "schema_chars": 8212
+      },
+      "after": {
+        "guide_chars": 9084,
+        "tools": 11,
+        "description_chars": 4782,
+        "schema_chars": 8212
+      },
+      "after_tool_names": [
+        "inputs",
+        "view_image",
+        "pixel_profile",
+        "view_pixel_profile",
+        "view_pixel_region_overview",
+        "view_pixel_region",
+        "map_pixels",
+        "map_dimension_chain",
+        "get_bim_reference",
+        "trial_plan_bim",
+        "submit_plan_reading"
+      ],
+      "before_wire_sha256": "8a42e0b548232729bfa0e6e1d9f3e1c17fd191c0d258e834b8d3b4931dde3464",
+      "after_catalog_source": "unchanged frozen tools from verified wire + current role descriptions/schemas"
+    }
+  }
+}

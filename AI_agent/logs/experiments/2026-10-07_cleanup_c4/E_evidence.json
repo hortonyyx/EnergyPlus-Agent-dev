@@ -1,0 +1,195 @@
+{
+  "schema_version": "cleanup_c4_e_replay_v1",
+  "source": {
+    "run": "C:/Users/Horton/Desktop/EnergyPlus-Agent-dev/AI_agent/archive/local_backup/role_debug/sm24_run6",
+    "saved_assembly_record": "role_assemblies/5785869391b28bb4c28d48cb4e2142bf6c884d9e7bd0ef6c8cb2b13e29c881cf.json",
+    "candidate": "candidate_02",
+    "candidate_source_file_sha256": "4328ceb515ab2c8253d8366cce3a80d1a6033c77578af00f7637582613ecd1e0",
+    "source_run_bytes": 52572388,
+    "copied_files_before_replay": 165,
+    "copied_bytes_before_replay": 7239016,
+    "reader_tasks_copied": 6,
+    "referenced_blobs_copied": 11
+  },
+  "method": {
+    "implementation": "Toolkit plus RoleSession with a local deterministic tool adapter",
+    "external_model_requests": 0,
+    "pytest_runs": 0,
+    "source_changes": 0,
+    "replay_script": "E_replay.py"
+  },
+  "baseline": {
+    "candidate": "candidate_02",
+    "claim_state": {
+      "claim_0001": "applied_current"
+    },
+    "retained_image_linked_z_bindings": {
+      "count": 8,
+      "opening_ids": [
+        "D1",
+        "D2",
+        "D3",
+        "W_B1",
+        "W_E1",
+        "W_E2",
+        "W_E3",
+        "W_T1"
+      ]
+    },
+    "strict_delivery_height_coverage": {
+      "exterior_count": 13,
+      "located_count": 2,
+      "located_opening_ids": [
+        "D2",
+        "W_B1"
+      ],
+      "status_counts": {
+        "located_applied": 2,
+        "missing": 11
+      },
+      "openings": [
+        {
+          "opening_id": "D1",
+          "status": "missing",
+          "issues": ["no_elevation_calibration", "outside_source_region"]
+        },
+        {
+          "opening_id": "D2",
+          "status": "located_applied",
+          "issues": []
+        },
+        {
+          "opening_id": "D3",
+          "status": "missing",
+          "issues": ["no_elevation_calibration", "outside_source_region"]
+        },
+        {
+          "opening_id": "W_B1",
+          "status": "located_applied",
+          "issues": []
+        },
+        {
+          "opening_id": "W_E1",
+          "status": "missing",
+          "issues": ["no_elevation_calibration", "outside_source_region"]
+        },
+        {
+          "opening_id": "W_E2",
+          "status": "missing",
+          "issues": ["no_elevation_calibration", "outside_source_region"]
+        },
+        {
+          "opening_id": "W_E3",
+          "status": "missing",
+          "issues": ["no_elevation_calibration", "outside_source_region", "distinct_width_on_facade"]
+        },
+        {
+          "opening_id": "W_T1",
+          "status": "missing",
+          "issues": ["no_elevation_calibration", "outside_source_region"]
+        },
+        {
+          "opening_id": "W_W1",
+          "status": "missing",
+          "issues": ["no_current_height_binding"]
+        },
+        {
+          "opening_id": "W_W2",
+          "status": "missing",
+          "issues": ["no_current_height_binding"]
+        },
+        {
+          "opening_id": "W_W3",
+          "status": "missing",
+          "issues": ["no_current_height_binding"]
+        },
+        {
+          "opening_id": "W_W4",
+          "status": "missing",
+          "issues": ["no_current_height_binding"]
+        },
+        {
+          "opening_id": "W_W5",
+          "status": "missing",
+          "issues": ["no_current_height_binding", "distinct_width_on_facade"]
+        }
+      ]
+    },
+    "finding": "The eight safe matched applications retain image-backed z bindings, but only two pass the stricter per-opening source-location check."
+  },
+  "height_plus_0_01m": {
+    "parent": "candidate_02",
+    "candidate": "candidate_03",
+    "operation": "W_E2 z [1.0, 2.8] -> [1.0, 2.81] without a new claim",
+    "source_geometry_ready": true,
+    "claim_state": {
+      "claim_0001": "partially_satisfied"
+    },
+    "retained_image_linked_z_binding_count": 7,
+    "w_e2_height_coverage": "unchecked",
+    "w_e2_strict_delivery_status": {
+      "status": "missing",
+      "issues": ["no_current_height_binding"]
+    },
+    "parameters_without_claims": [
+      {
+        "operation_index": 0,
+        "parameter": "z"
+      }
+    ],
+    "assembly_review_after_revise": "unchanged",
+    "assembly_review_before_delivery": "unchanged",
+    "finish": {
+      "is_error": false,
+      "candidate": "candidate_03",
+      "selection_origin": "agent_selected",
+      "selection_persisted": true,
+      "delivery_blocked": false,
+      "generation_status": "in_progress",
+      "adopted_unapplied_claims": [
+        "claim_0001"
+      ],
+      "strict_located_count": 2,
+      "strict_missing_count": 11
+    }
+  },
+  "note_only_revision": {
+    "parent": "candidate_02",
+    "candidate": "candidate_04",
+    "operation": "replace one assumption note; source XY and opening z remain unchanged",
+    "source_geometry_ready": true,
+    "claim_state": {
+      "claim_0001": "applied_current"
+    },
+    "retained_image_linked_z_binding_count": 8,
+    "w_e2_z": [
+      1.0,
+      2.8
+    ],
+    "assembly_review_after_revise": "unchanged",
+    "assembly_review_before_delivery": "unchanged",
+    "finish": {
+      "is_error": false,
+      "candidate": "candidate_04",
+      "selection_origin": "agent_selected",
+      "selection_persisted": true,
+      "delivery_blocked": false,
+      "generation_status": "in_progress",
+      "adopted_unapplied_claims": [],
+      "strict_located_count": 2,
+      "strict_missing_count": 11
+    }
+  },
+  "conclusions": {
+    "height_claim_requirement": "A current adopted z binding from an image-basis claim with a source image region is retained as claim coverage; final located-height reporting additionally requires a valid facade calibration and a source region that locates the exact exterior opening.",
+    "finish_requirement": "Current finish_bim persists a selection and reports missing or stale height evidence; incomplete height coverage and adopted-unapplied claims are advisory and do not set delivery_blocked.",
+    "review_role_assembly_required_for_tested_edits": false,
+    "reason": "Both the z-only finite edit and the note-only finite edit produced unchanged assembly reviews in the ordinary revise check and the require_all delivery check."
+  },
+  "replay_execution_snapshot": {
+    "path": "AI_agent/archive/local_backup/c4/e_replay",
+    "files": 204,
+    "bytes": 10929379,
+    "cleanup_owner": "main assistant"
+  }
+}

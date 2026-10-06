@@ -1,0 +1,60 @@
+{
+  "scope": "C4 acceptance D: delivery coverage and latest plan lineage",
+  "external_model_requests": 0,
+  "pre_change_counterexample": {
+    "scenario": "candidate contains only F1, the bound source is old-f1, new-f1 supersedes it, and F2 has a valid delivery plus a later failed retry",
+    "result": {
+      "status": "unchanged",
+      "checked_floors": [
+        "F1"
+      ],
+      "changes": []
+    }
+  },
+  "post_change_counterexamples": [
+    {
+      "scenario": "F2 omitted while its last valid delivery remains good-f2; failed-f2-retry does not supersede it",
+      "delivery_scope": [
+        "good-f1",
+        "good-f2"
+      ],
+      "status_before_reason": "needs_review",
+      "changes": [
+        "missing_required_floor"
+      ],
+      "status_after_reason": "reviewed",
+      "persisted_reason": "F2 omitted for named partial delivery"
+    },
+    {
+      "scenario": "candidate lineage uses old-f1 after new-f1 superseded it",
+      "delivery_scope": [
+        "new-f1"
+      ],
+      "status": "blocked",
+      "blockers": [
+        "stale_plan_delivery"
+      ]
+    },
+    {
+      "scenario": "timeout fallback chooses a stale candidate",
+      "status": "assembly_delivery_blocked",
+      "delivery": null,
+      "calls": [
+        [
+          "check",
+          "candidate_01",
+          true
+        ],
+        [
+          "guard"
+        ]
+      ]
+    }
+  ],
+  "static_checks": {
+    "py_compile": "passed",
+    "git_diff_check": "passed",
+    "line_endings": "LF for all three edited Python files"
+  },
+  "pytest": "not run by this subtask; parent agent will run the targeted suite serially"
+}
