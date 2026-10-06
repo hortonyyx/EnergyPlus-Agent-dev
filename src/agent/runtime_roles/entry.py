@@ -31,7 +31,7 @@ def parser():
     result = single_parser()
     result.description = __doc__
     result.add_argument("--roles-json", required=True, help="explicit JSON object with all three role routes")
-    result.add_argument("--max-concurrent-readers", type=int, default=4)
+    result.add_argument("--max-concurrent-readers", type=int, default=8)
     return result
 
 

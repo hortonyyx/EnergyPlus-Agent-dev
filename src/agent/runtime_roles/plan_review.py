@@ -190,6 +190,8 @@ def validate_wall_reference(value, *, image_size=None):
 def validate_topology(issues, decisions, plan, *, image_size=None):
     if not isinstance(decisions, list):
         raise ValueError("topology_decisions must be a list")
+    if not issues and decisions:
+        raise ValueError("本稿没有需要决定的警告，这一项传空列表：topology_decisions=[]")
     by_id = {row["issue_id"]: row for row in issues}
     supplied = {}
     openings = {row["id"]: row for row in plan.get("openings", [])}

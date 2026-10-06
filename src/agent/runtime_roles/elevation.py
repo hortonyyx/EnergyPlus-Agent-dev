@@ -766,7 +766,7 @@ def height_application(
 ) -> dict[str, Any]:
     """Build the current ``claim_transaction`` call for safe height matches.
 
-    The caller must still explicitly confirm execution.  ``candidate`` may be a
+    ``candidate`` may be a
     current source-model dict; in that form ``provenance={'candidate': 'C01'}``
     supplies its runtime name.  If ``candidate`` is a name, provenance must
     supply ``source_model_sha256``.  Any stale or ambiguous match is rejected.
@@ -789,10 +789,17 @@ def height_application(
     current_source_hash = _string(current_source_hash, "current source_model_sha256")
     if report.get("stale"):
         raise ValueError("match_result is marked stale")
-    if report.get("source_model_sha256") != current_source_hash:
-        raise ValueError("match_result is stale for the current source model")
-    if report.get("candidate") not in (None, candidate_name):
-        raise ValueError("match_result candidate does not match the current candidate")
+    if (report.get("source_model_sha256") != current_source_hash
+            or report.get("candidate") not in (None, candidate_name)):
+        from .lineage import opening_plan
+        matched = provenance.get("matched_source_bim")
+        current = candidate if isinstance(candidate, Mapping) else provenance.get("source_bim")
+        if (not isinstance(matched, Mapping) or not isinstance(current, Mapping)
+                or matched.get("source_model_sha256") != report.get("source_model_sha256")
+                or current.get("source_model_sha256") != current_source_hash):
+            raise ValueError("match_result is stale for the current source model")
+        if opening_plan(matched) != opening_plan(current):
+            raise ValueError("门窗平面位置或宿主已变化；请对当前稿重新对位 (match_result is stale)")
     if report.get("artifact_sha256") != normalized["artifact_sha256"]:
         raise ValueError("match_result was produced from a different elevation artifact")
     if not report.get("can_apply"):

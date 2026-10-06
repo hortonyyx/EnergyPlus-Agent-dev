@@ -26,6 +26,7 @@ from src.harness_contracts.roles import ToolGrant
 
 from .accounting import role_accounting
 from .artifacts import ArtifactRegistry, valid_task_id
+from .coordinates import task_coordinates
 
 
 def envelope(value, *, error=False):
@@ -48,6 +49,7 @@ TASK_SCHEMA = schema({
     "task_id": {"type": "string"}, "role_id": {"enum": ["plan_reader", "elevation_reader"]},
     "image": {"type": "string"}, "target": {"type": "string", "minLength": 1},
     "instructions": {"type": "string", "minLength": 1},
+    "origin": {"type": "string", "minLength": 1},
     "previous_task_id": {"type": "string"},
     "issues": {"type": "array", "items": {"type": "string"}},
     "rework_targets": {"type": "array", "items": {"type": "string"}, "minItems": 1},
@@ -68,18 +70,25 @@ ROLE_TASK_BUDGET = {
 }
 COORDINATOR_TASK_SCHEMA = schema({key: value for key, value in TASK_SCHEMA["properties"].items() if key != "budget"},
                                  tuple(TASK_SCHEMA["required"]))
+LEVEL_REFERENCE_SCHEMA = schema({"task_id": {"type": "string"}, "elevation_id": {"type": "string"}},
+                                ("task_id", "elevation_id"))
+HEIGHT_SCHEMA = schema({"match_id": {"oneOf": [{"type": "string"},
+    {"type": "array", "items": {"type": "string"}, "minItems": 1}]}}, ("match_id",))
 
 EXTRA_TOOLS = [
-    {"name": "delegate_readers", "description": "Dispatch independent single-image plan/elevation readers concurrently. Use a new task_id plus previous_task_id and issues for rework. Completed task IDs return their saved artifacts without another request. Specify floor origin/directions/scale or facade orientation/viewing direction in instructions. Each reader's request/token/time allowance is set by its role.",
+    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently, plans first. Give floor/facade target and a common building origin; runtime fixes x East, y North by the north arrow, z Up. Instructions cannot change directions. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
-    {"name": "build_from_artifact", "description": "Build a floor directly from a validated plan_reader artifact. No retranscription or overrides. Repeated identical references return the existing build; rework needs a new reader task.",
-     "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id", "sha256"))},
+    {"name": "build_from_artifact", "description": "Build a validated reader plan without retranscription. First read elevation levels: optional z_floor and ceiling_height in metres each require their *_evidence (delivered elevation task_id + elevation_id). z_floor equals its cited Z; ceiling_height equals cited top Z minus floor Z. Overrides change a compilation copy, keep evidence, and leave the reader artifact intact. Identical inputs reuse the build.",
+     "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"},
+         "z_floor": {"type": "number"}, "z_floor_evidence": LEVEL_REFERENCE_SCHEMA,
+         "ceiling_height": {"type": "number", "exclusiveMinimum": 0},
+         "ceiling_height_evidence": LEVEL_REFERENCE_SCHEMA}, ("task_id", "sha256"))},
     {"name": "match_elevation", "description": "Match a validated elevation_reader artifact to a saved whole-building candidate. Returns matched openings, source-only/elevation-only openings and conflicts. Does not modify heights.",
      "inputSchema": schema({"task_id": {"type": "string"}, "candidate": {"type": "string"}}, ("task_id", "candidate"))},
-    {"name": "apply_elevation_heights", "description": "Apply the safe matched heights of a saved match with their image evidence. The source hash must still match. Unmatched or conflicting openings remain unresolved. Repeated match IDs cannot modify twice.",
-     "inputSchema": schema({"match_id": {"type": "string"}}, ("match_id",))},
+    {"name": "apply_elevation_heights", "description": "Give match_id as one ID or a list: all safe facade heights save at most one candidate. Calls serialize on the latest usable draft; changed opening XY/hosts require a new match. Equal values only record evidence, with no new candidate. Unmatched/conflicting openings stay unresolved.",
+     "inputSchema": HEIGHT_SCHEMA},
     {"name": "role_state", "description": "Read all reader task/target/status/artifact references and per-role/root usage. These references also survive context compaction.", "inputSchema": schema({})},
     {"name": "review_role_assembly", "description": "Acknowledge each reported assembly change against the accepted reader trials with its specific reason before continuing writes or delivery. Source and reader hashes must still match.",
      "inputSchema": schema({"review_id": {"type": "string"}, "decisions": {"type": "array", "items": schema({
@@ -89,7 +98,7 @@ EXTRA_TOOLS = [
 
 class RoleSession:
     def __init__(self, *, store, frozen, routes, adapter_factory, limits, root,
-                 max_concurrent_readers=4, started_epoch=None, reader_fault_hook=None):
+                 max_concurrent_readers=8, started_epoch=None, reader_fault_hook=None):
         if type(max_concurrent_readers) is not int or max_concurrent_readers < 1:
             raise ValueError("max_concurrent_readers must be a positive integer")
         self.store, self.frozen, self.routes = store, frozen, routes
@@ -99,6 +108,7 @@ class RoleSession:
         self.started_epoch = time.time() if started_epoch is None else started_epoch
         self.max_concurrent_readers = max_concurrent_readers
         self.slots = asyncio.Semaphore(max_concurrent_readers)
+        self.write_lock = asyncio.Lock()
         self.reader_fault_hook = reader_fault_hook
         self.manifest = json.loads((self.run_directory / "inputs.json").read_bytes())
         self.schemas = {tool["name"]: tool["inputSchema"] for tool in EXTRA_TOOLS}
@@ -130,6 +140,12 @@ class RoleSession:
         return self.frozen.image_origins(raw)
 
     async def call_tool(self, name, arguments):
+        if name not in self.schemas and self.frozen.repeatability(name) != "read_only":
+            async with self.write_lock:
+                return await self._call_tool(name, arguments)
+        return await self._call_tool(name, arguments)
+
+    async def _call_tool(self, name, arguments):
         try:
             if name not in self.schemas:
                 if self.frozen.repeatability(name) != "read_only":
@@ -207,6 +223,7 @@ class RoleSession:
                 raise ValueError("plan rework needs explicit rework_targets such as plan.openings:D1; all other objects stay fixed")
             task["previous_artifact"] = previous.get("artifact")
         parse_target(arguments["role_id"], arguments["target"])
+        task["coordinate_contract"] = task_coordinates(arguments)
         return task
 
     async def delegate_many(self, tasks):
@@ -226,7 +243,10 @@ class RoleSession:
                     if self.registry.records.get(task["task_id"], {}).get("status") == "completed":
                         raise
                     return self.registry.save(task, status="failed", reason=str(error))
-        return {"status": "completed", "results": await asyncio.gather(*(one(task) for task in admitted))}
+        ordered = sorted(admitted, key=lambda task: task["role_id"] != "plan_reader")
+        results = await asyncio.gather(*(one(task) for task in ordered))
+        by_id = {row["task_id"]: row for row in results}
+        return {"status": "completed", "results": [by_id[identity] for identity in identities]}
 
     async def run_reader(self, task):
         from .readers import ReaderTools
@@ -360,7 +380,17 @@ class RoleSession:
         self.store.write_json("role_operations/" + path.name, {**saved, "result": result})
         return result
 
-    async def build_from_artifact(self, task_id, sha256):
+    @staticmethod
+    def _build_identity(task_id, levels):
+        suffix = ":" + hashlib.sha256(json_bytes(levels)).hexdigest() if levels else ""
+        return "plan:" + task_id + suffix
+
+    async def build_from_artifact(self, task_id, sha256, **levels):
+        async with self.write_lock:
+            self.assembly.guard()
+            return await self._build_from_artifact(task_id, sha256, **levels)
+
+    async def _build_from_artifact(self, task_id, sha256, **levels):
         value = self.registry.read(task_id, sha256=sha256, role_id="plan_reader")
         record = self.registry.records[task_id]
         if not record.get("validation", {}).get("validation_passed"):
@@ -379,9 +409,14 @@ class RoleSession:
             if hashlib.sha256(raw).hexdigest() != receipt["compiled_numeric_plan_sha256"]:
                 raise ValueError("compiled reader plan hash mismatch")
             plan = json.loads(raw)
-        result = await self._once("plan:" + task_id, "build_plan_bim",
+        from .levels import apply_levels
+        plan, citations = apply_levels(self.registry, plan, **levels)
+        reference = {"task_id": task_id, "sha256": sha256}
+        if citations:
+            reference["levels"] = citations
+        result = await self._once(self._build_identity(task_id, levels), "build_plan_bim",
             {"image": record["image"], "plan_json": json.dumps(plan, ensure_ascii=False)},
-            reference={"task_id": task_id, "sha256": sha256})
+            reference=reference)
         meta = result.get("structuredContent") or {}
         if meta.get("source_geometry_ready") and meta.get("candidate"):
             self.assembly.bind(task_id)
@@ -400,9 +435,12 @@ class RoleSession:
 
     def match(self, task_id, candidate):
         from .elevation import match_elevation
+        from .lineage import guard_replaced_plans
         artifact = self.registry.read(task_id, role_id="elevation_reader")
         source = self._source(candidate)
+        guard_replaced_plans(self, candidate)
         result = match_elevation(source, artifact, candidate=candidate)
+        result.pop("match_id")  # Only the outer durable identifier is public.
         result["source_file_sha256"] = hashlib.sha256(
             (self.run_directory / candidate / "source_model.json").read_bytes()).hexdigest()
         match_id = hashlib.sha256(json_bytes({"task_id": task_id, "candidate": candidate, "result": result})).hexdigest()
@@ -411,33 +449,10 @@ class RoleSession:
         return value
 
     async def apply_heights(self, match_id):
-        from .elevation import height_application
-        if not isinstance(match_id, str) or len(match_id) != 64 or any(c not in "0123456789abcdef" for c in match_id):
-            raise ValueError("match_id must be the hash returned by match_elevation")
-        path = self.store.directory / "role_matches" / (match_id + ".json")
-        if not path.is_file():
-            raise ValueError("match_id has no saved match; call match_elevation first")
-        value = json.loads(path.read_bytes())
-        expected = hashlib.sha256(json_bytes({key: value[key] for key in ("task_id", "candidate", "result")})).hexdigest()
-        if match_id != expected:
-            raise ValueError("match result hash mismatch")
-        # A completed application remains reusable after its own source mutation.
-        operation = self.store.directory / "role_operations" / (hashlib.sha256(("height:" + match_id).encode()).hexdigest() + ".json")
-        if operation.is_file():
-            saved = json.loads(operation.read_bytes())
-            if "result" in saved:
-                return saved["result"]
-            raise ValueError("height application outcome unknown; no repeated mutation")
-        artifact = self.registry.read(value["task_id"], role_id="elevation_reader")
-        source = self._source(value["candidate"])
-        if hashlib.sha256((self.run_directory / value["candidate"] / "source_model.json").read_bytes()).hexdigest() != value["result"]["source_file_sha256"]:
-            raise ValueError("matched source file changed; compute a new elevation match before applying")
-        application = height_application(artifact, value["result"], value["candidate"],
-                                         provenance={"source_model_sha256": source.get("source_model_sha256"), "source_bim": source})
-        return await self._once("height:" + match_id, "claim_transaction",
-            {"candidate": value["candidate"], "entries_json": application["batch_entries_json"]},
-            reference={"match_id": match_id, "task_id": value["task_id"],
-                       "artifact_sha256": self.registry.records[value["task_id"]]["artifact"]["sha256"]})
+        from .height_writes import apply_heights
+        async with self.write_lock:
+            self.assembly.guard()
+            return await apply_heights(self, match_id)
 
     async def recover_pending(self):
         """Complete only our recoverable durable operations after a process death.
@@ -457,17 +472,26 @@ class RoleSession:
             if call.tool_name == "delegate_readers":
                 raw = await self.call_tool(call.tool_name, call.full_arguments)
             elif call.tool_name in {"build_from_artifact", "apply_elevation_heights"}:
-                identity = ("plan:" + call.full_arguments["task_id"] if call.tool_name == "build_from_artifact"
-                            else "height:" + call.full_arguments["match_id"])
-                path = self.store.directory / "role_operations" / (hashlib.sha256(identity.encode()).hexdigest() + ".json")
-                if not path.is_file() or "result" not in json.loads(path.read_bytes()):
-                    continue
+                if call.tool_name == "build_from_artifact":
+                    levels = {k: v for k, v in call.full_arguments.items() if k not in {"task_id", "sha256"}}
+                    identity = self._build_identity(call.full_arguments["task_id"], levels)
+                    path = self.store.directory / "role_operations" / (hashlib.sha256(identity.encode()).hexdigest() + ".json")
+                    if not path.is_file() or "result" not in json.loads(path.read_bytes()):
+                        continue
+                    saved_result = json.loads(path.read_bytes())["result"]
+                else:
+                    from .height_writes import match_ids, load_match, saved_application
+                    ids = sorted({load_match(self, identity)["match_id"] for identity in match_ids(call.full_arguments["match_id"])})
+                    saved = saved_application(self, ids)
+                    if saved is None:
+                        continue
+                    saved_result = saved["result"]
                 # A process may die after the frozen build receipt was saved but
                 # before its reader binding/comparison. Complete that read-only
                 # bookkeeping from the receipt; _once will never rebuild it.
-                raw = (await self.build_from_artifact(**call.full_arguments)
+                raw = (await self._build_from_artifact(**call.full_arguments)
                        if call.tool_name == "build_from_artifact"
-                       else json.loads(path.read_bytes())["result"])
+                       else saved_result)
             else:
                 continue
             _, _, shown, _ = convert_tool_result(call.call_id, raw, self.store)
