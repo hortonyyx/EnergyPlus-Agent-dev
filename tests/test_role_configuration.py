@@ -159,7 +159,7 @@ def test_role_argv_carries_canonical_inline_routes_and_default_concurrency(tmp_p
     assert json.loads(encoded) == roles()
     assert encoded == json.dumps(roles(), ensure_ascii=False, sort_keys=True,
                                  separators=(",", ":"))
-    assert argv[argv.index("--max-concurrent-readers") + 1] == "4"
+    assert argv[argv.index("--max-concurrent-readers") + 1] == "8"
     assert argv[argv.index("--max-candidates") + 1] == "24"
     assert argv[argv.index("--context-tokens") + 1] == "900000"
     assert argv[argv.index("--compact-at-tokens") + 1] == "150000"
@@ -167,7 +167,7 @@ def test_role_argv_carries_canonical_inline_routes_and_default_concurrency(tmp_p
     assert argv[argv.index("--retry-backoff-seconds") + 1] == "1.0"
     from src.agent.runtime_roles.entry import parser
     parsed = parser().parse_args(argv[3:])
-    assert parsed.roles_json == encoded and parsed.max_concurrent_readers == 4
+    assert parsed.roles_json == encoded and parsed.max_concurrent_readers == 8
 
 
 def test_invalid_reader_concurrency_is_explicit(tmp_path):

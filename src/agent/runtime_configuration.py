@@ -53,7 +53,7 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             if case.get("input_kind") != "images" or case.get("image_kind") != "drawings":
                 raise ValueError("role_division supports drawing images only; mesh and non-drawing inputs are not admitted")
             role_configurations = load_roles(case.get("roles"))
-            concurrency = case.get("max_concurrent_readers", 4)
+            concurrency = case.get("max_concurrent_readers", 8)
             if type(concurrency) is not int or concurrency <= 0:
                 raise ValueError("max_concurrent_readers must be a positive integer")
         if case.get("reasoning_history", "all") not in {"all", "current_tool_chain"}:
@@ -184,7 +184,7 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
         argv += ["--roles-json", json.dumps(
                     {name: configuration.model_dump() for name, configuration in roles.items()},
                     ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-                 "--max-concurrent-readers", str(case.get("max_concurrent_readers", 4)),
+                 "--max-concurrent-readers", str(case.get("max_concurrent_readers", 8)),
                  "--max-candidates", str(case["max_candidates"]),
                  "--context-tokens", str(case["context_tokens"]),
                  "--compact-at-tokens", str(case.get("compact_at_tokens", 150_000)),

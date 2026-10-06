@@ -47,6 +47,10 @@ PLAN_SCHEMA = obj({
     "evidence": {"type": "array", "items": obj({"item": TEXT, "source": TEXT, "bbox": BOX, "basis": TEXT},
                                                    ("item", "source", "bbox"))},
     "unresolved": STRINGS,
+    "north_arrow": obj({"bbox": BOX, "basis": TEXT,
+        "world_north_toward": {"enum": ["image_top", "image_bottom"]},
+        "world_east_toward": {"enum": ["image_left", "image_right"]}},
+        ("bbox", "basis", "world_north_toward", "world_east_toward")),
     "wall_reference": obj({"perimeter": WALL_LINE_SCHEMA, "partitions": WALL_LINE_SCHEMA},
                           ("perimeter", "partitions")),
     "topology_decisions": {"type": "array", "items": obj({"issue_id": TEXT,
@@ -76,7 +80,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "Submit the exact successful trial by plan_sha256, without retyping its plan. Include located evidence for every item, all topology decisions and separate perimeter and partition wall/dimension references. Rejections are correctable within the task budget.",
+        "description": "Submit the successful trial by plan_sha256 with located evidence and separate wall references. No topology warnings: topology_decisions=[]. Mirrored axes require north_arrow with the original arrow bbox, basis and both reported directions. Normal orientation needs no extra field.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this one facade's structured readings. Values are metres and boxes are original pixels. The tool checks fields, counts, ordering and evidence; fix pointed errors and resubmit within the task budget.",
@@ -174,6 +178,7 @@ class ReaderSubmission:
             raise ValueError(f"{tool['name']}.{path}: {error.message}. Minimum correct example: "
                              + json.dumps(example, separators=(",", ":"))) from error
         if self.role_id == "plan_reader":
+            from .coordinates import validate_north_arrow
             plan, validation = self.trial.verified_plan(arguments["plan_sha256"])
             if self.target_identity is not None and plan.get("floor_id") != self.target_identity:
                 raise ValueError(f"plan.floor_id must match task.target {self.target_identity}")
@@ -190,6 +195,10 @@ class ReaderSubmission:
                 "topology_issues": issues,
                 "topology_decisions": validate_topology(issues, arguments["topology_decisions"],
                                                        self.trial.numeric_plan(validation), image_size=self.image_size)}
+            north_arrow = validate_north_arrow(self.trial.numeric_plan(validation), arguments.get("north_arrow"),
+                                               image_size=self.image_size)
+            if north_arrow is not None:
+                validation["north_arrow"] = north_arrow
             boxes = [row["bbox"] for row in artifact["evidence"]]
         else:
             try:

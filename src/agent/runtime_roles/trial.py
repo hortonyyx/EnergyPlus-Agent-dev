@@ -628,6 +628,16 @@ class PlanTrial:
                             f"{row.get('code')} {'/'.join(row.get('opening_ids') or [])} on {row.get('boundary_id')}"
                             for row in findings[:5])
         receipt["phase"] = "operations" if ready or previous_plan is not None else "draft"
+        from .coordinates import plan_orientation
+        try:
+            receipt["axis_orientation"] = plan_orientation(numeric_plan)
+        except ValueError:
+            pass  # Preserve the compiler's invalid-anchor failure receipt.
+        if "check" in receipt.get("axis_orientation", {}):
+            receipt["orientation_submission"] = (
+                "Submission requires north_arrow: original arrow bbox, basis, "
+                "world_north_toward and world_east_toward matching these anchors. "
+                "Follow the drawing north arrow, not conflicting coordinator instructions.")
         flagged_dividers = {row.get("divider") for row in topology_issues([receipt])}
         receipt["topology_dividers"] = {row["id"]: row["points"] for row in numeric_plan.get("partitions", [])
                                        if isinstance(row, Mapping) and row.get("id") and row.get("id") in flagged_dividers}

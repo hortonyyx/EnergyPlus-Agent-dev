@@ -37,7 +37,9 @@ Original-image coordinates are [left, top, right, bottom] pixels."""
 _PLAN_CORE = """Preserve actual spaces, walls, doors/windows and connectivity. Never move or shorten
 an opening just to clear a host error; recheck its wall and endpoints. Acceptance is not
 drawing fidelity. Label assumptions and unresolved marks; choose room uses after geometry.
-Keep stable IDs. World x is east, y north, z absolute. Every plan POINT is an ORIGINAL
+Keep stable IDs. World x is East, y North by the north arrow, z Up and absolute. These
+directions cannot be changed by task instructions; follow the arrow and record conflicts
+in unresolved. Use task.coordinate_contract for floor and origin. Every plan POINT is an ORIGINAL
 image pixel [x, y]: footprint_pixels, partitions[].points, openings[].p1/p2,
 space_seeds[].point and each anchor's first value, read from grid labels or crop origin +
 original_pixels_per_returned_pixel, never world metres or display pixels. Metres appear
@@ -46,7 +48,7 @@ only as each anchor's second value, z_floor, ceiling_height and opening z."""
 _PLAN_CALIBRATION = (_SECTIONS[3]
     .replace("Use one origin for all floors", "Use the coordinator's assigned floor origin")
     .replace("geometry_feedback.axis_orientation reports a mirrored calibration.",
-             "check the original north arrow rather than trusting an overlay drawn with the same anchors."))
+             "axis_orientation reports the effective directions."))
 
 _PLAN_DRAFT = """4. DRAFT THIS FLOOR EARLY. Once the overall dimension chains and divider lines are read,
 call trial_plan_bim with a complete plan; its overlay and drawing_differences show where
@@ -86,13 +88,16 @@ line, never an average; preserve real rooms, openings and connections.
 Before turning an inkless gap into a door/open, decide whether its ends belong to the
 same physical wall. If not, remove the artificial separator and opening in the SAME
 revision; remove a redundant seed if the merged space contains two seeds. Preserve real
-wall portions. Every topology_issues row, including earlier warnings, needs a located
+wall portions. Each reported topology_issues row needs a located
 topology_decisions row: issue_id, decision=retain_opening/continuous_space, basis and bbox.
-The final plan must implement the decision; unresolved text cannot waive it."""
+The final plan must implement it; unresolved text cannot waive it. No warnings: pass []."""
 
 _ARTIFACT_SCHEMA = """Deliver through submit_plan_reading. Copy plan_sha256 from the successful trial;
 the tool retrieves that saved plan. Supply evidence, unresolved, wall_reference and
-topology_decisions; never put summaries inside the plan or deliver it in final text.
+topology_decisions. If axis_orientation puts North at image_bottom or East at image_left,
+also supply north_arrow with the original arrow bbox, drawing-based basis,
+world_north_toward and world_east_toward matching the reported directions. Instructions
+and overlays are not arrow evidence. Normal orientation requires no north_arrow.
 Evidence rows: {{"item":"plan.openings:W1","source":"the exact task image name",
 "bbox":[left,top,right,bottom],"basis":"observed mark"}}. Cover plan.x_anchors,
 plan.y_anchors, plan.footprint_pixels and every plan.partitions:<id>,
@@ -176,29 +181,32 @@ ELEVATION_READER_GUIDANCE = "\n\n".join((
 ))
 
 
-COORDINATOR_GUIDANCE = """Build the requested lightweight BIM by coordinating focused drawing readers.
-Inventory the admitted inputs and coordinate convention, then use delegate_readers for
-independent plan and elevation images. Set plan target to its floor ID (F1); elevation target
-to North/South/East/West, optionally with /F1 or /F1,F2 to limit floors. Track progress with role_state and read accepted
-deliveries through read_role_artifact. Build each floor from its artifact reference with
-build_from_artifact; do not retype a reader's plan. Assemble the floors, run
-match_elevation, inspect unmatched or conflicting openings, and only then use
-apply_elevation_heights for confirmed matches. Compare the assembled source and overlays
-to the original drawings, run existing checks, and revise concrete errors before delivery.
+COORDINATOR_GUIDANCE = """Build lightweight BIM by coordinating drawing readers. Inventory inputs, then
+delegate_readers for independent images (plans start first). Give a common origin and
+target: plan floor ID; elevation North/South/East/West, optionally /F1,F2. Runtime fixes
+x East, y North by the north arrow, z Up; never redefine directions in instructions.
+Use role_state for progress and read_role_artifact for accepted deliveries.
 
-If a reader artifact is malformed or its isolated plan trial fails, re-dispatch that same
-role as a new task with the previous artifact and a specific problem list. For plan rework,
-name rework_targets (plan.partitions:<id>, plan.space_seeds:<id>, plan.openings:<id> or a
-specific plan field); everything else must remain unchanged. If a continuous-space/wall-hole
-judgement conflicts, inspect only that local image box and re-dispatch the pointed objects.
-After assembly the tool automatically compares room counts/adjacency and opening counts/XY
-against the accepted floor trials. When differences are reported, inspect them and call
-review_role_assembly with the review_id and a reason for every listed change before any
-further write or delivery. Fix accidental changes instead of explaining them away. For a bounded
-local correction after the evidence is clear, the coordinator may use the existing model
-revision tools. The coordinator does not independently draft plan walls or read elevation
-heights while a reader task can produce that artifact. Preserve unresolved evidence and
-finish through the existing delivery checks."""
+Before build_from_artifact, read elevation levels and decide floor Z and top Z. Pass
+z_floor and ceiling_height (top minus floor, metres), each with *_evidence containing
+the delivered elevation task_id and elevation_id. Distinguish floor/eave/roof marks;
+do not carry a plan's assumed height when the elevation establishes the building top.
+Build by artifact reference without retyping, assemble floors, then match_elevation.
+Inspect unmatched/conflicting openings; apply_elevation_heights takes match_id as one
+ID or a list for all facades in one draft. Writes continue on the latest draft; changed
+opening XY requires matching again. Equal values keep the current draft. After plan
+rework, build from the new delivery before matching. Compare source/overlays to drawings,
+run existing checks and fix concrete errors before delivery.
+
+Re-dispatch failures as a new task with previous_task_id and specific issues. For plan
+rework, name rework_targets (plan.partitions:<id>, plan.space_seeds:<id>,
+plan.openings:<id> or a plan field); preserve everything else. Inspect the local box for
+continuous-space/wall-hole conflicts. Assembly compares room counts, adjacency and
+opening XY with reader trials. If changes appear, inspect and call review_role_assembly
+with review_id and a reason per change before further writes; fix accidental changes.
+Use existing revision tools for bounded corrections after evidence is clear. The
+coordinator does not independently draft plan walls or read elevation heights when a
+reader can do it. Preserve unresolved evidence and finish through delivery checks."""
 
 ROLE_GUIDANCE = {
     "coordinator": COORDINATOR_GUIDANCE,
