@@ -1,0 +1,130 @@
+{
+  "exit_code": 0,
+  "elapsed_seconds": 1087.062,
+  "model_service_requests": 0,
+  "workers": 2,
+  "files": [
+    "tests/test_bim_agent_plan_partition.py",
+    "tests/test_role_assembly_review.py",
+    "tests/test_role_batch_heights.py",
+    "tests/test_role_configuration.py",
+    "tests/test_role_elevation.py",
+    "tests/test_role_end_to_end.py",
+    "tests/test_role_guidance.py",
+    "tests/test_role_plan_revisions.py",
+    "tests/test_role_readers.py",
+    "tests/test_role_review_regressions.py",
+    "tests/test_role_scoring_bridge.py",
+    "tests/test_role_session.py",
+    "tests/test_role_single_parity.py",
+    "tests/test_role_submission.py",
+    "tests/test_role_trial.py",
+    "tests/test_roles.py",
+    "tests/test_runtime_agent_registry.py",
+    "tests/test_runtime_frozen_tools.py"
+  ],
+  "code_sha256": {
+    "src/agent/runtime_roles/__init__.py": "2d857cd2b15d957718589d2fed186ad2ef1d6f5fe73702684a3dbd84aed8212e",
+    "src/agent/runtime_roles/accounting.py": "c9585e16cc70510f1b0e45b0c8098eaea07a35f15633fc78de5383d4620f39f6",
+    "src/agent/runtime_roles/artifacts.py": "73dc92b13974f3128d012aad52d8f60318aecdc5483bae132e69651915bebe67",
+    "src/agent/runtime_roles/assembly_review.py": "e7ab3601f96b35fd566c5c7d78862393b5b0d0ef934576996230a7902cb24518",
+    "src/agent/runtime_roles/config.py": "aac69efaf27f106038e17f0dad0c0de2ff15df86e0889b60266d3fb5808bd3e2",
+    "src/agent/runtime_roles/elevation.py": "f3d14b3c5c45c917fc4e6de077c9716dc36c9f395723fae67f9df895f06535b5",
+    "src/agent/runtime_roles/entry.py": "c05ad6ef54ed5a1b040a217d9e9ca6b45b2ce655de42ce5349fb5b1478213f71",
+    "src/agent/runtime_roles/guidance.py": "38e29ce874d5cdd3c1341981042dd1cba19cc5475e87b1aa5f95d563986bb739",
+    "src/agent/runtime_roles/plan_format.py": "4764591130970f7ef8ac6b3e1f2b23e3ba26c912a61d13af5735ddcd24de57de",
+    "src/agent/runtime_roles/plan_review.py": "8d8f46db32f38428a79d00933d125e1729103d2ae969f91fc65760cb6b793037",
+    "src/agent/runtime_roles/readers.py": "1d51864fde0d6596bda3ecf76c8adf6ab5f2dff31b9a254a35e5351dccea33f4",
+    "src/agent/runtime_roles/session.py": "8765f1e7ef5d93655c62db24847c51ec3907a6e115e6a59bdc11ae53f134735c",
+    "src/agent/runtime_roles/submission.py": "db0ca5039fffe4a95d81eae9700c3888d9707da419b62ee6f120c901b6b9da93",
+    "src/agent/runtime_roles/trial.py": "1cb949f21d088c0df7537fa04b1e4139e94bd25c91e29b689ba8657f5fe04f63"
+  },
+  "code_unchanged_during_checks": true,
+  "counts": {
+    "tests": 160,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failures": [],
+  "pipeline_and_recovery": [
+    {
+      "name": "test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]",
+      "seconds": "234.175",
+      "passed": true
+    },
+    {
+      "name": "test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]",
+      "seconds": "121.450",
+      "passed": true
+    },
+    {
+      "name": "test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]",
+      "seconds": "270.451",
+      "passed": true
+    },
+    {
+      "name": "test_fixture_submissions_match_explicit_tool_contracts[sm21]",
+      "seconds": "2.074",
+      "passed": true
+    },
+    {
+      "name": "test_fixture_submissions_match_explicit_tool_contracts[sm24]",
+      "seconds": "0.631",
+      "passed": true
+    },
+    {
+      "name": "test_fixture_submissions_match_explicit_tool_contracts[sm25]",
+      "seconds": "2.074",
+      "passed": true
+    },
+    {
+      "name": "test_resume_reader_after_trial_checkpoint_does_not_repeat_trial",
+      "seconds": "171.103",
+      "passed": true
+    },
+    {
+      "name": "test_resume_after_all_readers_preserves_reader_records",
+      "seconds": "142.154",
+      "passed": true
+    },
+    {
+      "name": "test_resume_after_build_execution_does_not_repeat_build",
+      "seconds": "106.066",
+      "passed": true
+    }
+  ],
+  "deliveries": [
+    {
+      "path": "pytest-roles/popen-gw1/test_resume_after_all_readers_0/sm24-role-run/bim/delivery.json",
+      "candidate_count": 5,
+      "delivery_sha256": "56f3f33de3fac3935c68a07f05c2d92af189234ea6e084f95eb4e0b0ba7ecd21"
+    },
+    {
+      "path": "pytest-roles/popen-gw1/test_resume_after_build_execut0/sm24-role-run/bim/delivery.json",
+      "candidate_count": 5,
+      "delivery_sha256": "7af4e8c0563e4fc90e2fa07bb4fe96adfb33d2e78a4b409f77d20b52e2d90795"
+    },
+    {
+      "path": "pytest-roles/popen-gw1/test_resume_reader_after_trial0/sm24-role-run/bim/delivery.json",
+      "candidate_count": 5,
+      "delivery_sha256": "a00d84fb8ec0ebd00cf0b8e128b2f2a88efcc742d729f2acd0bceebd258e8de0"
+    },
+    {
+      "path": "pytest-roles/popen-gw1/test_scripted_role_pipeline_ru0/sm21-role-run/bim/delivery.json",
+      "candidate_count": 7,
+      "delivery_sha256": "aed3c1eacc9666272db31b4168960b50e7720b29b743f1d2d5d7f08d6dc6f325"
+    },
+    {
+      "path": "pytest-roles/popen-gw1/test_scripted_role_pipeline_ru1/sm24-role-run/bim/delivery.json",
+      "candidate_count": 5,
+      "delivery_sha256": "5a9696c711909b4e83c0252f3b39397f174e18ef3ac1c16fc2efdfc7919f032d"
+    },
+    {
+      "path": "pytest-roles/popen-gw1/test_scripted_role_pipeline_ru2/sm25-role-run/bim/delivery.json",
+      "candidate_count": 7,
+      "delivery_sha256": "b21675061c01e49a09f254d9589370a9ae0ea6a7e137606cb70da90dc8e816ba"
+    }
+  ],
+  "console_output": "bringing up nodes...\nbringing up nodes...\n\n........................................................................ [ 45%]\n........................................................................ [ 90%]\n................                                                         [100%]\nF-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.\n160 passed in 1082.56s (0:18:02)\n"
+}

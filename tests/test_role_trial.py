@@ -30,10 +30,10 @@ class Tools:
             (candidate / "source_model.json").write_text(json.dumps({
                 "spaces": [{"id": "C1", "role": "corridor"}, {"id": "C2", "role": "corridor"}],
                 "boundaries": [],
-            }))
+            }), encoding="utf-8", newline="\n")
             (candidate / "precision_report.json").write_text(json.dumps({
                 "status": "reported", "items": [{"type": "thin_space", "space_id": "C1"}]
-            }))
+            }), encoding="utf-8", newline="\n")
         body = {
             "source_geometry_ready": self.ready,
             "candidate": "candidate_01" if self.ready else None,
@@ -55,7 +55,7 @@ class Tools:
 
 def test_trial_hashes_exact_plan_preserves_checks_and_requires_same_success(tmp_path):
     async def scenario():
-        value = {"floor_id": "F1", "unresolved": []}
+        value = example()
         trial = PlanTrial(Tools(), image_name="plan.png", receipt_directory=tmp_path)
         envelope = await trial.call(value)
         receipt = envelope["structuredContent"]
@@ -76,7 +76,7 @@ def test_trial_hashes_exact_plan_preserves_checks_and_requires_same_success(tmp_
 
 def test_failed_trial_is_retained_but_not_accepted():
     async def scenario():
-        value = {"floor_id": "F1"}
+        value = example()
         trial = PlanTrial(Tools(ready=False), image_name="plan.png")
         receipt = await trial.run(value)
         assert receipt["status"] == "failed"
@@ -94,10 +94,8 @@ def test_resolution_error_is_a_repairable_failed_receipt(tmp_path):
         (tmp_path / "images").mkdir()
         (tmp_path / "images" / "plan.png").write_bytes(b"original")
         tools = Tools()
-        plan = {
-            "floor_id": "F1",
-            "x_anchors": [[{"profile": "profile_001", "candidate": "C01"}, 0], [10, 1]],
-        }
+        plan = example()
+        plan["x_anchors"] = [[{"profile": "profile_001", "candidate": "C01"}, 0], [10, 1]]
         trial = PlanTrial(
             tools,
             image_name="plan.png",
@@ -135,7 +133,7 @@ def test_contradictory_alias_failure_receipt_can_resume(tmp_path):
         receipts = tmp_path / "trial_receipts"
         trial = PlanTrial(Tools(), image_name="plan.png", receipt_directory=receipts, workspace=tmp_path)
         result = await trial.call(bad)
-        assert result["isError"] and "both pixels and points" in result["structuredContent"]["reason"]
+        assert result["isError"] and "both pixels and points" in str(result["structuredContent"]["format_errors"])
         resumed = PlanTrial(Tools(), image_name="plan.png", receipt_directory=receipts, workspace=tmp_path)
         assert resumed.receipts[0]["reason"] == result["structuredContent"]["reason"]
 
@@ -149,7 +147,7 @@ def test_trial_persists_images_and_resume_reuses_verified_receipt(tmp_path):
         (workspace / "images").mkdir()
         (workspace / "images" / "plan.png").write_bytes(b"one-original")
         receipts = workspace / "trial_receipts"
-        value = {"floor_id": "F1"}
+        value = example()
         tools = Tools(workspace=workspace)
         first = PlanTrial(tools, image_name="plan.png", receipt_directory=receipts, workspace=workspace)
         envelope = await first.call(value)
@@ -166,16 +164,18 @@ def test_trial_persists_images_and_resume_reuses_verified_receipt(tmp_path):
         assert any(path.name == "source_model.json" for path in first.artifacts())
         resumed_tools = Tools(workspace=workspace)
         resumed = PlanTrial(resumed_tools, image_name="plan.png", receipt_directory=receipts, workspace=workspace)
-        reused = await resumed.call(value)
+        with pytest.raises(ValueError, match="use trial_plan_bim with operations"):
+            await resumed.call(value)
         assert resumed_tools.calls == []
-        assert reused["content"][0]["data"] == envelope["content"][0]["data"]
+        assert resumed._image_content(resumed.require_success(value))[0]["data"] == envelope["content"][0]["data"]
         assert resumed.delivery_receipt(value)["validation_passed"] is True
     asyncio.run(scenario())
 
 
 def test_alias_normalization_has_one_trial_identity():
-    alias = {"floor_id": "F1", "partitions": [{"id": "P1", "pixels": [[1, 2], [3, 4]]}]}
-    canonical = {"floor_id": "F1", "partitions": [{"id": "P1", "points": [[1, 2], [3, 4]]}]}
+    canonical = example()
+    alias = example()
+    alias["partitions"][0]["pixels"] = alias["partitions"][0].pop("points")
     assert canonical_plan_sha256(alias) == canonical_plan_sha256(canonical)
 
     async def scenario():
@@ -197,7 +197,7 @@ def test_trial_session_prepares_exactly_one_image_workspace(tmp_path):
     (reader / "inputs.json").write_text(json.dumps({
         "images": {"plan.png": {"size": [12, 8], "sha256": hashlib.sha256(raw).hexdigest()}},
         "image_kind": "drawings", "started_epoch": 1, "deadline_epoch": 10,
-    }))
+    }), encoding="utf-8", newline="\n")
     session = PlanTrialSession(reader, "plan.png", root=tmp_path)
     session._prepare()
     manifest = json.loads((reader / "trial_workspace" / "inputs.json").read_text())
@@ -218,7 +218,7 @@ def test_real_profile_is_resolved_to_recoverable_independent_numeric_plan(tmp_pa
         manifest["images"]["plan.png"]["sha256"] = hashlib.sha256(
             (reader / "images" / "plan.png").read_bytes()
         ).hexdigest()
-        (reader / "inputs.json").write_text(json.dumps(manifest))
+        (reader / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8", newline="\n")
 
         async with _server_session(reader, readonly=True) as service:
             response = await service.call_tool("view_pixel_profile", {
@@ -268,6 +268,32 @@ def test_real_profile_is_resolved_to_recoverable_independent_numeric_plan(tmp_pa
         from scripts.tool_scripts.run_bim_agent import Toolkit
         built = Toolkit(independent).build_plan("plan.png", numeric_bytes.decode("utf-8"))
         assert built["source_geometry_ready"] and not (independent / "pixel_profiles").exists()
+
+        # A new task edits the verified prior declaration without retyping its
+        # profile-based coordinates; a failed edit must not advance its baseline.
+        next_reader = tmp_path / "next_reader"
+        (next_reader / "images").mkdir(parents=True)
+        (next_reader / "images/plan.png").write_bytes((reader / "images/plan.png").read_bytes())
+        (next_reader / "inputs.json").write_bytes((reader / "inputs.json").read_bytes())
+        prior = PlanTrial(None, image_name="plan.png", workspace=reader / "trial_workspace",
+                          receipt_directory=reader / "trial_workspace/trial_receipts")
+        op = {"op": "update", "collection": "openings", "id": "D1", "changes": {"z": [0, 2.2]},
+              "reason": "revised declared height", "source_refs": ["plan.png: explicit assumption"], "bbox": [5, 2, 8, 6]}
+        async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
+            rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
+            edited = await rework.run(operations=[op])
+            assert edited["source_geometry_ready"], edited
+            assert rework.load_plan(edited)["partitions"] == plan["partitions"]
+            assert rework.load_plan(edited)["openings"][1] == plan["openings"][1]
+            failed = await rework.run(operations=[{**op, "changes": {"p2": [7, 4.5]}}])
+            assert not failed["source_geometry_ready"]
+        async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
+            rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
+            assert rework.baseline()[1] == edited["plan_sha256"]
+            repaired = await rework.run(operations=[{**op, "changes": {"z": [0, 2.3]}}])
+            assert repaired["source_geometry_ready"]
+            assert repaired["base_plan_sha256"] == edited["plan_sha256"]
+            assert repaired["changes"][0]["before"]["p2"] == plan["openings"][0]["p2"]
 
         # Resume reuses the verified receipt. Both derived products are tamper-evident.
         async with PlanTrialSession(reader, "plan.png", root=ROOT) as resumed:

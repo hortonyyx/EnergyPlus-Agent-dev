@@ -107,13 +107,11 @@ def plan_submission(artifact: dict[str, Any]) -> dict[str, Any]:
         "evidence": artifact["evidence"],
         "unresolved": artifact["unresolved"],
         "wall_reference": {
-            "convention": "explicit_face",
-            "dimension_basis": "explicit_face",
-            "basis": (
-                "Accepted 10-01 replay retains each declared wall reference line and "
-                "its calibrated dimension anchors without snapping or reinterpretation."
-            ),
-            "bbox": evidence_box,
+            category: {
+                "convention": "explicit_face", "dimension_basis": "explicit_face",
+                "basis": "Accepted 10-01 replay retains declared reference lines and their dimension anchors.",
+                "bbox": evidence_box,
+            } for category in ("perimeter", "partitions")
         },
         # The accepted sm21/sm24/sm25 plans replay with zero scoped topology
         # warnings. A new warning must fail submission rather than be auto-kept.
@@ -454,7 +452,7 @@ def make_fixture(case_name: str, base: Path) -> D1Fixture:
     tasks = _reader_tasks(case_name, plan_artifacts, elevation_artifacts)
     output = base / f"{case_name}-role-run"
     marker = base / f"{case_name}-script-marker.json"
-    marker.write_text('{"offline_scripted_fixture":true}', encoding="utf-8")
+    marker.write_text('{"offline_scripted_fixture":true}', encoding="utf-8", newline="\n")
     route = {
         name: {
             "provider": "scripted",

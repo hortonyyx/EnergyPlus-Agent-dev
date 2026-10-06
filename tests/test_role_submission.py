@@ -7,7 +7,7 @@ import pytest
 
 from src.agent.runtime_roles.guidance import ELEVATION_EXAMPLE
 from src.agent.runtime_roles.plan_review import (
-    CONTINUOUS_HINT, opening_hosts, review_changes, topology_issues,
+    CONTINUOUS_HINT, opening_hosts, revise_operations, topology_issues,
     validate_topology, validate_wall_reference,
 )
 from src.agent.runtime_roles.readers import ReaderTools
@@ -17,8 +17,17 @@ from tests.test_role_readers import Frozen, artifact, plan
 from tests.test_role_trial import Tools
 
 
-WALL_REFERENCE = {"convention": "centerline", "dimension_basis": "centerline",
-                  "basis": "dimension chain converted to the same centerline", "bbox": [5, 5, 115, 15]}
+WALL_REFERENCE = {
+    "perimeter": {"convention": "outer_face", "dimension_basis": "outer_face",
+                  "basis": "overall dimension chain ends on outer faces", "bbox": [5, 5, 115, 15]},
+    "partitions": {"convention": "centerline", "dimension_basis": "centerline",
+                   "basis": "internal dimensions converted to the divider midplane", "bbox": [55, 5, 65, 115]},
+}
+
+
+def operation(**changes):
+    return {"op": "update", "collection": "openings", "id": "W1", "changes": changes,
+            "reason": "flagged endpoint", "source_refs": ["plan.png: observed window"], "bbox": [8, 25, 13, 45]}
 
 
 class PassedTrial:
@@ -140,37 +149,32 @@ def test_opening_endpoints_and_dimension_reference_cannot_be_silently_snapped():
         opening_hosts(value)
     assert validate_wall_reference(WALL_REFERENCE) == WALL_REFERENCE
     with pytest.raises(ValueError, match="same declared"):
-        validate_wall_reference({**WALL_REFERENCE, "dimension_basis": "outer_face"})
+        validate_wall_reference({**WALL_REFERENCE, "partitions": {**WALL_REFERENCE["partitions"], "dimension_basis": "outer_face"}})
 
 
-def test_local_rework_rejects_undeclared_and_unpointed_object_changes():
-    old, new = plan(), plan()
-    new["openings"][0]["p2"][1] += 1
-    declarations = [{"item": "plan.openings:W1", "reason": "flagged endpoint", "bbox": [8, 25, 13, 45]}]
-    changes = review_changes(old, new, declarations, allowed_targets=["plan.openings:W1"])
-    assert changes[0]["before"] == old["openings"][0] and changes[0]["after"] == new["openings"][0]
-    new["partitions"][0]["points"][0][0] += 1
-    with pytest.raises(ValueError, match="undeclared_changes"):
-        review_changes(old, new, declarations)
-    declarations.append({"item": "plan.partitions:P1", "reason": "also move wall", "bbox": [50, 5, 70, 115]})
+def test_local_operations_preserve_untouched_rows_and_reject_unpointed_edits():
+    old = plan()
+    updated, audit = revise_operations(old, [operation(p2=[10, 41])], allowed_targets=["plan.openings:W1"])
+    assert audit["actual_changes"][0]["before"] == old["openings"][0]
+    assert audit["actual_changes"][0]["after"] == updated["openings"][0]
+    assert updated["partitions"] == old["partitions"]
+    assert audit["unchanged_ids"]["partitions"] == ["P1"]
     with pytest.raises(ValueError, match="outside the coordinator"):
-        review_changes(old, new, declarations, allowed_targets=["plan.openings:W1"])
+        revise_operations(old, [operation(p2=[10, 41])], allowed_targets=["plan.partitions:P1"])
 
 
-def test_trial_rework_is_bound_to_prior_hash_and_records_exact_changes_before_compile():
+def test_trial_rework_remembers_baseline_and_records_actual_changes():
     async def scenario():
         tools = Tools()
         trial = PlanTrial(tools, image_name="plan.png")
         first = await trial.run(plan())
         modified = plan()
         modified["openings"][0]["p2"][1] += 1
-        with pytest.raises(ValueError, match="base_plan_sha256"):
+        with pytest.raises(ValueError, match="operations"):
             await trial.run(modified)
-        with pytest.raises(ValueError, match="undeclared_changes"):
-            await trial.run(modified, base_plan_sha256=first["plan_sha256"])
         assert len(tools.calls) == 1
-        changed = await trial.run(modified, base_plan_sha256=first["plan_sha256"], changes=[{
-            "item": "plan.openings:W1", "reason": "flagged endpoint", "bbox": [8, 25, 13, 45]}])
+        changed = await trial.run(operations=[operation(p2=[10, 41])])
         assert len(tools.calls) == 2 and changed["changes"][0]["item"] == "plan.openings:W1"
         assert changed["base_plan_sha256"] == first["plan_sha256"]
+        assert trial.load_plan(changed) == modified
     asyncio.run(scenario())

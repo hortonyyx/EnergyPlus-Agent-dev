@@ -24,7 +24,7 @@ from tests.test_role_readers import Frozen as ReaderFrozen
 from tests.test_role_readers import plan
 from tests.test_role_session import Frozen as SessionFrozen
 from tests.test_role_session import ROUTES, delivered_adapter, dispatch
-from tests.test_role_submission import PassedTrial, arguments
+from tests.test_role_submission import PassedTrial, arguments, operation
 from tests.test_role_trial import Tools
 
 
@@ -80,20 +80,12 @@ def test_failed_compiled_malformed_plan_can_repair_missing_id():
         malformed = plan()
         del malformed["openings"][0]["id"]
         first = await trial.run(malformed)
-        assert first["status"] == "failed" and first["compiled_numeric_plan_sha256"]
-
+        assert first["status"] == "failed" and first["compiled_numeric_plan_sha256"] is None
+        assert first["format_errors"] and tools.calls == []
         tools.ready = True
-        repaired = await trial.run(
-            plan(),
-            base_plan_sha256=first["plan_sha256"],
-            changes=[{
-                "item": "plan.openings[0]",
-                "reason": "restore the missing stable opening id",
-                "bbox": [8, 28, 13, 42],
-            }],
-        )
+        repaired = await trial.run(plan())
         assert repaired["status"] == "passed"
-        assert repaired["changes"][0]["item"] == "plan.openings[0]"
+        assert repaired["changes"] == [] and repaired["base_plan_sha256"] is None
 
     asyncio.run(scenario())
 
@@ -120,15 +112,8 @@ def test_rework_change_bbox_must_be_inside_original_image(tmp_path):
         changed = plan()
         changed["openings"][0]["p2"][1] += 1
         with pytest.raises(ValueError, match="bbox exceeds original image"):
-            await trial.run(
-                changed,
-                base_plan_sha256=first["plan_sha256"],
-                changes=[{
-                    "item": "plan.openings:W1",
-                    "reason": "flagged endpoint",
-                    "bbox": [999_999, 999_999, 1_000_000, 1_000_000],
-                }],
-            )
+            await trial.run(operations=[{**operation(p2=[10, 41]),
+                "bbox": [999_999, 999_999, 1_000_000, 1_000_000]}])
 
     asyncio.run(scenario())
 
@@ -174,27 +159,17 @@ def test_opening_can_span_collinear_segments_of_one_declared_wall():
     assert opening_hosts(value)[0]["wall"] == "P1"
 
 
-def test_precompile_failure_is_the_next_rework_base_and_cannot_be_skipped():
+def test_precompile_failure_does_not_become_a_rework_base():
     async def scenario():
         trial = PlanTrial(Tools(), image_name="plan.png")
         unresolved = plan()
-        unresolved["x_anchors"][0][0] = {"profile": "missing", "candidate": "C01"}
+        unresolved["x_anchors"][0][0] = {"profile": "profile_999", "candidate": "C01"}
         first = await trial.run(unresolved)
         assert first["status"] == "failed" and first["compiled_numeric_plan_sha256"] is None
 
-        with pytest.raises(ValueError, match="base_plan_sha256"):
-            await trial.run(plan())
-        repaired = await trial.run(
-            plan(),
-            base_plan_sha256=first["plan_sha256"],
-            changes=[{
-                "item": "plan.x_anchors",
-                "reason": "replace unresolved profile with the observed numeric anchor",
-                "bbox": [5, 5, 95, 15],
-            }],
-        )
+        repaired = await trial.run(plan())
         assert repaired["status"] == "passed"
-        assert repaired["base_plan_sha256"] == first["plan_sha256"]
+        assert repaired["base_plan_sha256"] is None and repaired["changes"] == []
 
     asyncio.run(scenario())
 
