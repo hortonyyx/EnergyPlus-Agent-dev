@@ -13,11 +13,41 @@ from scripts.tool_scripts.bim_agent_guidance import REFERENCES
 from src.agent.geometry.plan_partition import (
     _OPENING_FIELDS, _PARTITION_FIELDS, _PLAN_FIELDS, _REQUIRED_PLAN_FIELDS, _SEED_FIELDS,
 )
+from src.agent.roles import ROOM_TYPES, normalize
 
 
 # Use the actual reference example, so guidance and repair feedback cannot drift.
 _REFERENCE = REFERENCES["plan_partition"]
 PLAN_EXAMPLE, _ = json.JSONDecoder().raw_decode(_REFERENCE[_REFERENCE.index('{"floor_id"'):])
+
+
+def _reader_example(example):
+    """The same plan at image scale. The shared example's single-digit pixels read
+    like metres, and a reader copied that into world-metre points (10-06 probe)."""
+    def pixel(value, offset):
+        value = offset + 40 * value
+        return int(value) if float(value).is_integer() else value
+
+    def point(row):
+        return [pixel(row[0], 100), pixel(row[1], 80)]
+
+    value = copy.deepcopy(example)
+    value["x_anchors"] = [[pixel(px, 100), metres] for px, metres in value["x_anchors"]]
+    value["y_anchors"] = [[pixel(px, 80), metres] for px, metres in value["y_anchors"]]
+    value["footprint_pixels"] = [point(row) for row in value["footprint_pixels"]]
+    for row in value["partitions"]:
+        row["points"] = [point(item) for item in row["points"]]
+    for row in value["openings"]:
+        row["p1"], row["p2"] = point(row["p1"]), point(row["p2"])
+    for row in value["space_seeds"]:
+        row["point"] = point(row["point"])
+    return value
+
+
+READER_PLAN_EXAMPLE = _reader_example(PLAN_EXAMPLE)
+COMMON_ROOM_TYPES = ("office", "conference/meeting/multipurpose", "corridor", "lobby",
+                     "storage", "restroom", "stairwell")
+assert set(COMMON_ROOM_TYPES) <= set(ROOM_TYPES)
 
 
 def _object(properties, required):
@@ -102,11 +132,54 @@ def plan_format_errors(plan):
                     if row.get("kind") == "window" or (row.get("kind") == "open" and row["state"] != "open"):
                         errors.append({"path": f"plan.openings[{index}].state",
                                        "message": "window state must be omitted; open passage state must be open or omitted"})
+                role = row.get("role") if collection == "space_seeds" else None
+                if isinstance(role, str) and (normalize(role) or "unknown") not in ROOM_TYPES:
+                    errors.append({"path": f"plan.space_seeds[{index}].role",
+                                   "message": f"{role!r} is not a room_types code; omit role or use one such as "
+                                              + ", ".join(COMMON_ROOM_TYPES) + " (full list: get_bim_reference('room_types'))"})
+        errors.extend(_points_outside_footprint(value))
     return errors
+
+
+def _pixel_point(value):
+    return (isinstance(value, list) and len(value) == 2 and all(
+        isinstance(item, (int, float)) and not isinstance(item, bool) and math.isfinite(item) for item in value))
+
+
+def _points_outside_footprint(plan):
+    """Name objects whose numeric points fall clearly outside the footprint's pixel box.
+
+    Plan points are original pixels; a divider written in world metres lands near the
+    image origin. Profile references are not resolved here and are skipped.
+    """
+    ring = plan.get("footprint_pixels")
+    if not isinstance(ring, list) or len(ring) < 3 or not all(_pixel_point(row) for row in ring):
+        return []
+    xs, ys = [row[0] for row in ring], [row[1] for row in ring]
+    margin = 0.05 * max(max(xs) - min(xs), max(ys) - min(ys), 1)
+    left, top, right, bottom = min(xs) - margin, min(ys) - margin, max(xs) + margin, max(ys) + margin
+    found = []
+    for collection, fields in (("partitions", ("points",)), ("openings", ("p1", "p2")), ("space_seeds", ("point",))):
+        rows = plan.get(collection)
+        for index, row in enumerate(rows if isinstance(rows, list) else []):
+            if not isinstance(row, Mapping):
+                continue
+            points = []
+            for field in fields:
+                value = row.get(field)
+                points.extend(value if field == "points" and isinstance(value, list) else [value])
+            outside = [point for point in points if _pixel_point(point)
+                       and not (left <= point[0] <= right and top <= point[1] <= bottom)]
+            if outside:
+                found.append({"path": f"plan.{collection}[{index}]",
+                              "message": f"points {outside[:2]} lie outside the footprint pixels "
+                                         f"(x {min(xs):g}-{max(xs):g}, y {min(ys):g}-{max(ys):g}); plan points are "
+                                         "original-image pixels, never world metres"})
+    return found
 
 
 def format_failure(errors):
     return {"status": "failed", "source_geometry_ready": False, "error_type": "plan_format",
             "format_errors": errors, "reason": f"{len(errors)} plan format problems; correct all listed fields",
-            "repair_hint": {"example": copy.deepcopy(PLAN_EXAMPLE),
-                            "note": "Complete minimum format from plan_partition; synthetic values are not observations."}}
+            "repair_hint": {"example": copy.deepcopy(READER_PLAN_EXAMPLE),
+                            "note": "Complete minimum format (plan_partition example at image scale); synthetic values are not observations."}}

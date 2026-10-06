@@ -9,7 +9,7 @@ import pytest
 
 from src.agent.geometry.plan_partition import compile_plan_partition
 from src.agent.runtime_roles.guidance import PLAN_READER_GUIDANCE
-from src.agent.runtime_roles.plan_format import PLAN_EXAMPLE, plan_format_errors
+from src.agent.runtime_roles.plan_format import PLAN_EXAMPLE, READER_PLAN_EXAMPLE, plan_format_errors
 from src.agent.runtime_roles.plan_review import revise_operations, validate_wall_reference
 from src.agent.runtime_roles.readers import ReaderTools
 from src.agent.runtime_roles.submission import WALL_REFERENCE_EXAMPLE
@@ -23,9 +23,41 @@ def test_reference_example_is_complete_compilable_and_present_in_reader_guidance
     assert plan_format_errors(PLAN_EXAMPLE) == []
     proposal, _ = compile_plan_partition(PLAN_EXAMPLE, image_size=(12, 8), image_name="plan.png")
     assert proposal
-    assert json.dumps(PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")) in PLAN_READER_GUIDANCE
     for stale in ("Even a failed trial is the next rework base", "base_plan_sha256", "finishing budget below"):
         assert stale not in PLAN_READER_GUIDANCE
+
+
+def test_reader_example_is_the_reference_plan_at_image_scale():
+    assert plan_format_errors(READER_PLAN_EXAMPLE) == []
+    proposal, _ = compile_plan_partition(READER_PLAN_EXAMPLE, image_size=(600, 420), image_name="plan.png")
+    assert proposal
+    reference, _ = compile_plan_partition(PLAN_EXAMPLE, image_size=(12, 8), image_name="plan.png")
+    assert proposal["geometry"] == reference["geometry"]
+    assert json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")) in PLAN_READER_GUIDANCE
+    assert all(value > 20 for row in READER_PLAN_EXAMPLE["footprint_pixels"] for value in row)
+
+
+def test_world_metre_points_and_invented_room_uses_are_named_before_compiling():
+    # 10-06 probe run2: anchors and footprint in pixels, dividers and openings in metres.
+    value = plan()
+    value["x_anchors"] = [[247, 0], [613, 10]]
+    value["y_anchors"] = [[878, 0], [150, 20]]
+    value["footprint_pixels"] = [[247, 150], [613, 150], [613, 878], [247, 878]]
+    value["partitions"] = [{"id": "west", "points": [[4.18, 19.75], [4.18, 0.25]], "source_refs": ["plan.png: wall"]}]
+    value["openings"] = [{"id": "D_main", "kind": "door", "p1": [0.54, 20], "p2": [2.14, 20],
+                          "z": [0, 2.1], "source_refs": ["plan.png: door"]}]
+    value["space_seeds"] = [{"id": "hall", "point": [400, 500], "role": "open_office_meeting"},
+                            {"id": "office", "point": [300, 300], "role": "office"}]
+    errors = {row["path"]: row["message"] for row in plan_format_errors(value)}
+    assert "never world metres" in errors["plan.partitions[0]"]
+    assert "never world metres" in errors["plan.openings[0]"]
+    assert "not a room_types code" in errors["plan.space_seeds[0].role"]
+    assert not any(path.startswith("plan.space_seeds[1]") for path in errors)
+    pixels = copy.deepcopy(value)
+    pixels["partitions"][0]["points"] = [[400, 150], [400, 878]]
+    pixels["openings"][0].update(p1=[267, 150], p2=[327, 150])
+    pixels["space_seeds"][0]["role"] = "Office"
+    assert plan_format_errors(pixels) == []
 
 
 def test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_call():
@@ -44,7 +76,7 @@ def test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_c
         envelope = await reader.call_tool("trial_plan_bim", {"plan": value})
         receipt = envelope["structuredContent"]
         assert receipt["error_type"] == "plan_format" and tools.calls == []
-        assert receipt["repair_hint"]["example"] == PLAN_EXAMPLE
+        assert receipt["repair_hint"]["example"] == READER_PLAN_EXAMPLE
         errors = receipt["format_errors"]
         assert any(row["path"] == "plan" and "ceiling_height" in row["message"] for row in errors)
         for collection in ("partitions", "space_seeds", "openings"):

@@ -7,7 +7,7 @@ import json
 
 from scripts.tool_scripts.bim_agent_guidance import CORE, DRAWING_METHOD, build_guide
 from src.agent.runtime_roles.readers import READER_TOOL_NAMES
-from .plan_format import PLAN_EXAMPLE
+from .plan_format import COMMON_ROOM_TYPES, READER_PLAN_EXAMPLE
 from .submission import WALL_REFERENCE_EXAMPLE
 
 
@@ -37,23 +37,30 @@ Original-image coordinates are [left, top, right, bottom] pixels."""
 _PLAN_CORE = """Preserve actual spaces, walls, doors/windows and connectivity. Never move or shorten
 an opening just to clear a host error; recheck its wall and endpoints. Acceptance is not
 drawing fidelity. Label assumptions and unresolved marks; choose room uses after geometry.
-Keep stable IDs. Use metres, x east/y north, absolute z and ORIGINAL pixels from grid
-labels or crop origin + original_pixels_per_returned_pixel, not scaled display pixels."""
+Keep stable IDs. World x is east, y north, z absolute. Every plan POINT is an ORIGINAL
+image pixel [x, y]: footprint_pixels, partitions[].points, openings[].p1/p2,
+space_seeds[].point and each anchor's first value, read from grid labels or crop origin +
+original_pixels_per_returned_pixel, never world metres or display pixels. Metres appear
+only as each anchor's second value, z_floor, ceiling_height and opening z."""
 
 _PLAN_CALIBRATION = (_SECTIONS[3]
     .replace("Use one origin for all floors", "Use the coordinator's assigned floor origin")
     .replace("geometry_feedback.axis_orientation reports a mirrored calibration.",
              "check the original north arrow rather than trusting an overlay drawn with the same anchors."))
 
-_PLAN_DRAFT = """4. DRAFT THIS FLOOR. Call trial_plan_bim with a complete plan. Until a trial returns
-source_geometry_ready=true, every format/compile failure can be followed by another full
-plan, without a hash or change declaration. Complete minimum example from plan_partition:
+_PLAN_DRAFT = """4. DRAFT THIS FLOOR EARLY. Once the overall dimension chains and divider lines are read,
+call trial_plan_bim with a complete plan; its overlay and drawing_differences show where
+to look closer. Until a trial returns source_geometry_ready=true, every format/compile
+failure can be followed by another full plan, without a hash or change declaration.
+Complete minimum example (plan_partition format at image scale):
 {example}
 Replace the synthetic values with drawing observations. Use partitions[].points,
 openings[].p1/p2 and space_seeds[].point, not walls, room polygons or opening room/space_id/
-facade fields. Seeds lie inside rooms and assign IDs/uses; they never create walls.
-Do not repeat the exterior footprint as partitions. Exterior doors/windows lie ON the
-footprint line; interior doors/open passages lie ON their partition. Partitions continue
+facade fields. Seeds lie inside rooms and name them; they never create walls. A seed role
+is optional: omit it or use a room_types code ({room_types}...).
+Do not repeat the exterior footprint as partitions; a divider meeting an exterior wall ends
+ON the footprint line (same pixel line), not at that wall's inner face. Exterior
+doors/windows lie ON the footprint line; interior doors/open passages lie ON their partition. Partitions continue
 through door apertures; junction coordinates coincide. No automatic snapping or trimming.
 Only exterior windows are supported. Door state=unknown/open/closed; omit window state.
 Pixels can use selected profile references (syntax in plan_partition). Label assumed heights.
@@ -65,11 +72,12 @@ update: collection, id, changes (nonempty, no id); add: collection, value (compl
 remove: collection, id; set: field, value (top-level except floor_id/collections).
 Collections are partitions/openings/space_seeds. Edit each row/field once per batch, 1-100
 operations. Example (replace with actual evidence):
-{{"operations":[{{"op":"update","collection":"openings","id":"D1","changes":{{"p2":[6,4.6]}},"reason":"observed jamb endpoint","source_refs":["plan.png: door mark"],"bbox":[5,2,7,5]}}]}}
+{{"operations":[{{"op":"update","collection":"openings","id":"D1","changes":{{"p2":[340,264]}},"reason":"observed jamb endpoint","source_refs":["plan.png: door mark"],"bbox":[320,190,360,270]}}]}}
 The audit lists actual edits and unchanged IDs/fields; topology edits can change derived
 rooms/hosts. Cross-task rework starts at the verified previous artifact and only changes
 rework_targets. Failed previous drafts allow full drafting again.""".format(
-    example=json.dumps(PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
+    example=json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")),
+    room_types=", ".join(COMMON_ROOM_TYPES))
 
 _PLAN_DIFFERENCES = """5. RESOLVE THE DIFFERENCES. trial_plan_bim returns drawing_differences and
 building_precision: review clues, not drawing-fidelity verdicts. Recheck look_box or the
