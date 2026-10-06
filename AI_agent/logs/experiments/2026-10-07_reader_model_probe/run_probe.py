@@ -72,7 +72,7 @@ def write(path, value):
 
 def routes_for(model, output_tokens, temperature):
     reader = {"provider": "paratera", "model": model, "reasoning_effort": None,
-              "output_tokens": output_tokens, "temperature": temperature, "thinking": True}
+              "output_tokens": output_tokens, "temperature": temperature, "enable_thinking": True}
     return {"coordinator": reader, "plan_reader": reader, "elevation_reader": reader}
 
 
