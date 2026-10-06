@@ -39,3 +39,5 @@
 - D1：工作树 `EnergyPlus-Agent-worktrees/d1`，分支 `dev/astra-d1-20261006`，`gpt-6-astra`／max，线程 `01a10fa6-59e7-7de0-a19c-5666701880f7`。
 - D1-A：工作树 `EnergyPlus-Agent-worktrees/d1a`，分支 `dev/sol-d1a-20261006`，`gpt-5.6-sol`／high，线程 `01a10fa6-59e7-7621-b5d8-de946c545dbe`。
 - 两个工作树各建约 38 秒，各自 `.venv` 约 12 秒，导入均指向本工作树。启动脚本、提示、事件与错误输出在各工作树已忽略的 `AI_agent/archive/local_backup/<任务名>-dispatch/`。启动正常；错误输出里只有用户 Codex 配置的若干无关告警（未识别的设置、插件图标、名为 codex 的 MCP 连不上）。
+
+**工作树位置调整（用户问“这个必须要这么做吗，要在桌面多一个管理文件夹吗”）：** 不必放桌面，限制只在 AppData。实测用户目录 `C:\Users\Horton\` 与 D 盘下的新目录都能启动沙箱并写入。以后工作树放 `C:\Users\Horton\EnergyPlus-Agent-worktrees\<任务名>`：与仓库同盘，三块盘都是固态。每个工作树约 3.6 GB，含 0.45 GB 虚拟环境。不放仓库目录里，以免标准答案多一份副本、旧底座防偷看的路径规则管不到。首批两个正在跑，中途移动会打断会话，所以做完收回后再删桌面那个文件夹。D 盘探测目录 `D:\EnergyPlus-Agent-worktrees-probe`（内有 4 字节的 probe.txt）在驱动器根下，删除被本机工具的安全规则拦下，留给用户手动删除。

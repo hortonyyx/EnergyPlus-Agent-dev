@@ -118,14 +118,14 @@
 Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可写，仓库外的独立探测目录拒绝写入。首次设置写权限花了约 47 秒，设置完成后探测正常。容器时期“只能完全访问”的限制不再用于这台本机。
 
 **10-06 首次实际派工前，用 `codex sandbox -P :workspace` 逐项核对（0 次模型请求），修正了三处：**
-- **工作树位置：** 沙箱进程在 `%LOCALAPPDATA%` 下的目录启动不了（`CreateProcessWithLogonW failed: 267`），桌面下的目录可以。工作树放仓库旁的 `C:\Users\Horton\Desktop\EnergyPlus-Agent-worktrees\<任务名>`，建一个约 40 秒。
+- **工作树位置：** 沙箱进程在 `%LOCALAPPDATA%` 下的目录启动不了（`CreateProcessWithLogonW failed: 267`）；桌面、用户目录、D 盘下的目录都实测可以。用户不希望桌面多一个文件夹，所以工作树放用户目录下的 `C:\Users\Horton\EnergyPlus-Agent-worktrees\<任务名>`（与仓库同盘；每个约 3.6 GB，含 0.45 GB 虚拟环境，建一个约 40 秒，包合入后即收回）。也不放进仓库目录里：那样标准答案会多出一份副本，旧底座防偷看的路径规则管不到。10-06 首批两个工作树已在桌面旁的 `EnergyPlus-Agent-worktrees` 开工，做完收回后删掉该文件夹。
 - **不能提交：** 工作空间写模式下所有 `.git` 都只读。工作树的 Git 目录、另加主仓库 `.git` 写权限、独立本地克隆自己的 `.git`，三种都写不进 `index.lock`。所以执行方不提交：改动留在工作树，报告给出建议的提交分组，由 Opus 复核后在工作树里提交。这是 Codex 对 Git 元数据的保护，不用绕开它的办法。
 - **启动方式：** 用 `Start-Process` 拉起的进程在工具调用结束后继续运行，不受 Claude Code 后台任务 2 小时上限影响。沙箱里用虚拟环境的完整路径能运行 Python，也能联网。
 
 派工前先把已包含派工单的提交推上主线，再建工作树。新工作树按自己的锁文件建 `.venv`，不能继承主树虚拟环境：
 
 ```powershell
-$taskTree = 'C:\Users\Horton\Desktop\EnergyPlus-Agent-worktrees\<任务名>'
+$taskTree = 'C:\Users\Horton\EnergyPlus-Agent-worktrees\<任务名>'
 git worktree add -b <分支> $taskTree main
 Push-Location $taskTree; uv sync --frozen --python 3.12; Pop-Location
 $state = Join-Path $taskTree 'AI_agent\archive\local_backup\<任务名>-dispatch'   # 已忽略：提示、启动脚本、事件、错误输出
