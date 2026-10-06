@@ -12,7 +12,7 @@ from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_input
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.anthropic import HttpAnthropicAdapter
-from src.agent_runtime.context import ContextPolicy
+from .context_policy import role_context_policy
 from src.agent_runtime.loop import Runtime, RunLimits
 from src.agent_runtime.providers import GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS, subscription_credentials
 from src.agent_runtime.run_paths import resolve_run_output
@@ -127,7 +127,7 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 stack.push_async_callback(adapter.close)
             engine = Runtime(store=store, adapter=adapter, tools=tools, role=role, model=primary["model"],
                 parameters=parameters, versions=versions, limits=limits,
-                context_policy=ContextPolicy(compact_at_tokens=args.compact_at_tokens,
+                context_policy=role_context_policy("coordinator", compact_at_tokens=args.compact_at_tokens,
                     active_window_messages=args.context_window, large_result_bytes=args.large_result_bytes,
                     max_images=args.max_images, max_image_bytes=args.max_image_bytes),
                 context_update=update_role_context, root_tool_calls=limits.tool_calls,
