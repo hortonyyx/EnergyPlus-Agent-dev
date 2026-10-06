@@ -1,0 +1,1613 @@
+{
+  "schema_version": "role_reference_v1",
+  "case": "sm21_anchor",
+  "purpose": "evaluation_only_never_generator_input",
+  "coordinate_frame": "building_axis_world_m",
+  "tolerances": {
+    "room_and_partition_boundary_m": 0.02,
+    "plan_openings": "per-floor frozen original-image inventory; see each opening.tolerance_m",
+    "elevation_along_m": 0.4,
+    "elevation_width_m": 0.4,
+    "elevation_sill_m": 0.3,
+    "elevation_head_m": 0.3
+  },
+  "sources": [
+    {
+      "path": "case_tests/test_baseline/gt/sm21_anchor/gt.json",
+      "sha256": "a9be379b1735163528396c36d96653cdf71a67ffe54dde6f942c7c86f53f3f8a",
+      "authority": "verified_gt"
+    },
+    {
+      "path": "AI_agent/logs/experiments/2026-09-26_sm21_whole_building_setup/original_reference.json",
+      "sha256": "edb5e8ee4c589f1dafe678be946006553877c0ef10c02115c9079fd38bf2db14",
+      "authority": "frozen_original_image_inventory"
+    },
+    {
+      "path": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+      "sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "authority": "original_image"
+    },
+    {
+      "path": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+      "sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "authority": "original_image"
+    }
+  ],
+  "plan_questions": [
+    {
+      "floor_id": "F1",
+      "z_floor_m": 0.0,
+      "ceiling_height_m": 3.0,
+      "exterior_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "partitions_m": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              5.0,
+              1e-08
+            ],
+            [
+              5.0,
+              3.0
+            ]
+          ],
+          [
+            [
+              5.0,
+              3.0
+            ],
+            [
+              1e-08,
+              3.0
+            ]
+          ],
+          [
+            [
+              10.0,
+              1e-08
+            ],
+            [
+              10.0,
+              3.0
+            ]
+          ],
+          [
+            [
+              10.0,
+              3.0
+            ],
+            [
+              5.0,
+              3.0
+            ]
+          ],
+          [
+            [
+              14.99999999,
+              3.0
+            ],
+            [
+              10.0,
+              3.0
+            ]
+          ],
+          [
+            [
+              14.99999999,
+              5.0
+            ],
+            [
+              10.0,
+              5.0
+            ]
+          ],
+          [
+            [
+              10.0,
+              5.0
+            ],
+            [
+              5.0,
+              5.0
+            ]
+          ],
+          [
+            [
+              5.0,
+              5.0
+            ],
+            [
+              1e-08,
+              5.0
+            ]
+          ],
+          [
+            [
+              5.0,
+              5.0
+            ],
+            [
+              5.0,
+              7.99999999
+            ]
+          ],
+          [
+            [
+              10.0,
+              5.0
+            ],
+            [
+              10.0,
+              7.99999999
+            ]
+          ]
+        ]
+      },
+      "rooms": [
+        {
+          "id": "F1_S1",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              5.0,
+              0.0
+            ],
+            [
+              5.0,
+              3.0
+            ],
+            [
+              0.0,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F1_S2",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              10.0,
+              0.0
+            ],
+            [
+              10.0,
+              3.0
+            ],
+            [
+              5.0,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F1_S3",
+          "name": null,
+          "role": "meeting",
+          "polygon_m": [
+            [
+              10.0,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              3.0
+            ],
+            [
+              10.0,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F1_COR",
+          "name": null,
+          "role": "corridor",
+          "polygon_m": [
+            [
+              0.0,
+              3.0
+            ],
+            [
+              15.0,
+              3.0
+            ],
+            [
+              15.0,
+              5.0
+            ],
+            [
+              0.0,
+              5.0
+            ]
+          ]
+        },
+        {
+          "id": "F1_N1",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              0.0,
+              5.0
+            ],
+            [
+              5.0,
+              5.0
+            ],
+            [
+              5.0,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ]
+        },
+        {
+          "id": "F1_N2",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              5.0,
+              5.0
+            ],
+            [
+              10.0,
+              5.0
+            ],
+            [
+              10.0,
+              8.0
+            ],
+            [
+              5.0,
+              8.0
+            ]
+          ]
+        },
+        {
+          "id": "F1_N3",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              10.0,
+              5.0
+            ],
+            [
+              15.0,
+              5.0
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              10.0,
+              8.0
+            ]
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "N-W",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            1.240115025161754,
+            3.6448598130841123
+          ],
+          "cross_m": 7.8812415654520915,
+          "width_m": 2.4047447879223585,
+          "host_labels": [
+            "NW"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "N-C",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            6.308411214953271,
+            8.69158878504673
+          ],
+          "cross_m": 7.8812415654520915,
+          "width_m": 2.3831775700934585,
+          "host_labels": [
+            "NC"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "N-E",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            11.365923795830337,
+            13.749101365923796
+          ],
+          "cross_m": 7.8812415654520915,
+          "width_m": 2.3831775700934585,
+          "host_labels": [
+            "NE"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "S-W",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            3.4507548526240117,
+            4.636951833213516
+          ],
+          "cross_m": 0.11875843454790846,
+          "width_m": 1.186196980589504,
+          "host_labels": [
+            "SW"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "S-C",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            6.308411214953271,
+            8.69158878504673
+          ],
+          "cross_m": 0.11875843454790846,
+          "width_m": 2.3831775700934585,
+          "host_labels": [
+            "SC"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "S-E",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            11.365923795830337,
+            13.749101365923796
+          ],
+          "cross_m": 0.11875843454790846,
+          "width_m": 2.3831775700934585,
+          "host_labels": [
+            "SE"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "E-C",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            3.390013495276653,
+            4.59919028340081
+          ],
+          "cross_m": 14.88138030194105,
+          "width_m": 1.2091767881241564,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-NW",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            3.7419122933141624,
+            4.636951833213516
+          ],
+          "cross_m": 4.998650472334683,
+          "width_m": 0.8950395398993534,
+          "host_labels": [
+            "NW",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-NC",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            5.359453630481668,
+            6.265276779295471
+          ],
+          "cross_m": 4.998650472334683,
+          "width_m": 0.9058231488138029,
+          "host_labels": [
+            "NC",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-NE",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            10.352264557872035,
+            11.258087706685837
+          ],
+          "cross_m": 4.998650472334683,
+          "width_m": 0.905823148813802,
+          "host_labels": [
+            "NE",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-SW",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            3.7419122933141624,
+            4.636951833213516
+          ],
+          "cross_m": 2.99055330634278,
+          "width_m": 0.8950395398993534,
+          "host_labels": [
+            "SW",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-SC",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            5.359453630481668,
+            6.265276779295471
+          ],
+          "cross_m": 2.99055330634278,
+          "width_m": 0.9058231488138029,
+          "host_labels": [
+            "SC",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-SE",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            10.352264557872035,
+            11.258087706685837
+          ],
+          "cross_m": 2.99055330634278,
+          "width_m": 0.905823148813802,
+          "host_labels": [
+            "SE",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-W",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            3.238866396761134,
+            4.75033738191633
+          ],
+          "cross_m": 0.1186196980589504,
+          "width_m": 1.5114709851551957,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        },
+        {
+          "id": "door-S",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            0.5499640546369519,
+            1.4557872034507549
+          ],
+          "cross_m": 0.11875843454790846,
+          "width_m": 0.905823148813803,
+          "host_labels": [
+            "SW"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png",
+          "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4"
+        }
+      ]
+    },
+    {
+      "floor_id": "F2",
+      "z_floor_m": 3.0,
+      "ceiling_height_m": 3.6,
+      "exterior_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          15.0,
+          0.0
+        ],
+        [
+          15.0,
+          8.0
+        ],
+        [
+          0.0,
+          8.0
+        ]
+      ],
+      "partitions_m": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              3.75,
+              1e-08
+            ],
+            [
+              3.75,
+              3.0
+            ]
+          ],
+          [
+            [
+              3.75,
+              3.0
+            ],
+            [
+              1e-08,
+              3.0
+            ]
+          ],
+          [
+            [
+              7.5,
+              1e-08
+            ],
+            [
+              7.5,
+              3.0
+            ]
+          ],
+          [
+            [
+              7.5,
+              3.0
+            ],
+            [
+              3.75,
+              3.0
+            ]
+          ],
+          [
+            [
+              11.25,
+              1e-08
+            ],
+            [
+              11.25,
+              3.0
+            ]
+          ],
+          [
+            [
+              11.25,
+              3.0
+            ],
+            [
+              7.5,
+              3.0
+            ]
+          ],
+          [
+            [
+              14.99999999,
+              3.0
+            ],
+            [
+              11.25,
+              3.0
+            ]
+          ],
+          [
+            [
+              14.99999999,
+              5.0
+            ],
+            [
+              7.5,
+              5.0
+            ]
+          ],
+          [
+            [
+              7.5,
+              5.0
+            ],
+            [
+              1e-08,
+              5.0
+            ]
+          ],
+          [
+            [
+              7.5,
+              5.0
+            ],
+            [
+              7.5,
+              7.99999999
+            ]
+          ]
+        ]
+      },
+      "rooms": [
+        {
+          "id": "F2_S1",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              3.75,
+              0.0
+            ],
+            [
+              3.75,
+              3.0
+            ],
+            [
+              0.0,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F2_S2",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              3.75,
+              0.0
+            ],
+            [
+              7.5,
+              0.0
+            ],
+            [
+              7.5,
+              3.0
+            ],
+            [
+              3.75,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F2_S3",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              7.5,
+              0.0
+            ],
+            [
+              11.25,
+              0.0
+            ],
+            [
+              11.25,
+              3.0
+            ],
+            [
+              7.5,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F2_S4",
+          "name": null,
+          "role": "office",
+          "polygon_m": [
+            [
+              11.25,
+              0.0
+            ],
+            [
+              15.0,
+              0.0
+            ],
+            [
+              15.0,
+              3.0
+            ],
+            [
+              11.25,
+              3.0
+            ]
+          ]
+        },
+        {
+          "id": "F2_COR",
+          "name": null,
+          "role": "corridor",
+          "polygon_m": [
+            [
+              0.0,
+              3.0
+            ],
+            [
+              15.0,
+              3.0
+            ],
+            [
+              15.0,
+              5.0
+            ],
+            [
+              0.0,
+              5.0
+            ]
+          ]
+        },
+        {
+          "id": "F2_N1",
+          "name": null,
+          "role": "meeting",
+          "polygon_m": [
+            [
+              0.0,
+              5.0
+            ],
+            [
+              7.5,
+              5.0
+            ],
+            [
+              7.5,
+              8.0
+            ],
+            [
+              0.0,
+              8.0
+            ]
+          ]
+        },
+        {
+          "id": "F2_N2",
+          "name": null,
+          "role": "meeting",
+          "polygon_m": [
+            [
+              7.5,
+              5.0
+            ],
+            [
+              15.0,
+              5.0
+            ],
+            [
+              15.0,
+              8.0
+            ],
+            [
+              7.5,
+              8.0
+            ]
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "window-NW",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            1.948051948051948,
+            5.5519480519480515
+          ],
+          "cross_m": 7.875675675675676,
+          "width_m": 3.6038961038961035,
+          "host_labels": [
+            "NW"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-NE",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            9.448051948051948,
+            13.051948051948052
+          ],
+          "cross_m": 7.875675675675676,
+          "width_m": 3.603896103896105,
+          "host_labels": [
+            "NE"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-S1",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            2.186147186147186,
+            3.3874458874458875
+          ],
+          "cross_m": 0.12432432432432439,
+          "width_m": 1.2012987012987013,
+          "host_labels": [
+            "S1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-S2",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            4.112554112554113,
+            5.313852813852814
+          ],
+          "cross_m": 0.12432432432432439,
+          "width_m": 1.2012987012987013,
+          "host_labels": [
+            "S2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-S3",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            9.686147186147187,
+            10.887445887445887
+          ],
+          "cross_m": 0.12432432432432439,
+          "width_m": 1.2012987012987004,
+          "host_labels": [
+            "S3"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-S4",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            11.612554112554113,
+            12.813852813852813
+          ],
+          "cross_m": 0.12432432432432439,
+          "width_m": 1.2012987012987004,
+          "host_labels": [
+            "S4"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-W",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            3.3945945945945946,
+            4.605405405405405
+          ],
+          "cross_m": 0.11904761904761904,
+          "width_m": 1.2108108108108109,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "window-E",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            3.3945945945945946,
+            4.605405405405405
+          ],
+          "cross_m": 14.880952380952381,
+          "width_m": 1.2108108108108109,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "door-NW",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            6.233766233766234,
+            7.132034632034632
+          ],
+          "cross_m": 5.0,
+          "width_m": 0.8982683982683977,
+          "host_labels": [
+            "NW",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "door-NE",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            7.846320346320346,
+            8.755411255411255
+          ],
+          "cross_m": 5.0,
+          "width_m": 0.9090909090909092,
+          "host_labels": [
+            "NE",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "door-S1",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            2.4891774891774894,
+            3.398268398268398
+          ],
+          "cross_m": 3.0,
+          "width_m": 0.9090909090909087,
+          "host_labels": [
+            "S1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "door-S2",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            4.112554112554113,
+            5.021645021645021
+          ],
+          "cross_m": 3.0,
+          "width_m": 0.9090909090909083,
+          "host_labels": [
+            "S2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "door-S3",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            9.98917748917749,
+            10.898268398268398
+          ],
+          "cross_m": 3.0,
+          "width_m": 0.9090909090909083,
+          "host_labels": [
+            "S3",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        },
+        {
+          "id": "door-S4",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            11.612554112554113,
+            12.521645021645021
+          ],
+          "cross_m": 3.0,
+          "width_m": 0.9090909090909083,
+          "host_labels": [
+            "S4",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "reason": "Pixel/raster jamb uncertainty and lightweight representative wall line. Along endpoint error remains separate from perpendicular wall reference-plane offset; vertical heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm21_anchor/case_data/2f_view.png",
+          "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74"
+        }
+      ]
+    }
+  ],
+  "elevation_questions": [
+    {
+      "facade": "East",
+      "openings": [
+        {
+          "id": "window_group_4_item_0",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            3.4,
+            4.6
+          ],
+          "width_m": 1.2,
+          "sill_m": 1.0,
+          "head_m": 2.8,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_5_item_0",
+          "facade": "East",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            3.4,
+            4.6
+          ],
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        }
+      ],
+      "counts": {
+        "door": 0,
+        "window": 2
+      }
+    },
+    {
+      "facade": "North",
+      "openings": [
+        {
+          "id": "window_group_0_item_0",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            1.24,
+            3.6399999999999997
+          ],
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_0_item_1",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            6.3,
+            8.7
+          ],
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_0_item_2",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            11.36,
+            13.76
+          ],
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_1_item_0",
+          "facade": "North",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            1.95,
+            5.55
+          ],
+          "width_m": 3.6,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_1_item_1",
+          "facade": "North",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            9.45,
+            13.049999999999999
+          ],
+          "width_m": 3.6,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        }
+      ],
+      "counts": {
+        "door": 0,
+        "window": 5
+      }
+    },
+    {
+      "facade": "South",
+      "openings": [
+        {
+          "id": "door_1",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            0.54,
+            1.44
+          ],
+          "width_m": 0.9,
+          "sill_m": 0.0,
+          "head_m": 2.1,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_2_item_0",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            3.44,
+            4.64
+          ],
+          "width_m": 1.2,
+          "sill_m": 1.5,
+          "head_m": 2.1,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_2_item_1",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            6.3,
+            8.7
+          ],
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_2_item_2",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            11.36,
+            13.76
+          ],
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_3_item_0",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            2.19,
+            3.3899999999999997
+          ],
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_3_item_1",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            4.11,
+            5.3100000000000005
+          ],
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_3_item_2",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            9.69,
+            10.889999999999999
+          ],
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_3_item_3",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            11.61,
+            12.809999999999999
+          ],
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        }
+      ],
+      "counts": {
+        "door": 1,
+        "window": 7
+      }
+    },
+    {
+      "facade": "West",
+      "openings": [
+        {
+          "id": "door_0",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            3.25,
+            4.75
+          ],
+          "width_m": 1.5,
+          "sill_m": 0.0,
+          "head_m": 2.1,
+          "host_room_id": null
+        },
+        {
+          "id": "window_group_7_item_0",
+          "facade": "West",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            3.4,
+            4.6
+          ],
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8,
+          "host_room_id": null
+        }
+      ],
+      "counts": {
+        "door": 1,
+        "window": 1
+      }
+    }
+  ],
+  "limits": [
+    "Plan openings come from frozen original-image inventories; room and envelope geometry comes from verified GT.",
+    "Elevation openings come from verified GT and use the current judge tolerances.",
+    "Room role/name is descriptive; geometry, opening kind, position, width and height are scored independently."
+  ]
+}

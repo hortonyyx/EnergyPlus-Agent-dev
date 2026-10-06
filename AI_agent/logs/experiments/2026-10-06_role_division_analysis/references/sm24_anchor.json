@@ -1,0 +1,1205 @@
+{
+  "schema_version": "role_reference_v1",
+  "case": "sm24_anchor",
+  "purpose": "evaluation_only_never_generator_input",
+  "coordinate_frame": "building_axis_world_m",
+  "tolerances": {
+    "room_and_partition_boundary_m": 0.02,
+    "plan_openings": "per-floor frozen original-image inventory; see each opening.tolerance_m",
+    "elevation_along_m": 0.4,
+    "elevation_width_m": 0.4,
+    "elevation_sill_m": 0.3,
+    "elevation_head_m": 0.3
+  },
+  "sources": [
+    {
+      "path": "case_tests/test_baseline/gt/sm24_anchor/gt.json",
+      "sha256": "5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420",
+      "authority": "verified_gt"
+    },
+    {
+      "path": "AI_agent/logs/experiments/2026-09-23_sm24_cold_plan_setup/original_observations.json",
+      "sha256": "2038a6546cef2d83acc39ee3f41584c8a7f586d9ddbad7a26840f27dba0c1524",
+      "authority": "frozen_original_image_inventory"
+    },
+    {
+      "path": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+      "sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+      "authority": "original_image"
+    }
+  ],
+  "plan_questions": [
+    {
+      "floor_id": "F1",
+      "z_floor_m": 0.0,
+      "ceiling_height_m": 4.5,
+      "exterior_m": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          0.0
+        ],
+        [
+          10.0,
+          19.999999999999996
+        ],
+        [
+          0.0,
+          19.999999999999996
+        ]
+      ],
+      "interior_rings_m": [],
+      "partitions_m": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              4.18,
+              1e-08
+            ],
+            [
+              4.18,
+              3.4400000000000013
+            ]
+          ],
+          [
+            [
+              4.18,
+              3.4400000000000013
+            ],
+            [
+              4.18,
+              8.059999999999999
+            ]
+          ],
+          [
+            [
+              4.18,
+              8.059999999999999
+            ],
+            [
+              1e-08,
+              8.059999999999999
+            ]
+          ],
+          [
+            [
+              4.18,
+              8.059999999999999
+            ],
+            [
+              4.18,
+              12.999999999999996
+            ]
+          ],
+          [
+            [
+              4.18,
+              12.999999999999996
+            ],
+            [
+              1e-08,
+              12.999999999999996
+            ]
+          ],
+          [
+            [
+              4.18,
+              12.999999999999996
+            ],
+            [
+              4.18,
+              15.939999999999994
+            ]
+          ],
+          [
+            [
+              4.18,
+              15.939999999999994
+            ],
+            [
+              1e-08,
+              15.939999999999994
+            ]
+          ],
+          [
+            [
+              4.18,
+              15.939999999999994
+            ],
+            [
+              5.819999999999997,
+              15.939999999999994
+            ]
+          ],
+          [
+            [
+              5.819999999999997,
+              15.939999999999994
+            ],
+            [
+              9.99999999,
+              15.939999999999994
+            ]
+          ],
+          [
+            [
+              9.99999999,
+              4.940000000000001
+            ],
+            [
+              5.819999999999997,
+              4.940000000000001
+            ]
+          ],
+          [
+            [
+              5.819999999999997,
+              4.940000000000001
+            ],
+            [
+              5.819999999999997,
+              3.4400000000000013
+            ]
+          ],
+          [
+            [
+              5.819999999999997,
+              3.4400000000000013
+            ],
+            [
+              4.18,
+              3.4400000000000013
+            ]
+          ],
+          [
+            [
+              9.99999999,
+              8.059999999999999
+            ],
+            [
+              5.819999999999997,
+              8.059999999999999
+            ]
+          ],
+          [
+            [
+              5.819999999999997,
+              8.059999999999999
+            ],
+            [
+              5.819999999999997,
+              13.999999999999996
+            ]
+          ],
+          [
+            [
+              5.819999999999997,
+              13.999999999999996
+            ],
+            [
+              5.819999999999997,
+              15.939999999999994
+            ]
+          ],
+          [
+            [
+              9.99999999,
+              13.999999999999996
+            ],
+            [
+              5.819999999999997,
+              13.999999999999996
+            ]
+          ]
+        ]
+      },
+      "rooms": [
+        {
+          "id": "z0",
+          "name": "r0",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              4.18,
+              0.0
+            ],
+            [
+              4.18,
+              8.059999999999999
+            ],
+            [
+              0.0,
+              8.059999999999999
+            ]
+          ]
+        },
+        {
+          "id": "z1",
+          "name": "r1",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              8.059999999999999
+            ],
+            [
+              4.18,
+              8.059999999999999
+            ],
+            [
+              4.18,
+              12.999999999999996
+            ],
+            [
+              0.0,
+              12.999999999999996
+            ]
+          ]
+        },
+        {
+          "id": "z2",
+          "name": "r2",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              12.999999999999996
+            ],
+            [
+              4.18,
+              12.999999999999996
+            ],
+            [
+              4.18,
+              15.939999999999994
+            ],
+            [
+              0.0,
+              15.939999999999994
+            ]
+          ]
+        },
+        {
+          "id": "z3",
+          "name": "r3",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              15.939999999999994
+            ],
+            [
+              10.0,
+              15.939999999999994
+            ],
+            [
+              10.0,
+              19.999999999999996
+            ],
+            [
+              0.0,
+              19.999999999999996
+            ]
+          ]
+        },
+        {
+          "id": "z4",
+          "name": "r4",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              4.18,
+              0.0
+            ],
+            [
+              10.0,
+              0.0
+            ],
+            [
+              10.0,
+              4.940000000000001
+            ],
+            [
+              5.819999999999997,
+              4.940000000000001
+            ],
+            [
+              5.819999999999997,
+              3.4400000000000013
+            ],
+            [
+              4.18,
+              3.4400000000000013
+            ]
+          ]
+        },
+        {
+          "id": "z5",
+          "name": "r5",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              4.18,
+              3.4400000000000013
+            ],
+            [
+              5.819999999999997,
+              3.4400000000000013
+            ],
+            [
+              5.819999999999997,
+              4.940000000000001
+            ],
+            [
+              10.0,
+              4.940000000000001
+            ],
+            [
+              10.0,
+              8.059999999999999
+            ],
+            [
+              5.819999999999997,
+              8.059999999999999
+            ],
+            [
+              5.819999999999997,
+              15.939999999999994
+            ],
+            [
+              4.18,
+              15.939999999999994
+            ]
+          ]
+        },
+        {
+          "id": "z6",
+          "name": "r6",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.819999999999997,
+              8.059999999999999
+            ],
+            [
+              10.0,
+              8.059999999999999
+            ],
+            [
+              10.0,
+              13.999999999999996
+            ],
+            [
+              5.819999999999997,
+              13.999999999999996
+            ]
+          ]
+        },
+        {
+          "id": "z7",
+          "name": "r7",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.819999999999997,
+              13.999999999999996
+            ],
+            [
+              10.0,
+              13.999999999999996
+            ],
+            [
+              10.0,
+              15.939999999999994
+            ],
+            [
+              5.819999999999997,
+              15.939999999999994
+            ]
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "N",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            4.642857142857143,
+            9.45054945054945
+          ],
+          "cross_m": 19.876203576341126,
+          "width_m": 4.8076923076923075,
+          "host_labels": [
+            "N"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "W-N",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            17.96423658872077,
+            19.477303988995875
+          ],
+          "cross_m": 0.12362637362637363,
+          "width_m": 1.513067400275105,
+          "host_labels": [
+            "N"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "E-N",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            17.96423658872077,
+            19.477303988995875
+          ],
+          "cross_m": 9.862637362637363,
+          "width_m": 1.513067400275105,
+          "host_labels": [
+            "N"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "W-WN",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            14.360385144429161,
+            15.570839064649244
+          ],
+          "cross_m": 0.12362637362637363,
+          "width_m": 1.2104539202200826,
+          "host_labels": [
+            "WN"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "W-WC-1",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            11.141678129298487,
+            12.65474552957359
+          ],
+          "cross_m": 0.12362637362637363,
+          "width_m": 1.5130674002751032,
+          "host_labels": [
+            "WC"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "W-WC-2",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            8.418156808803301,
+            9.931224209078405
+          ],
+          "cross_m": 0.12362637362637363,
+          "width_m": 1.5130674002751032,
+          "host_labels": [
+            "WC"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "W-WS",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            0.5502063273727664,
+            5.337001375515818
+          ],
+          "cross_m": 0.12362637362637363,
+          "width_m": 4.786795048143052,
+          "host_labels": [
+            "WS"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "E-EN",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            14.360385144429161,
+            15.570839064649244
+          ],
+          "cross_m": 9.862637362637363,
+          "width_m": 1.2104539202200826,
+          "host_labels": [
+            "EN"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "E-EC",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            8.830811554332875,
+            13.645116918844566
+          ],
+          "cross_m": 9.862637362637363,
+          "width_m": 4.814305364511691,
+          "host_labels": [
+            "EC"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "S-WS",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            0.521978021978022,
+            2.032967032967033
+          ],
+          "cross_m": 0.12379642365887378,
+          "width_m": 1.510989010989011,
+          "host_labels": [
+            "WS"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "S-SE",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            7.93956043956044,
+            9.45054945054945
+          ],
+          "cross_m": 0.12379642365887378,
+          "width_m": 1.510989010989011,
+          "host_labels": [
+            "SE"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-N-external",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            0.5494505494505495,
+            2.142857142857143
+          ],
+          "cross_m": 19.876203576341126,
+          "width_m": 1.5934065934065933,
+          "host_labels": [
+            "N"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-E-external",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            5.694635488308116,
+            7.290233837689133
+          ],
+          "cross_m": 9.862637362637363,
+          "width_m": 1.5955983493810173,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-S-external",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            4.532967032967033,
+            5.43956043956044
+          ],
+          "cross_m": 0.12379642365887378,
+          "width_m": 0.9065934065934069,
+          "host_labels": [
+            "SE"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-N-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            4.395604395604396,
+            5.576923076923077
+          ],
+          "cross_m": 15.94222833562586,
+          "width_m": 1.1813186813186807,
+          "host_labels": [
+            "N",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-WN-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            13.370013755158183,
+            14.277854195323247
+          ],
+          "cross_m": 4.175824175824176,
+          "width_m": 0.9078404401650637,
+          "host_labels": [
+            "WN",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-WC-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            11.746905089408529,
+            12.65474552957359
+          ],
+          "cross_m": 4.175824175824176,
+          "width_m": 0.9078404401650619,
+          "host_labels": [
+            "WC",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-WS-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            6.7675378266850075,
+            7.675378266850069
+          ],
+          "cross_m": 4.175824175824176,
+          "width_m": 0.9078404401650619,
+          "host_labels": [
+            "WS",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-EN-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            14.360385144429161,
+            15.268225584594223
+          ],
+          "cross_m": 5.81043956043956,
+          "width_m": 0.9078404401650619,
+          "host_labels": [
+            "EN",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-EC-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            12.709766162310867,
+            13.617606602475927
+          ],
+          "cross_m": 5.81043956043956,
+          "width_m": 0.9078404401650602,
+          "host_labels": [
+            "EC",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        },
+        {
+          "id": "door-SE-C",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            8.543956043956044,
+            9.45054945054945
+          ],
+          "cross_m": 4.924346629986244,
+          "width_m": 0.9065934065934069,
+          "host_labels": [
+            "SE",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.06,
+            "internal_cross_m": 0.07,
+            "external_cross_m": 0.16,
+            "original_partition_m": 0.08,
+            "reason": "Same aperture tolerances as sm21. Independent plan polygon comparison allows 8cm (about three pixels in this lower-resolution raster), with full object split/merge diagnostics retained. Heights excluded."
+          },
+          "source_image": "case_tests/e2e_tests/sm24_anchor/case_data/1f_view.png",
+          "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350"
+        }
+      ]
+    }
+  ],
+  "elevation_questions": [
+    {
+      "facade": "East",
+      "openings": [
+        {
+          "id": "op_ac9",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            5.699999999999999,
+            7.299999999999994
+          ],
+          "width_m": 1.5999999999999943,
+          "sill_m": 0.19998881441390814,
+          "head_m": 2.5999888144139085,
+          "host_room_id": "z5"
+        },
+        {
+          "id": "op_aff",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            8.84,
+            13.639999999999997
+          ],
+          "width_m": 4.799999999999997,
+          "sill_m": 0.999988814413908,
+          "head_m": 3.399988814413909,
+          "host_room_id": "z6"
+        },
+        {
+          "id": "op_afc",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            14.379999999999999,
+            15.579999999999995
+          ],
+          "width_m": 1.1999999999999957,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z7"
+        },
+        {
+          "id": "op_aea",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            17.959999999999997,
+            19.459999999999997
+          ],
+          "width_m": 1.5,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z3"
+        }
+      ],
+      "counts": {
+        "door": 1,
+        "window": 3
+      }
+    },
+    {
+      "facade": "North",
+      "openings": [
+        {
+          "id": "op_ac3",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            0.5399999999999991,
+            2.139999999999997
+          ],
+          "width_m": 1.5999999999999979,
+          "sill_m": 0.19998881441390814,
+          "head_m": 2.5999888144139085,
+          "host_room_id": "z3"
+        },
+        {
+          "id": "op_ae1",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            4.659999999999997,
+            9.46
+          ],
+          "width_m": 4.800000000000004,
+          "sill_m": 0.999988814413908,
+          "head_m": 3.399988814413909,
+          "host_room_id": "z3"
+        }
+      ],
+      "counts": {
+        "door": 1,
+        "window": 1
+      }
+    },
+    {
+      "facade": "South",
+      "openings": [
+        {
+          "id": "op_af6",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            0.5399999999999991,
+            2.039999999999999
+          ],
+          "width_m": 1.5,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z0"
+        },
+        {
+          "id": "op_ade",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            4.539999999999999,
+            5.439999999999998
+          ],
+          "width_m": 0.8999999999999986,
+          "sill_m": 0.19998881441390814,
+          "head_m": 2.5999888144139085,
+          "host_room_id": "z4"
+        },
+        {
+          "id": "op_af9",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            7.959999999999997,
+            9.46
+          ],
+          "width_m": 1.5000000000000036,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z4"
+        }
+      ],
+      "counts": {
+        "door": 1,
+        "window": 2
+      }
+    },
+    {
+      "facade": "West",
+      "openings": [
+        {
+          "id": "op_ae4",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            0.5399999999999991,
+            5.34
+          ],
+          "width_m": 4.800000000000001,
+          "sill_m": 0.999988814413908,
+          "head_m": 3.399988814413909,
+          "host_room_id": "z0"
+        },
+        {
+          "id": "op_af3",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            8.419999999999998,
+            9.919999999999998
+          ],
+          "width_m": 1.5,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z1"
+        },
+        {
+          "id": "op_af0",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            11.139999999999997,
+            12.639999999999997
+          ],
+          "width_m": 1.5,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z1"
+        },
+        {
+          "id": "op_aed",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            14.379999999999999,
+            15.579999999999995
+          ],
+          "width_m": 1.1999999999999957,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z2"
+        },
+        {
+          "id": "op_ae7",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            17.959999999999997,
+            19.459999999999997
+          ],
+          "width_m": 1.5,
+          "sill_m": 0.999988814413908,
+          "head_m": 2.799988814413908,
+          "host_room_id": "z3"
+        }
+      ],
+      "counts": {
+        "door": 0,
+        "window": 5
+      }
+    }
+  ],
+  "limits": [
+    "Plan openings come from frozen original-image inventories; room and envelope geometry comes from verified GT.",
+    "Elevation openings come from verified GT and use the current judge tolerances.",
+    "Room role/name is descriptive; geometry, opening kind, position, width and height are scored independently."
+  ]
+}
