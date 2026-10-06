@@ -16,7 +16,7 @@ from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import format_failure, plan_format_errors
-from .plan_review import revise_operations, topology_issues
+from .plan_review import revise_operations, topology_issues, unhosted_openings
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -594,6 +594,16 @@ class PlanTrial:
                                              "trial did not produce source geometry"))
             if "repair_hint" in result:
                 receipt["repair_hint"] = result["repair_hint"]
+            if "host" in receipt["reason"]:
+                try:
+                    unhosted = unhosted_openings(numeric_plan)
+                except (ValueError, KeyError, TypeError, IndexError):
+                    unhosted = []
+                if unhosted:
+                    receipt["unhosted_openings"] = unhosted
+                    receipt["unhosted_openings_note"] = (
+                        "Every opening below lies on no declared footprint edge or partition (original pixels). "
+                        "Put each on its wall line: exterior ones on the footprint line, interior ones on their partition.")
         receipt["phase"] = "operations" if ready or previous_plan is not None else "draft"
         flagged_dividers = {row.get("divider") for row in topology_issues([receipt])}
         receipt["topology_dividers"] = {row["id"]: row["points"] for row in numeric_plan.get("partitions", [])

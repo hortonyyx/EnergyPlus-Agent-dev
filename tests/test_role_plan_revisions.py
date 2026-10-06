@@ -10,7 +10,9 @@ import pytest
 from src.agent.geometry.plan_partition import compile_plan_partition
 from src.agent.runtime_roles.guidance import PLAN_READER_GUIDANCE
 from src.agent.runtime_roles.plan_format import PLAN_EXAMPLE, READER_PLAN_EXAMPLE, plan_format_errors
-from src.agent.runtime_roles.plan_review import revise_operations, validate_wall_reference
+from src.agent.runtime_roles.plan_review import (
+    revise_operations, topology_issues, unhosted_openings, validate_wall_reference,
+)
 from src.agent.runtime_roles.readers import ReaderTools
 from src.agent.runtime_roles.submission import WALL_REFERENCE_EXAMPLE
 from src.agent.runtime_roles.trial import PlanTrial
@@ -208,6 +210,37 @@ def test_invalid_operation_type_is_a_correctable_prewrite_rejection():
         bad = await reader.call_tool("trial_plan_bim", {"operations": [{**operation(p2=[10, 41]), "op": []}]})
         assert bad["isError"] and bad["structuredContent"]["status"] == "rejected"
         assert len(tools.calls) == 1 and trial.baseline()[1] == good["plan_sha256"]
+    asyncio.run(scenario())
+
+
+def test_topology_warnings_from_a_trial_without_geometry_do_not_bind():
+    # 10-06 probe run2: 14 warnings from a draft with dividers in metres blocked submission.
+    row = {"type": "unsupported_open_separator", "divider": "P1", "opening": "D1", "x_px": 60,
+           "y_px": [10, 110], "look_box": [55, 8, 65, 112]}
+    failed = {"plan_sha256": "a" * 64, "source_geometry_ready": False, "drawing_differences": {"items": [row]}}
+    built = {"plan_sha256": "b" * 64, "source_geometry_ready": True, "drawing_differences": {"items": [row]}}
+    assert topology_issues([failed]) == []
+    assert [issue["plan_sha256"] for issue in topology_issues([failed, built])] == ["b" * 64]
+
+
+def test_host_failure_lists_every_unhosted_opening_with_its_nearest_line():
+    value = plan()
+    value["openings"] += [
+        {"id": "D_in", "kind": "door", "p1": [60, 60], "p2": [60, 70], "z": [0, 2.1], "source_refs": ["plan.png: door"]},
+        {"id": "D_top", "kind": "door", "p1": [20, 16], "p2": [40, 16], "z": [0, 2.1], "source_refs": ["plan.png: door"]},
+        {"id": "W2", "kind": "window", "p1": [13, 70], "p2": [13, 90], "z": [1, 2], "source_refs": ["plan.png: window"]},
+    ]
+    rows = {row["opening"]: row["nearest_parallel_line"] for row in unhosted_openings(value)}
+    assert rows == {
+        "D_top": {"line": "footprint", "line_at_px": 10, "offset_px": 6, "spans_opening": True},
+        "W2": {"line": "footprint", "line_at_px": 10, "offset_px": 3, "spans_opening": True},
+    }
+
+    async def scenario():
+        trial = PlanTrial(Tools(ready=False), image_name="plan.png")
+        receipt = await trial.run(value)
+        assert receipt["status"] == "failed"
+        assert [row["opening"] for row in receipt["unhosted_openings"]] == ["D_top", "W2"]
     asyncio.run(scenario())
 
 

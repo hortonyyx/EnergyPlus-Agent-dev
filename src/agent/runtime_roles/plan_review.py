@@ -54,9 +54,15 @@ def revise_operations(before, operations, *, image_size=None, allowed_targets=No
 
 
 def topology_issues(receipts):
-    """Include earlier warnings: deleting a bad wall cannot erase its review duty."""
+    """Include earlier warnings: deleting a bad wall cannot erase its review duty.
+
+    Only from trials that produced geometry: a draft that never compiled (10-06
+    probe run2: dividers written in metres) leaves warnings about nothing real.
+    """
     found = {}
     for receipt in receipts:
+        if receipt.get("source_geometry_ready") is False:
+            continue
         report = receipt.get("drawing_differences", {})
         for row in report.get("items", []) if isinstance(report, Mapping) else []:
             kind = row.get("type", row.get("kind"))
@@ -78,6 +84,38 @@ def _segments(plan):
     for row in plan.get("partitions", []):
         for a, b in zip(row["points"], row["points"][1:]):
             yield row["id"], a, b
+
+
+def unhosted_openings(plan):
+    """Every opening not lying on one declared footprint edge or partition, with the
+    nearest parallel line. The compiler stops at the first; a reader then spends one
+    request per opening (10-06 probe run3)."""
+    from shapely.geometry import LineString
+
+    lines = [(identity, LineString([a, b])) for identity, a, b in _segments(plan)]
+    found = []
+    for row in plan.get("openings", []):
+        opening = LineString([row["p1"], row["p2"]])
+        if opening.length <= 1e-6 or any(opening.difference(line).length <= 1e-6 for _, line in lines):
+            continue
+        vertical = abs(row["p1"][0] - row["p2"][0]) < abs(row["p1"][1] - row["p2"][1])
+        axis = 1 if vertical else 0
+        low, high = sorted((row["p1"][axis], row["p2"][axis]))
+        nearest = None
+        for identity, line in lines:
+            (x0, y0), (x1, y1) = line.coords
+            if (abs(x0 - x1) < abs(y0 - y1)) != vertical:
+                continue
+            spans = min(high, max(line.coords[0][axis], line.coords[1][axis])) > max(
+                low, min(line.coords[0][axis], line.coords[1][axis]))
+            offset = (row["p1"][0] - x0) if vertical else (row["p1"][1] - y0)
+            key = (not spans, abs(offset))
+            if nearest is None or key < nearest[0]:
+                nearest = (key, {"line": identity.split(":")[0], "line_at_px": x0 if vertical else y0,
+                                 "offset_px": round(offset, 2), "spans_opening": spans})
+        found.append({"opening": row["id"], "p1": row["p1"], "p2": row["p2"],
+                      "nearest_parallel_line": nearest[1] if nearest else None})
+    return found
 
 
 def opening_hosts(plan):
