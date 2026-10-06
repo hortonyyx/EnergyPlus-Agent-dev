@@ -11,7 +11,7 @@ from src.agent.geometry.plan_partition import compile_plan_partition
 from src.agent.runtime_roles.guidance import PLAN_READER_GUIDANCE
 from src.agent.runtime_roles.plan_format import PLAN_EXAMPLE, READER_PLAN_EXAMPLE, plan_format_errors
 from src.agent.runtime_roles.plan_review import (
-    revise_operations, topology_issues, unhosted_openings, validate_wall_reference,
+    loose_partition_ends, revise_operations, topology_issues, unhosted_openings, validate_wall_reference,
 )
 from src.agent.runtime_roles.readers import ReaderTools
 from src.agent.runtime_roles.submission import WALL_REFERENCE_EXAMPLE
@@ -241,6 +241,52 @@ def test_host_failure_lists_every_unhosted_opening_with_its_nearest_line():
         receipt = await trial.run(value)
         assert receipt["status"] == "failed"
         assert [row["opening"] for row in receipt["unhosted_openings"]] == ["D_top", "W2"]
+    asyncio.run(scenario())
+
+
+class _FailingTools(Tools):
+    """A compiler that fails with a chosen error, or compiles but fails its source self-check."""
+
+    def __init__(self, workspace, *, error=None, findings=None):
+        super().__init__(ready=False, workspace=workspace)
+        self.error, self.findings = error, findings
+
+    async def call_tool(self, name, arguments):
+        result = await super().call_tool(name, arguments)
+        body = result["structuredContent"]
+        if self.error is not None:
+            body["error"] = self.error
+        if self.findings is not None:
+            candidate = self.workspace / "candidate_01"
+            candidate.mkdir(exist_ok=True)
+            (candidate / "report.json").write_text(json.dumps({"source_geometry_self_consistency": {
+                "status": "severe", "findings": self.findings}}), encoding="utf-8", newline="\n")
+            body.pop("error", None)
+            body.update(candidate="candidate_01", status="severe")
+        return result
+
+
+def test_failed_trial_names_loose_divider_ends_and_source_self_check_findings(tmp_path):
+    value = plan()
+    value["partitions"].append({"id": "P2", "points": [[60, 40], [100, 40]], "source_refs": ["plan.png: wall"]})
+    loose = [{"partition": "P2", "end": [100, 40], "nearest_line": "footprint", "gap_px": 10.0}]
+    assert loose_partition_ends(value) == loose
+    assert loose_partition_ends(plan()) == []
+    workspace = tmp_path / "trial"
+    (workspace / "images").mkdir(parents=True)
+    (workspace / "images" / "plan.png").write_bytes(b"one-original")
+    overlap = {"code": "source.opening_overlap", "opening_ids": ["W1", "D1"],
+               "boundary_id": "space/left/wall/2", "severity": "severe", "area_m2": 1.9}
+
+    async def scenario():
+        dangling = PlanTrial(_FailingTools(workspace, error="polygonize produced dangles: [...]"),
+                             image_name="plan.png", workspace=workspace)
+        receipt = await dangling.run(value)
+        assert receipt["status"] == "failed" and receipt["loose_partition_ends"] == loose
+        checked = PlanTrial(_FailingTools(workspace, findings=[overlap]), image_name="plan.png", workspace=workspace)
+        receipt = await checked.run(plan())
+        assert receipt["reason"] == "source self-check failed: source.opening_overlap W1/D1 on space/left/wall/2"
+        assert receipt["source_findings"] == [overlap]
     asyncio.run(scenario())
 
 

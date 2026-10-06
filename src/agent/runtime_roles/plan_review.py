@@ -118,6 +118,34 @@ def unhosted_openings(plan):
     return found
 
 
+def loose_partition_ends(plan, tolerance=0.5):
+    """Partition ends touching no other declared line, with the nearest line and gap.
+
+    The compiler reports dangling segments only; readers repeatedly stopped dividers
+    at the inner face of an exterior wall, 10-20 px short of the footprint line
+    (10-06 probe run2, sm24 debug run2).
+    """
+    from shapely.geometry import LineString, Point
+
+    segments = list(_segments(plan))
+    found = []
+    for row in plan.get("partitions", []):
+        points = row.get("points") or []
+        others = [(identity, LineString([a, b])) for identity, a, b in segments if identity != row["id"]]
+        own = [LineString([a, b]) for identity, a, b in segments if identity == row["id"]]
+        for end in (points[0], points[-1]) if len(points) >= 2 else ():
+            point = Point(end)
+            if any(line.distance(point) <= tolerance for _, line in others):
+                continue
+            if any(line.distance(point) <= tolerance and not line.boundary.contains(point) for line in own):
+                continue
+            identity, line = min(others, key=lambda item: item[1].distance(point), default=(None, None))
+            found.append({"partition": row["id"], "end": end,
+                          "nearest_line": identity.split(":")[0] if identity else None,
+                          "gap_px": round(line.distance(point), 2) if line is not None else None})
+    return found
+
+
 def opening_hosts(plan):
     """Verify both input endpoints share a declared wall; never move them to pass."""
     result = []

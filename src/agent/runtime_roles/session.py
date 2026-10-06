@@ -78,8 +78,8 @@ EXTRA_TOOLS = [
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id", "sha256"))},
     {"name": "match_elevation", "description": "Match a validated elevation_reader artifact to a saved whole-building candidate. Returns matched openings, source-only/elevation-only openings and conflicts. Does not modify heights.",
      "inputSchema": schema({"task_id": {"type": "string"}, "candidate": {"type": "string"}}, ("task_id", "candidate"))},
-    {"name": "apply_elevation_heights", "description": "Confirm a saved match and apply safe matched heights with their image evidence. The source hash must still match. Unmatched or conflicting openings remain unresolved. Repeated match IDs cannot modify twice.",
-     "inputSchema": schema({"match_id": {"type": "string"}, "confirm": {"const": True}}, ("match_id", "confirm"))},
+    {"name": "apply_elevation_heights", "description": "Apply the safe matched heights of a saved match with their image evidence. The source hash must still match. Unmatched or conflicting openings remain unresolved. Repeated match IDs cannot modify twice.",
+     "inputSchema": schema({"match_id": {"type": "string"}}, ("match_id",))},
     {"name": "role_state", "description": "Read all reader task/target/status/artifact references and per-role/root usage. These references also survive context compaction.", "inputSchema": schema({})},
     {"name": "review_role_assembly", "description": "Acknowledge each reported assembly change against the accepted reader trials with its specific reason before continuing writes or delivery. Source and reader hashes must still match.",
      "inputSchema": schema({"review_id": {"type": "string"}, "decisions": {"type": "array", "items": schema({
@@ -148,6 +148,11 @@ class RoleSession:
                     if report is not None:
                         result = self._with_assembly_review(result, report)
                 return result
+            if name == "apply_elevation_heights" and isinstance(arguments, dict):
+                # The former confirm flag carried nothing beyond match_id; GLM's
+                # Anthropic-compatible route sent it as the string "true" (10-06 sm24
+                # debug run2), so tolerate and drop it rather than block heights.
+                arguments = {key: value for key, value in arguments.items() if key != "confirm"}
             jsonschema.validate(arguments, self.schemas[name])
             if name == "delegate_readers":
                 return envelope(await self.delegate_many(arguments["tasks"]))

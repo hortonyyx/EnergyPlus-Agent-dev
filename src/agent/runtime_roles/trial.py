@@ -16,7 +16,7 @@ from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import format_failure, plan_format_errors
-from .plan_review import revise_operations, topology_issues, unhosted_openings
+from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -604,6 +604,29 @@ class PlanTrial:
                     receipt["unhosted_openings_note"] = (
                         "Every opening below lies on no declared footprint edge or partition (original pixels). "
                         "Put each on its wall line: exterior ones on the footprint line, interior ones on their partition.")
+            if "dangle" in receipt["reason"]:
+                try:
+                    loose = loose_partition_ends(numeric_plan)
+                except (ValueError, KeyError, TypeError, IndexError):
+                    loose = []
+                if loose:
+                    receipt["loose_partition_ends"] = loose
+                    receipt["loose_partition_ends_note"] = (
+                        "Each divider end below meets no other declared line (original pixels). Extend it to the "
+                        "wall it reaches: an exterior wall's footprint line, or the partition it joins.")
+            # A compiled draft can still fail the source self-check; name what failed
+            # instead of the bare status (sm24 debug run2: overlapping window and door).
+            if isinstance(result.get("candidate"), str) and self.workspace is not None:
+                report_path = _inside(self.workspace, f"{result['candidate']}/report.json")
+                if report_path.is_file():
+                    report = json.loads(report_path.read_bytes())
+                    findings = [row for row in (report.get("source_geometry_self_consistency") or {}).get("findings", [])
+                                if isinstance(row, Mapping) and row.get("severity") == "severe"]
+                    if findings:
+                        receipt["source_findings"] = findings[:10]
+                        receipt["reason"] = "source self-check failed: " + "; ".join(
+                            f"{row.get('code')} {'/'.join(row.get('opening_ids') or [])} on {row.get('boundary_id')}"
+                            for row in findings[:5])
         receipt["phase"] = "operations" if ready or previous_plan is not None else "draft"
         flagged_dividers = {row.get("divider") for row in topology_issues([receipt])}
         receipt["topology_dividers"] = {row["id"]: row["points"] for row in numeric_plan.get("partitions", [])

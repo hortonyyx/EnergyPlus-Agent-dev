@@ -332,8 +332,11 @@ def test_missing_candidate_and_match_are_correctable_tool_errors(environment):
     asyncio.run(session.delegate_many([dispatch()]))
     candidate = asyncio.run(session.call_tool("match_elevation", {"task_id": "north", "candidate": "candidate_999"}))
     match = asyncio.run(session.call_tool("apply_elevation_heights", {"match_id": "0" * 64, "confirm": True}))
-    for result in (candidate, match):
+    # GLM's Anthropic-compatible route sent the old confirm flag as "true" (sm24 debug run2).
+    string_confirm = asyncio.run(session.call_tool("apply_elevation_heights", {"match_id": "0" * 64, "confirm": "true"}))
+    for result in (candidate, match, string_confirm):
         assert result["isError"] and result["structuredContent"]["status"] == "rejected"
+    assert "confirm" not in string_confirm["structuredContent"]["reason"]
     assert not session.frozen.calls
 
 
