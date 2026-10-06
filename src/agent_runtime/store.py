@@ -6,6 +6,7 @@ from src.utils import file_lock
 import hashlib
 import json
 import os
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -18,6 +19,24 @@ from src.harness_contracts import (
 def json_bytes(value) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True,
                       separators=(",", ":"), allow_nan=False).encode("utf-8")
+
+
+def replace_file(source, target) -> None:
+    """os.replace that rides out brief Windows sharing violations.
+
+    Windows refuses to replace a file another process holds open (search
+    indexer, scanners); in 10-07 sm24 run4 one such PermissionError on a
+    reader's checkpoint.json ended that elevation reader. Retry briefly.
+    """
+    for delay in (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 1.0):
+        try:
+            os.replace(source, target)
+            return
+        except PermissionError:
+            if os.name != "nt":
+                raise
+            time.sleep(delay)
+    os.replace(source, target)
 
 
 class EventStore:
@@ -167,7 +186,7 @@ class EventStore:
             output.write(repaired)
             output.flush()
             os.fsync(output.fileno())
-        os.replace(temporary, self.path)
+        replace_file(temporary, self.path)
         self._sync_directory(self.directory)
         return record
 
@@ -211,7 +230,7 @@ class EventStore:
                 output.write(data)
                 output.flush()
                 os.fsync(output.fileno())
-            os.replace(temp, path)
+            replace_file(temp, path)
             self._sync_directory(path.parent)
         return HashedBlobRef(uri=relative, sha256=sha, media_type=media_type)
 
@@ -361,7 +380,7 @@ class EventStore:
             output.write(json_bytes(value))
             output.flush()
             os.fsync(output.fileno())
-        os.replace(temp, path)
+        replace_file(temp, path)
         self._sync_directory(path.parent)
 
     @staticmethod

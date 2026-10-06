@@ -472,3 +472,25 @@ def test_runtime_core_imports_stay_independent_of_building_layer():
                 assert name not in {"src", "agent", "scripts"}, (file.name, name)
                 assert not name.startswith(("src.agent.", "scripts.")), (file.name, name)
                 assert name != "src.agent", (file.name, name)
+
+
+def test_write_json_rides_out_a_brief_windows_sharing_violation(tmp_path, monkeypatch):
+    # 10-07 sm24 run4: an external handle on checkpoint.json made os.replace
+    # raise PermissionError and ended an elevation reader.
+    import src.agent_runtime.store as store_module
+    limits = RunLimits(model_calls=1, tool_calls=1, seconds=30.0, tokens=1_000)
+    store = EventStore(tmp_path / "run", run_id="run-test", task_id="task", budget_limit=limits.ledger_limit())
+    real, calls = store_module.os.replace, []
+
+    def flaky(source, target):
+        calls.append(target)
+        if len(calls) < 3:
+            raise PermissionError(5, "Access is denied")
+        real(source, target)
+
+    monkeypatch.setattr(store_module.os, "name", "nt")
+    monkeypatch.setattr(store_module.os, "replace", flaky)
+    monkeypatch.setattr(store_module.time, "sleep", lambda _: None)
+    store.write_json("checkpoint.json", {"saved": True})
+    assert json.loads((tmp_path / "run" / "checkpoint.json").read_bytes()) == {"saved": True}
+    assert len(calls) == 3
