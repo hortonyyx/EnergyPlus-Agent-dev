@@ -1,0 +1,241 @@
+{
+  "status": "passed_trial_intermediate_not_validated_delivery",
+  "reference_kind": "Opus 10-01 reviewed source, not exact ground truth",
+  "source": "AI_agent/logs/experiments/2026-10-06_role_division_d1/small_test/tasks/2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4/bim/trial_workspace/candidate_02/source_model.json",
+  "source_sha256": "29a379be3d3436fd84f43948a638a2c2f0cfbf3760db984c745f63a068b7db78",
+  "reference": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/candidate_02/source_model.json",
+  "reference_sha256": "82b1c2f5bbd47ae595fe12d4203e0a53940eefd647ea276a906e54b6d4684915",
+  "counts": {
+    "trial": {
+      "rooms": 8,
+      "window": 11,
+      "door": 10
+    },
+    "reference": {
+      "rooms": 8,
+      "window": 11,
+      "door": 10
+    }
+  },
+  "footprint_iou": 1.0,
+  "room_assignment": "maximum one-to-one XY polygon IoU; same input world coordinates, no fitted alignment",
+  "room_matches": [
+    {
+      "reference_id": "COR",
+      "trial_id": "corridor",
+      "iou": 0.9775486534996661
+    },
+    {
+      "reference_id": "LOBBY",
+      "trial_id": "lounge",
+      "iou": 0.9988108374384235
+    },
+    {
+      "reference_id": "R_EA",
+      "trial_id": "service",
+      "iou": 0.9543757847997704
+    },
+    {
+      "reference_id": "R_EB",
+      "trial_id": "meeting_e",
+      "iou": 0.9795562431914772
+    },
+    {
+      "reference_id": "R_SE",
+      "trial_id": "office_se",
+      "iou": 0.9895726635776536
+    },
+    {
+      "reference_id": "R_WA",
+      "trial_id": "office_nw",
+      "iou": 0.98654705879954
+    },
+    {
+      "reference_id": "R_WB",
+      "trial_id": "office_w",
+      "iou": 0.9900731101462543
+    },
+    {
+      "reference_id": "R_WC",
+      "trial_id": "conference",
+      "iou": 0.9945665695727023
+    }
+  ],
+  "minimum_room_iou": 0.9543757847997704,
+  "opening_assignment": "minimum one-to-one XY center distance within same kind/exterior class",
+  "opening_matches": [
+    {
+      "reference_id": "W_E1",
+      "trial_id": "W7",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.021034499999998957,
+      "width_error_m": 0.04482699999999795
+    },
+    {
+      "reference_id": "W_E2",
+      "trial_id": "W8",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.013103499999999713,
+      "width_error_m": 0.04137900000000094
+    },
+    {
+      "reference_id": "W_E3",
+      "trial_id": "W9",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.015172500000000255,
+      "width_error_m": 0.05517299999999992
+    },
+    {
+      "reference_id": "W_N",
+      "trial_id": "W6",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.02143249999999952,
+      "width_error_m": 0.0760329999999998
+    },
+    {
+      "reference_id": "W_S1",
+      "trial_id": "W10",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.0365565000000001,
+      "width_error_m": 0.07024699999999995
+    },
+    {
+      "reference_id": "W_S2",
+      "trial_id": "W11",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.018540000000001555,
+      "width_error_m": 0.07024800000000031
+    },
+    {
+      "reference_id": "W_W1",
+      "trial_id": "W1",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.03482749999999868,
+      "width_error_m": 0.0724129999999974
+    },
+    {
+      "reference_id": "W_W2",
+      "trial_id": "W2",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.026896499999999435,
+      "width_error_m": 0.06896500000000216
+    },
+    {
+      "reference_id": "W_W3",
+      "trial_id": "W3",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.013448000000000349,
+      "width_error_m": 0.0724140000000002
+    },
+    {
+      "reference_id": "W_W4",
+      "trial_id": "W4",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.04379299999999908,
+      "width_error_m": 0.15517199999999853
+    },
+    {
+      "reference_id": "W_W5",
+      "trial_id": "W5",
+      "kind": "window",
+      "exterior": true,
+      "center_xy_error_m": 0.029654999999999987,
+      "width_error_m": 0.08275800000000011
+    },
+    {
+      "reference_id": "D_E",
+      "trial_id": "D8",
+      "kind": "door",
+      "exterior": true,
+      "center_xy_error_m": 0.017241000000000284,
+      "width_error_m": 8.881784197001252e-16
+    },
+    {
+      "reference_id": "D_N",
+      "trial_id": "D1",
+      "kind": "door",
+      "exterior": true,
+      "center_xy_error_m": 0.05900800000000017,
+      "width_error_m": 0.02534399999999981
+    },
+    {
+      "reference_id": "D_S",
+      "trial_id": "D10",
+      "kind": "door",
+      "exterior": true,
+      "center_xy_error_m": 0.04509650000000054,
+      "width_error_m": 0.009090999999999738
+    },
+    {
+      "reference_id": "D_EA",
+      "trial_id": "D6",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.03701932411930375,
+      "width_error_m": 0.0655170000000016
+    },
+    {
+      "reference_id": "D_EB",
+      "trial_id": "D7",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.03628133646932085,
+      "width_error_m": 0.06551800000000085
+    },
+    {
+      "reference_id": "D_SE",
+      "trial_id": "D9",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.046263847821490046,
+      "width_error_m": 0.06418700000000044
+    },
+    {
+      "reference_id": "D_WA",
+      "trial_id": "D3",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.020959274945713254,
+      "width_error_m": 0.06551699999999983
+    },
+    {
+      "reference_id": "D_WB",
+      "trial_id": "D4",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.020231752525424116,
+      "width_error_m": 0.09310299999999927
+    },
+    {
+      "reference_id": "D_WC",
+      "trial_id": "D5",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.0382036097247362,
+      "width_error_m": 0.09310399999999941
+    },
+    {
+      "reference_id": "D_lobby",
+      "trial_id": "D2",
+      "kind": "door",
+      "exterior": false,
+      "center_xy_error_m": 0.01459563838960088,
+      "width_error_m": 0.02721799999999952
+    }
+  ],
+  "opening_center_xy_error_mean_m": 0.029017132571218466,
+  "opening_center_xy_error_max_m": 0.05900800000000017,
+  "opening_width_error_mean_m": 0.06277276190476185,
+  "opening_width_error_max_m": 0.15517199999999853,
+  "quality_boundary": "These are geometric diagnostics of an intermediate draft. No final delivery, topology/room-type acceptance, or height accuracy is inferred; no new model call."
+}

@@ -83,9 +83,15 @@ class Runtime:
     start_epoch: float | None = None
     finalize_run: object | None = None
     tool_budget_update: object | None = None
+    # Parallel roles reserve a bounded slice per in-flight request so the first
+    # reader cannot hold the entire shared time budget. None preserves the
+    # established single-model deadline and exact request path.
+    request_timeout_seconds: float | None = None
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
+        if self.request_timeout_seconds is not None and self.request_timeout_seconds <= 0:
+            raise ValueError("request_timeout_seconds must be positive")
         validate_output_limit(self.model, self.parameters.get("max_tokens",
             self.parameters.get("max_completion_tokens")), reason=self.low_output_limit_reason)
         self.started = time.monotonic()
@@ -224,7 +230,9 @@ class Runtime:
             "max_answer_repairs": self.max_answer_repairs,
             "low_output_limit_reason": self.low_output_limit_reason,
             "required_context_tags": list(self.required_context_tags),
-            "required_view_ids": list(self.required_view_ids)}
+            "required_view_ids": list(self.required_view_ids),
+            **({"request_timeout_seconds": self.request_timeout_seconds}
+               if self.request_timeout_seconds is not None else {})}
 
     def _load_budget(self):
         self.cny_pricing = (require_cny_price_schedule(self.model,
@@ -334,6 +342,8 @@ class Runtime:
                 self.budget.available.seconds,
                 self.task_budget.available.seconds,
             )
+            if self.request_timeout_seconds is not None:
+                seconds = min(seconds, Decimal(str(self.request_timeout_seconds)))
             if seconds <= 0:
                 return None, self._scoped_budget_reason(
                     "time", task=self.task_budget.available.seconds <= 0

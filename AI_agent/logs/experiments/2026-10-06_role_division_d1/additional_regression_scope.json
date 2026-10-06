@@ -1,0 +1,58 @@
+{
+  "purpose": "Historical C2 and C3 BIM/tool regression scope not already covered by the Runtime and Stage suites",
+  "source_evidence": [
+    "AI_agent/logs/experiments/2026-10-03_cleanup_c2/validation/final/t1.json",
+    "AI_agent/logs/experiments/2026-10-05_cleanup_c3t/validation/related_final.json",
+    "AI_agent/logs/experiments/2026-10-05_cleanup_c3r/verification_closure.json"
+  ],
+  "selection": {
+    "c2_files_are_subset_of_c3t": true,
+    "excluded_as_covered_elsewhere": [
+      "tests/test_runtime_*.py",
+      "tests/test_stage1_behaviour.py"
+    ],
+    "file_count": 40
+  },
+  "test_files": [
+    "tests/test_behaviour_c2.py",
+    "tests/test_bim_a3t.py",
+    "tests/test_bim_a4t.py",
+    "tests/test_bim_absorb_a5t.py",
+    "tests/test_bim_add_opening.py",
+    "tests/test_bim_agent_bridge.py",
+    "tests/test_bim_agent_glm_route.py",
+    "tests/test_bim_agent_guidance.py",
+    "tests/test_bim_agent_inference.py",
+    "tests/test_bim_agent_inputs.py",
+    "tests/test_bim_agent_mesh.py",
+    "tests/test_bim_agent_plan_partition.py",
+    "tests/test_bim_agent_region_overview.py",
+    "tests/test_bim_agent_tools.py",
+    "tests/test_bim_candidate_budget.py",
+    "tests/test_bim_claim_facts.py",
+    "tests/test_bim_claim_state.py",
+    "tests/test_bim_claim_transactions.py",
+    "tests/test_bim_claims.py",
+    "tests/test_bim_cleanup_c2.py",
+    "tests/test_bim_cleanup_c3t.py",
+    "tests/test_bim_continuation.py",
+    "tests/test_bim_delivery.py",
+    "tests/test_bim_delivery_reply.py",
+    "tests/test_bim_evaluation_conventions.py",
+    "tests/test_bim_facade_counts.py",
+    "tests/test_bim_height_coverage.py",
+    "tests/test_bim_input_preparation.py",
+    "tests/test_bim_input_scale.py",
+    "tests/test_bim_input_view_status.py",
+    "tests/test_bim_located_heights.py",
+    "tests/test_bim_regression_report.py",
+    "tests/test_bim_shape_claims.py",
+    "tests/test_bim_time_budget.py",
+    "tests/test_bim_tool_feedback.py",
+    "tests/test_bim_view_references.py",
+    "tests/test_building_precision.py",
+    "tests/test_plan_evidence_feedback.py",
+    "tests/test_plan_measurement_binding.py",
+    "tests/test_plan_revision.py"
+  ]
+}

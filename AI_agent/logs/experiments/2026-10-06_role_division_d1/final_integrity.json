@@ -1,0 +1,67 @@
+{
+  "agent_version": "t1-20261006-d1.1",
+  "version_files_verified": 70,
+  "old_versions_unchanged": true,
+  "tracked_changes": [
+    "src/agent/runtime_configuration.py",
+    "src/agent_runtime/agent_versions.json",
+    "src/agent_runtime/loop.py"
+  ],
+  "untracked_files_count_at_check": 6470,
+  "new_source_scripts_ast_valid": 23,
+  "scope_verified": true,
+  "git_writes": false,
+  "diff_check": "passed",
+  "guidance": {
+    "single_model": {
+      "character_count": 9670,
+      "sha256": "5ac8e4c4c67c4cb9556ab5bba382602f564dd1954290f147e701ea758e116b42",
+      "unchanged_source": "scripts/tool_scripts/bim_agent_guidance.py:build_guide"
+    },
+    "roles": {
+      "coordinator": {
+        "character_count": 1167,
+        "sha256": "7edcf638596d3a6ad31d4c307955ee414bf804de7ae8858437c302b8d0623057",
+        "tools": [
+          "delegate_readers",
+          "read_role_artifact",
+          "build_from_artifact",
+          "match_elevation",
+          "apply_elevation_heights",
+          "role_state"
+        ]
+      },
+      "plan_reader": {
+        "character_count": 6252,
+        "sha256": "9ff5cb7953ce5c6bcfaba0d4373dbdf310f85983aa9474fb60f1a0fdfbfeb452",
+        "tools": [
+          "inputs",
+          "view_image",
+          "pixel_profile",
+          "view_pixel_profile",
+          "view_pixel_region_overview",
+          "view_pixel_region",
+          "map_pixels",
+          "map_dimension_chain",
+          "get_bim_reference",
+          "trial_plan_bim"
+        ]
+      },
+      "elevation_reader": {
+        "character_count": 5436,
+        "sha256": "1bc4721ed764228d80ee3ed8cbffc6fd4770c33c24c374520a66ebff8d17077a",
+        "tools": [
+          "inputs",
+          "view_image",
+          "pixel_profile",
+          "view_pixel_profile",
+          "view_pixel_region_overview",
+          "view_pixel_region",
+          "map_pixels",
+          "map_dimension_chain",
+          "get_bim_reference"
+        ]
+      }
+    }
+  }
+}
