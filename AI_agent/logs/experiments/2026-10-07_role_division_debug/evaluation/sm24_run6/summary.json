@@ -1,0 +1,240 @@
+{
+  "mode": "post_generation_evaluation_only",
+  "modelling_task": "reconstruction",
+  "reference_scope": "sm24_anchor role-division debug; scored after the run ended, GT unchanged.",
+  "interpretation": "还原建模：以下为独立参照差异，不自动等于原图保真或整案验收。",
+  "input_manifest_sha256": "25741acb2231f330e80a5ecda38a179c473d9a09bd24db16d1d7d0ac65787485",
+  "completion_evidence": {
+    "path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\bim\\summary.json",
+    "sha256": "71192497994756eb4e242fda8faaf6a4510d398e010dfdfc75426d74c48f2e36"
+  },
+  "reading_report": "reading_readings.json",
+  "delivery_quality_report": "delivery_quality.json",
+  "reference_case": "sm24_anchor",
+  "reference_path": "case_tests\\test_baseline\\gt\\sm24_anchor\\gt.json",
+  "reference_sha256": "5a8dcba5ab4f5b2b5dc30df91896eeee50e01f9a5bf06ec1b379101a4d16d420",
+  "candidates": [
+    {
+      "candidate": "candidate_01",
+      "is_recovery_seed": false,
+      "source_sha256": "907f9200b8b4f90b84edb0b07fe85936920630cffbb6b50c74e997ef10fdb282",
+      "partition_status": "severe",
+      "delivery_quality_status": "severe",
+      "convention_difference_count": 0,
+      "delivery_quality_report": "candidate_01_delivery_quality.json",
+      "reference_spaces": 8,
+      "candidate_spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 10
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 11,
+        "built_window_count": 10,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_02",
+      "is_recovery_seed": false,
+      "source_sha256": "69ff9bb34146e5a40e606e75c41f72d3351f662b987ee367edcd30991a583239",
+      "partition_status": "severe",
+      "delivery_quality_status": "severe",
+      "convention_difference_count": 0,
+      "delivery_quality_report": "candidate_02_delivery_quality.json",
+      "reference_spaces": 8,
+      "candidate_spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 10
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 11,
+        "built_window_count": 10,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_03",
+      "is_recovery_seed": false,
+      "source_sha256": "777d3ecbffe44494887d07f497753ec77c16f1386ad106f1b647ea375eefb9d6",
+      "partition_status": "severe",
+      "delivery_quality_status": "severe",
+      "convention_difference_count": 0,
+      "delivery_quality_report": "candidate_03_delivery_quality.json",
+      "reference_spaces": 8,
+      "candidate_spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 10
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 11,
+        "built_window_count": 10,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_04",
+      "is_recovery_seed": false,
+      "source_sha256": "68dbfbcd4d23ac214ba9ea5e48095d15f8bbc846b19ab9b536e247ab601cfb81",
+      "partition_status": "severe",
+      "delivery_quality_status": "severe",
+      "convention_difference_count": 0,
+      "delivery_quality_report": "candidate_04_delivery_quality.json",
+      "reference_spaces": 8,
+      "candidate_spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 11
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 11,
+        "built_window_count": 11,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ]
+    },
+    {
+      "candidate": "candidate_05",
+      "is_recovery_seed": false,
+      "source_sha256": "4a29c4033487b62ab8b7af9210e870eabbe256c990facecd6bfd949d2658cfcd",
+      "partition_status": "severe",
+      "delivery_quality_status": "severe",
+      "convention_difference_count": 0,
+      "delivery_quality_report": "candidate_05_delivery_quality.json",
+      "reference_spaces": 8,
+      "candidate_spaces": 8,
+      "openings": {
+        "door": 10,
+        "window": 11
+      },
+      "built_window_comparison": {
+        "status": "not_evaluated",
+        "reason": "typed_v3_window_comparison_not_integrated_in_this_diagnostic",
+        "reference_window_count": 11,
+        "built_window_count": 11,
+        "count_is_not_a_match_score": true
+      },
+      "topology_findings": [
+        {
+          "code": "internal_partition_boundary_changed",
+          "severity": "severe",
+          "message": "Interior source boundaries differ inside the common footprint, beyond the boundary tolerance.",
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ],
+      "internal_boundary_comparison": [
+        {
+          "floor_id": "F1",
+          "missing_length_m": 14.051746105606721,
+          "extra_length_m": 14.066570105606726,
+          "missing_wkt": "MULTILINESTRING ((4.160327999000001 12.999999999999996, 0.020000001 12.999999999999996), (9.979999999 4.940000000000001, 5.839672000999999 4.940000000000001), (5.819999999999997 3.451090112606724, 5.819999999999997 3.4400000000000013), (5.819999999999997 3.4400000000000013, 4.200328001 3.4400000000000013), (9.979999999 13.999999999999996, 5.839672000999999 13.999999999999996))",
+          "extra_wkt": "MULTILINESTRING ((4.200000000999999 3.471074, 5.799999998999997 3.471074), (5.819672 4.9599838873932764, 5.819672 4.986226), (5.819672 4.986226, 9.979999999 4.986226), (4.159999999 13.030303, 0.020000001 13.030303), (9.979999999 14.132231, 5.840000000999996 14.132231))"
+        }
+      ]
+    }
+  ],
+  "overall_fidelity": "not_automatically_decided",
+  "limits": [
+    "Reference completeness and original pixel truth require separate evidence.",
+    "Independent plan inventory checks openings/hosts/connections where supplied; interior heights and vertical voids remain unverified.",
+    "Raw partition differences are unchanged; only documented, bounded conventions are separated in delivery quality.",
+    "No evaluation feedback supplied to the generating model."
+  ]
+}
