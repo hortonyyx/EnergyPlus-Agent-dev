@@ -84,6 +84,20 @@ def test_urllib_request_to_remote_is_blocked():
     )
 
 
+def test_system_proxy_cannot_carry_a_remote_call():
+    # With a loopback HTTP proxy configured (environment or the Windows
+    # registry), every client request would be a local connection that the
+    # gate must allow, and a billed call would leave through the proxy. The
+    # gate removes the proxy settings so clients connect directly.
+    import os
+
+    for key in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY"):
+        assert key not in os.environ
+    assert os.environ.get("NO_PROXY") == "*"
+    proxies = urllib.request.getproxies()
+    assert not {scheme: url for scheme, url in proxies.items() if scheme != "no"}
+
+
 def test_loopback_connection_is_allowed():
     # A test that talks to a local server it started must not be blocked.
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

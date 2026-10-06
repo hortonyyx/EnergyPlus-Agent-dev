@@ -135,6 +135,30 @@ _LIVE_ACTIVE = False
 # wrap the wrapper (we always rebuild from the saved real implementations).
 _INSTALLED = False
 
+# A system HTTP proxy (environment or, on Windows, the registry that urllib,
+# httpx and requests all consult) sends every client request to a loopback
+# port, which the locality test must allow; a billed request would then leave
+# through the proxy unseen. Outside live tests the gate therefore removes the
+# proxy variables and sets NO_PROXY=* so clients connect directly and stay
+# visible to the wrapper. Windows os.environ is case-insensitive, so both
+# spellings are handled.
+_PROXY_KEYS = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY",
+               "http_proxy", "https_proxy", "all_proxy", "NO_PROXY", "no_proxy")
+_SAVED_PROXY_ENV = {key: os.environ[key] for key in _PROXY_KEYS if key in os.environ}
+
+
+def _disable_proxies() -> None:
+    for key in _PROXY_KEYS:
+        os.environ.pop(key, None)
+    os.environ["NO_PROXY"] = "*"
+    os.environ["no_proxy"] = "*"
+
+
+def _restore_proxies() -> None:
+    for key in _PROXY_KEYS:
+        os.environ.pop(key, None)
+    os.environ.update(_SAVED_PROXY_ENV)
+
 
 class ProviderCallBlocked(RuntimeError):
     """Raised when a test tries to emit a real, billable network request."""
@@ -203,6 +227,7 @@ def _install() -> None:
     global _INSTALLED
     socket.socket.connect = _guarded(_REAL_CONNECT)
     socket.socket.connect_ex = _guarded(_REAL_CONNECT_EX)
+    _disable_proxies()
     _INSTALLED = True
 
 
@@ -210,6 +235,7 @@ def _uninstall() -> None:
     global _INSTALLED
     socket.socket.connect = _REAL_CONNECT
     socket.socket.connect_ex = _REAL_CONNECT_EX
+    _restore_proxies()
     _INSTALLED = False
 
 
@@ -234,9 +260,11 @@ def _lift_gate_for_live(request):
     global _LIVE_ACTIVE
     if request.node.get_closest_marker("live"):
         _LIVE_ACTIVE = True
+        _restore_proxies()
         try:
             yield
         finally:
+            _disable_proxies()
             _LIVE_ACTIVE = False
     else:
         yield
