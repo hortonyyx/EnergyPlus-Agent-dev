@@ -107,3 +107,10 @@
 - 清理后再次激活仓库 `.venv`，Python **3.12.10** 实际从本机 `Scripts/python.exe` 启动，`import src.agent` 通过。`.devcontainer/`、`docker/`、`pyproject.toml`、`uv.lock` 存在且无额外改动；本地 `.env` 只检查存在性，未读取或输出内容。
 - 两份容器会话/临时资料备份仍在本机忽略目录，重新计算 SHA256 与此前值完全一致。现有 Windows 个人配置和会话保留。
 - 本次收尾只修改本记录、`verification.json` 与 `project/roadmap.md`；JSON 解析、数值一致性与 diff 检查后提交、push。迁移第 ① 项已完成，后续按既定路线进入第 ② 项分工体系 v1；未新增模型请求，未运行整案。
+
+## 10-06：VS Code 本地启动收尾
+
+- 用户反馈打开 VS Code 仍尝试连接容器。当前日志的 `remoteAuthority=dev-container+...` 和保存的上次活动窗口一致，说明客户端正在恢复旧容器窗口。
+- 备份本机 VS Code 用户设置后，只加入 `window.restoreWindows: "none"`，其他设置逐项比对保持。启动偏好和备份均在用户目录，不入仓。
+- 使用 `code --reuse-window --remote= --folder-uri 'file:///c:/Users/Horton/Desktop/EnergyPlus-Agent-dev'` 打开本机仓库。`code --status` 确认 Windows 本地窗口；随后回读保存的文件夹为 `file:///c%3A/Users/Horton/Desktop/EnergyPlus-Agent-dev`、`remoteAuthority` 为空，设置回读为 `none`。
+- 本地入口和以后避免选择旧容器最近记录的方法已补入 `workflow/session_setup.md`。本次仅修复客户端打开方式，未发出模型请求、未重跑环境或整案检查，也未重建容器。

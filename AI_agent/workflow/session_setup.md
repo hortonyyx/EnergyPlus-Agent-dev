@@ -14,6 +14,20 @@ Agent.md 保持稳定入口，当前任务维护最新指向，收工记录保�
 
 自动载入 Agent.md 不等于自动载入其中所有链接；助手仍须按要求实际打开这些文件。下节的本地入口配置未随 Git 保存，换机器或客户端时需先接好入口，不能假定新环境已经配置。
 
+## VS Code 在 Windows 本地打开
+
+本仓库迁移后从 Windows 本地路径打开。若 VS Code 启动仍尝试连接旧容器，可在命令面板执行 `Dev Containers: Reopen Folder Locally`；也可从 Windows PowerShell 显式指定本地入口：
+
+```powershell
+code --reuse-window --remote= --folder-uri 'file:///c:/Users/Horton/Desktop/EnergyPlus-Agent-dev'
+```
+
+10-06 已在 VS Code 1.140.0 实际核对：窗口打开本机仓库，保存的文件夹 URI 为 `file:///c%3A/Users/Horton/Desktop/EnergyPlus-Agent-dev`，`remoteAuthority` 为空。旧问题来自启动时恢复先前的容器窗口。
+
+本机用户设置已备份后加入 `"window.restoreWindows": "none"`；以后只点 VS Code 图标会进入普通本地空窗口，再通过“文件 → 打开文件夹”选择仓库。此项属于个人启动偏好，不写入仓库 `.vscode/settings.json`。不要在“打开最近的项目”里选择带 Dev Container 标记的旧入口。
+
+`.devcontainer/` 与 `docker/` 继续作为以后主动构建容器的配置保留。官方行为说明见 [VS Code 窗口恢复设置](https://code.visualstudio.com/docs/editing/getting-started/userinterface#_window-management)。
+
 ## 当前 Codex 环境
 
 Windows 本机的 `.codex/config.toml` 被 Git 忽略，入口设置如下，保留原来的沙箱和 MCP 配置：
