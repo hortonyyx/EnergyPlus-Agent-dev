@@ -1,0 +1,3570 @@
+{
+  "schema_version": "d1_offline_scripted_replay_v1",
+  "offline_only": true,
+  "external_model_or_api_calls": 0,
+  "scope": "real frozen MCP orchestration and recovery evidence; not fresh model reading quality",
+  "cases": [
+    {
+      "case": "sm24",
+      "mode": "offline_scripted_fixture_not_model_quality",
+      "agent_version": "t1-20261006-d1.1",
+      "status": "completed",
+      "delivery_status": "delivered",
+      "output": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm24",
+      "delivery_html": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm24/bim/delivery.html",
+      "events": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm24/events.jsonl",
+      "receipt": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm24/receipt.json",
+      "delivery_selection_sha256": "d5ff4e9a65807c567c564d07767980575f25917916bbefd28b87f62012774172",
+      "source_model_sha256": "33703d8ca3ac168df79ca7bd5d57bb479cf3fdf76ff025c3eb1b4a1b27130b6c",
+      "floors": [
+        "F1"
+      ],
+      "reader_artifact_count": 5,
+      "elevation_match_count": 4,
+      "height_transaction_count": 4,
+      "height_application_count": 14,
+      "event_count": 340,
+      "model_requests": 26,
+      "tool_invocations": [
+        "inputs",
+        "delegate_readers",
+        "trial_plan_bim",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "build_from_artifact",
+        "match_elevation",
+        "apply_elevation_heights",
+        "match_elevation",
+        "apply_elevation_heights",
+        "match_elevation",
+        "apply_elevation_heights",
+        "match_elevation",
+        "apply_elevation_heights",
+        "check_openings",
+        "inspect_candidate",
+        "finish_bim"
+      ],
+      "role_accounting": {
+        "additional_image_tokens": 25542097,
+        "billing_modes": [
+          "metered_or_unknown"
+        ],
+        "budget_charge_tokens": 25542877,
+        "by_model": {
+          "scripted-model": {
+            "additional_image_tokens": 25542097,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 25542877,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 25542097,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 780,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 520,
+            "reported_output_tokens": 260,
+            "requests": 26,
+            "usage_complete": true
+          }
+        },
+        "by_role": {
+          "coordinator": {
+            "additional_image_tokens": 8708450,
+            "after_repair_rate": null,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 8709050,
+            "by_model": {
+              "scripted-model": {
+                "additional_image_tokens": 8708450,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 8709050,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 8708450,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 600,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 400,
+                "reported_output_tokens": 200,
+                "requests": 20,
+                "usage_complete": true
+              }
+            },
+            "by_task": {
+              "coordinator": {
+                "additional_image_tokens": 8708450,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 8709050,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 8708450,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 600,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 400,
+                "reported_output_tokens": 200,
+                "requests": 20,
+                "usage_complete": true
+              }
+            },
+            "cost_estimate_complete": false,
+            "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+            "delivered_tasks": 0,
+            "delivery_failures": [],
+            "estimated_cost_cny": null,
+            "failures": [],
+            "first_pass_rate": null,
+            "first_pass_tasks": 0,
+            "format_errors": 0,
+            "image_tokens_estimate": 8708450,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 600,
+            "repair_failures": 0,
+            "repair_incomplete": 0,
+            "repair_requests": 0,
+            "repair_successes": 0,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 400,
+            "reported_output_tokens": 200,
+            "request_duration_complete": true,
+            "request_seconds": 0.091999999996915,
+            "requests": 20,
+            "task_elapsed_seconds_sum": 42.781529903411865,
+            "task_wall_span_seconds": 42.781529903411865,
+            "tool_calls": 19,
+            "usage_complete": true,
+            "validated_tasks": 0
+          },
+          "elevation_reader": {
+            "additional_image_tokens": 13336577,
+            "after_repair_rate": 1.0,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 13336697,
+            "by_model": {
+              "scripted-model": {
+                "additional_image_tokens": 13336577,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 13336697,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 13336577,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 120,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 80,
+                "reported_output_tokens": 40,
+                "requests": 4,
+                "usage_complete": true
+              }
+            },
+            "by_task": {
+              "sm24_elev_east": {
+                "additional_image_tokens": 2456909,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 2456939,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 2456909,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              },
+              "sm24_elev_north": {
+                "additional_image_tokens": 4771390,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 4771420,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 4771390,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              },
+              "sm24_elev_south": {
+                "additional_image_tokens": 3546338,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 3546368,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 3546338,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              },
+              "sm24_elev_west": {
+                "additional_image_tokens": 2561940,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 2561970,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 2561940,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              }
+            },
+            "cost_estimate_complete": false,
+            "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+            "delivered_tasks": 4,
+            "delivery_failures": [],
+            "estimated_cost_cny": null,
+            "failures": [],
+            "first_pass_rate": 1.0,
+            "first_pass_tasks": 4,
+            "format_errors": 0,
+            "image_tokens_estimate": 13336577,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 120,
+            "repair_failures": 0,
+            "repair_incomplete": 0,
+            "repair_requests": 0,
+            "repair_successes": 0,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 80,
+            "reported_output_tokens": 40,
+            "request_duration_complete": true,
+            "request_seconds": 0.0,
+            "requests": 4,
+            "task_elapsed_seconds_sum": 20.054753303527832,
+            "task_wall_span_seconds": 9.274409294128418,
+            "tool_calls": 0,
+            "usage_complete": true,
+            "validated_tasks": 4
+          },
+          "plan_reader": {
+            "additional_image_tokens": 3497070,
+            "after_repair_rate": 1.0,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 3497130,
+            "by_model": {
+              "scripted-model": {
+                "additional_image_tokens": 3497070,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 3497130,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 3497070,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 60,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 40,
+                "reported_output_tokens": 20,
+                "requests": 2,
+                "usage_complete": true
+              }
+            },
+            "by_task": {
+              "sm24_plan_f1": {
+                "additional_image_tokens": 3497070,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 3497130,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 3497070,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 60,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 40,
+                "reported_output_tokens": 20,
+                "requests": 2,
+                "usage_complete": true
+              }
+            },
+            "cost_estimate_complete": false,
+            "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+            "delivered_tasks": 1,
+            "delivery_failures": [],
+            "estimated_cost_cny": null,
+            "failures": [],
+            "first_pass_rate": 1.0,
+            "first_pass_tasks": 1,
+            "format_errors": 0,
+            "image_tokens_estimate": 3497070,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 60,
+            "repair_failures": 0,
+            "repair_incomplete": 0,
+            "repair_requests": 0,
+            "repair_successes": 0,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 40,
+            "reported_output_tokens": 20,
+            "request_duration_complete": true,
+            "request_seconds": 0.016000000000531145,
+            "requests": 2,
+            "task_elapsed_seconds_sum": 10.099492311477661,
+            "task_wall_span_seconds": 10.099492311477661,
+            "tool_calls": 1,
+            "usage_complete": true,
+            "validated_tasks": 1
+          }
+        },
+        "by_task": {
+          "coordinator": {
+            "additional_image_tokens": 8708450,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 8709050,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 8708450,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 600,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 400,
+            "reported_output_tokens": 200,
+            "requests": 20,
+            "usage_complete": true
+          },
+          "sm24_elev_east": {
+            "additional_image_tokens": 2456909,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 2456939,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 2456909,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm24_elev_north": {
+            "additional_image_tokens": 4771390,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 4771420,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 4771390,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm24_elev_south": {
+            "additional_image_tokens": 3546338,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 3546368,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 3546338,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm24_elev_west": {
+            "additional_image_tokens": 2561940,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 2561970,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 2561940,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm24_plan_f1": {
+            "additional_image_tokens": 3497070,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 3497130,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 3497070,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 60,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 40,
+            "reported_output_tokens": 20,
+            "requests": 2,
+            "usage_complete": true
+          }
+        },
+        "cost_estimate_complete": false,
+        "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+        "estimated_cost_cny": null,
+        "image_tokens_estimate": 25542097,
+        "known_cost_components_cny": null,
+        "ledger": {
+          "reservations": [
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1796.0464699916838",
+                "tokens": 45901
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-1",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1795.8434699916843",
+                "tokens": 51314
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-2",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 4809815
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm24_elev_north:request-1",
+              "task_id": "sm24_elev_north"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 3584756
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm24_elev_south:request-1",
+              "task_id": "sm24_elev_south"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 2495331
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm24_elev_east:request-1",
+              "task_id": "sm24_elev_east"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 916327
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm24_plan_f1:request-1",
+              "task_id": "sm24_plan_f1"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 2600359
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm24_elev_west:request-1",
+              "task_id": "sm24_elev_west"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 2696508
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm24_plan_f1:request-2",
+              "task_id": "sm24_plan_f1"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1783.7964699916838",
+                "tokens": 123071
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-3",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1783.359469991684",
+                "tokens": 164863
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-4",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1782.9994699916842",
+                "tokens": 166567
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-5",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1782.609469991684",
+                "tokens": 168413
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-6",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1782.1404699916839",
+                "tokens": 170378
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-7",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1781.6874699916843",
+                "tokens": 172498
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-8",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1780.1874699916843",
+                "tokens": 1838503
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-9",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1779.5934699916843",
+                "tokens": 82999
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-10",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1778.109469991684",
+                "tokens": 1834995
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-11",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1777.4064699916844",
+                "tokens": 83280
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-12",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1775.2964699916838",
+                "tokens": 1836177
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-13",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1774.3904699916839",
+                "tokens": 83520
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-14",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1770.953469991684",
+                "tokens": 1837401
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-15",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1769.8434699916843",
+                "tokens": 83724
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-16",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1764.2814699916844",
+                "tokens": 1838933
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-17",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1762.1564699916844",
+                "tokens": 87205
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-18",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1760.8744699916842",
+                "tokens": 88736
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-19",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1758.8904699916839",
+                "tokens": 90660
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-20",
+              "task_id": "coordinator"
+            }
+          ],
+          "settlements": [
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-2",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 4771390,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 4771390,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm24_elev_north:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 3546338,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 3546338,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm24_elev_south:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 2456909,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 2456909,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm24_elev_east:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.016000000000531145",
+                "tokens": 30
+              },
+              "additional_image_tokens": 877690,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 877690,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm24_plan_f1:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 2561940,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 2561940,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm24_elev_west:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 2619380,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 2619380,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm24_plan_f1:request-2",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.014999999999417923",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-3",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-4",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-5",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-6",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-7",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-8",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.014999999999417923",
+                "tokens": 30
+              },
+              "additional_image_tokens": 1741690,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 1741690,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-9",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-10",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 1741690,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 1741690,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-11",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-12",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 1741690,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 1741690,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-13",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-14",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 1741690,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 1741690,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-15",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.014999999999417923",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-16",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 1741690,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 1741690,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-17",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-18",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.014999999999417923",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-19",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-20",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            }
+          ],
+          "total_limit": {
+            "calls": 80,
+            "money_cny": null,
+            "money_usd": null,
+            "seconds": "1800.0",
+            "tokens": 100000000
+          }
+        },
+        "provider_reported_tokens": 780,
+        "reported_cache_read_tokens": null,
+        "reported_cache_write_tokens": null,
+        "reported_input_tokens": 520,
+        "reported_output_tokens": 260,
+        "requests": 26,
+        "timing_note": "Request seconds sum settled observed durations, including service failures. Unknown/late unsettled durations are marked incomplete; task elapsed includes tools and restart downtime. Concurrent task elapsed sums and wall spans are separate; root receipt gives full-run wall time.",
+        "usage_complete": true
+      }
+    },
+    {
+      "case": "sm25",
+      "mode": "offline_scripted_fixture_not_model_quality",
+      "agent_version": "t1-20261006-d1.1",
+      "status": "completed",
+      "delivery_status": "delivered",
+      "output": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm25",
+      "delivery_html": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm25/bim/delivery.html",
+      "events": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm25/events.jsonl",
+      "receipt": "AI_agent/logs/experiments/2026-10-06_role_division_d1/offline_replay/sm25/receipt.json",
+      "delivery_selection_sha256": "4b9c16ec4ecb63ff5f7a18e95bee80951cf1db8f02ffecdb416d8e523877106b",
+      "source_model_sha256": "ef6b51e370c8510aaf97edba2f04c3058b3cb69f92a41f10f6a96e2900cd0272",
+      "floors": [
+        "F1",
+        "F2"
+      ],
+      "reader_artifact_count": 6,
+      "elevation_match_count": 4,
+      "height_transaction_count": 4,
+      "height_application_count": 34,
+      "event_count": 495,
+      "model_requests": 33,
+      "tool_invocations": [
+        "inputs",
+        "delegate_readers",
+        "trial_plan_bim",
+        "trial_plan_bim",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "read_role_artifact",
+        "build_from_artifact",
+        "build_from_artifact",
+        "inspect_plan_draft",
+        "inspect_plan_draft",
+        "assemble_plan_bim",
+        "match_elevation",
+        "apply_elevation_heights",
+        "match_elevation",
+        "apply_elevation_heights",
+        "match_elevation",
+        "apply_elevation_heights",
+        "match_elevation",
+        "apply_elevation_heights",
+        "check_openings",
+        "inspect_candidate",
+        "finish_bim"
+      ],
+      "role_accounting": {
+        "additional_image_tokens": 66734972,
+        "billing_modes": [
+          "metered_or_unknown"
+        ],
+        "budget_charge_tokens": 66735962,
+        "by_model": {
+          "scripted-model": {
+            "additional_image_tokens": 66734972,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 66735962,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 66734972,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 990,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 660,
+            "reported_output_tokens": 330,
+            "requests": 33,
+            "usage_complete": true
+          }
+        },
+        "by_role": {
+          "coordinator": {
+            "additional_image_tokens": 37881600,
+            "after_repair_rate": null,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 37882350,
+            "by_model": {
+              "scripted-model": {
+                "additional_image_tokens": 37881600,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 37882350,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 37881600,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 750,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 500,
+                "reported_output_tokens": 250,
+                "requests": 25,
+                "usage_complete": true
+              }
+            },
+            "by_task": {
+              "coordinator": {
+                "additional_image_tokens": 37881600,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 37882350,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 37881600,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 750,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 500,
+                "reported_output_tokens": 250,
+                "requests": 25,
+                "usage_complete": true
+              }
+            },
+            "cost_estimate_complete": false,
+            "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+            "delivered_tasks": 0,
+            "delivery_failures": [],
+            "estimated_cost_cny": null,
+            "failures": [],
+            "first_pass_rate": null,
+            "first_pass_tasks": 0,
+            "format_errors": 0,
+            "image_tokens_estimate": 37881600,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 750,
+            "repair_failures": 0,
+            "repair_incomplete": 0,
+            "repair_requests": 0,
+            "repair_successes": 0,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 500,
+            "reported_output_tokens": 250,
+            "request_duration_complete": true,
+            "request_seconds": 0.10999999999967258,
+            "requests": 25,
+            "task_elapsed_seconds_sum": 169.0616638660431,
+            "task_wall_span_seconds": 169.0616638660431,
+            "tool_calls": 24,
+            "usage_complete": true,
+            "validated_tasks": 0
+          },
+          "elevation_reader": {
+            "additional_image_tokens": 12094194,
+            "after_repair_rate": 1.0,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 12094314,
+            "by_model": {
+              "scripted-model": {
+                "additional_image_tokens": 12094194,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 12094314,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 12094194,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 120,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 80,
+                "reported_output_tokens": 40,
+                "requests": 4,
+                "usage_complete": true
+              }
+            },
+            "by_task": {
+              "sm25_elev_east": {
+                "additional_image_tokens": 2536688,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 2536718,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 2536688,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              },
+              "sm25_elev_north": {
+                "additional_image_tokens": 3432440,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 3432470,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 3432440,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              },
+              "sm25_elev_south": {
+                "additional_image_tokens": 3077931,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 3077961,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 3077931,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              },
+              "sm25_elev_west": {
+                "additional_image_tokens": 3047135,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 3047165,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 3047135,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 30,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 20,
+                "reported_output_tokens": 10,
+                "requests": 1,
+                "usage_complete": true
+              }
+            },
+            "cost_estimate_complete": false,
+            "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+            "delivered_tasks": 4,
+            "delivery_failures": [],
+            "estimated_cost_cny": null,
+            "failures": [],
+            "first_pass_rate": 1.0,
+            "first_pass_tasks": 4,
+            "format_errors": 0,
+            "image_tokens_estimate": 12094194,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 120,
+            "repair_failures": 0,
+            "repair_incomplete": 0,
+            "repair_requests": 0,
+            "repair_successes": 0,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 80,
+            "reported_output_tokens": 40,
+            "request_duration_complete": true,
+            "request_seconds": 0.031000000000858563,
+            "requests": 4,
+            "task_elapsed_seconds_sum": 22.0352725982666,
+            "task_wall_span_seconds": 12.35976505279541,
+            "tool_calls": 0,
+            "usage_complete": true,
+            "validated_tasks": 4
+          },
+          "plan_reader": {
+            "additional_image_tokens": 16759178,
+            "after_repair_rate": 1.0,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 16759298,
+            "by_model": {
+              "scripted-model": {
+                "additional_image_tokens": 16759178,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 16759298,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 16759178,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 120,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 80,
+                "reported_output_tokens": 40,
+                "requests": 4,
+                "usage_complete": true
+              }
+            },
+            "by_task": {
+              "sm25_plan_f1": {
+                "additional_image_tokens": 8303136,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 8303196,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 8303136,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 60,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 40,
+                "reported_output_tokens": 20,
+                "requests": 2,
+                "usage_complete": true
+              },
+              "sm25_plan_f2": {
+                "additional_image_tokens": 8456042,
+                "billing_modes": [
+                  "metered_or_unknown"
+                ],
+                "budget_charge_tokens": 8456102,
+                "cost_estimate_complete": false,
+                "estimated_cost_cny": null,
+                "image_tokens_estimate": 8456042,
+                "known_cost_components_cny": null,
+                "provider_reported_tokens": 60,
+                "reported_cache_read_tokens": null,
+                "reported_cache_write_tokens": null,
+                "reported_input_tokens": 40,
+                "reported_output_tokens": 20,
+                "requests": 2,
+                "usage_complete": true
+              }
+            },
+            "cost_estimate_complete": false,
+            "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+            "delivered_tasks": 2,
+            "delivery_failures": [],
+            "estimated_cost_cny": null,
+            "failures": [],
+            "first_pass_rate": 1.0,
+            "first_pass_tasks": 2,
+            "format_errors": 0,
+            "image_tokens_estimate": 16759178,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 120,
+            "repair_failures": 0,
+            "repair_incomplete": 0,
+            "repair_requests": 0,
+            "repair_successes": 0,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 80,
+            "reported_output_tokens": 40,
+            "request_duration_complete": true,
+            "request_seconds": 0.06300000000010186,
+            "requests": 4,
+            "task_elapsed_seconds_sum": 25.45500659942627,
+            "task_wall_span_seconds": 13.376280546188354,
+            "tool_calls": 2,
+            "usage_complete": true,
+            "validated_tasks": 2
+          }
+        },
+        "by_task": {
+          "coordinator": {
+            "additional_image_tokens": 37881600,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 37882350,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 37881600,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 750,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 500,
+            "reported_output_tokens": 250,
+            "requests": 25,
+            "usage_complete": true
+          },
+          "sm25_elev_east": {
+            "additional_image_tokens": 2536688,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 2536718,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 2536688,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm25_elev_north": {
+            "additional_image_tokens": 3432440,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 3432470,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 3432440,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm25_elev_south": {
+            "additional_image_tokens": 3077931,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 3077961,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 3077931,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm25_elev_west": {
+            "additional_image_tokens": 3047135,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 3047165,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 3047135,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 30,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 20,
+            "reported_output_tokens": 10,
+            "requests": 1,
+            "usage_complete": true
+          },
+          "sm25_plan_f1": {
+            "additional_image_tokens": 8303136,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 8303196,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 8303136,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 60,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 40,
+            "reported_output_tokens": 20,
+            "requests": 2,
+            "usage_complete": true
+          },
+          "sm25_plan_f2": {
+            "additional_image_tokens": 8456042,
+            "billing_modes": [
+              "metered_or_unknown"
+            ],
+            "budget_charge_tokens": 8456102,
+            "cost_estimate_complete": false,
+            "estimated_cost_cny": null,
+            "image_tokens_estimate": 8456042,
+            "known_cost_components_cny": null,
+            "provider_reported_tokens": 60,
+            "reported_cache_read_tokens": null,
+            "reported_cache_write_tokens": null,
+            "reported_input_tokens": 40,
+            "reported_output_tokens": 20,
+            "requests": 2,
+            "usage_complete": true
+          }
+        },
+        "cost_estimate_complete": false,
+        "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate.",
+        "estimated_cost_cny": null,
+        "image_tokens_estimate": 66734972,
+        "known_cost_components_cny": null,
+        "ledger": {
+          "reservations": [
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1796.0793360977168",
+                "tokens": 45901
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-1",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1795.8603360977168",
+                "tokens": 51533
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-2",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 3470862
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_elev_north:request-1",
+              "task_id": "sm25_elev_north"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 3116345
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_elev_south:request-1",
+              "task_id": "sm25_elev_south"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 2668615
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_plan_f1:request-1",
+              "task_id": "sm25_plan_f1"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 2631458
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_plan_f2:request-1",
+              "task_id": "sm25_plan_f2"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 2575109
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_elev_east:request-1",
+              "task_id": "sm25_elev_east"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 5762606
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_plan_f1:request-2",
+              "task_id": "sm25_plan_f1"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 3085557
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_elev_west:request-1",
+              "task_id": "sm25_elev_west"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "360.0",
+                "tokens": 5952928
+              },
+              "purpose": "child_task",
+              "reservation_id": "sm25_plan_f2:request-2",
+              "task_id": "sm25_plan_f2"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1780.9383360977172",
+                "tokens": 225441
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-3",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1780.0793360977168",
+                "tokens": 188360
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-4",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1779.2823360977172",
+                "tokens": 188574
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-5",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1778.7513360977173",
+                "tokens": 191508
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-6",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1778.1733360977169",
+                "tokens": 194236
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-7",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1777.6413360977167",
+                "tokens": 197900
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-8",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1777.1103360977168",
+                "tokens": 200418
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-9",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1774.6883360977172",
+                "tokens": 3195586
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-10",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1772.5323360977172",
+                "tokens": 3423203
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-11",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1771.6103360977168",
+                "tokens": 142636
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-12",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1770.9233360977169",
+                "tokens": 152018
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-13",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1768.5633360977172",
+                "tokens": 6467208
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-14",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1767.3763360977173",
+                "tokens": 135665
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-15",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1755.5793360977168",
+                "tokens": 6473557
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-16",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1754.0013360977173",
+                "tokens": 135405
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-17",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1739.2043360977168",
+                "tokens": 6474248
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-18",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1737.2983360977169",
+                "tokens": 137007
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-19",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1696.9543360977168",
+                "tokens": 6479866
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-20",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1694.5633360977172",
+                "tokens": 135136
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-21",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1664.7983360977169",
+                "tokens": 6476775
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-22",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1655.5163360977167",
+                "tokens": 142364
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-23",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1648.7193360977171",
+                "tokens": 144490
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-24",
+              "task_id": "coordinator"
+            },
+            {
+              "amounts": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "1637.8133360977172",
+                "tokens": 146727
+              },
+              "purpose": "primary_task",
+              "reservation_id": "coordinator:request-25",
+              "task_id": "coordinator"
+            }
+          ],
+          "settlements": [
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-2",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 3432440,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 3432440,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_elev_north:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.015000000000327418",
+                "tokens": 30
+              },
+              "additional_image_tokens": 3077931,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 3077931,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_elev_south:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 2629968,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 2629968,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_plan_f1:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.015000000000327418",
+                "tokens": 30
+              },
+              "additional_image_tokens": 2592821,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 2592821,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_plan_f2:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.016000000000531145",
+                "tokens": 30
+              },
+              "additional_image_tokens": 2536688,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 2536688,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_elev_east:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.016000000000531145",
+                "tokens": 30
+              },
+              "additional_image_tokens": 5673168,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 5673168,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_plan_f1:request-2",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 3047135,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 3047135,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_elev_west:request-1",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 5863221,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 5863221,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "sm25_plan_f2:request-2",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-3",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-4",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-5",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-6",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-7",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-8",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-9",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 3043200,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 3043200,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-10",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 3270400,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 3270400,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-11",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-12",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-13",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 6313600,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 6313600,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-14",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-15",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 6313600,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 6313600,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-16",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.015000000000327418",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-17",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 6313600,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 6313600,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-18",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-19",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.016000000000531145",
+                "tokens": 30
+              },
+              "additional_image_tokens": 6313600,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 6313600,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-20",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-21",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.015000000000327418",
+                "tokens": 30
+              },
+              "additional_image_tokens": 6313600,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 6313600,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-22",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-23",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.01599999999962165",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-24",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            },
+            {
+              "actual": {
+                "calls": 1,
+                "money_cny": null,
+                "money_usd": null,
+                "seconds": "0.0",
+                "tokens": 30
+              },
+              "additional_image_tokens": 0,
+              "cost": {
+                "kind": "unavailable",
+                "reason": "no configured price estimate or provider bill was supplied"
+              },
+              "estimated_cost_cny": null,
+              "image_tokens_estimate": 0,
+              "money_cny_overrun": "0",
+              "reported_usage_includes_image_tokens": false,
+              "reservation_id": "coordinator:request-25",
+              "token_overrun": 0,
+              "usage": {
+                "kind": "reported",
+                "raw_usage": {
+                  "completion_tokens": 10,
+                  "completion_tokens_details": {
+                    "reasoning_tokens": 0
+                  },
+                  "prompt_tokens": 20,
+                  "total_tokens": 30
+                }
+              }
+            }
+          ],
+          "total_limit": {
+            "calls": 80,
+            "money_cny": null,
+            "money_usd": null,
+            "seconds": "1800.0",
+            "tokens": 100000000
+          }
+        },
+        "provider_reported_tokens": 990,
+        "reported_cache_read_tokens": null,
+        "reported_cache_write_tokens": null,
+        "reported_input_tokens": 660,
+        "reported_output_tokens": 330,
+        "requests": 33,
+        "timing_note": "Request seconds sum settled observed durations, including service failures. Unknown/late unsettled durations are marked incomplete; task elapsed includes tools and restart downtime. Concurrent task elapsed sums and wall spans are separate; root receipt gives full-run wall time.",
+        "usage_complete": true
+      }
+    }
+  ]
+}

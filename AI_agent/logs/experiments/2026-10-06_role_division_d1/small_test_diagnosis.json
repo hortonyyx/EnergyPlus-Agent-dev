@@ -1,0 +1,290 @@
+{
+  "schema_version": "d1-small-test-diagnosis-v1",
+  "scope": {
+    "evidence_root": "small_test",
+    "mode": "read_only_post_run_diagnosis",
+    "model_calls_added": 0,
+    "source_or_original_evidence_modified": false
+  },
+  "provenance_limit": {
+    "captured_agent_version": "t1-20261006-win.3",
+    "captured_code_commit": "e07764e6508b37898791f2b960e6980b97e192d8",
+    "version_event": "small_test/events.jsonl#event-000004",
+    "code_manifest_blob": "small_test/blobs/d8b86ed6afba96d22972364fa95d06c840307183226e414acfe5c77f20af7fdb",
+    "note": "This live small-test process started before the final source changes to profile and receipt handling were completed, under the previous t1-20261006-win.3 registry label. Its evidence diagnoses that historical process only. It is not a live retest of registered t1-20261006-d1.1 or the final frozen source/version and must not be presented as one; the recorded commit also cannot attest later uncommitted source fixes.",
+    "posthoc_boundary_source": "small_test_posthoc.json#version_boundary"
+  },
+  "overall": {
+    "tasks": 3,
+    "model_requests": 28,
+    "coordinator_model_requests": 0,
+    "wall_seconds": 1062.1331124305725,
+    "results": {
+      "sm24-plan": "failed: answer_validation_failed",
+      "sm24-north": "completed after one answer repair",
+      "sm24-east": "completed after one answer repair"
+    },
+    "evidence": [
+      "small_test_posthoc.json",
+      "small_test/small_test_result.json",
+      "small_test/small_test_assessment.json",
+      "small_test/small_test_manifest.json"
+    ]
+  },
+  "plan_reader": {
+    "task_id": "sm24-plan",
+    "task_storage_id": "2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4",
+    "receipt": {
+      "path": "small_test/tasks/2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4/receipt.json",
+      "status": "answer_validation_failed",
+      "model_calls": 13,
+      "tool_calls": 14,
+      "elapsed_seconds": 1056.9311621837624
+    },
+    "trials": [
+      {
+        "number": 1,
+        "invocation_event": "small_test/events.jsonl#event-000303",
+        "execution_event": "small_test/events.jsonl#event-000304",
+        "receipt": "small_test/tasks/2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4/bim/trial_workspace/trial_receipts/trial_001.json",
+        "receipt_sha256": "2ddc2885261e0d141f052ee737221a0dd0574b5466e76228ce9ce9f945030753",
+        "plan_sha256": "927bfd31486e0017ec46709380a2d81f84da42d200d5761f91daad683c40891a",
+        "status": "failed",
+        "reason": "polygonize produced dangles; receipt lists ten dangling segments and nine nearest disconnected endpoints, including perimeter offsets of 3-5 px and wall-V3 endpoints 15 px from the footprint; coordinates were unchanged and no automatic snapping was applied"
+      },
+      {
+        "number": 2,
+        "invocation_event": "small_test/events.jsonl#event-000314",
+        "execution_event": "small_test/events.jsonl#event-000315",
+        "receipt": "small_test/tasks/2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4/bim/trial_workspace/trial_receipts/trial_002.json",
+        "receipt_sha256": "637d6acf7870fe9fecc8f73f7d3ed76a714a5e84e16ef12a763f9c91074b20f7",
+        "plan_sha256": "8afd99c8e819e4bd4798048b2267b6fa448cec959b7bd9ee5b70211f683e3f10",
+        "status": "failed",
+        "reason": "opening D1 at pixels [266.0, 156.0] -> [325.0, 156.0] requires one exterior or two interior full-boundary hosts; found []"
+      },
+      {
+        "number": 3,
+        "invocation_event": "small_test/events.jsonl#event-000325",
+        "execution_event": "small_test/events.jsonl#event-000326",
+        "receipt": "small_test/tasks/2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4/bim/trial_workspace/trial_receipts/trial_003.json",
+        "receipt_sha256": "114f8a290a8ddc792d642892949b9f8a35c33ef693478716a755dbdc25aae600",
+        "plan_sha256": "d1f027e2097b5e6e0b1aac00c518a3794ddb64ad73b7aa7a950e46b4f64f4a29",
+        "status": "failed",
+        "candidate": "candidate_01",
+        "reason": "room role 'reception lounge (entrance door, L-sofa observed)' is not in the room_types catalog"
+      },
+      {
+        "number": 4,
+        "invocation_event": "small_test/events.jsonl#event-000355",
+        "execution_event": "small_test/events.jsonl#event-000356",
+        "receipt": "small_test/tasks/2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4/bim/trial_workspace/trial_receipts/trial_004.json",
+        "receipt_sha256": "9501204ec81b5b3b2775c57e83489f9eef839a4d855a7a8a837e3500ba292fac",
+        "plan_sha256": "f0559cc27c215f16a8e78a506c7fecc44cbd78aae150eb4a6ffb3261dc2cd7f3",
+        "status": "passed",
+        "candidate": "candidate_02",
+        "candidate_source_sha256": "29a379be3d3436fd84f43948a638a2c2f0cfbf3760db984c745f63a068b7db78",
+        "source_geometry_ready": true,
+        "drawing_differences_total": 0,
+        "building_precision_total": 0
+      }
+    ],
+    "answer_validation_chain": {
+      "original": {
+        "request_event": "small_test/events.jsonl#event-000361",
+        "response_event": "small_test/events.jsonl#event-000362",
+        "raw_response_blob": "small_test/blobs/30f3f39ead64b59b3c903fb8f20a0585672902b339307980b044e9cc8aee9fac",
+        "raw_response_wire_sha256": "779b419cf50017fa8cd39dfab67674c7836ef37f153be65f0954d6980e65075c",
+        "captured_answer_blob": "small_test/blobs/2c8354283c018100a19143986b8ffa3d74f96ab98dd7fcbbc55747cc13735a6a",
+        "captured_answer_wire_sha256": "2b327f0acd43ecbee6543ada53b571950a9d5279b8cb4f1785eb0dc4dbecd3ec",
+        "validation_event": "small_test/events.jsonl#event-000365",
+        "validation_error": "Expecting value: line 1 column 1 (char 0)",
+        "cause": "The visible answer starts with 'The trial **passed** ...' and a fenced JSON block instead of starting with a JSON value."
+      },
+      "repair": {
+        "attempts": 1,
+        "request_event": "small_test/events.jsonl#event-000369",
+        "response_event": "small_test/events.jsonl#event-000370",
+        "raw_response_blob": "small_test/blobs/7a567466d6a14ab357473522ba7891b70832c97aba4805fab46be4160d5b22c2",
+        "raw_response_wire_sha256": "ccfa8defb2c2d6b910de7c4c02233a40e1a0d2c1f0791cc6174302004acf8ca3",
+        "captured_answer_blob": "small_test/blobs/746d2e0410a9c36c1b03e27407b265d64924f074d0f21977130a3ab560538e42",
+        "captured_answer_wire_sha256": "af369be22695d553fcdb18ca203760031c3db54d8863890748b9fbaa9067acec",
+        "result_event": "small_test/events.jsonl#event-000372",
+        "accepted": false,
+        "validation_error": "plan 096b1298a40e5e2dd26bef8ec04f53ded6d84763ade2a8309d743a0f16fd109b has not been run through trial_plan_bim",
+        "stop_event": "small_test/events.jsonl#event-000374",
+        "stop_reason": "answer_validation_failed"
+      },
+      "root_cause": {
+        "repair_content_relation": "The repair removed only the prose and Markdown fence; the parsed JSON object is otherwise identical to the JSON embedded in the original answer.",
+        "difference_from_passed_trial_input": "The final plan contains exactly one additional path versus trial_004_plan.json: $.trial.",
+        "extra_plan_member": {
+          "status": "passed",
+          "candidate": "candidate_02",
+          "plan_sha256": "f0559cc27c215f16a8e78a506c7fecc44cbd78aae150eb4a6ffb3261dc2cd7f3",
+          "drawing_differences_total": 0,
+          "building_precision_total": 0,
+          "spaces": 8,
+          "openings": 21
+        },
+        "effect": "Embedding the trial summary inside plan changed the strict canonical plan hash from the passed trial hash f055... to 096b.... The latter hash had never been submitted to trial_plan_bim, so repair could not be accepted even though trial 4 itself passed."
+      },
+      "historical_accounting_caveat": "The captured pre-final accounting reports plan_reader.format_errors=1 because it counts the initial repair-triggering format error. The event chain contains two failed validations: initial JSON parsing and repaired plan identity.",
+      "final_posthoc_accounting": {
+        "source": "small_test_posthoc.json#accounting.by_role.plan_reader",
+        "format_errors": 2,
+        "repair_requests": 1,
+        "repair_failures": 1,
+        "repair_successes": 0,
+        "validated_tasks": 0
+      }
+    }
+  },
+  "elevation_readers": {
+    "aggregate": {
+      "source": "small_test_posthoc.json#accounting.by_role.elevation_reader",
+      "requests": 15,
+      "tool_calls": 26,
+      "format_errors": 2,
+      "repair_requests": 2,
+      "repair_successes": 2,
+      "delivered_tasks": 2,
+      "validated_tasks": 2,
+      "first_pass_tasks": 0,
+      "first_pass_rate": 0.0,
+      "after_repair_rate": 1.0,
+      "interpretation": "Neither elevation passed output-format validation on its first final answer; each passed after exactly one repair."
+    },
+    "sm24-north": {
+      "receipt": {
+        "path": "small_test/tasks/58e9b0befc8caffee48045e9006634474ee0e1b7dc81a1dd98e9e9b07bb55d46/receipt.json",
+        "status": "completed",
+        "model_calls": 7,
+        "tool_calls": 10,
+        "elapsed_seconds": 139.79124794578456
+      },
+      "first_answer": {
+        "response_event": "small_test/events.jsonl#event-000189",
+        "raw_response_blob": "small_test/blobs/4738d69f086d1b4bdfce672c679f376214b9ec96661bfb65c1f3793ec9956cd0",
+        "repair_request_event": "small_test/events.jsonl#event-000192",
+        "validation_error": "Expecting value: line 1 column 1 (char 0)",
+        "cause": "Verification prose precedes the JSON object."
+      },
+      "repair": {
+        "response_event": "small_test/events.jsonl#event-000197",
+        "raw_response_blob": "small_test/blobs/d49bab1538be7509346722c932b7b40faea000751e77919379de8a984a27f0ec",
+        "result_event": "small_test/events.jsonl#event-000199",
+        "accepted": true,
+        "content_delta_from_embedded_first_answer_json": "Only two Unicode en dashes in unresolved[1] were normalized to ASCII hyphens; numeric and structured measurement data were unchanged.",
+        "artifact": "small_test/tasks/58e9b0befc8caffee48045e9006634474ee0e1b7dc81a1dd98e9e9b07bb55d46/reader_artifact.json",
+        "artifact_sha256": "bbabb518d53e3c0a3c7b6cf34fe5229d6a9b1fd75e9028b5b2ae1be0fe1fef26"
+      },
+      "delivered_data": {
+        "orientation": "North",
+        "windows": 1,
+        "doors": 1,
+        "openings": 2,
+        "reference_count_correct": true,
+        "reference_measures_within_5cm": "2/2"
+      }
+    },
+    "sm24-east": {
+      "receipt": {
+        "path": "small_test/tasks/470c683aafbba1982252452b12565cc2f27561d0bcc939250aeb9b214af063f5/receipt.json",
+        "status": "completed",
+        "model_calls": 8,
+        "tool_calls": 16,
+        "elapsed_seconds": 236.7092170066826
+      },
+      "first_answer": {
+        "response_event": "small_test/events.jsonl#event-000242",
+        "raw_response_blob": "small_test/blobs/8732124cf060c1a30f94528529ebc5ad858b0b6ec2fa4284a586ccb53ad2323a",
+        "repair_request_event": "small_test/events.jsonl#event-000246",
+        "validation_error": "Expecting value: line 1 column 1 (char 0)",
+        "cause": "Verification prose precedes the JSON object."
+      },
+      "repair": {
+        "response_event": "small_test/events.jsonl#event-000251",
+        "raw_response_blob": "small_test/blobs/933455da6d363c4710150f616219f82ba4136e420f1d371ba6d588dbe315f9a3",
+        "result_event": "small_test/events.jsonl#event-000253",
+        "accepted": true,
+        "content_delta_from_embedded_first_answer_json": "The repair removed the top-level z_calibration object {pixel_start:654, pixel_end:229, world_start_m:0, world_end_m:4.5}; the accepted schema and all opening/elevation measurements otherwise matched the embedded first-answer JSON.",
+        "artifact": "small_test/tasks/470c683aafbba1982252452b12565cc2f27561d0bcc939250aeb9b214af063f5/reader_artifact.json",
+        "artifact_sha256": "827a9e1669981975bc9806e68ed54303ec03a8a81f61a15751ca3cc92719e5e3"
+      },
+      "delivered_data": {
+        "orientation": "East",
+        "windows": 3,
+        "doors": 1,
+        "openings": 4,
+        "reference_count_correct": true,
+        "reference_measures_within_5cm": "4/4"
+      }
+    },
+    "assessment_evidence": "small_test/small_test_assessment.json"
+  },
+  "cache_accounting": {
+    "source": "small_test_posthoc.json#accounting",
+    "totals": {
+      "requests": 28,
+      "reported_input_tokens": 542872,
+      "reported_cache_read_tokens": 239808,
+      "reported_cache_write_tokens": null,
+      "reported_output_tokens": 75704,
+      "provider_reported_tokens": 858384,
+      "image_tokens_estimate": 186959,
+      "additional_image_tokens": 186959,
+      "budget_charge_tokens": 1045343,
+      "requests_with_nonzero_cache_read": 17
+    },
+    "identities": {
+      "provider_reported_tokens": "542872 input + 239808 cache_read + 75704 output = 858384",
+      "budget_charge_tokens": "858384 provider_reported + 186959 additional_image = 1045343"
+    },
+    "cache_read_share": {
+      "denominator": "reported_input_tokens + reported_cache_read_tokens",
+      "reason": "For these Anthropic-compatible usage records, input_tokens and cache_read_input_tokens are separate provider fields. Cache reads are not a subset of reported_input_tokens.",
+      "overall": 0.3063934174886288,
+      "sm24-plan": 0.31064548834065564,
+      "sm24-north": 0.32258293519235004,
+      "sm24-east": 0.2808934711985604
+    },
+    "by_task": {
+      "sm24-plan": {
+        "requests": 13,
+        "input": 326368,
+        "cache_read": 147072,
+        "output": 59300,
+        "provider_reported": 532740,
+        "additional_image": 73542,
+        "budget_charge": 606282,
+        "cache_read_by_request": [0, 0, 5376, 4864, 12992, 0, 27520, 37952, 46656, 1984, 4864, 4864, 0]
+      },
+      "sm24-north": {
+        "requests": 7,
+        "input": 95423,
+        "cache_read": 45440,
+        "output": 5705,
+        "provider_reported": 146568,
+        "additional_image": 74221,
+        "budget_charge": 220789,
+        "cache_read_by_request": [0, 9664, 0, 12928, 20864, 1984, 0]
+      },
+      "sm24-east": {
+        "requests": 8,
+        "input": 121081,
+        "cache_read": 47296,
+        "output": 10699,
+        "provider_reported": 179076,
+        "additional_image": 39196,
+        "budget_charge": 218272,
+        "cache_read_by_request": [0, 0, 0, 3264, 19072, 22976, 1984, 0]
+      }
+    },
+    "limits": [
+      "All three answer-repair model requests reported zero cache-read tokens.",
+      "The provider did not report cache-write tokens, so cache creation/write volume and write-adjusted cost cannot be calculated.",
+      "Image tokens are a separate local estimate added to budget charge because the provider usage did not attest an image-token breakdown.",
+      "The subscription route has no usage-based CNY estimate here; these token counters are accounting evidence, not a currency bill."
+    ]
+  }
+}

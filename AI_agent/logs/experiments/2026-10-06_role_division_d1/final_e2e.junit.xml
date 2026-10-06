@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="26" time="300.411" timestamp="2026-10-06T14:14:59.545913+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-left-to-right]" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_defaults_runtime_fields_and_absolute_z" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-absolute building Z]" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_stale_artifact_hash" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-openings contains 2]" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-positive width]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[East-West-0-10-y]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-contradicts view_direction]" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_requires_assigned_image" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[West-East-10-0-y]" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[North-South-10-0-x]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_exact_match_handles_tight_windows_and_exterior_door" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_missing_one_opening_preserves_neighbors" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[South-North-0-10-x]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_extra_one_opening_is_not_forced_onto_source" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_overall_shift_returns_conflicts_instead_of_false_matches" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_width_difference_is_a_conflict" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_height_application_emits_existing_claim_transaction_shape" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_height_application_keeps_unmatched_items_unprocessed" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_height_application_rejects_stale_source" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_image_name_cannot_be_silently_rebound" time="0.001" /><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]" time="59.908" /><testcase classname="tests.test_role_end_to_end" name="test_resume_reader_after_trial_checkpoint_does_not_repeat_trial" time="74.775"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-worktrees\\d1\\AI_agent\\archive\\local_backup\\d1\\pytest\\final_e2e\\popen-gw0\\test_resume_reader_after_trial0\\sm24-role-run\\tasks\\a7cb30ec7040c4230bc04d209bfbbd62c9a027bccec8ac8e4b6f9a4deda50f3e\\events.jsonl'">tmp_path = WindowsPath('C:/Users/Horton/Desktop/EnergyPlus-Agent-worktrees/d1/AI_agent/archive/local_backup/d1/pytest/final_e2e/popen-gw0/test_resume_reader_after_trial0')
+
+    def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+        crash = CrashOnce(
+            "after_checkpoint",
+            lambda engine: engine.role.role_id == "plan_reader"
+            and engine.counts["tool_calls"] == 1,
+        )
+        with pytest.raises(SimulatedProcessDeath):
+            asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    reader_fault_hook=crash,
+                )
+            )
+        assert crash.triggered
+        assert _tool_count(fixture.output, "trial_plan_bim") == 1
+    
+        result = _resume(fixture)
+        _assert_complete_pipeline(fixture, result, two_floors=False)
+        assert _tool_count(fixture.output, "trial_plan_bim") == 1
+        plan_task = next(task for task in fixture.tasks if task["role_id"] == "plan_reader")
+        plan_events = [
+            row
+&gt;           for row in _reader_events(fixture, plan_task["task_id"])
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            if row.get("event_type") == "adapter_request"
+        ]
+
+tests\test_role_end_to_end.py:172: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_role_end_to_end.py:56: in _reader_events
+    for line in events.read_text(encoding="utf-8").splitlines()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/Horton/Desktop/EnergyPlus-Agent-worktrees/d1/AI_agent/archive/local_backup/d1/pytest/final_e2e/p...reader_after_trial0/sm24-role-run/tasks/a7cb30ec7040c4230bc04d209bfbbd62c9a027bccec8ac8e4b6f9a4deda50f3e/events.jsonl')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+&gt;       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-worktrees\\d1\\AI_agent\\archive\\local_backup\\d1\\pytest\\final_e2e\\popen-gw0\\test_resume_reader_after_trial0\\sm24-role-run\\tasks\\a7cb30ec7040c4230bc04d209bfbbd62c9a027bccec8ac8e4b6f9a4deda50f3e\\events.jsonl'
+
+..\..\..\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1013: FileNotFoundError</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]" time="183.622" /><testcase classname="tests.test_role_end_to_end" name="test_resume_after_all_readers_preserves_reader_records" time="54.872" /><testcase classname="tests.test_role_end_to_end" name="test_resume_after_build_execution_does_not_repeat_build" time="51.640" /></testsuite></testsuites>

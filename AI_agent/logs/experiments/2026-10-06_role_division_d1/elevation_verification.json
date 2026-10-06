@@ -1,0 +1,243 @@
+{
+  "schema_version": "d1_elevation_verification_v1",
+  "method": {
+    "offline_only": true,
+    "model_or_api_calls": 0,
+    "coordinate_contract": "North/South use fixed world X; East/West use fixed world Y; view_direction fixes image left-to-right sign; sill/head are absolute building Z.",
+    "matching": "ordered by floor and kind, then checked against position and width tolerances; one-sided and conflicting rows are never emitted as safe height applications.",
+    "position_tolerance_m": 0.35,
+    "width_tolerance_m": 0.25
+  },
+  "cases": [
+    {
+      "case": "sm21",
+      "candidate": "candidate_04",
+      "source_model": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/candidate_04/source_model.json",
+      "source_model_sha256": "750f996c0968cab6c11269957cf301c5b5c337e579bd3bdd9511f700ce91f331",
+      "reference_mode": "accepted_source_bim_self_consistency_projection",
+      "independent_image_reading_accuracy": false,
+      "facades": [
+        {
+          "orientation": "North",
+          "view_direction": "South",
+          "world_axis": "x",
+          "opening_count": 5,
+          "correct_matches": 5,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:2c63e609b278f11438cf3507"
+        },
+        {
+          "orientation": "South",
+          "view_direction": "North",
+          "world_axis": "x",
+          "opening_count": 8,
+          "correct_matches": 8,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:f1aacc2c118d19bab9247508"
+        },
+        {
+          "orientation": "East",
+          "view_direction": "West",
+          "world_axis": "y",
+          "opening_count": 2,
+          "correct_matches": 2,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:0911e04131fcdbd8d861d836"
+        },
+        {
+          "orientation": "West",
+          "view_direction": "East",
+          "world_axis": "y",
+          "opening_count": 2,
+          "correct_matches": 2,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:a263c695ac09eb4ec90ba792"
+        }
+      ],
+      "correct_matches": 17,
+      "expected_matches": 17,
+      "alignment_accuracy": 1.0
+    },
+    {
+      "case": "sm24",
+      "candidate": "candidate_02",
+      "source_model": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/candidate_02/source_model.json",
+      "source_model_sha256": "fadbf80623ee9413efee91a212fdbc564aa0b01f5f359bd00e3c779aa252fe0c",
+      "reference_mode": "retained_four_facade_original_pixel_references_with_independent_horizontal_calibration",
+      "independent_image_reading_accuracy": true,
+      "facades": [
+        {
+          "orientation": "North",
+          "view_direction": "South",
+          "world_axis": "x",
+          "opening_count": 2,
+          "correct_matches": 2,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:2f112c77bb9b495ec3e57366"
+        },
+        {
+          "orientation": "South",
+          "view_direction": "North",
+          "world_axis": "x",
+          "opening_count": 3,
+          "correct_matches": 3,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:e0d7b8504278391a57dd3938"
+        },
+        {
+          "orientation": "East",
+          "view_direction": "West",
+          "world_axis": "y",
+          "opening_count": 4,
+          "correct_matches": 4,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:f850e8967983bf959f7837c7"
+        },
+        {
+          "orientation": "West",
+          "view_direction": "East",
+          "world_axis": "y",
+          "opening_count": 5,
+          "correct_matches": 5,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:5efc61656aab46784a2b5903"
+        }
+      ],
+      "correct_matches": 14,
+      "expected_matches": 14,
+      "alignment_accuracy": 1.0
+    },
+    {
+      "case": "sm25",
+      "candidate": "candidate_04",
+      "source_model": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/candidate_04/source_model.json",
+      "source_model_sha256": "c6332d98abc986b26dd501eba65dd4bdfa9f0083da2f32474615afa5ca726a76",
+      "reference_mode": "accepted_source_bim_self_consistency_projection",
+      "independent_image_reading_accuracy": false,
+      "facades": [
+        {
+          "orientation": "North",
+          "view_direction": "South",
+          "world_axis": "x",
+          "opening_count": 8,
+          "correct_matches": 8,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:8f6e5b5dd127539413367558"
+        },
+        {
+          "orientation": "South",
+          "view_direction": "North",
+          "world_axis": "x",
+          "opening_count": 7,
+          "correct_matches": 7,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:6de68177363d5e167e0fde80"
+        },
+        {
+          "orientation": "East",
+          "view_direction": "West",
+          "world_axis": "y",
+          "opening_count": 13,
+          "correct_matches": 13,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:bbe2645a74670f2cb8622641"
+        },
+        {
+          "orientation": "West",
+          "view_direction": "East",
+          "world_axis": "y",
+          "opening_count": 6,
+          "correct_matches": 6,
+          "accuracy": 1.0,
+          "elevation_only": 0,
+          "source_only": 0,
+          "conflicts": 0,
+          "match_id": "elevation_match:dcf908660a739a9fc8b63d87"
+        }
+      ],
+      "correct_matches": 34,
+      "expected_matches": 34,
+      "alignment_accuracy": 1.0
+    }
+  ],
+  "overall": {
+    "correct_matches": 65,
+    "expected_matches": 65,
+    "alignment_accuracy": 1.0
+  },
+  "counterexamples": [
+    {
+      "name": "two_tight_windows_and_exterior_door",
+      "passed": true,
+      "matched_ids": [
+        "D1",
+        "W2",
+        "W1"
+      ]
+    },
+    {
+      "name": "one_opening_missing",
+      "passed": true,
+      "source_only": [
+        "W2"
+      ]
+    },
+    {
+      "name": "one_opening_extra",
+      "passed": true,
+      "elevation_only": [
+        "read-extra"
+      ]
+    },
+    {
+      "name": "whole_elevation_shifted",
+      "passed": true,
+      "conflict_count": 3
+    },
+    {
+      "name": "left_right_reversed",
+      "passed": true,
+      "error": "x_calibration world direction contradicts view_direction; image left-to-right must decrease world X"
+    }
+  ],
+  "counterexamples_passed": true,
+  "limitations": [
+    "sm21 and sm25 are accepted-source self-consistency checks, not independent image-reading accuracy.",
+    "sm24 replays retained developer-read four-facade references from original pixels; it evaluates matching independently of accepted-source horizontal projections, not fresh working-model image-reading quality.",
+    "The matcher supports cardinal, axis-aligned exterior source boundaries in this D1 base version.",
+    "The script prepares claim_transaction parameters but does not mutate any historical candidate."
+  ]
+}
