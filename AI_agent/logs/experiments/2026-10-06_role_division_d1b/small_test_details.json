@@ -1,0 +1,104 @@
+{
+  "run": "AI_agent/archive/local_backup/d1b/small_test_d1b",
+  "tasks": [
+    {
+      "task_id": "sm24-plan",
+      "target": "F1",
+      "status": "failed",
+      "runtime_status": "unknown_write_outcome",
+      "elapsed_seconds": 889.3934907588955,
+      "requests": 10,
+      "first_submission_passed": null,
+      "submission_attempts": 0,
+      "submission_rejections": 0,
+      "answer_repair_requests": 0,
+      "tool_calls": {
+        "inputs": 1,
+        "view_image": 7,
+        "view_pixel_profile": 6,
+        "get_bim_reference": 2,
+        "trial_plan_bim": 1
+      },
+      "trial_count": 0,
+      "passed_trials": 0,
+      "declared_rework_count": 0,
+      "reported_raw_usage": {
+        "input_tokens": 214904,
+        "output_tokens": 47692,
+        "cache_read_input_tokens": 127488,
+        "cache_creation_input_tokens": null
+      },
+      "reported_token_total_including_cache": 390084,
+      "usage_complete": true
+    },
+    {
+      "task_id": "sm24-north",
+      "target": "North/F1",
+      "status": "completed",
+      "runtime_status": "completed",
+      "elapsed_seconds": 231.38180633735647,
+      "requests": 8,
+      "first_submission_passed": true,
+      "submission_attempts": 1,
+      "submission_rejections": 0,
+      "answer_repair_requests": 0,
+      "tool_calls": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_pixel_profile": 14,
+        "submit_elevation_reading": 1
+      },
+      "trial_count": 0,
+      "passed_trials": 0,
+      "declared_rework_count": 0,
+      "reported_raw_usage": {
+        "input_tokens": 117451,
+        "output_tokens": 9427,
+        "cache_read_input_tokens": 117824,
+        "cache_creation_input_tokens": null
+      },
+      "reported_token_total_including_cache": 244702,
+      "usage_complete": true
+    },
+    {
+      "task_id": "sm24-east",
+      "target": "East/F1",
+      "status": "completed",
+      "runtime_status": "completed",
+      "elapsed_seconds": 196.6679316253667,
+      "requests": 5,
+      "first_submission_passed": true,
+      "submission_attempts": 1,
+      "submission_rejections": 0,
+      "answer_repair_requests": 0,
+      "tool_calls": {
+        "inputs": 1,
+        "view_image": 5,
+        "submit_elevation_reading": 1
+      },
+      "trial_count": 0,
+      "passed_trials": 0,
+      "declared_rework_count": 0,
+      "reported_raw_usage": {
+        "input_tokens": 44614,
+        "output_tokens": 7598,
+        "cache_read_input_tokens": 36864,
+        "cache_creation_input_tokens": null
+      },
+      "reported_token_total_including_cache": 89076,
+      "usage_complete": true
+    }
+  ],
+  "wall_seconds": 895.5601251125336,
+  "http_requests": 23,
+  "provider_reported_tokens": 723862,
+  "agent_unchanged": true,
+  "usage_note": "Anthropic raw input excludes cache read/create; token total here includes all three input categories plus output. Full authoritative aggregate and safety ledger remain in small_test_summary.json.",
+  "external_calls": {
+    "glm_subscription": 23,
+    "paratera": 0,
+    "deepseek": 0,
+    "coordinator_model": 0,
+    "whole_building_generation": 0
+  }
+}

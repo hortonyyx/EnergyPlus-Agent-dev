@@ -7,11 +7,25 @@ import hashlib
 import json
 from collections import Counter
 
+import jsonschema
 import pytest
+from PIL import Image
 
+from src.agent.geometry.plan_drawing_differences import drawing_differences
 from src.agent.runtime_roles.entry import execute
+from src.agent.runtime_roles.plan_review import opening_hosts, topology_issues
+from src.agent.runtime_roles.submission import ELEVATION_SCHEMA, PLAN_SCHEMA
+from src.agent.runtime_roles.trial import canonical_plan_sha256
 
-from role_d1_fixtures import event_counts, make_fixture, reader_record
+from role_d1_fixtures import (
+    CASES,
+    assembly_review,
+    elevation_submission,
+    event_counts,
+    make_fixture,
+    plan_submission,
+    reader_record,
+)
 
 
 class SimulatedProcessDeath(BaseException):
@@ -116,6 +130,9 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     tools = Counter(counts.tools)
     assert tools["inputs"] == 1
     assert tools["delegate_readers"] == 1
+    assert tools["trial_plan_bim"] == len(plan_records)
+    assert tools["submit_plan_reading"] == len(plan_records)
+    assert tools["submit_elevation_reading"] == 4
     assert tools["read_role_artifact"] == len(records)
     assert tools["build_from_artifact"] == len(plan_records)
     assert tools["match_elevation"] == 4
@@ -138,17 +155,45 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     accounting = result["role_accounting"]
     assert accounting["requests"] > 0
     assert accounting["by_role"]["coordinator"]["requests"] > 0
-    assert accounting["by_role"]["plan_reader"]["requests"] == len(plan_records) * 2
-    assert accounting["by_role"]["elevation_reader"]["requests"] == 4
+    assert accounting["by_role"]["plan_reader"]["requests"] == len(plan_records) * 3
+    assert accounting["by_role"]["elevation_reader"]["requests"] == 8
+    review = assembly_review(fixture.output)
+    assert review and review["status"] in {"unchanged", "reviewed"}
+    if review["status"] == "reviewed":
+        assert {row["change_id"] for row in review["changes"]} == {
+            row["change_id"] for row in review["decisions"]
+        }
 
 
-@pytest.mark.parametrize(("case_name", "two_floors"), [("sm24", False), ("sm25", True)])
+@pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
 def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
     fixture = make_fixture(case_name, tmp_path)
     result = asyncio.run(
         execute(fixture.args, adapter_factory=fixture.adapter_factory)
     )
     _assert_complete_pipeline(fixture, result, two_floors=two_floors)
+
+
+@pytest.mark.parametrize("case_name", ["sm21", "sm24", "sm25"])
+def test_fixture_submissions_match_explicit_tool_contracts(tmp_path, case_name):
+    fixture = make_fixture(case_name, tmp_path)
+    assert fixture.args.max_candidates == 24
+    for artifact in fixture.plan_artifacts.values():
+        arguments = plan_submission(artifact)
+        jsonschema.validate(arguments, PLAN_SCHEMA)
+        assert len(opening_hosts(artifact["plan"])) == len(artifact["plan"].get("openings", []))
+        image_name = "1f_view.png" if artifact["plan"]["floor_id"] == "F1" else "2f_view.png"
+        with Image.open(CASES[case_name] / "images" / image_name) as image:
+            differences = drawing_differences(image, artifact["plan"])
+        assert topology_issues([{
+            "plan_sha256": canonical_plan_sha256(artifact["plan"]),
+            "drawing_differences": differences,
+        }]) == []
+        assert arguments["topology_decisions"] == []
+    for artifact in fixture.elevation_artifacts.values():
+        arguments = elevation_submission(artifact)
+        jsonschema.validate(arguments, ELEVATION_SCHEMA)
+        assert set(arguments) == set(ELEVATION_SCHEMA["required"])
 
 
 def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
@@ -178,7 +223,7 @@ def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
         for row in _reader_events(fixture, plan_task["task_id"])
         if row.get("event_type") == "adapter_request"
     ]
-    assert len(plan_events) == 2
+    assert len(plan_events) == 3
 
 
 def test_resume_after_all_readers_preserves_reader_records(tmp_path):

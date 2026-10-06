@@ -871,6 +871,15 @@ def height_application(
         )
     if not entries:
         raise ValueError("match_result contains no safe height matches")
+    from scripts.tool_scripts.bim_agent_role_heights import build_role_height_batch_entry
+
+    batch = build_role_height_batch_entry(
+        entries,
+        evidence_types=[
+            by_id[match["artifact_opening_id"]]["evidence_type"]
+            for match in report["matches"]
+        ],
+    )
     return {
         "schema_version": APPLICATION_SCHEMA_VERSION,
         "candidate": candidate_name,
@@ -880,6 +889,9 @@ def height_application(
         "match_id": report.get("match_id"),
         "entries": entries,
         "entries_json": json.dumps(entries, ensure_ascii=False, separators=(",", ":")),
+        "batch_entry": batch["entry"],
+        "batch_entries_json": batch["entries_json"],
+        "batch_per_opening": batch["per_opening"],
         "unprocessed": {
             "elevation_only": report.get("elevation_only", []),
             "source_only": report.get("source_only", []),

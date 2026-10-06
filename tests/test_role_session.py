@@ -17,7 +17,7 @@ from src.agent_runtime.adapter import ScriptedAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
 
-from test_agent_runtime import response
+from test_agent_runtime import response, versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,6 +38,14 @@ def elevation():
 def dispatch(identity="north", **extra):
     return {"task_id": identity, "role_id": "elevation_reader", "image": "north.png",
             "target": "North/F1", "instructions": "Report this one facade.", **extra}
+
+
+def submit_elevation(call_id="submit"):
+    return response((call_id, "submit_elevation_reading", elevation()))
+
+
+def delivered_adapter():
+    return ScriptedAdapter([submit_elevation(), response(text="Submission acknowledged.")])
 
 
 class Frozen:
@@ -73,7 +81,12 @@ class Frozen:
 
 
 @pytest.fixture
-def environment(tmp_path, request):
+def environment(tmp_path, request, monkeypatch):
+    # These protocol tests exercise scripted readers against an actively edited
+    # worktree. Agent registry sealing has its own tests and must not prevent the
+    # submit/ack state machine from running before the new version is registered.
+    monkeypatch.setattr("src.agent.runtime_roles.session.make_versions",
+                        lambda *args, **kwargs: versions())
     run = tmp_path / "bim"
     (run / "images").mkdir(parents=True)
     image = run / "images/north.png"
@@ -85,7 +98,7 @@ def environment(tmp_path, request):
                     budget_limit=limits.ledger_limit()) as store:
         def make(factory=None, **kwargs):
             return RoleSession(store=store, frozen=Frozen(run), routes=ROUTES,
-                adapter_factory=factory or (lambda *args: ScriptedAdapter([response(text=json.dumps(elevation()))])),
+                adapter_factory=factory or (lambda *args: delivered_adapter()),
                 limits=limits, root=ROOT, **kwargs)
         yield store, make
 
@@ -117,23 +130,25 @@ def test_artifact_file_tampering_is_rejected_on_reopen(environment):
         ArtifactRegistry(store)
 
 
-def test_one_format_repair_is_audited_in_same_role_and_root_budget(environment):
+def test_submit_tool_then_ack_is_audited_in_same_role_and_root_budget(environment):
     store, make = environment
-    session = make(lambda *args: ScriptedAdapter([response(text="{}"), response(text=json.dumps(elevation()))]))
+    session = make(lambda *args: delivered_adapter())
     row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
     assert row["status"] == "completed", row
     usage = session.state()["usage"]
     role = usage["by_role"]["elevation_reader"]
     assert usage["requests"] == role["requests"] == 2
-    assert role["format_errors"] == role["repair_requests"] == role["repair_successes"] == 1
-    assert role["first_pass_rate"] == 0 and role["after_repair_rate"] == 1
+    assert role["format_errors"] == role["repair_requests"] == role["repair_successes"] == 0
+    assert role["first_pass_rate"] == 1 and role["after_repair_rate"] == 1
     assert sum(r["requests"] for r in usage["by_role"].values()) == usage["requests"]
     assert role["request_seconds"] >= 0
 
 
-def test_second_bad_format_stops_without_unbounded_repair(environment):
+def test_answer_text_without_submit_stops_after_one_bounded_repair(environment):
     store, make = environment
-    session = make(lambda *args: ScriptedAdapter([response(text="{}"), response(text="{}")]))
+    session = make(lambda *args: ScriptedAdapter([
+        response(text=json.dumps(elevation())), response(text=json.dumps(elevation())),
+    ]))
     row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
     assert row["status"] == "failed" and row["artifact"] is None
     assert session.state()["usage"]["requests"] == 2
@@ -141,6 +156,41 @@ def test_second_bad_format_stops_without_unbounded_repair(environment):
     assert role["format_errors"] == 2 and role["repair_failures"] == 1
     assert role["repair_incomplete"] == 0 and role["delivery_failures"]
     assert role["task_elapsed_seconds_sum"] > 0 and role["task_wall_span_seconds"] > 0
+
+
+def test_rejected_submit_tool_can_be_fixed_and_resubmitted_without_answer_repair(environment):
+    store, make = environment
+    session = make(lambda *args: ScriptedAdapter([
+        response(("bad-submit", "submit_elevation_reading", {})),
+        submit_elevation("good-submit"),
+        response(text="Submission acknowledged."),
+    ]))
+    row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
+    assert row["status"] == "completed", row
+    executions = [
+        event.payload for event in store.all_events
+        if event.payload.event_type == "tool_execution"
+        and event.payload.tool_name == "submit_elevation_reading"
+    ]
+    assert [event.outcome for event in executions] == ["failed", "succeeded"]
+    role = session.state()["usage"]["by_role"]["elevation_reader"]
+    assert role["requests"] == 3
+    assert role["format_errors"] == role["repair_requests"] == 0
+    assert role["submission_attempts"] == 2 and role["submission_rejections"] == 1
+    assert role["submission_repaired_tasks"] == 1
+    assert role["first_pass_rate"] == 0 and role["after_repair_rate"] == 1
+    assert session.registry.read("north")["orientation"] == "North"
+
+
+@pytest.mark.parametrize("environment", [1], indirect=True)
+def test_submit_on_last_model_request_is_still_a_completed_delivery(environment):
+    store, make = environment
+    session = make(lambda *args: ScriptedAdapter([submit_elevation()]))
+    row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
+    assert row["status"] == "completed", row
+    assert row["runtime_status"].endswith("model_budget_exhausted")
+    assert session.registry.read("north")["orientation"] == "North"
+    assert sum(event.payload.event_type == "adapter_request" for event in store.all_events) == 1
 
 
 def test_single_image_is_validated_for_entire_batch_before_any_model_call(environment):
@@ -181,7 +231,7 @@ def test_shared_request_limit_counts_all_concurrent_tasks(environment):
                 return await super().send(request, timeout=timeout)
             finally:
                 concurrent -= 1
-    session.adapter_factory = lambda *args: Slow([response(text=json.dumps(elevation()))])
+    session.adapter_factory = lambda *args: Slow([submit_elevation()])
     rows = asyncio.run(session.delegate_many([dispatch(f"reader-{i}") for i in range(4)]))["results"]
     assert maximum == 2
     assert sum(row["status"] == "completed" for row in rows) == 2, rows
@@ -202,7 +252,9 @@ def test_readers_are_bounded_by_configured_concurrency(environment):
                 return await super().send(request, timeout=timeout)
             finally:
                 concurrent -= 1
-    session = make(lambda *args: Slow([response(text=json.dumps(elevation()))]), max_concurrent_readers=1)
+    session = make(lambda *args: Slow([
+        submit_elevation(), response(text="Submission acknowledged."),
+    ]), max_concurrent_readers=1)
     rows = asyncio.run(session.delegate_many([dispatch(f"reader-{i}") for i in range(3)]))["results"]
     assert maximum == 1 and all(row["status"] == "completed" for row in rows)
 
@@ -248,7 +300,7 @@ def test_unknown_write_intent_is_not_repeated(environment):
     assert not session.frozen.calls
 
 
-@pytest.mark.parametrize("field,value", [("validation", {"validation_passed": True}),
+@pytest.mark.parametrize("field,value", [("validation", {"validation_passed": False}),
                                        ("role_id", "plan_reader"), ("target", "another floor")])
 def test_completed_metadata_tampering_is_rejected(environment, field, value):
     store, make = environment

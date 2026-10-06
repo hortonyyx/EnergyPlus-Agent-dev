@@ -10,7 +10,6 @@ from contextlib import AsyncExitStack
 
 from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_inputs, paratera_credentials, publish_tool_budget
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
-from src.agent.runtime_delivery import finalize_runtime_building
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.anthropic import HttpAnthropicAdapter
 from src.agent_runtime.context import ContextPolicy
@@ -22,6 +21,7 @@ from src.agent_runtime.versions import make_versions
 from src.harness_contracts.roles import ToolGrant
 
 from .accounting import role_accounting
+from .assembly_review import finalize_role_building
 from .config import load_roles
 from .guidance import get_role_guide
 from .session import RoleSession, EXTRA_TOOLS, update_role_context, role_parameters
@@ -71,7 +71,7 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
         run, _, task = prepare_inputs(output, images=args.images, mesh=None, building_input=args.building_input,
             scope=args.scope, image_kind="drawings", max_candidates=args.max_candidates,
             floor_plan_images=args.floor_plan_images, started_epoch=time.time(), seconds=limits.seconds)
-        (output / "guide.txt").write_text(guide, encoding="utf-8")
+        (output / "guide.txt").write_text(guide, encoding="utf-8", newline="\n")
     manifest = json.loads((run / "inputs.json").read_bytes())
     parameters = role_parameters(primary)
     scripted = json.loads(args.script.read_bytes()) if args.script else None
@@ -131,7 +131,7 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                     active_window_messages=args.context_window, large_result_bytes=args.large_result_bytes,
                     max_images=args.max_images, max_image_bytes=args.max_image_bytes),
                 context_update=update_role_context, root_tool_calls=limits.tool_calls,
-                start_epoch=manifest["started_epoch"], finalize_run=finalize_runtime_building,
+                start_epoch=manifest["started_epoch"], finalize_run=finalize_role_building,
                 tool_budget_update=publish_tool_budget, strict_model_profile=primary["provider"] in LIVE_PROVIDERS,
                 low_output_limit_reason=primary.get("low_output_limit_reason"), fault_hook=fault_hook)
             if args.resume:

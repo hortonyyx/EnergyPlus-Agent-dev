@@ -1,0 +1,41 @@
+{
+  "schema_version": "scoring_bridge_verification_v1",
+  "status": "passed_with_historical_plan_red_item",
+  "commands": [
+    ". .\\scripts\\activate_windows.ps1; python -m py_compile AI_agent\\logs\\experiments\\2026-10-06_role_division_d1b\\scoring_bridge.py AI_agent\\logs\\experiments\\2026-10-06_role_division_d1b\\score_historical.py tests\\test_role_scoring_bridge.py",
+    ". .\\scripts\\activate_windows.ps1; python -m pytest tests\\test_role_scoring_bridge.py -n 2 --basetemp AI_agent\\archive\\local_backup\\d1b\\scoring-pytest -q",
+    ". .\\scripts\\activate_windows.ps1; python AI_agent\\logs\\experiments\\2026-10-06_role_division_d1b\\score_historical.py"
+  ],
+  "tests": {
+    "result": "6 passed in 7.52s",
+    "elapsed_seconds": 7.52,
+    "provider_calls": 0,
+    "combined_with_role_session_after_submit_protocol_update": "25 passed in 11.46s"
+  },
+  "historical_result": {
+    "assigned_questions_passed": 2,
+    "assigned_questions_total": 3,
+    "F1": "severe",
+    "East": "pass",
+    "North": "pass",
+    "complete_reference": "severe"
+  },
+  "evidence": {
+    "extracted_root": "AI_agent/archive/local_backup/d1b/small_test",
+    "archive_sha256": "92a2adfe069bc5747e135c09cafb3ca58ca2a40551d8e75075cbd8ace43a1003",
+    "file_hashes_checked": 1907,
+    "file_hash_failures": 0,
+    "plan_input": "fourth passed isolated trial source and its passed receipt",
+    "elevation_inputs": [
+      "North delivered reader artifact",
+      "East delivered reader artifact"
+    ]
+  },
+  "boundaries": [
+    "D1-A scorer and references unchanged",
+    "submitted plan geometry is validated against trial plan.unresolved while delivery-only outer unresolved items are preserved",
+    "rejected final plan answer not used as a delivery",
+    "unassigned South and West excluded only from assigned-role denominator and retained in complete coverage",
+    "no model, service, DeepSeek, Paratera, or full-case call"
+  ]
+}

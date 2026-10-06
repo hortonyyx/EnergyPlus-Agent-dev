@@ -1,0 +1,83 @@
+{
+  "schema": "d1b_preflight_real_replay_v1",
+  "source": {
+    "invocation_event_id": "event-000328",
+    "execution_event_id": "event-000329",
+    "call_id": "call_9e53c59a898643839b7fce30",
+    "original_execution_outcome": "unknown",
+    "events": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-worktrees\\d1b\\AI_agent\\archive\\local_backup\\d1b\\small_test_d1b\\events.jsonl",
+    "full_arguments_sha256": "8f942d275875b9deeb9deea351613a799e260a0bb667f2c90552417e19d1cb0e",
+    "payload_reused_without_replacement": true
+  },
+  "scope": {
+    "image": "1f_view.png",
+    "source_scope": "supplied local evidence only",
+    "replay_scope": "supplied local evidence only",
+    "scope_preserved": true,
+    "issued_references_copied": true,
+    "expired_timing_removed": true
+  },
+  "outcome": {
+    "reader_tools_is_error": true,
+    "status": "failed",
+    "reason": "plan fields: missing basis, ceiling_height, floor_id, unresolved, x_anchors, y_anchors, z_floor; unknown calibration, floors, schema_version, windows",
+    "repair_hint": {
+      "path": "plan.x_anchors",
+      "example": {
+        "x_anchors": [
+          [
+            10,
+            0.0
+          ],
+          [
+            110,
+            10.0
+          ]
+        ]
+      },
+      "note": "Format example only; world values use metres, pixel values use original image coordinates."
+    },
+    "explicit_field_error": true,
+    "source_geometry_ready": false,
+    "candidate": null,
+    "draft": "plan_drafts/draft_001/plan.json",
+    "compiled_plan_sha256": "f019378bae0ff516dc34bc6e54c3e731e1220e31c1c1179745efae0549dff724",
+    "compiled_numeric_plan_file": "trial_receipts/trial_001_numeric_plan.json",
+    "returned_image_count": 1,
+    "trial_build_reached": true,
+    "failed_receipt_written": true,
+    "receipt_file": "trial_receipts/trial_001.json",
+    "unknown_write": false
+  },
+  "offline": {
+    "model_calls": 0,
+    "http_provider_attempts_blocked": 0,
+    "http_provider_attempts_completed": 0,
+    "provider_adapter_constructed": false
+  },
+  "integrity": {
+    "original_run_unchanged": true,
+    "original_file_count": 1712,
+    "replay_directory": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-worktrees\\d1b\\AI_agent\\archive\\local_backup\\d1b\\preflight_real_replay\\reader_run",
+    "durable_trial_snapshot": {
+      "image": "1f_view.png",
+      "receipts": [
+        {
+          "plan_sha256": "f019378bae0ff516dc34bc6e54c3e731e1220e31c1c1179745efae0549dff724",
+          "status": "failed",
+          "candidate": null,
+          "candidate_source_sha256": null,
+          "compiled_plan_sha256": "f019378bae0ff516dc34bc6e54c3e731e1220e31c1c1179745efae0549dff724",
+          "compiled_numeric_plan_sha256": "f019378bae0ff516dc34bc6e54c3e731e1220e31c1c1179745efae0549dff724",
+          "measurement_profile_sha256": [],
+          "returned_image_sha256": [
+            "ef600f77658c8c03a7eac92904921ae03916a19aa1eca4de2d76c209e77f5dd7"
+          ],
+          "receipt_sha256": "f055902e611c30af24ede9d221cbdc665fc3d6e8cf52ee0ff1114112f53bc6b2"
+        }
+      ],
+      "snapshot_sha256": "bbd760dd8dd2727cd6a7d28dd811b3887af9b2242802afcb8d4f13d912fdc6d2"
+    }
+  },
+  "verified": true
+}

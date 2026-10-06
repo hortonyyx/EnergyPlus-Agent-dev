@@ -29,6 +29,7 @@ BRIDGE_M = 0.15         # ink shorter than this inside a doorway (arc tips, leav
 OFFSET_M = 0.15         # an opening end this far from the matching gap end is reported
 WEAK_SUPPORT = 0.5      # a declared divider with less ink over its non-opening length
 CONTINUOUS_INK = 0.85   # a declared opening lying on this much ink
+FULL_SPAN = 0.85        # an inkless gap covering this much of one junction-bounded segment
 FOOTPRINT_M = (2.0, 300.0)
 LOOK_MARGIN_M = 0.8
 MAX_ITEMS = 10
@@ -40,6 +41,8 @@ SCOPE = ("Interior dividers drawn as double lines or filled bands, and gaps in d
          "exterior walls, windows, single-line walls, oblique walls and heights are not checked.")
 ORDER = ("no_dividers_declared", "undeclared_wall_line", "opening_on_continuous_ink", "wall_gap_without_opening",
          "declared_divider_with_little_ink", "unsupported_open_separator", "opening_offset_from_gap")
+OPENING_OFFSET_CHECK = "The declared opening's ends differ from the ends of the inkless stretch it overlaps."
+CONTINUOUS_SPACE_CHECK = "Check whether this is one continuous space rather than a wall with an opening."
 
 
 def _ink(image):
@@ -76,6 +79,25 @@ def _segments(points):
 
 def _overlap(a0, a1, b0, b1):
     return max(0.0, min(a1, b1) - max(a0, b0))
+
+
+def _fills_junction_span(gap_lo, gap_hi, junctions, along_mpp):
+    """Whether a gap fills one whole divider segment between wall junctions.
+
+    Junction coordinates use wall reference lines while ink gaps end at wall
+    faces, so each end may differ by up to ``FACE_REACH_M``. Requiring both
+    near-junction ends and high span coverage keeps an ordinary doorway inside
+    a longer wall segment out of the continuous-space hint.
+    """
+    for seg_lo, seg_hi in zip(junctions, junctions[1:]):
+        span = seg_hi - seg_lo
+        if span <= 0:
+            continue
+        if (_overlap(gap_lo, gap_hi, seg_lo, seg_hi) >= FULL_SPAN * span
+                and abs(gap_lo - seg_lo) * along_mpp <= FACE_REACH_M
+                and abs(gap_hi - seg_hi) * along_mpp <= FACE_REACH_M):
+            return True
+    return False
 
 
 def _touches(point, orient, walls, tolerance):
@@ -408,10 +430,13 @@ def drawing_differences(image, plan, *, image_name=None, image_sha256=None, plan
                     continue
                 offsets = [round((l - gap_lo) * along_mpp, 2), round((h - gap_hi) * along_mpp, 2)]
                 if max(abs(v) for v in offsets) > OFFSET_M:
+                    check = OPENING_OFFSET_CHECK
+                    if _fills_junction_span(gap_lo, gap_hi, junctions, along_mpp):
+                        check += " " + CONTINUOUS_SPACE_CHECK
                     items.append(dict(type="opening_offset_from_gap", opening=oid, divider=divider_id,
                                       declared=where(orient, at, l, h), gap=where(orient, at, gap_lo, gap_hi),
                                       end_offsets_m=offsets, look_box=look_box(orient, at, min(l, gap_lo), max(h, gap_hi)),
-                                      check="The declared opening's ends differ from the ends of the inkless stretch it overlaps."))
+                                      check=check))
         for oid, kind, l, h in hosted:
             if oid in matched or kind == "window":
                 continue

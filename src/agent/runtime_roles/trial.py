@@ -14,6 +14,7 @@ from typing import Any
 from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
+from .plan_review import review_changes, topology_issues
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -125,7 +126,8 @@ def _corridor_review(workspace: Path | None, result: Mapping[str, Any],
     suspicious_kinds = {"declared_divider_with_little_ink", "unsupported_open_separator"}
     review["drawing_difference_items"] = [
         row for row in difference_items
-        if isinstance(row, Mapping) and row.get("kind") in suspicious_kinds
+        if isinstance(row, Mapping) and (row.get("type", row.get("kind")) in suspicious_kinds
+            or (row.get("type") == "opening_offset_from_gap" and "one continuous space" in row.get("check", "")))
     ]
     findings = []
     if len(corridor_ids) > 1:
@@ -168,6 +170,11 @@ class PlanTrial:
         self.profile_directory = (Path(profile_directory).resolve()
                                   if profile_directory is not None else None)
         self.receipts: list[dict[str, Any]] = []
+        self._memory_plans: dict[str, dict[str, Any]] = {}
+        self._memory_numeric: dict[str, dict[str, Any]] = {}
+        self.reference_plan = None
+        self.allowed_rework_targets = None
+        self.inherited_topology_issues = []
         self._memory_images: dict[str, list[dict[str, Any]]] = {}
         self._load_receipts()
 
@@ -365,7 +372,7 @@ class PlanTrial:
             })
         return blocks
 
-    async def run(self, plan: dict[str, Any]) -> dict[str, Any]:
+    async def run(self, plan: dict[str, Any], *, base_plan_sha256=None, changes=None) -> dict[str, Any]:
         if not isinstance(plan, Mapping):
             raise ValueError("trial plan must be an object")
         normalization_error = None
@@ -382,7 +389,22 @@ class PlanTrial:
         existing = self._existing(plan_hash)
         if existing is not None:
             return existing
+        prior = self.receipts[-1] if self.receipts else None
+        previous_plan = self.load_plan(prior) if prior is not None else self.reference_plan
+        change_report = []
+        if previous_plan is not None:
+            expected_base = prior["plan_sha256"] if prior is not None else canonical_plan_sha256(previous_plan)
+            if base_plan_sha256 != expected_base:
+                raise ValueError(f"rework needs base_plan_sha256={expected_base}; copy the prior trial hash and list only pointed changes")
+            manifest_path = self.workspace / "inputs.json" if self.workspace else None
+            image_size = (json.loads(manifest_path.read_bytes()).get("images", {}).get(self.image_name, {}).get("size")
+                          if manifest_path and manifest_path.is_file() else None)
+            change_report = review_changes(previous_plan, normalized, changes or [], image_size=image_size,
+                                          allowed_targets=self.allowed_rework_targets)
+        elif base_plan_sha256 is not None or changes:
+            raise ValueError("the first trial has no earlier draft to revise")
         number = len(self.receipts) + 1
+        self._memory_plans[plan_hash] = normalized
         input_plan_file = None
         if self.receipt_directory is not None:
             self.receipt_directory.mkdir(parents=True, exist_ok=True)
@@ -435,16 +457,19 @@ class PlanTrial:
                 "returned_images": [],
                 "reason": f"numeric_plan_resolution: {error}",
                 "repair_hint": plan_error_hint(normalized, str(error)),
+                "changes": change_report,
+                "base_plan_sha256": expected_base if previous_plan is not None else None,
             }
             if self.receipt_directory is not None:
                 path = self.receipt_directory / f"trial_{number:03d}.json"
                 receipt["receipt_file"] = self._relative_to_workspace(path)
                 path.write_text(
                     json.dumps(receipt, ensure_ascii=False, indent=2) + "\n",
-                    encoding="utf-8",
+                    encoding="utf-8", newline="\n",
                 )
             self.receipts.append(receipt)
             return receipt
+        self._memory_numeric[plan_hash] = numeric_plan
         raw = await self.tools.call_tool(
             "build_plan_bim",
             {"image": self.image_name, "plan_json": _canonical_plan_bytes(numeric_plan).decode("utf-8")},
@@ -491,6 +516,8 @@ class PlanTrial:
             "building_precision": precision,
             "overlay": result.get("source_plan_views") or plan_input.get("draft_view"),
             "corridor_review": _corridor_review(self.workspace, result, precision, differences),
+            "changes": change_report,
+            "base_plan_sha256": expected_base if previous_plan is not None else None,
         }
         receipt["returned_images"] = self._save_returned_images(raw, number, plan_hash)
         if ready and receipt["compiled_plan_sha256"] != numeric_plan_sha256:
@@ -514,15 +541,19 @@ class PlanTrial:
                                              "trial did not produce source geometry"))
             if "repair_hint" in result:
                 receipt["repair_hint"] = result["repair_hint"]
+        flagged_dividers = {row.get("divider") for row in topology_issues([receipt])}
+        receipt["topology_dividers"] = {row["id"]: row["points"] for row in numeric_plan.get("partitions", [])
+                                       if isinstance(row, Mapping) and row.get("id") and row.get("id") in flagged_dividers}
+        receipt["topology_issues"] = [*self.inherited_topology_issues, *topology_issues([*self.receipts, receipt])]
         if self.receipt_directory is not None:
             path = self.receipt_directory / f"trial_{number:03d}.json"
             receipt["receipt_file"] = self._relative_to_workspace(path)
-            path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
         self.receipts.append(receipt)
         return receipt
 
-    async def call(self, plan: dict[str, Any]) -> dict[str, Any]:
-        receipt = await self.run(plan)
+    async def call(self, plan: dict[str, Any], **review) -> dict[str, Any]:
+        receipt = await self.run(plan, **review)
         content = self._image_content(receipt)
         if receipt.get("status") == "passed":
             message = json.dumps(receipt, ensure_ascii=False)
@@ -538,6 +569,42 @@ class PlanTrial:
             "isError": receipt.get("status") != "passed",
             "structuredContent": receipt,
         }
+
+    def load_plan(self, receipt):
+        if receipt.get("input_plan_file") and self.workspace is not None:
+            path = _inside(self.workspace, receipt["input_plan_file"])
+            if not path.is_file() or _file_sha256(path) != receipt["plan_sha256"]:
+                raise ValueError("trial input plan hash mismatch")
+            return json.loads(path.read_bytes())
+        return self._memory_plans[receipt["plan_sha256"]]
+
+    def numeric_plan(self, receipt):
+        if receipt.get("compiled_numeric_plan_file") and self.workspace is not None:
+            path = _inside(self.workspace, receipt["compiled_numeric_plan_file"])
+            if not path.is_file() or _file_sha256(path) != receipt["compiled_numeric_plan_sha256"]:
+                raise ValueError("trial numeric plan hash mismatch")
+            return json.loads(path.read_bytes())
+        return self._memory_numeric[receipt["plan_sha256"]]
+
+    def verified_plan(self, plan_sha256):
+        receipt = self._existing(plan_sha256)
+        if receipt is None or receipt.get("status") != "passed":
+            raise ValueError("submit_plan_reading requires the plan_sha256 of a successful isolated trial")
+        if self.workspace is not None:
+            saved = _inside(self.workspace, receipt["receipt_file"])
+            if json.loads(saved.read_bytes()) != receipt:
+                raise ValueError("trial receipt changed since validation")
+            source = _inside(self.workspace, f"{receipt['candidate']}/source_model.json")
+            if not source.is_file() or _file_sha256(source) != receipt["candidate_source_sha256"]:
+                raise ValueError("successful trial source hash mismatch")
+            manifest = json.loads((self.workspace / "inputs.json").read_bytes())
+            if _file_sha256(self.workspace / "images" / self.image_name) != manifest["images"][self.image_name]["sha256"]:
+                raise ValueError("trial original image changed")
+        plan = self.load_plan(receipt)
+        if canonical_plan_sha256(plan) != plan_sha256:
+            raise ValueError("submitted plan hash mismatch")
+        self.numeric_plan(receipt)
+        return plan, {"validation_passed": True, **receipt}
 
     def require_success(self, plan: Mapping[str, Any]) -> dict[str, Any]:
         plan_hash = canonical_plan_sha256(plan)
@@ -677,7 +744,7 @@ class PlanTrialSession:
             "scope": "one plan-reader image; no parent building draft",
             "floor_plan_images": [self.image_name],
             "floor_scope_source": "plan_reader_single_image",
-            "max_candidates": 64,
+            "max_candidates": 24,
         }
         for key in ("started_epoch", "deadline_epoch", "time_budget_seconds"):
             if key in parent:
@@ -687,7 +754,7 @@ class PlanTrialSession:
             raise ValueError("trial inputs or timing changed on resume")
         if not target_manifest.is_file():
             target_manifest.write_text(
-                json.dumps(trial_manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+                json.dumps(trial_manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
             )
 
     async def __aenter__(self) -> PlanTrial:
