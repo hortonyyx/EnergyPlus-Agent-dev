@@ -24,6 +24,50 @@ def latest_candidate(session, fallback):
     return fallback
 
 
+def current_plan_deliveries(session):
+    """Return the latest validated plan delivery for each admitted target.
+
+    This deliberately follows the same eligibility and ranking rules as
+    ``assembly.select_deliveries``.  Failed retries do not replace an earlier
+    usable delivery, while a completed rework removes every ancestor in its
+    ``previous_task_id`` chain.
+    """
+    registry = session.registry
+    eligible = {
+        key: row
+        for key, row in registry.records.items()
+        if row.get("role_id") == "plan_reader"
+        and row.get("status") == "completed"
+        and row.get("artifact")
+        and (row.get("validation") or {}).get("validation_passed")
+    }
+    replaced = set()
+    for key in eligible:
+        previous, seen = registry.task(key).get("previous_task_id"), set()
+        while previous and previous not in seen:
+            replaced.add(previous)
+            seen.add(previous)
+            previous = registry.task(previous).get("previous_task_id")
+
+    selected = {}
+    for key in sorted(set(eligible) - replaced):
+        row = eligible[key]
+        artifact = registry.read(
+            key, sha256=row["artifact"]["sha256"], role_id="plan_reader"
+        )
+        target = row["target"]
+        record_path = registry.child(key).task_directory / "reader_record.json"
+        rank = (row.get("delivered_at_ns") or record_path.stat().st_mtime_ns, key)
+        if target not in selected or rank > selected[target][0]:
+            selected[target] = (rank, {
+                "task_id": key,
+                "target": target,
+                "floor_id": artifact["plan"]["floor_id"],
+                "artifact_sha256": row["artifact"]["sha256"],
+            })
+    return {target: value for target, (_, value) in sorted(selected.items())}
+
+
 def candidate_readers(session, candidate):
     builds = []
     for path in (session.store.directory / "role_operations").glob("*.json"):
@@ -87,7 +131,8 @@ def guard_replaced_plans(session, candidate):
             if previous in used:
                 session.registry.read(task_id, role_id="plan_reader")
                 raise ValueError(f"先用新产物建层：{candidate} 基于已被替代的平面 {previous}；"
-                                 f"使用 {task_id}（sha256={row['artifact']['sha256']}）重新 build_from_artifact，再对位")
+                                 f"使用 {task_id}（sha256={row['artifact']['sha256']}）重新调用 "
+                                 "assemble_from_readers")
             previous = session.registry.task(previous).get("previous_task_id")
 
 

@@ -27,7 +27,9 @@ from src.harness_contracts.roles import ToolGrant
 
 from .accounting import role_accounting
 from .artifacts import ArtifactRegistry, valid_task_id
-from .coordinates import task_coordinates
+from .coordinates import READER_COORDINATES, task_coordinates
+from .feedback import reader_batch_reply
+from .parameters import normalize_stringified_parameters
 
 
 def envelope(value, *, error=False):
@@ -51,7 +53,7 @@ def schema(properties, required=()):
 TASK_SCHEMA = schema({
     "task_id": {"type": "string"}, "role_id": {"enum": ["plan_reader", "elevation_reader"]},
     "image": {"type": "string"}, "target": {"type": "string", "minLength": 1},
-    "instructions": {"type": "string", "minLength": 1},
+    "instructions": {"type": "string"},
     "origin": {"type": "string", "minLength": 1},
     "previous_task_id": {"type": "string"},
     "issues": {"type": "array", "items": {"type": "string"}},
@@ -60,7 +62,7 @@ TASK_SCHEMA = schema({
                       "tool_calls": {"type": "integer", "minimum": 0},
                       "tokens": {"type": "integer", "minimum": 1},
                       "seconds": {"type": "number", "exclusiveMinimum": 0}}),
-}, ("task_id", "role_id", "image", "target", "instructions"))
+}, ("task_id", "role_id", "image", "target"))
 
 # Readers get these per-task allowances, capped by what remains of the run; tokens
 # stay under the run's own total. The coordinator no longer chooses them: in the
@@ -72,14 +74,19 @@ ROLE_TASK_BUDGET = {
     "elevation_reader": {"model_calls": 16, "tool_calls": 50, "seconds": 1800},
 }
 COORDINATOR_TASK_SCHEMA = schema({key: value for key, value in TASK_SCHEMA["properties"].items() if key != "budget"},
-                                 tuple(TASK_SCHEMA["required"]))
+                                 (*TASK_SCHEMA["required"], "origin"))
+COORDINATOR_TASK_SCHEMA["properties"]["instructions"] = {"type": "string", "maxLength": 400}
+# Internal task admission still reads older saved tasks without an origin. The
+# model-facing schema requires one for every new dispatch.
+COORDINATOR_ORDINARY_TOOLS = frozenset({"inputs", "view_image", "inspect_candidate", "check_openings",
+    "view_elevation_candidate", "revise_bim", "finish_bim"})
 LEVEL_REFERENCE_SCHEMA = schema({"task_id": {"type": "string"}, "elevation_id": {"type": "string"}},
                                 ("task_id", "elevation_id"))
 HEIGHT_SCHEMA = schema({"match_id": {"oneOf": [{"type": "string"},
     {"type": "array", "items": {"type": "string"}, "minItems": 1}]}}, ("match_id",))
 
 EXTRA_TOOLS = [
-    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently, plans first. Give floor/facade target and a common building origin; runtime fixes x East, y North by the north arrow, z Up. Instructions cannot change directions. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
+    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently, plans first. Give floor/facade target and common origin. Optional instructions (400 characters) contain only building facts or specific rework questions; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
@@ -93,7 +100,7 @@ EXTRA_TOOLS = [
     {"name": "apply_elevation_heights", "description": "Give match_id as one ID or a list: all safe facade heights save at most one candidate. Calls serialize on the latest usable draft; changed opening XY/hosts require a new match. Equal values only record evidence, with no new candidate. Unmatched/conflicting openings stay unresolved.",
      "inputSchema": HEIGHT_SCHEMA},
     {"name": "role_state", "description": "Read all reader task/target/status/artifact references and per-role/root usage. These references also survive context compaction.", "inputSchema": schema({})},
-    {"name": "review_role_assembly", "description": "Acknowledge each reported assembly change against the accepted reader trials with its specific reason before continuing writes or delivery. Source and reader hashes must still match.",
+    {"name": "review_role_assembly", "description": "Acknowledge each assembly change with a specific reason. A missing_required_floor decision explicitly accepts partial delivery of the listed floors; stale or unverified plan lineage cannot be waived. Source and reader hashes must still match.",
      "inputSchema": schema({"review_id": {"type": "string"}, "decisions": {"type": "array", "items": schema({
          "change_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}, ("change_id", "reason"))}}, ("review_id", "decisions"))},
 ]
@@ -129,12 +136,14 @@ class RoleSession:
         self.reader_fault_hook = reader_fault_hook
         self.manifest = json.loads((self.run_directory / "inputs.json").read_bytes())
         self.schemas = {tool["name"]: tool["inputSchema"] for tool in [*EXTRA_TOOLS, *INTERNAL_TOOLS]}
+        self.ordinary_schemas = {}
         from .assembly_review import AssemblyReview
         self.assembly = AssemblyReview(self)
 
     async def list_tools(self):
-        # Keep the ordinary toolkit unchanged. Role tools exist only in this wrapper.
         ordinary = await self.frozen.list_tools()
+        ordinary = [tool for tool in ordinary if tool["name"] in COORDINATOR_ORDINARY_TOOLS]
+        self.ordinary_schemas = {tool["name"]: tool["inputSchema"] for tool in ordinary}
         return [*ordinary, *EXTRA_TOOLS]
 
     def repeatability(self, name):
@@ -157,6 +166,8 @@ class RoleSession:
         return self.frozen.image_origins(raw)
 
     async def call_tool(self, name, arguments):
+        if name not in self.schemas and name not in COORDINATOR_ORDINARY_TOOLS:
+            return envelope({"status": "rejected", "reason": f"{name} is not a coordinator tool"}, error=True)
         if name not in self.schemas and self.frozen.repeatability(name) != "read_only":
             async with self.write_lock:
                 return await self._call_tool(name, arguments)
@@ -165,6 +176,12 @@ class RoleSession:
     async def _call_tool(self, name, arguments):
         try:
             if name not in self.schemas:
+                if name not in self.ordinary_schemas:
+                    await self.list_tools()
+                if name not in self.ordinary_schemas:
+                    raise ValueError(f"{name} is not available in the coordinator catalog")
+                arguments = normalize_stringified_parameters(arguments, self.ordinary_schemas[name])
+                jsonschema.validate(arguments, self.ordinary_schemas[name])
                 if self.frozen.repeatability(name) != "read_only":
                     self.assembly.guard()
                 if name == "finish_bim":
@@ -186,12 +203,24 @@ class RoleSession:
                 # Anthropic-compatible route sent it as the string "true" (10-06 sm24
                 # debug run2), so tolerate and drop it rather than block heights.
                 arguments = {key: value for key, value in arguments.items() if key != "confirm"}
+            arguments = normalize_stringified_parameters(arguments, self.schemas[name])
             jsonschema.validate(arguments, self.schemas[name])
             if name == "delegate_readers":
-                return envelope(await self.delegate_many(arguments["tasks"]))
+                value = await self.delegate_many(arguments["tasks"])
+                first = {}
+                for event in self.store.all_events:
+                    payload = event.payload
+                    if payload.event_type == "tool_execution" and payload.tool_name in {
+                            "submit_plan_reading", "submit_elevation_reading"}:
+                        first.setdefault(event.task_id, payload.outcome == "succeeded")
+                return envelope(reader_batch_reply(value, first))
             if name == "read_role_artifact":
-                return envelope({"record": self.registry.records[arguments["task_id"]],
-                                 "artifact": self.registry.read(**arguments)})
+                record = self.registry.records[arguments["task_id"]]
+                self.registry._verify_record(record)
+                artifact = self.registry.read(**arguments) if record.get("artifact") else None
+                if artifact is None and arguments.get("sha256") is not None:
+                    raise ValueError("this reader has no artifact hash")
+                return envelope({"record": record, "artifact": artifact})
             if name == "assemble_from_readers":
                 from .assembly import assemble_from_readers
                 async with self.write_lock:
@@ -224,6 +253,7 @@ class RoleSession:
 
     def _task(self, arguments):
         from .submission import canonical_target, parse_target
+        arguments = normalize_stringified_parameters(arguments, TASK_SCHEMA)
         jsonschema.validate(arguments, TASK_SCHEMA)
         arguments = {**arguments, "target": canonical_target(arguments["role_id"], arguments["target"])}
         valid_task_id(arguments["task_id"])
@@ -366,7 +396,7 @@ class RoleSession:
             versions = make_versions(child, root=self.root, prompt=guide, tools=specs, parameters=parameters,
                                      route=route, code_paths=("src/agent/runtime_roles", "src/agent/runtime_tools.py"))
             content = [{"type": "text", "text": json.dumps({"task": task, "previous_artifact": previous,
-                       "coordinates": "all boxes refer to original image pixels; geometric values in metres"}, ensure_ascii=False)},
+                       "coordinates": READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
                        {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw_image).decode()}}]
             def validate(text):
                 submitted = tools.submission.read()

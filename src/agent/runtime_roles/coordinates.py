@@ -12,12 +12,23 @@ WORLD_DIRECTIONS = (
     "All boxes and plan points use original-image pixels; world lengths use metres."
 )
 
+READER_COORDINATES = {
+    "plan_reader": (
+        "All footprint, partition, seed and opening points and evidence boxes use original-image pixels. "
+        "Only the second anchor item and heights (z_floor, ceiling_height, openings.z) use metres."
+    ),
+    "elevation_reader": (
+        "Horizontal x_px, calibration pixel_start/pixel_end and evidence boxes use original-image pixels. "
+        "Calibration world_start_m/world_end_m, width_m and absolute elevations value_m/sill_z_m/head_z_m use metres."
+    ),
+}
+
 
 def task_coordinates(task):
     from .submission import parse_target
 
     target, floors = parse_target(task["role_id"], task["target"])
-    return {"directions": WORLD_DIRECTIONS,
+    return {"directions": WORLD_DIRECTIONS, "units": READER_COORDINATES[task["role_id"]],
             "floors": [target] if task["role_id"] == "plan_reader" else sorted(floors),
             "origin": task.get("origin", "Use the common building origin specified in instructions; "
                                "if absent, locate and state an origin from the drawing."),

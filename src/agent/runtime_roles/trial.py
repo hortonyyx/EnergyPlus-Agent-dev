@@ -49,6 +49,52 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _audit_reference(receipt: Mapping[str, Any], field: str, value: object) -> dict[str, Any]:
+    """Point model-visible audit data at the complete durable receipt."""
+
+    encoded = json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode("utf-8")
+    reference: dict[str, Any] = {
+        "json_pointer": f"/{field}",
+        "sha256": hashlib.sha256(encoded).hexdigest(),
+    }
+    if isinstance(receipt.get("receipt_file"), str):
+        reference["receipt_file"] = receipt["receipt_file"]
+    if isinstance(value, (list, dict)):
+        reference["item_count"] = len(value)
+    return reference
+
+
+def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep actionable trial feedback while referencing duplicated audit detail.
+
+    ``run`` and the on-disk receipt retain the complete provenance record.  This
+    projection is used only at the model boundary, where image origins and the
+    just-submitted operation audit otherwise repeat tens of thousands of
+    characters without adding a repair target.
+    """
+
+    visible = copy.deepcopy(dict(receipt))
+    visible["returned_images"] = [
+        {key: image[key] for key in ("file", "sha256") if isinstance(image.get(key), str)}
+        for image in receipt.get("returned_images", [])
+        if isinstance(image, Mapping)
+    ]
+    audit_refs = {}
+    for field in ("operations", "plan_revision"):
+        value = visible.pop(field, None)
+        if value not in (None, [], {}):
+            audit_refs[field] = _audit_reference(receipt, field, value)
+    if audit_refs:
+        visible["audit_refs"] = audit_refs
+    if visible.get("status") != "passed":
+        visible["message"] = (
+            "trial_plan_bim failed; use the reported problems, located findings and repair hints below."
+        )
+    return visible
+
+
 def _inside(base: Path, relative: str) -> Path:
     target = (base / relative).resolve()
     try:
@@ -652,18 +698,13 @@ class PlanTrial:
     async def call(self, plan=None, *, operations=None) -> dict[str, Any]:
         receipt = await self.run(plan, operations=operations)
         content = self._image_content(receipt)
-        if receipt.get("status") == "passed":
-            message = json.dumps(receipt, ensure_ascii=False)
-        else:
-            message = (
-                "trial_plan_bim failed. All problems, revision audit and minimum correct example: "
-                + json.dumps(receipt, ensure_ascii=False)
-            )
+        visible = _model_visible_receipt(receipt)
+        message = json.dumps(visible, ensure_ascii=False)
         content.append({"type": "text", "text": message})
         return {
             "content": content,
             "isError": receipt.get("status") != "passed",
-            "structuredContent": receipt,
+            "structuredContent": visible,
         }
 
     def load_plan(self, receipt):

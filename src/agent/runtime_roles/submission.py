@@ -84,7 +84,7 @@ SUBMISSION_TOOLS = {
         "description": "Submit the successful trial by plan_sha256 with located evidence and separate wall references. No topology warnings: topology_decisions=[]. Mirrored axes require north_arrow with the original arrow bbox, basis and both reported directions. Normal orientation needs no extra field.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
-        "description": "Submit this one facade's structured readings. Values are metres and boxes are original pixels. The tool checks fields, counts, ordering and evidence; fix pointed errors and resubmit within the task budget.",
+        "description": "Submit this facade's readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute elevations value_m/sill_z_m/head_z_m use metres. The tool checks fields, counts, ordering and evidence; fix pointed errors and resubmit.",
         "inputSchema": ELEVATION_SCHEMA},
 }
 

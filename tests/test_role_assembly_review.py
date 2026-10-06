@@ -12,7 +12,11 @@ from types import SimpleNamespace
 import pytest
 
 from src.agent.execution.source_proposal import export_source_proposal
-from src.agent.runtime_roles.assembly_review import AssemblyReview, compare_floor
+from src.agent.runtime_roles.assembly_review import (
+    AssemblyReview,
+    compare_floor,
+    finalize_role_building,
+)
 from src.agent.runtime_roles.config import load_roles
 from src.agent.runtime_roles.session import RoleSession, envelope
 from src.agent_runtime.loop import RunLimits
@@ -209,6 +213,180 @@ def test_require_all_reports_each_unbound_actual_floor(tmp_path):
     unexpected = [row for row in report["changes"] if row["item"] == "unexpected_floor"]
     assert {row["floor_id"] for row in unexpected} == {"F1", "F2"}
     assert all(row["change_id"] for row in unexpected)
+
+
+class _CoverageRegistry:
+    def __init__(self, task_directory, records, tasks, floors):
+        self.task_directory = task_directory
+        self.records = records
+        self.tasks = tasks
+        self.floors = floors
+
+    def read(self, task_id, *, sha256=None, role_id=None):
+        row = self.records[task_id]
+        if sha256 is not None:
+            assert sha256 == row["artifact"]["sha256"]
+        if role_id is not None:
+            assert role_id == row["role_id"]
+        return {"plan": {"floor_id": self.floors[task_id]}}
+
+    def child(self, task_id):
+        return SimpleNamespace(task_directory=self.task_directory)
+
+    def task(self, task_id):
+        return self.tasks.get(task_id, {})
+
+
+def _coverage_record(task_id, target, rank, *, status="completed", valid=True):
+    artifact = {"sha256": task_id + "-sha"} if status == "completed" else None
+    return {
+        "task_id": task_id,
+        "role_id": "plan_reader",
+        "target": target,
+        "status": status,
+        "artifact": artifact,
+        "validation": {"validation_passed": valid} if status == "completed" else None,
+        "delivered_at_ns": rank,
+    }
+
+
+def _coverage_review(tmp_path, records, tasks, floors, used_task):
+    source = {
+        "spaces": [{
+            "id": "F1:R1",
+            "floor_id": "F1",
+            "polygon": [[0, 0, 0], [2, 0, 0], [2, 2, 0], [0, 2, 0]],
+        }],
+        "openings": [],
+        "boundary_relations": [],
+        "boundaries": [],
+    }
+    raw = json.dumps(source, ensure_ascii=False, sort_keys=True).encode()
+    records[used_task]["validation"].update({
+        "candidate": "candidate_01",
+        "candidate_source_sha256": hashlib.sha256(raw).hexdigest(),
+    })
+    run = tmp_path / "run"
+    candidate = run / "candidate_01/source_model.json"
+    candidate.parent.mkdir(parents=True)
+    candidate.write_bytes(raw)
+    task = tmp_path / "reader-task"
+    accepted = task / "bim/trial_workspace/candidate_01/source_model.json"
+    accepted.parent.mkdir(parents=True)
+    accepted.write_bytes(raw)
+    limits = RunLimits(model_calls=1, tool_calls=1, seconds=10, tokens=1000)
+    store = EventStore(
+        tmp_path / "journal",
+        run_id="assembly-coverage",
+        task_id="coordinator",
+        budget_limit=limits.ledger_limit(),
+    )
+    registry = _CoverageRegistry(task, records, tasks, floors)
+    review = AssemblyReview(_AssemblySession(store, run, registry))
+    bound = records[used_task]
+    store.write_json("role_floor_sources.json", {"F1": {
+        "task_id": used_task,
+        "artifact_sha256": bound["artifact"]["sha256"],
+        "source_sha256": hashlib.sha256(raw).hexdigest(),
+    }})
+    store.write_json("role_operations/build.json", {
+        "tool": "build_plan_bim",
+        "reference": {"task_id": used_task},
+        "result": {"structuredContent": {"candidate": "candidate_01"}},
+    })
+    return store, review
+
+
+def test_missing_latest_floor_requires_persisted_partial_delivery_reason(tmp_path):
+    records = {
+        "good-f1": _coverage_record("good-f1", "F1", 1),
+        "good-f2": _coverage_record("good-f2", "F2", 2),
+        "failed-f2-retry": _coverage_record(
+            "failed-f2-retry", "F2", 3, status="failed"
+        ),
+    }
+    tasks = {"failed-f2-retry": {"previous_task_id": "good-f2"}}
+    floors = {"good-f1": "F1", "good-f2": "F2"}
+    store, review = _coverage_review(
+        tmp_path, records, tasks, floors, used_task="good-f1"
+    )
+    with store:
+        assert review.check("candidate_01", require_all=False)["status"] == "unchanged"
+        report = review.check("candidate_01", require_all=True)
+        missing = [row for row in report["changes"] if row["item"] == "missing_required_floor"]
+        assert [row["floor_id"] for row in missing] == ["F2"]
+        assert {row["task_id"] for row in report["delivery_scope"]} == {
+            "good-f1", "good-f2"
+        }
+        assert report["status"] == "needs_review"
+
+        accepted = review.acknowledge(report["review_id"], [{
+            "change_id": missing[0]["change_id"],
+            "reason": "F2 is explicitly omitted from this partial delivery.",
+        }])
+        assert accepted["status"] == "reviewed"
+        persisted = review.check("candidate_01", require_all=True)
+        assert persisted["status"] == "reviewed"
+        assert "explicitly omitted" in persisted["decisions"][0]["reason"]
+
+
+@pytest.mark.parametrize("linked_rework", [False, True])
+def test_old_plan_delivery_is_blocked_by_latest_same_target(tmp_path, linked_rework):
+    records = {
+        "old-f1": _coverage_record("old-f1", "F1", 1),
+        "new-f1": _coverage_record("new-f1", "F1", 2),
+    }
+    tasks = {"new-f1": {"previous_task_id": "old-f1"}} if linked_rework else {}
+    floors = {"old-f1": "F1", "new-f1": "F1"}
+    store, review = _coverage_review(
+        tmp_path, records, tasks, floors, used_task="old-f1"
+    )
+    with store:
+        report = review.check("candidate_01", require_all=True)
+        assert report["status"] == "blocked"
+        assert {row["item"] for row in report["blockers"]} == {
+            "stale_plan_delivery"
+        }
+        with pytest.raises(ValueError):
+            review.acknowledge(report["review_id"], [])
+        with pytest.raises(ValueError):
+            review.guard()
+
+
+def test_timeout_fallback_runs_the_same_delivery_guard(tmp_path, monkeypatch):
+    class BlockingReview:
+        def __init__(self):
+            self.calls = []
+
+        def check(self, candidate, *, require_all=False):
+            self.calls.append((candidate, require_all))
+            return {
+                "candidate": candidate,
+                "status": "blocked",
+                "blockers": [{"item": "stale_plan_delivery"}],
+            }
+
+        def guard(self):
+            self.calls.append("guard")
+            raise ValueError("blocked")
+
+    review = BlockingReview()
+    engine = SimpleNamespace(
+        tools=SimpleNamespace(run_directory=tmp_path, assembly=review)
+    )
+    monkeypatch.setattr(
+        "scripts.tool_scripts.bim_agent_budget.fallback_selection",
+        lambda toolkit: ("candidate_01", "fallback"),
+    )
+    monkeypatch.setattr(
+        "scripts.tool_scripts.run_bim_agent.Toolkit", lambda run_directory: object()
+    )
+
+    result = finalize_role_building(engine, "time_budget_exhausted")
+
+    assert review.calls == [("candidate_01", True), "guard"]
+    assert result["status"] == "assembly_delivery_blocked"
+    assert result["delivery"] is None
 
 
 def test_recovered_build_receipt_still_binds_and_checks_reader_floor(tmp_path):

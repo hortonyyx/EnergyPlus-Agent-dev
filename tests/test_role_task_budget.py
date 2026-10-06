@@ -11,7 +11,7 @@ def test_coordinator_cannot_set_reader_budgets_but_internal_tasks_still_can():
     # after two or three requests.
     schema = next(tool for tool in EXTRA_TOOLS if tool["name"] == "delegate_readers")["inputSchema"]
     task = {"task_id": "plan_f1", "role_id": "plan_reader", "image": "1f_view.png",
-            "target": "F1", "instructions": "Read this floor."}
+            "target": "F1", "origin": "Southwest building corner"}
     jsonschema.validate({"tasks": [task]}, schema)
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate({"tasks": [{**task, "budget": {"tokens": 120000}}]}, schema)
