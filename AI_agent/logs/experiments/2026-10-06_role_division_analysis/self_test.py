@@ -96,7 +96,7 @@ def main() -> None:
     if not all(output["assertions"].values()):
         raise AssertionError(json.dumps(output["assertions"], ensure_ascii=False))
     target = HERE / "self_test_results.json"
-    target.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(output["assertions"], ensure_ascii=False, indent=2))
 
 

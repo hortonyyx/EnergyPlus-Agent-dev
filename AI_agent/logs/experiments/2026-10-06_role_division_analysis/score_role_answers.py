@@ -235,7 +235,7 @@ def main() -> None:
             parser.error("--score requires --reference")
         result = score(json.loads(args.reference.read_bytes()), json.loads(args.score.read_bytes()))
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps({key: result.get(key) for key in ("schema_version", "case", "status")}, ensure_ascii=False))
 
 

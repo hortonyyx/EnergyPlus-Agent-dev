@@ -207,9 +207,9 @@ def main() -> None:
     manifest = {"schema_version": "role_reference_manifest_v1", "references": []}
     for case in CASES:
         target = output / f"{case}.json"
-        target.write_text(json.dumps(build(case, policies), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        target.write_text(json.dumps(build(case, policies), ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
         manifest["references"].append({"case": case, "path": target.name, "sha256": sha256(target)})
-    (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (output / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
 
 

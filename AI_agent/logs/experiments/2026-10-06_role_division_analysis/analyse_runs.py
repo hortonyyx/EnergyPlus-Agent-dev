@@ -284,7 +284,7 @@ def main() -> None:
                 "runs": {name: trace(path) for name, path in RUNS.items()},
                 "sm25_opening_regression": opening_regression()}
     target = HERE / "analysis_evidence.json"
-    target.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     lines = ["# sm25 门窗位置逐项对比", "",
              "评价口径：沿墙端点与垂墙误差分别使用冻结原图清单中的容差；未匹配项单列。", ""]
     regression = evidence["sm25_opening_regression"]
@@ -313,7 +313,7 @@ def main() -> None:
             lines.append(f"- {label} {row['floor_id']} {row['draft']}：位置 {score['positions']}/{score['reference_count']}，"
                          f"声明 {row['openings_declared']} 个；漏配 {score['unmatched_reference']}，多配 {score['unmatched_answer']}。")
     lines += ["", "完整数值、source_refs、容差和首稿 basis 见 `analysis_evidence.json`。", ""]
-    (HERE / "sm25_opening_regression.md").write_text("\n".join(lines), encoding="utf-8")
+    (HERE / "sm25_opening_regression.md").write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(json.dumps({name: {key: value[key] for key in
           ("request_count", "tool_count", "later_request_count", "warning_tool_executions_after_first")}
           for name, value in evidence["runs"].items()}, ensure_ascii=False, indent=2))
