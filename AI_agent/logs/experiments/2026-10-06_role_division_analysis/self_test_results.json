@@ -1,0 +1,297 @@
+{
+  "schema_version": "role_reference_self_test_v1",
+  "results": [
+    {
+      "name": "opus_sm21",
+      "expected": "near_full",
+      "git_source": "4db92a2c:AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/candidate_04/source_model.json",
+      "result": {
+        "status": "pass",
+        "floors": [
+          {
+            "floor_id": "F1",
+            "status": "pass",
+            "rooms": {
+              "status": "pass",
+              "matched": 7,
+              "reference": 7
+            },
+            "partitions": {
+              "status": "pass",
+              "tolerance_m": 0.02,
+              "missing_length_m": 0.0,
+              "extra_length_m": 0.0
+            },
+            "openings": {
+              "status": "pass",
+              "reference_count": 15,
+              "matched": 15,
+              "positions": 15,
+              "unmatched_reference": [],
+              "unmatched_answer": []
+            }
+          },
+          {
+            "floor_id": "F2",
+            "status": "pass",
+            "rooms": {
+              "status": "pass",
+              "matched": 7,
+              "reference": 7
+            },
+            "partitions": {
+              "status": "pass",
+              "tolerance_m": 0.02,
+              "missing_length_m": 0.0,
+              "extra_length_m": 0.0
+            },
+            "openings": {
+              "status": "pass",
+              "reference_count": 14,
+              "matched": 14,
+              "positions": 14,
+              "unmatched_reference": [],
+              "unmatched_answer": []
+            }
+          }
+        ],
+        "elevations": {
+          "status": "pass",
+          "reference_count": 17,
+          "matched": 17,
+          "within_tolerance": 17,
+          "unmatched_reference": [],
+          "unmatched_answer": []
+        }
+      }
+    },
+    {
+      "name": "opus_sm24",
+      "expected": "near_full",
+      "git_source": "4db92a2c:AI_agent/logs/experiments/2026-10-01_opus_dev_sm24/candidate_02/source_model.json",
+      "result": {
+        "status": "pass",
+        "floors": [
+          {
+            "floor_id": "F1",
+            "status": "pass",
+            "rooms": {
+              "status": "minor",
+              "matched": 8,
+              "reference": 8
+            },
+            "partitions": {
+              "status": "pass",
+              "tolerance_m": 0.02,
+              "missing_length_m": 0.0,
+              "extra_length_m": 0.0
+            },
+            "openings": {
+              "status": "pass",
+              "reference_count": 21,
+              "matched": 21,
+              "positions": 21,
+              "unmatched_reference": [],
+              "unmatched_answer": []
+            }
+          }
+        ],
+        "elevations": {
+          "status": "pass",
+          "reference_count": 14,
+          "matched": 14,
+          "within_tolerance": 14,
+          "unmatched_reference": [],
+          "unmatched_answer": []
+        }
+      }
+    },
+    {
+      "name": "opus_sm25",
+      "expected": "near_full",
+      "git_source": "4db92a2c:AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/candidate_04/source_model.json",
+      "result": {
+        "status": "severe",
+        "floors": [
+          {
+            "floor_id": "F1",
+            "status": "severe",
+            "rooms": {
+              "status": "severe",
+              "matched": 14,
+              "reference": 14
+            },
+            "partitions": {
+              "status": "severe",
+              "tolerance_m": 0.02,
+              "missing_length_m": 8.279999996982541,
+              "extra_length_m": 7.7999999969825415
+            },
+            "openings": {
+              "status": "pass",
+              "reference_count": 31,
+              "matched": 31,
+              "positions": 31,
+              "unmatched_reference": [],
+              "unmatched_answer": []
+            }
+          },
+          {
+            "floor_id": "F2",
+            "status": "severe",
+            "rooms": {
+              "status": "severe",
+              "matched": 15,
+              "reference": 15
+            },
+            "partitions": {
+              "status": "severe",
+              "tolerance_m": 0.02,
+              "missing_length_m": 8.279999996982541,
+              "extra_length_m": 7.7999999969825415
+            },
+            "openings": {
+              "status": "pass",
+              "reference_count": 30,
+              "matched": 30,
+              "positions": 30,
+              "unmatched_reference": [],
+              "unmatched_answer": []
+            }
+          }
+        ],
+        "elevations": {
+          "status": "pass",
+          "reference_count": 34,
+          "matched": 34,
+          "within_tolerance": 34,
+          "unmatched_reference": [],
+          "unmatched_answer": []
+        }
+      }
+    },
+    {
+      "name": "c3_qwen27b_sm24",
+      "expected": "known_error_reproduced",
+      "git_source": "evidence/node-regression-c3-2026-10-05:sm24_qwen27b_c3_run.tar.xz",
+      "archive_member": "sm24_qwen27b_c3/bim/candidate_04/source_model.json",
+      "result": {
+        "status": "severe",
+        "floors": [
+          {
+            "floor_id": "F1",
+            "status": "severe",
+            "rooms": {
+              "status": "severe",
+              "matched": 8,
+              "reference": 8
+            },
+            "partitions": {
+              "status": "severe",
+              "tolerance_m": 0.02,
+              "missing_length_m": 43.428131938,
+              "extra_length_m": 45.12894193899999
+            },
+            "openings": {
+              "status": "severe",
+              "reference_count": 21,
+              "matched": 21,
+              "positions": 16,
+              "unmatched_reference": [],
+              "unmatched_answer": []
+            }
+          }
+        ],
+        "elevations": {
+          "status": "severe",
+          "reference_count": 14,
+          "matched": 14,
+          "within_tolerance": 13,
+          "unmatched_reference": [],
+          "unmatched_answer": []
+        }
+      }
+    },
+    {
+      "name": "c3_runtime_sm25",
+      "expected": "known_error_reproduced",
+      "git_source": "evidence/node-regression-c3-2026-10-05:sm25_runtime_anthropic_run.tar.xz",
+      "archive_member": "sm25_runtime_anthropic/bim/candidate_06/source_model.json",
+      "result": {
+        "status": "severe",
+        "floors": [
+          {
+            "floor_id": "F1",
+            "status": "severe",
+            "rooms": {
+              "status": "severe",
+              "matched": 14,
+              "reference": 14
+            },
+            "partitions": {
+              "status": "severe",
+              "tolerance_m": 0.02,
+              "missing_length_m": 91.69448584400004,
+              "extra_length_m": 105.7546610830315
+            },
+            "openings": {
+              "status": "severe",
+              "reference_count": 31,
+              "matched": 30,
+              "positions": 17,
+              "unmatched_reference": [
+                "WC_N"
+              ],
+              "unmatched_answer": [
+                "F1:D_r3"
+              ]
+            }
+          },
+          {
+            "floor_id": "F2",
+            "status": "severe",
+            "rooms": {
+              "status": "severe",
+              "matched": 15,
+              "reference": 15
+            },
+            "partitions": {
+              "status": "severe",
+              "tolerance_m": 0.02,
+              "missing_length_m": 89.34220284599994,
+              "extra_length_m": 101.8131645850748
+            },
+            "openings": {
+              "status": "severe",
+              "reference_count": 30,
+              "matched": 28,
+              "positions": 5,
+              "unmatched_reference": [
+                "WW",
+                "WN_C"
+              ],
+              "unmatched_answer": []
+            }
+          }
+        ],
+        "elevations": {
+          "status": "severe",
+          "reference_count": 34,
+          "matched": 31,
+          "within_tolerance": 31,
+          "unmatched_reference": [
+            "op_15d6",
+            "op_15d9",
+            "op_15b8"
+          ],
+          "unmatched_answer": []
+        }
+      }
+    }
+  ],
+  "assertions": {
+    "opus_all_plan_openings_full": true,
+    "qwen_sm24_room_split_detected": true,
+    "runtime_sm25_opening_regression_detected": true
+  }
+}

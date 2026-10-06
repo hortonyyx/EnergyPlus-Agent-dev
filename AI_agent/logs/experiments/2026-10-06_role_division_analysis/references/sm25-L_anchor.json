@@ -1,0 +1,3499 @@
+{
+  "schema_version": "role_reference_v1",
+  "case": "sm25-L_anchor",
+  "purpose": "evaluation_only_never_generator_input",
+  "coordinate_frame": "building_axis_world_m",
+  "tolerances": {
+    "room_and_partition_boundary_m": 0.02,
+    "plan_openings": "per-floor frozen original-image inventory; see each opening.tolerance_m",
+    "elevation_along_m": 0.4,
+    "elevation_width_m": 0.4,
+    "elevation_sill_m": 0.3,
+    "elevation_head_m": 0.3
+  },
+  "sources": [
+    {
+      "path": "case_tests/test_baseline/gt/sm25-L_anchor/gt.json",
+      "sha256": "654d94fed8a313f24631f36f7551f1a115f83dc66956538fa49cb40b5ad9b0a9",
+      "authority": "verified_gt"
+    },
+    {
+      "path": "AI_agent/logs/experiments/2026-09-27_sm25_full_inventory_setup/original_reference.json",
+      "sha256": "bdf941d8c65f430c4b34223bcf3bd4f59b528215c5ace1f4a2c834e08369dcfd",
+      "authority": "frozen_original_image_inventory"
+    },
+    {
+      "path": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+      "sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "authority": "original_image"
+    },
+    {
+      "path": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+      "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "authority": "original_image"
+    }
+  ],
+  "plan_questions": [
+    {
+      "floor_id": "F1",
+      "z_floor_m": 0.0,
+      "ceiling_height_m": 3.6,
+      "exterior_m": [
+        [
+          0.0,
+          14.0
+        ],
+        [
+          5.0,
+          14.0
+        ],
+        [
+          5.0,
+          0.0
+        ],
+        [
+          25.0,
+          0.0
+        ],
+        [
+          25.0,
+          6.0
+        ],
+        [
+          15.000000000000002,
+          6.0
+        ],
+        [
+          15.000000000000002,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "interior_rings_m": [],
+      "partitions_m": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              5.0,
+              14.00000001
+            ],
+            [
+              5.0,
+              14.120000000000001
+            ]
+          ],
+          [
+            [
+              5.0,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              14.120000000000001
+            ]
+          ],
+          [
+            [
+              8.940000000000001,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              9.9999
+            ]
+          ],
+          [
+            [
+              8.940000000000001,
+              9.9999
+            ],
+            [
+              8.940000000000001,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              8.940000000000001,
+              5.880000000000001
+            ],
+            [
+              5.00000001,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              5.00000001,
+              3.9400000000000004
+            ],
+            [
+              13.0,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              13.0,
+              3.9400000000000004
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              20.94,
+              3.9400000000000004
+            ],
+            [
+              20.94,
+              1e-08
+            ]
+          ],
+          [
+            [
+              15.000000000000002,
+              5.99999999
+            ],
+            [
+              15.000000000000002,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              15.000000000000002,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              11.06,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              8.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              8.0
+            ],
+            [
+              11.06,
+              10.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              10.0
+            ],
+            [
+              11.06,
+              12.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              12.0
+            ],
+            [
+              11.06,
+              14.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              14.0
+            ],
+            [
+              11.06,
+              15.999600000000001
+            ]
+          ],
+          [
+            [
+              11.06,
+              15.999600000000001
+            ],
+            [
+              11.06,
+              18.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              18.0
+            ],
+            [
+              11.06,
+              19.99999999
+            ]
+          ],
+          [
+            [
+              9.940000000000001,
+              19.99999999
+            ],
+            [
+              9.940000000000001,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              1.0000000000000002e-08,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              19.99999999
+            ]
+          ],
+          [
+            [
+              11.06,
+              14.0
+            ],
+            [
+              14.999999990000001,
+              14.0
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              15.999600000000001
+            ],
+            [
+              11.06,
+              15.999600000000001
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              18.0
+            ],
+            [
+              11.06,
+              18.0
+            ]
+          ],
+          [
+            [
+              13.0,
+              3.9400000000000004
+            ],
+            [
+              13.0,
+              1e-08
+            ]
+          ],
+          [
+            [
+              8.940000000000001,
+              9.9999
+            ],
+            [
+              5.00000001,
+              9.9999
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              8.0
+            ],
+            [
+              11.06,
+              8.0
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              10.0
+            ],
+            [
+              11.06,
+              10.0
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              12.0
+            ],
+            [
+              11.06,
+              12.0
+            ]
+          ]
+        ]
+      },
+      "rooms": [
+        {
+          "id": "F1-z0",
+          "name": "F1-r0",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              14.0
+            ],
+            [
+              5.0,
+              14.0
+            ],
+            [
+              5.0,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              5.880000000000001
+            ],
+            [
+              5.0,
+              5.880000000000001
+            ],
+            [
+              5.0,
+              3.9400000000000004
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ],
+            [
+              20.94,
+              0.0
+            ],
+            [
+              25.0,
+              0.0
+            ],
+            [
+              25.0,
+              6.0
+            ],
+            [
+              15.000000000000002,
+              6.0
+            ],
+            [
+              15.000000000000002,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              20.0
+            ],
+            [
+              9.940000000000001,
+              20.0
+            ],
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              0.0,
+              16.060000000000002
+            ]
+          ]
+        },
+        {
+          "id": "F1-z1",
+          "name": "F1-r1",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              20.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z10",
+          "name": "F1-r10",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              14.0
+            ],
+            [
+              15.000000000000002,
+              14.0
+            ],
+            [
+              15.000000000000002,
+              15.999600000000001
+            ],
+            [
+              11.06,
+              15.999600000000001
+            ]
+          ]
+        },
+        {
+          "id": "F1-z11",
+          "name": "F1-r11",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              15.999600000000001
+            ],
+            [
+              15.000000000000002,
+              15.999600000000001
+            ],
+            [
+              15.000000000000002,
+              18.0
+            ],
+            [
+              11.06,
+              18.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z12",
+          "name": "F1-r12",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              18.0
+            ],
+            [
+              15.000000000000002,
+              18.0
+            ],
+            [
+              15.000000000000002,
+              20.0
+            ],
+            [
+              11.06,
+              20.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z13",
+          "name": "F1-r13",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              13.0,
+              0.0
+            ],
+            [
+              20.94,
+              0.0
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ],
+            [
+              13.0,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F1-z2",
+          "name": "F1-r2",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              9.940000000000001,
+              20.0
+            ],
+            [
+              5.0,
+              20.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z3",
+          "name": "F1-r3",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              13.0,
+              0.0
+            ],
+            [
+              13.0,
+              3.9400000000000004
+            ],
+            [
+              5.0,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F1-z4",
+          "name": "F1-r4",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              5.880000000000001
+            ],
+            [
+              8.940000000000001,
+              5.880000000000001
+            ],
+            [
+              8.940000000000001,
+              9.9999
+            ],
+            [
+              5.0,
+              9.9999
+            ]
+          ]
+        },
+        {
+          "id": "F1-z5",
+          "name": "F1-r5",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              9.9999
+            ],
+            [
+              8.940000000000001,
+              9.9999
+            ],
+            [
+              8.940000000000001,
+              14.120000000000001
+            ],
+            [
+              5.0,
+              14.120000000000001
+            ]
+          ]
+        },
+        {
+          "id": "F1-z6",
+          "name": "F1-r6",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              5.880000000000001
+            ],
+            [
+              15.000000000000002,
+              5.880000000000001
+            ],
+            [
+              15.000000000000002,
+              8.0
+            ],
+            [
+              11.06,
+              8.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z7",
+          "name": "F1-r7",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              8.0
+            ],
+            [
+              15.000000000000002,
+              8.0
+            ],
+            [
+              15.000000000000002,
+              10.0
+            ],
+            [
+              11.06,
+              10.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z8",
+          "name": "F1-r8",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              10.0
+            ],
+            [
+              15.000000000000002,
+              10.0
+            ],
+            [
+              15.000000000000002,
+              12.0
+            ],
+            [
+              11.06,
+              12.0
+            ]
+          ]
+        },
+        {
+          "id": "F1-z9",
+          "name": "F1-r9",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              12.0
+            ],
+            [
+              15.000000000000002,
+              12.0
+            ],
+            [
+              15.000000000000002,
+              14.0
+            ],
+            [
+              11.06,
+              14.0
+            ]
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "WN1",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            2.2383217993079585,
+            4.638840830449827
+          ],
+          "cross_m": 19.87027027027027,
+          "width_m": 2.4005190311418687,
+          "host_labels": [
+            "NW1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WN2",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            5.374134948096886,
+            7.7530276816609
+          ],
+          "cross_m": 19.87027027027027,
+          "width_m": 2.3788927335640135,
+          "host_labels": [
+            "NW2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WNC",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            10.304930795847751,
+            10.888840830449826
+          ],
+          "cross_m": 19.87027027027027,
+          "width_m": 0.5839100346020754,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE1",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            18.37837837837838,
+            19.243243243243242
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8648648648648631,
+          "host_labels": [
+            "E1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE2",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            16.756756756756758,
+            17.62162162162162
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8648648648648631,
+          "host_labels": [
+            "E2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE3",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            14.378378378378379,
+            15.243243243243242
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8648648648648631,
+          "host_labels": [
+            "E3"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE4",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            12.756756756756758,
+            13.621621621621621
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8648648648648631,
+          "host_labels": [
+            "E4"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE5",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            10.378378378378379,
+            11.264864864864865
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8864864864864863,
+          "host_labels": [
+            "E5"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE6",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            8.756756756756756,
+            9.621621621621621
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8648648648648649,
+          "host_labels": [
+            "E6"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WE7",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            6.745945945945946,
+            7.632432432432433
+          ],
+          "cross_m": 14.878892733564014,
+          "width_m": 0.8864864864864863,
+          "host_labels": [
+            "E7"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WW1",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            10.378378378378379,
+            12.151351351351352
+          ],
+          "cross_m": 5.1362456747404845,
+          "width_m": 1.7729729729729726,
+          "host_labels": [
+            "W1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WW2",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            7.848648648648648,
+            9.621621621621621
+          ],
+          "cross_m": 5.1362456747404845,
+          "width_m": 1.7729729729729726,
+          "host_labels": [
+            "W2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WC_N",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            15.30060553633218,
+            23.280709342560552
+          ],
+          "cross_m": 5.87027027027027,
+          "width_m": 7.980103806228373,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WS1",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            8.661332179930795,
+            12.6189446366782
+          ],
+          "cross_m": 0.11891891891891859,
+          "width_m": 3.9576124567474054,
+          "host_labels": [
+            "S1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "WS2",
+          "floor_id": "F1",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            13.375865051903114,
+            17.355103806228374
+          ],
+          "cross_m": 0.11891891891891859,
+          "width_m": 3.9792387543252605,
+          "host_labels": [
+            "S2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DN1",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            3.860294117647059,
+            4.638840830449827
+          ],
+          "cross_m": 16.054054054054053,
+          "width_m": 0.7785467128027683,
+          "host_labels": [
+            "NW1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DN2",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            5.374134948096886,
+            6.152681660899654
+          ],
+          "cross_m": 16.054054054054053,
+          "width_m": 0.7785467128027683,
+          "host_labels": [
+            "NW2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE1",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            18.37837837837838,
+            19.135135135135137
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7567567567567579,
+          "host_labels": [
+            "E1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE2",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            16.843243243243244,
+            17.62162162162162
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7783783783783775,
+          "host_labels": [
+            "E2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE3",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            14.378378378378379,
+            15.135135135135135
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7567567567567561,
+          "host_labels": [
+            "E3",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE4",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            12.843243243243244,
+            13.621621621621621
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7783783783783775,
+          "host_labels": [
+            "E4",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE5",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            10.378378378378379,
+            11.156756756756756
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7783783783783775,
+          "host_labels": [
+            "E5",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE6",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            8.843243243243244,
+            9.621621621621621
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7783783783783775,
+          "host_labels": [
+            "E6",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DE7",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            6.854054054054053,
+            7.632432432432433
+          ],
+          "cross_m": 11.07266435986159,
+          "width_m": 0.7783783783783793,
+          "host_labels": [
+            "E7",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DW1",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            10.378378378378379,
+            11.156756756756756
+          ],
+          "cross_m": 8.953287197231834,
+          "width_m": 0.7783783783783775,
+          "host_labels": [
+            "W1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DW2",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            8.864864864864865,
+            9.621621621621621
+          ],
+          "cross_m": 8.953287197231834,
+          "width_m": 0.7567567567567561,
+          "host_labels": [
+            "W2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DS1",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            11.061851211072664,
+            12.640570934256056
+          ],
+          "cross_m": 3.935135135135134,
+          "width_m": 1.5787197231833918,
+          "host_labels": [
+            "S1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DS2",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            13.375865051903114,
+            14.954584775086506
+          ],
+          "cross_m": 3.935135135135134,
+          "width_m": 1.5787197231833918,
+          "host_labels": [
+            "S2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DX_WN",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            14.55135135135135,
+            15.32972972972973
+          ],
+          "cross_m": 0.12975778546712802,
+          "width_m": 0.7783783783783793,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DX_WS",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            4.324324324324325,
+            5.081081081081081
+          ],
+          "cross_m": 5.1362456747404845,
+          "width_m": 0.7567567567567561,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        },
+        {
+          "id": "DX_E",
+          "floor_id": "F1",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            0.5621621621621635,
+            2.1405405405405418
+          ],
+          "cross_m": 24.8810553633218,
+          "width_m": 1.5783783783783782,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/1f_view.png",
+          "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644"
+        }
+      ]
+    },
+    {
+      "floor_id": "F2",
+      "z_floor_m": 3.6,
+      "ceiling_height_m": 3.6,
+      "exterior_m": [
+        [
+          0.0,
+          14.0
+        ],
+        [
+          5.0,
+          14.0
+        ],
+        [
+          5.0,
+          0.0
+        ],
+        [
+          25.0,
+          0.0
+        ],
+        [
+          25.0,
+          6.0
+        ],
+        [
+          15.000000000000002,
+          6.0
+        ],
+        [
+          15.000000000000002,
+          20.0
+        ],
+        [
+          0.0,
+          20.0
+        ]
+      ],
+      "interior_rings_m": [],
+      "partitions_m": {
+        "type": "MultiLineString",
+        "coordinates": [
+          [
+            [
+              5.0,
+              14.00000001
+            ],
+            [
+              5.0,
+              14.120000000000001
+            ]
+          ],
+          [
+            [
+              5.0,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              14.120000000000001
+            ]
+          ],
+          [
+            [
+              8.940000000000001,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              8.940000000000001,
+              5.880000000000001
+            ],
+            [
+              5.00000001,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              5.00000001,
+              3.9400000000000004
+            ],
+            [
+              9.09,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              9.09,
+              3.9400000000000004
+            ],
+            [
+              13.0,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              13.0,
+              3.9400000000000004
+            ],
+            [
+              16.91,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              16.91,
+              3.9400000000000004
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              20.94,
+              3.9400000000000004
+            ],
+            [
+              24.99999999,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              15.000000000000002,
+              5.99999999
+            ],
+            [
+              15.000000000000002,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              15.000000000000002,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              5.880000000000001
+            ]
+          ],
+          [
+            [
+              11.06,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              8.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              8.0
+            ],
+            [
+              11.06,
+              10.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              10.0
+            ],
+            [
+              11.06,
+              12.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              12.0
+            ],
+            [
+              11.06,
+              14.0
+            ]
+          ],
+          [
+            [
+              11.06,
+              14.0
+            ],
+            [
+              11.06,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              11.06,
+              16.060000000000002
+            ],
+            [
+              9.940000000000001,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              1.0000000000000002e-08,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              19.99999999
+            ]
+          ],
+          [
+            [
+              11.06,
+              12.0
+            ],
+            [
+              14.999999990000001,
+              12.0
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              14.0
+            ],
+            [
+              11.06,
+              14.0
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              16.060000000000002
+            ],
+            [
+              11.06,
+              16.060000000000002
+            ]
+          ],
+          [
+            [
+              16.91,
+              1e-08
+            ],
+            [
+              16.91,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              13.0,
+              3.9400000000000004
+            ],
+            [
+              13.0,
+              1e-08
+            ]
+          ],
+          [
+            [
+              20.94,
+              1e-08
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              9.940000000000001,
+              19.99999999
+            ]
+          ],
+          [
+            [
+              9.09,
+              1e-08
+            ],
+            [
+              9.09,
+              3.9400000000000004
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              8.0
+            ],
+            [
+              11.06,
+              8.0
+            ]
+          ],
+          [
+            [
+              14.999999990000001,
+              10.0
+            ],
+            [
+              11.06,
+              10.0
+            ]
+          ]
+        ]
+      },
+      "rooms": [
+        {
+          "id": "F2-z0",
+          "name": "F2-r0",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              14.0
+            ],
+            [
+              5.0,
+              14.0
+            ],
+            [
+              5.0,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              14.120000000000001
+            ],
+            [
+              8.940000000000001,
+              5.880000000000001
+            ],
+            [
+              5.0,
+              5.880000000000001
+            ],
+            [
+              5.0,
+              3.9400000000000004
+            ],
+            [
+              25.0,
+              3.9400000000000004
+            ],
+            [
+              25.0,
+              6.0
+            ],
+            [
+              15.000000000000002,
+              6.0
+            ],
+            [
+              15.000000000000002,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              5.880000000000001
+            ],
+            [
+              11.06,
+              16.060000000000002
+            ],
+            [
+              0.0,
+              16.060000000000002
+            ]
+          ]
+        },
+        {
+          "id": "F2-z1",
+          "name": "F2-r1",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              0.0,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              5.0,
+              20.0
+            ],
+            [
+              0.0,
+              20.0
+            ]
+          ]
+        },
+        {
+          "id": "F2-z10",
+          "name": "F2-r10",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              12.0
+            ],
+            [
+              15.000000000000002,
+              12.0
+            ],
+            [
+              15.000000000000002,
+              14.0
+            ],
+            [
+              11.06,
+              14.0
+            ]
+          ]
+        },
+        {
+          "id": "F2-z11",
+          "name": "F2-r11",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              14.0
+            ],
+            [
+              15.000000000000002,
+              14.0
+            ],
+            [
+              15.000000000000002,
+              16.060000000000002
+            ],
+            [
+              11.06,
+              16.060000000000002
+            ]
+          ]
+        },
+        {
+          "id": "F2-z12",
+          "name": "F2-r12",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              13.0,
+              0.0
+            ],
+            [
+              16.91,
+              0.0
+            ],
+            [
+              16.91,
+              3.9400000000000004
+            ],
+            [
+              13.0,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F2-z13",
+          "name": "F2-r13",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              16.91,
+              0.0
+            ],
+            [
+              20.94,
+              0.0
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ],
+            [
+              16.91,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F2-z14",
+          "name": "F2-r14",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              20.94,
+              0.0
+            ],
+            [
+              25.0,
+              0.0
+            ],
+            [
+              25.0,
+              3.9400000000000004
+            ],
+            [
+              20.94,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F2-z2",
+          "name": "F2-r2",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              16.060000000000002
+            ],
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              9.940000000000001,
+              20.0
+            ],
+            [
+              5.0,
+              20.0
+            ]
+          ]
+        },
+        {
+          "id": "F2-z3",
+          "name": "F2-r3",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              0.0
+            ],
+            [
+              9.09,
+              0.0
+            ],
+            [
+              9.09,
+              3.9400000000000004
+            ],
+            [
+              5.0,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F2-z4",
+          "name": "F2-r4",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              5.0,
+              5.880000000000001
+            ],
+            [
+              8.940000000000001,
+              5.880000000000001
+            ],
+            [
+              8.940000000000001,
+              14.120000000000001
+            ],
+            [
+              5.0,
+              14.120000000000001
+            ]
+          ]
+        },
+        {
+          "id": "F2-z5",
+          "name": "F2-r5",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              9.09,
+              0.0
+            ],
+            [
+              13.0,
+              0.0
+            ],
+            [
+              13.0,
+              3.9400000000000004
+            ],
+            [
+              9.09,
+              3.9400000000000004
+            ]
+          ]
+        },
+        {
+          "id": "F2-z6",
+          "name": "F2-r6",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              9.940000000000001,
+              16.060000000000002
+            ],
+            [
+              15.000000000000002,
+              16.060000000000002
+            ],
+            [
+              15.000000000000002,
+              20.0
+            ],
+            [
+              9.940000000000001,
+              20.0
+            ]
+          ]
+        },
+        {
+          "id": "F2-z7",
+          "name": "F2-r7",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              5.880000000000001
+            ],
+            [
+              15.000000000000002,
+              5.880000000000001
+            ],
+            [
+              15.000000000000002,
+              8.0
+            ],
+            [
+              11.06,
+              8.0
+            ]
+          ]
+        },
+        {
+          "id": "F2-z8",
+          "name": "F2-r8",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              8.0
+            ],
+            [
+              15.000000000000002,
+              8.0
+            ],
+            [
+              15.000000000000002,
+              10.0
+            ],
+            [
+              11.06,
+              10.0
+            ]
+          ]
+        },
+        {
+          "id": "F2-z9",
+          "name": "F2-r9",
+          "role": "unspecified",
+          "polygon_m": [
+            [
+              11.06,
+              10.0
+            ],
+            [
+              15.000000000000002,
+              10.0
+            ],
+            [
+              15.000000000000002,
+              12.0
+            ],
+            [
+              11.06,
+              12.0
+            ]
+          ]
+        }
+      ],
+      "openings": [
+        {
+          "id": "WN_NW1",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            2.225130890052356,
+            4.646596858638744
+          ],
+          "cross_m": 19.880043620501635,
+          "width_m": 2.421465968586388,
+          "host_labels": [
+            "NW1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WN_NW2",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            5.344677137870855,
+            7.766143106457243
+          ],
+          "cross_m": 19.880043620501635,
+          "width_m": 2.4214659685863875,
+          "host_labels": [
+            "NW2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WN_NE",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            10.296684118673648,
+            10.907504363001745
+          ],
+          "cross_m": 19.880043620501635,
+          "width_m": 0.6108202443280977,
+          "host_labels": [
+            "NE"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WE1",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            14.351145038167939,
+            15.267175572519083
+          ],
+          "cross_m": 14.888743455497382,
+          "width_m": 0.9160305343511439,
+          "host_labels": [
+            "E1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WE2",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            12.737186477644492,
+            13.653217011995638
+          ],
+          "cross_m": 14.888743455497382,
+          "width_m": 0.9160305343511457,
+          "host_labels": [
+            "E2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WE3",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            10.338058887677208,
+            11.254089422028354
+          ],
+          "cross_m": 14.888743455497382,
+          "width_m": 0.9160305343511457,
+          "host_labels": [
+            "E3"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WE4",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            8.724100327153762,
+            9.640130861504908
+          ],
+          "cross_m": 14.888743455497382,
+          "width_m": 0.9160305343511457,
+          "host_labels": [
+            "E4"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WE5",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            6.7175572519083975,
+            7.633587786259541
+          ],
+          "cross_m": 14.888743455497382,
+          "width_m": 0.9160305343511439,
+          "host_labels": [
+            "E5"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WW",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            7.829880043620502,
+            12.170119956379498
+          ],
+          "cross_m": 5.115619546247818,
+          "width_m": 4.340239912758996,
+          "host_labels": [
+            "W"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WW_C",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "y",
+          "span_m": [
+            4.252998909487459,
+            5.452562704471102
+          ],
+          "cross_m": 5.115619546247818,
+          "width_m": 1.1995637949836429,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WN_C",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            15.292321116928447,
+            23.320244328097733
+          ],
+          "cross_m": 5.877862595419847,
+          "width_m": 8.027923211169286,
+          "host_labels": [
+            "C"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WS1",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            6.9153577661431065,
+            8.7478184991274
+          ],
+          "cross_m": 0.11995637949836535,
+          "width_m": 1.832460732984293,
+          "host_labels": [
+            "S1"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WS2",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            9.445898778359512,
+            11.256544502617801
+          ],
+          "cross_m": 0.11995637949836535,
+          "width_m": 1.8106457242582898,
+          "host_labels": [
+            "S2"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WS3",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            14.74694589877836,
+            16.55759162303665
+          ],
+          "cross_m": 0.11995637949836535,
+          "width_m": 1.8106457242582898,
+          "host_labels": [
+            "S3"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WS4",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            17.255671902268762,
+            19.088132635253054
+          ],
+          "cross_m": 0.11995637949836535,
+          "width_m": 1.8324607329842912,
+          "host_labels": [
+            "S4"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "WS5",
+          "floor_id": "F2",
+          "kind": "window",
+          "axis": "x",
+          "span_m": [
+            21.291448516579408,
+            23.102094240837697
+          ],
+          "cross_m": 0.11995637949836535,
+          "width_m": 1.8106457242582898,
+          "host_labels": [
+            "S5"
+          ],
+          "exterior": true,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DN_NW1",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            3.8394415357766145,
+            4.646596858638744
+          ],
+          "cross_m": 16.052344601962922,
+          "width_m": 0.8071553228621293,
+          "host_labels": [
+            "NW1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DN_NW2",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            5.344677137870855,
+            6.173647469458988
+          ],
+          "cross_m": 16.052344601962922,
+          "width_m": 0.8289703315881329,
+          "host_labels": [
+            "NW2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DN_NE",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            10.100349040139616,
+            10.907504363001745
+          ],
+          "cross_m": 16.052344601962922,
+          "width_m": 0.8071553228621298,
+          "host_labels": [
+            "NE",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DE1",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            14.351145038167939,
+            15.158124318429662
+          ],
+          "cross_m": 11.049301919720769,
+          "width_m": 0.8069792802617233,
+          "host_labels": [
+            "E1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DE2",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            12.82442748091603,
+            13.631406761177754
+          ],
+          "cross_m": 11.049301919720769,
+          "width_m": 0.8069792802617233,
+          "host_labels": [
+            "E2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DE3",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            10.338058887677208,
+            11.166848418756816
+          ],
+          "cross_m": 11.049301919720769,
+          "width_m": 0.8287895310796074,
+          "host_labels": [
+            "E3",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DE4",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            8.833151581243184,
+            9.640130861504908
+          ],
+          "cross_m": 11.049301919720769,
+          "width_m": 0.8069792802617233,
+          "host_labels": [
+            "E4",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DE5",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            6.826608505997818,
+            7.633587786259541
+          ],
+          "cross_m": 11.049301919720769,
+          "width_m": 0.8069792802617233,
+          "host_labels": [
+            "E5",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DW",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "y",
+          "span_m": [
+            12.082878953107961,
+            13.696837513631408
+          ],
+          "cross_m": 8.944153577661432,
+          "width_m": 1.6139585605234466,
+          "host_labels": [
+            "W",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DS1",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            7.9188481675392675,
+            8.7478184991274
+          ],
+          "cross_m": 3.936750272628135,
+          "width_m": 0.828970331588132,
+          "host_labels": [
+            "S1",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DS2",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            9.445898778359512,
+            10.25305410122164
+          ],
+          "cross_m": 3.936750272628135,
+          "width_m": 0.807155322862128,
+          "host_labels": [
+            "S2",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DS3",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            15.75043630017452,
+            16.55759162303665
+          ],
+          "cross_m": 3.936750272628135,
+          "width_m": 0.8071553228621298,
+          "host_labels": [
+            "S3",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DS4",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            17.255671902268762,
+            18.084642233856894
+          ],
+          "cross_m": 3.936750272628135,
+          "width_m": 0.8289703315881312,
+          "host_labels": [
+            "S4",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        },
+        {
+          "id": "DS5",
+          "floor_id": "F2",
+          "kind": "door",
+          "axis": "x",
+          "span_m": [
+            21.291448516579408,
+            22.12041884816754
+          ],
+          "cross_m": 3.936750272628135,
+          "width_m": 0.8289703315881312,
+          "host_labels": [
+            "S5",
+            "C"
+          ],
+          "exterior": false,
+          "tolerance_m": {
+            "along_m": 0.1,
+            "external_cross_m": 0.16,
+            "internal_cross_m": 0.08,
+            "original_partition_m": 0.08
+          },
+          "source_image": "case_tests/e2e_tests/sm25-L_anchor/case_data/2f_view.png",
+          "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322"
+        }
+      ]
+    }
+  ],
+  "elevation_questions": [
+    {
+      "facade": "East",
+      "openings": [
+        {
+          "id": "op_1571",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            0.54,
+            2.14
+          ],
+          "width_m": 1.6,
+          "sill_m": 0.20002138155265126,
+          "head_m": 2.3000213815526513,
+          "host_room_id": "F1-z0"
+        },
+        {
+          "id": "op_159a",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            6.74,
+            7.640000000000001
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z6"
+        },
+        {
+          "id": "op_1597",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            8.74,
+            9.64
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z7"
+        },
+        {
+          "id": "op_1594",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            10.360000000000001,
+            11.260000000000002
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z8"
+        },
+        {
+          "id": "op_1591",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            12.74,
+            13.64
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z9"
+        },
+        {
+          "id": "op_158e",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            14.360000000000001,
+            15.260000000000002
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z10"
+        },
+        {
+          "id": "op_158b",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            16.740000000000002,
+            17.64
+          ],
+          "width_m": 0.8999999999999986,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z11"
+        },
+        {
+          "id": "op_1588",
+          "facade": "East",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            18.36,
+            19.26
+          ],
+          "width_m": 0.9000000000000021,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z12"
+        },
+        {
+          "id": "op_15b5",
+          "facade": "East",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            6.74,
+            7.640000000000001
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z7"
+        },
+        {
+          "id": "op_15b2",
+          "facade": "East",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            8.74,
+            9.64
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z8"
+        },
+        {
+          "id": "op_15af",
+          "facade": "East",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            10.360000000000001,
+            11.260000000000002
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z9"
+        },
+        {
+          "id": "op_15ac",
+          "facade": "East",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            12.74,
+            13.64
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z10"
+        },
+        {
+          "id": "op_15a9",
+          "facade": "East",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            14.360000000000001,
+            15.260000000000002
+          ],
+          "width_m": 0.9000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z11"
+        }
+      ],
+      "counts": {
+        "door": 1,
+        "window": 12
+      }
+    },
+    {
+      "facade": "North",
+      "openings": [
+        {
+          "id": "op_157f",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            2.24,
+            4.640000000000001
+          ],
+          "width_m": 2.4000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z1"
+        },
+        {
+          "id": "op_1582",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            5.36,
+            7.760000000000001
+          ],
+          "width_m": 2.4000000000000004,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z2"
+        },
+        {
+          "id": "op_1585",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            10.3,
+            10.9
+          ],
+          "width_m": 0.5999999999999996,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.6000213815526516,
+          "host_room_id": "F1-z0"
+        },
+        {
+          "id": "op_15d6",
+          "facade": "North",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            15.3,
+            23.3
+          ],
+          "width_m": 8.0,
+          "sill_m": 1.0000213815526515,
+          "head_m": 3.2000213815526513,
+          "host_room_id": "F1-z0"
+        },
+        {
+          "id": "op_15a3",
+          "facade": "North",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            2.24,
+            4.640000000000001
+          ],
+          "width_m": 2.4000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z1"
+        },
+        {
+          "id": "op_15a6",
+          "facade": "North",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            5.36,
+            7.760000000000001
+          ],
+          "width_m": 2.4000000000000004,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z2"
+        },
+        {
+          "id": "op_15bb",
+          "facade": "North",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            10.3,
+            10.9
+          ],
+          "width_m": 0.5999999999999996,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z6"
+        },
+        {
+          "id": "op_15d9",
+          "facade": "North",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            15.3,
+            23.3
+          ],
+          "width_m": 8.0,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.800021381552652,
+          "host_room_id": "F2-z0"
+        }
+      ],
+      "counts": {
+        "door": 0,
+        "window": 8
+      }
+    },
+    {
+      "facade": "South",
+      "openings": [
+        {
+          "id": "op_15be",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            8.64,
+            12.64
+          ],
+          "width_m": 4.0,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.8000213815526513,
+          "host_room_id": "F1-z3"
+        },
+        {
+          "id": "op_15c1",
+          "facade": "South",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            13.360000000000001,
+            17.36
+          ],
+          "width_m": 3.9999999999999982,
+          "sill_m": 1.0000213815526515,
+          "head_m": 2.8000213815526513,
+          "host_room_id": "F1-z13"
+        },
+        {
+          "id": "op_15c4",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            6.930000000000001,
+            8.73
+          ],
+          "width_m": 1.7999999999999998,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z3"
+        },
+        {
+          "id": "op_15c7",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            9.450000000000001,
+            11.25
+          ],
+          "width_m": 1.799999999999999,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z5"
+        },
+        {
+          "id": "op_15ca",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            14.750000000000002,
+            16.55
+          ],
+          "width_m": 1.799999999999999,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z12"
+        },
+        {
+          "id": "op_15cd",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            17.27,
+            19.07
+          ],
+          "width_m": 1.8000000000000007,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z13"
+        },
+        {
+          "id": "op_15d0",
+          "facade": "South",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            21.3,
+            23.1
+          ],
+          "width_m": 1.8000000000000007,
+          "sill_m": 4.600021381552652,
+          "head_m": 6.200021381552651,
+          "host_room_id": "F2-z14"
+        }
+      ],
+      "counts": {
+        "door": 0,
+        "window": 7
+      }
+    },
+    {
+      "facade": "West",
+      "openings": [
+        {
+          "id": "op_156e",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            4.300000000000001,
+            5.1000000000000005
+          ],
+          "width_m": 0.7999999999999998,
+          "sill_m": 0.2000213815526335,
+          "head_m": 2.3000213815526336,
+          "host_room_id": "F1-z0"
+        },
+        {
+          "id": "op_15a0",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            7.8399,
+            9.6399
+          ],
+          "width_m": 1.8000000000000007,
+          "sill_m": 1.0000213815526338,
+          "head_m": 2.600021381552634,
+          "host_room_id": "F1-z4"
+        },
+        {
+          "id": "op_159d",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "window",
+          "span_m": [
+            10.359900000000001,
+            12.1599
+          ],
+          "width_m": 1.799999999999999,
+          "sill_m": 1.0000213815526338,
+          "head_m": 2.600021381552634,
+          "host_room_id": "F1-z5"
+        },
+        {
+          "id": "op_156b",
+          "facade": "West",
+          "floor_id": "F1",
+          "kind": "door",
+          "span_m": [
+            14.540000000000001,
+            15.340000000000002
+          ],
+          "width_m": 0.8000000000000007,
+          "sill_m": 0.2000213815526335,
+          "head_m": 2.3000213815526336,
+          "host_room_id": "F1-z0"
+        },
+        {
+          "id": "op_15d3",
+          "facade": "West",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            4.260000000000001,
+            5.46
+          ],
+          "width_m": 1.1999999999999993,
+          "sill_m": 4.600021381552634,
+          "head_m": 6.2000213815526335,
+          "host_room_id": "F2-z0"
+        },
+        {
+          "id": "op_15b8",
+          "facade": "West",
+          "floor_id": "F2",
+          "kind": "window",
+          "span_m": [
+            7.8399,
+            12.1599
+          ],
+          "width_m": 4.32,
+          "sill_m": 4.600021381552634,
+          "head_m": 6.800021381552634,
+          "host_room_id": "F2-z4"
+        }
+      ],
+      "counts": {
+        "door": 2,
+        "window": 4
+      }
+    }
+  ],
+  "limits": [
+    "Plan openings come from frozen original-image inventories; room and envelope geometry comes from verified GT.",
+    "Elevation openings come from verified GT and use the current judge tolerances.",
+    "Room role/name is descriptive; geometry, opening kind, position, width and height are scored independently."
+  ]
+}
