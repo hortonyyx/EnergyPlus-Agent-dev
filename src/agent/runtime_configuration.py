@@ -22,11 +22,13 @@ from src.agent_runtime.accounting import require_cny_price_schedule
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.run_paths import resolve_run_output
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters, validate_provider_model
+from src.agent.runtime_roles.config import load_roles
 
 
 ALLOWED_ENTRYPOINTS = {
     "single_model": "src.agent.runtime_entry",
     "external_coordinator_mcp": "src.agent.runtime_coordinator",
+    "role_division": "src.agent.runtime_roles.entry",
 }
 
 
@@ -46,6 +48,14 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
+        role_configurations = None
+        if mode == "role_division":
+            if case.get("input_kind") != "images" or case.get("image_kind") != "drawings":
+                raise ValueError("role_division supports drawing images only; mesh and non-drawing inputs are not admitted")
+            role_configurations = load_roles(case.get("roles"))
+            concurrency = case.get("max_concurrent_readers", 4)
+            if type(concurrency) is not int or concurrency <= 0:
+                raise ValueError("max_concurrent_readers must be a positive integer")
         if case.get("reasoning_history", "all") not in {"all", "current_tool_chain"}:
             raise ValueError("unsupported reasoning_history")
         if mode != "single_model" and case.get("reasoning_history", "all") != "all":
@@ -61,6 +71,19 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         if low_output_limit_reason is not None:
             case["low_output_limit_reason"] = low_output_limit_reason
         validate_output_limit(model, case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
+        if role_configurations is not None:
+            coordinator = role_configurations["coordinator"]
+            coordinator_fields = {
+                "provider": coordinator.provider,
+                "model": coordinator.model,
+                "reasoning_effort": coordinator.reasoning_effort,
+                "output_tokens": coordinator.output_tokens,
+            }
+            mismatched = [name for name, expected in coordinator_fields.items()
+                          if case.get(name) != expected]
+            if mismatched:
+                raise ValueError("top-level coordinator routing must match roles.coordinator: "
+                                 + ", ".join(mismatched))
         if "deepseek" in model.casefold():
             raise ValueError("DeepSeek is outside this approved batch")
         seconds = case.get("limits", {}).get("seconds")
@@ -149,13 +172,24 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
         for name in ("temperature", "reasoning_effort"):
             if case.get(name) is not None:
                 argv += ["--" + name.replace("_", "-"), str(case[name])]
-    else:
+    elif case["mode"] == "external_coordinator_mcp":
         if case.get("reasoning_effort") is not None:
             argv += ["--reasoning-effort", case["reasoning_effort"]]
         argv += ["--quota-journal", str(ROOT / case["quota_journal"]),
                  "--quota-limit", str(case["quota_limit"]),
                  "--max-concurrent-observers", str(case["max_concurrent_observers"])]
         argv.append("--thinking" if case.get("thinking", True) else "--no-thinking")
+    else:
+        roles = load_roles(case.get("roles"))
+        argv += ["--roles-json", json.dumps(
+                    {name: configuration.model_dump() for name, configuration in roles.items()},
+                    ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+                 "--max-concurrent-readers", str(case.get("max_concurrent_readers", 4)),
+                 "--max-candidates", str(case["max_candidates"]),
+                 "--context-tokens", str(case["context_tokens"]),
+                 "--compact-at-tokens", str(case.get("compact_at_tokens", 150_000)),
+                 "--model-retries", str(limits.get("model_retries", 2)),
+                 "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
     if resume:
         argv.append("--resume")
     return argv
