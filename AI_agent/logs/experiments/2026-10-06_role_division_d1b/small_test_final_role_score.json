@@ -1,0 +1,390 @@
+{
+  "schema_version": "role_scoped_score_v1",
+  "case": "sm24_anchor",
+  "reference": {
+    "path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-worktrees\\d1b\\AI_agent\\logs\\experiments\\2026-10-06_role_division_analysis\\references\\sm24_anchor.json",
+    "sha256": "0efcde25b604e8ada2ba559232574854964435d81f2283f18ee16994fc1fd931"
+  },
+  "assigned_role_score": {
+    "status": "severe",
+    "questions_passed": 1,
+    "questions_total": 3,
+    "questions": [
+      {
+        "role": "plan_reader",
+        "question": "F1",
+        "status": "severe",
+        "raw": {
+          "schema_version": "role_score_v1",
+          "case": "sm24_anchor",
+          "status": "severe",
+          "floors": [
+            {
+              "floor_id": "F1",
+              "status": "missing"
+            }
+          ],
+          "extra_floors": [],
+          "elevations": {
+            "status": "pass",
+            "reference_count": 0,
+            "matched": 0,
+            "within_tolerance": 0,
+            "comparisons": [],
+            "unmatched_reference": [],
+            "unmatched_answer": [],
+            "tolerances_m": {
+              "center": 0.4,
+              "width": 0.4,
+              "sill": 0.3,
+              "head": 0.3
+            }
+          },
+          "limits": [
+            "Scoring is evaluation-only and does not infer correctness outside the listed questions.",
+            "Room IDs/names are not identity keys; one-to-one geometry is matched globally."
+          ]
+        }
+      },
+      {
+        "role": "elevation_reader",
+        "question": "East",
+        "status": "pass",
+        "raw": {
+          "schema_version": "role_score_v1",
+          "case": "sm24_anchor",
+          "status": "pass",
+          "floors": [],
+          "extra_floors": [],
+          "elevations": {
+            "status": "pass",
+            "reference_count": 4,
+            "matched": 4,
+            "within_tolerance": 4,
+            "comparisons": [
+              {
+                "reference_id": "op_ac9",
+                "answer_id": "East:E-D1",
+                "facade": "East",
+                "floor_id": "F1",
+                "kind": "door",
+                "center_error_m": 0.009533898305088329,
+                "width_error_m": 5.773159728050814e-15,
+                "sill_error_m": 1.1185586091866373e-05,
+                "head_error_m": 1.1185586091588817e-05,
+                "match": true
+              },
+              {
+                "reference_id": "op_aff",
+                "answer_id": "East:E-W1",
+                "facade": "East",
+                "floor_id": "F1",
+                "kind": "window",
+                "center_error_m": 0.004703389830510218,
+                "width_error_m": 2.6645352591003757e-15,
+                "sill_error_m": 1.1185586092032906e-05,
+                "head_error_m": 1.1185586090700639e-05,
+                "match": true
+              },
+              {
+                "reference_id": "op_afc",
+                "answer_id": "East:E-W2",
+                "facade": "East",
+                "floor_id": "F1",
+                "kind": "window",
+                "center_error_m": 0.009406779661020437,
+                "width_error_m": 4.218847493575595e-15,
+                "sill_error_m": 1.1185586092032906e-05,
+                "head_error_m": 1.1185586092032906e-05,
+                "match": true
+              },
+              {
+                "reference_id": "op_aea",
+                "answer_id": "East:E-W3",
+                "facade": "East",
+                "floor_id": "F1",
+                "kind": "window",
+                "center_error_m": 0.0029237288135632866,
+                "width_error_m": 0.0,
+                "sill_error_m": 1.1185586092032906e-05,
+                "head_error_m": 1.1185586092032906e-05,
+                "match": true
+              }
+            ],
+            "unmatched_reference": [],
+            "unmatched_answer": [],
+            "tolerances_m": {
+              "center": 0.4,
+              "width": 0.4,
+              "sill": 0.3,
+              "head": 0.3
+            }
+          },
+          "limits": [
+            "Scoring is evaluation-only and does not infer correctness outside the listed questions.",
+            "Room IDs/names are not identity keys; one-to-one geometry is matched globally."
+          ]
+        }
+      },
+      {
+        "role": "elevation_reader",
+        "question": "North",
+        "status": "severe",
+        "raw": {
+          "schema_version": "role_score_v1",
+          "case": "sm24_anchor",
+          "status": "severe",
+          "floors": [],
+          "extra_floors": [],
+          "elevations": {
+            "status": "severe",
+            "reference_count": 2,
+            "matched": 0,
+            "within_tolerance": 0,
+            "comparisons": [],
+            "unmatched_reference": [
+              "op_ac3",
+              "op_ae1"
+            ],
+            "unmatched_answer": [],
+            "tolerances_m": {
+              "center": 0.4,
+              "width": 0.4,
+              "sill": 0.3,
+              "head": 0.3
+            }
+          },
+          "limits": [
+            "Scoring is evaluation-only and does not infer correctness outside the listed questions.",
+            "Room IDs/names are not identity keys; one-to-one geometry is matched globally."
+          ]
+        }
+      }
+    ],
+    "raw": {
+      "schema_version": "role_score_v1",
+      "case": "sm24_anchor",
+      "status": "severe",
+      "floors": [
+        {
+          "floor_id": "F1",
+          "status": "missing"
+        }
+      ],
+      "extra_floors": [],
+      "elevations": {
+        "status": "severe",
+        "reference_count": 6,
+        "matched": 4,
+        "within_tolerance": 4,
+        "comparisons": [
+          {
+            "reference_id": "op_ac9",
+            "answer_id": "East:E-D1",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "door",
+            "center_error_m": 0.009533898305088329,
+            "width_error_m": 5.773159728050814e-15,
+            "sill_error_m": 1.1185586091866373e-05,
+            "head_error_m": 1.1185586091588817e-05,
+            "match": true
+          },
+          {
+            "reference_id": "op_aff",
+            "answer_id": "East:E-W1",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "center_error_m": 0.004703389830510218,
+            "width_error_m": 2.6645352591003757e-15,
+            "sill_error_m": 1.1185586092032906e-05,
+            "head_error_m": 1.1185586090700639e-05,
+            "match": true
+          },
+          {
+            "reference_id": "op_afc",
+            "answer_id": "East:E-W2",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "center_error_m": 0.009406779661020437,
+            "width_error_m": 4.218847493575595e-15,
+            "sill_error_m": 1.1185586092032906e-05,
+            "head_error_m": 1.1185586092032906e-05,
+            "match": true
+          },
+          {
+            "reference_id": "op_aea",
+            "answer_id": "East:E-W3",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "center_error_m": 0.0029237288135632866,
+            "width_error_m": 0.0,
+            "sill_error_m": 1.1185586092032906e-05,
+            "head_error_m": 1.1185586092032906e-05,
+            "match": true
+          }
+        ],
+        "unmatched_reference": [
+          "op_ac3",
+          "op_ae1"
+        ],
+        "unmatched_answer": [],
+        "tolerances_m": {
+          "center": 0.4,
+          "width": 0.4,
+          "sill": 0.3,
+          "head": 0.3
+        }
+      },
+      "limits": [
+        "Scoring is evaluation-only and does not infer correctness outside the listed questions.",
+        "Room IDs/names are not identity keys; one-to-one geometry is matched globally."
+      ]
+    }
+  },
+  "complete_reference_score": {
+    "status": "severe",
+    "raw": {
+      "schema_version": "role_score_v1",
+      "case": "sm24_anchor",
+      "status": "severe",
+      "floors": [
+        {
+          "floor_id": "F1",
+          "status": "missing"
+        }
+      ],
+      "extra_floors": [],
+      "elevations": {
+        "status": "severe",
+        "reference_count": 14,
+        "matched": 4,
+        "within_tolerance": 4,
+        "comparisons": [
+          {
+            "reference_id": "op_ac9",
+            "answer_id": "East:E-D1",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "door",
+            "center_error_m": 0.009533898305088329,
+            "width_error_m": 5.773159728050814e-15,
+            "sill_error_m": 1.1185586091866373e-05,
+            "head_error_m": 1.1185586091588817e-05,
+            "match": true
+          },
+          {
+            "reference_id": "op_aff",
+            "answer_id": "East:E-W1",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "center_error_m": 0.004703389830510218,
+            "width_error_m": 2.6645352591003757e-15,
+            "sill_error_m": 1.1185586092032906e-05,
+            "head_error_m": 1.1185586090700639e-05,
+            "match": true
+          },
+          {
+            "reference_id": "op_afc",
+            "answer_id": "East:E-W2",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "center_error_m": 0.009406779661020437,
+            "width_error_m": 4.218847493575595e-15,
+            "sill_error_m": 1.1185586092032906e-05,
+            "head_error_m": 1.1185586092032906e-05,
+            "match": true
+          },
+          {
+            "reference_id": "op_aea",
+            "answer_id": "East:E-W3",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "center_error_m": 0.0029237288135632866,
+            "width_error_m": 0.0,
+            "sill_error_m": 1.1185586092032906e-05,
+            "head_error_m": 1.1185586092032906e-05,
+            "match": true
+          }
+        ],
+        "unmatched_reference": [
+          "op_ac3",
+          "op_ae1",
+          "op_af6",
+          "op_ade",
+          "op_af9",
+          "op_ae4",
+          "op_af3",
+          "op_af0",
+          "op_aed",
+          "op_ae7"
+        ],
+        "unmatched_answer": [],
+        "tolerances_m": {
+          "center": 0.4,
+          "width": 0.4,
+          "sill": 0.3,
+          "head": 0.3
+        }
+      },
+      "limits": [
+        "Scoring is evaluation-only and does not infer correctness outside the listed questions.",
+        "Room IDs/names are not identity keys; one-to-one geometry is matched globally."
+      ]
+    },
+    "warning": "This includes unassigned questions; use assigned_role_score for role delivery acceptance."
+  },
+  "coverage": {
+    "assigned": {
+      "plan_floors": [
+        "F1"
+      ],
+      "elevation_facades": [
+        "East",
+        "North"
+      ]
+    },
+    "submitted": {
+      "plan_floors": [],
+      "elevation_facades": [
+        "East"
+      ]
+    },
+    "missing_assigned": {
+      "plan_floors": [
+        "F1"
+      ],
+      "elevation_facades": [
+        "North"
+      ]
+    },
+    "complete_reference": {
+      "plan_floors": [
+        "F1"
+      ],
+      "elevation_facades": [
+        "East",
+        "North",
+        "South",
+        "West"
+      ]
+    },
+    "unassigned_reference": {
+      "plan_floors": [],
+      "elevation_facades": [
+        "South",
+        "West"
+      ]
+    },
+    "assigned_not_in_reference": {
+      "plan_floors": [],
+      "elevation_facades": []
+    }
+  }
+}

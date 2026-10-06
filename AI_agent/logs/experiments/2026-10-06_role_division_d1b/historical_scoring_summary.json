@@ -1,0 +1,95 @@
+{
+  "schema_version": "historical_role_scoring_summary_v1",
+  "case": "sm24_anchor",
+  "archive_integrity": {
+    "archive": "small_test_run.tar.xz",
+    "archive_sha256": "92a2adfe069bc5747e135c09cafb3ca58ca2a40551d8e75075cbd8ace43a1003",
+    "files_checked": 1907,
+    "failures": 0
+  },
+  "inputs": {
+    "plan": "D1 small-test fourth passed isolated trial source; not the rejected final plan answer",
+    "elevations": [
+      "North delivered reading",
+      "East delivered reading"
+    ],
+    "model_or_service_calls": 0,
+    "reported_tokens": null,
+    "billing": null,
+    "usage_note": "Offline conversion and scoring reused existing D1 artifacts; no provider request was made."
+  },
+  "neutral_answer_shape": {
+    "plan_floors": 1,
+    "rooms": 8,
+    "plan_openings": 21,
+    "elevation_facades": 2,
+    "elevation_openings": {
+      "East": 4,
+      "North": 2
+    }
+  },
+  "assigned_scope": {
+    "plan_floors": [
+      "F1"
+    ],
+    "elevation_facades": [
+      "East",
+      "North"
+    ]
+  },
+  "assigned_role_result": {
+    "status": "severe",
+    "questions_passed": 2,
+    "questions_total": 3,
+    "questions": [
+      {
+        "role": "plan_reader",
+        "question": "F1",
+        "status": "severe"
+      },
+      {
+        "role": "elevation_reader",
+        "question": "East",
+        "status": "pass"
+      },
+      {
+        "role": "elevation_reader",
+        "question": "North",
+        "status": "pass"
+      }
+    ],
+    "strict_details": {
+      "F1": {
+        "exterior": "pass",
+        "partitions": "severe",
+        "rooms": "severe",
+        "plan_opening_positions": "15/21"
+      },
+      "East": "4/4",
+      "North": "2/2"
+    }
+  },
+  "complete_reference_result": {
+    "status": "severe",
+    "unassigned_reference": {
+      "plan_floors": [],
+      "elevation_facades": [
+        "South",
+        "West"
+      ]
+    },
+    "assigned_red_items": [
+      "F1 strict plan geometry"
+    ]
+  },
+  "limits": [
+    "The plan input is a passed intermediate trial and remains labelled as such.",
+    "South and West were not assigned in this historical three-question test; they are absent from the role denominator and listed in complete coverage.",
+    "The D1-A scorer and reference files were read unchanged."
+  ],
+  "unresolved": [
+    "The passed F1 trial remains severe under the unchanged D1-A strict partition/room boundary score; 15 of 21 plan opening positions are within their frozen tolerances.",
+    "This historical run cannot prove the final D1b submit path because its plan final answer was rejected and is intentionally not substituted for a delivery.",
+    "Complete-reference status remains severe from the strict F1 plan result and absent unassigned South/West; assigned-role status reports only F1, North, and East."
+  ]
+}

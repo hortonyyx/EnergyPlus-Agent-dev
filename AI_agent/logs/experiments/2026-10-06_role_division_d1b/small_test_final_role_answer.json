@@ -1,0 +1,124 @@
+{
+  "schema_version": "role_scoring_bridge_v1",
+  "case": "sm24_anchor",
+  "answer": {
+    "schema_version": "role_answer_v1",
+    "case": "sm24_anchor",
+    "coordinate_frame": "building_axis_world_m",
+    "plan_questions": [],
+    "elevation_questions": [
+      {
+        "facade": "East",
+        "openings": [
+          {
+            "id": "East:E-D1",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "door",
+            "span_m": [
+              5.6991525423728815,
+              7.319915254237288
+            ],
+            "width_m": 1.6,
+            "sill_m": 0.2,
+            "head_m": 2.6,
+            "host_room_id": null
+          },
+          {
+            "id": "East:E-W1",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "span_m": [
+              8.834745762711865,
+              13.654661016949152
+            ],
+            "width_m": 4.8,
+            "sill_m": 1.0,
+            "head_m": 3.4,
+            "host_room_id": null
+          },
+          {
+            "id": "East:E-W2",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "span_m": [
+              14.385593220338983,
+              15.593220338983052
+            ],
+            "width_m": 1.2,
+            "sill_m": 1.0,
+            "head_m": 2.8,
+            "host_room_id": null
+          },
+          {
+            "id": "East:E-W3",
+            "facade": "East",
+            "floor_id": "F1",
+            "kind": "window",
+            "span_m": [
+              17.966101694915256,
+              19.459745762711865
+            ],
+            "width_m": 1.5,
+            "sill_m": 1.0,
+            "head_m": 2.8,
+            "host_room_id": null
+          }
+        ],
+        "counts": {
+          "door": 1,
+          "window": 3
+        }
+      }
+    ]
+  },
+  "scope": {
+    "assigned": {
+      "plan_floors": [
+        "F1"
+      ],
+      "elevation_facades": [
+        "East",
+        "North"
+      ]
+    },
+    "submitted": {
+      "plan_floors": [],
+      "elevation_facades": [
+        "East"
+      ]
+    },
+    "missing_assigned": {
+      "plan_floors": [
+        "F1"
+      ],
+      "elevation_facades": [
+        "North"
+      ]
+    }
+  },
+  "inputs": [
+    {
+      "kind": "elevation_artifact",
+      "path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-worktrees\\d1b\\AI_agent\\archive\\local_backup\\d1b\\small_test_d1b_final\\tasks\\470c683aafbba1982252452b12565cc2f27561d0bcc939250aeb9b214af063f5\\reader_artifact.json",
+      "sha256": "9d3d5e04bce8f5c1fed4fea1c4f0117a9c4d831fb08a301b8c09d13f6ecfc364",
+      "facade": "East",
+      "world_axis": "y",
+      "unresolved": [
+        "No separate finished-floor level mark in this view; door sill 0.2 m (left chain 200) is the lowest observed opening level above the ground line Z=0.",
+        "Door E-D1 drawn as double leaf with transom, total assembly height 2.4 m (left chain 200+2400); leaf/transom split not dimensioned."
+      ],
+      "counts": {
+        "door": 1,
+        "window": 3
+      }
+    }
+  ],
+  "limits": [
+    "Conversion uses only submitted role artifacts or a source bound to a passed trial receipt.",
+    "A passed isolated trial is not relabelled as a validated final reader delivery.",
+    "Unassigned reference questions are reported by complete scoring but do not reduce assigned-role scoring."
+  ]
+}
