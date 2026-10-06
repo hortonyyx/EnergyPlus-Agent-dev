@@ -78,6 +78,12 @@ class ContextPolicy(ContractModel):
     # In token mode this is a post-compaction retention target, not permission
     # to rewrite previously sent images on every request below the threshold.
     max_image_bytes: int | None = Field(default=32_000_000, ge=1)
+    # Opt-in domain projection for list-valued state. Full entries, provenance
+    # and revisions remain in checkpoints; only the mutable request tail is
+    # narrowed to caller-selected reference/status fields. Omit the empty
+    # default so existing checkpoint configuration comparisons stay identical.
+    state_item_fields: dict[NonEmptyStr, tuple[NonEmptyStr, ...]] = Field(
+        default_factory=dict, exclude_if=lambda value: not value)
 
     @field_validator("pinned_tags")
     @classmethod
@@ -775,6 +781,9 @@ class ContextManager:
             if not entry.active:
                 continue
             value = entry.value
+            fields = self.policy.state_item_fields.get(entry.key)
+            if fields and isinstance(value, list) and all(isinstance(item, dict) for item in value):
+                value = [{key: item[key] for key in fields if key in item} or item for item in value]
             if entry.category == "artifact_version":
                 if isinstance(value, dict):
                     value = {k: value[k] for k in ("candidate", "version") if k in value}

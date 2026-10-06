@@ -16,7 +16,8 @@ from PIL import Image
 
 from src.agent.runtime_context import update_building_context
 from src.agent.runtime_tools import local_observer_role
-from src.agent_runtime.context import ContextPolicy, StateEntry
+from src.agent_runtime.context import StateEntry
+from .context_policy import role_context_policy
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters
 from src.agent_runtime.store import json_bytes
@@ -382,7 +383,7 @@ class RoleSession:
                 root_tool_calls=self.limits.tool_calls, start_epoch=timing["started_epoch"],
                 answer_validator=validate, max_answer_repairs=1,
                 low_output_limit_reason=config.get("low_output_limit_reason"),
-                context_policy=ContextPolicy(compact_at_tokens=100_000),
+                context_policy=role_context_policy(task["role_id"]),
                 request_timeout_seconds=self.limits.seconds / (self.max_concurrent_readers + 1),
                 fault_hook=self.reader_fault_hook)
             original_ref = child.put_bytes(raw_image, "image/png")
