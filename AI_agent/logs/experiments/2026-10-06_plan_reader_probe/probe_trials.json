@@ -1,0 +1,164 @@
+{
+  "requests": 30,
+  "calls": 17,
+  "by_class": {
+    "format": 6,
+    "geometry_or_compile": 3,
+    "rework_bookkeeping": 8
+  },
+  "rows": [
+    {
+      "request": 12,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "format",
+      "declared_changes": 0,
+      "has_base": false,
+      "message": "trial_plan_bim failed: plan fields: missing basis, ceiling_height, partitions; unknown north_arrow, plan_id, source_image, units, wall_reference, walls. Minimum correct example or repair hint: {\"path\": \"plan.ceiling_height\", \"example\": {\"ceiling_height\": 3.0}, \"note\": \"Format example only; world val"
+    },
+    {
+      "request": 13,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 8,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"Rework must list exactly the changed items before trial; unrelated objects stay fixed. {\\\"undeclared_changes\\\": [\\\"plan.assumptions\\\", \\\"plan.openings:D_H1\\\", \\\"plan.openings:D_cabinet\\\", \\\"plan.openings:D_entry_E\\\", \\\"plan.openings:D_entry_N\\\", \\\"plan.openings:D_en"
+    },
+    {
+      "request": 14,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 0,
+      "has_base": false,
+      "message": "{\"status\": \"rejected\", \"reason\": \"rework needs base_plan_sha256=86335f7a548c624b88f2fa82dd1bbc0cd484aec5e6aa81875f37f24ce1b0b609; copy the prior trial hash and list only pointed changes\"}"
+    },
+    {
+      "request": 15,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "format",
+      "declared_changes": 41,
+      "has_base": true,
+      "message": "trial_plan_bim failed: plan.partitions[0] fields: missing points, source_refs; unknown p1, p2, thickness. Minimum correct example or repair hint: {\"path\": \"plan.partitions[0]\", \"example\": {\"id\": \"H1\", \"points\": [[10, 20], [40, 20]], \"source_refs\": [\"image: observed wall\"]}, \"note\": \"Minimum item for"
+    },
+    {
+      "request": 16,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 3,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"Rework must list exactly the changed items before trial; unrelated objects stay fixed. {\\\"undeclared_changes\\\": [\\\"plan.assumptions\\\", \\\"plan.basis\\\", \\\"plan.openings:D_H1\\\", \\\"plan.openings:D_cabinet\\\", \\\"plan.openings:D_entry_E\\\", \\\"plan.openings:D_entry_N\\\", \\\"pl"
+    },
+    {
+      "request": 17,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "format",
+      "declared_changes": 45,
+      "has_base": true,
+      "message": "trial_plan_bim failed: plan.space_seeds[0] fields: missing point; unknown name, polygon, seed, use. Minimum correct example or repair hint: {\"path\": \"plan.space_seeds[0]\", \"example\": {\"id\": \"sp_north_office\", \"point\": [20, 30]}, \"note\": \"Minimum item format only; replace example coordinates and evid"
+    },
+    {
+      "request": 18,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "format",
+      "declared_changes": 8,
+      "has_base": true,
+      "message": "trial_plan_bim failed: plan.openings[0] fields: unknown other_space_id, space_id. Minimum correct example or repair hint: {\"path\": \"plan.openings[0]\", \"example\": {\"id\": \"D_entry_N\", \"kind\": \"door\", \"p1\": [10, 20], \"p2\": [30, 20], \"z\": [1.0, 2.4], \"source_refs\": [\"image: observed opening\"]}, \"note\": "
+    },
+    {
+      "request": 19,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 21,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"Rework must list exactly the changed items before trial; unrelated objects stay fixed. {\\\"undeclared_changes\\\": [], \\\"listed_but_unchanged\\\": [\\\"plan.openings:W_E1\\\", \\\"plan.openings:W_E2\\\", \\\"plan.openings:W_E3\\\", \\\"plan.openings:W_N1\\\", \\\"plan.openings:W_S1\\\", \\\"p"
+    },
+    {
+      "request": 20,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "format",
+      "declared_changes": 10,
+      "has_base": true,
+      "message": "trial_plan_bim failed: plan.openings[10] fields: unknown room. Minimum correct example or repair hint: {\"path\": \"plan.openings[10]\", \"example\": {\"id\": \"W_N1\", \"kind\": \"window\", \"p1\": [10, 20], \"p2\": [30, 20], \"z\": [1.0, 2.4], \"source_refs\": [\"image: observed opening\"]}, \"note\": \"Minimum item format "
+    },
+    {
+      "request": 21,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "geometry_or_compile",
+      "declared_changes": 11,
+      "has_base": true,
+      "message": "trial_plan_bim failed: opening W_N1: interior windows are not supported. Minimum correct example or repair hint: {\"path\": \"plan.openings[10]\", \"example\": {\"id\": \"W_N1\", \"kind\": \"window\", \"p1\": [10, 20], \"p2\": [30, 20], \"z\": [1.0, 2.4], \"source_refs\": [\"image: observed opening\"]}, \"note\": \"Minimum it"
+    },
+    {
+      "request": 22,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 1,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"Rework must list exactly the changed items before trial; unrelated objects stay fixed. {\\\"undeclared_changes\\\": [\\\"plan.assumptions\\\"], \\\"listed_but_unchanged\\\": []}\"}"
+    },
+    {
+      "request": 23,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "geometry_or_compile",
+      "declared_changes": 2,
+      "has_base": true,
+      "message": "trial_plan_bim failed: partition perim_N: line is outside footprint at MULTILINESTRING ((249 156.4, 253.3 156.4), (606.2 156.4, 610.5 156.4)). Minimum correct example or repair hint: {\"note\": \"The item shape parsed; inspect the reported geometry in the original. No snapping, host trimming or unit co"
+    },
+    {
+      "request": 24,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 9,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"Rework must list exactly the changed items before trial; unrelated objects stay fixed. {\\\"undeclared_changes\\\": [\\\"plan.partitions:H2\\\"], \\\"listed_but_unchanged\\\": [\\\"plan.partitions:perim_E\\\", \\\"plan.partitions:perim_W\\\"]}\"}"
+    },
+    {
+      "request": 25,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "geometry_or_compile",
+      "declared_changes": 8,
+      "has_base": true,
+      "message": "trial_plan_bim failed: partition perim_N: physical partition overlaps footprint boundary at LINESTRING (253.3 156.4, 606.2 156.4). Minimum correct example or repair hint: {\"note\": \"The item shape parsed; inspect the reported geometry in the original. No snapping, host trimming or unit conversion was"
+    },
+    {
+      "request": 28,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 11,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"rework needs base_plan_sha256=5391b0f64cf31c589f4449ae2fa43ddd8e7127b996d0aba55f5ecbd5af3c66a4; copy the prior trial hash and list only pointed changes\"}"
+    },
+    {
+      "request": 29,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "rework_bookkeeping",
+      "declared_changes": 22,
+      "has_base": true,
+      "message": "{\"status\": \"rejected\", \"reason\": \"Rework must list exactly the changed items before trial; unrelated objects stay fixed. {\\\"undeclared_changes\\\": [], \\\"listed_but_unchanged\\\": [\\\"plan.basis\\\"]}\"}"
+    },
+    {
+      "request": 30,
+      "tool": "trial_plan_bim",
+      "outcome": "failed",
+      "class": "format",
+      "declared_changes": 21,
+      "has_base": true,
+      "message": "trial_plan_bim failed: plan.openings[10] fields: unknown facade, room. Minimum correct example or repair hint: {\"path\": \"plan.openings[10]\", \"example\": {\"id\": \"W_N1\", \"kind\": \"window\", \"p1\": [10, 20], \"p2\": [30, 20], \"z\": [1.0, 2.4], \"source_refs\": [\"image: observed opening\"]}, \"note\": \"Minimum item"
+    }
+  ]
+}
