@@ -70,6 +70,7 @@ def saved_application(session, identities):
 async def apply_heights(session, identities, *, candidate=None):
     from scripts.tool_scripts.bim_agent_role_heights import build_role_height_batch_entry
     from .elevation import height_application
+    from .height_evidence import carry_height_evidence
 
     values = [load_match(session, identity) for identity in match_ids(identities)]
     identities = sorted({value["match_id"] for value in values})
@@ -83,11 +84,13 @@ async def apply_heights(session, identities, *, candidate=None):
         application = height_application(artifact, value["result"], candidate, provenance={
             "source_model_sha256": source["source_model_sha256"], "source_bim": source,
             "matched_source_bim": session._source(value["candidate"])})
+        location = carry_height_evidence(session, value, artifact, application["entries"])
         entries.extend(application["entries"])
         by_id = {row["id"]: row for row in artifact["openings"]}
         types.extend(by_id[row["artifact_opening_id"]]["evidence_type"] for row in value["result"]["matches"])
         references.append({"match_id": value["match_id"], "task_id": value["task_id"],
-                           "artifact_sha256": session.registry.records[value["task_id"]]["artifact"]["sha256"]})
+                           "artifact_sha256": session.registry.records[value["task_id"]]["artifact"]["sha256"],
+                           "height_location": location})
         unprocessed.append({"task_id": value["task_id"], **application["unprocessed"]})
     batch = build_role_height_batch_entry(entries, evidence_types=types)
     by_id = {row["id"]: row for row in source["openings"]}
