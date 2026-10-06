@@ -38,7 +38,8 @@ def role_parameters(config):
     if config["provider"] == "scripted":
         return {"max_tokens": config["output_tokens"], "reasoning_effort": config["reasoning_effort"]}
     return provider_parameters(config["provider"], output_tokens=config["output_tokens"],
-        reasoning_effort=config["reasoning_effort"])
+        reasoning_effort=config["reasoning_effort"], temperature=config.get("temperature"),
+        thinking=config.get("thinking", True))
 
 
 def schema(properties, required=()):
@@ -202,8 +203,9 @@ class RoleSession:
             *[block for block in result.get("content", []) if block.get("type") != "text"]]}
 
     def _task(self, arguments):
-        from .submission import parse_target
+        from .submission import canonical_target, parse_target
         jsonschema.validate(arguments, TASK_SCHEMA)
+        arguments = {**arguments, "target": canonical_target(arguments["role_id"], arguments["target"])}
         valid_task_id(arguments["task_id"])
         image = arguments["image"]
         if Path(image).name != image or image not in self.manifest["images"]:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import jsonschema
@@ -88,13 +89,37 @@ SUBMISSION_TOOLS = {
 }
 
 
+_ROLE_PREFIXES = {"plan_reader": ("plan", "floor"), "elevation_reader": ("elevation", "facade")}
+_FLOOR_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,31}$")
+
+
+def canonical_target(role_id, target):
+    """One spelling per target. 10-07 sm24 run4: "plan/F1" and "elevation/North" were
+    rejected, then "plan F1" was admitted as a floor ID that no reader plan could match."""
+    if not isinstance(target, str):
+        return target
+    text = target.strip()
+    prefixed = re.match(r"(?i)^(plan|floor|elevation|facade)\s*[/:\s]\s*(.+)$", text)
+    if prefixed and prefixed.group(1).casefold() in _ROLE_PREFIXES.get(role_id, ()):
+        text = prefixed.group(2).strip()
+    if role_id == "elevation_reader":
+        facade, slash, floors = text.partition("/")
+        text = facade.strip().title()
+        if slash:
+            text += "/" + ",".join(part.strip() for part in floors.split(","))
+    return text
+
+
 def parse_target(role_id, target):
     if target is None:
         return None, set()
     if not isinstance(target, str) or not target.strip():
         raise ValueError("reader target must be a nonempty floor ID or facade[/floor IDs]")
+    target = canonical_target(role_id, target)
     if role_id == "plan_reader":
-        return target.strip(), set()
+        if not _FLOOR_ID.fullmatch(target):
+            raise ValueError(f"plan target must be one floor ID such as F1 (letters, digits, _ . -), not {target!r}")
+        return target, set()
     parts = target.split("/", 1)
     facade = parts[0].strip().title()
     if facade not in {"North", "South", "East", "West"}:
@@ -181,7 +206,8 @@ class ReaderSubmission:
             from .coordinates import validate_north_arrow
             plan, validation = self.trial.verified_plan(arguments["plan_sha256"])
             if self.target_identity is not None and plan.get("floor_id") != self.target_identity:
-                raise ValueError(f"plan.floor_id must match task.target {self.target_identity}")
+                raise ValueError(f"plan.floor_id {plan.get('floor_id')!r} differs from the task floor "
+                                 f"{self.target_identity!r}; submit a trial made after this task started")
             artifact = validate_plan_artifact({"plan": plan, "evidence": arguments["evidence"],
                                                "unresolved": plan["unresolved"]}, image_name=self.image_name)
             # The delivery never edits the plan, including assumptions/unresolved.

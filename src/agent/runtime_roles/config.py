@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, model_serializer, model_validator
 
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import validate_output_limit
@@ -25,8 +25,21 @@ class RoleConfiguration(BaseModel):
 
     provider: str = Field(min_length=1)
     model: str = Field(min_length=1)
-    reasoning_effort: str = Field(min_length=1)
+    # Required key; null on routes that use the thinking switch instead
+    # (Paratera Qwen: enable_thinking with temperature 0.7, no effort levels).
+    reasoning_effort: str | None = Field(min_length=1)
     output_tokens: int = Field(gt=0)
+    temperature: float | None = Field(default=None, ge=0, le=2)
+    thinking: bool | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_sampling(self, handler):
+        # Existing routes keep their exact recorded form (role_configuration.json, versions).
+        data = handler(self)
+        for key in ("temperature", "thinking"):
+            if data.get(key) is None:
+                data.pop(key, None)
+        return data
 
     @model_validator(mode="after")
     def validate_reviewed_route(self, info: ValidationInfo) -> "RoleConfiguration":
@@ -45,6 +58,8 @@ class RoleConfiguration(BaseModel):
             self.provider,
             output_tokens=self.output_tokens,
             reasoning_effort=self.reasoning_effort,
+            temperature=self.temperature,
+            thinking=True if self.thinking is None else self.thinking,
         )
         validate_output_limit(self.model, self.output_tokens)
         return self

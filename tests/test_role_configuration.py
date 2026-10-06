@@ -115,6 +115,18 @@ def test_existing_anthropic_and_openai_compatible_routes_are_accepted(
     assert parsed["elevation_reader"].model == model
 
 
+def test_paratera_route_states_temperature_and_thinking_switch():
+    from src.agent.runtime_roles.session import role_parameters
+    route = {"provider": "paratera", "model": "Qwen3.8-27B", "reasoning_effort": None,
+             "output_tokens": 16_384, "temperature": 0.7, "thinking": True}
+    parsed = load_roles(roles(plan_reader=route, elevation_reader=route))
+    dumped = parsed["plan_reader"].model_dump(mode="json")
+    assert role_parameters(dumped) == {"max_tokens": 16_384, "temperature": 0.7, "enable_thinking": True}
+    # Routes that state neither keep their earlier recorded form.
+    assert set(parsed["coordinator"].model_dump(mode="json")) == {
+        "provider", "model", "reasoning_effort", "output_tokens"}
+
+
 def test_unreviewed_route_deepseek_and_low_output_are_rejected():
     with pytest.raises(ValidationError, match="reviewed live provider"):
         load_roles(roles(coordinator=role("unknown-route")))
