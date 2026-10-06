@@ -143,10 +143,10 @@
     "outside_write_denied": true
   },
   "pending": [
-    "user confirmation before Docker removal",
+    "user completion of authorized Docker Desktop cleanup",
     "disk space readback after cleanup"
   ],
-  "status": "native_verified_docker_removal_pending_user_confirmation",
+  "status": "native_verified_docker_cleanup_authorized_pending_completion",
   "recorded_utc": "2026-10-05T18:02:57.920423+00:00",
   "environment": {
     "os": "Windows-11-10.0.26300-SP0",
@@ -574,7 +574,8 @@
   },
   "docker": {
     "deleted": false,
-    "user_confirmation": "pending",
+    "user_confirmation": "approved_2026-10-06",
+    "approved_scope": "Remove both old containers, both images and the vscode volume; retain Docker Desktop and repository build configurations.",
     "containers": [
       "ep_agent_dev",
       "vibrant_murdock"
@@ -588,7 +589,15 @@
     ],
     "data_vhdx_logical_bytes": 162866921472,
     "drive_d_free_before_bytes": 69045096448,
-    "reclaimed_bytes": null
+    "reclaimed_bytes": null,
+    "immediately_before_cleanup": {
+      "recorded_utc": "2026-10-06T02:52:34.1562905Z",
+      "drive_d_free_bytes": 69112606720,
+      "data_vhdx_logical_bytes": 162866921472,
+      "containers": ["ep_agent_dev", "vibrant_murdock"],
+      "images": ["6d9cf088f586", "b8c8d7bfc335"],
+      "volumes": ["vscode"]
+    }
   },
   "container_backup_structure": [
     {

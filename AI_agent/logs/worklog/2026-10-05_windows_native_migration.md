@@ -1,6 +1,6 @@
-# Windows 原生开发环境迁移（10-05—10-06；原生验证完成，撤容器待确认）
+# Windows 原生开发环境迁移（10-05—10-06；原生验证完成，清理已授权、待回读）
 
-用户交由 Windows 上的 Codex 主导，按 [迁移派工单](../../workflow/windows_migration_brief.md) 顺序推进。范围仅环境与平台兼容；不调用 DeepSeek、不跑整案，GLM 订阅只允许一次最小连通请求。撤容器须所有检查通过且用户明确确认，当前尚未授权删除。
+用户交由 Windows 上的 Codex 主导，按 [迁移派工单](../../workflow/windows_migration_brief.md) 顺序推进。范围仅环境与平台兼容；不调用 DeepSeek、不跑整案，GLM 订阅只允许一次最小连通请求。撤容器须所有检查通过且用户明确确认；10-06 用户已确认删除范围，现等待 Docker Desktop 清理完成和空间回读。
 
 ## 开工与备份
 
@@ -76,7 +76,7 @@
 - 最终测试数为 5567：相对 Linux 记录新增 11 项检查（真实文件锁 2 项、事实比较反例 9 项），Windows 多 15 项环境性跳过，因此通过数为 5537；不是漏收集了原有测试。
 - 三份案例配置、一次 GLM 订阅最小请求、四类真实 MCP 工具目录、Codex/Claude 新会话入口、PowerShell 5.1/7 与写沙箱均已核对。未运行建筑整案，未调用 DeepSeek 或 Paratera，不把环境通过当作建模质量已经恢复。
 - 两份备份 SHA256 再次与原清单一致；gzip 完整流校验和 tar 目录均可读取。Codex 备份有 9599 个条目、445 个 rollout JSONL；临时资料备份有 53 个条目。SQLite 打包一致性的原有提示仍保留，不覆盖本机现有历史。
-- 当前只剩用户确认 Docker 保留范围、手动清理和 D 盘释放量回读。D 盘仍为 64.30 GiB 可用，未删除容器、镜像、卷或 VHDX。第 ① 项的原生验证部分已完成，撤容器部分仍待确认，不能提前把整个迁移标为完成。
+- 原生验收收尾时只剩用户确认 Docker 保留范围、手动清理和 D 盘释放量回读。当时 D 盘为 64.30 GiB 可用，未删除容器、镜像、卷或 VHDX。10-06 用户随后已确认范围，最新清理基线见下文；实际释放量仍待回读，不能提前把整个迁移标为完成。
 - 本轮测试使用系统临时目录；最后一轮主目录为 `%TEMP%/pytest-of-Horton/pytest-91`，原始核验日志已另存。临时数据按 pytest 自身的保留机制回收，未绕过自动审批策略做递归删除。01:52 回读 C 盘约 24.86 GiB 可用，包含本轮尚保留的测试副本；D 盘释放量独立核对。
 
 ## 撤容器清单（检查通过且用户确认之后才执行）
@@ -90,4 +90,11 @@
 3. 打开 Docker Desktop 的 Troubleshoot（问号/排障菜单），选择 **Clean up data**（旧版可能叫 Clean / Purge data），核对提示后清理 Docker 本地数据。这会清理全部 Docker 本地容器、镜像等数据；若还有别的项目要保留，不执行这一步，也不选择恢复出厂设置。
 4. 操作完成后回读 D 盘可用字节和 Docker 虚拟磁盘实际状态，记录前后差额。开工可用 64.30 GiB；151.7 GiB 的 VHDX 逻辑大小不作为释放量承诺。
 
-入口与行为依据 [Docker Desktop 官方排障文档](https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/)。本记录当前只准备操作范围，**没有容器删除、数据清理或压缩的执行结果**。
+入口与行为依据 [Docker Desktop 官方排障文档](https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/)。目前**尚未取得容器删除、数据清理或压缩的完成结果**。
+
+## 10-06：清理授权与操作前基线
+
+- 用户明确选择：保留 Docker Desktop 和仓库构建配置；两个旧容器、镜像和卷都可清理。无需为将来部署留下旧开发实例；部署时按当时的代码重新构建、验收，本次未验证生产部署。
+- `.devcontainer/`、`docker/`、`pyproject.toml`、`uv.lock` 均已纳入 Git；本轮回读确认 `85a26408` 与远端 main 一致。软件、仓库、个人配置及本机会话备份保留。
+- 10:52（Asia/Singapore）只读回查仍只有已批准的两个停止容器、两个镜像和 `vscode` 卷。清理前 D 盘可用 **69,112,606,720 字节（64.366 GiB）**；数据 VHDX 逻辑大小 **162,866,921,472 字节**。最终释放量应与这次紧邻清理的基线比较，不将逻辑文件大小当作已释放空间。
+- 已给用户 Docker Desktop 的 Containers → Images → Troubleshoot / Clean up data 操作步骤；等待操作完成后回读 Docker 清单、D 盘可用空间和 VHDX 状态，再将迁移标为完成并提交收尾记录。
