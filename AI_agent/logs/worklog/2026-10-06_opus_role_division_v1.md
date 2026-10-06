@@ -34,3 +34,8 @@
 ## 派工
 
 验收标准写在[验收记录](../../project/unified_agent_acceptance.md)的“分工体系 v1 · D1”“D1-A”两节；派工单：[D1](../experiments/2026-10-06_role_division_d1/brief.md)、[D1-A](../experiments/2026-10-06_role_division_analysis/brief.md)。
+
+已派出（10-06 13:18 新加坡时间，主线 `e07764e6`）：
+- D1：工作树 `EnergyPlus-Agent-worktrees/d1`，分支 `dev/astra-d1-20261006`，`gpt-6-astra`／max，线程 `01a10fa6-59e7-7de0-a19c-5666701880f7`。
+- D1-A：工作树 `EnergyPlus-Agent-worktrees/d1a`，分支 `dev/sol-d1a-20261006`，`gpt-5.6-sol`／high，线程 `01a10fa6-59e7-7621-b5d8-de946c545dbe`。
+- 两个工作树各建约 38 秒，各自 `.venv` 约 12 秒，导入均指向本工作树。启动脚本、提示、事件与错误输出在各工作树已忽略的 `AI_agent/archive/local_backup/<任务名>-dispatch/`。启动正常；错误输出里只有用户 Codex 配置的若干无关告警（未识别的设置、插件图标、名为 codex 的 MCP 连不上）。

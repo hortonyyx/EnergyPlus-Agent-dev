@@ -113,25 +113,37 @@
 
 **10-02 统一 Agent 开发的分工（用户安排）：** 主体开发交 GPT 侧，Astra 决定内部分工，负责实现、主线集成和开发记录；Opus 负责总主导、验收和质量，包括方向与优先级、阶段验收标准与结论、共享接口质量审查、回归与实测的提请、计划与验收记录；阶段结论和待拍板事项由 Opus 汇总报告用户。Claude 为 Plus 额度，Opus 不承担大段实现或长时间探索运行。见[开发计划](../project/unified_agent_harness_plan.md#五分工与交付方式10-02-用户调整)。
 
-## 从 Claude Code 派 Astra（Windows 原生，10-05 更新）
+## 从 Claude Code 派 Astra（Windows 原生，10-06 实测修正）
 
-Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可写，仓库外的独立探测目录拒绝写入。首次设置写权限花了约 47 秒，设置完成后探测正常。验证使用 `codex sandbox -P :workspace`，没有调用模型；容器时期“只能完全访问”的限制不再用于这台本机。
+Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可写，仓库外的独立探测目录拒绝写入。首次设置写权限花了约 47 秒，设置完成后探测正常。容器时期“只能完全访问”的限制不再用于这台本机。
 
-工作树建在 Windows 本地 NTFS 目录，例如 `$env:LOCALAPPDATA\EnergyPlus-Agent\worktrees\<任务名>`，不放网络盘或同步盘。派工前由主助手准备已包含派工单的提交和独立工作树，写清范围与交付要求。新工作树也要按自己的锁文件创建并激活 `.venv`，不能假定继承主树虚拟环境。下面在准备好的工作树根目录执行；PowerShell 参数语法和 Agent.md 加载已验证，实际开发派工按任务需要启动：
+**10-06 首次实际派工前，用 `codex sandbox -P :workspace` 逐项核对（0 次模型请求），修正了三处：**
+- **工作树位置：** 沙箱进程在 `%LOCALAPPDATA%` 下的目录启动不了（`CreateProcessWithLogonW failed: 267`），桌面下的目录可以。工作树放仓库旁的 `C:\Users\Horton\Desktop\EnergyPlus-Agent-worktrees\<任务名>`，建一个约 40 秒。
+- **不能提交：** 工作空间写模式下所有 `.git` 都只读。工作树的 Git 目录、另加主仓库 `.git` 写权限、独立本地克隆自己的 `.git`，三种都写不进 `index.lock`。所以执行方不提交：改动留在工作树，报告给出建议的提交分组，由 Opus 复核后在工作树里提交。这是 Codex 对 Git 元数据的保护，不用绕开它的办法。
+- **启动方式：** 用 `Start-Process` 拉起的进程在工具调用结束后继续运行，不受 Claude Code 后台任务 2 小时上限影响。沙箱里用虚拟环境的完整路径能运行 Python，也能联网。
+
+派工前先把已包含派工单的提交推上主线，再建工作树。新工作树按自己的锁文件建 `.venv`，不能继承主树虚拟环境：
 
 ```powershell
-$taskTree = (Get-Location).Path
-uv sync --frozen --python 3.12
-if ($LASTEXITCODE -ne 0) { throw 'Virtual environment setup failed.' }
-. .\scripts\activate_windows.ps1
-$taskLogs = Join-Path $taskTree 'AI_agent/logs/experiments/<本次派工>'
-New-Item -ItemType Directory -Force -Path $taskLogs | Out-Null
-codex exec -m gpt-6-astra -c "model_reasoning_effort='xhigh'" -c "project_doc_fallback_filenames=['Agent.md']" -s workspace-write -C (Join-Path $taskTree 'AI_agent') --add-dir $taskTree --json -o (Join-Path $taskLogs 'final.md') '<派工提示：先完整读 Agent.md；随后从工作树根目录执行任务>' > (Join-Path $taskLogs 'events.jsonl') 2> (Join-Path $taskLogs 'stderr.log')
+$taskTree = 'C:\Users\Horton\Desktop\EnergyPlus-Agent-worktrees\<任务名>'
+git worktree add -b <分支> $taskTree main
+Push-Location $taskTree; uv sync --frozen --python 3.12; Pop-Location
+$state = Join-Path $taskTree 'AI_agent\archive\local_backup\<任务名>-dispatch'   # 已忽略：提示、启动脚本、事件、错误输出
+New-Item -ItemType Directory -Force -Path $state | Out-Null
+Set-Content -Encoding utf8 -Path "$state\prompt.txt" -Value '<派工提示：先完整读 Agent.md；再到工作树根目录执行派工单；沙箱下不提交>'
+Set-Content -Encoding ascii -Path "$state\launch.cmd" -Value @"
+@echo off
+cd /d "$taskTree\AI_agent"
+call codex exec -m gpt-6-astra -c "model_reasoning_effort='max'" -c "project_doc_fallback_filenames=['Agent.md']" -c "sandbox_workspace_write.network_access=true" -s workspace-write -C "$taskTree\AI_agent" --add-dir "$taskTree" --json -o "$state\final.md" - < "$state\prompt.txt" > "$state\events.jsonl" 2> "$state\stderr.log"
+echo exit=%ERRORLEVEL% > "$state\exit.txt"
+"@
+$p = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', ('"' + "$state\launch.cmd" + '"') -WindowStyle Hidden -PassThru
+Set-Content -Path "$state\pid.txt" -Value $p.Id
 ```
 
-`AI_agent` 作为启动目录，是为适配本机 CLI 对嵌套备用文件名的实际加载行为；`--add-dir` 提供整个工作树的写入范围。配置值内部使用 TOML 单引号，避免 Windows PowerShell 5.1 把双引号剥掉而误传成字符串；同样适用于 PowerShell 7。旧 `Bash(codex *)` 允许规则不代表 PowerShell 的执行权限，实际权限以客户端显示为准。续接时先切到同一工作树的 `AI_agent`，再用 `codex exec resume <线程> -m gpt-6-astra -c "model_reasoning_effort='xhigh'" --json -o <最终回复文件> '<续接提示>'`；resume 不接受 `-C`。
+`AI_agent` 作为启动目录，是为适配本机 CLI 对嵌套备用文件名的实际加载行为；`--add-dir` 提供整个工作树的写入范围。配置值内部使用 TOML 单引号，避免 Windows PowerShell 5.1 把双引号剥掉而误传成字符串；同样适用于 PowerShell 7。提示放文件、用 `-` 从标准输入读，避免长中文提示的转义问题。旧 `Bash(codex *)` 允许规则不代表 PowerShell 的执行权限，实际权限以客户端显示为准。续接时先切到同一工作树的 `AI_agent`，再用 `codex exec resume <线程> -m gpt-6-astra -c "model_reasoning_effort='max'" --json -o <最终回复文件> -`（续接提示同样从标准输入给）；resume 不接受 `-C`。线程号在 `events.jsonl` 第一行。
 
-- 每个阶段：验收标准与派工单入主线 → 建工作树 → 启动 → 复核改动范围与关键证据 → 必要检查 → 合入并推送 → 收回工作树。长包开工即保存报告初稿，逐步提交，保留中断后的续接入口。
+- 每个阶段：验收标准与派工单入主线 → 建工作树 → 启动 → 复核改动范围与关键证据 → 必要检查 → Opus 按报告的分组在工作树里提交 → 合入并推送 → 收回工作树。长包开工即保存报告初稿，逐步更新报告，保留中断后的续接入口。
 - 检查时将 `PYTHONPATH` 指向该工作树，先确认导入模块的 `__file__`；不能把共享 editable 安装的主树结果当作分支验证。pytest 用 `--basetemp AI_agent/archive/local_backup/<任务名>/pytest` 将临时产物留在已忽略的工作树目录。
 - 新证据按哈希引用已有字节，不重复打包；每阶段新增证据尽量约 10 MB。
 
