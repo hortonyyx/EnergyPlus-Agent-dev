@@ -54,14 +54,14 @@ def write(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
-async def run(output, credentials):
+async def run(output, credentials, expected_agent=EXPECTED_AGENT):
     if credentials.resolve() != AUTHORIZED_CREDENTIALS.resolve():
         raise ValueError("use the main-tree .env read-only")
     if output.exists():
         raise ValueError("output already exists; no automatic rerun")
     agent = agent_version_record(ROOT)
-    if agent["version_id"] != EXPECTED_AGENT:
-        raise ValueError(f"expected Agent {EXPECTED_AGENT}, found {agent['version_id']}")
+    if agent["version_id"] != expected_agent:
+        raise ValueError(f"expected Agent {expected_agent}, found {agent['version_id']}")
     output.mkdir(parents=True)
     started = time.time()
     limits = RunLimits(model_calls=MAX_REQUESTS, tool_calls=120, tokens=3_000_000, seconds=10800,
@@ -156,7 +156,7 @@ def evaluate(output):
     if scored_input is not None:
         converted = convert_role_artifacts(**options)
         scores = score_scoped_answer(REFERENCE, converted)
-        write(HERE / "probe_role_score.json", scores)
+        write(HERE / f"probe_role_score_{output.name}.json", scores)
     floor = (scores["assigned_role_score"]["questions"][0]["raw"]["floors"][0]
              if scores and scores["assigned_role_score"]["questions"] else None)
     substance = None
@@ -181,7 +181,7 @@ def evaluate(output):
         "scored_input": scored_input,
         "strict": None if floor is None else {k: floor[k]["status"] for k in ("exterior", "partitions", "rooms", "openings")},
         "substance": substance, "whole_building_runs": 0, "paratera_requests": 0, "deepseek_requests": 0}
-    write(HERE / "probe_summary.json", summary)
+    write(HERE / f"probe_summary_{output.name}.json", summary)
     print(json.dumps({k: summary[k] for k in ("actual_http_requests", "wall_seconds", "task", "scored_input", "strict", "substance")},
                      ensure_ascii=False), flush=True)
     return summary
@@ -192,6 +192,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--credentials-file", type=Path)
     parser.add_argument("--evaluate-only", action="store_true")
+    parser.add_argument("--agent", default=EXPECTED_AGENT, help="Agent version the checkout must verify as")
     args = parser.parse_args()
     output = args.out.resolve()
     if not output.is_relative_to(OUTPUT_ROOT.resolve()):
@@ -201,7 +202,7 @@ def main():
     elif args.credentials_file is None:
         parser.error("--credentials-file must explicitly name the main-tree .env")
     else:
-        asyncio.run(run(output, args.credentials_file))
+        asyncio.run(run(output, args.credentials_file, args.agent))
 
 
 if __name__ == "__main__":
