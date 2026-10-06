@@ -58,8 +58,11 @@ def test_trial_hashes_exact_plan_preserves_checks_and_requires_same_success(tmp_
         value = example()
         trial = PlanTrial(Tools(), image_name="plan.png", receipt_directory=tmp_path)
         envelope = await trial.call(value)
-        receipt = envelope["structuredContent"]
+        visible = envelope["structuredContent"]
+        receipt = trial.require_success(value)
         assert receipt["status"] == "passed"
+        assert visible["status"] == "passed"
+        assert visible["plan_sha256"] == receipt["plan_sha256"]
         assert receipt["plan_sha256"] == canonical_plan_sha256(value)
         assert receipt["original_plan_sha256"] == receipt["plan_sha256"]
         assert receipt["compiled_numeric_plan_sha256"] == receipt["compiled_plan_sha256"]
@@ -153,9 +156,11 @@ def test_trial_persists_images_and_resume_reuses_verified_receipt(tmp_path):
         envelope = await first.call(value)
         assert envelope["content"][0]["type"] == "image"
         assert envelope["structuredContent"]["corridor_review"]["status"] == "warning"
-        assert envelope["structuredContent"]["returned_images"][0]["origin"]["origin_status"] == "verified trial input lineage"
-        origins = first.image_origins(envelope)
-        image_sha = envelope["structuredContent"]["returned_images"][0]["sha256"]
+        assert set(envelope["structuredContent"]["returned_images"][0]) == {"file", "sha256"}
+        full_receipt = first.require_success(value)
+        assert full_receipt["returned_images"][0]["origin"]["origin_status"] == "verified trial input lineage"
+        image_sha = full_receipt["returned_images"][0]["sha256"]
+        origins = first.image_origins({"structuredContent": full_receipt})
         assert origins[image_sha]["source_image_name"] == "plan.png"
         assert origins[image_sha]["original_sha256"] == hashlib.sha256(b"one-original").hexdigest()
         assert first.durable_snapshot()["snapshot_sha256"]

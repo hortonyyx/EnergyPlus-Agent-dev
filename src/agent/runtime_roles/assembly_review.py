@@ -7,6 +7,8 @@ import json
 
 from src.agent_runtime.store import json_bytes
 
+from .lineage import candidate_readers, current_plan_deliveries
+
 
 def _identity(value, floor):
     return value.removeprefix(floor + ":") if isinstance(value, str) else value
@@ -72,13 +74,65 @@ class AssemblyReview:
             "source_sha256": record["validation"]["candidate_source_sha256"]}
         self.store.write_json("role_floor_sources.json", floors)
 
+    @staticmethod
+    def _identified(row, field="change_id"):
+        row[field] = hashlib.sha256(json_bytes(row)).hexdigest()[:20]
+        return row
+
+    def _delivery_coverage(self, candidate, actual_floors):
+        current = current_plan_deliveries(self.session)
+        used = candidate_readers(self.session, candidate)
+        used_by_target = {}
+        blockers = []
+        for task_id in sorted(used):
+            row = self.session.registry.records.get(task_id) or {}
+            if row.get("role_id") != "plan_reader":
+                continue
+            target = row.get("target")
+            used_by_target.setdefault(target, []).append(task_id)
+            expected = current.get(target)
+            if expected and task_id != expected["task_id"]:
+                blockers.append(self._identified({
+                    "item": "stale_plan_delivery",
+                    "target": target,
+                    "floor_id": expected["floor_id"],
+                    "used_task_id": task_id,
+                    "current_task_id": expected["task_id"],
+                }, "blocker_id"))
+
+        changes = []
+        for target, expected in current.items():
+            floor = expected["floor_id"]
+            if floor not in actual_floors:
+                changes.append(self._identified({
+                    "floor_id": floor,
+                    "item": "missing_required_floor",
+                    "target": target,
+                    "before": {
+                        "task_id": expected["task_id"],
+                        "artifact_sha256": expected["artifact_sha256"],
+                    },
+                    "after": None,
+                }))
+            elif not used_by_target.get(target):
+                blockers.append(self._identified({
+                    "item": "unverified_plan_lineage",
+                    "target": target,
+                    "floor_id": floor,
+                    "current_task_id": expected["task_id"],
+                    "used_task_ids": used_by_target.get(target, []),
+                }, "blocker_id"))
+
+        scope = [current[target] for target in sorted(current)]
+        return scope, sorted(used), changes, blockers
+
     def check(self, candidate, *, require_all=False):
         bindings = self._load("role_floor_sources.json", {})
         if not bindings and not require_all:
             return None
         source = self.session._source(candidate)
         actual_floors = {row["floor_id"] for row in source["spaces"]}
-        changes, checked = [], []
+        changes, checked, blockers = [], [], []
         for floor, binding in bindings.items():
             if floor not in actual_floors and not require_all:
                 continue
@@ -99,13 +153,22 @@ class AssemblyReview:
                 row = {"floor_id": floor, "item": "unexpected_floor", "before": None,
                        "after": floor_facts(source, floor)}
                 changes.append({**row, "change_id": hashlib.sha256(json_bytes(row)).hexdigest()[:20]})
+            delivery_scope, used_plan_tasks, missing, blockers = self._delivery_coverage(
+                candidate, actual_floors
+            )
+            changes.extend(missing)
+        else:
+            delivery_scope, used_plan_tasks = [], []
         facts = {"candidate": candidate, "require_all": require_all, "source_sha256": hashlib.sha256(
             (self.session.run_directory / candidate / "source_model.json").read_bytes()).hexdigest(),
-            "bindings": bindings, "checked_floors": checked, "changes": changes}
+            "bindings": bindings, "checked_floors": checked, "changes": changes,
+            "delivery_scope": delivery_scope, "used_plan_tasks": used_plan_tasks,
+            "blockers": blockers}
         identity = hashlib.sha256(json_bytes(facts)).hexdigest()
         old = self._load("role_assembly_reviews/" + identity + ".json", {})
-        report = {**facts, "review_id": identity, "status": "needs_review" if changes else "unchanged"}
-        if old.get("decisions") and self._valid_decisions(changes, old["decisions"]):
+        status = "blocked" if blockers else ("needs_review" if changes else "unchanged")
+        report = {**facts, "review_id": identity, "status": status}
+        if not blockers and old.get("decisions") and self._valid_decisions(changes, old["decisions"]):
             report.update(status="reviewed", decisions=old["decisions"])
         self.store.write_json("role_assembly_reviews/" + identity + ".json", report)
         self.store.write_json("role_assembly_current.json", {"review_id": identity})
@@ -127,6 +190,9 @@ class AssemblyReview:
 
     def guard(self):
         report = self.current()
+        if report and report["status"] == "blocked":
+            raise ValueError("assembly cannot be delivered because its plan lineage is stale or unverified: "
+                             + json.dumps(report["blockers"], ensure_ascii=False, sort_keys=True))
         if report and report["status"] == "needs_review":
             raise ValueError("assembly changed accepted reader facts; inspect changes and call review_role_assembly "
                              "with a reason for each change before continuing: " + report["review_id"])
@@ -135,6 +201,8 @@ class AssemblyReview:
         report = self.current()
         if not report or report["review_id"] != review_id:
             raise ValueError("review_id must refer to the current assembly comparison")
+        if report.get("blockers"):
+            raise ValueError("stale or unverified plan lineage cannot be accepted as partial delivery")
         refreshed = self.check(report["candidate"], require_all=report["require_all"])
         if refreshed["review_id"] != review_id:
             raise ValueError("assembly source or reader references changed; review the new comparison")
@@ -160,8 +228,14 @@ def finalize_role_building(engine, reason):
             chosen, _ = fallback_selection(Toolkit(engine.tools.run_directory))
         if chosen:
             report = engine.tools.assembly.check(chosen, require_all=True)
-            if report and report["status"] == "needs_review":
-                return {"status": "assembly_review_required", "delivery": None, "assembly_review": report}
+            try:
+                engine.tools.assembly.guard()
+            except ValueError as error:
+                if report and report["status"] == "needs_review":
+                    return {"status": "assembly_review_required", "delivery": None,
+                            "assembly_review": report}
+                return {"status": "assembly_delivery_blocked", "delivery": None,
+                        "assembly_review": report, "reason": str(error)}
     except (ValueError, OSError, KeyError) as error:
         return {"status": "assembly_review_failed", "delivery": None, "reason": str(error)}
     return finalize_runtime_building(engine, reason)

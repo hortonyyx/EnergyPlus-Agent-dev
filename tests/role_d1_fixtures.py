@@ -154,10 +154,7 @@ def _reader_tasks(case_name: str, plan_artifacts, elevation_artifacts):
                 "role_id": "plan_reader",
                 "image": image,
                 "target": floor_id,
-                "instructions": (
-                    f"Read {floor_id} in the declared common world frame; use absolute Z; "
-                    "run trial_plan_bim before delivery."
-                ),
+                "origin": "Common building southwest footprint corner; ground datum Z=0.",
             }
         )
     for orientation in elevation_artifacts:
@@ -167,10 +164,7 @@ def _reader_tasks(case_name: str, plan_artifacts, elevation_artifacts):
                 "role_id": "elevation_reader",
                 "image": f"{orientation}_view.png",
                 "target": orientation,
-                "instructions": (
-                    f"Read the {orientation} facade from outside. Sill/head are absolute "
-                    "building Z; horizontal calibration uses the fixed world axis."
-                ),
+                "origin": "Common building southwest footprint corner; ground datum Z=0.",
             }
         )
     return tasks

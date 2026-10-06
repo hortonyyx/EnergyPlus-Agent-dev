@@ -24,7 +24,7 @@ from .accounting import role_accounting
 from .assembly_review import finalize_role_building
 from .config import load_roles
 from .guidance import get_role_guide
-from .session import RoleSession, EXTRA_TOOLS, update_role_context, role_parameters
+from .session import RoleSession, update_role_context, role_parameters
 
 
 def parser():
@@ -105,9 +105,9 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
             catalog = await tools.list_tools()
             specs = [{"type": "function", "function": {"name": t["name"], "description": t.get("description", ""),
                        "parameters": t["inputSchema"]}} for t in catalog]
-            role = base_role.model_copy(update={"tool_whitelist": (*base_role.tool_whitelist, *(
+            role = base_role.model_copy(update={"tool_whitelist": tuple(
                 ToolGrant(tool_name=tool["name"], access="read" if tools.repeatability(tool["name"]) == "read_only" else "write")
-                for tool in EXTRA_TOOLS))})
+                for tool in catalog)})
             route = {"route_id": primary["provider"], "model": primary["model"], "roles": configuration}
             if args.script:
                 route["fixture_sha256"] = hashlib.sha256(args.script.read_bytes()).hexdigest()

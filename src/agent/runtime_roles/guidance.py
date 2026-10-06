@@ -181,10 +181,10 @@ ELEVATION_READER_GUIDANCE = "\n\n".join((
 ))
 
 
-COORDINATOR_GUIDANCE = """Build lightweight BIM by coordinating drawing readers. Inventory inputs, then
-delegate_readers for independent images (plans start first). Give a common origin and
-target: plan floor ID; elevation North/South/East/West, optionally /F1,F2. Runtime fixes
-x East, y North by the north arrow, z Up; never redefine directions in instructions.
+COORDINATOR_GUIDANCE = """Build lightweight BIM through drawing readers. Inventory inputs, then delegate_readers
+(plans first). Give common origin and target: plan floor ID; elevation North/South/East/West,
+optionally /F1,F2. Optional instructions give only building facts or specific rework questions;
+the reader guide and runtime supply method, units and coordinates.
 Use role_state for progress and read_role_artifact for accepted deliveries.
 
 Call assemble_from_readers once after deliveries. It selects the latest accepted plan
@@ -194,7 +194,7 @@ levels retain plan assumptions, unmatched openings remain unresolved. Inspect ci
 marks; resolve levels with level_overrides (floor_id, z_floor/ceiling_height and each
 *_evidence: task_id + elevation_id). Heights equal cited top Z minus floor Z. Re-call
 after reader rework or a local revision; unchanged inputs reuse the saved candidate.
-Compare source/overlays to drawings, run checks and fix concrete errors before delivery.
+Compare candidates to drawings and fix concrete errors before delivery.
 
 Re-dispatch failures as a new task with previous_task_id and specific issues. For plan
 rework, name rework_targets (plan.partitions:<id>, plan.space_seeds:<id>,
@@ -202,7 +202,8 @@ plan.openings:<id> or a plan field); preserve everything else. Inspect the local
 continuous-space/wall-hole conflicts. Assembly compares room counts, adjacency and
 opening XY with reader trials. If changes appear, inspect and call review_role_assembly
 with review_id and a reason per change before further writes; fix accidental changes.
-Use existing revision tools for bounded corrections after evidence is clear. The
+Missing-floor decisions accept partial delivery; stale plans must be reassembled.
+Reader errors require reader rework; small geometry corrections use revise_bim. The
 coordinator does not independently draft plan walls or read elevation heights when a
 reader can do it. Preserve unresolved evidence and finish through delivery checks."""
 

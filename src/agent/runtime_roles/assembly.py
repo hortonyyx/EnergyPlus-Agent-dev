@@ -9,6 +9,7 @@ from pathlib import PurePosixPath
 from src.agent_runtime.store import json_bytes
 
 from .height_writes import apply_heights, saved_application
+from .feedback import assembly_reply
 from .levels import LEVEL_TOLERANCE_M, decision, resolve_levels
 from .lineage import candidate_readers, latest_candidate, metadata
 
@@ -74,7 +75,13 @@ def _issues_from_match(value):
 
 
 def _review_issues(review):
-    if not review or review["status"] != "needs_review":
+    if not review:
+        return []
+    if review["status"] == "blocked":
+        return [decision("assembly_lineage", "Candidate uses stale or unverified plan deliveries.",
+            "Call assemble_from_readers with current deliveries; this cannot be accepted as partial delivery.",
+            review_id=review["review_id"], detail=row) for row in review.get("blockers", [])]
+    if review["status"] != "needs_review":
         return []
     return [decision("assembly_change", "Assembly differs from the accepted reader trial.",
             "Inspect this change; call review_role_assembly with a reason for every change before further writes.",
@@ -133,7 +140,8 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
                 "matched": len(v["result"]["matches"]), "source_only": len(v["result"]["source_only"]),
                 "elevation_only": len(v["result"]["elevation_only"]), "conflicts": len(v["result"]["conflicts"])} for v in matches],
             "height_write": write, "assembly_review": None if not review else {
-                key: review[key] for key in ("review_id", "status", "checked_floors", "changes")},
+                key: review[key] for key in ("review_id", "status", "checked_floors", "changes", "blockers", "delivery_scope")
+                if key in review},
             "decisions": pending, "reader_notes": notes,
             "saved_candidates": len(list(session.run_directory.glob("candidate_*/report.json")))}
         state["response"] = response
@@ -143,7 +151,7 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
             state["source_sha256"] = hashlib.sha256(
                 (session.run_directory / candidate / "source_model.json").read_bytes()).hexdigest()
         save()
-        return envelope(response)
+        return envelope(assembly_reply(response, saved_path, receipt_file=path))
 
     candidate = state.get("candidate")
     if state.get("complete"):
@@ -153,7 +161,7 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
         latest = latest_candidate(session, candidate)
         if latest == candidate or not _descends(session, latest, candidate):
             from .session import envelope
-            return envelope(state["response"])
+            return envelope(assembly_reply(state["response"], saved_path, receipt_file=path))
         # A deliberate candidate-only revision is the new base. Never rebuild
         # unchanged reader plans over the coordinator's local correction.
         state.update(candidate=latest, complete=False, local_revision=True)
@@ -200,8 +208,9 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
         save()
 
     review = session.assembly.check(candidate, require_all=True)
-    if review and review["status"] == "needs_review":
-        return finish(candidate, review=review, status="assembly_review_required")
+    if review and review["status"] in {"needs_review", "blocked"}:
+        return finish(candidate, review=review, status=("assembly_delivery_blocked"
+            if review["status"] == "blocked" else "assembly_review_required"))
     matches = [session.match(task_id, candidate, height_bounds=True) for task_id in sorted(elevations)]
     for value in matches:
         issues.extend(_issues_from_match(value))

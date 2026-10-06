@@ -12,6 +12,8 @@ from typing import Any
 
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 
+from .parameters import normalize_stringified_parameters
+
 
 PLAN_READER_TOOL_NAMES = (
     "inputs",
@@ -442,6 +444,9 @@ class ReaderTools:
         try:
             if not isinstance(arguments, Mapping):
                 raise _minimum(name, {}, "tool arguments must be an object")
+            arguments = normalize_stringified_parameters(
+                arguments, self._catalog[name]["inputSchema"]
+            )
             if name == "trial_plan_bim" and not (
                 (set(arguments) == {"plan"} and isinstance(arguments["plan"], Mapping))
                 or (set(arguments) == {"operations"} and isinstance(arguments["operations"], list))
