@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="55" time="43.036" timestamp="2026-10-08T01:06:36.239920+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_role_elevation_ink" name="test_legacy_expanded_recording_stays_readable_but_is_not_public_schema" time="0.002" /><testcase classname="tests.test_role_elevation_ink" name="test_aligns_all_four_edges_and_ignores_legacy_evidence_box_as_geometry" time="0.014" /><testcase classname="tests.test_role_elevation_ink" name="test_numeric_and_mixed_evidence_is_checked_without_replacing_any_value[annotation]" time="0.011" /><testcase classname="tests.test_role_elevation_ink" name="test_preserves_mirrored_world_coordinates_while_width_stays_positive" time="0.006" /><testcase classname="tests.test_role_elevation_ink" name="test_numeric_and_mixed_evidence_is_checked_without_replacing_any_value[annotation_and_pixels]" time="0.006" /><testcase classname="tests.test_role_elevation_ink" name="test_weak_ink_and_missing_vertical_calibration_leave_values_unchanged" time="0.003" /><testcase classname="tests.test_role_elevation_ink" name="test_numeric_and_mixed_evidence_is_checked_without_replacing_any_value[visual_estimate]" time="0.006" /><testcase classname="tests.test_role_elevation_ink" name="test_numeric_and_mixed_evidence_is_checked_without_replacing_any_value[assumption]" time="0.007" /><testcase classname="tests.test_role_elevation_ink" name="test_reader_submission_binds_image_alignment_and_reloads_immutably" time="0.072"><failure message="AssertionError: {'content': [{'text': '{&quot;status&quot;: &quot;rejected&quot;, &quot;reason&quot;: &quot;submit_elevation_reading: ink_alignment has an unsupported sc...[], ...}, 'reason': 'submit_elevation_reading: ink_alignment has an unsupported schema_version', 'status': 'rejected'}}&#10;assert not True">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q2/AI_agent/archive/local_backup/q2/pytest/round2_focused/popen-gw0/test_reader_submission_binds_i0')
+
+    def test_reader_submission_binds_image_alignment_and_reloads_immutably(tmp_path):
+        async def scenario():
+            image_dir = tmp_path / "images"
+            image_dir.mkdir()
+            image_path = image_dir / "North.png"
+            _outlined_rectangle((40, 30, 90, 80)).save(image_path)
+            digest = hashlib.sha256(image_path.read_bytes()).hexdigest()
+            (tmp_path / "inputs.json").write_text(
+                json.dumps({"images": {"North.png": {"sha256": digest}}}),
+                encoding="utf-8",
+            )
+            arguments = {
+                "x_calibration": {
+                    "pixel_start": 0,
+                    "pixel_end": 100,
+                    "distance_start_m": 0,
+                    "distance_end_m": 10,
+                    "facade_length_m": 10,
+                },
+                "z_calibration": {
+                    "pixel_start": 10,
+                    "pixel_end": 110,
+                    "world_start_m": 10,
+                    "world_end_m": 0,
+                },
+                "elevations": [
+                    {"id": "roof", "kind": "roof", "value_m": 10,
+                     "evidence_type": "pixels", "bbox": [0, 9, 120, 11]},
+                    {"id": "ground", "kind": "ground", "value_m": 0,
+                     "evidence_type": "pixels", "bbox": [0, 109, 120, 111]},
+                ],
+                "openings": [
+                    {"id": "W1", "floor_id": "F1", "kind": "window",
+                     "evidence_type": "pixels", "opening_bbox": [37, 33, 93, 77]},
+                ],
+                "counts": [{"floor_id": "F1", "window_count": 1, "door_count": 0}],
+                "unresolved": [],
+            }
+            tools = ElevationReaderTools(
+                Frozen(tmp_path),
+                role_id="elevation_reader",
+                image_name="North.png",
+                target="North/F1",
+            )
+            accepted = await tools.call_tool("submit_elevation_reading", arguments)
+            assert not accepted["isError"], accepted
+            saved = tools.submission.read()
+            artifact = saved["artifact"]
+            assert artifact["openings"][0]["x_px"] == pytest.approx([40, 90])
+            assert artifact["openings"][0]["width_m"] == pytest.approx(5)
+            assert artifact["openings"][0]["sill_m"] == pytest.approx(3)
+            assert artifact["openings"][0]["head_m"] == pytest.approx(8)
+            assert artifact["openings"][0]["opening_bbox"] == [37.0, 33.0, 93.0, 77.0]
+            assert artifact["ink_alignment"]["openings"][0]["aligned_bbox_px"] == pytest.approx(
+                [40, 30, 90, 80]
+            )
+            assert saved["validation"]["image_sha256"] == digest
+            assert saved["validation"]["ink_alignment_sha256"]
+            assert (await tools.call_tool("submit_elevation_reading", arguments)) == accepted
+    
+            resumed = ElevationReaderTools(
+                Frozen(tmp_path),
+                role_id="elevation_reader",
+                image_name="North.png",
+                target="North/F1",
+            )
+            assert resumed.submission.read() == saved
+            changed = Image.new("L", (140, 120), 255)
+            changed.save(image_path)
+            with pytest.raises(ValueError):
+                ElevationReaderTools(
+                    Frozen(tmp_path),
+                    role_id="elevation_reader",
+                    image_name="North.png",
+                    target="North/F1",
+                )
+    
+&gt;       asyncio.run(scenario())
+
+tests\test_role_elevation_ink.py:203: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def scenario():
+        image_dir = tmp_path / "images"
+        image_dir.mkdir()
+        image_path = image_dir / "North.png"
+        _outlined_rectangle((40, 30, 90, 80)).save(image_path)
+        digest = hashlib.sha256(image_path.read_bytes()).hexdigest()
+        (tmp_path / "inputs.json").write_text(
+            json.dumps({"images": {"North.png": {"sha256": digest}}}),
+            encoding="utf-8",
+        )
+        arguments = {
+            "x_calibration": {
+                "pixel_start": 0,
+                "pixel_end": 100,
+                "distance_start_m": 0,
+                "distance_end_m": 10,
+                "facade_length_m": 10,
+            },
+            "z_calibration": {
+                "pixel_start": 10,
+                "pixel_end": 110,
+                "world_start_m": 10,
+                "world_end_m": 0,
+            },
+            "elevations": [
+                {"id": "roof", "kind": "roof", "value_m": 10,
+                 "evidence_type": "pixels", "bbox": [0, 9, 120, 11]},
+                {"id": "ground", "kind": "ground", "value_m": 0,
+                 "evidence_type": "pixels", "bbox": [0, 109, 120, 111]},
+            ],
+            "openings": [
+                {"id": "W1", "floor_id": "F1", "kind": "window",
+                 "evidence_type": "pixels", "opening_bbox": [37, 33, 93, 77]},
+            ],
+            "counts": [{"floor_id": "F1", "window_count": 1, "door_count": 0}],
+            "unresolved": [],
+        }
+        tools = ElevationReaderTools(
+            Frozen(tmp_path),
+            role_id="elevation_reader",
+            image_name="North.png",
+            target="North/F1",
+        )
+        accepted = await tools.call_tool("submit_elevation_reading", arguments)
+&gt;       assert not accepted["isError"], accepted
+E       AssertionError: {'content': [{'text': '{"status": "rejected", "reason": "submit_elevation_reading: ink_alignment has an unsupported sc...[], ...}, 'reason': 'submit_elevation_reading: ink_alignment has an unsupported schema_version', 'status': 'rejected'}}
+E       assert not True
+
+tests\test_role_elevation_ink.py:171: AssertionError</failure></testcase><testcase classname="tests.test_role_elevation_ink" name="test_numeric_and_mixed_evidence_is_checked_without_replacing_any_value[declared]" time="0.006" /><testcase classname="tests.test_role_elevation_ink" name="test_multiple_strong_strokes_do_not_authorize_pixel_replacement" time="0.006" /><testcase classname="tests.test_role_elevation_ink" name="test_confirmed_pixel_edges_do_not_reround_original_numeric_values" time="0.005" /><testcase classname="tests.test_role_elevation_ink" name="test_floor_contact_sill_is_not_replaced_by_another_lower_ink_line" time="0.012" /><testcase classname="tests.test_role_elevation_ink" name="test_normalization_retains_explicit_annotated_values_beside_a_rough_box" time="0.051" /><testcase classname="tests.test_role_position_review" name="test_independent_endpoints_width_thresholds_and_fit_does_not_hide_drift" time="0.004" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_is_durable_without_writes_and_pending_blocks_delivery" time="0.477" /><testcase classname="tests.test_role_position_review" name="test_ink_inconsistency_remains_pending_even_when_plan_and_reader_positions_agree" time="0.323"><failure message="ValueError: ink_alignment has an unsupported schema_version">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q2/AI_agent/archive/local_backup/q2/pytest/round2_focused/popen-gw1/test_ink_inconsistency_remains0')
+
+    def test_ink_inconsistency_remains_pending_even_when_plan_and_reader_positions_agree(tmp_path):
+        with height_session(tmp_path) as session:
+            bind_original_plan(session)
+            artifact = copy.deepcopy(session.registry.read("North"))
+            artifact.pop("artifact_sha256")
+            opening = artifact["openings"][0]
+            artifact["ink_alignment"] = {"openings": [{"id": opening["id"], "aligned_bbox_px": opening["bbox"],
+                "inconsistencies": [{"field": "width_m", "reader_value": opening["width_m"],
+                    "ink_value": opening["width_m"] + .2, "difference_m": .2, "tolerance_m": .05}]}]}
+&gt;           artifact = validate_elevation_artifact(artifact)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_role_position_review.py:237: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'artifact_id': 'elevation:North:plan', 'counts': [{'door_count': 0, 'floor_id': 'F1', 'window_count': 1}], 'elevation...': [0.0, 0.0, 2.0, 2.0], 'evidence_type': 'annotation', 'floor_id': None, 'id': 'top', ...}], 'image': 'plan.png', ...}
+
+    def validate_elevation_artifact(
+        value: Any, *, image_name: str | None = None
+    ) -&gt; dict[str, Any]:
+        """Validate and normalize one elevation reader's compact artifact.
+    
+        ``image_name`` supplies the assigned original when the model omits ``image``.
+        ``schema_version`` and ``artifact_id`` also default, so models need not fill
+        runtime identity fields.  Errors identify the exact item and field.
+        """
+    
+        row = _mapping(value, "artifact")
+        allowed = {
+            "schema_version",
+            "artifact_id",
+            "image",
+            "orientation",
+            "view_direction",
+            "x_calibration",
+            "z_calibration",
+            "elevations",
+            "openings",
+            "counts",
+            "unresolved",
+            "artifact_sha256",
+            "ink_alignment",
+        }
+        required = {
+            "orientation",
+            "view_direction",
+            "x_calibration",
+            "elevations",
+            "openings",
+            "counts",
+        }
+        _allowed(row, allowed, "artifact")
+        _required(row, required, "artifact")
+        schema_version = row.get("schema_version", SCHEMA_VERSION)
+        if schema_version != SCHEMA_VERSION:
+            raise ValueError(f"schema_version must be {SCHEMA_VERSION!r}")
+        orientation = _string(row["orientation"], "orientation")
+        view_direction = _string(row["view_direction"], "view_direction")
+        if orientation not in _CARDINALS:
+            raise ValueError(f"orientation must be one of {sorted(_CARDINALS)}")
+        if view_direction not in _CARDINALS:
+            raise ValueError(f"view_direction must be one of {sorted(_CARDINALS)}")
+        image = row.get("image", image_name)
+        image = _string(image, "image (or image_name)")
+        if image_name is not None and Path(image).name != Path(image_name).name:
+            raise ValueError("artifact.image does not match the assigned image_name")
+        calibration = _normalize_calibration(
+            row["x_calibration"],
+            orientation=orientation,
+            view_direction=view_direction,
+        )
+        z_calibration = (
+            _normalize_z_calibration(row["z_calibration"])
+            if row.get("z_calibration") is not None else None
+        )
+        elevations = [
+            _normalize_elevation(item, index)
+            for index, item in enumerate(_sequence(row["elevations"], "elevations"))
+        ]
+        if not elevations:
+            raise ValueError("elevations must contain at least one located level")
+        openings = [
+            _normalize_opening(
+                item,
+                index,
+                x_calibration=calibration,
+                z_calibration=z_calibration,
+                preserve_aligned=row.get("ink_alignment") is not None,
+            )
+            for index, item in enumerate(_sequence(row["openings"], "openings"))
+        ]
+        counts = [
+            _normalize_count(item, index)
+            for index, item in enumerate(_sequence(row["counts"], "counts"))
+        ]
+        unresolved = [
+            _string(item, f"unresolved[{index}]")
+            for index, item in enumerate(_sequence(row.get("unresolved", []), "unresolved"))
+        ]
+    
+        opening_ids = [item["id"] for item in openings]
+        if len(opening_ids) != len(set(opening_ids)):
+            raise ValueError("openings[*].id values must be unique")
+        elevation_ids = [item["id"] for item in elevations]
+        if len(elevation_ids) != len(set(elevation_ids)):
+            raise ValueError("elevations[*].id values must be unique")
+        count_floors = [item["floor_id"] for item in counts]
+        if len(count_floors) != len(set(count_floors)):
+            raise ValueError("counts[*].floor_id values must be unique")
+    
+        previous_by_floor: dict[str, float] = {}
+        actual_counts: dict[str, Counter[str]] = defaultdict(Counter)
+        for index, opening in enumerate(openings):
+            center = sum(opening["x_px"]) / 2.0
+            previous = previous_by_floor.get(opening["floor_id"])
+            if previous is not None and center &lt;= previous:
+                raise ValueError(
+                    f"openings[{index}] is not in left-to-right order within "
+                    f"floor {opening['floor_id']!r}"
+                )
+            previous_by_floor[opening["floor_id"]] = center
+            actual_counts[opening["floor_id"]][opening["kind"]] += 1
+        reported = {item["floor_id"]: item for item in counts}
+        if missing := sorted(set(actual_counts) - set(reported)):
+            raise ValueError(f"counts is missing floors present in openings: {missing}")
+        for floor_id, item in reported.items():
+            expected = actual_counts[floor_id]
+            for kind, field in (("window", "window_count"), ("door", "door_count")):
+                if item[field] != expected[kind]:
+                    raise ValueError(
+                        f"counts for floor {floor_id!r} says {field}={item[field]}, "
+                        f"but openings contains {expected[kind]}"
+                    )
+    
+        artifact_id = row.get("artifact_id")
+        if artifact_id is None:
+            artifact_id = f"elevation:{orientation}:{Path(image).stem}"
+        artifact_id = _string(artifact_id, "artifact_id")
+        normalized = {
+            "schema_version": SCHEMA_VERSION,
+            "artifact_id": artifact_id,
+            "image": image,
+            "orientation": orientation,
+            "view_direction": view_direction,
+            "x_calibration": calibration,
+            "elevations": elevations,
+            "openings": openings,
+            "counts": counts,
+            "unresolved": unresolved,
+        }
+        if z_calibration is not None:
+            normalized["z_calibration"] = z_calibration
+        if row.get("ink_alignment") is not None:
+            alignment = _mapping(row["ink_alignment"], "ink_alignment")
+            if alignment.get("schema_version") != "elevation_ink_alignment_v1":
+&gt;               raise ValueError("ink_alignment has an unsupported schema_version")
+E               ValueError: ink_alignment has an unsupported schema_version
+
+src\agent\runtime_roles\elevation.py:687: ValueError</failure></testcase><testcase classname="tests.test_role_elevation_ink" name="test_saved_level_calibration_requires_two_consistent_horizontal_bands" time="0.001" /><testcase classname="tests.test_role_elevation_ink" name="test_height_evidence_uses_aligned_opening_box_for_its_source_region" time="0.001" /><testcase classname="tests.test_role_position_review" name="test_use_elevation_edits_only_xy_on_host_replays_and_rejects_overflow" time="0.775" /><testcase classname="tests.test_role_position_review" name="test_over_30cm_requires_two_located_views_and_reread_stays_pending" time="0.691" /><testcase classname="tests.test_role_elevation" name="test_validate_defaults_runtime_fields_and_absolute_z" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_stale_artifact_hash" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-openings contains 2]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-left-to-right]" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-absolute building Z]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-positive width]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_rejects_specific_bad_fields[&lt;lambda&gt;-contradicts view_direction]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_requires_assigned_image" time="0.001" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[North-South-10-0-x]" time="0.003" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[South-North-0-10-x]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[East-West-0-10-y]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_validate_cardinal_outside_view_world_signs[West-East-10-0-y]" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_exact_match_handles_tight_windows_and_exterior_door" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_missing_one_opening_preserves_neighbors" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_extra_one_opening_is_not_forced_onto_source" time="0.003" /><testcase classname="tests.test_role_elevation" name="test_overall_shift_returns_conflicts_instead_of_false_matches" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_width_difference_is_a_conflict" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_height_application_emits_existing_claim_transaction_shape" time="0.003" /><testcase classname="tests.test_role_elevation" name="test_height_application_rejects_stale_source" time="0.002" /><testcase classname="tests.test_role_elevation" name="test_height_application_keeps_unmatched_items_unprocessed" time="0.003" /><testcase classname="tests.test_role_elevation" name="test_image_name_cannot_be_silently_rebound" time="0.001" /><testcase classname="tests.test_role_height_evidence" name="test_reader_coordinates_reach_delivery_and_stale_heights_lose_coverage" time="1.218" /><testcase classname="tests.test_role_position_review" name="test_decision_resume_after_inner_write_does_not_duplicate_candidate" time="0.658" /><testcase classname="tests.test_role_position_review" name="test_opening_added_after_plan_trial_requires_reread_instead_of_false_agreement" time="0.868" /><testcase classname="tests.test_role_height_evidence" name="test_missing_or_unrelated_reader_coordinates_are_not_manufactured[dimension_chain]" time="0.299" /><testcase classname="tests.test_role_height_evidence" name="test_missing_or_unrelated_reader_coordinates_are_not_manufactured[assumed_levels]" time="0.302" /><testcase classname="tests.test_role_height_evidence" name="test_missing_or_unrelated_reader_coordinates_are_not_manufactured[wrong_opening_region]" time="0.332" /><testcase classname="tests.test_role_position_review" name="test_explicit_scope_survives_newer_facade_and_reactivation_requires_finished_assembly" time="1.191" /><testcase classname="tests.test_role_height_evidence" name="test_single_level_scale_needs_independent_image_corroboration" time="0.343" /><testcase classname="tests.test_role_guidance" name="test_reader_guides_are_single_image_and_keep_corresponding_existing_method" time="0.001" /><testcase classname="tests.test_role_guidance" name="test_elevation_guide_exposes_a_complete_valid_minimum_example" time="0.055" /><testcase classname="tests.test_role_guidance" name="test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft" time="0.001" /><testcase classname="tests.test_role_guidance" name="test_catalog_reports_exact_character_counts_and_unchanged_single_model" time="0.003" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_resolves_only_position_conflict_and_never_waives_height_bounds" time="0.773" /></testsuite></testsuites>

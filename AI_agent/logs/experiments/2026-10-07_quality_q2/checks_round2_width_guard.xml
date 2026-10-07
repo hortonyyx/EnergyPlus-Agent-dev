@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="33" time="32.268" timestamp="2026-10-08T01:12:11.754938+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_role_position_review" name="test_independent_endpoints_width_thresholds_and_fit_does_not_hide_drift" time="0.003" /><testcase classname="tests.test_role_position_review" name="test_decision_resume_after_inner_write_does_not_duplicate_candidate" time="0.811" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_is_durable_without_writes_and_pending_blocks_delivery" time="0.608" /><testcase classname="tests.test_role_position_review" name="test_use_elevation_edits_only_xy_on_host_replays_and_rejects_overflow" time="0.776" /><testcase classname="tests.test_role_position_review" name="test_opening_added_after_plan_trial_requires_reread_instead_of_false_agreement" time="0.917" /><testcase classname="tests.test_role_position_review" name="test_over_30cm_requires_two_located_views_and_reread_stays_pending" time="1.015" /><testcase classname="tests.test_role_position_review" name="test_explicit_scope_survives_newer_facade_and_reactivation_requires_finished_assembly" time="1.460" /><testcase classname="tests.test_role_position_review" name="test_ink_inconsistency_remains_pending_even_when_plan_and_reader_positions_agree" time="0.933" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_resolves_only_position_conflict_and_never_waives_height_bounds" time="3.331" /><testcase classname="tests.test_role_position_review" name="test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance[0.02]" time="0.649"><failure message="AssertionError: revise_bim">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q2/AI_agent/archive/local_backup/q2/pytest/round2_width_guard/popen-gw0/test_using_elevation_cannot_re0')
+width_delta = 0.02
+
+    @pytest.mark.parametrize("width_delta", [.02, .4])
+    def test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance(tmp_path, width_delta):
+        with height_session(tmp_path) as session:
+            row = shifted(session, .2, width_delta=width_delta)
+            before = session._source("candidate_01")
+&gt;           result = asyncio.run(session.call_tool("edit_bim", {"candidate": "candidate_01",
+                "edits": [decision(row, "use_elevation")]}))
+
+tests\test_role_position_review.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:195: in call_tool
+    return await self._call_tool(name, arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:234: in _call_tool
+    return await self.edit_candidate(**arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:284: in edit_candidate
+    return await self.positions.decide(candidate, edits)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\assembly_review.py:490: in decide
+    result = await self.session.edit_candidate(candidate, corrections)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:399: in edit_candidate
+    result = await self._once(identity,
+src\agent\runtime_roles\session.py:617: in _once
+    result = await self.frozen.call_tool(name, arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_role_d1g.LocalTools object at 0x0000016563AD2870&gt;
+name = 'revise_bim'
+arguments = {'candidate': 'candidate_01', 'operations_json': '[{"op": "update_window", "id": "North", "changes": {"span": [1.20000...urce_refs": ["image:plan.png", "Original jamb pixels support this interval", "plan.png: bbox [0.0, 0.0, 2.0, 2.0]"]}]'}
+
+    async def call_tool(self, name, arguments):
+        self.calls.append((name, copy.deepcopy(arguments)))
+        await asyncio.sleep(0)  # Expose races if the role write lock is absent.
+        if name == "claim_transaction":
+            return envelope(self.toolkit.claim_transaction(arguments["candidate"], arguments["entries_json"]))
+        if name == "build_plan_bim":
+            return envelope(self.toolkit.build_plan(arguments["image"], arguments["plan_json"]))
+&gt;       raise AssertionError(name)
+E       AssertionError: revise_bim
+
+tests\test_role_d1g.py:42: AssertionError</failure></testcase><testcase classname="tests.test_role_d1j" name="test_reader_task_supplies_direction_and_partial_chain_origin[East-West-y-world2]" time="1.910" /><testcase classname="tests.test_role_d1j" name="test_reader_task_supplies_direction_and_partial_chain_origin[West-East-y-world3]" time="1.121" /><testcase classname="tests.test_role_d1j" name="test_complete_ordered_fit_reports_transform_and_never_moves_source" time="0.003" /><testcase classname="tests.test_role_d1j" name="test_incomplete_or_unjustified_alignment_stays_unresolved[parameters0]" time="0.002" /><testcase classname="tests.test_role_d1j" name="test_incomplete_or_unjustified_alignment_stays_unresolved[parameters1]" time="0.006" /><testcase classname="tests.test_role_d1j" name="test_incomplete_or_unjustified_alignment_stays_unresolved[parameters2]" time="0.005" /><testcase classname="tests.test_role_d1j" name="test_incomplete_or_unjustified_alignment_stays_unresolved[parameters3]" time="0.003" /><testcase classname="tests.test_role_d1j" name="test_incomplete_or_unjustified_alignment_stays_unresolved[parameters4]" time="0.003" /><testcase classname="tests.test_role_d1j" name="test_incomplete_or_unjustified_alignment_stays_unresolved[parameters5]" time="0.005" /><testcase classname="tests.test_role_d1j" name="test_local_use_note_position_and_height_edits_preserve_other_content_and_replay" time="3.850" /><testcase classname="tests.test_role_d1j" name="test_bad_edit_batch_has_no_partial_write_and_unknown_outcome_never_repeats" time="2.461" /><testcase classname="tests.test_role_position_review" name="test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance[0.4]" time="2.609"><failure message="AssertionError: revise_bim">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q2/AI_agent/archive/local_backup/q2/pytest/round2_width_guard/popen-gw0/test_using_elevation_cannot_re1')
+width_delta = 0.4
+
+    @pytest.mark.parametrize("width_delta", [.02, .4])
+    def test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance(tmp_path, width_delta):
+        with height_session(tmp_path) as session:
+            row = shifted(session, .2, width_delta=width_delta)
+            before = session._source("candidate_01")
+&gt;           result = asyncio.run(session.call_tool("edit_bim", {"candidate": "candidate_01",
+                "edits": [decision(row, "use_elevation")]}))
+
+tests\test_role_position_review.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:195: in call_tool
+    return await self._call_tool(name, arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:234: in _call_tool
+    return await self.edit_candidate(**arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:284: in edit_candidate
+    return await self.positions.decide(candidate, edits)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\assembly_review.py:490: in decide
+    result = await self.session.edit_candidate(candidate, corrections)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\session.py:399: in edit_candidate
+    result = await self._once(identity,
+src\agent\runtime_roles\session.py:617: in _once
+    result = await self.frozen.call_tool(name, arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;tests.test_role_d1g.LocalTools object at 0x0000016563A72870&gt;
+name = 'revise_bim'
+arguments = {'candidate': 'candidate_01', 'operations_json': '[{"op": "update_window", "id": "North", "changes": {"span": [1.20000...urce_refs": ["image:plan.png", "Original jamb pixels support this interval", "plan.png: bbox [0.0, 0.0, 2.0, 2.0]"]}]'}
+
+    async def call_tool(self, name, arguments):
+        self.calls.append((name, copy.deepcopy(arguments)))
+        await asyncio.sleep(0)  # Expose races if the role write lock is absent.
+        if name == "claim_transaction":
+            return envelope(self.toolkit.claim_transaction(arguments["candidate"], arguments["entries_json"]))
+        if name == "build_plan_bim":
+            return envelope(self.toolkit.build_plan(arguments["image"], arguments["plan_json"]))
+&gt;       raise AssertionError(name)
+E       AssertionError: revise_bim
+
+tests\test_role_d1g.py:42: AssertionError</failure></testcase><testcase classname="tests.test_role_assembly_review" name="test_compare_floor_ignores_height_only_but_catches_plan_facts" time="0.335" /><testcase classname="tests.test_role_assembly_review" name="test_changed_assembly_requires_one_nonempty_reason_per_change" time="0.354" /><testcase classname="tests.test_role_assembly_review" name="test_candidate_hash_change_invalidates_old_review_even_when_only_height_changed" time="0.788" /><testcase classname="tests.test_role_assembly_review" name="test_require_all_reports_each_unbound_actual_floor" time="0.528" /><testcase classname="tests.test_role_assembly_review" name="test_missing_latest_floor_requires_persisted_partial_delivery_reason" time="1.515" /><testcase classname="tests.test_role_assembly_review" name="test_old_plan_delivery_is_blocked_by_latest_same_target[False]" time="0.435" /><testcase classname="tests.test_role_d1j" name="test_reader_task_supplies_direction_and_partial_chain_origin[North-South-x-world0]" time="0.851" /><testcase classname="tests.test_role_assembly_review" name="test_old_plan_delivery_is_blocked_by_latest_same_target[True]" time="0.337" /><testcase classname="tests.test_role_assembly_review" name="test_timeout_fallback_runs_the_same_delivery_guard" time="0.086" /><testcase classname="tests.test_role_assembly_review" name="test_recovered_build_receipt_still_binds_and_checks_reader_floor" time="0.992" /><testcase classname="tests.test_role_d1j" name="test_reader_task_supplies_direction_and_partial_chain_origin[South-North-x-world1]" time="1.360" /></testsuite></testsuites>

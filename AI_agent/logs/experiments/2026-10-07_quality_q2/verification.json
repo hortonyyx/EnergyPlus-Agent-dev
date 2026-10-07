@@ -1,0 +1,1227 @@
+{
+  "schema_version": "q2-offline-verification.v1",
+  "baseline_commit": "e030b6b0195eea18d2d54261038f8a8f25640518",
+  "python": {
+    "executable": "D:\\EnergyPlus-Agent-worktrees\\q2\\.venv\\Scripts\\python.exe",
+    "version": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "agent_module": "D:\\EnergyPlus-Agent-worktrees\\q2\\src\\agent\\__init__.py"
+  },
+  "scope": "domain roles/tools/methods/guidance; division mode only; no full suite; no work model calls",
+  "tests": {
+    "method": "Most recent result per test; reuse unaffected checks, rerun affected scopes after fixes.",
+    "unique_test_count": 174,
+    "latest_outcomes": {
+      "passed": 174
+    },
+    "runs": [
+      {
+        "report": "checks.xml",
+        "sha256": "6a4868eb6053a2d995ab6de679a83d04379007323dc3d6f57dece10626f1fb75",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "9",
+            "skipped": "0",
+            "tests": "171",
+            "time": "370.112",
+            "timestamp": "2026-10-07T22:24:36.561613+08:00",
+            "hostname": "DESKTOP-Horton"
+          }
+        ],
+        "outcomes": {
+          "passed": 162,
+          "failed": 9
+        },
+        "reproduction_command": ".venv/Scripts/python.exe -m pytest tests/test_role_assembly_review.py tests/test_role_batch_heights.py tests/test_role_configuration.py tests/test_role_context_policy.py tests/test_role_d1g.py tests/test_role_d1h.py tests/test_role_d1j.py tests/test_role_elevation.py tests/test_role_elevation_ink.py tests/test_role_end_to_end.py tests/test_role_guidance.py tests/test_role_height_evidence.py tests/test_role_parameters.py tests/test_role_position_review.py tests/test_role_review_regressions.py tests/test_role_rework_handoff.py tests/test_role_session.py tests/test_role_single_parity.py tests/test_role_targets.py tests/test_role_task_budget.py -n 2 --basetemp AI_agent/archive/local_backup/q2/pytest/acceptance --junitxml AI_agent/logs/experiments/2026-10-07_quality_q2/checks.xml -q"
+      },
+      {
+        "report": "checks_recheck.xml",
+        "sha256": "509b6d0254e7eef81d9ffb0e6dc98aecc95c994ec852a0d803c2ac65fd07af38",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "1",
+            "skipped": "0",
+            "tests": "40",
+            "time": "19.277",
+            "timestamp": "2026-10-07T22:32:08.991873+08:00",
+            "hostname": "DESKTOP-Horton"
+          }
+        ],
+        "outcomes": {
+          "passed": 39,
+          "failed": 1
+        },
+        "reproduction_command": ".venv/Scripts/python.exe -m pytest tests/test_role_d1h.py tests/test_role_position_review.py tests/test_role_review_regressions.py tests/test_role_session.py -n 2 --basetemp AI_agent/archive/local_backup/q2/pytest/recheck --junitxml AI_agent/logs/experiments/2026-10-07_quality_q2/checks_recheck.xml -q"
+      },
+      {
+        "report": "checks_scope.xml",
+        "sha256": "b6a0e49e220bdeb25dfa1c5282c36077c6c94f5bde3c335747c7984532140500",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "1",
+            "skipped": "0",
+            "tests": "22",
+            "time": "10.117",
+            "timestamp": "2026-10-07T22:34:54.938240+08:00",
+            "hostname": "DESKTOP-Horton"
+          }
+        ],
+        "outcomes": {
+          "passed": 21,
+          "failed": 1
+        },
+        "reproduction_command": ".venv/Scripts/python.exe -m pytest tests/test_role_d1h.py tests/test_role_position_review.py tests/test_role_review_regressions.py -n 2 --basetemp AI_agent/archive/local_backup/q2/pytest/scope --junitxml AI_agent/logs/experiments/2026-10-07_quality_q2/checks_scope.xml -q"
+      },
+      {
+        "report": "checks_final.xml",
+        "sha256": "3c72acbe7d9447cd63e40b1619bb27904a322b8207ef1d4bfdb05e450ef56517",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "0",
+            "skipped": "0",
+            "tests": "82",
+            "time": "247.286",
+            "timestamp": "2026-10-07T22:36:28.062492+08:00",
+            "hostname": "DESKTOP-Horton"
+          }
+        ],
+        "outcomes": {
+          "passed": 82
+        },
+        "reproduction_command": ".venv/Scripts/python.exe -m pytest tests/test_role_assembly_review.py tests/test_role_d1h.py tests/test_role_d1j.py tests/test_role_end_to_end.py tests/test_role_guidance.py tests/test_role_position_review.py tests/test_role_review_regressions.py tests/test_role_session.py tests/test_role_single_parity.py -n 2 --basetemp AI_agent/archive/local_backup/q2/pytest/final --junitxml AI_agent/logs/experiments/2026-10-07_quality_q2/checks_final.xml -q"
+      },
+      {
+        "report": "checks_missing_evidence.xml",
+        "sha256": "2f1c9b26dbd69ef52faae1e2ca12a90c90f200e553b36bbb2ff9aa0f9ab2e523",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "0",
+            "skipped": "0",
+            "tests": "30",
+            "time": "13.667",
+            "timestamp": "2026-10-07T22:48:44.821416+08:00",
+            "hostname": "DESKTOP-Horton"
+          }
+        ],
+        "outcomes": {
+          "passed": 30
+        },
+        "reproduction_command": ".venv/Scripts/python.exe -m pytest tests/test_role_assembly_review.py tests/test_role_d1j.py tests/test_role_position_review.py -n 2 --basetemp AI_agent/archive/local_backup/q2/pytest/missing_evidence --junitxml AI_agent/logs/experiments/2026-10-07_quality_q2/checks_missing_evidence.xml -q"
+      }
+    ],
+    "latest_per_test": {
+      "tests.test_role_assembly_review::test_candidate_hash_change_invalidates_old_review_even_when_only_height_changed": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_changed_assembly_requires_one_nonempty_reason_per_change": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_compare_floor_ignores_height_only_but_catches_plan_facts": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_missing_latest_floor_requires_persisted_partial_delivery_reason": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_old_plan_delivery_is_blocked_by_latest_same_target[False]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_old_plan_delivery_is_blocked_by_latest_same_target[True]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_recovered_build_receipt_still_binds_and_checks_reader_floor": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_require_all_reports_each_unbound_actual_floor": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_assembly_review::test_timeout_fallback_runs_the_same_delivery_guard": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_batch_heights::test_batch_preflight_failure_creates_no_partial_candidate": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_batch_heights::test_batch_runtime_failure_after_first_in_memory_edit_creates_no_candidate": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_batch_heights::test_compound_claim_persists_one_value_object_and_bbox_per_opening": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_batch_heights::test_observational_mix_uses_weaker_carrier_and_keeps_exact_per_object_types": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_batch_heights::test_ordinary_multi_entry_claim_transaction_still_commits_independently": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_batch_heights::test_role_session_reuses_completed_batch_without_a_second_write": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_existing_anthropic_and_openai_compatible_routes_are_accepted[glm-subscription-anthropic-glm-5.3-flash-medium-32000]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_existing_anthropic_and_openai_compatible_routes_are_accepted[glm-subscription-glm-5.3-flash-medium-32000]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_existing_anthropic_and_openai_compatible_routes_are_accepted[paratera-Qwen3.8-27B-high-16384]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_invalid_reader_concurrency_is_explicit": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_prepared_comparison_pairs_change_only_role_conditions_and_output_identity[sm21]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_prepared_comparison_pairs_change_only_role_conditions_and_output_identity[sm24]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_prepared_comparison_pairs_change_only_role_conditions_and_output_identity[sm25]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_role_argv_carries_canonical_inline_routes_and_default_concurrency": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_role_configuration_is_drawing_only_and_coordinator_is_unambiguous": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_role_route_has_no_field_inheritance[model]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_role_route_has_no_field_inheritance[output_tokens]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_role_route_has_no_field_inheritance[provider]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_roles_require_all_fixed_identities_and_reject_unknown_identity": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_scripted_routes_need_the_explicit_offline_switch": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_single_model_argv_remains_the_exact_existing_shape": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_single_model_ignores_role_only_comparison_metadata": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_configuration::test_unreviewed_route_deepseek_and_low_output_are_rejected": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_context_policy::test_reader_policies_keep_existing_projection_and_explicit_overrides": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_context_policy::test_role_compaction_preserves_full_records_references_images_and_checkpoint": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_context_policy::test_single_model_projection_and_policy_bytes_match_pre_b1_including_compaction": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_all_facades_survive_parallel_writes_and_repeated_supplements_do_not_save[False]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_all_facades_survive_parallel_writes_and_repeated_supplements_do_not_save[True]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_changed_xy_rejects_old_match_without_writing_and_legacy_id_resolves": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_cited_levels_reach_real_compiled_source_and_preserve_reader_bytes": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_dispatch_attaches_fixed_coordinates_and_starts_plans_first": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_failed_height_batch_does_not_partly_apply_other_facades": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_height_continuation_survives_new_session_on_same_journal": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_level_overrides_resolve_delivered_items_and_leave_plan_immutable": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_mirrored_trial_needs_located_north_arrow_not_coordinator_permission[axes0]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_mirrored_trial_needs_located_north_arrow_not_coordinator_permission[axes1]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_mirrored_trial_needs_located_north_arrow_not_coordinator_permission[axes2]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_no_topology_warning_error_explicitly_requests_empty_list": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_normal_submission_has_no_added_form_and_wrong_arrow_is_rejected": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_old_plan_candidate_rejected_even_when_new_plan_has_same_xy": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1g::test_unknown_height_write_outcome_never_repeats_mutation": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_d1h::test_levels_mix_reader_labels_keep_citations_and_require_explicit_conflict_resolution": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_d1h::test_repeated_assembly_and_one_floor_rework_reuse_unaffected_build": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_d1h::test_role_knobs_preserve_old_glm_bytes_and_do_not_leak_between_roles": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_d1h::test_vertical_conflict_is_excluded_before_safe_batch": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_d1j::test_bad_edit_batch_has_no_partial_write_and_unknown_outcome_never_repeats": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_complete_ordered_fit_reports_transform_and_never_moves_source": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_incomplete_or_unjustified_alignment_stays_unresolved[parameters0]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_incomplete_or_unjustified_alignment_stays_unresolved[parameters1]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_incomplete_or_unjustified_alignment_stays_unresolved[parameters2]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_incomplete_or_unjustified_alignment_stays_unresolved[parameters3]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_incomplete_or_unjustified_alignment_stays_unresolved[parameters4]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_incomplete_or_unjustified_alignment_stays_unresolved[parameters5]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_local_use_note_position_and_height_edits_preserve_other_content_and_replay": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_reader_task_supplies_direction_and_partial_chain_origin[East-West-y-world2]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_reader_task_supplies_direction_and_partial_chain_origin[North-South-x-world0]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_reader_task_supplies_direction_and_partial_chain_origin[South-North-x-world1]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_d1j::test_reader_task_supplies_direction_and_partial_chain_origin[West-East-y-world3]": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_elevation::test_exact_match_handles_tight_windows_and_exterior_door": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_extra_one_opening_is_not_forced_onto_source": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_height_application_emits_existing_claim_transaction_shape": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_height_application_keeps_unmatched_items_unprocessed": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_height_application_rejects_stale_source": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_image_name_cannot_be_silently_rebound": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_missing_one_opening_preserves_neighbors": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_overall_shift_returns_conflicts_instead_of_false_matches": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_cardinal_outside_view_world_signs[East-West-0-10-y]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_cardinal_outside_view_world_signs[North-South-10-0-x]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_cardinal_outside_view_world_signs[South-North-0-10-x]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_cardinal_outside_view_world_signs[West-East-10-0-y]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_defaults_runtime_fields_and_absolute_z": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_rejects_specific_bad_fields[<lambda>-absolute building Z]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_rejects_specific_bad_fields[<lambda>-contradicts view_direction]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_rejects_specific_bad_fields[<lambda>-left-to-right]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_rejects_specific_bad_fields[<lambda>-openings contains 2]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_rejects_specific_bad_fields[<lambda>-positive width]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_rejects_stale_artifact_hash": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_validate_requires_assigned_image": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation::test_width_difference_is_a_conflict": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_aligns_all_four_edges_and_ignores_legacy_evidence_box_as_geometry": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_height_evidence_uses_aligned_opening_box_for_its_source_region": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_legacy_expanded_recording_stays_readable_but_is_not_public_schema": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_preserves_mirrored_world_coordinates_while_width_stays_positive": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_reader_submission_binds_image_alignment_and_reloads_immutably": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_saved_level_calibration_requires_two_consistent_horizontal_bands": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_elevation_ink::test_weak_ink_and_missing_vertical_calibration_leave_values_unchanged": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_end_to_end::test_fixture_submissions_match_explicit_tool_contracts[sm21]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_fixture_submissions_match_explicit_tool_contracts[sm24]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_fixture_submissions_match_explicit_tool_contracts[sm25]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_resume_after_all_readers_preserves_reader_records": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_guidance::test_catalog_reports_exact_character_counts_and_unchanged_single_model": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_guidance::test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_guidance::test_elevation_guide_exposes_a_complete_valid_minimum_example": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_guidance::test_reader_guides_are_single_image_and_keep_corresponding_existing_method": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_height_evidence::test_missing_or_unrelated_reader_coordinates_are_not_manufactured[assumed_levels]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_height_evidence::test_missing_or_unrelated_reader_coordinates_are_not_manufactured[dimension_chain]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_height_evidence::test_missing_or_unrelated_reader_coordinates_are_not_manufactured[wrong_opening_region]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_height_evidence::test_reader_coordinates_reach_delivery_and_stale_heights_lose_coverage": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_height_evidence::test_single_level_scale_needs_independent_image_corroboration": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_parameters::test_declared_containers_and_booleans_decode_recursively_without_guessing_scalars": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_parameters::test_overlapping_union_schema_parses_each_node_once_and_never_double_decodes": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_parameters::test_reader_call_uses_its_actual_catalog_schema_before_invocation": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_parameters::test_unions_select_the_matching_type_and_operation_branch_only": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_position_review::test_decision_resume_after_inner_write_does_not_duplicate_candidate": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_explicit_scope_survives_newer_facade_and_reactivation_requires_finished_assembly": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_independent_endpoints_width_thresholds_and_fit_does_not_hide_drift": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_keep_plan_is_durable_without_writes_and_pending_blocks_delivery": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_keep_plan_resolves_only_position_conflict_and_never_waives_height_bounds": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_opening_added_after_plan_trial_requires_reread_instead_of_false_agreement": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_over_30cm_requires_two_located_views_and_reread_stays_pending": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_position_review::test_use_elevation_edits_only_xy_on_host_replays_and_rejects_overflow": {
+        "status": "passed",
+        "report": "checks_missing_evidence.xml"
+      },
+      "tests.test_role_review_regressions::test_continuous_space_cannot_keep_flagged_divider_by_moving_it[False]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_continuous_space_cannot_keep_flagged_divider_by_moving_it[True]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_failed_compiled_malformed_plan_can_repair_missing_id": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_opening_can_span_collinear_segments_of_one_declared_wall": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_precompile_failure_does_not_become_a_rework_base": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_reader_tools_target_is_optional_but_session_passes_it": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_retain_opening_cannot_move_flagged_object_to_another_wall": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_rework_change_bbox_must_be_inside_original_image": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_submission_is_bound_to_facade_and_floor_target": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_trial_bad_schema_and_nested_business_name_return_repairable_envelopes": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_review_regressions::test_trial_scope_still_rejects_real_other_image_and_unissued_profile_references": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_rework_handoff::test_rework_session_keeps_full_submission_review_before_any_adapter_request": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_session::test_admitted_instructions_are_bound_to_the_delivery": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_answer_text_without_submit_stops_after_one_bounded_repair": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_artifact_file_tampering_is_rejected_on_reopen": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_bare_facade_target_takes_the_plan_floors": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_build_reference_expands_original_plan_once_and_retains_audit": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_completed_delivery_is_hashed_reusable_and_cannot_be_replaced": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_completed_metadata_tampering_is_rejected[role_id-plan_reader]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_completed_metadata_tampering_is_rejected[target-another floor]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_completed_metadata_tampering_is_rejected[validation-value0]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_failed_trial_is_readable_but_cannot_build": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_missing_candidate_and_match_are_correctable_tool_errors": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_profile_plan_expands_verified_numeric_trial_without_retranscription": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_readers_are_bounded_by_configured_concurrency": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_rejected_submit_tool_can_be_fixed_and_resubmitted_without_answer_repair": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_rework_has_new_identity_and_cannot_switch_original": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_shared_request_limit_counts_all_concurrent_tasks[2]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_single_image_is_validated_for_entire_batch_before_any_model_call": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_submit_on_last_model_request_is_still_a_completed_delivery[1]": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_submit_tool_then_ack_is_audited_in_same_role_and_root_budget": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_session::test_unknown_write_intent_is_not_repeated": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_single_parity::test_first_request_sources_are_byte_identical_to_the_dispatch_baseline": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_single_parity::test_single_configuration_loading_and_argv_match_the_dispatch_baseline": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_single_parity::test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_single_parity::test_three_single_cases_prepare_identical_shared_first_request_bytes": {
+        "status": "passed",
+        "report": "checks_final.xml"
+      },
+      "tests.test_role_targets::test_plan_target_must_be_one_floor_id[F1/F2]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_plan_target_must_be_one_floor_id[first floor]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_plan_trial_uses_the_task_floor_id": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[elevation_reader-ELEVATION/sOuTh/f1,f2-parsed6]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[elevation_reader-elevation/North-parsed4]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[elevation_reader-facade south / F1, F2-parsed5]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[plan_reader- Floor: F2 -parsed3]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[plan_reader-PLAN / f1-parsed2]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[plan_reader-plan F1-parsed1]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_targets::test_role_prefixed_and_spaced_targets_are_normalized[plan_reader-plan/F1-parsed0]": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_task_budget::test_coordinator_cannot_set_reader_budgets_but_internal_tasks_still_can": {
+        "status": "passed",
+        "report": "checks.xml"
+      },
+      "tests.test_role_task_budget::test_role_defaults_cover_measured_reader_use_and_leave_tokens_to_the_run": {
+        "status": "passed",
+        "report": "checks.xml"
+      }
+    },
+    "final_assertion_cleanup": "Removed two error-text regex constraints from already-passing exception-behavior tests; production unchanged."
+  },
+  "source_sha256_at_delivery": {
+    "src/agent/runtime_roles/assembly.py": "e575d043da052c993e4e3c20c5d8ce69c84cf84d252a5eef1f08dd02678075bb",
+    "src/agent/runtime_roles/assembly_review.py": "fe1b7e3c10f45a2489edf5a2193683c0f8bfb436d2ca79d7930192607a7fa7d3",
+    "src/agent/runtime_roles/elevation.py": "86c8795f24e86eb2c3b7bf89b8f28da94462e48c4e3e6f752eae8bb75faf975e",
+    "src/agent/runtime_roles/elevation_ink.py": "704ca80fabf00557c3327191741c9898c093b2754546bb0454ef2f569d4750e3",
+    "src/agent/runtime_roles/guidance.py": "4dcf39c649610d8bd147c35caafa6ddba544021d5489c98df955c4593b57409b",
+    "src/agent/runtime_roles/height_evidence.py": "771005c3123440eb775f0984e03f6639582aa0b4f2c3190885518d98d7c6996d",
+    "src/agent/runtime_roles/session.py": "351260ca4e68490458608cd9c7c796acbb1abb3e2ba5b59ae9c4a480f6cbcd8b",
+    "tests/role_d1_fixtures.py": "02c767942969fa9aa1ad3b0ee1e5fe50f5334d72bc2bfd3c9d2f3ce0b57d54cb",
+    "tests/test_role_d1j.py": "9d056cc1e9e2b77ceaaa1c1dd92fc7dd3f27be44ef9619889194ad6dcae21803",
+    "tests/test_role_elevation_ink.py": "7525ea33c388577a82390439fd562fa4b84071b1e92f1bea002487ce81a62a25",
+    "tests/test_role_end_to_end.py": "6a748829ce0bed1df32c3568b64705daca9b77933e165cf62e334c7a9146c97e",
+    "tests/test_role_guidance.py": "18975cc5e394910ed2a3dd9790c178f76d29c0a25df38f8eebe8c3aebe7e26ff",
+    "tests/test_role_position_review.py": "1be1b35a94ceaa2f27d5f9a7c1416b6df7694feb0e0d47020b47db86d1daa123",
+    "tests/test_role_review_regressions.py": "686a621f60e4f89a4b13d8b67225e25c8ada9f5cc11f15c03c373ca99b44ab15",
+    "tests/test_role_session.py": "850c7496f42615f68e2ce4869049a88b386ec2e89a4bb6ca5eee90efd13bf5bc"
+  },
+  "registry_used_for_frozen_mcp_checks": {
+    "version_id": "q2-offline-snapshot",
+    "path": "AI_agent/archive/local_backup/q2/agent_versions.json",
+    "note": "Scratch registry only. Strict catalog/file hashes; no production registry mutation. The final missing-evidence branch was checked with local role tests after the 82-test frozen-MCP run.",
+    "frozen_mcp_snapshot_sha256": {
+      "scripts/glm_code.py": {
+        "kind": "tool",
+        "sha256": "2f316e7fcc42b3d3b294b2ad504fab44333cc09c85b4f835c6560e5b4f49b789"
+      },
+      "scripts/tool_scripts/bim_agent_budget.py": {
+        "kind": "tool",
+        "sha256": "02918bdba83fd98abf48610035c4695e8b81d340bc55e39550ec65f619306cf2"
+      },
+      "scripts/tool_scripts/bim_agent_claims.py": {
+        "kind": "tool",
+        "sha256": "3077617e8d4046bbec15381cb5ac5fc988fa3283174aa2bf3afe40a4379d26e5"
+      },
+      "scripts/tool_scripts/bim_agent_continuation.py": {
+        "kind": "tool",
+        "sha256": "0ba75fd342be7c2238a3963dadadb10c0763dd444c4d0850ef627e4359695302"
+      },
+      "scripts/tool_scripts/bim_agent_delivery_display.py": {
+        "kind": "tool",
+        "sha256": "90f498d45e831d8ba7b3390ec39fbcf6895c786ed9054c3a7f12ce62e6b37713"
+      },
+      "scripts/tool_scripts/bim_agent_facade_checks.py": {
+        "kind": "tool",
+        "sha256": "0f12ff21ca534bdadc31253cf9345712392f6050902ea8db8425ccd03fe1fe9b"
+      },
+      "scripts/tool_scripts/bim_agent_feedback.py": {
+        "kind": "tool",
+        "sha256": "b9d89d0a6f42ae255339944b237384bb05218e2db0d700e5e6a01a4c4d204c4a"
+      },
+      "scripts/tool_scripts/bim_agent_guidance.py": {
+        "kind": "guidance",
+        "sha256": "8e8d24615d421de09e6ec0af470e5b65284eee04004f33edf1e8febaa53b3055"
+      },
+      "scripts/tool_scripts/bim_agent_inference.py": {
+        "kind": "tool",
+        "sha256": "fe4518497786af08c79c892bf1d12990fa56aeccc164e27824416b0af7a0c206"
+      },
+      "scripts/tool_scripts/bim_agent_inputs.py": {
+        "kind": "task_description",
+        "sha256": "6871f056f668b742ded7333a5dbbe624d30e29aee3200180914bc259cf7bdb15"
+      },
+      "scripts/tool_scripts/bim_agent_mesh.py": {
+        "kind": "tool",
+        "sha256": "7bb5f7123719d2c6b7d6c7d6ef8812f6ac6da5d1d2af4588eb6f71abdf582ca5"
+      },
+      "scripts/tool_scripts/bim_agent_precision.py": {
+        "kind": "tool",
+        "sha256": "d1c63f67f79c92c08d88f80d61e05a39cb0fddcc10416882e78f5f50be82a18b"
+      },
+      "scripts/tool_scripts/bim_agent_replies.py": {
+        "kind": "tool",
+        "sha256": "e0e60a3e1841d152fb71e90a1ec203c3be9685f39a76ad0e90f01e6fe9c43dd8"
+      },
+      "scripts/tool_scripts/bim_agent_role_heights.py": {
+        "kind": "tool",
+        "sha256": "54d760a7cb7e43c9eeda6dfdb5c732e1dd15de920dc66518e6caed4ad9aae7e0"
+      },
+      "scripts/tool_scripts/bim_agent_saved_result.py": {
+        "kind": "tool",
+        "sha256": "e42dfb842063ac63974c523c719386de4ff3fb8aedeaa0d2e5215b9c8bbef209"
+      },
+      "scripts/tool_scripts/render_geometry_viewer.py": {
+        "kind": "tool",
+        "sha256": "6f9ae45797f531f703cefde6ad008f636471b97ec2909b537cbbf2d84995a419"
+      },
+      "scripts/tool_scripts/run_bim_agent.py": {
+        "kind": "tool",
+        "sha256": "a57cc4293684f0905bcd4817b5bc599ce5f9794bc96405689f27018aa0b16a93"
+      },
+      "src/agent/bim_inputs.py": {
+        "kind": "task_description",
+        "sha256": "d7fb6c9b7a2e48dcce1dcee72db7a8545cbe3d511af9eacbc9631e7fa3a117da"
+      },
+      "src/agent/correction/schema.py": {
+        "kind": "tool",
+        "sha256": "d17b3c37b1afa6216787db802c2de4a06b736613db7cd142d9c3342d79b19446"
+      },
+      "src/agent/data/room_types.json": {
+        "kind": "tool",
+        "sha256": "ba494c670c1381e802af62fadfd3004994c82f6059aca96261d50a63e5be3673"
+      },
+      "src/agent/execution/bim_claim_facts.py": {
+        "kind": "tool",
+        "sha256": "8390e75ae95020208c7d0d264d01cb83dfcd3fbe753a62988904936fdc547626"
+      },
+      "src/agent/execution/bim_claim_state.py": {
+        "kind": "tool",
+        "sha256": "9b5bc96dd67257cf7e3e899b1ae2e010d7cd789461f07fe947c8b38102f70299"
+      },
+      "src/agent/execution/bim_claims.py": {
+        "kind": "tool",
+        "sha256": "8938c5be592ce5d5ec924859b56dd528bfac8043beb2fa2f929370f992e86def"
+      },
+      "src/agent/execution/bim_height_coverage.py": {
+        "kind": "tool",
+        "sha256": "64c51ad76a4a368887aebc2792f9e76b1d06ddaeb86fe0341232ed759ffea2b5"
+      },
+      "src/agent/execution/source_proposal.py": {
+        "kind": "tool",
+        "sha256": "c3f2406b9b547e2a65c7e9eb430973ec6042a844756b2d6e80fac16d7481c1dc"
+      },
+      "src/agent/geometry/bim_delivery.py": {
+        "kind": "tool",
+        "sha256": "69a234f925d79a1f85eca99fb1f109bfaa89cb41f3453ee1f4bed93c11de82f4"
+      },
+      "src/agent/geometry/building_precision.py": {
+        "kind": "tool",
+        "sha256": "c1b5a957d091b5d6cdca967ab28431dfc3e734018a9e13c233741f412566fdf2"
+      },
+      "src/agent/geometry/component_attributes.py": {
+        "kind": "tool",
+        "sha256": "c6084c54e07c7eb17d1a8c86442276d70fcbf11c61d872ee21823f4643468be6"
+      },
+      "src/agent/geometry/dimension_chain.py": {
+        "kind": "tool",
+        "sha256": "a33898e266aa02d1e140e296a2018aaa432c15dcb620af9d0836f638fe96f073"
+      },
+      "src/agent/geometry/facade_span_comparison.py": {
+        "kind": "tool",
+        "sha256": "66420722e4a43ac4cb8e9dc4504ab6899c52dc2a7c1a2781eebcdb8c10adb113"
+      },
+      "src/agent/geometry/input_scale.py": {
+        "kind": "tool",
+        "sha256": "90872f5b0cfe2994e5dc5a8b164b3425dbe417206e1e78bd89d20f93c51866cc"
+      },
+      "src/agent/geometry/mesh_bim_frame.py": {
+        "kind": "tool",
+        "sha256": "d5bdb1a7238bb0f257aa274a39b05d6203be846822cfda894744bee114086ce2"
+      },
+      "src/agent/geometry/mesh_observation.py": {
+        "kind": "tool",
+        "sha256": "ba06ed054a31a0377d7dde3de9afa177b0509dd6c01df604e8d3d84687ddbd05"
+      },
+      "src/agent/geometry/opening_review.py": {
+        "kind": "tool",
+        "sha256": "47cf71cfe1ed71689e8c1fec52c497d25067503691b700aefc5c762cf08e84c3"
+      },
+      "src/agent/geometry/parametric_proposal.py": {
+        "kind": "tool",
+        "sha256": "ad796c79c0910ae51078d2cf10fd133202054177675186b2a460c537a8869982"
+      },
+      "src/agent/geometry/pixel_region.py": {
+        "kind": "tool",
+        "sha256": "042ee4905b5fbe6b54b603a4961f7ed2a1667c91fefd2f291db5700cb89b1e13"
+      },
+      "src/agent/geometry/pixel_region_overview.py": {
+        "kind": "tool",
+        "sha256": "bf47a8b3cf676e47839e2751dfb056c617195a452ce3565c0614ac330c9e9ab4"
+      },
+      "src/agent/geometry/plan_assembly.py": {
+        "kind": "tool",
+        "sha256": "eaf1f7a224e5799351ef4c181238eddba2cc9f1890c95fadb4ed75f566638c6b"
+      },
+      "src/agent/geometry/plan_draft_view.py": {
+        "kind": "tool",
+        "sha256": "fc328ac8fdb3127e549373591f30dacc185bcd45761b9ea8d432831f8bbe4c5a"
+      },
+      "src/agent/geometry/plan_drawing_differences.py": {
+        "kind": "tool",
+        "sha256": "7131650cc471db32acf8827ae15ec7b4e835b33eb278cbef2715cc87a072c016"
+      },
+      "src/agent/geometry/plan_feedback.py": {
+        "kind": "tool",
+        "sha256": "d07012f40f7cf6cb9cb54ae41b3dd5674298ae9870b3f0bc41a6c1feec17957d"
+      },
+      "src/agent/geometry/plan_input.py": {
+        "kind": "tool",
+        "sha256": "bdf10201f45524857a6ed01ef41d43a52f0ec05c0479112d0f3c6ca85ae49032"
+      },
+      "src/agent/geometry/plan_partition.py": {
+        "kind": "tool",
+        "sha256": "0f81253b38d26d3bd35fa40262723b38715e9b102a2e1791c9ec4e90148244fa"
+      },
+      "src/agent/geometry/plan_revision.py": {
+        "kind": "tool",
+        "sha256": "9ec61ac7afbd8216da1ab218ec2366fb2063c4796e176824c934e43c1660d40d"
+      },
+      "src/agent/geometry/plan_wall_support.py": {
+        "kind": "tool",
+        "sha256": "f52d85d13bd6cd157f37122e32780ab3e4883134386d21465d1d7cf62c7256b8"
+      },
+      "src/agent/geometry/profile_observation_binding.py": {
+        "kind": "tool",
+        "sha256": "cbb02779a25acc243199922f71575db7d28c7d03e4c82b808992ad530ac68296"
+      },
+      "src/agent/geometry/proposal_edits.py": {
+        "kind": "tool",
+        "sha256": "823a063f2e4ebbef03bb73980c19d383fa87eab53d135919504b7e5295690a45"
+      },
+      "src/agent/geometry/source_bim.py": {
+        "kind": "tool",
+        "sha256": "40f58f2cc3e35bf3e6ff52ec3ff6b04dc25d9577a419328ae867b5b71b719e25"
+      },
+      "src/agent/geometry/source_elevation_overlay.py": {
+        "kind": "tool",
+        "sha256": "feb3368705cde39bf7bca555238823b0996e05bdd22e525137614d8964957f16"
+      },
+      "src/agent/geometry/source_elevation_view.py": {
+        "kind": "tool",
+        "sha256": "d1c2c272ed2d6c04a4b9aceb3f665e1250d244f7a8d1abd71ef3e528c72b097c"
+      },
+      "src/agent/geometry/source_floor_selection.py": {
+        "kind": "tool",
+        "sha256": "ee390e2aa37d958619f60e7d0e8cf055e8f387911fd58c8e471d1fbec7cfe82f"
+      },
+      "src/agent/geometry/source_image_overlay.py": {
+        "kind": "tool",
+        "sha256": "fc7d24707461cebd490ff63f9c4bcd01635158f54e507d396ed55a8ffcc572ab"
+      },
+      "src/agent/geometry/source_model.py": {
+        "kind": "tool",
+        "sha256": "58bd64f933b6eb6500162c9720bd405931db399a9504cf1cb90702a42c738ebc"
+      },
+      "src/agent/geometry/source_naming.py": {
+        "kind": "tool",
+        "sha256": "6ffbdb693c71f58e520aa11d11d5c4b44c895ef50a0281b8a04ab6f4ca8c2d33"
+      },
+      "src/agent/geometry/source_plan_view.py": {
+        "kind": "tool",
+        "sha256": "7c1e731464dd32710077e4119662abe5386d53329afcab2426800d8e44c067f8"
+      },
+      "src/agent/geometry/source_space_relations.py": {
+        "kind": "tool",
+        "sha256": "97601df4bb9e9fa5af0279aa6e1373ab17a926bd33aed0f409d36115c382c2e5"
+      },
+      "src/agent/geometry/space_trace.py": {
+        "kind": "tool",
+        "sha256": "b0cfe691d9d4f72411052b8aa618890a5a5727fa6d5cff660c99174a5755dbdd"
+      },
+      "src/agent/geometry/wall_placement.py": {
+        "kind": "tool",
+        "sha256": "ddc9b52203981868b0fb510849bfa9fa224666e92e24a11727f1ccbb44de8d71"
+      },
+      "src/agent/geometry/wall_reference.py": {
+        "kind": "tool",
+        "sha256": "7763eb98cfa4c5a9673fd8ff696a342d484f2fc1e219854c9fc3fe95a696f768"
+      },
+      "src/agent/roles.py": {
+        "kind": "task_description",
+        "sha256": "0de7de005ee53764a309b30163c9a1dea729e01e0d6a2727e65062208159e0f3"
+      },
+      "src/agent/runtime_configuration.py": {
+        "kind": "task_description",
+        "sha256": "3398aae9ecc3b81560d07b92856b921cbb4a0170cc99932bb2f07f0918cab732"
+      },
+      "src/agent/runtime_roles/__init__.py": {
+        "kind": "tool",
+        "sha256": "2d857cd2b15d957718589d2fed186ad2ef1d6f5fe73702684a3dbd84aed8212e"
+      },
+      "src/agent/runtime_roles/accounting.py": {
+        "kind": "tool",
+        "sha256": "c9585e16cc70510f1b0e45b0c8098eaea07a35f15633fc78de5383d4620f39f6"
+      },
+      "src/agent/runtime_roles/artifacts.py": {
+        "kind": "tool",
+        "sha256": "9e90848e4c8ef695a73e163b25436c620bec8a5de952657bb56f4d1147ced4b9"
+      },
+      "src/agent/runtime_roles/assembly.py": {
+        "kind": "tool",
+        "sha256": "e575d043da052c993e4e3c20c5d8ce69c84cf84d252a5eef1f08dd02678075bb"
+      },
+      "src/agent/runtime_roles/assembly_review.py": {
+        "kind": "tool",
+        "sha256": "e818dde2504c30d5312cd1ce6be465f30c976f51ee77a4bddfc0715238db0e12"
+      },
+      "src/agent/runtime_roles/config.py": {
+        "kind": "tool",
+        "sha256": "04d5e52b9103fd2ad4c4714586f031b9e7b128375e9242d3becd5dbc3fe725f7"
+      },
+      "src/agent/runtime_roles/context_policy.py": {
+        "kind": "guidance",
+        "sha256": "47756fce75ca0854f442f338d8eaae509c0a7a1ef69f8966b0d35e25a1f27b57"
+      },
+      "src/agent/runtime_roles/coordinates.py": {
+        "kind": "tool",
+        "sha256": "6e250226a799ca952fde90810219c59486f5728ffd5016744f9464f424f693aa"
+      },
+      "src/agent/runtime_roles/elevation.py": {
+        "kind": "tool",
+        "sha256": "86c8795f24e86eb2c3b7bf89b8f28da94462e48c4e3e6f752eae8bb75faf975e"
+      },
+      "src/agent/runtime_roles/elevation_ink.py": {
+        "kind": "tool",
+        "sha256": "704ca80fabf00557c3327191741c9898c093b2754546bb0454ef2f569d4750e3"
+      },
+      "src/agent/runtime_roles/entry.py": {
+        "kind": "tool",
+        "sha256": "5059e67ebd06616099bf468b4d9f793915072fefb3eefbb7e11911526d69747e"
+      },
+      "src/agent/runtime_roles/feedback.py": {
+        "kind": "tool",
+        "sha256": "f608be92ec36af0aa005b24069d09e09b1daa44e91426db273ec33b009d0ad20"
+      },
+      "src/agent/runtime_roles/guidance.py": {
+        "kind": "guidance",
+        "sha256": "4dcf39c649610d8bd147c35caafa6ddba544021d5489c98df955c4593b57409b"
+      },
+      "src/agent/runtime_roles/height_evidence.py": {
+        "kind": "tool",
+        "sha256": "771005c3123440eb775f0984e03f6639582aa0b4f2c3190885518d98d7c6996d"
+      },
+      "src/agent/runtime_roles/height_writes.py": {
+        "kind": "tool",
+        "sha256": "80d0c1f832791f9e98e97b0e081f2ad9358485d97f2669a527c57a96c7d30ab5"
+      },
+      "src/agent/runtime_roles/levels.py": {
+        "kind": "tool",
+        "sha256": "b72ec7192480c5d061a59d916b359af4e9306d82deede351f6e059d4133924c9"
+      },
+      "src/agent/runtime_roles/lineage.py": {
+        "kind": "tool",
+        "sha256": "e9f5df93437fb81e93a11c538a40bb4ee6e16393ac501111b98ad950caac6db0"
+      },
+      "src/agent/runtime_roles/parameters.py": {
+        "kind": "tool",
+        "sha256": "2adb730763329a0cc84111eebea8f13863e3056592bd95a6fcbae97dba7aabe6"
+      },
+      "src/agent/runtime_roles/plan_format.py": {
+        "kind": "tool",
+        "sha256": "ccf35100b811d3d2bf7a46130bf005daaab64ecb28a49c7d3a07c10cc46ed373"
+      },
+      "src/agent/runtime_roles/plan_review.py": {
+        "kind": "tool",
+        "sha256": "b9ef3a8aaa32fdf209661b28b6ec04585917dd419ff9fbeb742048ca0c72de99"
+      },
+      "src/agent/runtime_roles/readers.py": {
+        "kind": "tool",
+        "sha256": "8319fab629069e8c01ce927db0bb4eef3469669d82311ceee5cb2595d113a6ab"
+      },
+      "src/agent/runtime_roles/session.py": {
+        "kind": "tool",
+        "sha256": "351260ca4e68490458608cd9c7c796acbb1abb3e2ba5b59ae9c4a480f6cbcd8b"
+      },
+      "src/agent/runtime_roles/submission.py": {
+        "kind": "tool",
+        "sha256": "3ffb74a3d321b248d0686a30fbeee9288fc8ee32300da21e031b403bf27a2c0a"
+      },
+      "src/agent/runtime_roles/trial.py": {
+        "kind": "tool",
+        "sha256": "9ce7332b9f3795d728751c76150d258bdbbae3fbc9e8409939985a832f61c658"
+      },
+      "src/agent_runtime/loop.py": {
+        "kind": "tool",
+        "sha256": "2fad547d038f1a38d67b0f2bf14dc4174ccaee55443cb53ad221f4e0c2ff4005"
+      }
+    }
+  },
+  "ownership": {
+    "protected_changes": [],
+    "formal_registry_unchanged_from_HEAD": true,
+    "formal_registry_sha256": "274f217f609152833be53ee301e1fdcd9abd32bc5e05d4c832958d8cbd86a7ba",
+    "plan_reader_guidance_bytes_unchanged": true,
+    "single_model_guidance_bytes_unchanged": true
+  },
+  "evidence_sha256": {
+    "evidence_inventory.json": "b8ba9c36390d06c4cd53e8a1dfe3f935c886bdfa0ea76b2093920cde583c00a1",
+    "evidence_replay.json": "6db9fef17768bd5c1b1cc91041e8e6dd8f3fb6c0386acc7bc62befd6135b3288",
+    "replay_report.md": "544c4cf5fd47fc5646eef44ae366959e8997df3f88894f9680e42157a280e747",
+    "guidance_before.json": "3856e3f4b7006d8f6a4ba1a908c06ad4d890768a7cf38381cb7169e56a420a0e",
+    "guidance_after.json": "f40976f042cdb77caeb49049e7e18f80f47e62421d6e09ee5ed43436e05cfd47"
+  },
+  "work_model_requests": {
+    "total": 0,
+    "GLM": 0,
+    "Claude": 0,
+    "Paratera": 0,
+    "DeepSeek": 0
+  },
+  "dev_delegation": [
+    {
+      "model": "gpt-5.6-sol",
+      "reasoning": "high",
+      "task": "elevation ink and read-only integration review"
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "reasoning": "high",
+      "task": "historical offline evidence replay"
+    }
+  ],
+  "cleanup": {
+    "temporary_root": "AI_agent/archive/local_backup/q2",
+    "status": "retained",
+    "reason": "Subagent PowerShell pytest-directory removal was rejected by sandbox policy; no bypass attempted; detailed rejection reason was not retained."
+  }
+}

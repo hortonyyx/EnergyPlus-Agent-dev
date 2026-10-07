@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="40" time="19.277" timestamp="2026-10-07T22:32:08.991873+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_role_session" name="test_submit_on_last_model_request_is_still_a_completed_delivery[1]" time="0.559" /><testcase classname="tests.test_role_session" name="test_completed_delivery_is_hashed_reusable_and_cannot_be_replaced" time="0.793" /><testcase classname="tests.test_role_session" name="test_single_image_is_validated_for_entire_batch_before_any_model_call" time="0.043" /><testcase classname="tests.test_role_session" name="test_rework_has_new_identity_and_cannot_switch_original" time="1.061" /><testcase classname="tests.test_role_session" name="test_artifact_file_tampering_is_rejected_on_reopen" time="0.633" /><testcase classname="tests.test_role_session" name="test_submit_tool_then_ack_is_audited_in_same_role_and_root_budget" time="0.737" /><testcase classname="tests.test_role_session" name="test_shared_request_limit_counts_all_concurrent_tasks[2]" time="1.290" /><testcase classname="tests.test_role_session" name="test_answer_text_without_submit_stops_after_one_bounded_repair" time="0.557" /><testcase classname="tests.test_role_session" name="test_rejected_submit_tool_can_be_fixed_and_resubmitted_without_answer_repair" time="0.976" /><testcase classname="tests.test_role_session" name="test_readers_are_bounded_by_configured_concurrency" time="1.594" /><testcase classname="tests.test_role_session" name="test_build_reference_expands_original_plan_once_and_retains_audit" time="0.092" /><testcase classname="tests.test_role_session" name="test_failed_trial_is_readable_but_cannot_build" time="0.087" /><testcase classname="tests.test_role_session" name="test_unknown_write_intent_is_not_repeated" time="0.029" /><testcase classname="tests.test_role_session" name="test_completed_metadata_tampering_is_rejected[validation-value0]" time="0.614" /><testcase classname="tests.test_role_session" name="test_completed_metadata_tampering_is_rejected[role_id-plan_reader]" time="0.660" /><testcase classname="tests.test_role_session" name="test_admitted_instructions_are_bound_to_the_delivery" time="0.671" /><testcase classname="tests.test_role_session" name="test_completed_metadata_tampering_is_rejected[target-another floor]" time="0.657" /><testcase classname="tests.test_role_session" name="test_missing_candidate_and_match_are_correctable_tool_errors" time="0.671" /><testcase classname="tests.test_role_review_regressions" name="test_rework_change_bbox_must_be_inside_original_image" time="0.045" /><testcase classname="tests.test_role_review_regressions" name="test_retain_opening_cannot_move_flagged_object_to_another_wall" time="0.003" /><testcase classname="tests.test_role_review_regressions" name="test_continuous_space_cannot_keep_flagged_divider_by_moving_it[False]" time="0.002" /><testcase classname="tests.test_role_review_regressions" name="test_continuous_space_cannot_keep_flagged_divider_by_moving_it[True]" time="0.002" /><testcase classname="tests.test_role_review_regressions" name="test_opening_can_span_collinear_segments_of_one_declared_wall" time="0.002" /><testcase classname="tests.test_role_review_regressions" name="test_precompile_failure_does_not_become_a_rework_base" time="0.008" /><testcase classname="tests.test_role_session" name="test_profile_plan_expands_verified_numeric_trial_without_retranscription" time="0.116" /><testcase classname="tests.test_role_review_regressions" name="test_submission_is_bound_to_facade_and_floor_target" time="0.093" /><testcase classname="tests.test_role_review_regressions" name="test_reader_tools_target_is_optional_but_session_passes_it" time="0.618"><failure message="AssertionError: assert ['North/F1', 'North/F1'] == ['North/F1']&#10;  &#10;  Left contains one more item: 'North/F1'&#10;  Use -v to get more diff">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q2/AI_agent/archive/local_backup/q2/pytest/session_recheck/popen-gw0/test_reader_tools_target_is_op0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x00000221A2A44980&gt;
+
+    def test_reader_tools_target_is_optional_but_session_passes_it(tmp_path, monkeypatch):
+        # Direct construction remains compatible for local validators and old tests.
+        ReaderTools(
+            ReaderFrozen(), role_id="elevation_reader", image_name="North.png", target=None,
+        )
+    
+        captured = []
+        original = ReaderSubmission.__init__
+    
+        def capture(self, *args, **kwargs):
+            captured.append(kwargs.get("target"))
+            original(self, *args, **kwargs)
+    
+        monkeypatch.setattr(ReaderSubmission, "__init__", capture)
+        monkeypatch.setattr("src.agent.runtime_roles.session.make_versions", lambda *args, **kwargs: versions())
+        run = tmp_path / "bim"
+        (run / "images").mkdir(parents=True)
+        image = run / "images" / "north.png"
+        Image.new("RGB", (100, 100), "white").save(image)
+        (run / "inputs.json").write_text(json.dumps({
+            "images": {"north.png": {
+                "size": [100, 100], "sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
+            }},
+        }), encoding="utf-8", newline="\n")
+        limits = RunLimits(model_calls=2, tool_calls=10, seconds=120, tokens=200_000)
+        with EventStore(
+            tmp_path / "events", run_id="roles", task_id="root",
+            budget_limit=limits.ledger_limit(),
+        ) as store:
+            session = RoleSession(
+                store=store,
+                frozen=SessionFrozen(run),
+                routes=ROUTES,
+                adapter_factory=lambda *args: delivered_adapter(),
+                limits=limits,
+                root=ROOT,
+            )
+            row = asyncio.run(session.delegate_many([dispatch(target="North/F1")]))["results"][0]
+            assert row["status"] == "completed"
+&gt;       assert captured == ["North/F1"]
+E       AssertionError: assert ['North/F1', 'North/F1'] == ['North/F1']
+E         
+E         Left contains one more item: 'North/F1'
+E         Use -v to get more diff
+
+tests\test_role_review_regressions.py:249: AssertionError</failure></testcase><testcase classname="tests.test_role_session" name="test_bare_facade_target_takes_the_plan_floors" time="0.037" /><testcase classname="tests.test_role_review_regressions" name="test_failed_compiled_malformed_plan_can_repair_missing_id" time="0.008" /><testcase classname="tests.test_role_review_regressions" name="test_trial_scope_still_rejects_real_other_image_and_unissued_profile_references" time="0.005" /><testcase classname="tests.test_role_position_review" name="test_independent_endpoints_width_thresholds_and_fit_does_not_hide_drift" time="0.003" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_is_durable_without_writes_and_pending_blocks_delivery" time="0.453" /><testcase classname="tests.test_role_position_review" name="test_use_elevation_edits_only_xy_on_host_replays_and_rejects_overflow" time="0.659" /><testcase classname="tests.test_role_position_review" name="test_over_30cm_requires_two_located_views_and_reread_stays_pending" time="0.566" /><testcase classname="tests.test_role_position_review" name="test_decision_resume_after_inner_write_does_not_duplicate_candidate" time="0.583" /><testcase classname="tests.test_role_d1h" name="test_levels_mix_reader_labels_keep_citations_and_require_explicit_conflict_resolution" time="0.003" /><testcase classname="tests.test_role_d1h" name="test_role_knobs_preserve_old_glm_bytes_and_do_not_leak_between_roles" time="0.001" /><testcase classname="tests.test_role_d1h" name="test_repeated_assembly_and_one_floor_rework_reuse_unaffected_build" time="2.594" /><testcase classname="tests.test_role_review_regressions" name="test_trial_bad_schema_and_nested_business_name_return_repairable_envelopes" time="0.004" /><testcase classname="tests.test_role_d1h" name="test_vertical_conflict_is_excluded_before_safe_batch" time="0.372" /></testsuite></testsuites>
