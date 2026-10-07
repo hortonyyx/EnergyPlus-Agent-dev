@@ -4,7 +4,7 @@ Codex、Claude 及其他开发助手共用本文件。用户当前指令优先�
 
 ## 开始会话
 
-完整阅读本文、[产品目标](project/goal.md)、[当前任务](project/roadmap.md) 和 [工作方式](workflow/development.md)，再打开“当前任务”的“当前交接”指定的最新一份收工/交接记录（若有），然后按任务读取源码与相关设计。其余资料从 [总目录](README.md) 查找，不以通读历史日志作为开工条件。
+完整阅读本文、[产品目标](project/goal.md)、[当前任务](project/roadmap.md)、[工作方式](workflow/development.md) 和 [名词规范](project/terminology.md)，再打开“当前任务”的“当前交接”指定的最新一份收工/交接记录（若有），然后按任务读取源码与相关设计。其余资料从 [总目录](README.md) 查找，不以通读历史日志作为开工条件。
 检查 `git status --short --branch`、`git worktree list` 和近期提交。会话加载方法见 [设置](workflow/session_setup.md)。
 
 ## 目标与开发取向
@@ -14,7 +14,7 @@ Codex、Claude 及其他开发助手共用本文件。用户当前指令优先�
 - 当前关键目标是在有限模型智力下稳定生成相对精准的丐版 BIM。10-05 用户定（覆盖 10-03 的 100 分钟上限）：时间与消耗靠架构和 Agent 设计控制，不靠收紧限额逼模型；开发测试不以限时考核，只留防失控的保护线，耗时与用量照样完整记录；产品约 30 分钟（视建筑复杂度）仍是方向。提速主线是分工体系：先用强模型做稳，再逐角色换小模型，角色从少到多、有证据才加，见[工种与角色分工](design/role_division.md)。见[当前优先级](project/goal.md#当前优先级09-14-收工确认)。
 - 当前只做目标单体，不考虑环境。用户生成前决定通用 BIM 对实际建筑空间的简化/合并程度，再选后端模拟。分块以实体隔墙为依据，最细保留实际空间，大开敞办公区不能因朝向或复杂度增加而被细分；低档可直接推断合并后的表达，无需先推全楼。物理/抽象边界仍区分，但抽象边界不授权凭空拆空间。输入信息量、源简化与后端热区合并独立；档数、控件和对应关系后续详细设计，办公楼仅为理解示例。
 - 产品形态是模型驱动的总 Agent：根据目标、输入和工具反馈组织任务，按需调用代码工具、模型工具及专门能力。确定性几何操作可封装固定步骤，整案不写死为唯一流程；架构取舍与复杂度由开发助手总体把控，见 [系统设计](design/architecture.md)。
-- 10-07 用户定产品结构代号（以后按此说，代号在中文里直接用英文）：`BIM Agent = work model + harness`，`harness = runtime + domain`。runtime 是与建筑无关、为本项目用法定制的基础设施；domain 是与建筑有关的全部部分（BIM rules、kernel、tools、methods、roles、guidance），是长期开发的主要对象。work model 指产品运行时用的全部模型（LLM、VLM、OCR 等），dev model 指做开发的模型（Astra、Opus 及其子代理）。其余名词见[名词规范](project/terminology.md)（待用户确认）。
+- 10-07 用户定产品结构代号（以后按此说，代号在中文里直接用英文）：`BIM Agent = work model + harness`，`harness = runtime + domain`。runtime 是与建筑无关、为本项目用法定制的基础设施；domain 是与建筑有关的全部部分（BIM rules、kernel、tools、methods、roles、guidance），是长期开发的主要对象。work model 指产品运行时用的全部模型（LLM、VLM、OCR 等），dev model 指做开发的模型（Astra、Opus 及其子代理）。其余名词按[名词规范](project/terminology.md)（10-07 用户全部确认）。
 - 定性大于定量：先保房间、外形、楼层、门窗和空间关系正确、几何自洽可用。图纸/CAD/GT 的细小偏差允许有记录的容差规整；judge + GT 用于自动判断效果、减少人工逐项核对，不以逐点吻合或 GT 精修为主线。具体边界见 [验证与评价](design/evaluation.md)。
 - 源分区保真优先于尺寸微差：漏墙、多墙、错误拆房/并房、假楼板和连通改变属于严重问题。计算切片/热区拆并只能是显式派生，不能变成源 BIM 的物理隔断；EP 跑通或历史 judge 放行不证明源模型正确。
 - 我方主线是几何，物性由协作者负责；EnergyPlus 是首个下游。保留源房间、隔断、门窗和空间关系，仿真热区从源模型派生。
