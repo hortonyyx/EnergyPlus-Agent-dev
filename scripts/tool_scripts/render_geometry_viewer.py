@@ -88,6 +88,14 @@ _APP_JS = r"""
   const ROLE_COLORS = Object.fromEntries(Object.entries(ROOM_TYPES).map(([k,v])=>[k,parseInt(v.color.slice(1),16)]));
   const ROLE_DEFAULT = ROLE_COLORS.unknown ?? 0xc9ced4;
   const NAMES = GEO.public_names || {};
+  const REFERENCES = NAMES.references || {};
+  const referenceKeys = Object.keys(REFERENCES).filter(k=>k!==REFERENCES[k]).sort((a,b)=>b.length-a.length);
+  const referencePattern = referenceKeys.length ? new RegExp(referenceKeys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g') : null;
+  function referenceText(value){ const text=String(value);
+    return referencePattern ? text.replace(referencePattern,(key,at)=>{
+      const before=text[at-1]||'', after=text.slice(at+key.length);
+      return /[A-Za-z0-9_./:%\\-]/.test(before) || /^(?:[A-Za-z0-9_/%\\-]|[.:][A-Za-z0-9_])/.test(after) ? key : REFERENCES[key];
+    }) : text; }
   const spaceName = z => (NAMES.spaces||{})[(SOURCE_MAP.zones||{})[z]||z] || z;
   const objectName = n => (NAMES.objects||{})[n] || n;
   const roleLabel = r => ROOM_TYPES[r] ? ROOM_TYPES[r].label_zh+' · '+r : r;
@@ -410,7 +418,7 @@ _APP_JS = r"""
   const EDGES=[];  // {a,b: true world Vector3, zone, len, floor, dup, kind}
   function pushEdges(verts, zone, floor, dup, kind, name){ for(let i=0;i<verts.length;i++){ const a=verts[i], b=verts[(i+1)%verts.length];
     EDGES.push({a:new THREE.Vector3(a[0],a[1],a[2]), b:new THREE.Vector3(b[0],b[1],b[2]), zone, floor, dup, kind,
-      publicName:(NAMES.edges||{})[name]?.[i] || objectName(name)+"_Edge"+(i+1), parentName:objectName(name),
+      publicName:(NAMES.edges||{})[name]?.[i] || objectName(name)+"_Edge"+(i+1), parentName:objectName(name), sourceName:name,
       len:Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])}); } }
   SURF.forEach(s=>{ const z=s.zone||'?'; pushEdges(s.verts, z, zoneFloor[z]??nearestBase(zmin(s),BASES), isDup(s), 'surface', s.name); });
   WINS.forEach(w=>{ const z=zoneOfWindow(w); pushEdges(w.verts, z, zoneFloor[z]??nearestBase(Math.min(...w.verts.map(v=>v[2])),BASES), false, 'window', w.name); });
@@ -434,7 +442,7 @@ _APP_JS = r"""
       if(d<bd && (thru || !occluded(A.clone().add(B).multiplyScalar(0.5)))){ bd=d; best={e,A,B}; } }
     clearSelection(); if(!best) return;
     selGroup.add(fatLine(best.A, best.B, SEL_COLOR, 0.006));   // whole edge as one thick, always-on-top line
-    $('sel').innerHTML='<div class="hh">edge</div>'+kv([['名称',best.e.publicName],['所属面',best.e.parentName],['所属房间',spaceName(best.e.zone)],['所属楼层',floorName(best.e.floor)],['length',best.e.len.toFixed(3)+' m']]); $('sel').style.display='block'; }
+    $('sel').innerHTML='<div class="hh">edge</div>'+kv([['名称',best.e.publicName],['所属面',best.e.parentName],['所属房间',spaceName(best.e.zone)],['所属楼层',floorName(best.e.floor)],['length',best.e.len.toFixed(3)+' m']])+traceInfo([['源父对象 ID',(SOURCE_MAP.surfaces||{})[best.e.sourceName]||(SOURCE_MAP.windows||{})[best.e.sourceName]||(SOURCE_MAP.openings||{})[best.e.sourceName]||best.e.sourceName]]); $('sel').style.display='block'; }
 
   // ---- selection picking (face raycast, for click-select only) ----
   const raycaster=new THREE.Raycaster();
@@ -446,7 +454,9 @@ _APP_JS = r"""
       .filter(h=>activePlanes().every(p=>p.distanceToPoint(h.point)>=-0.0001)); return hits.length?hits[0]:null; }
   // structured selection readout: a titled block of label→value rows (one per line)
   function kv(pairs){ return pairs.filter(p=>p[1]!=null && p[1]!=='').map(p=>row(p[0], esc(p[1]))).join(''); }
-  function evidenceText(items){ return (items||[]).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('; '); }
+  function traceInfo(pairs){ const content=kv(pairs); return content?'<details class="trace"><summary>内部编号与原始记录</summary>'+content+'</details>':''; }
+  function rawEvidence(items){ return (items||[]).map(x=>typeof x==='string'?x:JSON.stringify(x)).join('; '); }
+  function evidenceText(items){ return referenceText(rawEvidence(items)); }
   function enclosureLabel(v){ return ({enclosed:'封闭',semi_open:'半开敞',open:'开敞',physical:'实体',mixed:'局部混合',unknown:'未知'})[v] || v; }
   function boundaryFor(u){ const bid=((SOURCE_MAP.surfaces||{})[u.name] || u.name); return SOURCE_BOUNDARIES[bid] || null; }
   function coverageFor(b){
@@ -461,35 +471,35 @@ _APP_JS = r"""
   function boundaryEvidence(b,key){ return evidenceText([...(b&&b[key]||[]),...(b&&b.enclosure_regions||[]).flatMap(r=>r[key]||[])]); }
   function boundaryEvidenceKinds(b){ return [...new Set((b&&b.enclosure_regions||[]).map(r=>r.evidence_kind).filter(Boolean))].join(', '); }
   function describe(mode,o){ const u=o.userData;
-    if(mode==='floor') return '<div class="hh">楼层</div>'+kv([['名称',floorName(u.floor)],['源楼层 ID',NAMED_FLOORS[u.floor]?.id],['底标高',BASES[u.floor]+' m']]);
+    if(mode==='floor') return '<div class="hh">楼层</div>'+kv([['名称',floorName(u.floor)],['底标高',BASES[u.floor]+' m']])+traceInfo([['源楼层 ID',NAMED_FLOORS[u.floor]?.id],['原楼层名',NAMED_FLOORS[u.floor]?.source_name]]);
     if(u.kind==='enclosure-region' && mode!=='zone'){ const boundary=SOURCE_BOUNDARIES[u.boundaryId];
       return '<div class="hh">'+(u.condition==='open'?'明确开敞区域':'围护未知区域')+'</div>'+kv([
-        ['名称',u.publicName],['所属面',objectName(u.boundaryId)],['所属楼层',floorName(u.floor)],['源边界 ID',u.boundaryId],['空间',spaceName(u.zone)],['面积',u.area.toFixed(2)+' m²'],
-        ['边界覆盖',coverageFor(boundary)],['证据类型',u.evidenceKind],['来源',evidenceText(u.sourceRefs)],
-        ['假设',evidenceText(u.assumptions)]]); }
+        ['名称',u.publicName],['所属面',objectName(u.boundaryId)],['所属楼层',floorName(u.floor)],['空间',spaceName(u.zone)],['面积',u.area.toFixed(2)+' m²'],
+        ['边界覆盖',coverageFor(boundary)],['证据类型',u.evidenceKind],
+        ['假设',evidenceText(u.assumptions)]])+traceInfo([['源边界 ID',u.boundaryId],['来源',rawEvidence(u.sourceRefs)]]); }
     if(u.kind==='opening' && mode!=='zone') return '<div class="hh">'+esc(u.type)+'</div>'+kv([
-      ['名称',objectName(u.name)],['所属面',objectName(u.parent)],['所属楼层',floorName(u.floor)],['所属房间',spaceName(u.zone)],['源开口 ID',u.sourceId],['连通',spaceName(u.spaceId)+' ↔ '+(u.otherSpaceId?spaceName(u.otherSpaceId):'室外')],
-      ['开闭状态',({open:'开放',closed:'关闭',unknown:'未确定'})[u.state]],['面积',u.area.toFixed(2)+' m²']]);
+      ['名称',objectName(u.name)],['所属面',objectName(u.parent)],['所属楼层',floorName(u.floor)],['所属房间',spaceName(u.zone)],['连通',spaceName(u.spaceId)+' ↔ '+(u.otherSpaceId?spaceName(u.otherSpaceId):'室外')],
+      ['开闭状态',({open:'开放',closed:'关闭',unknown:'未确定'})[u.state]],['面积',u.area.toFixed(2)+' m²']])+traceInfo([['源开口 ID',u.sourceId],['显示对象 ID',u.name]]);
     if(mode==='zone'){ const r=roleOf(u.zone), sid=(SOURCE_MAP.zones||{})[u.zone]||u.zone, space=SOURCE_SPACES[sid],
       enclosureEvidence=space&&(space.enclosure_evidence||{}), roleEvidence=space&&space.role_evidence;
       return '<div class="hh">zone</div>'+kv([['名称',spaceName(u.zone)],['所属楼层',floorName(u.floor)],['功能',roleLabel(r)||'—'],
         ['功能判定',roleEvidence&&({observed:'图文明确',inferred:'推断',unknown:'待判定'})[roleEvidence.basis]],
         ['功能依据',roleEvidence&&evidenceText(roleEvidence.source_refs)],
         ['功能假设',roleEvidence&&evidenceText(roleEvidence.assumptions)],
-        ['源空间 ID',(SOURCE_MAP.zones||{})[u.zone]],['空间开敞性',space&&enclosureLabel(space.exposure||space.enclosure)],
+        ['空间开敞性',space&&enclosureLabel(space.exposure||space.enclosure)],
         ['证据类型',enclosureEvidence&&enclosureEvidence.evidence_kind],
-        ['来源',space&&evidenceText([...(space.source_refs||[]),...(enclosureEvidence.source_refs||[])])],
         ['假设',space&&evidenceText([...(space.assumptions||[]),...(enclosureEvidence.assumptions||[])])],
-        ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']]); }
+        ['volume',(zoneVol[u.zone]||0).toFixed(2)+' m³']])+traceInfo([['源空间 ID',sid],['来源',space&&rawEvidence([...(space.source_refs||[]),...(enclosureEvidence.source_refs||[])])]]); }
     // Area of the selected visible fragment: wall apertures are cut out;
     // windows remain separate child surfaces and are not subtracted here.
     const boundary=boundaryFor(u);
     return '<div class="hh">surface</div>'+kv([['名称',u.publicName||objectName(u.name)],['所属面',objectName(u.parent||u.name)],['所属房间',spaceName(u.zone)],['所属楼层',floorName(u.floor)],['type',u.type],
-      ['源对象 ID',(SOURCE_MAP.surfaces||{})[u.name] || (SOURCE_MAP.windows||{})[u.name]],
       ['显示语义',u.kind==='surface'?(u.enclosureCondition==='unknown'?'未知围护（未当作实体墙）':'实体围护'):'窗'],
       ['边界围护',boundary&&enclosureLabel(boundary.enclosure||boundary.kind)],['边界覆盖',coverageFor(boundary)],
-      ['证据类型',boundaryEvidenceKinds(boundary)],['来源',boundaryEvidence(boundary,'source_refs')],['假设',boundaryEvidence(boundary,'assumptions')],
-      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前实体片面积；开敞或未知区域另以半透明灰色辅助面显示':'']]);
+      ['证据类型',boundaryEvidenceKinds(boundary)],['假设',boundaryEvidence(boundary,'assumptions')],
+      ['area',(u.area||0).toFixed(2)+' m²'], ['note', u.type==='Wall'?'当前实体片面积；开敞或未知区域另以半透明灰色辅助面显示':'']])+traceInfo([
+      ['源对象 ID',(SOURCE_MAP.surfaces||{})[u.name] || (SOURCE_MAP.windows||{})[u.name] || u.name],
+      ['来源',boundary&&rawEvidence([...(boundary.source_refs||[]),...(boundary.enclosure_regions||[]).flatMap(r=>r.source_refs||[])])]]);
   }
   function handleClick(ev){
     if(measuring){ const r=renderer.domElement.getBoundingClientRect();
@@ -668,7 +678,7 @@ _STYLE = r"""
     border:1px solid #cfd4da; border-radius:7px; background:#f4f6f8; color:#2a3340; transition:background .12s; }
   #panel button:hover { background:#e7ebf0; }
   .sec { border-top:1px solid #ebedf0; padding-top:9px; margin-top:9px; }
-  #rinfo { position:absolute; top:12px; right:12px; width:300px; display:flex; flex-direction:column; gap:10px; }
+  #rinfo { position:absolute; top:12px; right:12px; width:340px; max-height:calc(100% - 24px); overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
   #hud { background:rgba(20,28,44,0.88); color:#eef; padding:12px 16px; border-radius:8px; font-size:15px; }
   #hud .hh { font-size:12px; letter-spacing:.05em; color:#8fb0e0; margin:8px 0 3px; text-transform:uppercase; }
   #hud .hh:first-child { margin-top:0; }
@@ -684,6 +694,9 @@ _STYLE = r"""
   #sel .kv { display:flex; justify-content:space-between; gap:16px; padding:3px 0 3px 10px; }
   #sel .kv span { color:#c7d2e0; }
   #sel .kv b { color:#fff; font-weight:600; text-align:right; word-break:break-word; }
+  #sel .kv span { flex-shrink:0; }
+  #sel .trace { border-top:1px solid #64708a; margin-top:10px; padding-top:8px; }
+  #sel .trace summary { cursor:pointer; color:#c7d2e0; font-size:12px; }
   #meas { display:none; background:#d81b60; color:#fff; padding:11px 16px; border-radius:8px; font-size:19px; font-weight:700; box-shadow:0 2px 8px rgba(216,27,96,0.45); }
 """
 

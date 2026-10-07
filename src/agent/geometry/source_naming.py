@@ -1,7 +1,8 @@
 """Public BIM names separate from source identities; June 23 naming contract."""
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
+import re
 
 from shapely.geometry import LineString, Point, Polygon
 
@@ -11,6 +12,7 @@ from src.agent.roles import ROOM_TYPES, normalize
 
 # This is naming comparison precision, not a geometry snapping tolerance.
 ROW_TOLERANCE_M = 1e-6
+SCHEME_VERSION = "bim_names_v3"
 
 
 def _ordered_spaces(spaces, polys, floor_order):
@@ -58,12 +60,21 @@ def build_public_names(source: dict) -> dict:
     ordered = _ordered_spaces(source["spaces"], polys, floor_order)
     width = max(2, len(str(len(ordered))))
     handles, spaces, boundaries, openings, sides = {}, {}, {}, {}, {}
+    room_groups = {}
+    for space in ordered:
+        role = ROOM_TYPES.get(normalize(space.get("role")), ROOM_TYPES["unknown"])
+        quadrant = _zone_quadrant(polys[space["id"]], [min(xs), max(xs)], [min(ys), max(ys)])
+        room_groups[space["id"]] = (space["floor_id"], role["name_token"], quadrant)
+    group_sizes = Counter(room_groups.values())
+    group_ordinals = Counter()
     for i, space in enumerate(ordered, 1):
         sid = space["id"]
         handle = handles[sid] = f"Z{i:0{width}d}"
-        role = ROOM_TYPES.get(normalize(space.get("role")), ROOM_TYPES["unknown"])
-        quadrant = _zone_quadrant(polys[sid], [min(xs), max(xs)], [min(ys), max(ys)])
-        spaces[sid] = f"{handle}_{floor_names[space['floor_id']]}_{role['name_token']}_{quadrant}"
+        group = room_groups[sid]
+        fid, token, quadrant = group
+        group_ordinals[group] += 1
+        suffix = str(group_ordinals[group]) if group_sizes[group] > 1 else ""
+        spaces[sid] = f"{handle}_{floor_names[fid]}_{token}_{quadrant}{suffix}"
 
     walls = {}
     by_space = defaultdict(list)
@@ -106,20 +117,49 @@ def build_public_names(source: dict) -> dict:
     for oid, hosts in sides.items():
         # One shared opening with two room-side aliases, not two doors.
         openings[oid] = min(hosts.values())
-    return {"scheme_version": "bim_names_v2", "row_tolerance_m": ROW_TOLERANCE_M,
+    return {"scheme_version": SCHEME_VERSION, "row_tolerance_m": ROW_TOLERANCE_M,
             "direction_frame": "model XY: +X=E, +Y=N; not a geographic north assertion",
             "source_floor_names": {f['id']: f.get('name') or f['id'] for f in floors},
             "floors": floor_names, "spaces": spaces, "boundaries": boundaries,
             "openings": openings, "opening_sides": sides}
 
 
+def public_names_for_display(source: dict) -> dict:
+    """Refresh old public maps for display only; never mutate a saved source."""
+    if (source.get("floors") and all(f.get("footprint") for f in source["floors"])
+            and all(s.get("polygon") for s in source.get("spaces", []))):
+        return build_public_names(source)
+    return source.get("public_names") or {}
+
+
+def public_reference_map(source: dict, names: dict) -> dict:
+    """Names for prose references, including a saved older public spelling."""
+    references = {}
+    old = source.get("public_names") or {}
+    for kind in ("floors", "spaces", "boundaries", "openings"):
+        for identity, name in names.get(kind, {}).items():
+            previous = old.get(kind, {}).get(identity)
+            if previous and previous != name:
+                references[previous] = name
+            references[identity] = name
+    return references
+
+
+def public_reference_text(value: object, references: dict) -> str:
+    """Replace complete object references in prose, leaving paths/URLs intact."""
+    text = str(value)
+    keys = sorted((key for key, name in references.items() if key != name), key=lambda key: (-len(key), key))
+    if not keys:
+        return text
+    token_chars = r"A-Za-z0-9_./:%\\-"
+    pattern = rf"(?<![{token_chars}])(?:{'|'.join(re.escape(key) for key in keys)})(?![A-Za-z0-9_/%\\-]|[.:][A-Za-z0-9_])"
+    return re.sub(pattern, lambda match: references[match[0]], text)
+
+
 def viewer_names(data: dict, parts: dict) -> dict:
     """Name disposable clickable fragments without rewriting IDs or geometry."""
     source = data.get("source_model") or {}
-    names = source.get("public_names")
-    if not names and source.get("floors") and all(s.get("polygon") for s in source.get("spaces", [])):
-        names = build_public_names(source)
-    names = names or {}
+    names = public_names_for_display(source)
     derived = source.get("derived", {})
     surfaces = {s["name"]: names.get("boundaries", {}).get(derived.get("surfaces", {}).get(s["name"], s["name"]), s["name"])
                 for s in data.get("surfaces", [])}
@@ -153,4 +193,5 @@ def viewer_names(data: dict, parts: dict) -> dict:
                        "source_name": f.get("name") or f["id"], "z_floor": f["z_floor"]}
                       for i, f in enumerate(floors, 1)],
             "spaces": names.get("spaces", {}), "objects": objects, "parts": fragment_names,
-            "regions": region_names, "edges": edges}
+            "regions": region_names, "edges": edges,
+            "references": public_reference_map(source, names)}
