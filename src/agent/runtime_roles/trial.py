@@ -17,7 +17,8 @@ from PIL import Image, UnidentifiedImageError
 from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.plan_dimension_alignment import align_plan_to_dimensions
-from src.agent.geometry.plan_ink_alignment import align_plan_to_ink
+from src.agent.geometry.plan_ink_alignment import align_plan_to_ink, _set_reading_alignment
+from src.agent.geometry.plan_regularization import prepare_plan_junctions
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import audit_plan_replacement, format_failure, plan_format_errors
 from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
@@ -99,6 +100,105 @@ def canonical_plan_sha256(plan: Mapping[str, Any]) -> str:
     return hashlib.sha256(_canonical_plan_bytes(plan)).hexdigest()
 
 
+def _reading_align(
+    numeric: Mapping[str, Any], *, image_path: Path | None, image_name: str,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """Prepare, align and strictly preflight one reader numeric plan."""
+
+    result = copy.deepcopy(dict(numeric))
+    baseline = copy.deepcopy(result)
+    # Dimension chains are reader evidence consumed by align_plan_to_dimensions,
+    # not literal compiler input.  Keep them on the live alignment path while
+    # testing the same geometry-only baseline that Toolkit will eventually see.
+    baseline.pop("dimension_chains", None)
+    reading_alignment: dict[str, Any] = {}
+    alignment: dict[str, Any] = {
+        "schema_version": "plan_trial_alignment_v1",
+        "status": "not_checked",
+        "junction_preparation": None,
+        "post_alignment_preparation": None,
+        "fallback": None,
+    }
+    image_size: tuple[int, int] | None = None
+    if image_path is not None:
+        try:
+            with Image.open(image_path) as original:
+                image_size = original.size
+                _, preparation = prepare_plan_junctions(
+                    copy.deepcopy(baseline), image_size=image_size, image_name=image_name,
+                )
+                preparation = copy.deepcopy(preparation)
+                preparation.update(
+                    preflight_only=True,
+                    changes_applied_to_returned_plan=False,
+                    application="Toolkit regularization reruns and records these changes.",
+                )
+                alignment["junction_preparation"] = preparation
+                result, ink_report = align_plan_to_ink(original, result)
+            reading_alignment["ink"] = ink_report
+        except (UnidentifiedImageError, OSError) as error:
+            # Some isolated unit harnesses use hash-stable placeholder bytes
+            # instead of a decodable drawing.  Keep their historical literal
+            # behavior and make the skipped alignment explicit.
+            reading_alignment["ink"] = {
+                "status": "unavailable",
+                "summary": {"moved_or_aligned": 0, "not_moved": 0, "rejected": 0},
+                "reason": f"original image could not be decoded for ink alignment: {error}",
+            }
+    if "dimension_chains" in result:
+        result, dimension_report = align_plan_to_dimensions(result)
+        reading_alignment["dimensions"] = dimension_report
+
+    if image_size is not None:
+        _, post_report = prepare_plan_junctions(
+            copy.deepcopy(result), image_size=image_size, image_name=image_name,
+        )
+        post_report = copy.deepcopy(post_report)
+        post_report.update(
+            preflight_only=True,
+            changes_applied_to_returned_plan=False,
+            application="Toolkit regularization reruns and records these changes.",
+        )
+        alignment["post_alignment_preparation"] = post_report
+
+        def effective_compile_error(report: Mapping[str, Any]) -> object:
+            return (report.get("compile_error") if report.get("status") == "applied"
+                    else report.get("compile_error_before"))
+
+        aligned_error = effective_compile_error(post_report)
+        original_report = alignment["junction_preparation"]
+        original_error = (effective_compile_error(original_report)
+                          if isinstance(original_report, Mapping) else None)
+        if aligned_error is None:
+            alignment["status"] = "aligned"
+        elif original_error is None:
+            result = baseline
+            alignment["status"] = "rolled_back_to_original"
+            alignment["fallback"] = {
+                "status": "applied",
+                "reason": (
+                    "Aligned plan failed strict compilation while the normalized "
+                    "pre-alignment plan passed its preparation preflight; sent the "
+                    "original geometry to Toolkit regularization."
+                ),
+                "aligned_compile_error": aligned_error,
+                "original_compile_error": None,
+            }
+        else:
+            alignment["status"] = "strict_compile_failed"
+            alignment["fallback"] = {
+                "status": "not_applied",
+                "reason": "Both the aligned and normalized pre-alignment plans failed strict compilation.",
+                "aligned_compile_error": aligned_error,
+                "original_compile_error": original_error,
+            }
+    for key in ("ink", "dimensions"):
+        report = reading_alignment.get(key)
+        if isinstance(report, Mapping):
+            _set_reading_alignment(result, key, report)
+    return result, reading_alignment, alignment
+
+
 def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -157,6 +257,28 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
             "regularization_inputs.reading_alignment of the compiled plan."
         )
         visible["reading_alignment"] = compact
+    preflight = visible.get("alignment")
+    if isinstance(preflight, Mapping):
+        compact_preflight = {
+            field: copy.deepcopy(preflight[field])
+            for field in ("schema_version", "status", "fallback") if field in preflight
+        }
+        for field in ("junction_preparation", "post_alignment_preparation"):
+            row = preflight.get(field)
+            if isinstance(row, Mapping):
+                compact_preflight[field] = {
+                    "status": row.get("status"),
+                    "preflight_only": row.get("preflight_only"),
+                    "changes_applied_to_returned_plan": row.get("changes_applied_to_returned_plan"),
+                    "application": row.get("application"),
+                    "compile_error_before": row.get("compile_error_before"),
+                    "compile_error": row.get("compile_error"),
+                    "rejection": row.get("rejection"),
+                    "changes": len(row.get("changes", [])),
+                    "attempted_changes": len(row.get("attempted_changes", [])),
+                }
+        compact_preflight["full_record"] = _audit_reference(receipt, "alignment", preflight)
+        visible["alignment"] = compact_preflight
     if visible.get("status") != "passed":
         visible["message"] = (
             "trial_plan_bim failed; use the reported problems, located findings and repair hints below."
@@ -347,6 +469,15 @@ class PlanTrial:
                 if not aligned_path.is_file() or _file_sha256(aligned_path) != aligned_sha:
                     raise ValueError(f"trial aligned numeric input changed: {aligned_path}")
                 json.loads(aligned_path.read_bytes())
+            unaligned_file = receipt.get("unaligned_numeric_input_file")
+            unaligned_sha = receipt.get("unaligned_numeric_input_sha256")
+            if unaligned_file is not None or unaligned_sha is not None:
+                if not isinstance(unaligned_file, str) or not isinstance(unaligned_sha, str):
+                    raise ValueError("trial unaligned numeric input receipt is incomplete")
+                unaligned_path = _inside(self.workspace or self.receipt_directory, unaligned_file)
+                if not unaligned_path.is_file() or _file_sha256(unaligned_path) != unaligned_sha:
+                    raise ValueError(f"trial unaligned numeric input changed: {unaligned_path}")
+                json.loads(unaligned_path.read_bytes())
             for profile in receipt.get("measurement_profiles", []):
                 if not isinstance(profile, Mapping):
                     raise ValueError("trial measurement profile receipt is malformed")
@@ -378,8 +509,9 @@ class PlanTrial:
                      and (plan_hash is None or row.get("plan_sha256") == plan_hash)), None)
 
     def _numeric_plan(self, plan: Mapping[str, Any], number: int) -> tuple[
-        dict[str, Any], list[str], list[dict[str, Any]], list[dict[str, Any]],
-        list[dict[str, Any]], Path | None, str, dict[str, Any],
+        dict[str, Any], dict[str, Any], list[str], list[dict[str, Any]], list[dict[str, Any]],
+        list[dict[str, Any]], Path | None, str, Path | None, str,
+        dict[str, Any], dict[str, Any],
     ]:
         """Resolve only explicit aliases, quantities and selected profile candidates."""
 
@@ -420,33 +552,24 @@ class PlanTrial:
             image_sha256=image_sha256,
             load_profile=load_profile,
         )
-        alignment: dict[str, Any] = {}
+        unaligned_numeric = copy.deepcopy(numeric)
+        unaligned_numeric_bytes = _canonical_plan_bytes(numeric)
+        unaligned_numeric_sha256 = hashlib.sha256(unaligned_numeric_bytes).hexdigest()
         # Reader-only alignment happens after profile/quantity resolution, when
         # every plan coordinate is a numeric original-image pixel.  The shared
         # compiler remains literal and sees the aligned, fully audited draft.
-        if image_path is not None:
-            try:
-                with Image.open(image_path) as original:
-                    numeric, ink_report = align_plan_to_ink(original, numeric)
-                alignment["ink"] = ink_report
-            except (UnidentifiedImageError, OSError) as error:
-                # Some isolated unit harnesses use hash-stable placeholder
-                # bytes instead of a decodable drawing.  Keep their historical
-                # literal behavior and make the skipped alignment explicit.
-                alignment["ink"] = {
-                    "status": "unavailable",
-                    "summary": {"moved_or_aligned": 0, "not_moved": 0, "rejected": 0},
-                    "reason": f"original image could not be decoded for ink alignment: {error}",
-                }
-        if "dimension_chains" in numeric:
-            numeric, dimension_report = align_plan_to_dimensions(numeric)
-            alignment["dimensions"] = dimension_report
+        numeric, reading_alignment, alignment = _reading_align(
+            numeric, image_path=image_path, image_name=self.image_name,
+        )
         numeric_bytes = _canonical_plan_bytes(numeric)
         numeric_sha256 = hashlib.sha256(numeric_bytes).hexdigest()
         numeric_path = None
+        unaligned_numeric_path = None
         profile_records = []
         if self.receipt_directory is not None:
             self.receipt_directory.mkdir(parents=True, exist_ok=True)
+            unaligned_numeric_path = self.receipt_directory / f"trial_{number:03d}_unaligned_input.json"
+            unaligned_numeric_path.write_bytes(unaligned_numeric_bytes)
             numeric_path = self.receipt_directory / f"trial_{number:03d}_aligned_input.json"
             numeric_path.write_bytes(numeric_bytes)
             profile_folder = self.receipt_directory / f"trial_{number:03d}_profiles"
@@ -466,12 +589,16 @@ class PlanTrial:
             ]
         return (
             numeric,
+            unaligned_numeric,
             aliases,
             length_bindings,
             measurement_bindings,
             profile_records,
             numeric_path,
             numeric_sha256,
+            unaligned_numeric_path,
+            unaligned_numeric_sha256,
+            reading_alignment,
             alignment,
         )
 
@@ -676,13 +803,17 @@ class PlanTrial:
                 raise ValueError("plan format errors")
             (
                 numeric_plan,
+                unaligned_numeric_plan,
                 field_aliases,
                 length_bindings,
                 measurement_bindings,
                 measurement_profiles,
                 numeric_plan_path,
                 numeric_plan_sha256,
+                unaligned_numeric_plan_path,
+                unaligned_numeric_plan_sha256,
                 reading_alignment,
+                alignment,
             ) = self._numeric_plan(plan, number)
         except (ValueError, TypeError, KeyError) as error:
             receipt = {
@@ -699,6 +830,8 @@ class PlanTrial:
                                     if input_plan_file is not None else None),
                 "aligned_numeric_input_file": None,
                 "aligned_numeric_input_sha256": None,
+                "unaligned_numeric_input_file": None,
+                "unaligned_numeric_input_sha256": None,
                 "compiled_numeric_plan_file": None,
                 "compiled_numeric_plan_sha256": None,
                 "field_aliases": [],
@@ -708,6 +841,10 @@ class PlanTrial:
                 "reading_alignment": {
                     "status": "unavailable",
                     "reason": "numeric plan resolution failed before reader alignment",
+                },
+                "alignment": {
+                    "status": "unavailable",
+                    "reason": "numeric plan resolution failed before alignment preflight",
                 },
                 "drawing_differences": {
                     "status": "unavailable",
@@ -793,6 +930,11 @@ class PlanTrial:
                 if numeric_plan_path is not None else None
             ),
             "aligned_numeric_input_sha256": numeric_plan_sha256,
+            "unaligned_numeric_input_file": (
+                self._relative_to_workspace(unaligned_numeric_plan_path)
+                if unaligned_numeric_plan_path is not None else None
+            ),
+            "unaligned_numeric_input_sha256": unaligned_numeric_plan_sha256,
             "compiled_numeric_plan_file": (
                 self._relative_to_workspace(compiled_numeric_path)
                 if compiled_numeric_path is not None else None
@@ -803,6 +945,7 @@ class PlanTrial:
             "measurement_bindings": measurement_bindings,
             "measurement_profiles": measurement_profiles,
             "reading_alignment": reading_alignment,
+            "alignment": alignment,
             "drawing_differences": differences,
             "building_precision": precision,
             "overlay": result.get("source_plan_views") or plan_input.get("draft_view"),
@@ -839,11 +982,12 @@ class PlanTrial:
         if not ready:
             receipt.setdefault("reason", str(result.get("error") or result.get("status") or
                                              "trial did not produce source geometry"))
-            if "repair_hint" in result:
-                receipt["repair_hint"] = result["repair_hint"]
+            # Toolkit errors refer to the effective aligned/prepared draft. Map
+            # every actionable hint back to the reader's normalized declaration.
+            receipt["repair_hint"] = plan_error_hint(unaligned_numeric_plan, receipt["reason"])
             if "host" in receipt["reason"]:
                 try:
-                    unhosted = unhosted_openings(compiled_numeric_plan or numeric_plan)
+                    unhosted = unhosted_openings(unaligned_numeric_plan)
                 except (ValueError, KeyError, TypeError, IndexError):
                     unhosted = []
                 if unhosted:
@@ -853,7 +997,7 @@ class PlanTrial:
                         "Put each on its wall line: exterior ones on the footprint line, interior ones on their partition.")
             if "dangle" in receipt["reason"]:
                 try:
-                    loose = loose_partition_ends(compiled_numeric_plan or numeric_plan)
+                    loose = loose_partition_ends(unaligned_numeric_plan)
                 except (ValueError, KeyError, TypeError, IndexError):
                     loose = []
                 if loose:

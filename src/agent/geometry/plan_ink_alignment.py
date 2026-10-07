@@ -324,9 +324,12 @@ def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
                        span: list[float]) -> dict[str, list[str]]:
     """Move one declared wall line and the objects exactly attached to it."""
 
+    # Reuse one float object for every moved coordinate.  Computing attached
+    # coordinates as ``old + delta`` can round to a neighbouring binary float,
+    # leaving a visually coincident opening or junction unequal to its host.
+    new_cross = float(new_cross)
     cross_index = 1 if along_axis == "x" else 0
     along_index = 1 - cross_index
-    delta = new_cross - old_cross
     moved_openings: list[str] = []
     moved_junctions: list[str] = []
     moved_walls: list[str] = []
@@ -390,8 +393,8 @@ def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
                 point, cross_index=cross_index, cross_at=old_cross) for point in points)
                 and all(effective_span[0] - 1e-6 <= float(point[along_index])
                         <= effective_span[1] + 1e-6 for point in points)):
-            opening["p1"][cross_index] += delta
-            opening["p2"][cross_index] += delta
+            opening["p1"][cross_index] = new_cross
+            opening["p2"][cross_index] = new_cross
             moved_openings.append(str(opening.get("id", "?")))
         else:
             for field in ("p1", "p2"):

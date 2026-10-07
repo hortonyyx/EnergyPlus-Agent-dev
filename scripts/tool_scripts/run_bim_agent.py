@@ -983,6 +983,7 @@ class Toolkit:
 
     def build_plan(self, image, plan_json, *, revision=None):
         """Preserve a pixel declaration before deterministic compilation or errors."""
+        import copy
         from src.agent.geometry.plan_partition import OpeningHostError, compile_plan_partition
         from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
@@ -1007,6 +1008,7 @@ class Toolkit:
         dump(draft / "input.json", record)
         input_stage = "parse_json"
         plan = None
+        diagnostic_plan = None
         regularization = None
         regularization_error = None
         try:
@@ -1020,6 +1022,7 @@ class Toolkit:
             input_stage = "measurement_binding"
             plan, bindings = resolve_plan_pixels(plan, image=image,
                 image_sha256=record["image_sha256"], load_profile=self.load_pixel_profile)
+            diagnostic_plan = copy.deepcopy(plan)
             input_stage = "regularization"
             if selected_rule(self.manifest) != LEGACY_RULE:
                 from src.agent.geometry.plan_regularization import regularize_plan
@@ -1159,10 +1162,24 @@ class Toolkit:
                 except Exception as feedback_error:
                     record.setdefault("host_failure_view_errors", []).append(str(feedback_error))
                 dump(draft / "input.json", record)
-            result = {"status": "error", "error": str(error), "drawing_differences": difference_reply,
-                      "repair_hint": plan_error_hint(plan, str(error)),
+            remaining_error = str(regularization_error or error)
+            preparation = (regularization or {}).get("junction_preparation", {})
+            first_rejection = next(iter((regularization or {}).get("rejections", [])), {})
+            if first_rejection.get("type") == "strict_compile_failed_after_regularization":
+                remaining_error = first_rejection.get("error", str(error))
+            if (preparation.get("status") == "rolled_back" and preparation.get("compile_error")
+                    and first_rejection.get("type") == "strict_compile_failed_after_regularization"):
+                remaining_error = preparation["compile_error"]
+            result = {"status": "error", "error": remaining_error, "drawing_differences": difference_reply,
+                      "repair_hint": plan_error_hint(diagnostic_plan or plan, remaining_error),
                       "plan_input": compact_plan_input(record), "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            if preparation.get("status") == "rolled_back":
+                result["junction_preparation_note"] = (
+                    "All tentative junction repairs were rolled back; the saved draft is the original. "
+                    "The error describes what still failed after those tentative repairs. "
+                    "Use the named original objects and exact coordinates in repair_hint.")
+                result["original_compile_error"] = str(error)
             if regularization is not None:
                 result["regularization"] = record["regularization_report"]
                 result["error_stage"] = "regularization"

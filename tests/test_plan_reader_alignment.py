@@ -6,8 +6,9 @@ import json
 from PIL import Image, ImageDraw
 
 from src.agent.geometry.plan_dimension_alignment import align_plan_to_dimensions
-from src.agent.geometry.plan_ink_alignment import align_plan_to_ink
+from src.agent.geometry.plan_ink_alignment import align_plan_to_ink, move_straight_wall
 from src.agent.runtime_roles.plan_format import plan_format_errors
+from src.agent.runtime_roles import trial as trial_module
 from src.agent.runtime_roles.trial import PlanTrial
 
 
@@ -70,6 +71,73 @@ def test_ink_alignment_moves_wall_attached_opening_and_junction_to_supported_lin
     assert any(row["object"] == "partition:P1" and row["action"] == "moved"
                for row in report["items"])
     assert aligned["regularization_inputs"]["line_references"][0]["basis"] == "ink"
+
+
+def test_wall_move_assigns_one_exact_coordinate_to_every_attached_endpoint():
+    value = _plan()
+    old_cross = value["partitions"][0]["points"][0][0]
+    target = 0.1
+
+    moved = move_straight_wall(
+        value,
+        collection="partitions",
+        identity="P1",
+        along_axis="y",
+        old_cross=old_cross,
+        new_cross=target,
+        span=[22, 158],
+    )
+
+    coordinates = [
+        *(point[0] for point in value["partitions"][0]["points"]),
+        value["partitions"][1]["points"][-1][0],
+        *(opening[field][0] for opening in value["openings"] for field in ("p1", "p2")),
+    ]
+    assert coordinates and all(coordinate == target for coordinate in coordinates)
+    assert moved["junctions"] == ["P2:1"]
+    assert moved["openings"] == ["D1", "PASS1"]
+
+
+def test_reading_alignment_rolls_back_when_only_original_strictly_compiles(tmp_path, monkeypatch):
+    image_path = tmp_path / "plan.png"
+    _drawing().save(image_path)
+    original = _plan()
+    original["openings"] = []
+    original["dimension_chains"] = [{
+        "id": "X_OVERALL",
+        "axis": "x",
+        "segments_mm": [9000, 9000],
+        "total_mm": 18000,
+        "tick_pixels": [20, 110, 200],
+        "source_refs": ["plan.png: dimensions"],
+    }]
+
+    def break_one_junction(_image, plan):
+        aligned = copy.deepcopy(plan)
+        aligned["partitions"][1]["points"][-1][0] = 105.0
+        return aligned, {
+            "schema_version": "test_alignment",
+            "status": "applied",
+            "summary": {"moved_or_aligned": 1, "not_moved": 0, "rejected": 0},
+            "items": [],
+            "rejections": [],
+        }
+
+    monkeypatch.setattr(trial_module, "align_plan_to_ink", break_one_junction)
+    effective, reading, alignment = trial_module._reading_align(
+        original, image_path=image_path, image_name="plan.png",
+    )
+
+    assert effective["partitions"][1]["points"][-1] == [109, 89]
+    assert "dimension_chains" not in effective
+    assert reading["ink"]["status"] == "applied"
+    assert reading["dimensions"]["summary"]["chains_applied"] == 1
+    assert alignment["status"] == "rolled_back_to_original"
+    assert alignment["fallback"]["status"] == "applied"
+    assert alignment["fallback"]["aligned_compile_error"]
+    assert alignment["fallback"]["original_compile_error"] is None
+    assert alignment["junction_preparation"]["preflight_only"] is True
+    assert alignment["post_alignment_preparation"]["changes_applied_to_returned_plan"] is False
 
 
 def test_missing_ink_never_moves_geometry_and_is_explicit():
@@ -416,6 +484,11 @@ def test_trial_compiles_aligned_numeric_plan_and_returns_only_compact_summary(tm
         visible = envelope["structuredContent"]["reading_alignment"]
         assert "items" not in visible["ink"] and "full_list" in visible
         numeric = trial.numeric_plan(receipt)
+        assert receipt["unaligned_numeric_input_file"] != receipt["aligned_numeric_input_file"]
+        unaligned = json.loads(
+            (workspace / receipt["unaligned_numeric_input_file"]).read_text(encoding="utf-8")
+        )
+        assert unaligned["partitions"][0]["points"][0][0] == 109
         assert receipt["aligned_numeric_input_file"] != receipt["compiled_numeric_plan_file"]
         aligned_input = json.loads(
             (workspace / receipt["aligned_numeric_input_file"]).read_text(encoding="utf-8")

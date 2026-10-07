@@ -1,0 +1,2584 @@
+{
+  "schema": "q1b_snapshot_manifest_v1",
+  "model_requests": 0,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "source_boundaries": {
+    "runs_q": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q",
+    "main_tree": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev",
+    "runs_q_selection": {
+      "rule": "exactly the earliest two authorised plan-reader tasks",
+      "tasks": {
+        "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693": 14,
+        "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a": 13
+      },
+      "later_reassignments_included": false
+    },
+    "images": "seven Q1 reader inputs use hash-verified local image copies; other image bytes remain omitted"
+  },
+  "q1_source_report": {
+    "path": "D:\\EnergyPlus-Agent-worktrees\\q1b\\AI_agent\\logs\\experiments\\2026-10-07_quality_q1\\replay_report.json.gz",
+    "sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+  },
+  "counts": {
+    "failure_trials_earliest_two_tasks": 27,
+    "merged_sm25_role_n1_trials": 11,
+    "merged_sm25_role_n1_delivery_plans": 4,
+    "three_case_comparison_delivery_plans": 10,
+    "q1_historical_regularization_inputs": 15,
+    "q1_historical_reader_inputs": 7
+  },
+  "bytes_by_group": {
+    "failure_trials_earliest_two_tasks": 2122681,
+    "merged_sm25_role_n1_trials": 613593,
+    "merged_sm25_role_n1_delivery_plans": 690015,
+    "three_case_comparison_delivery_plans": 113007,
+    "q1_historical_regularization_inputs": 99080,
+    "q1_historical_reader_inputs": 55377
+  },
+  "copied_bytes": 3693753,
+  "expected_q1_runs": {
+    "sm21_role": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 2,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm21_single": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 2,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm24_role": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 0,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm24_single": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 0,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm25_role": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 33,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm25_single": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 24,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-10-01_opus_dev_sm21": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 0,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-10-01_opus_dev_sm24": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 0,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-10-01_opus_dev_sm25": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 5,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-09-26_sm25_height_cold_claude_run53": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 30,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-09-26_sm25_height_repeat_claude_run54": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 24,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-09-26_sm24_whole_building_claude_run55": {
+      "source_q1_status": "legacy_geometric_pass_source_save_incompatible",
+      "source_q1_applied_change_count": 0,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-09-26_sm24_whole_building_repeat_claude_run56": {
+      "source_q1_status": "legacy_geometric_pass_source_save_incompatible",
+      "source_q1_applied_change_count": 0,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-09-26_sm21_whole_building_claude_run57": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 7,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "2026-09-27_sm21_whole_building_repeat_claude_run58": {
+      "source_q1_status": "regularized",
+      "source_q1_applied_change_count": 7,
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm24_plan_reader_run3": {
+      "source_q1_reader_statuses": {
+        "F1": "deliverable"
+      },
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm24_role_debug_run3": {
+      "source_q1_reader_statuses": {
+        "F1": "deliverable"
+      },
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm24_role_debug_run7": {
+      "source_q1_reader_statuses": {
+        "F1": "deliverable"
+      },
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm21_role_debug_run1": {
+      "source_q1_reader_statuses": {
+        "F1": "deliverable",
+        "F2": "deliverable"
+      },
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    },
+    "sm25_cmp3_role_trials": {
+      "source_q1_reader_statuses": {
+        "F1": "deliverable",
+        "F2": "deliverable"
+      },
+      "source_q1_report_sha256": "c8bd81b59864f1fc37976e1f574541f5380f4b6e9e8e0239b0f446b0f30f179f"
+    }
+  },
+  "items": [
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_001",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "1d08687efe393d5111435232954116cce47194b6c0ba7a955dc6231fd6c1b59f",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_001/plan.json",
+        "local_sha256": "1d08687efe393d5111435232954116cce47194b6c0ba7a955dc6231fd6c1b59f",
+        "bytes": 68752
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "partition wall-corridorA-south-west: physical partition overlaps footprint boundary at LINESTRING (241 616.1, 470.2 616.1)",
+        "failure_type": "partition_overlaps_footprint"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_001\\result.json",
+        "source_sha256": "5f2d3ee9683f8f6a7f98d5c4fc37d5df7a4ecb835d09a3e5d865f667766f4d11",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_001/result.json",
+        "local_sha256": "5f2d3ee9683f8f6a7f98d5c4fc37d5df7a4ecb835d09a3e5d865f667766f4d11",
+        "bytes": 14930
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_002",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "1cbc2afc0596f017de35226143db7b16a8ee2603954ce089d51d49541bac8ea4",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_002/plan.json",
+        "local_sha256": "1cbc2afc0596f017de35226143db7b16a8ee2603954ce089d51d49541bac8ea4",
+        "bytes": 68598
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "partition wall-eastwing-north-east: physical partition overlaps footprint boundary at LINESTRING (917.14 988.402, 1387 988.402)",
+        "failure_type": "partition_overlaps_footprint"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_002\\result.json",
+        "source_sha256": "9934735184d10aed2a84317ecf40747b881104da9bcaa7b3fafabb003e204c57",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_002/result.json",
+        "local_sha256": "9934735184d10aed2a84317ecf40747b881104da9bcaa7b3fafabb003e204c57",
+        "bytes": 13143
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_003",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "2a6dbad7924fa89f4300986ba62b20e1e10f815ef4baf2ed9ff4c56e7e1dd25f",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_003/plan.json",
+        "local_sha256": "2a6dbad7924fa89f4300986ba62b20e1e10f815ef4baf2ed9ff4c56e7e1dd25f",
+        "bytes": 68158
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall-eastwing-north-east'], 'pixel_points': [[740.656, 988.402], [917.14, 988.402]]}, {'partition_ids': ['wall-offices-west'], 'pixel_points': [[740.656, 898.536], [740.656, 988.402]]}, {'partition_ids': ['wall-conference-east'], 'pixel_points': [[657.6856, 610.6], [657.6856, 988.402]]}, {'partition_ids': ['wall-eastwing-north-west'], 'pixel_points': [[470.9, 988.402], [657.6856, 988.402]]}, {'partition_ids': ['wall-corridor-south'], 'pixel_points': [[470.9, 1077.351], [657.6856, 1077.351]]}]; nearest disconnected endpoints: [{'partition_id': 'wall-conference-east', 'endpoint_pixel': [657.6856, 610.6], 'nearest_line': 'wall-offices-west', 'distance_pixels': 82.97039999999993, 'nearest_point_pixel': [740.656, 610.6]}, {'partition_id': 'wall-eastwing-north-west', 'endpoint_pixel': [470.9, 988.402], 'nearest_line': 'footprint[5]', 'distance_pixels': 0.6999999999999886, 'nearest_point_pixel': [470.2, 988.402]}, {'partition_id': 'wall-eastwing-north-east', 'endpoint_pixel': [917.14, 988.402], 'nearest_line': 'footprint[1]', 'distance_pixels': 5.402000000000044, 'nearest_point_pixel': [917.14, 983.0]}, {'partition_id': 'wall-corridor-south', 'endpoint_pixel': [470.9, 1077.351], 'nearest_line': 'footprint[5]', 'distance_pixels': 0.6999999999999886, 'nearest_point_pixel': [470.2, 1077.351]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_003\\result.json",
+        "source_sha256": "fa4f2107d755cdfc8fccdeea0b128a45ea87ff67e1e0647c6c8ee611f8ef1939",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_003/result.json",
+        "local_sha256": "fa4f2107d755cdfc8fccdeea0b128a45ea87ff67e1e0647c6c8ee611f8ef1939",
+        "bytes": 13461
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_004",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "96c0496536b50e28f7f7e54a9aabebe7a4ae0ef9a2e602751c8ed93eb6788a19",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_004/plan.json",
+        "local_sha256": "96c0496536b50e28f7f7e54a9aabebe7a4ae0ef9a2e602751c8ed93eb6788a19",
+        "bytes": 68939
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "partition wall-eastwing-north-east segment 1 is degenerate at pixel [917.14, 988.402]",
+        "failure_type": "degenerate_partition"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_004\\result.json",
+        "source_sha256": "12b0063199cdf72cdeae86097d163763609001f95eec0bf69da4b7597a41ed4c",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_004/result.json",
+        "local_sha256": "12b0063199cdf72cdeae86097d163763609001f95eec0bf69da4b7597a41ed4c",
+        "bytes": 10580
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_005",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_005\\plan.json",
+        "source_sha256": "079bb3cbc006785956be410c4dc3c08b7e7a0ba4e71cd168378c8d61d043a0de",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_005/plan.json",
+        "local_sha256": "079bb3cbc006785956be410c4dc3c08b7e7a0ba4e71cd168378c8d61d043a0de",
+        "bytes": 69734
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall-eastwing-north-east'], 'pixel_points': [[740.656, 988.402], [917.14, 988.402]]}, {'partition_ids': ['wall-offices-west'], 'pixel_points': [[740.656, 898.536], [740.656, 988.4]]}]; nearest disconnected endpoints: [{'partition_id': 'wall-offices-west', 'endpoint_pixel': [740.656, 988.4], 'nearest_line': 'wall-eastwing-north-east', 'distance_pixels': 0.002000000000066393, 'nearest_point_pixel': [740.656, 988.402]}, {'partition_id': 'wall-eastwing-north-east', 'endpoint_pixel': [740.656, 988.402], 'nearest_line': 'wall-offices-west', 'distance_pixels': 0.002000000000066393, 'nearest_point_pixel': [740.656, 988.4]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_005\\result.json",
+        "source_sha256": "fd84f413e3bde3eb28e0e4d2591b2ff23cd5a0bcd2f3ee0648371c8875c37c63",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_005/result.json",
+        "local_sha256": "fd84f413e3bde3eb28e0e4d2591b2ff23cd5a0bcd2f3ee0648371c8875c37c63",
+        "bytes": 12941
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_006",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_006\\plan.json",
+        "source_sha256": "94daa9895483e1bfd24bfed2231e439868c3cad6cfba00638028d776740c8160",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_006/plan.json",
+        "local_sha256": "94daa9895483e1bfd24bfed2231e439868c3cad6cfba00638028d776740c8160",
+        "bytes": 67915
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall-office-div-3'], 'pixel_points': [[748.7, 898.536], [917.14, 898.536]]}, {'partition_ids': ['wall-office-div-2'], 'pixel_points': [[748.7, 799.5], [917.14, 799.5]]}, {'partition_ids': ['wall-office-div-1'], 'pixel_points': [[748.7, 700.464], [917.14, 700.464]]}, {'partition_ids': ['wall-corridorA-south-east'], 'pixel_points': [[748.7, 616.1], [917.14, 616.1]]}]; nearest disconnected endpoints: [{'partition_id': 'wall-corridorA-south-east', 'endpoint_pixel': [748.7, 616.1], 'nearest_line': 'wall-offices-west', 'distance_pixels': 8.044000000000096, 'nearest_point_pixel': [740.656, 616.1]}, {'partition_id': 'wall-office-div-1', 'endpoint_pixel': [748.7, 700.4639999999999], 'nearest_line': 'wall-offices-west', 'distance_pixels': 8.044000000000096, 'nearest_point_pixel': [740.656, 700.4639999999999]}, {'partition_id': 'wall-office-div-2', 'endpoint_pixel': [748.7, 799.5], 'nearest_line': 'wall-offices-west', 'distance_pixels': 8.044000000000096, 'nearest_point_pixel': [740.656, 799.5]}, {'partition_id': 'wall-office-div-3', 'endpoint_pixel': [748.7, 898.536], 'nearest_line': 'wall-offices-west', 'distance_pixels': 8.044000000000096, 'nearest_point_pixel': [740.656, 898.536]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_006\\result.json",
+        "source_sha256": "412e634c90956be6ac47f69a17f5036287c1a77fd73d3498e0e697b74ffa9981",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_006/result.json",
+        "local_sha256": "412e634c90956be6ac47f69a17f5036287c1a77fd73d3498e0e697b74ffa9981",
+        "bytes": 11453
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_007",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_007\\plan.json",
+        "source_sha256": "6e33ebb61323320636812992de2109a330a391ac60f773cb49733631349877d6",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_007/plan.json",
+        "local_sha256": "6e33ebb61323320636812992de2109a330a391ac60f773cb49733631349877d6",
+        "bytes": 68215
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "space seeds S-corridor-A and S-corridor-B occupy the same space",
+        "failure_type": "duplicate_space_seed"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_007\\result.json",
+        "source_sha256": "5129d9ef0e8f91cc074b51e3b4eeb637a823dd173cc0ffdbb1c94e2b3bed783b",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_007/result.json",
+        "local_sha256": "5129d9ef0e8f91cc074b51e3b4eeb637a823dd173cc0ffdbb1c94e2b3bed783b",
+        "bytes": 10227
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_008",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_008\\plan.json",
+        "source_sha256": "3de3dfb2463093355d0169de819023d4c87533c38f51ad79cd96211c4539cf0d",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_008/plan.json",
+        "local_sha256": "3de3dfb2463093355d0169de819023d4c87533c38f51ad79cd96211c4539cf0d",
+        "bytes": 68157
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "space seeds S-corridor-A and S-corridor-south occupy the same space",
+        "failure_type": "duplicate_space_seed"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_008\\result.json",
+        "source_sha256": "95086d943714fb269d68c1d955615ac38789c2844143f223d3ffdf2d2f1adbba",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_008/result.json",
+        "local_sha256": "95086d943714fb269d68c1d955615ac38789c2844143f223d3ffdf2d2f1adbba",
+        "bytes": 10243
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_009",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_009\\plan.json",
+        "source_sha256": "4e837a20b7b4284c8997169e0273637ffaeb3c9dd3debf1f55a6fb241b10ef08",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_009/plan.json",
+        "local_sha256": "4e837a20b7b4284c8997169e0273637ffaeb3c9dd3debf1f55a6fb241b10ef08",
+        "bytes": 68093
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "opening D-storage at pixels [705.0, 521.649] -> [742.0, 521.649] has only one full space host but is not wholly on the footprint boundary; a T-junction or partial host cannot be treated as outdoors",
+        "failure_type": "opening_partial_host"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_009\\result.json",
+        "source_sha256": "a1b721b4ee20d6ea1112cad2816898217727c3167b7d7a14915e96f04ad671e9",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_009/result.json",
+        "local_sha256": "a1b721b4ee20d6ea1112cad2816898217727c3167b7d7a14915e96f04ad671e9",
+        "bytes": 13195
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_010",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_010\\plan.json",
+        "source_sha256": "e8ca5880c19972e5f3c523936015542c1121450408ef133dbe9a8be2b6bdea0a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_010/plan.json",
+        "local_sha256": "e8ca5880c19972e5f3c523936015542c1121450408ef133dbe9a8be2b6bdea0a",
+        "bytes": 69140
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "opening D-conf at pixels [657.686, 633.0] -> [657.686, 700.0] requires one exterior or two interior full-boundary hosts; found []",
+        "failure_type": "opening_missing_host"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_010\\result.json",
+        "source_sha256": "d5ac05f2251428a8d821b55d08162ac99972d94f5185cd959ff49ed15a1dbfd2",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_010/result.json",
+        "local_sha256": "d5ac05f2251428a8d821b55d08162ac99972d94f5185cd959ff49ed15a1dbfd2",
+        "bytes": 14088
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_011",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_011\\plan.json",
+        "source_sha256": "1b4606a99f3eae43855776402f0f8cc121bec9e4b4c8020f8f03528da94c395c",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_011/plan.json",
+        "local_sha256": "1b4606a99f3eae43855776402f0f8cc121bec9e4b4c8020f8f03528da94c395c",
+        "bytes": 69662
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall-corridorA-south'], 'pixel_points': [[657.6856, 616.1], [657.686, 616.1]]}]; nearest disconnected endpoints: [{'partition_id': 'wall-corridorA-south', 'endpoint_pixel': [657.686, 616.1], 'nearest_line': 'wall-conference-east', 'distance_pixels': 0.0004000000000132786, 'nearest_point_pixel': [657.6856, 616.1]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_011\\result.json",
+        "source_sha256": "6dd9cd15fd80cdf4e7f24c95fed056d462aef97062aef7dc186188e5c41b07a6",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_011/result.json",
+        "local_sha256": "6dd9cd15fd80cdf4e7f24c95fed056d462aef97062aef7dc186188e5c41b07a6",
+        "bytes": 10773
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_012",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_012\\plan.json",
+        "source_sha256": "80a1e2271018e5af6f09d59b429b1e8fc9a340910857bad631323cda821b90e7",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_012/plan.json",
+        "local_sha256": "80a1e2271018e5af6f09d59b429b1e8fc9a340910857bad631323cda821b90e7",
+        "bytes": 69593
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall-conference-east'], 'pixel_points': [[657.6856, 610.6], [657.6856, 616.1]]}]; nearest disconnected endpoints: [{'partition_id': 'wall-conference-east', 'endpoint_pixel': [657.6856, 610.6], 'nearest_line': 'wall-corridorA-south', 'distance_pixels': 5.5, 'nearest_point_pixel': [657.6856, 616.1]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_012\\result.json",
+        "source_sha256": "e237a84faa607a982bcc130ab6a5137a8f4406a1d5703d7d16464ca8ed169268",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_012/result.json",
+        "local_sha256": "e237a84faa607a982bcc130ab6a5137a8f4406a1d5703d7d16464ca8ed169268",
+        "bytes": 10757
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_013",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_013\\plan.json",
+        "source_sha256": "90b735baa78a04d8a0aea672bf55499e6c61683f7905f2e377e0c3b0363e6b9a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_013/plan.json",
+        "local_sha256": "90b735baa78a04d8a0aea672bf55499e6c61683f7905f2e377e0c3b0363e6b9a",
+        "bytes": 69608
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall-conference-east'], 'pixel_points': [[657.6856, 616.1], [657.6856, 988.402]]}, {'partition_ids': ['wall-corridorA-south'], 'pixel_points': [[470.2, 616.1], [657.6856, 616.1]]}, {'partition_ids': ['wall-eastwing-north-west'], 'pixel_points': [[470.2, 988.402], [654.2, 988.402]]}]; nearest disconnected endpoints: [{'partition_id': 'wall-conference-east', 'endpoint_pixel': [657.6856, 988.402], 'nearest_line': 'wall-eastwing-north-west', 'distance_pixels': 3.4855999999999767, 'nearest_point_pixel': [654.2, 988.402]}, {'partition_id': 'wall-eastwing-north-west', 'endpoint_pixel': [654.2, 988.402], 'nearest_line': 'wall-conference-east', 'distance_pixels': 3.4855999999999767, 'nearest_point_pixel': [657.6856, 988.402]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_013\\result.json",
+        "source_sha256": "2a6135db89755abacf7c106bdc7a64c67edc11ed77eaafd60bf40970a339a020",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_013/result.json",
+        "local_sha256": "2a6135db89755abacf7c106bdc7a64c67edc11ed77eaafd60bf40970a339a020",
+        "bytes": 11184
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693",
+      "item": "draft_014",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_014\\plan.json",
+        "source_sha256": "af76c6317915a437785e123b73424361a57fa943a68e0ef954cd89a921bf4d38",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_014/plan.json",
+        "local_sha256": "af76c6317915a437785e123b73424361a57fa943a68e0ef954cd89a921bf4d38",
+        "bytes": 69721
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "opening D-conf at pixels [657.686, 633.0] -> [657.686, 700.0] requires one exterior or two interior full-boundary hosts; found []",
+        "failure_type": "opening_missing_host"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693\\bim\\trial_workspace\\plan_drafts\\draft_014\\result.json",
+        "source_sha256": "c4f5a64ca9a7575970466b295c2afb804c8a25accfbaf3bb0cfeba5b0a15928a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/3946ca64ff78d93ca61090a437cbb6b3d2ca0d488f5f9ccf3059608368b27693/draft_014/result.json",
+        "local_sha256": "c4f5a64ca9a7575970466b295c2afb804c8a25accfbaf3bb0cfeba5b0a15928a",
+        "bytes": 12948
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_001",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "259ef09e87970beae8c28b1dc74964a1850abf36eb370811047c208041d5e85e",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_001/plan.json",
+        "local_sha256": "259ef09e87970beae8c28b1dc74964a1850abf36eb370811047c208041d5e85e",
+        "bytes": 69754
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "partition wall_5880_east: line is outside footprint at LINESTRING (974.4 963.197, 1436.6 963.197)",
+        "failure_type": "partition_outside_footprint"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_001\\result.json",
+        "source_sha256": "1522aa876e47bb9e47506a8cc161415c89f25ff0deca6dc4700fdb3ac758164a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_001/result.json",
+        "local_sha256": "1522aa876e47bb9e47506a8cc161415c89f25ff0deca6dc4700fdb3ac758164a",
+        "bytes": 13035
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_002",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "c3c303b34ba038cc395a76156f4b754dcc8af20eeaecbeb3286c27af64ee98d5",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_002/plan.json",
+        "local_sha256": "c3c303b34ba038cc395a76156f4b754dcc8af20eeaecbeb3286c27af64ee98d5",
+        "bytes": 61951
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "partition wall_corridor_south: physical partition overlaps footprint boundary at LINESTRING (281 587.5, 512.4 587.5)",
+        "failure_type": "partition_overlaps_footprint"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_002\\result.json",
+        "source_sha256": "d38940e230d40060174c97050014c0fc83b17d9adcf6cdf830f05e86fcabb905",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_002/result.json",
+        "local_sha256": "d38940e230d40060174c97050014c0fc83b17d9adcf6cdf830f05e86fcabb905",
+        "bytes": 16163
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_003",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "ad5c321f07110566ec94d4d2f211dc161f38feb7ea668812c962aa0e460d64cf",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_003/plan.json",
+        "local_sha256": "ad5c321f07110566ec94d4d2f211dc161f38feb7ea668812c962aa0e460d64cf",
+        "bytes": 63616
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "partition wall_west_mid: physical partition overlaps footprint boundary at LINESTRING (512.4 587.5, 512.4 1235)",
+        "failure_type": "partition_overlaps_footprint"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_003\\result.json",
+        "source_sha256": "8a5e1528eff6f60bbe0ee7ef2f076756b35ccc29bf17ac0b3e54f3c6b12a1e39",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_003/result.json",
+        "local_sha256": "8a5e1528eff6f60bbe0ee7ef2f076756b35ccc29bf17ac0b3e54f3c6b12a1e39",
+        "bytes": 10150
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_004",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "41a7a96f4123a3bb5035a2e84ae45b7609ac2966f1da8c453d4f6904e7a753ec",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_004/plan.json",
+        "local_sha256": "41a7a96f4123a3bb5035a2e84ae45b7609ac2966f1da8c453d4f6904e7a753ec",
+        "bytes": 61501
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall_sb_20940'], 'pixel_points': [[1250.1032, 1052.775], [1250.1032, 1223.9]]}, {'partition_ids': ['wall_3940'], 'pixel_points': [[882.64, 1052.775], [1250.1032, 1052.775]]}, {'partition_ids': ['wall_sb_13000'], 'pixel_points': [[882.64, 1052.775], [882.64, 1223.9]]}, {'partition_ids': ['wall_3940'], 'pixel_points': [[512.4, 1052.775], [882.64, 1052.775]]}, {'partition_ids': ['wall_mid_div'], 'pixel_points': [[517.9, 772.5], [694.750868, 772.5]]}, {'partition_ids': ['wall_tl_south'], 'pixel_points': [[292.1, 492.225], [512.4, 492.225]]}]; nearest disconnected endpoints: [{'partition_id': 'wall_tl_south', 'endpoint_pixel': [292.1, 492.225], 'nearest_line': 'footprint[0]', 'distance_pixels': 11.100000000000023, 'nearest_point_pixel': [281.0, 492.225]}, {'partition_id': 'wall_mid_div', 'endpoint_pixel': [517.9, 772.5], 'nearest_line': 'footprint[6]', 'distance_pixels': 5.500000000000001, 'nearest_point_pixel': [512.4, 772.5]}, {'partition_id': 'wall_sb_13000', 'endpoint_pixel': [882.64, 1223.9], 'nearest_line': 'footprint[5]', 'distance_pixels': 11.09999999999991, 'nearest_point_pixel': [882.64, 1235.0]}, {'partition_id': 'wall_sb_20940', 'endpoint_pixel': [1250.1032, 1223.9], 'nearest_line': 'footprint[5]', 'distance_pixels': 11.09999999999991, 'nearest_point_pixel': [1250.1032, 1235.0]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_004\\result.json",
+        "source_sha256": "ba476df9844d5f92b0273c71cb4a082374c6d750decddaff94ee9db407ab0afc",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_004/result.json",
+        "local_sha256": "ba476df9844d5f92b0273c71cb4a082374c6d750decddaff94ee9db407ab0afc",
+        "bytes": 11442
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_005",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_005\\plan.json",
+        "source_sha256": "8e1aa708bc461cec8f5ba6ed303dd0d04d30aa359885f06e7f6951fd815b4b38",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_005/plan.json",
+        "local_sha256": "8e1aa708bc461cec8f5ba6ed303dd0d04d30aa359885f06e7f6951fd815b4b38",
+        "bytes": 60881
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall_sb_20940'], 'pixel_points': [[1250.1032, 1052.775], [1250.1032, 1235.0]]}, {'partition_ids': ['wall_3940'], 'pixel_points': [[882.64, 1052.775], [1248.1, 1052.775]]}, {'partition_ids': ['wall_top_east'], 'pixel_points': [[741.249249, 310.0], [741.249249, 492.5]]}, {'partition_ids': ['wall_mid_div'], 'pixel_points': [[512.4, 772.5], [694.75, 772.5]]}, {'partition_ids': ['wall_tl_div1'], 'pixel_points': [[512.4, 492.225], [512.4, 492.5]]}]; nearest disconnected endpoints: [{'partition_id': 'wall_tl_div1', 'endpoint_pixel': [512.4, 492.5], 'nearest_line': 'wall_tl_south', 'distance_pixels': 0.27499999999997726, 'nearest_point_pixel': [512.4, 492.225]}, {'partition_id': 'wall_top_east', 'endpoint_pixel': [741.2492492492493, 492.5], 'nearest_line': 'wall_er_west', 'distance_pixels': 51.5087682434621, 'nearest_point_pixel': [792.7580174927114, 492.5]}, {'partition_id': 'wall_mid_div', 'endpoint_pixel': [694.75, 772.5], 'nearest_line': 'wall_mid_east', 'distance_pixels': 0.0008680555555429236, 'nearest_point_pixel': [694.7508680555555, 772.5]}, {'partition_id': 'wall_3940', 'endpoint_pixel': [1248.1, 1052.775], 'nearest_line': 'wall_sb_20940', 'distance_pixels': 2.0032000000001062, 'nearest_point_pixel': [1250.1032, 1052.775]}, {'partition_id': 'wall_sb_20940', 'endpoint_pixel': [1250.1032, 1052.775], 'nearest_line': 'wall_3940', 'distance_pixels': 2.0032000000001062, 'nearest_point_pixel': [1248.1, 1052.775]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_005\\result.json",
+        "source_sha256": "c243a01f88f4ddd8ad1ac77571ffd6db8c26878d755b20be782b4d016b617716",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_005/result.json",
+        "local_sha256": "c243a01f88f4ddd8ad1ac77571ffd6db8c26878d755b20be782b4d016b617716",
+        "bytes": 16157
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_006",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_006\\plan.json",
+        "source_sha256": "e1c02db53fe3a15404b0971a128bb5fd1f7eacf19063daa7d29ea18e60b642f4",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_006/plan.json",
+        "local_sha256": "e1c02db53fe3a15404b0971a128bb5fd1f7eacf19063daa7d29ea18e60b642f4",
+        "bytes": 61805
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "space seeds S_tl_e and S_corr_ew occupy the same space",
+        "failure_type": "duplicate_space_seed"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_006\\result.json",
+        "source_sha256": "84a3d16d022faca21c4fdaabb79c90a9da85bdc689bcc0b503f96ac36ac6eed9",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_006/result.json",
+        "local_sha256": "84a3d16d022faca21c4fdaabb79c90a9da85bdc689bcc0b503f96ac36ac6eed9",
+        "bytes": 10093
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_007",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_007\\plan.json",
+        "source_sha256": "e00a2d853b777561fb5b04b7777572924eb063673e0b80b4e1fe879ae9810a6a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_007/plan.json",
+        "local_sha256": "e00a2d853b777561fb5b04b7777572924eb063673e0b80b4e1fe879ae9810a6a",
+        "bytes": 61747
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "space seeds S_corr_ns1 and S_corr_ns2 occupy the same space",
+        "failure_type": "duplicate_space_seed"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_007\\result.json",
+        "source_sha256": "11238e10147ad953163f3fb91b0ac57780411ddab7516724e7824a8ca15f3d0a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_007/result.json",
+        "local_sha256": "11238e10147ad953163f3fb91b0ac57780411ddab7516724e7824a8ca15f3d0a",
+        "bytes": 10113
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_008",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_008\\plan.json",
+        "source_sha256": "2ee87c62f49de9c28c96d72f826a6ccef06c80499cf20280f1565622244e6d48",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_008/plan.json",
+        "local_sha256": "2ee87c62f49de9c28c96d72f826a6ccef06c80499cf20280f1565622244e6d48",
+        "bytes": 61687
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "space seeds S_corr_ns1 and S_corr_band occupy the same space",
+        "failure_type": "duplicate_space_seed"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_008\\result.json",
+        "source_sha256": "518e759e47d17cc497bcabcfe0887348b5bbcc4ed47b2291511a7f58598ef9e0",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_008/result.json",
+        "local_sha256": "518e759e47d17cc497bcabcfe0887348b5bbcc4ed47b2291511a7f58598ef9e0",
+        "bytes": 10117
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_009",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_009\\plan.json",
+        "source_sha256": "eaf12675922a2bc24417efef250daee7f88c68e11b2388988103a3650094626d",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_009/plan.json",
+        "local_sha256": "eaf12675922a2bc24417efef250daee7f88c68e11b2388988103a3650094626d",
+        "bytes": 61567
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "space seeds S_corr_ns1 and S_lobby occupy the same space",
+        "failure_type": "duplicate_space_seed"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_009\\result.json",
+        "source_sha256": "7cae7e75c6a5be58be5e17b0d6ac2982f2ac1430cc028b59febeff799f9b8eff",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_009/result.json",
+        "local_sha256": "7cae7e75c6a5be58be5e17b0d6ac2982f2ac1430cc028b59febeff799f9b8eff",
+        "bytes": 10101
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_010",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_010\\plan.json",
+        "source_sha256": "547ad7cdedf201eb8677966cc61622b67284dfa4cf44d6fff66e96b23fc90d88",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_010/plan.json",
+        "local_sha256": "547ad7cdedf201eb8677966cc61622b67284dfa4cf44d6fff66e96b23fc90d88",
+        "bytes": 61511
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "opening W_n1 at pixels [384.6, 316.0] -> [495.6, 316.0] requires one exterior or two interior full-boundary hosts; found []",
+        "failure_type": "opening_missing_host"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_010\\result.json",
+        "source_sha256": "506c01116d1d1ac8c14d5921b2f206c0c03c8c1f7e7a582c99a37900ae6e19e0",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_010/result.json",
+        "local_sha256": "506c01116d1d1ac8c14d5921b2f206c0c03c8c1f7e7a582c99a37900ae6e19e0",
+        "bytes": 12812
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_011",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_011\\plan.json",
+        "source_sha256": "0fb8fcd49c4352589f4313e068fbe83b2bd12b2617403fe41595252fe059181a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_011/plan.json",
+        "local_sha256": "0fb8fcd49c4352589f4313e068fbe83b2bd12b2617403fe41595252fe059181a",
+        "bytes": 68919
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall_sb_13000'], 'pixel_points': [[881.912, 1052.775], [881.912, 1052.8735]]}, {'partition_ids': ['wall_mid_div'], 'pixel_points': [[512.4, 772.75], [700.9, 772.75]]}, {'partition_ids': ['wall_corridor_south'], 'pixel_points': [[512.4, 587.85], [700.9, 587.85]]}, {'partition_ids': ['wall_mid_east'], 'pixel_points': [[700.9, 587.85], [700.9, 772.75]]}, {'partition_ids': ['wall_mid_east'], 'pixel_points': [[700.9, 772.75], [700.9, 963.197]]}, {'partition_ids': ['wall_5880_west'], 'pixel_points': [[512.1, 963.197], [700.9, 963.197]]}]; nearest disconnected endpoints: [{'partition_id': 'wall_corridor_south', 'endpoint_pixel': [512.4, 587.85], 'nearest_line': 'footprint[6]', 'distance_pixels': 0.30413812651485866, 'nearest_point_pixel': [512.1, 587.9]}, {'partition_id': 'wall_mid_div', 'endpoint_pixel': [512.4, 772.75], 'nearest_line': 'footprint[6]', 'distance_pixels': 0.2999999999999545, 'nearest_point_pixel': [512.1, 772.75]}, {'partition_id': 'wall_sb_13000', 'endpoint_pixel': [881.9119999999999, 1052.775], 'nearest_line': 'wall_3940', 'distance_pixels': 0.09850000000005822, 'nearest_point_pixel': [881.912, 1052.8735000000001]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_011\\result.json",
+        "source_sha256": "79ba4df169315fc78d7fa217a09ed86a7ed16b4ef43993b7e3c19450db2a7ff5",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_011/result.json",
+        "local_sha256": "79ba4df169315fc78d7fa217a09ed86a7ed16b4ef43993b7e3c19450db2a7ff5",
+        "bytes": 12554
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_012",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_012\\plan.json",
+        "source_sha256": "e89b61f041153501a883ed3025b484dfe15811c81897a0da6e0b34e8b4e75c8e",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_012/plan.json",
+        "local_sha256": "e89b61f041153501a883ed3025b484dfe15811c81897a0da6e0b34e8b4e75c8e",
+        "bytes": 68875
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall_sb_13000'], 'pixel_points': [[881.912, 1052.8735], [881.912, 1052.8735]]}, {'partition_ids': ['wall_mid_east'], 'pixel_points': [[700.9, 587.9], [700.9, 772.75]]}, {'partition_ids': ['wall_corridor_south'], 'pixel_points': [[512.1, 587.85], [700.9, 587.85]]}]; nearest disconnected endpoints: [{'partition_id': 'wall_corridor_south', 'endpoint_pixel': [512.1, 587.85], 'nearest_line': 'footprint[6]', 'distance_pixels': 0.049999999999954525, 'nearest_point_pixel': [512.1, 587.9]}, {'partition_id': 'wall_corridor_south', 'endpoint_pixel': [700.9, 587.85], 'nearest_line': 'wall_mid_east', 'distance_pixels': 0.049999999999954525, 'nearest_point_pixel': [700.9, 587.9]}, {'partition_id': 'wall_mid_east', 'endpoint_pixel': [700.9, 587.9], 'nearest_line': 'wall_corridor_south', 'distance_pixels': 0.049999999999954525, 'nearest_point_pixel': [700.9, 587.85]}, {'partition_id': 'wall_sb_13000', 'endpoint_pixel': [881.9119999999999, 1052.8735], 'nearest_line': 'wall_3940', 'distance_pixels': 2.2737367544323206e-13, 'nearest_point_pixel': [881.912, 1052.8735000000001]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_012\\result.json",
+        "source_sha256": "9e5bc1ba4db55f51fc95743216bc68af28a34bedb840ae4af29d66e8822ba136",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_012/result.json",
+        "local_sha256": "9e5bc1ba4db55f51fc95743216bc68af28a34bedb840ae4af29d66e8822ba136",
+        "bytes": 12298
+      }
+    },
+    {
+      "group": "failure_trials_earliest_two_tasks",
+      "run": "f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a",
+      "item": "draft_013",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_013\\plan.json",
+        "source_sha256": "6a418cc8bd9df181a69a8d2f6a0a406c232fb1b3505461da1c8dcf48e8acd328",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_013/plan.json",
+        "local_sha256": "6a418cc8bd9df181a69a8d2f6a0a406c232fb1b3505461da1c8dcf48e8acd328",
+        "bytes": 68905
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error_stage": "regularization",
+        "error": "polygonize produced dangles: [{'partition_ids': ['wall_corridor_south'], 'pixel_points': [[512.1, 587.85], [700.9, 587.85]]}, {'partition_ids': ['wall_mid_east'], 'pixel_points': [[700.9, 587.85], [700.9, 772.75]]}]; nearest disconnected endpoints: [{'partition_id': 'wall_corridor_south', 'endpoint_pixel': [512.1, 587.85], 'nearest_line': 'footprint[6]', 'distance_pixels': 0.049999999999954525, 'nearest_point_pixel': [512.1, 587.9]}]; coordinates unchanged; no automatic snapping",
+        "failure_type": "dangle"
+      },
+      "result": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\runs-q\\AI_agent\\archive\\local_backup\\quality\\sm25_role_q\\tasks\\f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a\\bim\\trial_workspace\\plan_drafts\\draft_013\\result.json",
+        "source_sha256": "eb1b00a2e3380ba5bc13b3a732116a08aba4596c2e3911435be17699bab0b843",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/failure_trials_earliest_two_tasks/f64551fcd6f07823cb87971cfb91446425da18286b3ab1ef935e0cbd7a69f68a/draft_013/result.json",
+        "local_sha256": "eb1b00a2e3380ba5bc13b3a732116a08aba4596c2e3911435be17699bab0b843",
+        "bytes": 10719
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "85cc8d5657e14894d61f7ff953c3a18b23cf48b797b4af20b79ec81e72496109",
+      "item": "draft_001",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\85cc8d5657e14894d61f7ff953c3a18b23cf48b797b4af20b79ec81e72496109\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "e90f4159c61bd26d7b90319560f950dc21bfca0f0974f3d53b3fe58fad0d78b3",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/85cc8d5657e14894d61f7ff953c3a18b23cf48b797b4af20b79ec81e72496109/draft_001/plan.json",
+        "local_sha256": "e90f4159c61bd26d7b90319560f950dc21bfca0f0974f3d53b3fe58fad0d78b3",
+        "bytes": 9825
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\85cc8d5657e14894d61f7ff953c3a18b23cf48b797b4af20b79ec81e72496109\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\85cc8d5657e14894d61f7ff953c3a18b23cf48b797b4af20b79ec81e72496109\\bim\\trial_workspace\\plan_drafts\\draft_001\\result.json",
+        "source_sha256": "351c858ea4dcf388255b37dbed75e715189c41a37f07012ac5e71ec855d2b374",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/85cc8d5657e14894d61f7ff953c3a18b23cf48b797b4af20b79ec81e72496109/draft_001/result.json",
+        "local_sha256": "351c858ea4dcf388255b37dbed75e715189c41a37f07012ac5e71ec855d2b374",
+        "bytes": 146244
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4",
+      "item": "draft_001",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "5b0c58fd21658933ff2bbeb5a290324ba5223abc8653cad5a53e569a10109c88",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_001/plan.json",
+        "local_sha256": "5b0c58fd21658933ff2bbeb5a290324ba5223abc8653cad5a53e569a10109c88",
+        "bytes": 10512
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "partition P-corr-south: physical partition overlaps footprint boundary at GEOMETRYCOLLECTION (LINESTRING (241 616, 470 616), POINT (928 616))"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_001\\result.json",
+        "source_sha256": "b566a55dff854b88c5ed8666fa350883fe21e50d2cc6e8512fa6bac9e25ec103",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_001/result.json",
+        "local_sha256": "b566a55dff854b88c5ed8666fa350883fe21e50d2cc6e8512fa6bac9e25ec103",
+        "bytes": 8331
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4",
+      "item": "draft_002",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "f21be4f5cb0dca97dff03f3c6118280a42faea1083494f2f95278dc310e0e321",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_002/plan.json",
+        "local_sha256": "f21be4f5cb0dca97dff03f3c6118280a42faea1083494f2f95278dc310e0e321",
+        "bytes": 10640
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "polygonize produced dangles: [{'partition_ids': ['P-meet-north'], 'pixel_points': [[470.0, 611.0], [651.0, 611.0]]}, {'partition_ids': ['P-meeting-east'], 'pixel_points': [[651.0, 611.0], [651.0, 988.0]]}]; nearest disconnected endpoints: [{'partition_id': 'P-meet-north', 'endpoint_pixel': [470.0, 611.0], 'nearest_line': 'footprint[5]', 'distance_pixels': 6.0, 'nearest_point_pixel': [470.0, 617.0]}]; coordinates unchanged; no automatic snapping"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_002\\result.json",
+        "source_sha256": "da4d68b2f58fd54f337bcc6b2765ff13c6b1aa11217d799dd4ff1c4332497771",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_002/result.json",
+        "local_sha256": "da4d68b2f58fd54f337bcc6b2765ff13c6b1aa11217d799dd4ff1c4332497771",
+        "bytes": 8091
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4",
+      "item": "draft_003",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "c27eb87d2a76edb84903a358c0a2f0a9c7765323380a5ee9e2a0f48de7bec4d9",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_003/plan.json",
+        "local_sha256": "c27eb87d2a76edb84903a358c0a2f0a9c7765323380a5ee9e2a0f48de7bec4d9",
+        "bytes": 10640
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "opening D1.z [0.0, 2.1] is outside floor vertical bounds [4.0, 7.0]"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_003\\result.json",
+        "source_sha256": "f9a71fa6b2dfa1e6072fd23feee1ef962295bbe13941330f63bc890951062866",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_003/result.json",
+        "local_sha256": "f9a71fa6b2dfa1e6072fd23feee1ef962295bbe13941330f63bc890951062866",
+        "bytes": 7710
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4",
+      "item": "draft_004",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "296a75cbd174cda79ce1593992a096609eb1102ff58561cc4d57c0f00b870f03",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_004/plan.json",
+        "local_sha256": "296a75cbd174cda79ce1593992a096609eb1102ff58561cc4d57c0f00b870f03",
+        "bytes": 10640
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_004\\result.json",
+        "source_sha256": "cfc8c767265b31acbc12dd2f70f803332f0ba9781d479ec31b322b7ddf0acf32",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4/draft_004/result.json",
+        "local_sha256": "cfc8c767265b31acbc12dd2f70f803332f0ba9781d479ec31b322b7ddf0acf32",
+        "bytes": 143924
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d",
+      "item": "draft_001",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "167d6269fb96bf65dc305a34e298b096862142ef9acd3805dfe8c2ae077be602",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_001/plan.json",
+        "local_sha256": "167d6269fb96bf65dc305a34e298b096862142ef9acd3805dfe8c2ae077be602",
+        "bytes": 9826
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "polygonize produced dangles: [{'partition_ids': ['P_MR_E'], 'pixel_points': [[1252.0, 963.0], [1252.0, 1051.0]]}, {'partition_ids': ['P_SB_N_E'], 'pixel_points': [[793.0, 963.0], [976.0, 963.0]]}, {'partition_ids': ['P_SB_N_E'], 'pixel_points': [[790.0, 963.0], [793.0, 963.0]]}, {'partition_ids': ['P_EB_W'], 'pixel_points': [[793.0, 865.0], [793.0, 963.0]]}, {'partition_ids': ['P_CORR_S'], 'pixel_points': [[513.0, 580.0], [697.0, 580.0]]}, {'partition_ids': ['P_MGR_E'], 'pixel_points': [[697.0, 580.0], [697.0, 768.0]]}]; nearest disconnected endpoints: [{'partition_id': 'P_CORR_S', 'endpoint_pixel': [513.0, 580.0], 'nearest_line': 'footprint[5]', 'distance_pixels': 5.0, 'nearest_point_pixel': [513.0, 585.0]}, {'partition_id': 'P_SB_N_E', 'endpoint_pixel': [790.0, 963.0], 'nearest_line': 'P_EB_W', 'distance_pixels': 3.0, 'nearest_point_pixel': [793.0, 963.0]}, {'partition_id': 'P_SB_N_E', 'endpoint_pixel': [976.0, 963.0], 'nearest_line': 'footprint[1]', 'distance_pixels': 6.0, 'nearest_point_pixel': [976.0, 957.0]}, {'partition_id': 'P_MR_E', 'endpoint_pixel': [1252.0, 963.0], 'nearest_line': 'footprint[2]', 'distance_pixels': 6.0, 'nearest_point_pixel': [1252.0, 957.0]}]; coordinates unchanged; no automatic snapping"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_001\\result.json",
+        "source_sha256": "74fae1dc71053dfa8471ee6c93b097e99dea65fc9aed956a79cecdbf450b219a",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_001/result.json",
+        "local_sha256": "74fae1dc71053dfa8471ee6c93b097e99dea65fc9aed956a79cecdbf450b219a",
+        "bytes": 9955
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d",
+      "item": "draft_002",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "2fa7bd97baa7c615c2c79579159eb3811c4b89c44ba67a8593b30118196b7aaa",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_002/plan.json",
+        "local_sha256": "2fa7bd97baa7c615c2c79579159eb3811c4b89c44ba67a8593b30118196b7aaa",
+        "bytes": 9827
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "partition P_CORR_S segment 0 is not orthogonal: [513.0, 585.0] -> [697.0, 580.0]"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_002\\result.json",
+        "source_sha256": "b893d33330c71bde4972fa0b4eb9b2658d5ae38ccf13d1a0d9e037885b70694c",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_002/result.json",
+        "local_sha256": "b893d33330c71bde4972fa0b4eb9b2658d5ae38ccf13d1a0d9e037885b70694c",
+        "bytes": 9071
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d",
+      "item": "draft_003",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "b0117ed4b5589c055448d9dfe6562037b3a3b2f0d8b7b0352bb2244512bef633",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_003/plan.json",
+        "local_sha256": "b0117ed4b5589c055448d9dfe6562037b3a3b2f0d8b7b0352bb2244512bef633",
+        "bytes": 9837
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "space seeds S_CORR_W and S_CORR_N occupy the same space"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_003\\result.json",
+        "source_sha256": "515bac324b3ee11e6f493c34eccce434504a1e0121be8ad7de2635bba86326ee",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_003/result.json",
+        "local_sha256": "515bac324b3ee11e6f493c34eccce434504a1e0121be8ad7de2635bba86326ee",
+        "bytes": 7733
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d",
+      "item": "draft_004",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "edfa9db548ba28c45b33f1d273ffda17611cf498fd5e3c5bb58e00b8f73d0d43",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_004/plan.json",
+        "local_sha256": "edfa9db548ba28c45b33f1d273ffda17611cf498fd5e3c5bb58e00b8f73d0d43",
+        "bytes": 9783
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "space seeds S_CORR_W and S_CORR_M occupy the same space"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_004\\result.json",
+        "source_sha256": "374f6a26c81630d99dfb8d509b619c7299f079616e719691e5ef047ce8379583",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_004/result.json",
+        "local_sha256": "374f6a26c81630d99dfb8d509b619c7299f079616e719691e5ef047ce8379583",
+        "bytes": 7733
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d",
+      "item": "draft_005",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_005\\plan.json",
+        "source_sha256": "7b9dc0cf07530b01968c45c37cce963b6760994f1505255a8741d53cfb1aa7ae",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_005/plan.json",
+        "local_sha256": "7b9dc0cf07530b01968c45c37cce963b6760994f1505255a8741d53cfb1aa7ae",
+        "bytes": 9622
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "error",
+        "error": "opening W_N1 at pixels [385.0, 315.0] -> [497.0, 315.0] requires one exterior or two interior full-boundary hosts; found []"
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_005\\result.json",
+        "source_sha256": "78e936dc30d1ac1b12692c97e5bc736008c48890f5662d91047e6085d77099a3",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_005/result.json",
+        "local_sha256": "78e936dc30d1ac1b12692c97e5bc736008c48890f5662d91047e6085d77099a3",
+        "bytes": 10245
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_trials",
+      "run": "c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d",
+      "item": "draft_006",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_006\\plan.json",
+        "source_sha256": "24ab178e4196a2762fa1553afa9b4da17e63d95e0b93a4261b6c95bfc6f6e99c",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_006/plan.json",
+        "local_sha256": "24ab178e4196a2762fa1553afa9b4da17e63d95e0b93a4261b6c95bfc6f6e99c",
+        "bytes": 9622
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_006\\result.json",
+        "source_sha256": "42de101eff9050f3d9e6e4dbf6dbdc8a4e200783a0c4f639be590dd07e9a2477",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_trials/c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d/draft_006/result.json",
+        "local_sha256": "42de101eff9050f3d9e6e4dbf6dbdc8a4e200783a0c4f639be590dd07e9a2477",
+        "bytes": 143782
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_delivery_plans",
+      "run": "sm25_role_n1",
+      "item": "draft_001",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "cd3a4630e82a8b243ed0c5315d34077326c2080a431fb257f50acd3c0f94cdad",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_001/plan.json",
+        "local_sha256": "cd3a4630e82a8b243ed0c5315d34077326c2080a431fb257f50acd3c0f94cdad",
+        "bytes": 17220
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_001\\result.json",
+        "source_sha256": "67ae88ffdb65fedb6a96ec6623d1b8e0eb8a41a3eed0b6720976f89859b7a078",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_001/result.json",
+        "local_sha256": "67ae88ffdb65fedb6a96ec6623d1b8e0eb8a41a3eed0b6720976f89859b7a078",
+        "bytes": 162113
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_delivery_plans",
+      "run": "sm25_role_n1",
+      "item": "draft_002",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "5b96cf1c0f439a240628098b82795f0ae3ae3467b9602925211af1d3482b531b",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_002/plan.json",
+        "local_sha256": "5b96cf1c0f439a240628098b82795f0ae3ae3467b9602925211af1d3482b531b",
+        "bytes": 16219
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_002\\result.json",
+        "source_sha256": "62936d300831e681b5ed6038cae0ba1f488ed87d2b2df664f371918ebb970c73",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_002/result.json",
+        "local_sha256": "62936d300831e681b5ed6038cae0ba1f488ed87d2b2df664f371918ebb970c73",
+        "bytes": 157570
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_delivery_plans",
+      "run": "sm25_role_n1",
+      "item": "draft_003",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "119ee83d800d54bcf6a2cc87e222291463f7cec9c61ff395f9af8dc0a3946512",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_003/plan.json",
+        "local_sha256": "119ee83d800d54bcf6a2cc87e222291463f7cec9c61ff395f9af8dc0a3946512",
+        "bytes": 13488
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_003\\result.json",
+        "source_sha256": "f18e3ac5419ab8523667e7fed2462f9e97d5697ca64944102249c0979e4520d1",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_003/result.json",
+        "local_sha256": "f18e3ac5419ab8523667e7fed2462f9e97d5697ca64944102249c0979e4520d1",
+        "bytes": 155055
+      }
+    },
+    {
+      "group": "merged_sm25_role_n1_delivery_plans",
+      "run": "sm25_role_n1",
+      "item": "draft_004",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "26d866499ac670a21d9682c4254a98908b4f89d0de85aff83f9bcf12454550ef",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_004/plan.json",
+        "local_sha256": "26d866499ac670a21d9682c4254a98908b4f89d0de85aff83f9bcf12454550ef",
+        "bytes": 14529
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "status": "not_evaluated",
+        "error": null
+      },
+      "result": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\merged\\sm25_role_n1\\bim\\plan_drafts\\draft_004\\result.json",
+        "source_sha256": "a3bb64ca50f2106e96b638e0cbbfada28ab96616706fc2dc2b60892ccadab6c8",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/merged_sm25_role_n1_delivery_plans/sm25_role_n1/draft_004/result.json",
+        "local_sha256": "a3bb64ca50f2106e96b638e0cbbfada28ab96616706fc2dc2b60892ccadab6c8",
+        "bytes": 153821
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm21_role",
+      "item": "01_PLAN.F1",
+      "floor_id": "PLAN.F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_role\\bim\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "74195f255a11c0c885c9c0904fb3a7b09ea0a182503e5faebfae102715b9c994",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm21_role/01_PLAN_F1/plan.json",
+        "local_sha256": "74195f255a11c0c885c9c0904fb3a7b09ea0a182503e5faebfae102715b9c994",
+        "bytes": 9489
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_role\\bim\\images\\1f_view.png",
+        "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "size": [
+          2133,
+          1345
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 2
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm21_role",
+      "item": "02_PLAN.F2",
+      "floor_id": "PLAN.F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_role\\bim\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "8f6900fd472c4a6b9cc3832bfd25d97e433b687d861a09f45523aa905d6ef008",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm21_role/02_PLAN_F2/plan.json",
+        "local_sha256": "8f6900fd472c4a6b9cc3832bfd25d97e433b687d861a09f45523aa905d6ef008",
+        "bytes": 10599
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_role\\bim\\images\\2f_view.png",
+        "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "size": [
+          2182,
+          1319
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 2
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm21_single",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_single\\bim\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "25731add51ffe71069fde7a342353d8669b9a0d402619b3a6afff9dda5e7c078",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm21_single/01_F1/plan.json",
+        "local_sha256": "25731add51ffe71069fde7a342353d8669b9a0d402619b3a6afff9dda5e7c078",
+        "bytes": 5837
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_single\\bim\\images\\1f_view.png",
+        "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "size": [
+          2133,
+          1345
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 2
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm21_single",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_single\\bim\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "94bc738146bab5293238daa8e734a3112db1489739cae9939601849b5e3de7af",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm21_single/02_F2/plan.json",
+        "local_sha256": "94bc738146bab5293238daa8e734a3112db1489739cae9939601849b5e3de7af",
+        "bytes": 5533
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm21_single\\bim\\images\\2f_view.png",
+        "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "size": [
+          2182,
+          1319
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 2
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm24_role",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm24_role\\bim\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "684e63d88635e329b387c77cb1f53d3999a20d4ae5eda1d5365820175403a405",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm24_role/01_F1/plan.json",
+        "local_sha256": "684e63d88635e329b387c77cb1f53d3999a20d4ae5eda1d5365820175403a405",
+        "bytes": 16012
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm24_role\\bim\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm24_single",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm24_single\\bim\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "da2ae25f82a1baf432cb9b08d7a7fcea741e4a44e5091be5da18b5f2c0c5d2af",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm24_single/01_F1/plan.json",
+        "local_sha256": "da2ae25f82a1baf432cb9b08d7a7fcea741e4a44e5091be5da18b5f2c0c5d2af",
+        "bytes": 8345
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm24_single\\bim\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm25_role",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\bim\\plan_drafts\\draft_005\\plan.json",
+        "source_sha256": "29d3fc2107ba47196e541748c68ec1b5b28ed67c44610db4ef7ecf5ea7d31666",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm25_role/01_F1/plan.json",
+        "local_sha256": "29d3fc2107ba47196e541748c68ec1b5b28ed67c44610db4ef7ecf5ea7d31666",
+        "bytes": 19060
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 33
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm25_role",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\bim\\plan_drafts\\draft_006\\plan.json",
+        "source_sha256": "3d702f54f6273edc8a9b442d74aaec789f8a47c2e3fb8b72ba09eef17c0928ec",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm25_role/02_F2/plan.json",
+        "local_sha256": "3d702f54f6273edc8a9b442d74aaec789f8a47c2e3fb8b72ba09eef17c0928ec",
+        "bytes": 18586
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 33
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm25_single",
+      "item": "01_1F",
+      "floor_id": "1F",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_single\\bim\\plan_drafts\\draft_015\\plan.json",
+        "source_sha256": "03d94f1ab5a518204109b875585d5e24fd524afd7b3734216692013e970f9774",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm25_single/01_1F/plan.json",
+        "local_sha256": "03d94f1ab5a518204109b875585d5e24fd524afd7b3734216692013e970f9774",
+        "bytes": 8966
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_single\\bim\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 24
+      }
+    },
+    {
+      "group": "three_case_comparison_delivery_plans",
+      "run": "sm25_single",
+      "item": "02_2F",
+      "floor_id": "2F",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_single\\bim\\plan_drafts\\draft_016\\plan.json",
+        "source_sha256": "261c5bd9d53317c1ee6a51f624e5d9915c0929a6a3450913e882ef0e52eafffe",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/three_case_comparison_delivery_plans/sm25_single/02_2F/plan.json",
+        "local_sha256": "261c5bd9d53317c1ee6a51f624e5d9915c0929a6a3450913e882ef0e52eafffe",
+        "bytes": 10580
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_single\\bim\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 24
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-10-01_opus_dev_sm21",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm21\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-10-01_opus_dev_sm21/01_F1/plan.json",
+        "local_sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad",
+        "bytes": 6771
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm21\\images\\1f_view.png",
+        "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "size": [
+          2133,
+          1345
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-10-01_opus_dev_sm21",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm21\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-10-01_opus_dev_sm21/02_F2/plan.json",
+        "local_sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804",
+        "bytes": 6339
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm21\\images\\2f_view.png",
+        "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "size": [
+          2182,
+          1319
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-10-01_opus_dev_sm24",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm24\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-10-01_opus_dev_sm24/01_F1/plan.json",
+        "local_sha256": "15fe202f9776f38acaef86fa5ddb22cef148bdbcabd3ae92b0ca1e2e5c500dea",
+        "bytes": 9390
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm24\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-10-01_opus_dev_sm25",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm25\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-10-01_opus_dev_sm25/01_F1/plan.json",
+        "local_sha256": "9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347",
+        "bytes": 13616
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm25\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 5
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-10-01_opus_dev_sm25",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm25\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-10-01_opus_dev_sm25/02_F2/plan.json",
+        "local_sha256": "c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa",
+        "bytes": 12520
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-10-01_opus_dev_sm25\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 5
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm25_height_cold_claude_run53",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_cold_claude_run53\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "f951a1eaa054081c1913199cb5878b0da15821c1326a66552096fce533407658",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm25_height_cold_claude_run53/01_F1/plan.json",
+        "local_sha256": "f951a1eaa054081c1913199cb5878b0da15821c1326a66552096fce533407658",
+        "bytes": 6859
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_cold_claude_run53\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 30
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm25_height_cold_claude_run53",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_cold_claude_run53\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "47060f5a439b80f060a505a5967b5e46474904d136210627e91d9a9ff48a81f0",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm25_height_cold_claude_run53/02_F2/plan.json",
+        "local_sha256": "47060f5a439b80f060a505a5967b5e46474904d136210627e91d9a9ff48a81f0",
+        "bytes": 7199
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_cold_claude_run53\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 30
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm25_height_repeat_claude_run54",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_repeat_claude_run54\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "342f406ffcef023a8b8809c99684c3b5c6c6568bfaf0b66c75127315eddcb683",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm25_height_repeat_claude_run54/01_F1/plan.json",
+        "local_sha256": "342f406ffcef023a8b8809c99684c3b5c6c6568bfaf0b66c75127315eddcb683",
+        "bytes": 5905
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_repeat_claude_run54\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 24
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm25_height_repeat_claude_run54",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_repeat_claude_run54\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "830e9d684a98536677c156857f9d82d8274a56591d87dd140c66ad6c8db19a1f",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm25_height_repeat_claude_run54/02_F2/plan.json",
+        "local_sha256": "830e9d684a98536677c156857f9d82d8274a56591d87dd140c66ad6c8db19a1f",
+        "bytes": 5604
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm25_height_repeat_claude_run54\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 24
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm24_whole_building_claude_run55",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm24_whole_building_claude_run55\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "9d8e233c35484cb3658f1ad50241fbf907fe99c4b1ede8142cf09b7b6ce70cfb",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm24_whole_building_claude_run55/01_F1/plan.json",
+        "local_sha256": "9d8e233c35484cb3658f1ad50241fbf907fe99c4b1ede8142cf09b7b6ce70cfb",
+        "bytes": 4838
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm24_whole_building_claude_run55\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "legacy_geometric_pass_source_save_incompatible",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm24_whole_building_repeat_claude_run56",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm24_whole_building_repeat_claude_run56\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "1011ba80eb23038c13b4c6a146dd81a79a835f62b02f361a1c5a113718ccb692",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm24_whole_building_repeat_claude_run56/01_F1/plan.json",
+        "local_sha256": "1011ba80eb23038c13b4c6a146dd81a79a835f62b02f361a1c5a113718ccb692",
+        "bytes": 4726
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm24_whole_building_repeat_claude_run56\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "legacy_geometric_pass_source_save_incompatible",
+        "q1_group_applied_change_count": 0
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm21_whole_building_claude_run57",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm21_whole_building_claude_run57\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "0938a8eb5bedc03309dfefafbfe658085f522599bfc7dcbf22786725c1229e72",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm21_whole_building_claude_run57/01_F1/plan.json",
+        "local_sha256": "0938a8eb5bedc03309dfefafbfe658085f522599bfc7dcbf22786725c1229e72",
+        "bytes": 3999
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm21_whole_building_claude_run57\\images\\1f_view.png",
+        "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "size": [
+          2133,
+          1345
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 7
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-26_sm21_whole_building_claude_run57",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm21_whole_building_claude_run57\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "2863ae4f81135918b83bdbf81f5a55433340e4421386e7e99f9dd75bdb5d042d",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-26_sm21_whole_building_claude_run57/02_F2/plan.json",
+        "local_sha256": "2863ae4f81135918b83bdbf81f5a55433340e4421386e7e99f9dd75bdb5d042d",
+        "bytes": 3846
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-26_sm21_whole_building_claude_run57\\images\\2f_view.png",
+        "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "size": [
+          2182,
+          1319
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 7
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-27_sm21_whole_building_repeat_claude_run58\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "a0721ffe186095084f013850db063f6116f8c306aa87f64ad678c6b6cfa80e50",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-27_sm21_whole_building_repeat_claude_run58/01_F1/plan.json",
+        "local_sha256": "a0721ffe186095084f013850db063f6116f8c306aa87f64ad678c6b6cfa80e50",
+        "bytes": 3795
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-27_sm21_whole_building_repeat_claude_run58\\images\\1f_view.png",
+        "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "size": [
+          2133,
+          1345
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 7
+      }
+    },
+    {
+      "group": "q1_historical_regularization_inputs",
+      "run": "2026-09-27_sm21_whole_building_repeat_claude_run58",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-27_sm21_whole_building_repeat_claude_run58\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "381a23764e68683ac23a58091c9d6786281c113a2d9dc91d5969da9646f9ce56",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_regularization_inputs/2026-09-27_sm21_whole_building_repeat_claude_run58/02_F2/plan.json",
+        "local_sha256": "381a23764e68683ac23a58091c9d6786281c113a2d9dc91d5969da9646f9ce56",
+        "bytes": 3673
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "D:\\EnergyPlus-Agent-worktrees\\q1\\AI_agent\\logs\\experiments\\2026-09-27_sm21_whole_building_repeat_claude_run58\\images\\2f_view.png",
+        "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "size": [
+          2182,
+          1319
+        ],
+        "copied": false,
+        "reason_not_copied": "pre-compile junction replay uses image dimensions, not pixels"
+      },
+      "baseline": {
+        "q1_group_status": "regularized",
+        "q1_group_applied_change_count": 7
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm24_plan_reader_run3",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\plan_reader_probe\\run3\\tasks\\2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4\\bim\\trial_workspace\\plan_drafts\\draft_006\\plan.json",
+        "source_sha256": "101247b57519939c16c710eebebc2d9f9dbdc73f50349b5be0c53243febcdb88",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm24_plan_reader_run3/01_F1/plan.json",
+        "local_sha256": "101247b57519939c16c710eebebc2d9f9dbdc73f50349b5be0c53243febcdb88",
+        "bytes": 7280
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\plan_reader_probe\\run3\\tasks\\2c8d02b978e4834856efd80855fe3f43921721036eb957f7fc56f70d1c784af4\\bim\\trial_workspace\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/47cf5eeeb574d010_1f_view.png",
+        "local_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "bytes": 96218
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm24_role_debug_run3",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "43d7597af4287f9db4ec273ca69d2a12dfcaca5bb217891949ed295e48b3aad4",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm24_role_debug_run3/01_F1/plan.json",
+        "local_sha256": "43d7597af4287f9db4ec273ca69d2a12dfcaca5bb217891949ed295e48b3aad4",
+        "bytes": 7899
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/47cf5eeeb574d010_1f_view.png",
+        "local_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "bytes": 96218
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm24_role_debug_run7",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_002\\plan.json",
+        "source_sha256": "0c2ed30ec2c7f80b44270a8ca21c347ab84b6a495474810dc200766aa9971d73",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm24_role_debug_run7/01_F1/plan.json",
+        "local_sha256": "0c2ed30ec2c7f80b44270a8ca21c347ab84b6a495474810dc200766aa9971d73",
+        "bytes": 7446
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\images\\1f_view.png",
+        "source_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "size": [
+          790,
+          1111
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/47cf5eeeb574d010_1f_view.png",
+        "local_sha256": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+        "bytes": 96218
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm21_role_debug_run1",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\plan_drafts\\draft_003\\plan.json",
+        "source_sha256": "5dc225dc003d11f8f42b845009709cf06af4241e6dbf4c743f1741912950e18d",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm21_role_debug_run1/01_F1/plan.json",
+        "local_sha256": "5dc225dc003d11f8f42b845009709cf06af4241e6dbf4c743f1741912950e18d",
+        "bytes": 6717
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\images\\1f_view.png",
+        "source_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "size": [
+          2133,
+          1345
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/ac62091683dde4ab_1f_view.png",
+        "local_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+        "bytes": 124880
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm21_role_debug_run1",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_001\\plan.json",
+        "source_sha256": "d685ecb2feaae663a647827c61357f03b130db909dc2c179a2c07b75dbf58d0d",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm21_role_debug_run1/02_F2/plan.json",
+        "local_sha256": "d685ecb2feaae663a647827c61357f03b130db909dc2c179a2c07b75dbf58d0d",
+        "bytes": 5537
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\images\\2f_view.png",
+        "source_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "size": [
+          2182,
+          1319
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/d7cd58d34bc6243e_2f_view.png",
+        "local_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+        "bytes": 190244
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm25_cmp3_role_trials",
+      "item": "01_F1",
+      "floor_id": "F1",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\tasks\\b11a45e82fb6b19bc05cfda9b4d570c87099351179958ee59aad0977a55ccbab\\bim\\trial_workspace\\plan_drafts\\draft_004\\plan.json",
+        "source_sha256": "2866ca6f8cb1cd471009aca78cfe49e3d47bd4dd45b79a2a5daf599c766f927f",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm25_cmp3_role_trials/01_F1/plan.json",
+        "local_sha256": "2866ca6f8cb1cd471009aca78cfe49e3d47bd4dd45b79a2a5daf599c766f927f",
+        "bytes": 10194
+      },
+      "image_name": "1f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\tasks\\b11a45e82fb6b19bc05cfda9b4d570c87099351179958ee59aad0977a55ccbab\\bim\\trial_workspace\\images\\1f_view.png",
+        "source_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "size": [
+          1758,
+          1496
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/6512c86e46a0c9c2_1f_view.png",
+        "local_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "bytes": 451136
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    },
+    {
+      "group": "q1_historical_reader_inputs",
+      "run": "sm25_cmp3_role_trials",
+      "item": "02_F2",
+      "floor_id": "F2",
+      "plan": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_006\\plan.json",
+        "source_sha256": "b680e796ad828dc7992d9982bec2d976b8ed6a63130f02f774086bf6e23ed86f",
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/q1_historical_reader_inputs/sm25_cmp3_role_trials/02_F2/plan.json",
+        "local_sha256": "b680e796ad828dc7992d9982bec2d976b8ed6a63130f02f774086bf6e23ed86f",
+        "bytes": 10304
+      },
+      "image_name": "2f_view.png",
+      "image": {
+        "source_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\images\\2f_view.png",
+        "source_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "size": [
+          1661,
+          1561
+        ],
+        "copied": true,
+        "local_path": "AI_agent/archive/local_backup/q1b/replay_inputs/_reader_images/bde78c1276b79d96_2f_view.png",
+        "local_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "bytes": 167820
+      },
+      "baseline": {
+        "q1_ink_status": "deliverable"
+      }
+    }
+  ],
+  "reader_image_copy": {
+    "unique_files_copied_this_run": 5,
+    "bytes_copied_this_run": 1030298,
+    "local_image_files": 5,
+    "local_image_bytes": 1030298
+  }
+}

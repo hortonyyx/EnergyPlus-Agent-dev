@@ -103,6 +103,15 @@ def summary(report):
         "attempted_change_count": len(attempted),
         "max_movement_m": max(distances, default=0.0),
         "rejected_count": len(rejected),
+        "junction_preparation": [
+            {"floor_id": section.get("floor_id"),
+             **{key: preparation.get(key) for key in (
+                 "status", "tolerance_m", "tolerance_pixels", "pixel_decimals",
+                 "compile_error", "rejection")},
+             "applied_change_count": len(preparation.get("changes", [])),
+             "attempted_change_count": len(preparation.get("attempted_changes", []))}
+            for section in sections
+            if isinstance(preparation := section.get("junction_preparation"), dict)],
         "rejections": [
             {**{key: value for key, value in row.items()
                 if key not in {"report", "before", "after", "hard_constraints", "attempted_changes",
