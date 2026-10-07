@@ -948,6 +948,9 @@ class Toolkit:
             raise
         result["plan_revision"] = dict(**binding, unchanged_ids=preservation["unchanged_ids"],
             changed_targets=[dict(field=r["field"], id=r["id"]) for r in preservation["changes"]])
+        if result.get("regularization") is not None:
+            result["plan_revision"]["preservation_scope"] = (
+                "unchanged_ids describe the explicit edit; indirect regularization movements are recorded separately")
         from scripts.tool_scripts.bim_agent_saved_result import saved_source_result
         prior_result = self.run / "plan_drafts" / draft_id / "result.json"
         prior = json.loads(prior_result.read_bytes()).get("candidate") if prior_result.is_file() else None
@@ -985,6 +988,9 @@ class Toolkit:
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
         from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
+        from scripts.tool_scripts.bim_agent_regularization import (
+            LEGACY_RULE, compact_plan_input, save_report, selected_rule,
+        )
         from scripts.tool_scripts.bim_agent_saved_result import saved_result
         image_path = self.image_path(image)
         folder = self.run / "plan_drafts"
@@ -1001,6 +1007,8 @@ class Toolkit:
         dump(draft / "input.json", record)
         input_stage = "parse_json"
         plan = None
+        regularization = None
+        regularization_error = None
         try:
             plan = json.loads(plan_json)
             input_stage = "field_aliases"
@@ -1012,21 +1020,42 @@ class Toolkit:
             input_stage = "measurement_binding"
             plan, bindings = resolve_plan_pixels(plan, image=image,
                 image_sha256=record["image_sha256"], load_profile=self.load_pixel_profile)
+            input_stage = "regularization"
+            if selected_rule(self.manifest) != LEGACY_RULE:
+                from src.agent.geometry.plan_regularization import regularize_plan
+                # The plan argument is model-supplied. Only the tool may write
+                # the audit for this save; retained reading evidence stays separate.
+                plan.pop("regularization", None)
+                with PILImage.open(image_path) as original:
+                    plan, regularization = regularize_plan(
+                        plan, image_size=original.size, image_name=image)
+                record["regularization"] = regularization
+                record["regularization_report"] = save_report(draft, regularization, self.run)
         except (ValueError, TypeError, KeyError) as error:
-            record["draft_view_errors"] = [{
-                "path": "plan_json", "reason": f"{input_stage}: {error}",
-            }]
-            dump(draft / "input.json", record)
-            result = {"status": "error", "error": str(error), "error_stage": input_stage, "plan_input": record,
-                      "repair_hint": plan_error_hint(plan, str(error)),
-                      "remaining_seconds": self.remaining_seconds(),
-                      "source_geometry_ready": False}
-            saved_result(result, audit_written=True)
-            dump(draft / "result.json", result)
-            self.log("build_plan_bim", result)
-            return result
+            if isinstance(getattr(error, "report", None), dict):
+                regularization = error.report
+                record["regularization"] = regularization
+                record["regularization_report"] = save_report(draft, regularization, self.run)
+            if input_stage == "regularization":
+                # Rejected geometry still gets the usual original/draft evidence.
+                # Never export a candidate merely because the submitted draft compiles.
+                regularization_error = error
+            else:
+                record["draft_view_errors"] = [{
+                    "path": "plan_json", "reason": f"{input_stage}: {error}",
+                }]
+                dump(draft / "input.json", record)
+                result = {"status": "error", "error": str(error), "error_stage": input_stage,
+                          "plan_input": compact_plan_input(record),
+                          "repair_hint": plan_error_hint(plan, str(error)),
+                          "remaining_seconds": self.remaining_seconds(),
+                          "source_geometry_ready": False}
+                saved_result(result, audit_written=True)
+                dump(draft / "result.json", result)
+                self.log("build_plan_bim", result)
+                return result
 
-        if bindings or length_bindings or aliases:
+        if bindings or length_bindings or aliases or (regularization is not None and regularization_error is None):
             submitted = draft / "submitted_plan.json"
             submitted.write_bytes(raw_path.read_bytes())
             dump(raw_path, plan)
@@ -1101,6 +1130,8 @@ class Toolkit:
             with PILImage.open(image_path) as original:
                 proposal, metadata = compile_plan_partition(
                     plan, image_size=original.size, image_name=image)
+            if regularization_error is not None:
+                raise regularization_error
         except (ValueError, TypeError, KeyError) as error:
             if isinstance(error, OpeningHostError):
                 try:
@@ -1130,8 +1161,11 @@ class Toolkit:
                 dump(draft / "input.json", record)
             result = {"status": "error", "error": str(error), "drawing_differences": difference_reply,
                       "repair_hint": plan_error_hint(plan, str(error)),
-                      "plan_input": record, "remaining_seconds": self.remaining_seconds(),
+                      "plan_input": compact_plan_input(record), "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            if regularization is not None:
+                result["regularization"] = record["regularization_report"]
+                result["error_stage"] = "regularization"
             saved_result(result, audit_written=True)
             dump(draft / "result.json", result)
             self.log("build_plan_bim", result)
@@ -1147,6 +1181,11 @@ class Toolkit:
                           remaining_seconds=self.remaining_seconds())
             self.log("build_plan_bim", result)
         result["drawing_differences"] = difference_reply
+        if regularization is not None:
+            # A later source-level refusal is the primary diagnostic. Its
+            # report must not be replaced by a successful plan precheck.
+            result.setdefault("regularization", record["regularization_report"])
+            result["plan_input"] = compact_plan_input(record)
         dump(draft / "result.json", result)
         return result
 
@@ -1154,16 +1193,22 @@ class Toolkit:
         """Recompile bound pixel drafts and combine their explicitly placed floors."""
         from src.agent.geometry.plan_assembly import assemble_plan_proposals
         from src.agent.geometry.plan_partition import compile_plan_partition
+        from scripts.tool_scripts.bim_agent_regularization import (
+            LEGACY_RULE, save_report, selected_rule, summary,
+        )
         if self.readonly:
             raise ValueError("floor assembly is available only to the coordinator")
         floors = json.loads(floors_json)
         if not isinstance(floors, list) or not 2 <= len(floors) <= 32:
             raise ValueError("supply 2–32 explicit floor declarations")
-        items, bindings, calibrations = [], [], []
+        items, bindings, calibrations, declared = [], [], [], []
         for row in floors:
             required = {"draft_id", "expected_plan_sha256", "floor_id", "z_floor", "evidence"}
-            if not isinstance(row, dict) or set(row) != required:
-                raise ValueError(f"each floor requires exactly {sorted(required)}")
+            if (not isinstance(row, dict) or not required <= row.keys()
+                    or row.keys() - required - {"elevation_reference"}):
+                raise ValueError(f"each floor requires {sorted(required)}; elevation_reference is optional")
+            if "elevation_reference" in row and type(row["elevation_reference"]) is not bool:
+                raise ValueError("elevation_reference must be true or false")
             if not isinstance(row["evidence"], str) or not row["evidence"].strip():
                 raise ValueError("each floor needs image evidence or an explicit placement assumption")
             saved = self.inspect_plan(row["draft_id"])
@@ -1171,33 +1216,82 @@ class Toolkit:
                 raise ValueError("stale plan hash; inspect each intended draft before assembly")
             plan, image = saved["declaration"], saved["image"]
             with PILImage.open(self.image_path(image)) as original:
-                proposal, compilation = compile_plan_partition(plan, image_size=original.size, image_name=image)
-            items.append(dict(proposal=proposal, floor_id=row["floor_id"], z_floor=row["z_floor"],
-                              source_ref=row["evidence"]))
+                image_size = original.size
+            declared.append(dict(plan=plan, image_name=image, image_size=image_size,
+                floor_id=row["floor_id"], z_floor=row["z_floor"], source_ref=row["evidence"],
+                elevation_reference=row.get("elevation_reference", False)))
             bindings.append(dict(**row, image=image, image_sha256=digest(self.image_path(image)),
                                  original_floor_id=plan["floor_id"], original_z_floor=plan["z_floor"],
-                                 ceiling_height=plan["ceiling_height"], compilation=compilation))
-            calibrations.append(dict(image=image, floor_id=row["floor_id"],
-                **{key: plan[key] for key in ("x_anchors", "y_anchors", "basis")}))
-        proposal = assemble_plan_proposals(items)
+                                 ceiling_height=plan["ceiling_height"]))
         folder = self.run / "plan_assemblies"
         folder.mkdir(exist_ok=True)
         path = folder / f"assembly_{len(list(folder.glob('assembly_*.json'))) + 1:03d}.json"
-        dump(path, {"floors": bindings, "operation": "namespace_ids_and_translate_z_only",
+        regularization = None
+        if selected_rule(self.manifest) != LEGACY_RULE:
+            from src.agent.geometry.plan_regularization import regularize_plan_stack
+            audit_folder = folder / path.stem
+            audit_folder.mkdir(exist_ok=False)
+            dump(audit_folder / "submitted_plans.json", declared)
+            try:
+                declared, regularization = regularize_plan_stack(declared)
+            except (ValueError, TypeError, KeyError) as error:
+                rejected = getattr(error, "report", None)
+                result = {"status": "error", "error": str(error), "error_stage": "regularization",
+                          "source_geometry_ready": False, "remaining_seconds": self.remaining_seconds()}
+                if isinstance(rejected, dict):
+                    result["regularization"] = save_report(audit_folder, rejected, self.run)
+                dump(path, {"floors": bindings, "status": "rejected", "error": str(error),
+                            "regularization": rejected})
+                from scripts.tool_scripts.bim_agent_saved_result import saved_result
+                saved_result(result, audit_written=True)
+                self.log("assemble_plan_bim", result)
+                return result
+            report_ref = save_report(audit_folder, regularization, self.run)
+        for index, (item, binding_row) in enumerate(zip(declared, bindings)):
+            plan, image = item["plan"], item["image_name"]
+            proposal, compilation = compile_plan_partition(
+                plan, image_size=tuple(item["image_size"]), image_name=image)
+            items.append(dict(proposal=proposal, floor_id=item["floor_id"], z_floor=item["z_floor"],
+                              source_ref=item["source_ref"]))
+            binding_row["compilation"] = compilation
+            if regularization is not None:
+                effective = audit_folder / f"floor_{index + 1:02d}.json"
+                dump(effective, plan)
+                binding_row.update(effective_plan_file=effective.relative_to(self.run).as_posix(),
+                    effective_plan_sha256=digest(effective), effective_z_floor=item["z_floor"])
+            calibrations.append(dict(image=image, floor_id=item["floor_id"],
+                **{key: plan[key] for key in ("x_anchors", "y_anchors", "basis")}))
+        proposal = assemble_plan_proposals(items)
+        dump(path, {"floors": bindings,
+                    "operation": "regularize_recompile_and_assemble" if regularization else "namespace_ids_and_translate_z_only",
+                    **({"regularization": regularization} if regularization is not None else {}),
                     "height_policy": "preserve_declared_heights; revise a draft explicitly to change them"})
         binding = {"file": path.relative_to(self.run).as_posix(), "sha256": digest(path)}
+        if regularization is not None:
+            binding["regularization"] = regularization
         result = self.build(proposal, action="assemble_plan_bim", plan_assembly=binding,
                             assembly_calibrations=calibrations)
-        # Assembly keeps each draft's XY, so each draft's saved comparison still applies.
-        from src.agent.geometry.plan_drawing_differences import compact_differences
+        from src.agent.geometry.plan_drawing_differences import compact_differences, drawing_differences
         differences = {}
-        for row in bindings:
+        for index, (row, item) in enumerate(zip(bindings, declared)):
             saved = self.run / "plan_drafts" / row["draft_id"] / "drawing_differences.json"
-            if saved.is_file():
+            if regularization is not None:
+                try:
+                    with PILImage.open(self.image_path(item["image_name"])) as original:
+                        current = drawing_differences(original, item["plan"], image_name=item["image_name"],
+                            image_sha256=row["image_sha256"], plan_sha256=row["effective_plan_sha256"])
+                    dump(audit_folder / f"floor_{index + 1:02d}_drawing_differences.json", current)
+                    differences[row["floor_id"]] = compact_differences(current)
+                except (ValueError, TypeError, KeyError, IndexError) as error:
+                    differences[row["floor_id"]] = {"status": "unavailable", "reason": str(error)}
+            elif saved.is_file():
                 differences[row["floor_id"]] = dict(draft_id=row["draft_id"],
                     **compact_differences(json.loads(saved.read_text())))
         if differences:
             result["drawing_differences"] = differences
+        if regularization is not None:
+            result.setdefault("regularization", report_ref)
+            result["plan_assembly"] = {**binding, "regularization": summary(regularization)}
         self.log("assemble_plan_bim", {"assembly": binding, "candidate": result.get("candidate"),
                                       "error": result.get("error")})
         return result
@@ -1207,6 +1301,12 @@ class Toolkit:
               plan_assembly=None, assembly_calibrations=None):
         from src.agent.execution.source_proposal import export_source_proposal
         from scripts.tool_scripts.bim_agent_saved_result import saved_result, saved_source_result
+        from scripts.tool_scripts.bim_agent_regularization import reject_source_proposal
+        rejection = reject_source_proposal(self, proposal)
+        if rejection is not None:
+            saved_result(rejection, audit_written=True)
+            self.log(action, rejection)
+            return rejection
         if isinstance(proposal, dict) and 'mesh_frame' in proposal:
             from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
             frame = validate_mesh_frame(proposal['mesh_frame'])
@@ -2746,7 +2846,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
             """Build one floor from observed original-pixel walls, openings and calibration.
             Read plan_partition for JSON. Orthogonal, possibly concave outer footprint
-            without holes; no gap filling, inferred walls, snapping or trimmed openings.
+            without holes. Before strict compilation, sub-0.30 m wall offsets are regularized;
+            remaining hard-rule violations reject the save. No inferred walls or trimmed openings.
             Returns actual source/overlay images, drawing_differences, IDs/heights and
             details_file (read_candidate_items collection=report). Declare omissions in
             unresolved. Each export consumes the shared candidate budget.
@@ -2759,7 +2860,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             Read get_bim_reference('plan_assembly'). floors_json is a JSON list; each item contains draft_id,
             expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,
             namespaces IDs and translates all opening z values by the floor-base change.
-            No height scaling, plan alignment, floor copying or inferred vertical connection.
+            Near wall planes and stacked faces are regularized by editing drafts and recompiling.
+            No height scaling, floor copying or inferred vertical connection.
             For layer height or aperture changes first revise that draft explicitly.
             Returns actual source views/overlays for every included floor.
             """

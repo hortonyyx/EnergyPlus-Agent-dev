@@ -934,7 +934,12 @@ def compare_opening_positions(plan_span, elevation_span, *, tolerance_m=0.10):
 
 
 def attach_ink_review(comparison, inconsistencies):
-    """Keep the independent numeric comparison; add unresolved image evidence."""
+    """Keep the independent numeric comparison; add ink disagreements as evidence only.
+
+    Two independent readings within 10 cm keep the plan (user 10-07); an ink-check
+    disagreement alone does not open a decision (10-08: it blocked delivery while
+    plan and elevation agreed within 2 cm).
+    """
     comparison["ink_inconsistencies"] = copy.deepcopy(inconsistencies)
     maximum = max((row["difference_m"] for row in inconsistencies), default=0.0)
     comparison["ink_max_difference_m"] = maximum
@@ -942,9 +947,7 @@ def attach_ink_review(comparison, inconsistencies):
     if width_conflict:
         maximum = max(maximum, width_conflict["difference_m"])
     comparison["evidence_max_difference_m"] = maximum
-    if inconsistencies or width_conflict:
-        if comparison["status"] == "keep_plan":
-            comparison["status"] = "pending"
+    if (inconsistencies or width_conflict) and comparison["status"] != "keep_plan":
         comparison["requires_both_views"] |= maximum > 0.30 + 1e-9
     return comparison
 

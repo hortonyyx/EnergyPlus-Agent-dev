@@ -9,6 +9,108 @@ from src.agent.geometry.source_naming import (
 )
 
 
+def render_regularization_html(source: dict, audit: dict | None = None) -> str:
+    """Present geometric changes with current public names and optional raw trace."""
+    from scripts.tool_scripts.bim_agent_regularization import source_reports, report_sections
+
+    reports = audit.get("reports", []) if audit else source_reports(source)
+    if not reports:
+        return ""
+    names = public_names_for_display(source)
+    references = public_reference_map(source, names)
+    spaces = {row["id"]: row for row in source.get("spaces", [])}
+
+    def escaped(value):
+        return html.escape(public_reference_text(value, references), quote=True)
+
+    def number(value):
+        return f"{value:.4f}".rstrip("0").rstrip(".") if isinstance(value, (int, float)) else "—"
+
+    def object_name(row):
+        floor = row.get("floor_id")
+        floor_name = names.get("floors", {}).get(floor, "楼层")
+        axis, coordinate = row.get("axis"), row.get("to_m")
+        visible = []
+        object_ids = row.get("object_ids", {})
+        for opening in object_ids.get("openings", row.get("opening_ids", [])):
+            for identity in (opening, f"{floor}:{opening}"):
+                if identity in names.get("openings", {}):
+                    visible.append(names["openings"][identity])
+                    break
+        if axis in {"x", "y"} and isinstance(coordinate, (int, float)):
+            index = 0 if axis == "x" else 1
+            span = row.get("span_m")
+            for boundary in source.get("boundaries", []):
+                space = spaces.get(boundary.get("space_id"), {})
+                if floor and space.get("floor_id") != floor:
+                    continue
+                points = boundary.get("vertices", [])
+                if boundary.get("geometry_type") != "wall" or not points:
+                    continue
+                if not all(abs(point[index] - coordinate) < 1e-5 for point in points):
+                    continue
+                if isinstance(span, (list, tuple)) and len(span) == 2:
+                    lo, hi = min(point[1 - index] for point in points), max(point[1 - index] for point in points)
+                    if min(hi, max(span)) - max(lo, min(span)) <= 1e-7:
+                        continue
+                visible.append(names.get("boundaries", {}).get(boundary["id"], floor_name + "墙面"))
+        if visible:
+            return "、".join(dict.fromkeys(visible))
+        if axis == "z":
+            return floor_name + " · 楼面标高"
+        return floor_name + " · " + ({"x": "南北向墙线", "y": "东西向墙线"}.get(axis, "平面对象"))
+
+    rows, rejected, unmatched, reading_rows = [], [], [], []
+    for report in (section for top in reports for section in report_sections(top)):
+        for row in report.get("changes", []):
+            distance = row.get("movement_m")
+            label = object_name(row)
+            if row.get("type") == "remove_narrow_strip_space_seeds":
+                label += f" · 删除 {len(row.get('removed_space_seeds', []))} 个窄条空间标记"
+            elif row.get("type") == "merge_overlapping_openings":
+                label += f" · 合并 {len(row.get('removed_opening_ids', []))} 个重复门窗"
+            elif row.get("type") == "move_footprint_edge":
+                label += " · 跨层外轮廓边对齐"
+            rows.append("<tr>" + "".join(f"<td>{escaped(value)}</td>" for value in (
+                label, number(row.get("from_m")) + " → " + number(row.get("to_m")),
+                number(abs(distance) * 100) if isinstance(distance, (int, float)) else "—",
+                row.get("reason") or row.get("basis", "规整规则"))) + "</tr>")
+        rejected.extend(report.get("rejections", []))
+        alignment = report.get("reading_alignment", {})
+        for kind, stage in alignment.items() if isinstance(alignment, dict) else []:
+            if isinstance(stage, dict):
+                for item in stage.get("items", []):
+                    action = item.get("action")
+                    if action in {"not_moved", "checked_not_applied", "rejected"}:
+                        unmatched.append({"楼层": names.get("floors", {}).get(report.get("floor_id"), "楼层"),
+                                          "原因": item.get("reason", "未找到可靠对应")})
+                        continue
+                    floor = names.get("floors", {}).get(report.get("floor_id"), "楼层")
+                    label = {"partition": "内墙", "footprint": "外轮廓", "opening": "门窗"}.get(item.get("kind"), "尺寸基准")
+                    identity = str(item.get("object", "")).removeprefix("opening:")
+                    for key in (identity, f"{report.get('floor_id')}:{identity}"):
+                        if key in names.get("openings", {}):
+                            label = names["openings"][key]
+                            break
+                    reading_rows.append("<tr>" + "".join(f"<td>{escaped(value)}</td>" for value in (
+                        floor + " · " + label, "墨线" if kind == "ink" else "尺寸标注",
+                        number(item.get("movement_m") * 100) if isinstance(item.get("movement_m"), (int, float)) else "见完整记录",
+                        item.get("convention", action or "核对"))) + "</tr>")
+                rejected.extend(stage.get("rejections", []))
+    return (
+        '<section class="regularization-audit"><h2>几何规整清单</h2>'
+        '<p>以下记录工具对原读数的调整；读图是否准确仍需对照原图。</p>'
+        '<table><tr><th>对象</th><th>从 → 到（米）</th><th>移动（厘米）</th><th>依据</th></tr>'
+        + ("".join(rows) or '<tr><td colspan="4">本稿没有几何移动。</td></tr>') + '</table>'
+        + ('<h3>读图坐标调整</h3><table><tr><th>对象</th><th>依据</th><th>移动（厘米）</th><th>采用方式</th></tr>'
+           + ''.join(reading_rows) + '</table>' if reading_rows else '')
+        + ('<p>未采用或需返工：' + escaped(rejected) + '</p>' if rejected else '')
+        + ('<p>未采用的读数调整，保持原值：' + escaped(unmatched) + '</p>' if unmatched else '')
+        + '<details><summary>完整规整记录与内部编号</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'
+        + html.escape(json.dumps(reports, ensure_ascii=False, indent=2)) + '</pre></details></section>'
+    )
+
+
 def render_delivery_html(result: dict, source: dict) -> str:
     candidate = result["candidate"]
     selection_origin = result["selection_origin"]
@@ -212,5 +314,7 @@ def render_delivery_html(result: dict, source: dict) -> str:
         + '</pre></details>'
         f'{feedback_html}'
         f'{evidence_html}'
+        + render_regularization_html(source, result.get("building_precision", {}).get("regularization"))
+        +
         f'<iframe title="保存的 BIM 候选" src="{result["viewer"]}"></iframe>'
         '</html>')

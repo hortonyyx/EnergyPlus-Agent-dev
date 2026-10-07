@@ -439,7 +439,7 @@ class ReaderTools:
         if self.role_id == "plan_reader":
             tools.append({
                 "name": "trial_plan_bim",
-                "description": "Compile/check/overlay one isolated plan. Send a full plan or operations (update/add/remove/set). Operations use the remembered verified plan, or the latest resolved draft before any passes. Each operation needs reason, source_refs and bbox. Rework preserves unpointed objects; notes are not geometry edits. Only passed trials can be submitted.",
+                "description": "Align, compile, check and overlay one isolated plan. A full plan may include dimension_chains: id, axis, printed segments_mm, total_mm, approximate tick_pixels and source_refs. Nearby ink alignment uses this plan's scale; verified dimensions override ink, failures never move geometry, and the return summarizes every move/rejection. Operations use the remembered draft and preserve unpointed objects. Only passed trials can be submitted.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {"plan": {"type": "object"},

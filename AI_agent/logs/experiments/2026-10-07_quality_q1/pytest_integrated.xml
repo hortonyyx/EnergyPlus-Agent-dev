@@ -1,0 +1,1398 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="14" skipped="0" tests="107" time="42.097" timestamp="2026-10-07T22:39:40.932266+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad3]" time="0.004" /><testcase classname="tests.test_bim_regularization_integration" name="test_new_plan_retains_raw_input_and_full_audit_with_compact_reply" time="0.901" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad4]" time="0.005" /><testcase classname="tests.test_plan_revision" name="test_resume_and_failed_revision_keep_parent_and_full_evidence" time="0.158" /><testcase classname="tests.test_plan_revision" name="test_revision_mcp_source_feedback_and_bound_preservation" time="6.586" /><testcase classname="tests.test_bim_regularization_integration" name="test_thin_named_space_rejects_with_audit_and_without_a_candidate" time="0.085" /><testcase classname="tests.test_bim_regularization_integration" name="test_legacy_policy_is_owned_by_the_run_manifest" time="0.314" /><testcase classname="tests.test_bim_regularization_integration" name="test_stack_saves_effective_drafts_and_full_floor_reports" time="1.196" /><testcase classname="tests.test_bim_regularization_integration" name="test_source_preflight_does_not_allocate_or_mutate_a_candidate" time="0.045" /><testcase classname="tests.test_bim_agent_plan_partition" name="test_internal_compiler_fault_is_not_reported_as_repairable_declaration" time="0.054" /><testcase classname="tests.test_bim_agent_plan_partition" name="test_concave_plan_tool_keeps_recess_and_returns_actual_source_feedback" time="0.287" /><testcase classname="tests.test_bim_agent_plan_partition" name="test_plan_tool_source_images_provenance_and_revised_calibration" time="6.971" /><testcase classname="tests.test_plan_measurement_binding" name="test_pixel_slots_resolve_but_world_values_and_input_remain_unchanged" time="0.003" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[wrong_image]" time="0.053" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[wrong_axis]" time="0.040" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[changed_image]" time="0.041" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[unknown_candidate]" time="0.034" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[bad_midpoint]" time="0.037" /><testcase classname="tests.test_plan_measurement_binding" name="test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts" time="3.646"><failure message="AssertionError(&quot;assert {'assumptions...d': 'F1', ...} == {'assumptions...d': 'F1', ...}\n  \n  Omitting 12 identical items, use -vv to show\n  Left contains 1 more item:\n  {'regularization': {'changes': [],\n                      'floor_id': 'F1',\n                      'hard_constraints': {'coverage': {'spaces': 2,\n                                                        'wall_segments': 5,...\n  \n  ...Full output truncated (34 lines hidden), use '-vv' to show&quot;) [single exception in ExceptionGroup]">+ Exception Group Traceback (most recent call last):
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_measurement_binding.py", line 147, in test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts
+  |     asyncio.run(scenario())
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_measurement_binding.py", line 104, in scenario
+  |     async with _server_session(run, readonly=False) as session:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 62, in _server_session
+  |     async with stdio_client(parameters) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 63, in _server_session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=60)) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 65, in _server_session
+      |     yield session
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_measurement_binding.py", line 120, in scenario
+      |     assert saved["declaration"] == example()
+      | AssertionError: assert {'assumptions...d': 'F1', ...} == {'assumptions...d': 'F1', ...}
+      |   
+      |   Omitting 12 identical items, use -vv to show
+      |   Left contains 1 more item:
+      |   {'regularization': {'changes': [],
+      |                       'floor_id': 'F1',
+      |                       'hard_constraints': {'coverage': {'spaces': 2,
+      |                                                         'wall_segments': 5,...
+      |   
+      |   ...Full output truncated (34 lines hidden), use '-vv' to show
+      +------------------------------------</failure></testcase><testcase classname="tests.test_bim_agent_plan_partition" name="test_plan_compile_failures_preserve_raw_input_without_candidate" time="3.430" /><testcase classname="tests.test_geometry_viewer" name="test_viewer_is_offline_and_self_contained" time="0.015" /><testcase classname="tests.test_geometry_viewer" name="test_viewer_embeds_geometry_verbatim" time="0.010" /><testcase classname="tests.test_geometry_viewer" name="test_app_js_parses_with_node" time="0.145" /><testcase classname="tests.test_plan_reader_alignment" name="test_ink_alignment_moves_wall_attached_opening_and_junction_to_supported_lines" time="0.028" /><testcase classname="tests.test_plan_reader_alignment" name="test_missing_ink_never_moves_geometry_and_is_explicit" time="0.017" /><testcase classname="tests.test_plan_reader_alignment" name="test_overall_dimension_chain_sets_outer_face_axis_and_overrides_ink_priority" time="0.025" /><testcase classname="tests.test_plan_reader_alignment" name="test_bad_or_internal_dimension_chain_does_not_replace_axis" time="0.003" /><testcase classname="tests.test_plan_reader_alignment" name="test_concave_footprint_uses_edge_normal_and_keeps_existing_geometry_inside" time="0.012" /><testcase classname="tests.test_plan_reader_alignment" name="test_trial_compiles_aligned_numeric_plan_and_returns_only_compact_summary" time="0.085" /><testcase classname="tests.test_plan_reader_alignment" name="test_trial_rejects_unverified_regularized_toolkit_plan" time="0.083" /><testcase classname="tests.test_role_trial" name="test_trial_hashes_exact_plan_preserves_checks_and_requires_same_success" time="0.032" /><testcase classname="tests.test_role_trial" name="test_failed_trial_is_retained_but_not_accepted" time="0.011" /><testcase classname="tests.test_role_trial" name="test_resolution_error_is_a_repairable_failed_receipt" time="0.064" /><testcase classname="tests.test_role_trial" name="test_contradictory_alias_failure_receipt_can_resume" time="0.034" /><testcase classname="tests.test_role_trial" name="test_trial_persists_images_and_resume_reuses_verified_receipt" time="0.265" /><testcase classname="tests.test_role_trial" name="test_alias_normalization_has_one_trial_identity" time="0.016" /><testcase classname="tests.test_role_trial" name="test_trial_session_prepares_exactly_one_image_workspace" time="0.044" /><testcase classname="tests.test_role_trial" name="test_real_profile_is_resolved_to_recoverable_independent_numeric_plan" time="3.490"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_real_profile_is_resolved_0/run/trial_workspace')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_real_profile_is_resolved_0')
+
+    def test_real_profile_is_resolved_to_recoverable_independent_numeric_plan(tmp_path):
+        async def scenario():
+            reader = _run_with_one_image(tmp_path)
+            image = Image.new("RGB", (12, 8), "black")
+            draw = ImageDraw.Draw(image)
+            for x in (5, 7):
+                draw.line((x, 0, x, 7), fill=(128, 128, 128))
+            image.save(reader / "images" / "plan.png")
+            manifest = json.loads((reader / "inputs.json").read_text())
+            manifest["images"]["plan.png"]["sha256"] = hashlib.sha256(
+                (reader / "images" / "plan.png").read_bytes()
+            ).hexdigest()
+            (reader / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8", newline="\n")
+    
+            async with _server_session(reader, readonly=True) as service:
+                response = await service.call_tool("view_pixel_profile", {
+                    "name": "plan.png", "box": [0, 0, 12, 8], "axis": "x",
+                    "rgb": [128, 128, 128], "tolerance": 0, "min_fraction": 0.5,
+                    "include_image": False,
+                })
+                assert not response.isError
+                profile = json.loads(response.content[0].text)
+            assert [row["peak"] for row in profile["candidates"]] == [5, 7]
+    
+            plan = example()
+            midpoint = {"midpoint": [
+                {"profile": profile["profile_id"], "candidate": "C01"},
+                {"profile": profile["profile_id"], "candidate": "C02"},
+            ]}
+            for point in plan["partitions"][0]["points"]:
+                point[0] = midpoint
+            for key in ("p1", "p2"):
+                plan["openings"][0][key][0] = midpoint
+    
+            async with PlanTrialSession(reader, "plan.png", root=ROOT) as trial:
+                receipt = await trial.run(plan)
+                assert receipt["status"] == "passed", receipt
+                assert len(receipt["measurement_bindings"]) == 4
+                assert receipt["measurement_profiles"] == [{
+                    "profile_id": profile["profile_id"],
+                    "file": f"trial_receipts/trial_001_profiles/{profile['profile_id']}.json",
+                    "sha256": hashlib.sha256(
+                        (reader / "pixel_profiles" / f"{profile['profile_id']}.json").read_bytes()
+                    ).hexdigest(),
+                }]
+                numeric_path = reader / "trial_workspace" / receipt["compiled_numeric_plan_file"]
+                numeric_bytes = numeric_path.read_bytes()
+                assert hashlib.sha256(numeric_bytes).hexdigest() == receipt["compiled_numeric_plan_sha256"]
+                numeric = json.loads(numeric_bytes)
+                assert numeric["partitions"][0]["points"] == [[6, 1], [6, 7]]
+                assert receipt["compiled_plan_sha256"] == receipt["compiled_numeric_plan_sha256"]
+    
+            # The saved numeric plan compiles from a clean run containing no profiles.
+            independent = tmp_path / "independent"
+            (independent / "images").mkdir(parents=True)
+            (independent / "images" / "plan.png").write_bytes(
+                (reader / "images" / "plan.png").read_bytes()
+            )
+            (independent / "inputs.json").write_bytes((reader / "inputs.json").read_bytes())
+            from scripts.tool_scripts.run_bim_agent import Toolkit
+            built = Toolkit(independent).build_plan("plan.png", numeric_bytes.decode("utf-8"))
+            assert built["source_geometry_ready"] and not (independent / "pixel_profiles").exists()
+    
+            # A new task edits the verified prior declaration without retyping its
+            # profile-based coordinates; a failed edit must not advance its baseline.
+            next_reader = tmp_path / "next_reader"
+            (next_reader / "images").mkdir(parents=True)
+            (next_reader / "images/plan.png").write_bytes((reader / "images/plan.png").read_bytes())
+            (next_reader / "inputs.json").write_bytes((reader / "inputs.json").read_bytes())
+            prior = PlanTrial(None, image_name="plan.png", workspace=reader / "trial_workspace",
+                              receipt_directory=reader / "trial_workspace/trial_receipts")
+            op = {"op": "update", "collection": "openings", "id": "D1", "changes": {"z": [0, 2.2]},
+                  "reason": "revised declared height", "source_refs": ["plan.png: explicit assumption"], "bbox": [5, 2, 8, 6]}
+            async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
+                rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
+                edited = await rework.run(operations=[op])
+                assert edited["source_geometry_ready"], edited
+                assert rework.load_plan(edited)["partitions"] == plan["partitions"]
+                assert rework.load_plan(edited)["openings"][1] == plan["openings"][1]
+                failed = await rework.run(operations=[{**op, "changes": {"p2": [7, 4.5]}}])
+                assert not failed["source_geometry_ready"]
+            async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
+                rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
+                assert rework.baseline()[1] == edited["plan_sha256"]
+                repaired = await rework.run(operations=[{**op, "changes": {"z": [0, 2.3]}}])
+                assert repaired["source_geometry_ready"]
+                assert repaired["base_plan_sha256"] == edited["plan_sha256"]
+                assert repaired["changes"][0]["before"]["p2"] == plan["openings"][0]["p2"]
+    
+            # Resume reuses the verified receipt. Both derived products are tamper-evident.
+            async with PlanTrialSession(reader, "plan.png", root=ROOT) as resumed:
+                assert resumed.require_success(plan)["compiled_numeric_plan_sha256"] == receipt["compiled_numeric_plan_sha256"]
+            numeric_path.write_bytes(numeric_bytes + b" ")
+            with pytest.raises(ValueError, match="numeric plan changed"):
+                async with PlanTrialSession(reader, "plan.png", root=ROOT):
+                    pass
+            numeric_path.write_bytes(numeric_bytes)
+            copied_profile = reader / "trial_workspace" / receipt["measurement_profiles"][0]["file"]
+            copied_profile.write_bytes(copied_profile.read_bytes() + b" ")
+            with pytest.raises(ValueError, match="measurement profile changed"):
+                async with PlanTrialSession(reader, "plan.png", root=ROOT):
+                    pass
+    
+&gt;       asyncio.run(scenario())
+
+tests\test_role_trial.py:318: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_role_trial.py:249: in scenario
+    async with PlanTrialSession(reader, "plan.png", root=ROOT) as trial:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\trial.py:1058: in __aenter__
+    self._client_context = frozen_bim_client(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_real_profile_is_resolved_0/run/trial_workspace')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_plan_revision" name="test_local_operations_preserve_unmentioned_rows_and_parent" time="0.002" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad0]" time="0.002" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad1]" time="0.001" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad2]" time="0.003" /><testcase classname="tests.test_geometry_viewer" name="test_viewer_has_all_controls" time="0.008" /><testcase classname="tests.test_geometry_viewer" name="test_enclosure_projection_uses_one_viewer_only_aid_for_open_and_unknown" time="0.013" /><testcase classname="tests.test_geometry_viewer" name="test_loader_opens_validated_source_bim_directly" time="0.012" /><testcase classname="tests.test_geometry_viewer" name="test_loader_projects_v3_open_boundary_without_a_wall_part" time="0.028" /><testcase classname="tests.test_geometry_viewer" name="test_loader_rejects_unknown_source_schema_instead_of_blank_legacy_view" time="0.009" /><testcase classname="tests.test_geometry_viewer" name="test_geometry_cannot_break_out_of_script" time="0.008" /><testcase classname="tests.test_geometry_viewer" name="test_title_is_html_escaped" time="0.010" /><testcase classname="tests.test_geometry_viewer" name="test_viewer_colours_zones_by_room_type" time="0.008" /><testcase classname="tests.test_geometry_viewer" name="test_viewer_without_roles_falls_back_to_white_zone_fill" time="0.008" /><testcase classname="tests.test_geometry_viewer" name="test_source_spanning_spaces_are_filter_members_without_slicing_geometry" time="0.008" /><testcase classname="tests.test_geometry_viewer" name="test_legacy_viewer_keeps_geometric_floor_fallback" time="0.007" /><testcase classname="tests.test_geometry_viewer" name="test_discover_roles_prefers_zone_meta_then_legacy_correction" time="0.015" /><testcase classname="tests.test_role_plan_revisions" name="test_reader_example_is_the_reference_plan_at_image_scale" time="0.011" /><testcase classname="tests.test_role_plan_revisions" name="test_world_metre_points_and_invented_room_uses_are_named_before_compiling" time="0.004" /><testcase classname="tests.test_role_plan_revisions" name="test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_call" time="0.010" /><testcase classname="tests.test_role_plan_revisions" name="test_all_alias_conflicts_and_bad_quantities_are_listed_together" time="0.003" /><testcase classname="tests.test_role_plan_revisions" name="test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_last_success" time="0.018" /><testcase classname="tests.test_role_plan_revisions" name="test_all_shared_operation_kinds_and_failed_batch_leave_input_unchanged" time="0.002" /><testcase classname="tests.test_role_plan_revisions" name="test_role_tool_catalog_removes_manual_bookkeeping_and_accepts_only_one_mode" time="0.100" /><testcase classname="tests.test_role_plan_revisions" name="test_cross_task_operations_only_touch_named_targets_and_continue_from_new_baseline" time="0.016" /><testcase classname="tests.test_role_plan_revisions" name="test_failed_noop_revision_does_not_invalidate_prior_success_with_same_hash" time="0.008" /><testcase classname="tests.test_role_plan_revisions" name="test_invalid_operation_type_is_a_correctable_prewrite_rejection" time="0.005" /><testcase classname="tests.test_role_plan_revisions" name="test_topology_warnings_from_a_trial_without_geometry_do_not_bind" time="0.001" /><testcase classname="tests.test_role_plan_revisions" name="test_host_failure_lists_every_unhosted_opening_with_its_nearest_line" time="0.009" /><testcase classname="tests.test_role_plan_revisions" name="test_failed_trial_names_loose_divider_ends_and_source_self_check_findings" time="0.192" /><testcase classname="tests.test_role_plan_revisions" name="test_wall_reference_allows_distinct_lines_but_rejects_contradiction_per_category" time="0.001" /><testcase classname="tests.test_role_plan_submission_short" name="test_automatic_boxes_use_resolved_pixels_keep_inferences_and_allow_wall_override" time="0.024"><failure message="AssertionError: assert {'assumptions...d': 'F1', ...} == {'assumptions...d': 'F1', ...}&#10;  &#10;  Omitting 11 identical items, use -vv to show&#10;  Differing items:&#10;  {'openings': [{'id': 'W1', 'kind': 'window', 'p1': [10, 30], 'p2': [10, 40], ...}]} != {'openings': [{'id': 'W1', 'kind': 'window', 'p1': [{'candidate': 'C01', 'profile': 'profile_001'}, 30], 'p2': [10, 40], ...}]}&#10;  Use -v to get more diff">def test_automatic_boxes_use_resolved_pixels_keep_inferences_and_allow_wall_override():
+        trial = PassedTrial()
+        numeric = copy.deepcopy(trial.plan)
+        trial.plan["openings"][0]["p1"][0] = {"profile": "profile_001", "candidate": "C01"}
+        trial.receipt["plan_sha256"] = canonical_plan_sha256(trial.plan)
+        trial.numeric_plan = lambda receipt: copy.deepcopy(numeric)
+        submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+        result = submission.submit({"trial_id": "latest", "notes": [
+            {"item": "plan.space_seeds:left", "kind": "inferred", "basis": "use from furniture"},
+            {"item": "plan.openings:W1", "kind": "unresolved", "basis": "verify height"}],
+            "wall_reference": {"partitions": {"convention": "inner_face", "basis": "dimension converted to inner face"}}})
+        assert result["status"] == "accepted"
+        saved = submission.read()
+        evidence = {row["item"]: row for row in saved["artifact"]["evidence"]}
+        assert set(evidence) == _evidence_targets(trial.plan)
+        assert evidence["plan.openings:W1"]["bbox"] == [8, 28, 12, 42]
+        assert {row["source"] for row in evidence.values()} == {"plan.png"}
+        assert "[inferred] use from furniture" in evidence["plan.space_seeds:left"]["basis"]
+        assert "plan.openings:W1: verify height" in saved["artifact"]["unresolved"]
+&gt;       assert saved["artifact"]["plan"] == trial.plan
+E       AssertionError: assert {'assumptions...d': 'F1', ...} == {'assumptions...d': 'F1', ...}
+E         
+E         Omitting 11 identical items, use -vv to show
+E         Differing items:
+E         {'openings': [{'id': 'W1', 'kind': 'window', 'p1': [10, 30], 'p2': [10, 40], ...}]} != {'openings': [{'id': 'W1', 'kind': 'window', 'p1': [{'candidate': 'C01', 'profile': 'profile_001'}, 30], 'p2': [10, 40], ...}]}
+E         Use -v to get more diff
+
+tests\test_role_plan_submission_short.py:38: AssertionError</failure></testcase><testcase classname="tests.test_role_plan_submission_short" name="test_latest_reference_survives_resume_and_rejects_stale_or_tampered_plan" time="0.478" /><testcase classname="tests.test_role_plan_submission_short" name="test_full_and_operation_rework_allow_notes_but_preserve_unpointed_geometry" time="0.020" /><testcase classname="tests.test_role_guidance" name="test_reader_guides_are_single_image_and_keep_corresponding_existing_method" time="0.002"><failure message="AssertionError: assert ('CALIBRATE ONCE PER PLAN' in 'You are one drawing reader. You receive exactly one original image and a located task.\nUse only that image and its r...named rejection and resubmit;\nplan changes require another trial. After acceptance, end with a short acknowledgement.')">def test_reader_guides_are_single_image_and_keep_corresponding_existing_method():
+        plan = get_role_guide("plan_reader")
+        elevation = get_role_guide("elevation_reader")
+        assert "exactly one original image" in plan
+&gt;       assert "CALIBRATE ONCE PER PLAN" in plan and "RESOLVE THE DIFFERENCES" in plan
+E       AssertionError: assert ('CALIBRATE ONCE PER PLAN' in 'You are one drawing reader. You receive exactly one original image and a located task.\nUse only that image and its r...named rejection and resubmit;\nplan changes require another trial. After acceptance, end with a short acknowledgement.')
+
+tests\test_role_guidance.py:15: AssertionError</failure></testcase><testcase classname="tests.test_role_guidance" name="test_elevation_guide_exposes_a_complete_valid_minimum_example" time="0.004" /><testcase classname="tests.test_role_guidance" name="test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft" time="0.001" /><testcase classname="tests.test_role_guidance" name="test_catalog_reports_exact_character_counts_and_unchanged_single_model" time="0.001" /><testcase classname="tests.test_role_readers" name="test_plan_artifact_is_normalized_and_every_item_has_local_evidence" time="0.005" /><testcase classname="tests.test_role_readers" name="test_plan_artifact_errors_name_item_and_minimum_example" time="0.004" /><testcase classname="tests.test_role_readers" name="test_reader_tools_filter_catalog_enforce_one_image_and_reference_provenance" time="0.008" /><testcase classname="tests.test_role_readers" name="test_reader_reference_provenance_survives_resume_and_enters_snapshot" time="0.024" /><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]" time="0.379"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru0/sm21-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru0')
+case_name = 'sm21', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+&gt;       result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+
+tests\test_role_end_to_end.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru0/sm21-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]" time="0.397"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru1')
+case_name = 'sm24', two_floors = False
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+&gt;       result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+
+tests\test_role_end_to_end.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_trial_feedback" name="test_trial_model_projection_keeps_actionable_feedback_and_full_disk_receipt" time="0.034" /><testcase classname="tests.test_role_trial_feedback" name="test_failed_trial_is_one_json_after_adapter_and_loses_no_error_location" time="0.049" /><testcase classname="tests.test_role_submission" name="test_plan_submission_preserves_exact_trial_with_additional_outer_unresolved" time="0.132" /><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]" time="0.456"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru2/sm25-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru2')
+case_name = 'sm25', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+&gt;       result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+
+tests\test_role_end_to_end.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_scripted_role_pipeline_ru2/sm25-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_submission" name="test_failed_or_rewritten_trial_cannot_submit" time="0.099" /><testcase classname="tests.test_role_submission" name="test_elevation_rejects_bad_count_with_example_then_accepts_and_reloads" time="0.093" /><testcase classname="tests.test_role_submission" name="test_each_topology_warning_needs_located_consistent_decision[unsupported_open_separator]" time="0.003" /><testcase classname="tests.test_role_submission" name="test_each_topology_warning_needs_located_consistent_decision[opening_offset_from_gap]" time="0.003" /><testcase classname="tests.test_role_submission" name="test_opening_endpoints_and_dimension_reference_cannot_be_silently_snapped" time="0.004" /><testcase classname="tests.test_role_submission" name="test_local_operations_preserve_untouched_rows_and_reject_unpointed_edits" time="0.002" /><testcase classname="tests.test_role_plan_revisions" name="test_reference_example_is_complete_compilable_and_present_in_reader_guidance" time="0.011" /><testcase classname="tests.test_role_end_to_end" name="test_fixture_submissions_match_explicit_tool_contracts[sm24]" time="0.796" /><testcase classname="tests.test_role_end_to_end" name="test_fixture_submissions_match_explicit_tool_contracts[sm21]" time="2.117" /><testcase classname="tests.test_role_end_to_end" name="test_fixture_submissions_match_explicit_tool_contracts[sm25]" time="1.847" /><testcase classname="tests.test_role_end_to_end" name="test_resume_reader_after_trial_checkpoint_does_not_repeat_trial" time="0.309"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_resume_reader_after_trial0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_resume_reader_after_trial0')
+
+    def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+        crash = CrashOnce(
+            "after_checkpoint",
+            lambda engine: engine.role.role_id == "plan_reader"
+            and engine.counts["tool_calls"] == 1,
+        )
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    reader_fault_hook=crash,
+                )
+            )
+
+tests\test_role_end_to_end.py:215: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_resume_reader_after_trial0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]" time="0.365"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_resume_after_inner_receip0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_resume_after_inner_receip0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001D47370E690&gt;
+boundary_tool = 'build_plan_bim'
+
+    @pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+    def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+        from src.agent.runtime_roles.session import RoleSession
+    
+        fixture = make_fixture("sm24", tmp_path)
+        original = RoleSession._once
+        crashed = False
+    
+        async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+            nonlocal crashed
+            result = await original(session, operation_id, name, arguments, reference=reference)
+            if name == boundary_tool and not crashed:
+                crashed = True
+                raise SimulatedProcessDeath("inner build receipt saved")
+            return result
+    
+        monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(execute(fixture.args, adapter_factory=fixture.adapter_factory))
+
+tests\test_role_end_to_end.py:283: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_resume_after_inner_receip0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_resume_after_all_readers_preserves_reader_records" time="0.348"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_resume_after_all_readers_0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_resume_after_all_readers_0')
+
+    def test_resume_after_all_readers_preserves_reader_records(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+    
+        def all_readers_before_build(engine):
+            return (
+                len(_reader_record_hashes(fixture)) == len(fixture.tasks)
+                and _tool_count(fixture.output, "assemble_from_readers") == 0
+            )
+    
+        crash = CrashOnce("after_checkpoint", all_readers_before_build)
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    fault_hook=crash,
+                )
+            )
+
+tests\test_role_end_to_end.py:248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_resume_after_all_readers_0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]" time="0.315"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_resume_after_inner_receip1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_resume_after_inner_receip1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001D4738501A0&gt;
+boundary_tool = 'claim_transaction'
+
+    @pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+    def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+        from src.agent.runtime_roles.session import RoleSession
+    
+        fixture = make_fixture("sm24", tmp_path)
+        original = RoleSession._once
+        crashed = False
+    
+        async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+            nonlocal crashed
+            result = await original(session, operation_id, name, arguments, reference=reference)
+            if name == boundary_tool and not crashed:
+                crashed = True
+                raise SimulatedProcessDeath("inner build receipt saved")
+            return result
+    
+        monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(execute(fixture.args, adapter_factory=fixture.adapter_factory))
+
+tests\test_role_end_to_end.py:283: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_resume_after_inner_receip1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_single_parity" name="test_single_configuration_loading_and_argv_match_the_dispatch_baseline" time="1.101" /><testcase classname="tests.test_role_single_parity" name="test_first_request_sources_are_byte_identical_to_the_dispatch_baseline" time="0.521" /><testcase classname="tests.test_role_single_parity" name="test_three_single_cases_prepare_identical_shared_first_request_bytes" time="0.444"><failure message="src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw1/test_three_single_cases_prepar0')
+
+    def test_three_single_cases_prepare_identical_shared_first_request_bytes(tmp_path):
+        rows = []
+        for name in ("sm21", "sm24", "sm25"):
+            folder = tmp_path / name
+            folder.mkdir()
+&gt;           rows.append(asyncio.run(prepared_case(name, folder)))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_role_single_parity.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_role_single_parity.py:117: in prepared_case
+    T1.runner.run_experiment(old_args)
+scripts\tool_scripts\run_bim_agent.py:3004: in run_experiment
+    record = subscription(run, prompt,
+scripts\tool_scripts\run_bim_agent.py:339: in subscription
+    agent_version = agent_version_record(ROOT)["version_id"]
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch</failure></testcase><testcase classname="tests.test_role_single_parity" name="test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes" time="0.403" /><testcase classname="tests.test_runtime_frozen_long_task" name="test_historical_replay_exposes_only_legacy_claims_and_preserves_write_grants" time="0.167"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_historical_replay_exposes0/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_historical_replay_exposes0')
+
+    def test_historical_replay_exposes_only_legacy_claims_and_preserves_write_grants(tmp_path):
+        async def scenario():
+            run = tmp_path / "bim"
+            run.mkdir()
+            (run / "inputs.json").write_text('{"images": {}}')
+            role = coordinator_role(BudgetAmounts(calls=5))
+            async with frozen_bim_client(run, repository_root=ROOT) as server:
+                registered = await server.list_tools()
+    
+            class RecordingClient:
+                calls = []
+    
+                async def list_tools(self):
+                    return registered
+    
+                async def call_tool(self, name, arguments):
+                    self.calls.append((name, arguments))
+                    return {"content": [], "isError": False}
+    
+            client = RecordingClient()
+            sequence = SimpleNamespace(steps=[{"ordinal": 1, "tool_name": "record_claim",
+                "arguments": {"fixture": "unchanged"}, "is_error": False, "result": {"images": []}}])
+            with EventStore(tmp_path / "events", run_id="legacy-boundary", task_id="test",
+                            budget_limit=BudgetAmounts(calls=5)) as store:
+                normal = FrozenBimTools(client, role, run_directory=run)
+                replay = ReplayTools(client, role, run_directory=run, sequence=sequence, store=store)
+                normal_catalog = await normal.list_tools()
+                replay_catalog = await replay.list_tools()
+                normal_names = {tool["name"] for tool in normal_catalog}
+                assert not normal_names &amp; HISTORICAL_CLAIM_TOOLS
+                assert {tool["name"] for tool in replay_catalog} == normal_names | HISTORICAL_CLAIM_TOOLS
+                assert not {"review_detail", "record_work_review"} &amp; {t["name"] for t in replay_catalog}
+                assert all(tool in registered for tool in replay_catalog)
+                assert (await normal.call_tool("record_claim", sequence.steps[0]["arguments"]))["isError"]
+                assert client.calls == []
+                await replay.call_tool("record_claim", sequence.steps[0]["arguments"])
+                assert client.calls == [("record_claim", {"fixture": "unchanged"})]
+                observer = ReplayTools(client, local_observer_role(BudgetAmounts(calls=1)),
+                    run_directory=run, sequence=sequence, store=store)
+                with pytest.raises(ValueError, match="not whitelisted"):
+                    await observer.call_tool("record_claim", sequence.steps[0]["arguments"])
+                assert len(client.calls) == 1
+                assert observer.calls == []
+    
+&gt;       asyncio.run(scenario())
+
+tests\test_runtime_frozen_long_task.py:371: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_frozen_long_task.py:333: in scenario
+    async with frozen_bim_client(run, repository_root=ROOT) as server:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-integrated/popen-gw0/test_historical_replay_exposes0/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_runtime_frozen_long_task" name="test_real_frozen_tools_keep_run99_state_across_75_steps" time="0.517"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {&quot;src/agent/geometry/plan_regularization.py&quot;: &quot;3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27&quot;}">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/run99-replay/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1'), version_id = None
+
+    def agent_version_record(
+        root: Path,
+        version_id: str | None = None,
+        *,
+        registry_path: Path | None = None,
+        verify: bool = True,
+    ) -&gt; dict[str, Any]:
+        """Return one registry record, optionally checking every registered file."""
+    
+        root = Path(root).resolve()
+        registry = load_agent_registry(root, registry_path)
+        selected = version_id or registry["current_version"]
+        record = registry["versions"].get(selected)
+        if not isinstance(record, dict):
+            raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+        if verify:
+            changed: dict[str, str] = {}
+            files = record.get("files")
+            if not isinstance(files, dict) or not files:
+                raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
+            for relative, metadata in files.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
+                expected = metadata.get("sha256") if isinstance(metadata, dict) else None
+                actual = _sha256(path) if path.is_file() else "missing"
+                if actual != expected:
+                    changed[relative] = actual
+            if changed:
+&gt;               raise AgentVersionMismatch(
+                    f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
+                )
+E               src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent_runtime\agent_registry.py:100: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+    def test_real_frozen_tools_keep_run99_state_across_75_steps():
+        # Always own a temporary directory inside this worktree, regardless of pytest --basetemp.
+        retained = os.environ.get("STAGE2_FROZEN_REPLAY_OUT")
+        if retained:
+&gt;           asyncio.run(replay_frozen_run99(Path(retained)))
+
+tests\test_runtime_frozen_long_task.py:321: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_frozen_long_task.py:269: in replay_frozen_run99
+    async with frozen_bim_client(run, repository_root=ROOT) as client:
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/run99-replay/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: Agent version q1-offline-verification file mismatch: {"src/agent/geometry/plan_regularization.py": "3234859c2ce2ba5467408343b0a28979349ca120a7e3b3ded837d961a1dfbb27"}
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_runtime_frozen_long_task" name="test_saved_claim_view_is_indexed_without_top_level_view_id" time="0.054" /><testcase classname="tests.test_runtime_frozen_long_task" name="test_claim_preview_image_keeps_its_original_view_id" time="0.015" /></testsuite></testsuites>

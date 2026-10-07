@@ -69,8 +69,9 @@ def test_plan_tool_source_images_provenance_and_revised_calibration(tmp_path):
             assert (run / differences["file"]).is_file() and "drawing_differences" not in built["plan_input"]
             assert len([block for block in response.content if block.type == "image"]) == 2
             record = built["plan_input"]
-            assert (run / record["plan_file"]).read_bytes() == raw.encode()
-            assert record["plan_sha256"] == hashlib.sha256(raw.encode()).hexdigest()
+            assert (run / record["submitted_plan_file"]).read_bytes() == raw.encode()
+            assert record["submitted_plan_sha256"] == hashlib.sha256(raw.encode()).hexdigest()
+            assert record["plan_sha256"] == hashlib.sha256((run / record["plan_file"]).read_bytes()).hexdigest()
             draft_view = record["draft_view"]
             assert (run / draft_view["image_file"]).is_file()
             assert (run / draft_view["metadata_file"]).is_file()
@@ -79,7 +80,8 @@ def test_plan_tool_source_images_provenance_and_revised_calibration(tmp_path):
             assert full["plan_compilation"] == json.loads((run / record["compilation_file"]).read_text())
             assert built["plan_compilation"]["space_count"] == full["plan_compilation"]["space_count"]
             source = json.loads((run / built["candidate"] / "source_model.json").read_text())
-            assert source["generation"]["provenance"]["plan_input"] == record
+            from scripts.tool_scripts.bim_agent_regularization import compact_plan_input
+            assert compact_plan_input(source["generation"]["provenance"]["plan_input"]) == record
             assert len(source["spaces"]) == 2
             assert sorted(row["kind"] for row in source["openings"]) == ["door", "window"]
             assert not source["unbuilt_openings"]

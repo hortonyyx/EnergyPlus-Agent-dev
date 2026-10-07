@@ -135,7 +135,10 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert tools["submit_plan_reading"] == len(plan_records)
     assert tools["submit_elevation_reading"] == 4
     position_state = json.loads((fixture.output / "role_position_review.json").read_bytes())["items"]
-    assert tools["assemble_from_readers"] == (2 if any(row.get("decision") for row in position_state.values()) else 1)
+    decided = any(row.get("decision") for row in position_state.values())
+    # Q1: storey alignment on two floors needs one reviewed reassembly; Q2: a position decision needs one more.
+    assert tools["assemble_from_readers"] == 1 + (1 if two_floors else 0) + (1 if decided else 0)
+    assert tools["review_role_assembly"] == (2 if two_floors else 0)
     assert not any(tools[name] for name in (
         "read_role_artifact", "build_from_artifact", "match_elevation",
         "apply_elevation_heights", "assemble_plan_bim", "inspect_plan_draft"))

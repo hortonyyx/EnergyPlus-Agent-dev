@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="36.681" timestamp="2026-10-07T23:15:08.469532+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]" time="30.206"><failure message="AssertionError: assert 'unknown_error' == 'completed'&#10;  &#10;  - completed&#10;  + unknown_error">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-sm25-final/popen-gw0/test_scripted_role_pipeline_ru0')
+case_name = 'sm25', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+        result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+&gt;       _assert_complete_pipeline(fixture, result, two_floors=two_floors)
+
+tests\test_role_end_to_end.py:182: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fixture = D1Fixture(case_name='sm25', output=WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pyte...riptedAdapter object at 0x000002969E27FB60&gt;, &lt;src.agent_runtime.adapter.ScriptedAdapter object at 0x0000029695330620&gt;])
+result = {'agent_version': 'q1-offline-verification', 'answer': None, 'artifact_paths': ['D:\\EnergyPlus-Agent-worktrees\\q1\\A...713e5c1e3e01391d2251c8ac', 'uri': 'blobs/5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac'}, ...], ...}
+
+    def _assert_complete_pipeline(fixture, result, *, two_floors):
+&gt;       assert result["status"] == "completed"
+E       AssertionError: assert 'unknown_error' == 'completed'
+E         
+E         - completed
+E         + unknown_error
+
+tests\test_role_end_to_end.py:105: AssertionError</failure></testcase></testsuite></testsuites>

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import copy
 import hashlib
 import io
 import json
@@ -550,9 +551,20 @@ class RoleSession:
                     workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
                     prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
                                       receipt_directory=workspace / "trial_receipts")
-                    if canonical_plan_sha256(previous["plan"]) != validation["plan_sha256"]:
+                    _, prior_receipt = prior.verified_plan(validation["plan_sha256"])
+                    compiled_plan = prior.numeric_plan(prior_receipt)
+                    if not isinstance(compiled_plan, dict):
+                        raise ValueError("verified compiled rework plan is not a JSON object")
+                    compiled_delivery = previous["plan"] == compiled_plan
+                    if (not compiled_delivery
+                            and canonical_plan_sha256(previous["plan"]) != validation["plan_sha256"]):
                         raise ValueError("rework artifact differs from its successful trial")
                     trial.inherit_reference(prior, validation["plan_sha256"], task["rework_targets"])
+                    # Current deliveries contain the effective compiled plan
+                    # and continue from it. Legacy deliveries contain the
+                    # original declaration and retain their historical base.
+                    if compiled_delivery:
+                        trial.reference_plan = copy.deepcopy(compiled_plan)
                 # The accepted review also covers warnings from trials made
                 # after the selected successful geometry receipt.
                 trial.inherited_topology_issues = validation.get("topology_issues", [])
@@ -646,8 +658,6 @@ class RoleSession:
         receipt = record["validation"]
         if receipt.get("compiled_numeric_plan_file"):
             from .trial import canonical_plan_sha256
-            if canonical_plan_sha256(plan) != receipt["plan_sha256"]:
-                raise ValueError("trial receipt does not refer to this original plan")
             workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
             path = (workspace / receipt["compiled_numeric_plan_file"]).resolve()
             if not path.is_relative_to(workspace.resolve()) or not path.is_file():
@@ -655,7 +665,12 @@ class RoleSession:
             raw = path.read_bytes()
             if hashlib.sha256(raw).hexdigest() != receipt["compiled_numeric_plan_sha256"]:
                 raise ValueError("compiled reader plan hash mismatch")
-            plan = json.loads(raw)
+            compiled = json.loads(raw)
+            if not isinstance(compiled, dict):
+                raise ValueError("compiled reader plan is not a JSON object")
+            if plan != compiled and canonical_plan_sha256(plan) != receipt["plan_sha256"]:
+                raise ValueError("trial receipt does not refer to this original or verified compiled plan")
+            plan = compiled
         from .levels import apply_levels, apply_resolved_levels
         if resolved_levels is None:
             plan, citations = apply_levels(self.registry, plan, **levels)

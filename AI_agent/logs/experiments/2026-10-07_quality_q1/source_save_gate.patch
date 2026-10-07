@@ -1,0 +1,35 @@
+--- a/scripts/tool_scripts/run_bim_agent.py
++++ b/scripts/tool_scripts/run_bim_agent.py
+@@ -1283,6 +1283,12 @@
+               plan_assembly=None, assembly_calibrations=None):
+         from src.agent.execution.source_proposal import export_source_proposal
+         from scripts.tool_scripts.bim_agent_saved_result import saved_result, saved_source_result
++        from scripts.tool_scripts.bim_agent_regularization import reject_source_proposal
++        rejection = reject_source_proposal(self, proposal)
++        if rejection is not None:
++            saved_result(rejection, audit_written=True)
++            self.log(action, rejection)
++            return rejection
+         if isinstance(proposal, dict) and 'mesh_frame' in proposal:
+             from src.agent.geometry.mesh_bim_frame import validate_mesh_frame
+             frame = validate_mesh_frame(proposal['mesh_frame'])
+@@ -2822,7 +2828,8 @@
+         def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
+             """Build one floor from observed original-pixel walls, openings and calibration.
+             Read plan_partition for JSON. Orthogonal, possibly concave outer footprint
+-            without holes; no gap filling, inferred walls, snapping or trimmed openings.
++            without holes. Before strict compilation, sub-0.30 m wall offsets are regularized;
++            remaining hard-rule violations reject the save. No inferred walls or trimmed openings.
+             Returns actual source/overlay images, drawing_differences, IDs/heights and
+             details_file (read_candidate_items collection=report). Declare omissions in
+             unresolved. Each export consumes the shared candidate budget.
+@@ -2835,7 +2842,8 @@
+             Read get_bim_reference('plan_assembly'). floors_json is a JSON list; each item contains draft_id,
+             expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,
+             namespaces IDs and translates all opening z values by the floor-base change.
+-            No height scaling, plan alignment, floor copying or inferred vertical connection.
++            Near wall planes and stacked faces are regularized by editing drafts and recompiling.
++            No height scaling, floor copying or inferred vertical connection.
+             For layer height or aperture changes first revise that draft explicitly.
+             Returns actual source views/overlays for every included floor.
+             """

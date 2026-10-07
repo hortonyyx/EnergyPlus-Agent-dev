@@ -1,7 +1,8 @@
-"""Read-only modelling-precision diagnostics on the saved source, never snapping.
+"""Post-regularisation source hard rules for a candidate save gate.
 
-The source's contact regions are inspected directly; no EP slicing or GT is used.
-Near lines are evidence for review, not proof that a setback is unintended.
+The source is inspected directly in x, y and z; no EP slicing or GT is used.
+The report never edits geometry.  Orthogonal violations are deterministic save
+failures.  Unsupported nonorthogonal walls remain explicit coverage limits.
 """
 from __future__ import annotations
 
@@ -11,7 +12,11 @@ import math
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from src.agent.geometry.plan_regularization import minimum_orthogonal_space_width
+
 NUMERICAL_M = 1e-7
+REGULARIZATION_M = .30
+MIN_SPACE_WIDTH_M = .60
 
 
 def _axis_line(points):
@@ -52,10 +57,10 @@ def _polygons(geometry):
 
 
 def precision_report(source, *, floor_evidence=(), wall_references=()):
-    """Report orthogonal near-lines, thin contact/gap polygons and small steps.
+    """Return fixed 0.30/0.60 m hard-rule violations and coverage limits.
 
-    Evidence rows have floor_id, metres_per_pixel and optional wall_thickness_m.
-    Missing evidence stays unknown: no arbitrary building-wide tolerance fallback.
+    Evidence rows remain provenance for display.  They do not shrink, expand or
+    disable the product hard thresholds.
     """
     spaces = {s['id']: s for s in source['spaces']}
     floors = {f['id']: f for f in source['floors']}
@@ -75,10 +80,9 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
                       if b['id'] in thickness and spaces[b['space_id']]['floor_id'] == fid)
         wall = min(widths) if widths else None
         noise = 2 * max(pixels) if pixels else None
-        default = min(wall, max(noise or 0., wall / 2)) if wall else noise
-        tolerances[fid] = dict(default_m=default, pixel_noise_m=noise, wall_thickness_m=wall,
+        tolerances[fid] = dict(default_m=REGULARIZATION_M, pixel_noise_m=noise, wall_thickness_m=wall,
             basis=row.get('basis', 'no plan scale or wall thickness supplied'),
-            rule='min(wall thickness, max(2 pixels, half wall thickness)); scale alone if thickness unknown',
+            rule='fixed post-regularisation hard threshold; align only when distance is strictly below 0.30 m',
             thickness_cap_known=wall is not None)
 
     # Merge only exactly collinear overlapping source sides. This does not move a vertex.
@@ -110,12 +114,8 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
         walls.extend(merged)
 
     def tolerance(*fids, ids=()):
-        values = [tolerances[f]['default_m'] for f in fids if tolerances[f]['default_m'] is not None]
-        # Every participating floor must have scale/thickness evidence.
-        if len(values) != len(fids):
-            return None
-        caps = [thickness[bid] for bid in ids if bid in thickness]
-        return min([min(values), *caps])
+        del ids
+        return REGULARIZATION_M if fids else None
 
     def suggestion(a, b):
         def priority(row):
@@ -151,6 +151,21 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
             continue
         lf, uf = lower['id'], upper['id']
         pairs.append([lf, uf])
+        # Source BIM floors persist their clear storey extent as ``height``.
+        # Accept ``ceiling_height`` only as a compatibility fallback for
+        # pre-source fixtures; a missing height cannot support a Z hard rule.
+        lower_height = lower.get('height', lower.get('ceiling_height'))
+        if lower_height is None:
+            raise ValueError(f"Floor {lf!r} has no height for the vertical precision gate")
+        separation = upper['z_floor'] - (lower['z_floor'] + lower_height)
+        if NUMERICAL_M < abs(separation) < REGULARIZATION_M - NUMERICAL_M:
+            items.append(dict(type='vertical_gap_or_overlap', floor_ids=[lf, uf],
+                objects=[dict(floor_id=lf, surface='ceiling',
+                              elevation_m=lower['z_floor'] + lower_height),
+                         dict(floor_id=uf, surface='floor', elevation_m=upper['z_floor'])],
+                distance_m=round(abs(separation), 9), signed_gap_m=round(separation, 9),
+                tolerance_m=REGULARIZATION_M,
+                fix='Use the trusted elevation so floor and ceiling touch exactly, or separate them by at least 0.30 m; do not change floor height silently.'))
         aa = [w for w in walls if w['floor'] == lf]
         bb = [w for w in walls if w['floor'] == uf]
         for a in aa:
@@ -160,8 +175,7 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
                     continue
                 delta = abs(a['line'][1] - b['line'][1])
                 shared = _overlap(a['line'], b['line'])
-                if not (NUMERICAL_M < delta <= limit and shared >= max(.5, 5 * limit)
-                        and shared >= .5 * min(a['line'][3] - a['line'][2], b['line'][3] - b['line'][2])):
+                if not (NUMERICAL_M < delta < limit - NUMERICAL_M and shared > NUMERICAL_M):
                     continue
                 # A closer matching wall over the same span defeats the proposed pairing.
                 shared_line = (a['line'][0], a['line'][1], max(a['line'][2], b['line'][2]),
@@ -176,7 +190,28 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
                     continue
                 items.append(dict(type='storey_wall_offset', lines=[_line(a), _line(b)],
                     deviation_m=round(delta, 9), overlap_m=round(shared, 9), tolerance_m=limit,
+                    objects=[_line(a), _line(b)],
+                    fix='Align the affected plan draft to one higher-priority existing wall line, recompile it, and preserve opening hosts and connections.',
                     **suggestion(a, b)))
+
+    # Same-floor near-parallel source walls are forbidden even when a thin
+    # derived space happens not to expose the duplicate representation clearly.
+    for fid in floors:
+        same_floor = [w for w in walls if w['floor'] == fid]
+        for index, a in enumerate(same_floor):
+            for b in same_floor[index + 1:]:
+                if a['line'][0] != b['line'][0]:
+                    continue
+                delta = abs(a['line'][1] - b['line'][1])
+                shared = _overlap(a['line'], b['line'])
+                if not (NUMERICAL_M < delta < REGULARIZATION_M - NUMERICAL_M
+                        and shared > NUMERICAL_M):
+                    continue
+                items.append(dict(type='same_floor_parallel_wall_offset',
+                    floor_id=fid, lines=[_line(a), _line(b)], objects=[_line(a), _line(b)],
+                    deviation_m=round(delta, 9), overlap_m=round(shared, 9),
+                    tolerance_m=REGULARIZATION_M,
+                    fix='Merge a sub-0.30 m strip into one representative wall and audit removed strip seeds plus moved/merged openings, or keep two walls at least 0.30 m apart.'))
 
     boundaries = {b['id']: b for b in source['boundaries']}
     for relation in source.get('boundary_relations', []):
@@ -191,10 +226,12 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
             polygon = Polygon([p[:2] for p in region['vertices']],
                               [[p[:2] for p in hole] for hole in region.get('holes', [])])
             width, length = _width(polygon)
-            if NUMERICAL_M < width <= limit and length >= max(.5, 5 * width):
+            if NUMERICAL_M < width < limit - NUMERICAL_M and length > NUMERICAL_M:
                 items.append(dict(type='thin_horizontal_contact', boundary_ids=relation['boundary_ids'],
                     floor_ids=fids, region=index, width_m=round(width, 9), length_m=round(length, 9),
                     area_m2=region['area_m2'], tolerance_m=limit,
+                    objects=[dict(boundary_id=bid) for bid in relation['boundary_ids']],
+                    fix='Align the affected saved plan surfaces to an existing elevation or boundary; keep the contact at least 0.30 m if it is intentional.',
                     **polygon_lines(polygon, fids)))
 
     # A step has long parallel legs joined by a short transverse segment. A short
@@ -207,10 +244,13 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
             continue
         ring = space['polygon']
         polygon = Polygon(ring)
-        width, length = _width(polygon)
-        if NUMERICAL_M < width <= limit and length >= max(.5, 5*width):
+        width, location = minimum_orthogonal_space_width(polygon)
+        _, length = _width(polygon)
+        if NUMERICAL_M < width < MIN_SPACE_WIDTH_M - NUMERICAL_M:
             items.append(dict(type='thin_space', space_id=space['id'], floor_id=fid,
-                width_m=round(width, 9), length_m=round(length, 9), tolerance_m=limit,
+                width_m=round(width, 9), length_m=round(length, 9), tolerance_m=MIN_SPACE_WIDTH_M,
+                minimum_width_location=location, objects=[dict(space_id=space['id'], floor_id=fid)],
+                fix='Make every remaining space at least 0.60 m wide; only a sub-0.30 m overlapping wall strip may be removed, with its seed/opening changes and connections fully audited.',
                 **polygon_lines(polygon, [fid])))
         for i in range(len(ring)):
             p, q, r, s = [ring[j % len(ring)] for j in (i-1, i, i+1, i+2)]
@@ -219,8 +259,7 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
                 continue
             delta = abs(a[1] - b[1])
             along = 1 if a[0] == 'x' else 0
-            if not (NUMERICAL_M < delta <= limit and (q[along]-p[along]) * (s[along]-r[along]) > 0
-                    and min(a[3]-a[2], b[3]-b[2]) >= max(.5, 5*limit)):
+            if not (NUMERICAL_M < delta < limit - NUMERICAL_M and (q[along]-p[along]) * (s[along]-r[along]) > 0):
                 continue
             key = (fid, tuple(sorted((tuple(q), tuple(r)))))
             if key in seen_steps:
@@ -228,6 +267,8 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
             seen_steps.add(key)
             items.append(dict(type='small_step', space_id=space['id'], floor_id=fid,
                 endpoints_m=[q, r], width_m=round(delta, 9), tolerance_m=limit,
+                objects=[dict(space_id=space['id'], floor_id=fid, endpoints_m=[q, r])],
+                fix='Align the two parallel legs to one existing line, or make the intentional step at least 0.30 m.',
                 align_to_options=[dict(axis=line[0], coordinate_m=line[1], span_m=list(line[2:])) for line in (a, b)],
                 decision='choose_existing_line_with_evidence; preserve rooms, openings and connections'))
     for fid, floor in floors.items():
@@ -238,20 +279,23 @@ def precision_report(source, *, floor_evidence=(), wall_references=()):
         gap = Polygon(floor['footprint']).difference(unary_union(polygons))
         for polygon in _polygons(gap):
             width, length = _width(polygon)
-            if NUMERICAL_M < width <= limit and length >= max(.5, 5*width):
+            if NUMERICAL_M < width < limit - NUMERICAL_M and length > NUMERICAL_M:
                 items.append(dict(type='thin_coverage_gap', floor_id=fid,
                     polygon_m=list(map(list, polygon.exterior.coords))[:-1], width_m=round(width, 9),
                     length_m=round(length, 9), area_m2=polygon.area, tolerance_m=limit,
+                    objects=[dict(floor_id=fid, polygon_m=list(map(list, polygon.exterior.coords))[:-1])],
+                    fix='Close the gap by moving the responsible existing plan boundary; do not add a source space or wall silently.',
                     **polygon_lines(polygon, [fid])))
-    priority = {'storey_wall_offset':0, 'thin_space':1, 'thin_coverage_gap':2,
-                'small_step':3, 'thin_horizontal_contact':4}
+    priority = {'vertical_gap_or_overlap':0, 'storey_wall_offset':1,
+                'same_floor_parallel_wall_offset':2, 'thin_space':3,
+                'thin_coverage_gap':4, 'small_step':5, 'thin_horizontal_contact':6}
     items.sort(key=lambda r: (priority[r['type']], -r.get('deviation_m', r.get('width_m',0))))
-    return dict(schema='building_precision_v1', status='reported', source_model_sha256=source.get('source_model_sha256'),
+    return dict(schema='building_precision_v2', status='pass' if not items else 'rejected', source_model_sha256=source.get('source_model_sha256'),
         total=len(items), counts=dict(Counter(r['type'] for r in items)), items=items, tolerances=tolerances,
         coverage=dict(floors=list(floors), adjacent_storey_pairs=pairs, orthogonal_wall_lines=len(walls),
             nonorthogonal_walls_not_checked=nonorthogonal,
-            floors_without_tolerance=[fid for fid, t in tolerances.items() if t['default_m'] is None]),
-        meaning='Review only; no geometry changed. Align to an existing line, never an average. '
-                'Real setbacks, voids and narrow spaces require evidence; do not delete partitions or alter connectivity.',
+            floors_without_tolerance=[]),
+        meaning='Post-regularisation hard audit; this report changes no geometry. A save gate must reject each item. '
+                'Align to an existing line; only sub-0.30 m duplicate-wall strips may remove seeds or merge openings, with complete identity and connectivity audit.',
         not_checked=['nonorthogonal wall alignment', 'non-overlapping storeys', 'opening positions/heights',
                      'drawing fidelity', 'user fineness cap (not configured)'])

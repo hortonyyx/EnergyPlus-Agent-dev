@@ -1,0 +1,6425 @@
+{
+  "schema": "q1_reader_dimension_handoff_v1",
+  "model_requests": 0,
+  "scope": {
+    "run": "sm25_cmp3_role_trials",
+    "floor_id": "F2",
+    "pipeline": "original passed trial -> production ink E -> original one-axis legacy F fixture -> production single-floor A -> literal compile -> source gate",
+    "fixture_scope": "original H X_BOTTOM_VISIBLE fixture only; role_fixture_dimension_inputs.json is excluded",
+    "interpretation": "The main H 4/5 dimension count measures F output in isolation. This probe tests whether production A can consume the fifth F candidate."
+  },
+  "production_sha256": {
+    "regularization": "8a42275a0eb2187d9b88e2e25f3b73e5e73e24be243534f191854f7692679d49",
+    "ink_alignment": "9aa7e65433c95ef42894c2bb4050f3af0a7d46e0c3e129c15813bece2e4457a4",
+    "dimension_alignment": "a9cca0d6d44f764feb4fe4c2569ec99c9d3bf78ed793c4e25588f3e34d7f891a",
+    "plan_compiler": "f860a9bbf419da1aea50b8e0e9f6ef0b2695997e1c073b92ce328b8e2f57d41f",
+    "source_save_gate": "19dcbe2efae06a02263aeaee560d698483c1a648669ae48f70e7bc21f13620e4"
+  },
+  "input": {
+    "plan_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\plan_drafts\\draft_006\\plan.json",
+    "plan_sha256": "b680e796ad828dc7992d9982bec2d976b8ed6a63130f02f774086bf6e23ed86f",
+    "image_path": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\cmp3\\sm25_role\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\images\\2f_view.png",
+    "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+    "image_size": [
+      1661,
+      1561
+    ],
+    "fixture": [
+      {
+        "id": "X_BOTTOM_VISIBLE",
+        "axis": "x",
+        "segments_mm": [
+          5000,
+          4090,
+          3910,
+          3910,
+          4030,
+          4060
+        ],
+        "total_mm": 25000,
+        "tick_pixels": [
+          241.0,
+          470.0,
+          658.0,
+          837.0,
+          1016.0,
+          1201.0,
+          1387.0
+        ],
+        "source_refs": [
+          "2f_view.png: bottom chain 5000/4090/3910/3910/4030/4060, overall 25000"
+        ],
+        "source_bbox_px": [
+          220,
+          1290,
+          1380,
+          1485
+        ],
+        "provenance": "dev_auxiliary labels and green extension-line pixels read from original after view_image; no GT"
+      }
+    ]
+  },
+  "plan_digests": {
+    "original": "b680e796ad828dc7992d9982bec2d976b8ed6a63130f02f774086bf6e23ed86f",
+    "after_ink": "c3bc3bbcefacbcdb8e912d1d6ba2ea4404a98fb3eb4262314c0a97097a402a13",
+    "after_dimension": "ce667c359358e12932dbc643fd28c6cbb30553b83ccc78572e7f5e79b403bfd0",
+    "after_a": "9f798799c28df5d64782b68ed5f107408d6a3851d08e0b02f506f51354f4e27a"
+  },
+  "stage_metrics": {
+    "original": {
+      "compiled": true,
+      "counts": {
+        "rooms": 16,
+        "openings": 30,
+        "doors": 14,
+        "windows": 16
+      },
+      "room_ids": [
+        "F2_S06",
+        "conference",
+        "corrH",
+        "kitchen",
+        "office1",
+        "office2",
+        "office3",
+        "office4",
+        "office5",
+        "room1",
+        "room2",
+        "stack1",
+        "stack2",
+        "stack3",
+        "stack4",
+        "stack5"
+      ],
+      "space_seed_ids": [
+        "conference",
+        "corrH",
+        "kitchen",
+        "office1",
+        "office2",
+        "office3",
+        "office4",
+        "office5",
+        "room1",
+        "room2",
+        "stack1",
+        "stack2",
+        "stack3",
+        "stack4",
+        "stack5"
+      ],
+      "room_boundary_tiers": {
+        "<=5cm": 0,
+        "5-10cm": 4,
+        "10-30cm": 10,
+        ">30cm": 1
+      },
+      "opening_along_wall_tiers": {
+        "<=5cm": 19,
+        "5-10cm": 9,
+        "10-30cm": 2,
+        ">30cm": 0
+      },
+      "opening_hosts": [
+        [
+          "D_CONF",
+          [
+            "conference",
+            "corrH"
+          ]
+        ],
+        [
+          "D_K",
+          [
+            "corrH",
+            "kitchen"
+          ]
+        ],
+        [
+          "D_O1",
+          [
+            "corrH",
+            "office1"
+          ]
+        ],
+        [
+          "D_O2",
+          [
+            "corrH",
+            "office2"
+          ]
+        ],
+        [
+          "D_O3",
+          [
+            "corrH",
+            "office3"
+          ]
+        ],
+        [
+          "D_O4",
+          [
+            "corrH",
+            "office4"
+          ]
+        ],
+        [
+          "D_O5",
+          [
+            "corrH",
+            "office5"
+          ]
+        ],
+        [
+          "D_R1",
+          [
+            "corrH",
+            "room1"
+          ]
+        ],
+        [
+          "D_R2",
+          [
+            "corrH",
+            "room2"
+          ]
+        ],
+        [
+          "D_S1",
+          [
+            "corrH",
+            "stack1"
+          ]
+        ],
+        [
+          "D_S2",
+          [
+            "corrH",
+            "stack2"
+          ]
+        ],
+        [
+          "D_S3",
+          [
+            "corrH",
+            "stack3"
+          ]
+        ],
+        [
+          "D_S4",
+          [
+            "corrH",
+            "stack4"
+          ]
+        ],
+        [
+          "D_S5",
+          [
+            "corrH",
+            "stack5"
+          ]
+        ],
+        [
+          "W_BN1",
+          [
+            "stack5"
+          ]
+        ],
+        [
+          "W_E1",
+          [
+            "stack1"
+          ]
+        ],
+        [
+          "W_E2",
+          [
+            "stack2"
+          ]
+        ],
+        [
+          "W_E3",
+          [
+            "stack3"
+          ]
+        ],
+        [
+          "W_E4",
+          [
+            "stack4"
+          ]
+        ],
+        [
+          "W_E5",
+          [
+            "stack5"
+          ]
+        ],
+        [
+          "W_MW1",
+          [
+            "F2_S06"
+          ]
+        ],
+        [
+          "W_MW2",
+          [
+            "F2_S06"
+          ]
+        ],
+        [
+          "W_N1",
+          [
+            "room1"
+          ]
+        ],
+        [
+          "W_N2",
+          [
+            "room2"
+          ]
+        ],
+        [
+          "W_N3",
+          [
+            "kitchen"
+          ]
+        ],
+        [
+          "W_S1",
+          [
+            "office1"
+          ]
+        ],
+        [
+          "W_S2",
+          [
+            "office2"
+          ]
+        ],
+        [
+          "W_S3",
+          [
+            "office3"
+          ]
+        ],
+        [
+          "W_S4",
+          [
+            "office4"
+          ]
+        ],
+        [
+          "W_S5",
+          [
+            "office5"
+          ]
+        ]
+      ],
+      "door_connections": [
+        [
+          "D_CONF",
+          [
+            "conference",
+            "corrH"
+          ]
+        ],
+        [
+          "D_K",
+          [
+            "corrH",
+            "kitchen"
+          ]
+        ],
+        [
+          "D_O1",
+          [
+            "corrH",
+            "office1"
+          ]
+        ],
+        [
+          "D_O2",
+          [
+            "corrH",
+            "office2"
+          ]
+        ],
+        [
+          "D_O3",
+          [
+            "corrH",
+            "office3"
+          ]
+        ],
+        [
+          "D_O4",
+          [
+            "corrH",
+            "office4"
+          ]
+        ],
+        [
+          "D_O5",
+          [
+            "corrH",
+            "office5"
+          ]
+        ],
+        [
+          "D_R1",
+          [
+            "corrH",
+            "room1"
+          ]
+        ],
+        [
+          "D_R2",
+          [
+            "corrH",
+            "room2"
+          ]
+        ],
+        [
+          "D_S1",
+          [
+            "corrH",
+            "stack1"
+          ]
+        ],
+        [
+          "D_S2",
+          [
+            "corrH",
+            "stack2"
+          ]
+        ],
+        [
+          "D_S3",
+          [
+            "corrH",
+            "stack3"
+          ]
+        ],
+        [
+          "D_S4",
+          [
+            "corrH",
+            "stack4"
+          ]
+        ],
+        [
+          "D_S5",
+          [
+            "corrH",
+            "stack5"
+          ]
+        ]
+      ]
+    },
+    "after_ink": {
+      "compiled": true,
+      "counts": {
+        "rooms": 16,
+        "openings": 30,
+        "doors": 14,
+        "windows": 16
+      },
+      "room_ids": [
+        "F2_S06",
+        "conference",
+        "corrH",
+        "kitchen",
+        "office1",
+        "office2",
+        "office3",
+        "office4",
+        "office5",
+        "room1",
+        "room2",
+        "stack1",
+        "stack2",
+        "stack3",
+        "stack4",
+        "stack5"
+      ],
+      "space_seed_ids": [
+        "conference",
+        "corrH",
+        "kitchen",
+        "office1",
+        "office2",
+        "office3",
+        "office4",
+        "office5",
+        "room1",
+        "room2",
+        "stack1",
+        "stack2",
+        "stack3",
+        "stack4",
+        "stack5"
+      ],
+      "room_boundary_tiers": {
+        "<=5cm": 10,
+        "5-10cm": 1,
+        "10-30cm": 3,
+        ">30cm": 1
+      },
+      "opening_along_wall_tiers": {
+        "<=5cm": 19,
+        "5-10cm": 10,
+        "10-30cm": 1,
+        ">30cm": 0
+      },
+      "opening_hosts": [
+        [
+          "D_CONF",
+          [
+            "conference",
+            "corrH"
+          ]
+        ],
+        [
+          "D_K",
+          [
+            "corrH",
+            "kitchen"
+          ]
+        ],
+        [
+          "D_O1",
+          [
+            "corrH",
+            "office1"
+          ]
+        ],
+        [
+          "D_O2",
+          [
+            "corrH",
+            "office2"
+          ]
+        ],
+        [
+          "D_O3",
+          [
+            "corrH",
+            "office3"
+          ]
+        ],
+        [
+          "D_O4",
+          [
+            "corrH",
+            "office4"
+          ]
+        ],
+        [
+          "D_O5",
+          [
+            "corrH",
+            "office5"
+          ]
+        ],
+        [
+          "D_R1",
+          [
+            "corrH",
+            "room1"
+          ]
+        ],
+        [
+          "D_R2",
+          [
+            "corrH",
+            "room2"
+          ]
+        ],
+        [
+          "D_S1",
+          [
+            "corrH",
+            "stack1"
+          ]
+        ],
+        [
+          "D_S2",
+          [
+            "corrH",
+            "stack2"
+          ]
+        ],
+        [
+          "D_S3",
+          [
+            "corrH",
+            "stack3"
+          ]
+        ],
+        [
+          "D_S4",
+          [
+            "corrH",
+            "stack4"
+          ]
+        ],
+        [
+          "D_S5",
+          [
+            "corrH",
+            "stack5"
+          ]
+        ],
+        [
+          "W_BN1",
+          [
+            "stack5"
+          ]
+        ],
+        [
+          "W_E1",
+          [
+            "stack1"
+          ]
+        ],
+        [
+          "W_E2",
+          [
+            "stack2"
+          ]
+        ],
+        [
+          "W_E3",
+          [
+            "stack3"
+          ]
+        ],
+        [
+          "W_E4",
+          [
+            "stack4"
+          ]
+        ],
+        [
+          "W_E5",
+          [
+            "stack5"
+          ]
+        ],
+        [
+          "W_MW1",
+          [
+            "F2_S06"
+          ]
+        ],
+        [
+          "W_MW2",
+          [
+            "F2_S06"
+          ]
+        ],
+        [
+          "W_N1",
+          [
+            "room1"
+          ]
+        ],
+        [
+          "W_N2",
+          [
+            "room2"
+          ]
+        ],
+        [
+          "W_N3",
+          [
+            "kitchen"
+          ]
+        ],
+        [
+          "W_S1",
+          [
+            "office1"
+          ]
+        ],
+        [
+          "W_S2",
+          [
+            "office2"
+          ]
+        ],
+        [
+          "W_S3",
+          [
+            "office3"
+          ]
+        ],
+        [
+          "W_S4",
+          [
+            "office4"
+          ]
+        ],
+        [
+          "W_S5",
+          [
+            "office5"
+          ]
+        ]
+      ],
+      "door_connections": [
+        [
+          "D_CONF",
+          [
+            "conference",
+            "corrH"
+          ]
+        ],
+        [
+          "D_K",
+          [
+            "corrH",
+            "kitchen"
+          ]
+        ],
+        [
+          "D_O1",
+          [
+            "corrH",
+            "office1"
+          ]
+        ],
+        [
+          "D_O2",
+          [
+            "corrH",
+            "office2"
+          ]
+        ],
+        [
+          "D_O3",
+          [
+            "corrH",
+            "office3"
+          ]
+        ],
+        [
+          "D_O4",
+          [
+            "corrH",
+            "office4"
+          ]
+        ],
+        [
+          "D_O5",
+          [
+            "corrH",
+            "office5"
+          ]
+        ],
+        [
+          "D_R1",
+          [
+            "corrH",
+            "room1"
+          ]
+        ],
+        [
+          "D_R2",
+          [
+            "corrH",
+            "room2"
+          ]
+        ],
+        [
+          "D_S1",
+          [
+            "corrH",
+            "stack1"
+          ]
+        ],
+        [
+          "D_S2",
+          [
+            "corrH",
+            "stack2"
+          ]
+        ],
+        [
+          "D_S3",
+          [
+            "corrH",
+            "stack3"
+          ]
+        ],
+        [
+          "D_S4",
+          [
+            "corrH",
+            "stack4"
+          ]
+        ],
+        [
+          "D_S5",
+          [
+            "corrH",
+            "stack5"
+          ]
+        ]
+      ]
+    },
+    "after_dimension_then_a": {
+      "compiled": true,
+      "counts": {
+        "rooms": 15,
+        "openings": 30,
+        "doors": 14,
+        "windows": 16
+      },
+      "room_ids": [
+        "conference",
+        "corrH",
+        "kitchen",
+        "office1",
+        "office2",
+        "office3",
+        "office4",
+        "office5",
+        "room1",
+        "room2",
+        "stack1",
+        "stack2",
+        "stack3",
+        "stack4",
+        "stack5"
+      ],
+      "space_seed_ids": [
+        "conference",
+        "corrH",
+        "kitchen",
+        "office1",
+        "office2",
+        "office3",
+        "office4",
+        "office5",
+        "room1",
+        "room2",
+        "stack1",
+        "stack2",
+        "stack3",
+        "stack4",
+        "stack5"
+      ],
+      "room_boundary_tiers": {
+        "<=5cm": 12,
+        "5-10cm": 0,
+        "10-30cm": 3,
+        ">30cm": 0
+      },
+      "opening_along_wall_tiers": {
+        "<=5cm": 20,
+        "5-10cm": 9,
+        "10-30cm": 1,
+        ">30cm": 0
+      },
+      "opening_hosts": [
+        [
+          "D_CONF",
+          [
+            "conference",
+            "corrH"
+          ]
+        ],
+        [
+          "D_K",
+          [
+            "corrH",
+            "kitchen"
+          ]
+        ],
+        [
+          "D_O1",
+          [
+            "corrH",
+            "office1"
+          ]
+        ],
+        [
+          "D_O2",
+          [
+            "corrH",
+            "office2"
+          ]
+        ],
+        [
+          "D_O3",
+          [
+            "corrH",
+            "office3"
+          ]
+        ],
+        [
+          "D_O4",
+          [
+            "corrH",
+            "office4"
+          ]
+        ],
+        [
+          "D_O5",
+          [
+            "corrH",
+            "office5"
+          ]
+        ],
+        [
+          "D_R1",
+          [
+            "corrH",
+            "room1"
+          ]
+        ],
+        [
+          "D_R2",
+          [
+            "corrH",
+            "room2"
+          ]
+        ],
+        [
+          "D_S1",
+          [
+            "corrH",
+            "stack1"
+          ]
+        ],
+        [
+          "D_S2",
+          [
+            "corrH",
+            "stack2"
+          ]
+        ],
+        [
+          "D_S3",
+          [
+            "corrH",
+            "stack3"
+          ]
+        ],
+        [
+          "D_S4",
+          [
+            "corrH",
+            "stack4"
+          ]
+        ],
+        [
+          "D_S5",
+          [
+            "corrH",
+            "stack5"
+          ]
+        ],
+        [
+          "W_BN1",
+          [
+            "corrH"
+          ]
+        ],
+        [
+          "W_E1",
+          [
+            "stack1"
+          ]
+        ],
+        [
+          "W_E2",
+          [
+            "stack2"
+          ]
+        ],
+        [
+          "W_E3",
+          [
+            "stack3"
+          ]
+        ],
+        [
+          "W_E4",
+          [
+            "stack4"
+          ]
+        ],
+        [
+          "W_E5",
+          [
+            "stack5"
+          ]
+        ],
+        [
+          "W_MW1",
+          [
+            "conference"
+          ]
+        ],
+        [
+          "W_MW2",
+          [
+            "corrH"
+          ]
+        ],
+        [
+          "W_N1",
+          [
+            "room1"
+          ]
+        ],
+        [
+          "W_N2",
+          [
+            "room2"
+          ]
+        ],
+        [
+          "W_N3",
+          [
+            "kitchen"
+          ]
+        ],
+        [
+          "W_S1",
+          [
+            "office1"
+          ]
+        ],
+        [
+          "W_S2",
+          [
+            "office2"
+          ]
+        ],
+        [
+          "W_S3",
+          [
+            "office3"
+          ]
+        ],
+        [
+          "W_S4",
+          [
+            "office4"
+          ]
+        ],
+        [
+          "W_S5",
+          [
+            "office5"
+          ]
+        ]
+      ],
+      "door_connections": [
+        [
+          "D_CONF",
+          [
+            "conference",
+            "corrH"
+          ]
+        ],
+        [
+          "D_K",
+          [
+            "corrH",
+            "kitchen"
+          ]
+        ],
+        [
+          "D_O1",
+          [
+            "corrH",
+            "office1"
+          ]
+        ],
+        [
+          "D_O2",
+          [
+            "corrH",
+            "office2"
+          ]
+        ],
+        [
+          "D_O3",
+          [
+            "corrH",
+            "office3"
+          ]
+        ],
+        [
+          "D_O4",
+          [
+            "corrH",
+            "office4"
+          ]
+        ],
+        [
+          "D_O5",
+          [
+            "corrH",
+            "office5"
+          ]
+        ],
+        [
+          "D_R1",
+          [
+            "corrH",
+            "room1"
+          ]
+        ],
+        [
+          "D_R2",
+          [
+            "corrH",
+            "room2"
+          ]
+        ],
+        [
+          "D_S1",
+          [
+            "corrH",
+            "stack1"
+          ]
+        ],
+        [
+          "D_S2",
+          [
+            "corrH",
+            "stack2"
+          ]
+        ],
+        [
+          "D_S3",
+          [
+            "corrH",
+            "stack3"
+          ]
+        ],
+        [
+          "D_S4",
+          [
+            "corrH",
+            "stack4"
+          ]
+        ],
+        [
+          "D_S5",
+          [
+            "corrH",
+            "stack5"
+          ]
+        ]
+      ]
+    }
+  },
+  "semantic_comparison": {
+    "original_to_ink": {
+      "room_ids_removed": [],
+      "room_ids_added": [],
+      "opening_host_changes": [],
+      "door_connection_changes": []
+    },
+    "original_to_after_a": {
+      "room_ids_removed": [
+        "F2_S06"
+      ],
+      "room_ids_added": [],
+      "opening_host_changes": [
+        {
+          "opening_id": "W_BN1",
+          "before": [
+            "stack5"
+          ],
+          "after": [
+            "corrH"
+          ]
+        },
+        {
+          "opening_id": "W_MW1",
+          "before": [
+            "F2_S06"
+          ],
+          "after": [
+            "conference"
+          ]
+        },
+        {
+          "opening_id": "W_MW2",
+          "before": [
+            "F2_S06"
+          ],
+          "after": [
+            "corrH"
+          ]
+        }
+      ],
+      "door_connection_changes": []
+    },
+    "after_a_audit": {
+      "status": "rejected",
+      "floors": {
+        "F2": {
+          "status": "rejected",
+          "checks": {
+            "no_added_openings": true,
+            "removed_openings_declared": true,
+            "surviving_opening_kinds_unchanged": true,
+            "surviving_opening_host_changes_explicitly_mapped": false,
+            "surviving_door_connection_changes_explicitly_mapped": true,
+            "no_added_space_seeds": true,
+            "removed_space_seeds_declared": true,
+            "room_count_change_matches_eliminated_strip_spaces": false,
+            "production_semantic_mapping_counts_consistent": true,
+            "production_opening_mapping_rows_match_compiled_before_after": true
+          },
+          "room_count_before": 16,
+          "room_count_after": 15,
+          "room_count_delta": -1,
+          "removed_space_seed_ids": [],
+          "declared_removed_space_seed_ids": [],
+          "removed_opening_ids": [],
+          "declared_removed_opening_ids": [],
+          "added_opening_ids": [],
+          "changed_surviving_opening_kinds": [],
+          "removed_room_ids": [
+            "F2_S06"
+          ],
+          "added_room_ids": [],
+          "changed_surviving_opening_hosts": [
+            "W_BN1",
+            "W_MW1",
+            "W_MW2"
+          ],
+          "changed_surviving_door_connections": [],
+          "allowed_merge_items": [
+            {
+              "type": "merge_duplicate_wall_into_fixed_footprint",
+              "floor_id": "F2",
+              "axis": "x",
+              "partition_id": "mwW",
+              "object_ids": {
+                "partitions": [
+                  "mwW",
+                  "footprint[5]"
+                ],
+                "openings": [
+                  "W_MW1",
+                  "W_MW2"
+                ],
+                "space_seeds": []
+              },
+              "from_m": 5.0,
+              "to_m": 5.0,
+              "span_m": [
+                0.0,
+                13.949945593
+              ],
+              "source": {
+                "partition_id": "mwW",
+                "axis": "x",
+                "coordinate_m": 5.0,
+                "span_m": [
+                  0.0,
+                  14.080515139
+                ]
+              },
+              "target": {
+                "partition_id": "footprint[5]",
+                "axis": "x",
+                "coordinate_m": 5.0,
+                "span_m": [
+                  0.0,
+                  13.949945593
+                ]
+              },
+              "movement_m": 0.0,
+              "length_m": 13.949945593,
+              "removed_partition_id": null,
+              "retained_remainder_partition_ids": [
+                "mwW"
+              ],
+              "retained_partition_id": "footprint[5]",
+              "adjusted_endpoint_ids": [],
+              "basis": "fixed_exterior_footprint",
+              "reason": "outer footprint stayed fixed; only the duplicate sub-0.30 m overlap was removed and its contents were audited"
+            },
+            {
+              "type": "merge_duplicate_wall_into_fixed_footprint",
+              "floor_id": "F2",
+              "axis": "y",
+              "partition_id": "bandN",
+              "object_ids": {
+                "partitions": [
+                  "bandN",
+                  "footprint[2]"
+                ],
+                "openings": [
+                  "W_BN1"
+                ],
+                "space_seeds": []
+              },
+              "from_m": 5.865070729,
+              "to_m": 5.98476605,
+              "span_m": [
+                15.008726003,
+                25.0
+              ],
+              "source": {
+                "partition_id": "bandN",
+                "axis": "y",
+                "coordinate_m": 5.865070729,
+                "span_m": [
+                  11.065663176,
+                  25.0
+                ]
+              },
+              "target": {
+                "partition_id": "footprint[2]",
+                "axis": "y",
+                "coordinate_m": 5.98476605,
+                "span_m": [
+                  15.008726003,
+                  25.0
+                ]
+              },
+              "movement_m": 0.119695321,
+              "length_m": 9.991273997,
+              "removed_partition_id": null,
+              "retained_remainder_partition_ids": [
+                "bandN"
+              ],
+              "retained_partition_id": "footprint[2]",
+              "adjusted_endpoint_ids": [],
+              "basis": "fixed_exterior_footprint",
+              "reason": "outer footprint stayed fixed; only the duplicate sub-0.30 m overlap was removed and its contents were audited"
+            },
+            {
+              "type": "merge_duplicate_wall_into_fixed_footprint",
+              "floor_id": "F2",
+              "axis": "y",
+              "partition_id": "corrS",
+              "object_ids": {
+                "partitions": [
+                  "corrS",
+                  "footprint[6]"
+                ],
+                "openings": [],
+                "space_seeds": []
+              },
+              "from_m": 14.080515139,
+              "to_m": 13.949945593,
+              "span_m": [
+                0.0,
+                5.0
+              ],
+              "source": {
+                "partition_id": "corrS",
+                "axis": "y",
+                "coordinate_m": 14.080515139,
+                "span_m": [
+                  0.0,
+                  9.09
+                ]
+              },
+              "target": {
+                "partition_id": "footprint[6]",
+                "axis": "y",
+                "coordinate_m": 13.949945593,
+                "span_m": [
+                  0.0,
+                  5.0
+                ]
+              },
+              "movement_m": 0.130569546,
+              "length_m": 5.0,
+              "removed_partition_id": null,
+              "retained_remainder_partition_ids": [
+                "corrS"
+              ],
+              "retained_partition_id": "footprint[6]",
+              "adjusted_endpoint_ids": [
+                {
+                  "partition_id": "mwW",
+                  "endpoint": 1
+                }
+              ],
+              "basis": "fixed_exterior_footprint",
+              "reason": "outer footprint stayed fixed; only the duplicate sub-0.30 m overlap was removed and its contents were audited"
+            }
+          ],
+          "production_semantic_mappings": [
+            {
+              "floor_id": "F2",
+              "opening_id_map": [],
+              "removed_space_seeds": [],
+              "affected_opening_ids": [],
+              "status": "applied"
+            }
+          ],
+          "invalid_production_opening_mapping_rows": []
+        }
+      }
+    },
+    "handoff_fixed_strip_audit": {
+      "schema": "q1_dimension_handoff_semantic_audit_v1",
+      "status": "pass",
+      "checks": {
+        "no_added_or_removed_openings": true,
+        "surviving_opening_kinds_unchanged": true,
+        "door_connections_unchanged": true,
+        "named_space_seeds_unchanged": true,
+        "no_added_rooms": true,
+        "room_delta_exactly_matches_audited_unseeded_strips": true,
+        "host_changes_exactly_match_fixed_merge_retains": true
+      },
+      "counts_before": {
+        "rooms": 16,
+        "openings": 30,
+        "doors": 14,
+        "windows": 16
+      },
+      "counts_after": {
+        "rooms": 15,
+        "openings": 30,
+        "doors": 14,
+        "windows": 16
+      },
+      "removed_room_ids": [
+        "F2_S06"
+      ],
+      "added_room_ids": [],
+      "eliminated_unseeded_fixed_strip_spaces": [
+        {
+          "room_id": "F2_S06",
+          "was_named_space_seed": false,
+          "matched_fixed_merge_partition_ids": [
+            "corrS",
+            "mwW"
+          ],
+          "matched_boundary_count": 2,
+          "polygon": [
+            [
+              0.0,
+              13.993471
+            ],
+            [
+              5.004371,
+              13.993471
+            ],
+            [
+              5.004371,
+              0.0
+            ],
+            [
+              5.113636,
+              0.0
+            ],
+            [
+              5.113636,
+              14.124048
+            ],
+            [
+              0.0,
+              14.124048
+            ]
+          ],
+          "area_m2": 2.196719857,
+          "source_refs": [
+            "2f_view.png: corridor south wall, faces 14000-14240 (chain 14000), ink py 605-616",
+            "2f_view.png: middle-wing west wall continuing as band west wall to south outer face, px 470-481",
+            "image:2f_view.png"
+          ],
+          "accepted": true
+        }
+      ],
+      "changed_opening_host_ids": [
+        "W_BN1",
+        "W_MW1",
+        "W_MW2"
+      ],
+      "allowed_opening_mappings": [
+        {
+          "old_opening_id": "W_BN1",
+          "surviving_opening_id": "W_BN1",
+          "kind_before": "window",
+          "kind_after": "window",
+          "before_hosts": [
+            "stack5"
+          ],
+          "after_hosts": [
+            "corrH"
+          ],
+          "before_connection": {
+            "kind": "window",
+            "is_exterior": true,
+            "connected_space_count": 1
+          },
+          "after_connection": {
+            "kind": "window",
+            "is_exterior": true,
+            "connected_space_count": 1
+          },
+          "supporting_fixed_merge_partition_ids": [
+            "bandN"
+          ],
+          "supporting_retain_change_partition_ids": [
+            "footprint[2]"
+          ],
+          "accepted": true
+        },
+        {
+          "old_opening_id": "W_MW1",
+          "surviving_opening_id": "W_MW1",
+          "kind_before": "window",
+          "kind_after": "window",
+          "before_hosts": [
+            "F2_S06"
+          ],
+          "after_hosts": [
+            "conference"
+          ],
+          "before_connection": {
+            "kind": "window",
+            "is_exterior": true,
+            "connected_space_count": 1
+          },
+          "after_connection": {
+            "kind": "window",
+            "is_exterior": true,
+            "connected_space_count": 1
+          },
+          "supporting_fixed_merge_partition_ids": [
+            "mwW"
+          ],
+          "supporting_retain_change_partition_ids": [
+            "footprint[5]"
+          ],
+          "accepted": true
+        },
+        {
+          "old_opening_id": "W_MW2",
+          "surviving_opening_id": "W_MW2",
+          "kind_before": "window",
+          "kind_after": "window",
+          "before_hosts": [
+            "F2_S06"
+          ],
+          "after_hosts": [
+            "corrH"
+          ],
+          "before_connection": {
+            "kind": "window",
+            "is_exterior": true,
+            "connected_space_count": 1
+          },
+          "after_connection": {
+            "kind": "window",
+            "is_exterior": true,
+            "connected_space_count": 1
+          },
+          "supporting_fixed_merge_partition_ids": [
+            "mwW"
+          ],
+          "supporting_retain_change_partition_ids": [
+            "footprint[5]"
+          ],
+          "accepted": true
+        }
+      ],
+      "changed_door_connection_ids": [],
+      "production_fixed_merge_partition_ids": [
+        "bandN",
+        "corrS",
+        "mwW"
+      ],
+      "production_fixed_merge_opening_ids": [
+        "W_BN1",
+        "W_MW1",
+        "W_MW2"
+      ],
+      "production_retain_opening_ids": [
+        "W_BN1",
+        "W_MW1",
+        "W_MW2"
+      ]
+    },
+    "production_mapping": {
+      "opening_id_map": [],
+      "removed_space_seeds": [],
+      "affected_opening_ids": [],
+      "status": "applied"
+    }
+  },
+  "ink": {
+    "status": "applied",
+    "report": {
+      "schema_version": "plan_reading_ink_alignment_v1",
+      "status": "applied",
+      "search": {
+        "world_radius_m": 0.3,
+        "metres_per_pixel": {
+          "x": 0.021853147,
+          "y": 0.021762786
+        },
+        "radius_pixels": {
+          "x": 14,
+          "y": 14
+        },
+        "basis": "0.30 m maximum alignment distance converted independently on each drawing axis"
+      },
+      "summary": {
+        "moved_or_aligned": 27,
+        "not_moved": 29,
+        "rejected": 29
+      },
+      "items": [
+        {
+          "object": "footprint:0",
+          "kind": "perimeter",
+          "axis": "y",
+          "convention": "outer_face",
+          "declared_pixel": 339.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 341.0,
+          "movement_pixels": 2.0,
+          "movement_m": 0.043526,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "W_N1",
+              "W_N2",
+              "W_N3"
+            ],
+            "junctions": [
+              "div1:0",
+              "div2:0"
+            ]
+          }
+        },
+        {
+          "object": "footprint:1",
+          "kind": "perimeter",
+          "axis": "x",
+          "convention": "outer_face",
+          "declared_pixel": 928.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 929.0,
+          "movement_pixels": 1.0,
+          "movement_m": 0.021853,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "W_E1",
+              "W_E2",
+              "W_E3",
+              "W_E4",
+              "W_E5"
+            ],
+            "junctions": [
+              "corrN:1",
+              "stackD1:1",
+              "stackD2:1",
+              "stackD3:1",
+              "stackD4:1"
+            ]
+          }
+        },
+        {
+          "object": "footprint:2",
+          "kind": "perimeter",
+          "axis": "y",
+          "convention": "outer_face",
+          "declared_pixel": 982.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 4,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 983.0,
+          "movement_pixels": 1.0,
+          "movement_m": 0.021763,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "W_BN1"
+            ],
+            "junctions": []
+          }
+        },
+        {
+          "object": "footprint:3",
+          "kind": "perimeter",
+          "axis": "x",
+          "convention": "outer_face",
+          "declared_pixel": 1385.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 1387.0,
+          "movement_pixels": 2.0,
+          "movement_m": 0.043706,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "bandN:1",
+              "offN:1"
+            ]
+          }
+        },
+        {
+          "object": "footprint:4",
+          "kind": "perimeter",
+          "axis": "y",
+          "convention": "outer_face",
+          "declared_pixel": 1258.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 1258.0,
+          "movement_pixels": 0.0,
+          "movement_m": 0.0,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "W_S1",
+              "W_S2",
+              "W_S3",
+              "W_S4",
+              "W_S5"
+            ],
+            "junctions": [
+              "mwW:1",
+              "od1:1",
+              "od2:1",
+              "od3:1",
+              "od4:1"
+            ]
+          }
+        },
+        {
+          "object": "footprint:5",
+          "kind": "perimeter",
+          "axis": "x",
+          "convention": "outer_face",
+          "declared_pixel": 470.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 470.0,
+          "movement_pixels": 0.0,
+          "movement_m": 0.0,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "W_MW1",
+              "W_MW2"
+            ],
+            "junctions": []
+          }
+        },
+        {
+          "object": "footprint:6",
+          "kind": "perimeter",
+          "axis": "y",
+          "convention": "outer_face",
+          "declared_pixel": 615.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 617.0,
+          "movement_pixels": 2.0,
+          "movement_m": 0.043526,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "footprint:7",
+          "kind": "perimeter",
+          "axis": "x",
+          "convention": "outer_face",
+          "declared_pixel": 241.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "outermost supported face in the outward direction",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 241.0,
+          "movement_pixels": 0.0,
+          "movement_m": 0.0,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "corrN:0",
+              "corrS:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:div1",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 475.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.96,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.96,
+          "action": "moved",
+          "aligned_pixel": 470.25,
+          "movement_pixels": -4.75,
+          "movement_m": -0.103802,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:div2",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 697.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.96,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.96,
+          "action": "moved",
+          "aligned_pixel": 696.75,
+          "movement_pixels": -0.25,
+          "movement_m": -0.005463,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:corrN",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 525.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.8351,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.8305,
+          "action": "moved",
+          "aligned_pixel": 521.7495,
+          "movement_pixels": -3.2505,
+          "movement_m": -0.070739,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "D_K",
+              "D_R1",
+              "D_R2"
+            ],
+            "junctions": [
+              "div1:1",
+              "div2:1",
+              "stackW:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:corrS",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 609.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9769,
+          "action": "moved",
+          "aligned_pixel": 611.0003,
+          "movement_pixels": 2.0003,
+          "movement_m": 0.043533,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "confE:0",
+              "mwW:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:confE",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 653.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.8146,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.7978,
+          "action": "moved",
+          "aligned_pixel": 650.7496,
+          "movement_pixels": -2.2504,
+          "movement_m": -0.049179,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "D_CONF"
+            ],
+            "junctions": [
+              "bandNW:1",
+              "corrS:1"
+            ]
+          }
+        },
+        {
+          "object": "partition:mwW",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 475.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.977,
+          "action": "moved",
+          "aligned_pixel": 475.9998,
+          "movement_pixels": 0.9998,
+          "movement_m": 0.021849,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "bandNW:0",
+              "offN:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:stackW",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 751.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.6,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.5909,
+          "action": "moved",
+          "aligned_pixel": 748.25,
+          "movement_pixels": -2.75,
+          "movement_m": -0.060096,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "D_S1",
+              "D_S2",
+              "D_S3",
+              "D_S4",
+              "D_S5"
+            ],
+            "junctions": [
+              "bandN:0",
+              "stackD1:0",
+              "stackD2:0",
+              "stackD3:0",
+              "stackD4:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:stackD1",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 616.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9649,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9649,
+          "action": "moved",
+          "aligned_pixel": 616.25,
+          "movement_pixels": 0.25,
+          "movement_m": 0.005441,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:stackD2",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 705.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9649,
+          "candidate_count": 4,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.655,
+          "action": "moved",
+          "aligned_pixel": 705.25,
+          "movement_pixels": 0.25,
+          "movement_m": 0.005441,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:stackD3",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 800.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9649,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9649,
+          "action": "moved",
+          "aligned_pixel": 799.75,
+          "movement_pixels": -0.25,
+          "movement_m": -0.005441,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:stackD4",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 891.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9649,
+          "candidate_count": 3,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9649,
+          "action": "moved",
+          "aligned_pixel": 891.25,
+          "movement_pixels": 0.25,
+          "movement_m": 0.005441,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:bandNW",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 989.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 1.0,
+          "action": "moved",
+          "aligned_pixel": 988.5,
+          "movement_pixels": -0.5,
+          "movement_m": -0.010881,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "confE:1"
+            ]
+          }
+        },
+        {
+          "object": "partition:bandN",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 989.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 1.0,
+          "candidate_count": 4,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.985,
+          "action": "moved",
+          "aligned_pixel": 988.5,
+          "movement_pixels": -0.5,
+          "movement_m": -0.010881,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "stackW:1"
+            ]
+          }
+        },
+        {
+          "object": "partition:offN",
+          "kind": "partition",
+          "axis": "y",
+          "convention": "centerline",
+          "declared_pixel": 1079.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.796,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.7914,
+          "action": "moved",
+          "aligned_pixel": 1077.75,
+          "movement_pixels": -1.25,
+          "movement_m": -0.027203,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "D_O1",
+              "D_O2",
+              "D_O3",
+              "D_O4",
+              "D_O5"
+            ],
+            "junctions": [
+              "od1:0",
+              "od2:0",
+              "od3:0",
+              "od4:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:od1",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 655.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9708,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9708,
+          "action": "moved",
+          "aligned_pixel": 657.7492,
+          "movement_pixels": 2.7492,
+          "movement_m": 0.06008,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:od2",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 840.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9708,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9708,
+          "action": "moved",
+          "aligned_pixel": 837.0,
+          "movement_pixels": -3.0,
+          "movement_m": -0.065559,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:od3",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 1019.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9708,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9708,
+          "action": "moved",
+          "aligned_pixel": 1016.2508,
+          "movement_pixels": -2.7492,
+          "movement_m": -0.06008,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:od4",
+          "kind": "partition",
+          "axis": "x",
+          "convention": "centerline",
+          "declared_pixel": 1204.0,
+          "search_radius_pixels": 14,
+          "best_support_fraction": 0.9708,
+          "candidate_count": 2,
+          "method": "midline of supported wall faces",
+          "selected_support_fraction": 0.9708,
+          "action": "moved",
+          "aligned_pixel": 1201.0,
+          "movement_pixels": -3.0,
+          "movement_m": -0.065559,
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "opening:W_N1",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_N2",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_N3",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_MW1",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_MW2",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_BN1",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 942.0,
+              "to_pixel": 929.0,
+              "movement_m": -0.284091,
+              "support_fraction": 0.5862,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E1",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E2",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E3",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E4",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E5",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S1",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S2",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S3",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S4",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S5",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_R1",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "from_pixel": 453.0,
+              "to_pixel": 453.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.5862,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_R2",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 489.0,
+              "to_pixel": 489.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.5172,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_K",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 707.0,
+              "to_pixel": 706.0,
+              "movement_m": -0.021853,
+              "support_fraction": 0.5172,
+              "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "from_pixel": 739.0,
+              "to_pixel": 745.0,
+              "movement_m": 0.131119,
+              "support_fraction": 0.5172,
+              "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+            }
+          ],
+          "gap_evidence": {
+            "status": "ambiguous",
+            "wall_face_cross_pixel": 525,
+            "left_continuity_fraction": 1.0,
+            "right_continuity_fraction": 0.6,
+            "middle_gap_ink_fraction": 0.0833,
+            "probe_length_pixels": 11,
+            "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+          }
+        },
+        {
+          "object": "opening:D_CONF",
+          "kind": "opening",
+          "axis": "y",
+          "action": "aligned",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "moved",
+              "from_pixel": 634.0,
+              "to_pixel": 632.0,
+              "movement_m": -0.043526,
+              "support_fraction": 0.5172
+            },
+            {
+              "endpoint": "p2",
+              "action": "moved",
+              "from_pixel": 702.0,
+              "to_pixel": 702.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.5172
+            }
+          ],
+          "gap_evidence": {
+            "status": "supported",
+            "wall_face_cross_pixel": 653,
+            "left_continuity_fraction": 1.0,
+            "right_continuity_fraction": 1.0,
+            "middle_gap_ink_fraction": 0.0,
+            "probe_length_pixels": 14
+          }
+        },
+        {
+          "object": "opening:D_S1",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "from_pixel": 598.0,
+              "to_pixel": 598.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.5172,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S2",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 632.0,
+              "to_pixel": 633.0,
+              "movement_m": 0.021763,
+              "support_fraction": 0.6207,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S3",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "from_pixel": 783.0,
+              "to_pixel": 783.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.6207,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S4",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 815.0,
+              "to_pixel": 816.0,
+              "movement_m": 0.021763,
+              "support_fraction": 0.6207,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S5",
+          "kind": "opening",
+          "axis": "y",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 911.0,
+              "to_pixel": 910.0,
+              "movement_m": -0.021763,
+              "support_fraction": 0.5172,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O1",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "from_pixel": 638.0,
+              "to_pixel": 639.0,
+              "movement_m": 0.021853,
+              "support_fraction": 0.5172,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O2",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 677.0,
+              "to_pixel": 676.0,
+              "movement_m": -0.021853,
+              "support_fraction": 0.5517,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O3",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "from_pixel": 1000.0,
+              "to_pixel": 1000.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.6207,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O4",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 1033.0,
+              "to_pixel": 1033.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.6207,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O5",
+          "kind": "opening",
+          "axis": "x",
+          "action": "not_moved",
+          "endpoints": [
+            {
+              "endpoint": "p1",
+              "action": "not_moved",
+              "from_pixel": 1217.0,
+              "to_pixel": 1217.0,
+              "movement_m": 0.0,
+              "support_fraction": 0.6207,
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            },
+            {
+              "endpoint": "p2",
+              "action": "not_moved",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+            }
+          ],
+          "gap_evidence": null
+        }
+      ],
+      "rejections": [
+        {
+          "object": "opening:W_N1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_N2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_N3",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_MW1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_MW2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_BN1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E3",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E4",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_E5",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S3",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S4",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:W_S5",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_R1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_R2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_K",
+          "reason": "no common wall edge is continuous on both sides of the candidate jamb pair; endpoints retained",
+          "gap_evidence": {
+            "status": "ambiguous",
+            "wall_face_cross_pixel": 525,
+            "left_continuity_fraction": 1.0,
+            "right_continuity_fraction": 0.6,
+            "middle_gap_ink_fraction": 0.0833,
+            "probe_length_pixels": 11,
+            "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+          }
+        },
+        {
+          "object": "opening:D_S1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S3",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S4",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_S5",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O1",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O2",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O3",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O4",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        },
+        {
+          "object": "opening:D_O5",
+          "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+          "gap_evidence": null
+        }
+      ]
+    }
+  },
+  "dimension": {
+    "status": "applied",
+    "report": {
+      "schema_version": "plan_reading_dimension_alignment_v1",
+      "status": "applied",
+      "tolerances": {
+        "closure_mm": 1.0,
+        "tick_residual_pixels": "max(2 pixels, 1% of chain pixel span)",
+        "wall_to_tick_m": 0.3,
+        "overall_endpoint_m": 0.3,
+        "supplemental_chain_cross_check_m": 0.001,
+        "supplemental_chain_scale_relative": 0.01
+      },
+      "summary": {
+        "chains_supplied": 1,
+        "chains_applied": 1,
+        "axes_calibrated": 1,
+        "supplemental_chains_applied": 0,
+        "walls_snapped": 8,
+        "partitions_snapped": 7,
+        "footprint_edges_snapped": 1,
+        "rejected": 0
+      },
+      "items": [
+        {
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "axis": "x",
+          "segment_sum_mm": 25000.0,
+          "total_mm": 25000.0,
+          "closure_error_mm": 0.0,
+          "pixel_span": 1146.0,
+          "mm_per_pixel_from_chain": 21.815009,
+          "tick_residual_pixels": [
+            0.0,
+            -0.2,
+            0.3144,
+            0.08,
+            -0.1544,
+            0.1104,
+            0.0
+          ],
+          "tick_residual_mm": [
+            0.0,
+            -4.363,
+            6.859,
+            1.745,
+            -3.368,
+            2.408,
+            0.0
+          ],
+          "pixel_residual_tolerance": 11.46,
+          "segment_pixel_residual_mm": [
+            -4.363,
+            11.222,
+            -5.113,
+            -5.113,
+            5.777,
+            -2.408
+          ],
+          "worst_segment_index": 1,
+          "closure_ok": true,
+          "scale_ok": true,
+          "accepted": true,
+          "action": "axis_calibration_applied",
+          "overall": true,
+          "origin_basis": "legacy_anchor",
+          "outer_face_start": {
+            "pixel": 241.0,
+            "world_m": 0.0
+          },
+          "outer_face_end": {
+            "pixel": 1387.0,
+            "world_m": 25.0
+          },
+          "old_anchors": [
+            [
+              241,
+              0
+            ],
+            [
+              1385,
+              25
+            ]
+          ],
+          "new_anchors": [
+            [
+              241.0,
+              0.0
+            ],
+            [
+              1387.0,
+              25.0
+            ]
+          ],
+          "anchor_cross_check": {
+            "origin_basis": "legacy_anchor",
+            "old_start_world_m": 0.0,
+            "dimension_start_world_m": 0.0,
+            "start_difference_m": 0.0,
+            "old_end_world_m": 25.043706294,
+            "dimension_end_world_m": 25.0,
+            "difference_m": -0.043706294,
+            "end_difference_m": -0.043706294,
+            "maximum_absolute_difference_m": 0.043706294,
+            "tolerance_m": 0.3,
+            "status": "consistent",
+            "message": "legacy anchors supply the origin and agree with the accepted overall chain"
+          },
+          "exact_tick_world_m": [
+            0.0,
+            5.0,
+            9.09,
+            13.0,
+            16.91,
+            20.94,
+            25.0
+          ],
+          "exact_tick_pixels": [
+            241.0,
+            470.2,
+            657.6856,
+            836.92,
+            1016.1544,
+            1200.8896,
+            1387.0
+          ],
+          "snapped_object_count": 8,
+          "snapped_partition_count": 7,
+          "snapped_footprint_edge_count": 1
+        }
+      ],
+      "changes": [
+        {
+          "object": "footprint:5",
+          "kind": "perimeter",
+          "axis": "x",
+          "from_pixel": 470.0,
+          "to_pixel": 470.2,
+          "movement_m": 0.004363,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "action": "moved",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "W_MW1",
+              "W_MW2"
+            ],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:div1",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 470.25,
+          "to_pixel": 470.2,
+          "movement_m": -0.001091,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:confE",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 650.749559,
+          "to_pixel": 657.6856,
+          "movement_m": 0.15131,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [
+              "D_CONF"
+            ],
+            "junctions": [
+              "bandNW:1",
+              "corrS:1"
+            ]
+          }
+        },
+        {
+          "object": "partition:mwW",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 475.999795,
+          "to_pixel": 470.2,
+          "movement_m": -0.126523,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": [
+              "bandNW:0",
+              "offN:0"
+            ]
+          }
+        },
+        {
+          "object": "partition:od1",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 657.749245,
+          "to_pixel": 657.6856,
+          "movement_m": -0.001388,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:od2",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 837.0,
+          "to_pixel": 836.92,
+          "movement_m": -0.001745,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:od3",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 1016.250755,
+          "to_pixel": 1016.1544,
+          "movement_m": -0.002102,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        },
+        {
+          "object": "partition:od4",
+          "kind": "partition",
+          "axis": "x",
+          "from_pixel": 1201.0,
+          "to_pixel": 1200.8896,
+          "movement_m": -0.002408,
+          "chain_id": "X_BOTTOM_VISIBLE",
+          "basis": "dimension",
+          "moved_with_wall": {
+            "walls": [],
+            "openings": [],
+            "junctions": []
+          }
+        }
+      ],
+      "rejections": []
+    },
+    "origin_basis": [
+      "legacy_anchor"
+    ],
+    "raw_plan_object_counts_not_compiled_semantics": {
+      "partitions": 18,
+      "openings": 30,
+      "space_seeds": 15,
+      "footprint_vertices": 8
+    },
+    "literal_compile": {
+      "status": "rejected",
+      "error": "ValueError: partition mwW: physical partition overlaps footprint boundary at LINESTRING (470.2 617, 470.2 1258)"
+    }
+  },
+  "regularization_a": {
+    "status": "pass",
+    "error": null,
+    "report": {
+      "schema": "plan_regularization_report_v1",
+      "rule_version": "plan_regularization_v1",
+      "status": "pass",
+      "floor_id": "F2",
+      "plan_sha256": "e703b354f74a02b9e6aafab6df32baddb9b2f381dcacb32841b747151a06b402",
+      "thresholds": {
+        "alignment_strictly_less_than_m": 0.3,
+        "minimum_space_width_m": 0.6
+      },
+      "changes": [
+        {
+          "type": "retain_openings_on_merged_wall",
+          "floor_id": "F2",
+          "axis": "x",
+          "partition_id": "footprint[5]",
+          "object_ids": {
+            "partitions": [
+              "mwW",
+              "footprint[5]"
+            ],
+            "openings": [
+              "W_MW1",
+              "W_MW2"
+            ]
+          },
+          "opening_ids": [
+            "W_MW1",
+            "W_MW2"
+          ],
+          "span_m": [
+            0.0,
+            13.949945593
+          ],
+          "from_m": 5.0,
+          "to_m": 5.0,
+          "movement_m": 0.0,
+          "basis": "surviving_merged_wall_host",
+          "reason": "openings already on the retained line survived the strip elimination and their before/after hosts remain explicitly mapped"
+        },
+        {
+          "type": "merge_duplicate_wall_into_fixed_footprint",
+          "floor_id": "F2",
+          "axis": "x",
+          "partition_id": "mwW",
+          "object_ids": {
+            "partitions": [
+              "mwW",
+              "footprint[5]"
+            ],
+            "openings": [
+              "W_MW1",
+              "W_MW2"
+            ],
+            "space_seeds": []
+          },
+          "from_m": 5.0,
+          "to_m": 5.0,
+          "span_m": [
+            0.0,
+            13.949945593
+          ],
+          "source": {
+            "partition_id": "mwW",
+            "axis": "x",
+            "coordinate_m": 5.0,
+            "span_m": [
+              0.0,
+              14.080515139
+            ]
+          },
+          "target": {
+            "partition_id": "footprint[5]",
+            "axis": "x",
+            "coordinate_m": 5.0,
+            "span_m": [
+              0.0,
+              13.949945593
+            ]
+          },
+          "movement_m": 0.0,
+          "length_m": 13.949945593,
+          "removed_partition_id": null,
+          "retained_remainder_partition_ids": [
+            "mwW"
+          ],
+          "retained_partition_id": "footprint[5]",
+          "adjusted_endpoint_ids": [],
+          "basis": "fixed_exterior_footprint",
+          "reason": "outer footprint stayed fixed; only the duplicate sub-0.30 m overlap was removed and its contents were audited"
+        },
+        {
+          "type": "retain_openings_on_merged_wall",
+          "floor_id": "F2",
+          "axis": "y",
+          "partition_id": "footprint[2]",
+          "object_ids": {
+            "partitions": [
+              "bandN",
+              "footprint[2]"
+            ],
+            "openings": [
+              "W_BN1"
+            ]
+          },
+          "opening_ids": [
+            "W_BN1"
+          ],
+          "span_m": [
+            15.008726003,
+            25.0
+          ],
+          "from_m": 5.98476605,
+          "to_m": 5.98476605,
+          "movement_m": 0.0,
+          "basis": "surviving_merged_wall_host",
+          "reason": "openings already on the retained line survived the strip elimination and their before/after hosts remain explicitly mapped"
+        },
+        {
+          "type": "merge_duplicate_wall_into_fixed_footprint",
+          "floor_id": "F2",
+          "axis": "y",
+          "partition_id": "bandN",
+          "object_ids": {
+            "partitions": [
+              "bandN",
+              "footprint[2]"
+            ],
+            "openings": [
+              "W_BN1"
+            ],
+            "space_seeds": []
+          },
+          "from_m": 5.865070729,
+          "to_m": 5.98476605,
+          "span_m": [
+            15.008726003,
+            25.0
+          ],
+          "source": {
+            "partition_id": "bandN",
+            "axis": "y",
+            "coordinate_m": 5.865070729,
+            "span_m": [
+              11.065663176,
+              25.0
+            ]
+          },
+          "target": {
+            "partition_id": "footprint[2]",
+            "axis": "y",
+            "coordinate_m": 5.98476605,
+            "span_m": [
+              15.008726003,
+              25.0
+            ]
+          },
+          "movement_m": 0.119695321,
+          "length_m": 9.991273997,
+          "removed_partition_id": null,
+          "retained_remainder_partition_ids": [
+            "bandN"
+          ],
+          "retained_partition_id": "footprint[2]",
+          "adjusted_endpoint_ids": [],
+          "basis": "fixed_exterior_footprint",
+          "reason": "outer footprint stayed fixed; only the duplicate sub-0.30 m overlap was removed and its contents were audited"
+        },
+        {
+          "type": "remove_collapsed_wall_step",
+          "floor_id": "F2",
+          "axis": "x",
+          "partition_id": "mwW",
+          "object_ids": {
+            "partitions": [
+              "mwW"
+            ],
+            "openings": []
+          },
+          "from_m": 5.0,
+          "to_m": 5.0,
+          "span_m": [
+            13.949945593,
+            14.080515139
+          ],
+          "points_before": [
+            [
+              470.2,
+              617.0
+            ],
+            [
+              470.2,
+              611.0003293807642
+            ]
+          ],
+          "point_after": [
+            470.2,
+            617.0
+          ],
+          "movement_m": 0.130569546,
+          "basis": "fixed_exterior_footprint",
+          "reason": "the endpoint retargeted by this footprint merge exactly collapsed a two-point connector with no hosted opening"
+        },
+        {
+          "type": "merge_duplicate_wall_into_fixed_footprint",
+          "floor_id": "F2",
+          "axis": "y",
+          "partition_id": "corrS",
+          "object_ids": {
+            "partitions": [
+              "corrS",
+              "footprint[6]"
+            ],
+            "openings": [],
+            "space_seeds": []
+          },
+          "from_m": 14.080515139,
+          "to_m": 13.949945593,
+          "span_m": [
+            0.0,
+            5.0
+          ],
+          "source": {
+            "partition_id": "corrS",
+            "axis": "y",
+            "coordinate_m": 14.080515139,
+            "span_m": [
+              0.0,
+              9.09
+            ]
+          },
+          "target": {
+            "partition_id": "footprint[6]",
+            "axis": "y",
+            "coordinate_m": 13.949945593,
+            "span_m": [
+              0.0,
+              5.0
+            ]
+          },
+          "movement_m": 0.130569546,
+          "length_m": 5.0,
+          "removed_partition_id": null,
+          "retained_remainder_partition_ids": [
+            "corrS"
+          ],
+          "retained_partition_id": "footprint[6]",
+          "adjusted_endpoint_ids": [
+            {
+              "partition_id": "mwW",
+              "endpoint": 1
+            }
+          ],
+          "basis": "fixed_exterior_footprint",
+          "reason": "outer footprint stayed fixed; only the duplicate sub-0.30 m overlap was removed and its contents were audited"
+        },
+        {
+          "type": "move_wall_line",
+          "floor_id": "F2",
+          "axis": "y",
+          "partition_id": "bandN",
+          "object": {
+            "partition_id": "bandN",
+            "axis": "y",
+            "coordinate_m": 5.865070729,
+            "span_m": [
+              11.065663176,
+              15.008726003
+            ]
+          },
+          "object_ids": {
+            "partitions": [
+              "bandN"
+            ],
+            "openings": []
+          },
+          "span_m": [
+            11.065663176,
+            15.008726003
+          ],
+          "from_m": 5.865070729,
+          "to_m": 5.98476605,
+          "movement_m": 0.119695321,
+          "basis": "fixed_exterior_footprint",
+          "reason": "align touching collinear wall ends to an existing line",
+          "opening_ids": [],
+          "moved_opening_ids": [],
+          "adjusted_endpoint_ids": [
+            {
+              "partition_id": "stackW",
+              "endpoint": 1
+            }
+          ],
+          "blocked_collapses": []
+        },
+        {
+          "type": "move_wall_line",
+          "floor_id": "F2",
+          "axis": "y",
+          "partition_id": "corrS",
+          "object": {
+            "partition_id": "corrS",
+            "axis": "y",
+            "coordinate_m": 14.080515139,
+            "span_m": [
+              5.0,
+              9.09
+            ]
+          },
+          "object_ids": {
+            "partitions": [
+              "corrS"
+            ],
+            "openings": []
+          },
+          "span_m": [
+            5.0,
+            9.09
+          ],
+          "from_m": 14.080515139,
+          "to_m": 13.949945593,
+          "movement_m": 0.130569546,
+          "basis": "fixed_exterior_footprint",
+          "reason": "align touching collinear wall ends to an existing line",
+          "opening_ids": [],
+          "moved_opening_ids": [],
+          "adjusted_endpoint_ids": [
+            {
+              "partition_id": "confE",
+              "endpoint": 0
+            }
+          ],
+          "blocked_collapses": []
+        }
+      ],
+      "attempted_changes": [],
+      "rejections": [],
+      "hard_constraints": {
+        "schema": "plan_hard_constraints_v1",
+        "rule_version": "plan_regularization_v1",
+        "status": "pass",
+        "thresholds": {
+          "alignment_strictly_less_than_m": 0.3,
+          "minimum_space_width_m": 0.6
+        },
+        "violations": [],
+        "coverage": {
+          "wall_segments": 25,
+          "spaces": 15,
+          "width_method": "orthogonal scan strips; conservative for necks, tongues and steps"
+        }
+      },
+      "semantic_mapping": {
+        "opening_id_map": [],
+        "removed_space_seeds": [],
+        "affected_opening_ids": [],
+        "status": "applied"
+      },
+      "preserved_separations": [
+        {
+          "lines": [
+            {
+              "partition_id": "div1",
+              "axis": "x",
+              "coordinate_m": 5.0,
+              "span_m": [
+                16.022861038,
+                19.956474429
+              ]
+            },
+            {
+              "partition_id": "div2",
+              "axis": "x",
+              "coordinate_m": 9.942190227,
+              "span_m": [
+                16.022861038,
+                19.956474429
+              ]
+            }
+          ],
+          "before_distance_m": 4.942190227,
+          "after_distance_m": 4.942190227,
+          "before_overlap_m": 3.933613391,
+          "after_overlap_m": 3.933613391,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "corrS",
+              "axis": "y",
+              "coordinate_m": 14.080515139,
+              "span_m": [
+                0.0,
+                9.09
+              ]
+            }
+          ],
+          "before_distance_m": 1.942345899,
+          "after_distance_m": 2.072915445,
+          "before_overlap_m": 9.09,
+          "after_overlap_m": 4.09,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD1",
+              "axis": "y",
+              "coordinate_m": 13.966267682,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 2.056593355,
+          "after_distance_m": 2.056593355,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD2",
+              "axis": "y",
+              "coordinate_m": 12.029379761,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 3.993481277,
+          "after_distance_m": 3.993481277,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD3",
+              "axis": "y",
+              "coordinate_m": 9.972796518,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 6.05006452,
+          "after_distance_m": 6.05006452,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD4",
+              "axis": "y",
+              "coordinate_m": 7.981501632,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 8.041359406,
+          "after_distance_m": 8.041359406,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "bandNW",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                5.0,
+                9.09
+              ]
+            }
+          ],
+          "before_distance_m": 10.157790309,
+          "after_distance_m": 10.157790309,
+          "before_overlap_m": 4.09,
+          "after_overlap_m": 4.09,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "bandN",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                11.065663176,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 10.157790309,
+          "after_distance_m": 10.038094988,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrN",
+              "axis": "y",
+              "coordinate_m": 16.022861038,
+              "span_m": [
+                0.0,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 12.100118927,
+          "after_distance_m": 12.100118927,
+          "before_overlap_m": 10.008726003,
+          "after_overlap_m": 10.008726003,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrS",
+              "axis": "y",
+              "coordinate_m": 14.080515139,
+              "span_m": [
+                0.0,
+                9.09
+              ]
+            },
+            {
+              "partition_id": "bandNW",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                5.0,
+                9.09
+              ]
+            }
+          ],
+          "before_distance_m": 8.21544441,
+          "after_distance_m": 8.084874864,
+          "before_overlap_m": 4.09,
+          "after_overlap_m": 4.09,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "corrS",
+              "axis": "y",
+              "coordinate_m": 14.080515139,
+              "span_m": [
+                0.0,
+                9.09
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 10.157773028,
+          "after_distance_m": 10.027203482,
+          "before_overlap_m": 4.09,
+          "after_overlap_m": 4.09,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "confE",
+              "axis": "x",
+              "coordinate_m": 9.09,
+              "span_m": [
+                5.865070729,
+                14.080515139
+              ]
+            },
+            {
+              "partition_id": "stackW",
+              "axis": "x",
+              "coordinate_m": 11.065663176,
+              "span_m": [
+                5.865070729,
+                16.022861038
+              ]
+            }
+          ],
+          "before_distance_m": 1.975663176,
+          "after_distance_m": 1.975663176,
+          "before_overlap_m": 8.21544441,
+          "after_overlap_m": 7.965179543,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD1",
+              "axis": "y",
+              "coordinate_m": 13.966267682,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD2",
+              "axis": "y",
+              "coordinate_m": 12.029379761,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 1.936887922,
+          "after_distance_m": 1.936887922,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD1",
+              "axis": "y",
+              "coordinate_m": 13.966267682,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD3",
+              "axis": "y",
+              "coordinate_m": 9.972796518,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 3.993471164,
+          "after_distance_m": 3.993471164,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD1",
+              "axis": "y",
+              "coordinate_m": 13.966267682,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD4",
+              "axis": "y",
+              "coordinate_m": 7.981501632,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 5.98476605,
+          "after_distance_m": 5.98476605,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD1",
+              "axis": "y",
+              "coordinate_m": 13.966267682,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "bandN",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                11.065663176,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 8.101196953,
+          "after_distance_m": 7.981501632,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD1",
+              "axis": "y",
+              "coordinate_m": 13.966267682,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 10.043525571,
+          "after_distance_m": 10.043525571,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD2",
+              "axis": "y",
+              "coordinate_m": 12.029379761,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD3",
+              "axis": "y",
+              "coordinate_m": 9.972796518,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 2.056583243,
+          "after_distance_m": 2.056583243,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD2",
+              "axis": "y",
+              "coordinate_m": 12.029379761,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD4",
+              "axis": "y",
+              "coordinate_m": 7.981501632,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 4.047878128,
+          "after_distance_m": 4.047878128,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD2",
+              "axis": "y",
+              "coordinate_m": 12.029379761,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "bandN",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                11.065663176,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 6.164309032,
+          "after_distance_m": 6.044613711,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD2",
+              "axis": "y",
+              "coordinate_m": 12.029379761,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 8.10663765,
+          "after_distance_m": 8.10663765,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD3",
+              "axis": "y",
+              "coordinate_m": 9.972796518,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "stackD4",
+              "axis": "y",
+              "coordinate_m": 7.981501632,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            }
+          ],
+          "before_distance_m": 1.991294886,
+          "after_distance_m": 1.991294886,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD3",
+              "axis": "y",
+              "coordinate_m": 9.972796518,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "bandN",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                11.065663176,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 4.107725789,
+          "after_distance_m": 3.988030468,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD3",
+              "axis": "y",
+              "coordinate_m": 9.972796518,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 6.050054407,
+          "after_distance_m": 6.050054407,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD4",
+              "axis": "y",
+              "coordinate_m": 7.981501632,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "bandN",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                11.065663176,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 2.116430903,
+          "after_distance_m": 1.996735582,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "stackD4",
+              "axis": "y",
+              "coordinate_m": 7.981501632,
+              "span_m": [
+                11.065663176,
+                15.008726003
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 4.058759521,
+          "after_distance_m": 4.058759521,
+          "before_overlap_m": 3.943062827,
+          "after_overlap_m": 3.943062827,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "bandNW",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                5.0,
+                9.09
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 1.942328618,
+          "after_distance_m": 1.942328618,
+          "before_overlap_m": 4.09,
+          "after_overlap_m": 4.09,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "bandN",
+              "axis": "y",
+              "coordinate_m": 5.865070729,
+              "span_m": [
+                11.065663176,
+                25.0
+              ]
+            },
+            {
+              "partition_id": "offN",
+              "axis": "y",
+              "coordinate_m": 3.922742111,
+              "span_m": [
+                5.0,
+                25.0
+              ]
+            }
+          ],
+          "before_distance_m": 1.942328618,
+          "after_distance_m": 2.062023939,
+          "before_overlap_m": 13.934336824,
+          "after_overlap_m": 3.943062827,
+          "unchanged": false
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "od1",
+              "axis": "x",
+              "coordinate_m": 9.09,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            },
+            {
+              "partition_id": "od2",
+              "axis": "x",
+              "coordinate_m": 13.0,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            }
+          ],
+          "before_distance_m": 3.91,
+          "after_distance_m": 3.91,
+          "before_overlap_m": 3.922742111,
+          "after_overlap_m": 3.922742111,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "od1",
+              "axis": "x",
+              "coordinate_m": 9.09,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            },
+            {
+              "partition_id": "od3",
+              "axis": "x",
+              "coordinate_m": 16.91,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            }
+          ],
+          "before_distance_m": 7.82,
+          "after_distance_m": 7.82,
+          "before_overlap_m": 3.922742111,
+          "after_overlap_m": 3.922742111,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "od1",
+              "axis": "x",
+              "coordinate_m": 9.09,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            },
+            {
+              "partition_id": "od4",
+              "axis": "x",
+              "coordinate_m": 20.94,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            }
+          ],
+          "before_distance_m": 11.85,
+          "after_distance_m": 11.85,
+          "before_overlap_m": 3.922742111,
+          "after_overlap_m": 3.922742111,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "od2",
+              "axis": "x",
+              "coordinate_m": 13.0,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            },
+            {
+              "partition_id": "od3",
+              "axis": "x",
+              "coordinate_m": 16.91,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            }
+          ],
+          "before_distance_m": 3.91,
+          "after_distance_m": 3.91,
+          "before_overlap_m": 3.922742111,
+          "after_overlap_m": 3.922742111,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "od2",
+              "axis": "x",
+              "coordinate_m": 13.0,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            },
+            {
+              "partition_id": "od4",
+              "axis": "x",
+              "coordinate_m": 20.94,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            }
+          ],
+          "before_distance_m": 7.94,
+          "after_distance_m": 7.94,
+          "before_overlap_m": 3.922742111,
+          "after_overlap_m": 3.922742111,
+          "unchanged": true
+        },
+        {
+          "lines": [
+            {
+              "partition_id": "od3",
+              "axis": "x",
+              "coordinate_m": 16.91,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            },
+            {
+              "partition_id": "od4",
+              "axis": "x",
+              "coordinate_m": 20.94,
+              "span_m": [
+                0.0,
+                3.922742111
+              ]
+            }
+          ],
+          "before_distance_m": 4.03,
+          "after_distance_m": 4.03,
+          "before_overlap_m": 3.922742111,
+          "after_overlap_m": 3.922742111,
+          "unchanged": true
+        }
+      ],
+      "summary": {
+        "moved_or_merged": 8,
+        "attempted_changes": 0,
+        "maximum_movement_m": 0.130569546,
+        "rejected": 0,
+        "change_counts": {
+          "retain_openings_on_merged_wall": 2,
+          "merge_duplicate_wall_into_fixed_footprint": 3,
+          "remove_collapsed_wall_step": 1,
+          "move_wall_line": 2
+        },
+        "attempted_change_counts": {},
+        "rejection_counts": {}
+      },
+      "method": {
+        "edits_plan_draft_only": true,
+        "edits_source_bim_polygons": false,
+        "target_is_existing_line": true,
+        "averages_coordinates": false,
+        "strict_compiler_snaps": false
+      },
+      "reading_alignment": {
+        "schema_version": "plan_reading_alignment_v1",
+        "ink": {
+          "summary": {
+            "status": "applied",
+            "moved_or_aligned": 27,
+            "not_moved": 29,
+            "rejected": 29
+          },
+          "items": [
+            {
+              "object": "footprint:0",
+              "kind": "perimeter",
+              "axis": "y",
+              "convention": "outer_face",
+              "declared_pixel": 339.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 341.0,
+              "movement_pixels": 2.0,
+              "movement_m": 0.043526,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "W_N1",
+                  "W_N2",
+                  "W_N3"
+                ],
+                "junctions": [
+                  "div1:0",
+                  "div2:0"
+                ]
+              }
+            },
+            {
+              "object": "footprint:1",
+              "kind": "perimeter",
+              "axis": "x",
+              "convention": "outer_face",
+              "declared_pixel": 928.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 929.0,
+              "movement_pixels": 1.0,
+              "movement_m": 0.021853,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "W_E1",
+                  "W_E2",
+                  "W_E3",
+                  "W_E4",
+                  "W_E5"
+                ],
+                "junctions": [
+                  "corrN:1",
+                  "stackD1:1",
+                  "stackD2:1",
+                  "stackD3:1",
+                  "stackD4:1"
+                ]
+              }
+            },
+            {
+              "object": "footprint:2",
+              "kind": "perimeter",
+              "axis": "y",
+              "convention": "outer_face",
+              "declared_pixel": 982.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 4,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 983.0,
+              "movement_pixels": 1.0,
+              "movement_m": 0.021763,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "W_BN1"
+                ],
+                "junctions": []
+              }
+            },
+            {
+              "object": "footprint:3",
+              "kind": "perimeter",
+              "axis": "x",
+              "convention": "outer_face",
+              "declared_pixel": 1385.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 1387.0,
+              "movement_pixels": 2.0,
+              "movement_m": 0.043706,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "bandN:1",
+                  "offN:1"
+                ]
+              }
+            },
+            {
+              "object": "footprint:4",
+              "kind": "perimeter",
+              "axis": "y",
+              "convention": "outer_face",
+              "declared_pixel": 1258.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 1258.0,
+              "movement_pixels": 0.0,
+              "movement_m": 0.0,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "W_S1",
+                  "W_S2",
+                  "W_S3",
+                  "W_S4",
+                  "W_S5"
+                ],
+                "junctions": [
+                  "mwW:1",
+                  "od1:1",
+                  "od2:1",
+                  "od3:1",
+                  "od4:1"
+                ]
+              }
+            },
+            {
+              "object": "footprint:5",
+              "kind": "perimeter",
+              "axis": "x",
+              "convention": "outer_face",
+              "declared_pixel": 470.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 470.0,
+              "movement_pixels": 0.0,
+              "movement_m": 0.0,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "W_MW1",
+                  "W_MW2"
+                ],
+                "junctions": []
+              }
+            },
+            {
+              "object": "footprint:6",
+              "kind": "perimeter",
+              "axis": "y",
+              "convention": "outer_face",
+              "declared_pixel": 615.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 617.0,
+              "movement_pixels": 2.0,
+              "movement_m": 0.043526,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "footprint:7",
+              "kind": "perimeter",
+              "axis": "x",
+              "convention": "outer_face",
+              "declared_pixel": 241.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "outermost supported face in the outward direction",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 241.0,
+              "movement_pixels": 0.0,
+              "movement_m": 0.0,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "corrN:0",
+                  "corrS:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:div1",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 475.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.96,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.96,
+              "action": "moved",
+              "aligned_pixel": 470.25,
+              "movement_pixels": -4.75,
+              "movement_m": -0.103802,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:div2",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 697.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.96,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.96,
+              "action": "moved",
+              "aligned_pixel": 696.75,
+              "movement_pixels": -0.25,
+              "movement_m": -0.005463,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:corrN",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 525.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.8351,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.8305,
+              "action": "moved",
+              "aligned_pixel": 521.7495,
+              "movement_pixels": -3.2505,
+              "movement_m": -0.070739,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "D_K",
+                  "D_R1",
+                  "D_R2"
+                ],
+                "junctions": [
+                  "div1:1",
+                  "div2:1",
+                  "stackW:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:corrS",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 609.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9769,
+              "action": "moved",
+              "aligned_pixel": 611.0003,
+              "movement_pixels": 2.0003,
+              "movement_m": 0.043533,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "confE:0",
+                  "mwW:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:confE",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 653.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.8146,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.7978,
+              "action": "moved",
+              "aligned_pixel": 650.7496,
+              "movement_pixels": -2.2504,
+              "movement_m": -0.049179,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "D_CONF"
+                ],
+                "junctions": [
+                  "bandNW:1",
+                  "corrS:1"
+                ]
+              }
+            },
+            {
+              "object": "partition:mwW",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 475.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.977,
+              "action": "moved",
+              "aligned_pixel": 475.9998,
+              "movement_pixels": 0.9998,
+              "movement_m": 0.021849,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "bandNW:0",
+                  "offN:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:stackW",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 751.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.6,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.5909,
+              "action": "moved",
+              "aligned_pixel": 748.25,
+              "movement_pixels": -2.75,
+              "movement_m": -0.060096,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "D_S1",
+                  "D_S2",
+                  "D_S3",
+                  "D_S4",
+                  "D_S5"
+                ],
+                "junctions": [
+                  "bandN:0",
+                  "stackD1:0",
+                  "stackD2:0",
+                  "stackD3:0",
+                  "stackD4:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:stackD1",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 616.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9649,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9649,
+              "action": "moved",
+              "aligned_pixel": 616.25,
+              "movement_pixels": 0.25,
+              "movement_m": 0.005441,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:stackD2",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 705.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9649,
+              "candidate_count": 4,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.655,
+              "action": "moved",
+              "aligned_pixel": 705.25,
+              "movement_pixels": 0.25,
+              "movement_m": 0.005441,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:stackD3",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 800.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9649,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9649,
+              "action": "moved",
+              "aligned_pixel": 799.75,
+              "movement_pixels": -0.25,
+              "movement_m": -0.005441,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:stackD4",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 891.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9649,
+              "candidate_count": 3,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9649,
+              "action": "moved",
+              "aligned_pixel": 891.25,
+              "movement_pixels": 0.25,
+              "movement_m": 0.005441,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:bandNW",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 989.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 1.0,
+              "action": "moved",
+              "aligned_pixel": 988.5,
+              "movement_pixels": -0.5,
+              "movement_m": -0.010881,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "confE:1"
+                ]
+              }
+            },
+            {
+              "object": "partition:bandN",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 989.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 1.0,
+              "candidate_count": 4,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.985,
+              "action": "moved",
+              "aligned_pixel": 988.5,
+              "movement_pixels": -0.5,
+              "movement_m": -0.010881,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "stackW:1"
+                ]
+              }
+            },
+            {
+              "object": "partition:offN",
+              "kind": "partition",
+              "axis": "y",
+              "convention": "centerline",
+              "declared_pixel": 1079.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.796,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.7914,
+              "action": "moved",
+              "aligned_pixel": 1077.75,
+              "movement_pixels": -1.25,
+              "movement_m": -0.027203,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "D_O1",
+                  "D_O2",
+                  "D_O3",
+                  "D_O4",
+                  "D_O5"
+                ],
+                "junctions": [
+                  "od1:0",
+                  "od2:0",
+                  "od3:0",
+                  "od4:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:od1",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 655.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9708,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9708,
+              "action": "moved",
+              "aligned_pixel": 657.7492,
+              "movement_pixels": 2.7492,
+              "movement_m": 0.06008,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:od2",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 840.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9708,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9708,
+              "action": "moved",
+              "aligned_pixel": 837.0,
+              "movement_pixels": -3.0,
+              "movement_m": -0.065559,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:od3",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 1019.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9708,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9708,
+              "action": "moved",
+              "aligned_pixel": 1016.2508,
+              "movement_pixels": -2.7492,
+              "movement_m": -0.06008,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:od4",
+              "kind": "partition",
+              "axis": "x",
+              "convention": "centerline",
+              "declared_pixel": 1204.0,
+              "search_radius_pixels": 14,
+              "best_support_fraction": 0.9708,
+              "candidate_count": 2,
+              "method": "midline of supported wall faces",
+              "selected_support_fraction": 0.9708,
+              "action": "moved",
+              "aligned_pixel": 1201.0,
+              "movement_pixels": -3.0,
+              "movement_m": -0.065559,
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "opening:W_N1",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_N2",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_N3",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_MW1",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_MW2",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_BN1",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 942.0,
+                  "to_pixel": 929.0,
+                  "movement_m": -0.284091,
+                  "support_fraction": 0.5862,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E1",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E2",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E3",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E4",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E5",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S1",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S2",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S3",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S4",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S5",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_R1",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "from_pixel": 453.0,
+                  "to_pixel": 453.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.5862,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_R2",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 489.0,
+                  "to_pixel": 489.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.5172,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_K",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 707.0,
+                  "to_pixel": 706.0,
+                  "movement_m": -0.021853,
+                  "support_fraction": 0.5172,
+                  "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "from_pixel": 739.0,
+                  "to_pixel": 745.0,
+                  "movement_m": 0.131119,
+                  "support_fraction": 0.5172,
+                  "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+                }
+              ],
+              "gap_evidence": {
+                "status": "ambiguous",
+                "wall_face_cross_pixel": 525,
+                "left_continuity_fraction": 1.0,
+                "right_continuity_fraction": 0.6,
+                "middle_gap_ink_fraction": 0.0833,
+                "probe_length_pixels": 11,
+                "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+              }
+            },
+            {
+              "object": "opening:D_CONF",
+              "kind": "opening",
+              "axis": "y",
+              "action": "aligned",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "moved",
+                  "from_pixel": 634.0,
+                  "to_pixel": 632.0,
+                  "movement_m": -0.043526,
+                  "support_fraction": 0.5172
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "moved",
+                  "from_pixel": 702.0,
+                  "to_pixel": 702.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.5172
+                }
+              ],
+              "gap_evidence": {
+                "status": "supported",
+                "wall_face_cross_pixel": 653,
+                "left_continuity_fraction": 1.0,
+                "right_continuity_fraction": 1.0,
+                "middle_gap_ink_fraction": 0.0,
+                "probe_length_pixels": 14
+              }
+            },
+            {
+              "object": "opening:D_S1",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "from_pixel": 598.0,
+                  "to_pixel": 598.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.5172,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S2",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 632.0,
+                  "to_pixel": 633.0,
+                  "movement_m": 0.021763,
+                  "support_fraction": 0.6207,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S3",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "from_pixel": 783.0,
+                  "to_pixel": 783.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.6207,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S4",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 815.0,
+                  "to_pixel": 816.0,
+                  "movement_m": 0.021763,
+                  "support_fraction": 0.6207,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S5",
+              "kind": "opening",
+              "axis": "y",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 911.0,
+                  "to_pixel": 910.0,
+                  "movement_m": -0.021763,
+                  "support_fraction": 0.5172,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O1",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "from_pixel": 638.0,
+                  "to_pixel": 639.0,
+                  "movement_m": 0.021853,
+                  "support_fraction": 0.5172,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O2",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 677.0,
+                  "to_pixel": 676.0,
+                  "movement_m": -0.021853,
+                  "support_fraction": 0.5517,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O3",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "from_pixel": 1000.0,
+                  "to_pixel": 1000.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.6207,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O4",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 1033.0,
+                  "to_pixel": 1033.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.6207,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O5",
+              "kind": "opening",
+              "axis": "x",
+              "action": "not_moved",
+              "endpoints": [
+                {
+                  "endpoint": "p1",
+                  "action": "not_moved",
+                  "from_pixel": 1217.0,
+                  "to_pixel": 1217.0,
+                  "movement_m": 0.0,
+                  "support_fraction": 0.6207,
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                },
+                {
+                  "endpoint": "p2",
+                  "action": "not_moved",
+                  "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected"
+                }
+              ],
+              "gap_evidence": null
+            }
+          ],
+          "rejections": [
+            {
+              "object": "opening:W_N1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_N2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_N3",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_MW1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_MW2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_BN1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E3",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E4",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_E5",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S3",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S4",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:W_S5",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_R1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_R2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_K",
+              "reason": "no common wall edge is continuous on both sides of the candidate jamb pair; endpoints retained",
+              "gap_evidence": {
+                "status": "ambiguous",
+                "wall_face_cross_pixel": 525,
+                "left_continuity_fraction": 1.0,
+                "right_continuity_fraction": 0.6,
+                "middle_gap_ink_fraction": 0.0833,
+                "probe_length_pixels": 11,
+                "reason": "no common wall edge is continuous on both sides of the candidate jamb pair"
+              }
+            },
+            {
+              "object": "opening:D_S1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S3",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S4",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_S5",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O1",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O2",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O3",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O4",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            },
+            {
+              "object": "opening:D_O5",
+              "reason": "both jamb endpoints need supported ink; partial endpoint alignment was rejected; endpoints retained",
+              "gap_evidence": null
+            }
+          ],
+          "search_or_tolerance": {
+            "world_radius_m": 0.3,
+            "metres_per_pixel": {
+              "x": 0.021853147,
+              "y": 0.021762786
+            },
+            "radius_pixels": {
+              "x": 14,
+              "y": 14
+            },
+            "basis": "0.30 m maximum alignment distance converted independently on each drawing axis"
+          }
+        },
+        "dimensions": {
+          "summary": {
+            "status": "applied",
+            "chains_supplied": 1,
+            "chains_applied": 1,
+            "axes_calibrated": 1,
+            "supplemental_chains_applied": 0,
+            "walls_snapped": 8,
+            "partitions_snapped": 7,
+            "footprint_edges_snapped": 1,
+            "rejected": 0
+          },
+          "items": [
+            {
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "axis": "x",
+              "segment_sum_mm": 25000.0,
+              "total_mm": 25000.0,
+              "closure_error_mm": 0.0,
+              "pixel_span": 1146.0,
+              "mm_per_pixel_from_chain": 21.815009,
+              "tick_residual_pixels": [
+                0.0,
+                -0.2,
+                0.3144,
+                0.08,
+                -0.1544,
+                0.1104,
+                0.0
+              ],
+              "tick_residual_mm": [
+                0.0,
+                -4.363,
+                6.859,
+                1.745,
+                -3.368,
+                2.408,
+                0.0
+              ],
+              "pixel_residual_tolerance": 11.46,
+              "segment_pixel_residual_mm": [
+                -4.363,
+                11.222,
+                -5.113,
+                -5.113,
+                5.777,
+                -2.408
+              ],
+              "worst_segment_index": 1,
+              "closure_ok": true,
+              "scale_ok": true,
+              "accepted": true,
+              "action": "axis_calibration_applied",
+              "overall": true,
+              "origin_basis": "legacy_anchor",
+              "outer_face_start": {
+                "pixel": 241.0,
+                "world_m": 0.0
+              },
+              "outer_face_end": {
+                "pixel": 1387.0,
+                "world_m": 25.0
+              },
+              "old_anchors": [
+                [
+                  241,
+                  0
+                ],
+                [
+                  1385,
+                  25
+                ]
+              ],
+              "new_anchors": [
+                [
+                  241.0,
+                  0.0
+                ],
+                [
+                  1387.0,
+                  25.0
+                ]
+              ],
+              "anchor_cross_check": {
+                "origin_basis": "legacy_anchor",
+                "old_start_world_m": 0.0,
+                "dimension_start_world_m": 0.0,
+                "start_difference_m": 0.0,
+                "old_end_world_m": 25.043706294,
+                "dimension_end_world_m": 25.0,
+                "difference_m": -0.043706294,
+                "end_difference_m": -0.043706294,
+                "maximum_absolute_difference_m": 0.043706294,
+                "tolerance_m": 0.3,
+                "status": "consistent",
+                "message": "legacy anchors supply the origin and agree with the accepted overall chain"
+              },
+              "exact_tick_world_m": [
+                0.0,
+                5.0,
+                9.09,
+                13.0,
+                16.91,
+                20.94,
+                25.0
+              ],
+              "exact_tick_pixels": [
+                241.0,
+                470.2,
+                657.6856,
+                836.92,
+                1016.1544,
+                1200.8896,
+                1387.0
+              ],
+              "snapped_object_count": 8,
+              "snapped_partition_count": 7,
+              "snapped_footprint_edge_count": 1
+            },
+            {
+              "object": "footprint:5",
+              "kind": "perimeter",
+              "axis": "x",
+              "from_pixel": 470.0,
+              "to_pixel": 470.2,
+              "movement_m": 0.004363,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "action": "moved",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "W_MW1",
+                  "W_MW2"
+                ],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:div1",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 470.25,
+              "to_pixel": 470.2,
+              "movement_m": -0.001091,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:confE",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 650.749559,
+              "to_pixel": 657.6856,
+              "movement_m": 0.15131,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [
+                  "D_CONF"
+                ],
+                "junctions": [
+                  "bandNW:1",
+                  "corrS:1"
+                ]
+              }
+            },
+            {
+              "object": "partition:mwW",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 475.999795,
+              "to_pixel": 470.2,
+              "movement_m": -0.126523,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": [
+                  "bandNW:0",
+                  "offN:0"
+                ]
+              }
+            },
+            {
+              "object": "partition:od1",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 657.749245,
+              "to_pixel": 657.6856,
+              "movement_m": -0.001388,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:od2",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 837.0,
+              "to_pixel": 836.92,
+              "movement_m": -0.001745,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:od3",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 1016.250755,
+              "to_pixel": 1016.1544,
+              "movement_m": -0.002102,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            },
+            {
+              "object": "partition:od4",
+              "kind": "partition",
+              "axis": "x",
+              "from_pixel": 1201.0,
+              "to_pixel": 1200.8896,
+              "movement_m": -0.002408,
+              "chain_id": "X_BOTTOM_VISIBLE",
+              "basis": "dimension",
+              "moved_with_wall": {
+                "walls": [],
+                "openings": [],
+                "junctions": []
+              }
+            }
+          ],
+          "rejections": [],
+          "search_or_tolerance": {
+            "closure_mm": 1.0,
+            "tick_residual_pixels": "max(2 pixels, 1% of chain pixel span)",
+            "wall_to_tick_m": 0.3,
+            "overall_endpoint_m": 0.3,
+            "supplemental_chain_cross_check_m": 0.001,
+            "supplemental_chain_scale_relative": 0.01
+          }
+        }
+      }
+    },
+    "attempted_change_counts": {},
+    "delivered_change_counts": {
+      "merge_duplicate_wall_into_fixed_footprint": 3,
+      "move_wall_line": 2,
+      "remove_collapsed_wall_step": 1,
+      "retain_openings_on_merged_wall": 2
+    },
+    "attempted_duplicate_wall_merges": 0,
+    "delivered_duplicate_wall_merges": 3,
+    "attempted_rehost_opening_ids": [],
+    "rejection_counts": {},
+    "strict_compile_after_a": {
+      "status": "pass",
+      "error": null
+    }
+  },
+  "source_gate": {
+    "on_dimension_candidate_actual_result": {
+      "status": "rejected",
+      "stage": "source_materialization",
+      "error": "ValueError: partition mwW: physical partition overlaps footprint boundary at LINESTRING (470.2 617, 470.2 1258)",
+      "building_precision": null,
+      "assembly_placements": [
+        {
+          "floor_id": "F2",
+          "z_floor": 4.0,
+          "height": 3.0
+        }
+      ]
+    },
+    "after_a": {
+      "status": "pass",
+      "stage": "production_source_hard_constraints",
+      "source_model_sha256": "8acd8ed6223f8bfe918cdc52ac4bdb104f90dcf36d9296874b39ca0167758378",
+      "building_precision": {
+        "schema": "building_precision_v2",
+        "status": "pass",
+        "source_model_sha256": "8acd8ed6223f8bfe918cdc52ac4bdb104f90dcf36d9296874b39ca0167758378",
+        "total": 0,
+        "counts": {},
+        "items": [],
+        "tolerances": {
+          "F2": {
+            "default_m": 0.3,
+            "pixel_noise_m": null,
+            "wall_thickness_m": null,
+            "basis": "no plan scale or wall thickness supplied",
+            "rule": "fixed post-regularisation hard threshold; align only when distance is strictly below 0.30 m",
+            "thickness_cap_known": false
+          }
+        },
+        "coverage": {
+          "floors": [
+            "F2"
+          ],
+          "adjacent_storey_pairs": [],
+          "orthogonal_wall_lines": 23,
+          "nonorthogonal_walls_not_checked": 0,
+          "floors_without_tolerance": []
+        },
+        "meaning": "Post-regularisation hard audit; this report changes no geometry. A save gate must reject each item. Align to an existing line; only sub-0.30 m duplicate-wall strips may remove seeds or merge openings, with complete identity and connectivity audit.",
+        "not_checked": [
+          "nonorthogonal wall alignment",
+          "non-overlapping storeys",
+          "opening positions/heights",
+          "drawing fidelity",
+          "user fineness cap (not configured)"
+        ]
+      },
+      "assembly_placements": [
+        {
+          "floor_id": "F2",
+          "z_floor": 4.0,
+          "height": 3.0
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "status": "delivered_after_a",
+    "delivered_duplicate_wall_merges": 3,
+    "after_a_metrics_available": true,
+    "cause": null,
+    "specific_rejection": []
+  }
+}

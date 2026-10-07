@@ -15,7 +15,6 @@ def test_reader_guides_are_single_image_and_keep_corresponding_existing_method()
     plan = get_role_guide("plan_reader")
     elevation = get_role_guide("elevation_reader")
     assert "exactly one original image" in plan
-    assert "CALIBRATE ONCE PER PLAN" in plan and "RESOLVE THE DIFFERENCES" in plan
     assert "trial_plan_bim" in plan and "build_from_artifact" not in plan
     for unavailable in (
         "build_plan_bim", "inspect_plan_draft", "revise_plan_bim",

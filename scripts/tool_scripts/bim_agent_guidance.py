@@ -102,12 +102,13 @@ draft can happen at any time. Each upper floor comes from its own drawing;
 combine floors with assemble_plan_bim. A room count, seed or use never justifies
 adding or removing a divider.
 
-5. RESOLVE THE DIFFERENCES. drawing_differences compares interior ink and
-declared walls/openings; zero covers only its stated scope. building_precision
-reports near wall lines and thin strips across floors. Both are review clues:
-check the original at look_box or the named source objects, then revise or
-explain retention. Align to an existing line, never an average; preserve rooms,
-openings and connections. Check the changed source and overlay after revision.
+5. RESOLVE THE DIFFERENCES. drawing_differences compares ink with declared
+walls/openings; zero covers only its stated scope. Plan builds and assembly
+regularize offsets strictly below 0.30 m before strict compilation. Remaining
+near faces or any room part narrower than 0.60 m reject the draft. Read the
+regularization summary and saved full trace: same-floor merges keep the perimeter
+fixed; assembly also aligns near perimeter edges across floors. Openings follow
+their host. Repair rejected objects from evidence; check the source and overlay.
 
 6. HEIGHTS FROM ELEVATIONS. Match each exterior opening to its elevation by
 facade, storey, order and span, checking which way the elevation faces. Read
@@ -391,8 +392,24 @@ supported; code derives their outward direction from the calibrated outer ring.
 Nonorthogonal rings, holes and ambiguous hosts explicitly fail.
 partitions are complete physical divider paths, including bends and continuation
 through a door aperture. Put the aperture separately in openings. Shared path
-endpoints must coincide explicitly. The compiler will not extend, snap or bridge
-paths; record any regularization you apply in basis or assumptions.
+endpoints describe actual junctions. Before strict compilation, the build entry
+regularizes near parallel lines and dangling endpoints strictly below 0.30 m;
+it preserves the outer footprint and moves hosted openings with their wall.
+Targets prefer dimension references, then the perimeter, then the line shared
+by more walls/floors. Sub-0.30 m wall strips collapse even with named seeds:
+strip seeds are removed, hosted openings move to the retained line, overlapping
+opening spans merge and disjoint spans remain. The trace records removed IDs,
+survivors and connections; an unreconcilable connection rejects the merge.
+Remaining near faces or any room portion narrower than 0.60 m reject the save.
+The compiler itself never snaps. The saved plan.regularization records version
+plan_regularization_v1 and the full trace; submitted_plan.json retains the input.
+The reply contains counts, largest move, rejections and a full-report file/hash.
+regularization_inputs.coordinate_references contains axis, value_m, basis
+('dimension'), chain_id, tick_index and source_refs; line_references contains
+partition_id, basis ('dimension' or 'ink') and source_refs. Plan-reader trial
+alone supplies these from checked dimensions/ink; this build entry does not
+read new dimensions or align to image ink. Historical replay policy belongs
+to the run manifest, never to a model-declared plan field.
 Every enclosed face becomes one space. No room count is supplied or enforced.
 An open passage still leaves two faces and two spaces, even at full ceiling height.
 Use it for an evidenced opening in a real separating wall. A corridor bend or
@@ -431,8 +448,9 @@ batch. Example operation on the synthetic declaration above:
 The revision response includes geometry_changes: resolved opening endpoints,
 widths and heights before/after, including indirect changes from calibration.
 The full file is retained if the response is truncated. Untouched declarations
-remain exact; changed topology may change derived rooms
-and hosts. Every revision saves a NEW full draft and runs the same compiler and
+remain exact before regularization; the saved trace records indirect movement.
+Changed topology may change derived rooms and hosts. Every revision saves a NEW
+full draft and runs the same regularizer, strict compiler and
 source/overlay feedback. Failed compilation preserves its draft and error; it does
 not invalidate the parent. Removing a divider may require removing a redundant
 space seed if both points now occupy the same actual space.
@@ -455,10 +473,19 @@ assemble_plan_bim(floors_json) takes a JSON list of 2–32 explicit items:
 Use inspect_plan_draft for the exact hash; an explicitly supplied resume plan is
 also admitted as draft_id=resume. Every listed draft is recompiled against its
 bound original image. IDs become floor_id:original_id, including opening hosts.
-XY, partitions, aperture dimensions and ceiling_height stay unchanged. Only
-floor base and every absolute opening z move by the same declared difference.
-This tool does not align plans: every draft must already use the common XY
-origin and direction.
+Drafts must use a common XY origin/direction. Assembly aligns corresponding
+near wall planes strictly below 0.30 m by editing drafts and recompiling them;
+it never edits source polygons. Internal walls prefer dimensions, then the line
+shared by more floors, then the lower floor. Overlapping perimeter edges, including
+recesses, align upper to lower; reverse only when the upper edge alone has a
+dimension-chain reference. Same-floor merges keep the perimeter fixed. Hosted
+openings and connected partitions follow the moving edge; openings keep their size.
+Other wall separations may change if they stay at least 0.30 m; no new same-floor
+near parallel lines, sub-0.60 m room portions or changed hosts/connections may result.
+Near stacked faces align in Z while preserving declared storey heights. Add
+elevation_reference:true only for an explicit trusted base annotation; a
+conflict with that elevation rejects instead of silently changing it. Full
+before/after coordinates, reasons and failures are saved with the assembly.
 To change a layer's height first use revise_plan_bim set ceiling_height; opening
 z pairs must still fit and need separate, justified edits if they change. An
 upper draft can already use its final absolute z, or use local z with base zero;

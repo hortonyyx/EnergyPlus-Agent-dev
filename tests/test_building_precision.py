@@ -30,7 +30,7 @@ def test_offset_and_contact_are_reported_without_edits_or_average_target():
     assert report['counts'] == {'storey_wall_offset':1, 'thin_horizontal_contact':1}
     wall = report['items'][0]
     assert wall['deviation_m'] == pytest.approx(.06)
-    assert wall['overlap_m'] == 6 and wall['tolerance_m'] == .12
+    assert wall['overlap_m'] == 6 and wall['tolerance_m'] == .30
     assert {r['coordinate_m'] for r in wall['align_to_options']} == {3.,3.06}
     strip = report['items'][1]
     assert strip['width_m'] == pytest.approx(.06) and strip['length_m'] == 6
@@ -45,15 +45,17 @@ def test_aligned_walls_and_real_large_setbacks_are_quiet(offset):
 
 def test_floor_slab_gap_does_not_disable_xy_alignment():
     report = precision_report(source(gap=.15), floor_evidence=evidence())
-    assert report['counts'] == {'storey_wall_offset':1}
+    assert report['counts'] == {'storey_wall_offset':1, 'vertical_gap_or_overlap':1}
+    assert report['status'] == 'rejected'
 
 
-def test_unknown_scale_is_explicit_and_wall_width_caps_noisy_scan():
+def test_unknown_scale_and_wall_width_do_not_weaken_the_hard_threshold():
     report = precision_report(source())
-    assert report['items'] == []
-    assert report['coverage']['floors_without_tolerance'] == ['F1','F2']
+    assert report['status'] == 'rejected'
+    assert report['coverage']['floors_without_tolerance'] == []
+    assert all(row['objects'] and row['fix'] for row in report['items'])
     report = precision_report(source(.1), floor_evidence=evidence(mpp=.1, thickness=.08))
-    assert report['tolerances']['F1']['default_m'] == .08 and report['items'] == []
+    assert report['tolerances']['F1']['default_m'] == .30 and report['items']
 
 
 def test_micrometre_strips_are_real_facts_but_numerical_roundoff_is_not():

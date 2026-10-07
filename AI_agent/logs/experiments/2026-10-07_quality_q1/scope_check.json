@@ -1,0 +1,70 @@
+{
+  "schema": "q1-final-scope-check-v2",
+  "base_commit": "e030b6b0195eea18d2d54261038f8a8f25640518",
+  "changed_python_compiles": 39,
+  "crlf_files": [],
+  "protected_files_changed": [],
+  "function_changes": {
+    "scripts/tool_scripts/run_bim_agent.py": [
+      "Toolkit.assemble_plans",
+      "Toolkit.build",
+      "Toolkit.build_plan",
+      "Toolkit.revise_plan",
+      "serve.assemble_plan_bim",
+      "serve.build_plan_bim"
+    ],
+    "src/agent/runtime_roles/session.py": [
+      "RoleSession._build_from_artifact",
+      "RoleSession.run_reader"
+    ],
+    "src/agent/runtime_roles/guidance.py": []
+  },
+  "assignment_changes": {
+    "scripts/tool_scripts/run_bim_agent.py": [],
+    "src/agent/runtime_roles/session.py": [],
+    "src/agent/runtime_roles/guidance.py": [
+      "_PLAN_CALIBRATION",
+      "_PLAN_DIFFERENCES",
+      "_PLAN_DRAFT"
+    ]
+  },
+  "import_changes": {
+    "scripts/tool_scripts/run_bim_agent.py": {
+      "added": [],
+      "removed": []
+    },
+    "src/agent/runtime_roles/session.py": {
+      "added": [
+        "Import(names=[alias(name='copy')])"
+      ],
+      "removed": []
+    },
+    "src/agent/runtime_roles/guidance.py": {
+      "added": [],
+      "removed": []
+    }
+  },
+  "production_sha256": {
+    "scripts/tool_scripts/bim_agent_delivery_display.py": "3679142b7b5c96b36de5f6c077447ebeed204366abe40c01ef153227dbe6660b",
+    "scripts/tool_scripts/bim_agent_guidance.py": "d9ac667808cdbfe4a53f5d93ae7d384e8d240549157b6d609b066e875a1026c5",
+    "scripts/tool_scripts/bim_agent_precision.py": "eb7122429456c4649d06f77522c1dfc256053e3f61b9293a73a8e49ae65f2fd1",
+    "scripts/tool_scripts/bim_agent_regularization.py": "19dcbe2efae06a02263aeaee560d698483c1a648669ae48f70e7bc21f13620e4",
+    "scripts/tool_scripts/render_geometry_viewer.py": "f39d9d8ae3679b71a369d4a63ef14707191a64589b5e67a14462eac7dd8c790a",
+    "scripts/tool_scripts/run_bim_agent.py": "47101350ac7072cd5d469fb49ff65bb32d9fdfa8637d3c53d2e89dc0a255c9af",
+    "src/agent/geometry/building_precision.py": "7e2615ab1b978c25ea893887cb4fa343f9237a75412e7667a6ee50958ee7f860",
+    "src/agent/geometry/plan_dimension_alignment.py": "a9cca0d6d44f764feb4fe4c2569ec99c9d3bf78ed793c4e25588f3e34d7f891a",
+    "src/agent/geometry/plan_ink_alignment.py": "9aa7e65433c95ef42894c2bb4050f3af0a7d46e0c3e129c15813bece2e4457a4",
+    "src/agent/geometry/plan_partition.py": "f860a9bbf419da1aea50b8e0e9f6ef0b2695997e1c073b92ce328b8e2f57d41f",
+    "src/agent/geometry/plan_regularization.py": "02481d54bec1834345051bdfbc39bf19f003cacd15c850c7541cb6d6ccb991ce",
+    "src/agent/runtime_roles/guidance.py": "0a7231f052a30267bb603b013a470b0b034979b342c742b96e207dba27c6ba36",
+    "src/agent/runtime_roles/plan_format.py": "e8337a9c3d357a128dc6eedaf9561b3a694c0f21f01af0686688d8af8ba1fc0f",
+    "src/agent/runtime_roles/readers.py": "7d22ef07ba0a0672720b981fe38eddaf84d57b8bf4690b69afece065fb46bcbb",
+    "src/agent/runtime_roles/session.py": "986b0a68370211a90ee5905a64539c01d13ad799e185a1042b5301c869be3828",
+    "src/agent/runtime_roles/submission.py": "ed6630c6a678cde673c65f7f9e411d1c3e8b5e76bba3f7d8e37a2572eb566e6e",
+    "src/agent/runtime_roles/trial.py": "c0b2eea58e0074f86177bd4945408def2532d8e2fe1755392f812ee89e087eb5"
+  },
+  "shared_registry_file": "src/agent_runtime/agent_versions.json",
+  "shared_registry_sha256": "274f217f609152833be53ee301e1fdcd9abd32bc5e05d4c832958d8cbd86a7ba",
+  "head_unchanged": true,
+  "git_diff_check": "pass"
+}

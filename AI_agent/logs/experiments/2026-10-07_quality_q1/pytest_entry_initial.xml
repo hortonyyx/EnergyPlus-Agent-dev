@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="24" time="22.369" timestamp="2026-10-07T22:33:11.613921+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_bim_regularization_integration" name="test_new_plan_retains_raw_input_and_full_audit_with_compact_reply" time="0.695" /><testcase classname="tests.test_bim_regularization_integration" name="test_stack_saves_effective_drafts_and_full_floor_reports" time="1.382" /><testcase classname="tests.test_bim_regularization_integration" name="test_thin_named_space_rejects_with_audit_and_without_a_candidate" time="0.072" /><testcase classname="tests.test_bim_regularization_integration" name="test_legacy_policy_is_owned_by_the_run_manifest" time="0.246" /><testcase classname="tests.test_bim_agent_plan_partition" name="test_concave_plan_tool_keeps_recess_and_returns_actual_source_feedback" time="0.204" /><testcase classname="tests.test_bim_agent_plan_partition" name="test_plan_tool_source_images_provenance_and_revised_calibration" time="6.512"><failure message="AssertionError('assert b\'{\\n  &quot;floor...  }\\n  }\\n}\\n\' == b\'{\\n    &quot;flo...ved&quot;: []\\n}\\n\'\n  \n  At index 4 diff: b\'&quot;\' != b\' \'\n  Use -v to get more diff') [single exception in ExceptionGroup]">+ Exception Group Traceback (most recent call last):
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_plan_partition.py", line 96, in test_plan_tool_source_images_provenance_and_revised_calibration
+  |     asyncio.run(scenario())
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_plan_partition.py", line 62, in scenario
+  |     async with _server_session(run, readonly=False) as session:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 62, in _server_session
+  |     async with stdio_client(parameters) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 63, in _server_session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=60)) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 65, in _server_session
+      |     yield session
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_plan_partition.py", line 72, in scenario
+      |     assert (run / record["plan_file"]).read_bytes() == raw.encode()
+      | AssertionError: assert b'{\n  "floor...  }\n  }\n}\n' == b'{\n    "flo...ved": []\n}\n'
+      |   
+      |   At index 4 diff: b'"' != b' '
+      |   Use -v to get more diff
+      +------------------------------------</failure></testcase><testcase classname="tests.test_bim_regularization_integration" name="test_source_preflight_does_not_allocate_or_mutate_a_candidate" time="0.098" /><testcase classname="tests.test_bim_agent_plan_partition" name="test_internal_compiler_fault_is_not_reported_as_repairable_declaration" time="0.072" /><testcase classname="tests.test_plan_revision" name="test_local_operations_preserve_unmentioned_rows_and_parent" time="0.003" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad0]" time="0.002" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad1]" time="0.004" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad2]" time="0.002" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad3]" time="0.003" /><testcase classname="tests.test_plan_revision" name="test_rejected_batch_is_atomic[bad4]" time="0.002" /><testcase classname="tests.test_plan_revision" name="test_resume_and_failed_revision_keep_parent_and_full_evidence" time="0.132" /><testcase classname="tests.test_plan_revision" name="test_revision_mcp_source_feedback_and_bound_preservation" time="7.228"><failure message="AssertionError(&quot;assert {'compilation...n', ...}, ...} == {'compilation...n', ...}, ...}\n  \n  Omitting 13 identical items, use -vv to show\n  Differing items:\n  {'regularization': {'changes': [], 'floor_id': 'F1', 'hard_constraints': {'coverage': {'spaces': 2, 'wall_segments': 5...: False, 'edits_plan_draft_only': True, 'edits_source_bim_polygons': False, 'strict_compiler_snaps': False, ...}, ...}} != {'regularization': {'max_movement_m': 0.0, 'moved_count': 0, 'rejected_count': 0, 'rejections': [], ...}}\n  Use -v to get more diff&quot;) [single exception in ExceptionGroup]">+ Exception Group Traceback (most recent call last):
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_revision.py", line 99, in test_revision_mcp_source_feedback_and_bound_preservation
+  |     asyncio.run(scenario())
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_revision.py", line 80, in scenario
+  |     async with _server_session(run, readonly=False) as session:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 62, in _server_session
+  |     async with stdio_client(parameters) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 63, in _server_session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=60)) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 65, in _server_session
+      |     yield session
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_revision.py", line 91, in scenario
+      |     assert source["generation"]["provenance"]["plan_input"] == result["plan_input"]
+      | AssertionError: assert {'compilation...n', ...}, ...} == {'compilation...n', ...}, ...}
+      |   
+      |   Omitting 13 identical items, use -vv to show
+      |   Differing items:
+      |   {'regularization': {'changes': [], 'floor_id': 'F1', 'hard_constraints': {'coverage': {'spaces': 2, 'wall_segments': 5...: False, 'edits_plan_draft_only': True, 'edits_source_bim_polygons': False, 'strict_compiler_snaps': False, ...}, ...}} != {'regularization': {'max_movement_m': 0.0, 'moved_count': 0, 'rejected_count': 0, 'rejections': [], ...}}
+      |   Use -v to get more diff
+      +------------------------------------</failure></testcase><testcase classname="tests.test_bim_agent_plan_partition" name="test_plan_compile_failures_preserve_raw_input_without_candidate" time="7.577" /><testcase classname="tests.test_plan_measurement_binding" name="test_pixel_slots_resolve_but_world_values_and_input_remain_unchanged" time="0.019" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[wrong_axis]" time="0.094" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[changed_image]" time="0.101" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[unknown_candidate]" time="0.056" /><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[bad_midpoint]" time="0.057" /><testcase classname="tests.test_plan_measurement_binding" name="test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts" time="6.392"><failure message="AssertionError(&quot;assert {'assumptions...d': 'F1', ...} == {'assumptions...d': 'F1', ...}\n  \n  Omitting 12 identical items, use -vv to show\n  Left contains 1 more item:\n  {'regularization': {'changes': [],\n                      'floor_id': 'F1',\n                      'hard_constraints': {'coverage': {'spaces': 2,\n                                                        'wall_segments': 5,...\n  \n  ...Full output truncated (34 lines hidden), use '-vv' to show&quot;) [single exception in ExceptionGroup]">+ Exception Group Traceback (most recent call last):
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_measurement_binding.py", line 145, in test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts
+  |     asyncio.run(scenario())
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 195, in run
+  |     return runner.run(main)
+  |            ^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py", line 118, in run
+  |     return self._loop.run_until_complete(task)
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+  |     return future.result()
+  |            ^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_measurement_binding.py", line 104, in scenario
+  |     async with _server_session(run, readonly=False) as session:
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 62, in _server_session
+  |     async with stdio_client(parameters) as (read, write):
+  |                ^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 231, in __aexit__
+  |     await self.gen.athrow(value)
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+  |     anyio.create_task_group() as tg,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+  |     raise BaseExceptionGroup(
+  | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Exception Group Traceback (most recent call last):
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 63, in _server_session
+    |     async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=60)) as session:
+    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\mcp\shared\session.py", line 238, in __aexit__
+    |     return await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |   File "D:\EnergyPlus-Agent-worktrees\q1\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 799, in __aexit__
+    |     raise BaseExceptionGroup(
+    | ExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+    +-+---------------- 1 ----------------
+      | Traceback (most recent call last):
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_bim_agent_tools.py", line 65, in _server_session
+      |     yield session
+      |   File "D:\EnergyPlus-Agent-worktrees\q1\tests\test_plan_measurement_binding.py", line 116, in scenario
+      |     assert json.loads((run / record["plan_file"]).read_text()) == example()
+      | AssertionError: assert {'assumptions...d': 'F1', ...} == {'assumptions...d': 'F1', ...}
+      |   
+      |   Omitting 12 identical items, use -vv to show
+      |   Left contains 1 more item:
+      |   {'regularization': {'changes': [],
+      |                       'floor_id': 'F1',
+      |                       'hard_constraints': {'coverage': {'spaces': 2,
+      |                                                         'wall_segments': 5,...
+      |   
+      |   ...Full output truncated (34 lines hidden), use '-vv' to show
+      +------------------------------------</failure></testcase><testcase classname="tests.test_plan_measurement_binding" name="test_invalid_measurements_preserve_submitted_draft_without_geometry[wrong_image]" time="0.044" /></testsuite></testsuites>

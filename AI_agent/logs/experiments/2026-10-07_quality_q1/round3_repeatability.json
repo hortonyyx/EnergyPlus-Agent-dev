@@ -1,0 +1,27 @@
+{
+  "schema": "q1_round3_repeatability_v1",
+  "verification": "Read and compare actual final run 1, final run 2 and formal report bytes before scratch cleanup.",
+  "reports": [
+    {
+      "formal_file": "replay_report.json",
+      "scratch_run_files": [
+        "replay_report_delivery_run1.json",
+        "replay_report_delivery_run2.json"
+      ],
+      "bytes_identical_between_runs_and_promoted_report": true,
+      "size_bytes": 9350672,
+      "sha256": "67c9892bcfc8720b0cc99f38084615b4d4919026f54b79b41c6739e57ea53dc7"
+    },
+    {
+      "formal_file": "reader_dimension_handoff.json",
+      "scratch_run_files": [
+        "reader_dimension_handoff_run1.json",
+        "reader_dimension_handoff_run2.json"
+      ],
+      "bytes_identical_between_runs_and_promoted_report": true,
+      "size_bytes": 186106,
+      "sha256": "2288ebcf5e19dfd761457760dcf4c7cfbed4cc8eb17032020a84007778f83e8d"
+    }
+  ],
+  "scratch_retention": "The two temporary copies will be removed with round3-replay; the formal report and this independent equality record are retained."
+}

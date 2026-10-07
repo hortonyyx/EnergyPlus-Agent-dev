@@ -1,0 +1,225 @@
+{
+  "schema": "q1_role_fixture_dimension_inputs_v1",
+  "purpose": "Development-only overall dimension inputs read from the original fixture images for F alignment; not work-model output and not GT-derived.",
+  "gt_used": false,
+  "coordinate_contract": {
+    "origin": "Common building southwest footprint corner.",
+    "x": "World x increases east; the first west overall-dimension tick is x=0 m.",
+    "y": "World y increases north; for a north-to-south tick order, the first north tick is y=the visible overall height and the last south tick is y=0 m.",
+    "pixel_axes": "Original-image x increases right and y increases down."
+  },
+  "records": [
+    {
+      "case": "sm21",
+      "floor_id": "F1",
+      "image_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/images/1f_view.png",
+      "image_sha256": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+      "image_size": [2133, 1345],
+      "source_plan_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_001/plan.json",
+      "source_plan_sha256": "81a853c16df8ac79ec6544ddc58ac007ff373373c2c23f4888d725b5bd1493ad",
+      "chains": [
+        {
+          "id": "X_OVERALL_VISIBLE",
+          "axis": "x",
+          "segments_mm": [15000],
+          "total_mm": 15000,
+          "tick_pixels": [425.0, 1815.0],
+          "start_world_m": 0.0,
+          "source_refs": [
+            "1f_view.png SHA256 ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4: top overall dimension 15000",
+            "task common southwest-origin contract: first west tick is world x=0 m"
+          ],
+          "source_bbox_px": [370, 60, 1840, 225],
+          "provenance": "Read from the original image with view_image; green overall extension-line pixels and printed value; no GT."
+        },
+        {
+          "id": "Y_OVERALL_VISIBLE",
+          "axis": "y",
+          "segments_mm": [8000],
+          "total_mm": 8000,
+          "tick_pixels": [346.0, 1087.0],
+          "start_world_m": 8.0,
+          "source_refs": [
+            "1f_view.png SHA256 ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4: left overall dimension 8000",
+            "task common southwest-origin contract: first north tick is world y=8 m and original-image pixel y increases southward"
+          ],
+          "source_bbox_px": [100, 300, 440, 1110],
+          "provenance": "Read from the original image with view_image; green overall extension-line pixels and printed value; no GT."
+        }
+      ]
+    },
+    {
+      "case": "sm21",
+      "floor_id": "F2",
+      "image_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/images/2f_view.png",
+      "image_sha256": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+      "image_size": [2182, 1319],
+      "source_plan_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21/plan_drafts/draft_002/plan.json",
+      "source_plan_sha256": "3764a20418e397c51338d8d717b914e7785a28f515f843bd6bee69b64336c804",
+      "chains": [
+        {
+          "id": "X_OVERALL_VISIBLE",
+          "axis": "x",
+          "segments_mm": [15000],
+          "total_mm": 15000,
+          "tick_pixels": [427.0, 1813.0],
+          "start_world_m": 0.0,
+          "source_refs": [
+            "2f_view.png SHA256 d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74: top overall dimension 15000",
+            "task common southwest-origin contract: first west tick is world x=0 m"
+          ],
+          "source_bbox_px": [375, 55, 1840, 220],
+          "provenance": "Read from the original image with view_image; green overall extension-line pixels and printed value; no GT."
+        },
+        {
+          "id": "Y_OVERALL_VISIBLE",
+          "axis": "y",
+          "segments_mm": [8000],
+          "total_mm": 8000,
+          "tick_pixels": [331.0, 1071.0],
+          "start_world_m": 8.0,
+          "source_refs": [
+            "2f_view.png SHA256 d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74: left overall dimension 8000",
+            "task common southwest-origin contract: first north tick is world y=8 m and original-image pixel y increases southward"
+          ],
+          "source_bbox_px": [80, 290, 440, 1090],
+          "provenance": "Read from the original image with view_image; green overall extension-line pixels and printed value; no GT."
+        }
+      ]
+    },
+    {
+      "case": "sm25",
+      "floor_id": "F1",
+      "image_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/images/1f_view.png",
+      "image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "image_size": [1758, 1496],
+      "source_plan_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_001/plan.json",
+      "source_plan_sha256": "9a12b5dc740c0d3f693ff57c3454113bdaf6914a4210174529631ed011be9347",
+      "chains": [
+        {
+          "id": "X_BOTTOM_VISIBLE",
+          "axis": "x",
+          "segments_mm": [5000, 8000, 7940, 4060],
+          "total_mm": 25000,
+          "tick_pixels": [282.0, 513.0, 883.0, 1250.0, 1437.0],
+          "start_world_m": 0.0,
+          "source_refs": [
+            "1f_view.png SHA256 6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644: bottom chain 5000/8000/7940/4060 and overall 25000",
+            "task common southwest-origin contract: first west tick is world x=0 m"
+          ],
+          "source_bbox_px": [260, 1190, 1450, 1460],
+          "provenance": "Read from the original image with view_image; green overall/segment extension-line pixels and printed values; no GT."
+        },
+        {
+          "id": "X_TOP_VISIBLE",
+          "axis": "x",
+          "segments_mm": [5000, 4940, 1120, 3940, 10000],
+          "total_mm": 25000,
+          "tick_pixels": [282.0, 513.0, 741.0, 793.0, 975.0, 1437.0],
+          "start_world_m": 0.0,
+          "source_refs": [
+            "1f_view.png SHA256 6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644: top chain 5000/4940/1120/3940/10000 and overall 25000",
+            "task common southwest-origin contract: first west tick is world x=0 m"
+          ],
+          "source_bbox_px": [260, 20, 1450, 300],
+          "provenance": "Read from the original image with view_image and green-pixel column counts; printed values and extension lines at x=282/513/741/793/975/1437; no GT."
+        },
+        {
+          "id": "Y_OVERALL_VISIBLE",
+          "axis": "y",
+          "segments_mm": [20000],
+          "total_mm": 20000,
+          "tick_pixels": [310.0, 1235.0],
+          "start_world_m": 20.0,
+          "source_refs": [
+            "1f_view.png SHA256 6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644: left overall dimension 20000",
+            "task common southwest-origin contract: first north tick is world y=20 m and original-image pixel y increases southward"
+          ],
+          "source_bbox_px": [50, 290, 300, 1260],
+          "provenance": "Read from the original image with view_image; green overall extension-line pixels and printed value; no GT."
+        },
+        {
+          "id": "Y_RIGHT_VISIBLE",
+          "axis": "y",
+          "segments_mm": [2000, 2000, 2000, 2000, 2000, 2000, 2000, 6000],
+          "total_mm": 20000,
+          "tick_pixels": [310.0, 403.0, 495.0, 588.0, 680.0, 772.5, 865.0, 957.5, 1235.0],
+          "start_world_m": 20.0,
+          "source_refs": [
+            "1f_view.png SHA256 6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644: right chain seven 2000 segments plus 6000 and overall 20000",
+            "task common southwest-origin contract: first north tick is world y=20 m and original-image pixel y increases southward"
+          ],
+          "source_bbox_px": [1400, 300, 1745, 1240],
+          "provenance": "Read from the original image with view_image and green-pixel row counts; printed values and extension lines at y=310/403/495/588/680/772.5/865/957.5/1235; no GT."
+        }
+      ]
+    },
+    {
+      "case": "sm25",
+      "floor_id": "F2",
+      "image_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/images/2f_view.png",
+      "image_sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "image_size": [1661, 1561],
+      "source_plan_path": "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/plan_drafts/draft_002/plan.json",
+      "source_plan_sha256": "c2e00849461a87a076846bbdbbc680caed17194dbf8791280d39c81d9e59edfa",
+      "chains": [
+        {
+          "id": "X_BOTTOM_VISIBLE",
+          "axis": "x",
+          "segments_mm": [5000, 4090, 3910, 3910, 4030, 4060],
+          "total_mm": 25000,
+          "tick_pixels": [241.0, 470.0, 658.0, 837.0, 1016.0, 1201.0, 1387.0],
+          "start_world_m": 0.0,
+          "source_refs": [
+            "2f_view.png SHA256 bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322: bottom chain 5000/4090/3910/3910/4030/4060 and overall 25000",
+            "task common southwest-origin contract: first west tick is world x=0 m"
+          ],
+          "source_bbox_px": [220, 1290, 1400, 1510],
+          "provenance": "Read from the original image with view_image; green overall/segment extension-line pixels and printed values; no GT."
+        },
+        {
+          "id": "X_TOP_VISIBLE",
+          "axis": "x",
+          "segments_mm": [5000, 4940, 1120, 3940, 10000],
+          "total_mm": 25000,
+          "tick_pixels": [241.0, 470.0, 697.0, 748.0, 928.5, 1387.0],
+          "start_world_m": 0.0,
+          "source_refs": [
+            "2f_view.png SHA256 bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322: top chain 5000/4940/1120/3940/10000 and overall 25000",
+            "task common southwest-origin contract: first west tick is world x=0 m"
+          ],
+          "source_bbox_px": [220, 20, 1400, 335],
+          "provenance": "Read from the original image with view_image and green-pixel column counts; printed values and extension lines at x=241/470/697/748/928.5/1387; no GT."
+        },
+        {
+          "id": "Y_OVERALL_VISIBLE",
+          "axis": "y",
+          "segments_mm": [20000],
+          "total_mm": 20000,
+          "tick_pixels": [341.0, 1258.0],
+          "start_world_m": 20.0,
+          "source_refs": [
+            "2f_view.png SHA256 bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322: left overall dimension 20000",
+            "task common southwest-origin contract: first north tick is world y=20 m and original-image pixel y increases southward"
+          ],
+          "source_bbox_px": [40, 320, 260, 1280],
+          "provenance": "Read from the original image with view_image; green overall extension-line pixels and printed value; no GT."
+        },
+        {
+          "id": "Y_RIGHT_VISIBLE",
+          "axis": "y",
+          "segments_mm": [6000, 2000, 2000, 2000, 2000, 6000],
+          "total_mm": 20000,
+          "tick_pixels": [341.0, 616.0, 708.0, 800.0, 891.5, 983.0, 1258.0],
+          "start_world_m": 20.0,
+          "source_refs": [
+            "2f_view.png SHA256 bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322: right chain 6000/2000/2000/2000/2000/6000 and overall 20000",
+            "task common southwest-origin contract: first north tick is world y=20 m and original-image pixel y increases southward"
+          ],
+          "source_bbox_px": [1360, 330, 1640, 1270],
+          "provenance": "Read from the original image with view_image and green-pixel row counts; printed values and extension lines at y=341/616/708/800/891.5/983/1258; no GT."
+        }
+      ]
+    }
+  ]
+}

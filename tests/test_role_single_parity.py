@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import ast
 import hashlib
 import importlib
 import json
@@ -67,8 +68,38 @@ def test_single_configuration_loading_and_argv_match_the_dispatch_baseline():
 
 
 def test_first_request_sources_are_byte_identical_to_the_dispatch_baseline():
+    permitted = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/intentional_model_text_changes.json").read_text(encoding="utf-8"))
     for relative in FIRST_REQUEST_SOURCES:
-        assert (ROOT / relative).read_bytes() == git_bytes(relative), relative
+        expected = git_bytes(relative)
+        for replacement in permitted.get(relative, []):
+            before, after = replacement["before"].encode(), replacement["after"].encode()
+            assert expected.count(before) == 1, relative
+            expected = expected.replace(before, after, 1)
+        assert (ROOT / relative).read_bytes() == expected, relative
+
+
+def test_only_authorized_tool_descriptions_change_since_q1_dispatch():
+    """Q1 may change these two explanations, keeping all tool arguments fixed."""
+    filename = "scripts/tool_scripts/run_bim_agent.py"
+    permitted = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/intentional_tool_description_changes.json").read_text(encoding="utf-8"))
+
+    def catalog(source):
+        return {node.name: {
+            "description": ast.get_docstring(node),
+            "arguments": ast.dump(node.args, include_attributes=False),
+        } for node in ast.walk(ast.parse(source))
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and any(isinstance(decorator, ast.Call)
+                    and isinstance(decorator.func, ast.Attribute)
+                    and isinstance(decorator.func.value, ast.Name)
+                    and decorator.func.value.id == "server"
+                    and decorator.func.attr == "tool" for decorator in node.decorator_list)}
+
+    expected = catalog(git_bytes(filename, "e030b6b0").decode("utf-8"))
+    for name, replacement in permitted.items():
+        assert expected[name]["description"] == replacement["before"]
+        expected[name]["description"] = replacement["after"]
+    assert catalog((ROOT / filename).read_text(encoding="utf-8")) == expected
 
 
 def test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes(tmp_path):

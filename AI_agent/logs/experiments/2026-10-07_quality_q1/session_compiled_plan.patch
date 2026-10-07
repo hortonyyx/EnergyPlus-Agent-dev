@@ -1,0 +1,34 @@
+--- a/src/agent/runtime_roles/session.py
++++ b/src/agent/runtime_roles/session.py
+@@ -531,7 +531,9 @@
+                     workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
+                     prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
+                                       receipt_directory=workspace / "trial_receipts")
+-                    if canonical_plan_sha256(previous["plan"]) != validation["plan_sha256"]:
++                    _, prior_receipt = prior.verified_plan(validation["plan_sha256"])
++                    if (previous["plan"] != prior.numeric_plan(prior_receipt)
++                            and canonical_plan_sha256(previous["plan"]) != validation["plan_sha256"]):
+                         raise ValueError("rework artifact differs from its successful trial")
+                     trial.inherit_reference(prior, validation["plan_sha256"], task["rework_targets"])
+                 # The accepted review also covers warnings from trials made
+@@ -627,8 +629,6 @@
+         receipt = record["validation"]
+         if receipt.get("compiled_numeric_plan_file"):
+             from .trial import canonical_plan_sha256
+-            if canonical_plan_sha256(plan) != receipt["plan_sha256"]:
+-                raise ValueError("trial receipt does not refer to this original plan")
+             workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
+             path = (workspace / receipt["compiled_numeric_plan_file"]).resolve()
+             if not path.is_relative_to(workspace.resolve()) or not path.is_file():
+@@ -636,7 +636,10 @@
+             raw = path.read_bytes()
+             if hashlib.sha256(raw).hexdigest() != receipt["compiled_numeric_plan_sha256"]:
+                 raise ValueError("compiled reader plan hash mismatch")
+-            plan = json.loads(raw)
++            compiled = json.loads(raw)
++            if plan != compiled and canonical_plan_sha256(plan) != receipt["plan_sha256"]:
++                raise ValueError("trial receipt does not refer to this original or verified compiled plan")
++            plan = compiled
+         from .levels import apply_levels, apply_resolved_levels
+         if resolved_levels is None:
+             plan, citations = apply_levels(self.registry, plan, **levels)

@@ -188,7 +188,9 @@ class ReaderSubmission:
             raise ValueError("reader submission artifact hash mismatch")
         if self.trial is not None:
             plan, receipt = self.trial.verified_plan(value["validation"]["plan_sha256"])
-            if plan != value["artifact"]["plan"] or receipt["candidate_source_sha256"] != value["validation"]["candidate_source_sha256"]:
+            compiled_plan = self.trial.numeric_plan(receipt)
+            if (compiled_plan != value["artifact"]["plan"]
+                    or receipt["candidate_source_sha256"] != value["validation"]["candidate_source_sha256"]):
                 raise ValueError("reader submission does not match its immutable successful trial")
         return value
 
@@ -249,17 +251,18 @@ class ReaderSubmission:
                     raise ValueError("legacy evidence must be a list")
                 supplied = {row.get("item") for row in legacy_evidence if isinstance(row, dict)}
                 evidence = [*legacy_evidence, *(row for row in generated if row["item"] not in supplied)]
-            artifact = validate_plan_artifact({"plan": plan, "evidence": evidence,
-                                               "unresolved": plan["unresolved"]}, image_name=self.image_name)
+            artifact = validate_plan_artifact({"plan": numeric, "evidence": evidence,
+                                               "unresolved": numeric["unresolved"]}, image_name=self.image_name)
             for note in arguments.get("notes", []):
                 located = [row for row in artifact["evidence"] if row["item"] == note["item"]]
                 if not located:
                     raise ValueError(f"notes.item is not a declared plan object: {note['item']}")
                 for row in located:
                     row["basis"] = row.get("basis", "") + f" [{note['kind']}] {note['basis']}"
-            # The delivery never edits the plan, including assumptions/unresolved.
-            artifact["plan"] = plan
-            artifact["unresolved"] = list(dict.fromkeys([*plan["unresolved"], *arguments.get("unresolved", []),
+            # The delivery is the exact numeric plan that the successful trial
+            # compiled, including deterministic reader alignment and its audit.
+            artifact["plan"] = numeric
+            artifact["unresolved"] = list(dict.fromkeys([*numeric["unresolved"], *arguments.get("unresolved", []),
                 *(f"{note['item']}: {note['basis']}" for note in arguments.get("notes", []) if note["kind"] == "unresolved")]))
             issues = list({row["issue_id"]: row for row in [*self.trial.inherited_topology_issues,
                            *topology_issues(self.trial.receipts)]}.values())

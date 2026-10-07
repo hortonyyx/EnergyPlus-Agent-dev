@@ -228,7 +228,7 @@ def test_keep_plan_resolves_only_position_conflict_and_never_waives_height_bound
         assert not checked["matches"] and checked["conflicts"][0]["type"] == "height_outside_host"
 
 
-def test_ink_inconsistency_remains_pending_even_when_plan_and_reader_positions_agree(tmp_path):
+def test_ink_inconsistency_is_recorded_without_blocking_agreeing_readings(tmp_path):
     with height_session(tmp_path) as session:
         bind_original_plan(session)
         artifact = copy.deepcopy(session.registry.read("North"))
@@ -241,14 +241,10 @@ def test_ink_inconsistency_remains_pending_even_when_plan_and_reader_positions_a
         task = session._task({"task_id": "ink", "role_id": "elevation_reader", "image": "plan.png", "target": "North/F1"})
         session.registry.save(task, status="completed", artifact=artifact, validation={"validation_passed": True})
         comparison = session.match("ink", "candidate_01")["result"]["position_comparisons"][0]
-        assert comparison["max_difference_m"] == 0 and comparison["status"] == "pending"
+        assert comparison["max_difference_m"] == 0 and comparison["status"] == "keep_plan"
         row = next(iter(session.positions.current()["items"].values()))
-        assert row["status"] == "pending" and row["ink_inconsistencies"][0]["field"] == "width_m"
-        assert session.positions.summary()["pending"][0]["ink_issue_count"] == 1
-        with pytest.raises(ValueError):
-            session.positions.guard("candidate_01")
-        result = asyncio.run(session.call_tool("edit_bim", {"candidate": "candidate_01", "edits": [decision(row)]}))
-        assert not result["isError"], result
+        assert row["status"] == "keep_plan" and row["ink_inconsistencies"][0]["field"] == "width_m"
+        assert not session.positions.summary()["pending"]
         session.positions.guard("candidate_01")
         assert not session.frozen.calls
 
