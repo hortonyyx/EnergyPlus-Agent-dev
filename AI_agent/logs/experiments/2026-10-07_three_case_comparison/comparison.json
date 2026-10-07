@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "batch_id": "three-case-comparison-20261007",
+  "approval_required_before_launch": true,
+  "approval": "User approved 2026-10-07 (\"可以，批\"): sm21, sm24, sm25 each once single-model and once role-division on the GLM subscription, run one at a time; protection 3 h / 400 requests / 30M tokens per run; not judged by time limit.",
+  "maximum_seconds_per_case": 10800,
+  "agent_version": "t1-20261007-d1i.1",
+  "cases": [
+    {
+      "case_id": "sm24_single_cmp",
+      "mode": "single_model",
+      "provider": "glm-subscription-anthropic",
+      "model": "glm-5.3-flash",
+      "credentials_file": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png"
+      ],
+      "output": "AI_agent/archive/local_backup/cmp3/sm24_single",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment organization: Work directly with the deterministic and visual tools, without role delegation.\nBudget: 10800 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 400,
+        "tool_calls": 800,
+        "tokens": 30000000,
+        "seconds": 10800,
+        "model_retries": 5,
+        "retry_backoff_seconds": 4.0
+      },
+      "max_candidates": 64,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "max_concurrent_readers": 4
+    },
+    {
+      "case_id": "sm24_role_cmp",
+      "mode": "role_division",
+      "provider": "glm-subscription-anthropic",
+      "model": "glm-5.3-flash",
+      "credentials_file": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png"
+      ],
+      "output": "AI_agent/archive/local_backup/cmp3/sm24_role",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment organization: Delegate plan and elevation reading to the configured readers; the coordinator assembles, checks, and delivers.\nBudget: 10800 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 400,
+        "tool_calls": 800,
+        "tokens": 30000000,
+        "seconds": 10800,
+        "model_retries": 5,
+        "retry_backoff_seconds": 4.0
+      },
+      "max_candidates": 64,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "max_concurrent_readers": 8,
+      "roles": {
+        "coordinator": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        },
+        "plan_reader": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        },
+        "elevation_reader": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        }
+      }
+    },
+    {
+      "case_id": "sm21_role_cmp",
+      "mode": "role_division",
+      "provider": "glm-subscription-anthropic",
+      "model": "glm-5.3-flash",
+      "credentials_file": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm21_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png",
+        "2f_view.png"
+      ],
+      "output": "AI_agent/archive/local_backup/cmp3/sm21_role",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment organization: Delegate plan and elevation reading to the configured readers; the coordinator assembles, checks, and delivers.\nBudget: 10800 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 400,
+        "tool_calls": 800,
+        "tokens": 30000000,
+        "seconds": 10800,
+        "model_retries": 5,
+        "retry_backoff_seconds": 4.0
+      },
+      "max_candidates": 64,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "max_concurrent_readers": 8,
+      "roles": {
+        "coordinator": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        },
+        "plan_reader": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        },
+        "elevation_reader": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        }
+      }
+    },
+    {
+      "case_id": "sm21_single_cmp",
+      "mode": "single_model",
+      "provider": "glm-subscription-anthropic",
+      "model": "glm-5.3-flash",
+      "credentials_file": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm21_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png",
+        "2f_view.png"
+      ],
+      "output": "AI_agent/archive/local_backup/cmp3/sm21_single",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment organization: Work directly with the deterministic and visual tools, without role delegation.\nBudget: 10800 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 400,
+        "tool_calls": 800,
+        "tokens": 30000000,
+        "seconds": 10800,
+        "model_retries": 5,
+        "retry_backoff_seconds": 4.0
+      },
+      "max_candidates": 64,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "max_concurrent_readers": 4
+    },
+    {
+      "case_id": "sm25_single_cmp",
+      "mode": "single_model",
+      "provider": "glm-subscription-anthropic",
+      "model": "glm-5.3-flash",
+      "credentials_file": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm25-L_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png",
+        "2f_view.png"
+      ],
+      "output": "AI_agent/archive/local_backup/cmp3/sm25_single",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment organization: Work directly with the deterministic and visual tools, without role delegation.\nBudget: 10800 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 400,
+        "tool_calls": 800,
+        "tokens": 30000000,
+        "seconds": 10800,
+        "model_retries": 5,
+        "retry_backoff_seconds": 4.0
+      },
+      "max_candidates": 64,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "max_concurrent_readers": 4
+    },
+    {
+      "case_id": "sm25_role_cmp",
+      "mode": "role_division",
+      "provider": "glm-subscription-anthropic",
+      "model": "glm-5.3-flash",
+      "credentials_file": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.env",
+      "input_kind": "images",
+      "input": "case_tests/e2e_tests/sm25-L_anchor/case_data",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png",
+        "2f_view.png"
+      ],
+      "output": "AI_agent/archive/local_backup/cmp3/sm25_role",
+      "scope": "Scope: Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.\nExperiment organization: Delegate plan and elevation reading to the configured readers; the coordinator assembles, checks, and delivers.\nBudget: 10800 seconds. Start by listing supplied inputs. No structured building declaration was supplied for this experiment. No saved proposal is supplied; work from the original inputs. Report limitations honestly, and finish within the budget.",
+      "limits": {
+        "model_calls": 400,
+        "tool_calls": 800,
+        "tokens": 30000000,
+        "seconds": 10800,
+        "model_retries": 5,
+        "retry_backoff_seconds": 4.0
+      },
+      "max_candidates": 64,
+      "context_tokens": 900000,
+      "compact_at_tokens": 150000,
+      "output_tokens": 32000,
+      "reasoning_effort": "medium",
+      "max_concurrent_readers": 8,
+      "roles": {
+        "coordinator": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        },
+        "plan_reader": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        },
+        "elevation_reader": {
+          "provider": "glm-subscription-anthropic",
+          "model": "glm-5.3-flash",
+          "reasoning_effort": "medium",
+          "output_tokens": 32000
+        }
+      }
+    }
+  ]
+}
