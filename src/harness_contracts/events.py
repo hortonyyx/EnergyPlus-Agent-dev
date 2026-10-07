@@ -164,6 +164,10 @@ class VersionManifest(ContractModel):
     code_commit: VersionStamp
     dependency_lock: VersionStamp
     agent_version: VersionStamp | None = None
+    runtime_version: VersionStamp | None = None
+    domain_version: VersionStamp | None = None
+    mode: NonEmptyStr | None = None
+    role_models: dict[str, dict[str, JsonValue]] = Field(default_factory=dict)
     prompt: VersionStamp
     tool_definitions: VersionStamp
     inference_parameters: VersionStamp

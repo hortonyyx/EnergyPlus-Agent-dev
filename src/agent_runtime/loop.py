@@ -1431,7 +1431,9 @@ class Runtime:
         timing = summarize_timing(self.store, current_task=self.store.task_id,
             started_epoch=self.started_epoch, ended_epoch=self.started_epoch + elapsed,
             status=reason, pending_queue=getattr(self, "_queue_interruption", None))
+        from .versions import version_labels
         receipt = {"status": reason, "answer": self.answer,
+            **version_labels(self.versions),
             **({"finalization": finalization} if finalization is not None else {}),
             "started_epoch": self.started_epoch,
             "deadline_epoch": self.started_epoch + self.limits.seconds,
