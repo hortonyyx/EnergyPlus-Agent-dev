@@ -71,10 +71,13 @@ def summarize(name):
     hausdorff = [m["boundary_hausdorff_m"] for m in matches if isinstance(m.get("boundary_hausdorff_m"), (int, float))]
     severe = evaluation["severe"]
     substantive_codes = {"space_missing", "space_extra", "space_split", "space_merged", "partition_split", "partition_merged",
-                         "false_floor", "connection_changed", "floor_assignment_changed"}
+                         "false_floor", "connection_changed", "floor_assignment_changed", "extra_opening", "missing_opening",
+                         # the strict partition comparison names its room errors this way
+                         "extra_source_space", "missing_source_space", "source_space_split", "source_spaces_merged"}
+    # A window has no door connection (connection_match None): only an explicit False is a changed host/connection.
     substantive = [f["code"] for f in severe if f["code"] in substantive_codes
                    or (f["code"] == "opening_position_host_or_connection_changed"
-                       and not (f.get("host_match", True) and f.get("connection_match", True)))]
+                       and (f.get("host_match") is False or f.get("connection_match") is False))]
     openings = [f for f in severe if f["code"] == "opening_position_host_or_connection_changed"]
     accounting = receipt.get("role_accounting") or receipt.get("root_usage_accounting") or receipt.get("usage_accounting") or {}
     reported = accounting.get("provider_reported_tokens")
