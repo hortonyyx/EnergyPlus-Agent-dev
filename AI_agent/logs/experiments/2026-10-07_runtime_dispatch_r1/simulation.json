@@ -1,0 +1,152 @@
+{
+  "live_model_requests": 0,
+  "before": {
+    "service_capacity": 5,
+    "arrivals": 6,
+    "accepted_peak": 5,
+    "accepted": 5,
+    "rejected": 1,
+    "elapsed_seconds": 0.06252779999340419,
+    "requests": [
+      {
+        "request": 0,
+        "queue_seconds": 0,
+        "status": "accepted"
+      },
+      {
+        "request": 1,
+        "queue_seconds": 0,
+        "status": "accepted"
+      },
+      {
+        "request": 2,
+        "queue_seconds": 0,
+        "status": "accepted"
+      },
+      {
+        "request": 3,
+        "queue_seconds": 0,
+        "status": "accepted"
+      },
+      {
+        "request": 4,
+        "queue_seconds": 0,
+        "status": "accepted"
+      },
+      {
+        "request": 5,
+        "queue_seconds": 0,
+        "status": "429_temporary_rate_limit"
+      }
+    ]
+  },
+  "after": {
+    "service_capacity": 5,
+    "arrivals": 6,
+    "accepted_peak": 5,
+    "accepted": 6,
+    "rejected": 0,
+    "elapsed_seconds": 0.12171649999800138,
+    "requests": [
+      {
+        "request": 0,
+        "queue_seconds": 0.0,
+        "status": "accepted"
+      },
+      {
+        "request": 1,
+        "queue_seconds": 0.0,
+        "status": "accepted"
+      },
+      {
+        "request": 2,
+        "queue_seconds": 0.0,
+        "status": "accepted"
+      },
+      {
+        "request": 3,
+        "queue_seconds": 0.0,
+        "status": "accepted"
+      },
+      {
+        "request": 4,
+        "queue_seconds": 0.0,
+        "status": "accepted"
+      },
+      {
+        "request": 5,
+        "queue_seconds": 0.062000000005355105,
+        "status": "accepted"
+      }
+    ]
+  },
+  "adaptation": {
+    "clock": "controlled seconds; not elapsed production time",
+    "states": [
+      {
+        "time": 0,
+        "limit": 5,
+        "event": "initial"
+      },
+      {
+        "time": 0,
+        "route_id": "mock-changing-capacity",
+        "action": "reduce",
+        "previous_limit": 5,
+        "limit": 4,
+        "cooldown_seconds": 1.0
+      },
+      {
+        "time": 30,
+        "event": "accepted",
+        "limit": 4,
+        "change": null
+      },
+      {
+        "time": 61,
+        "event": "accepted",
+        "limit": 5,
+        "change": {
+          "route_id": "mock-changing-capacity",
+          "action": "increase",
+          "previous_limit": 4,
+          "limit": 5
+        }
+      },
+      {
+        "time": 122,
+        "event": "accepted",
+        "limit": 6,
+        "change": {
+          "route_id": "mock-changing-capacity",
+          "action": "increase",
+          "previous_limit": 5,
+          "limit": 6
+        }
+      },
+      {
+        "time": 183,
+        "event": "accepted",
+        "limit": 7,
+        "change": {
+          "route_id": "mock-changing-capacity",
+          "action": "increase",
+          "previous_limit": 6,
+          "limit": 7
+        }
+      },
+      {
+        "time": 244,
+        "event": "accepted",
+        "limit": 8,
+        "change": {
+          "route_id": "mock-changing-capacity",
+          "action": "increase",
+          "previous_limit": 7,
+          "limit": 8
+        }
+      }
+    ]
+  },
+  "note": "Before records first-wave rejection, not the subsequent legacy backoff retries. Synthetic elapsed times do not predict whole-case speed."
+}

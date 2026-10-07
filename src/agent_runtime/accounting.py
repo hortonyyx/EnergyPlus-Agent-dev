@@ -127,6 +127,7 @@ class RequestUsageAccounting:
     reported_cache_read_tokens: int | None
     reported_cache_write_tokens: int | None
     reported_output_tokens: int | None
+    usage_basis: str
 
     def receipt_dict(self) -> dict[str, object]:
         result = asdict(self)
@@ -166,6 +167,7 @@ def account_request_usage(
     if type(image_tokens_estimate) is not int or image_tokens_estimate < 0:
         raise ValueError("image_tokens_estimate must be a non-negative integer")
     raw = _raw_usage(raw_usage)
+    rejected = (raw or {}).get("runtime_usage_basis") == "rejected_before_processing"
     reported_total = _reported_total_tokens(raw) if raw is not None else None
     reported_image, _, image_in_total_attested = (
         _reported_image_tokens(raw)
@@ -173,7 +175,7 @@ def account_request_usage(
     includes_images = image_tokens_estimate > 0 and image_in_total_attested
     separate_images = bills_images_separately(pricing)
     image_charge = reported_image if reported_image is not None else image_tokens_estimate
-    additional_images = image_charge if separate_images else (0 if includes_images else image_tokens_estimate)
+    additional_images = 0 if rejected else image_charge if separate_images else (0 if includes_images else image_tokens_estimate)
     budget_tokens = (
         None
         if reported_total is None
@@ -188,6 +190,10 @@ def account_request_usage(
         pricing=None if billing_mode == "subscription" else pricing,
     )
     estimated_cost = known_cost if complete else None
+    if rejected:
+        # A local pre-send image estimate is not a charge for a refused request.
+        known_cost = estimated_cost = None if billing_mode == "subscription" else Decimal(0)
+        complete = billing_mode != "subscription"
     if image_tokens_estimate == 0:
         image_status = "not_applicable"
     elif pricing is None:
@@ -218,6 +224,8 @@ def account_request_usage(
         note = "This request sent no images."
     if billing_mode == "subscription":
         note += " Subscription route: no usage-based currency estimate; token/time budgets still apply."
+    if rejected:
+        note = "Known unprocessed HTTP 429 rejection: zero token/image charge by classification, not a provider measurement."
     return RequestUsageAccounting(
         provider_reported_tokens=reported_total,
         reported_image_tokens=reported_image,
@@ -238,6 +246,7 @@ def account_request_usage(
         reported_cache_read_tokens=_usage_counter(raw, "cache_read_input_tokens"),
         reported_cache_write_tokens=_usage_counter(raw, "cache_creation_input_tokens"),
         reported_output_tokens=_usage_counter(raw, "output_tokens", "completion_tokens"),
+        usage_basis="rejected_before_processing" if rejected else "provider_reported" if raw is not None else "missing",
     )
 
 
@@ -300,6 +309,15 @@ def request_accounting_from_store(
                 if event.payload.event_type == "budget" and event.payload.action == "settle"
                 and event.payload.settlement.reservation_id == request.payload.reservation_id), None)
             usage = None if settlement is None else settlement.usage
+    # A read-only projection of older journals applies the same narrow rule;
+    # original events/settlements stay untouched and unknown outcomes stay unknown.
+    if usage is None or isinstance(usage, UsageMissing):
+        from .failures import is_unprocessed_rejection, rejected_request_usage
+        failure = next((e.payload.model_failure for e in store.all_events
+            if e.payload.event_type == "run_lifecycle" and e.payload.model_failure
+            and e.payload.model_failure.request_event_id == request_event_id), None)
+        if failure is not None and is_unprocessed_rejection(failure):
+            usage = rejected_request_usage()
     pricing = get_cny_price_schedule(
         identity.remote_alias, route_id=identity.route_id
     )
@@ -338,6 +356,7 @@ def summarize_request_accounting(
         )
         return {
             "requests": len(selected),
+            "rejected_unprocessed_requests": sum(r.accounting.usage_basis == "rejected_before_processing" for r in selected),
             **{field: (sum(values) if values and all(v is not None for v in values) else None)
                for field in ("reported_input_tokens", "reported_cache_read_tokens", "reported_cache_write_tokens", "reported_output_tokens")
                for values in [[getattr(r.accounting, field) for r in selected]]},

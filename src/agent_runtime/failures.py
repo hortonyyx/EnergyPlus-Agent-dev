@@ -32,6 +32,21 @@ class ModelServiceError(Exception):
         self.usage = usage
 
 
+def rejected_request_usage():
+    """Explicitly labelled accounting zero, not a provider token measurement."""
+    return UsageReported(raw_usage={
+        "input_tokens": 0, "output_tokens": 0, "total_tokens": 0,
+        "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0,
+        "runtime_usage_basis": "rejected_before_processing",
+        "runtime_zero_reason": "HTTP 429 explicitly refused a temporary rate/concurrency limit",
+    })
+
+
+def is_unprocessed_rejection(failure):
+    return (failure.http_status == 429 and failure.category == "temporary_rate_limit"
+            and not failure.usage_received)
+
+
 def http_failure(response: httpx.Response, *, secret: str, provider: str | None = None) -> ModelServiceError:
     try:
         body = response.json()
@@ -79,12 +94,15 @@ def http_failure(response: httpx.Response, *, secret: str, provider: str | None 
     else:
         category, retryable = "invalid_request", False
     usage_raw = body.get("usage") if isinstance(body, dict) else None
+    usage_received = bool(usage_raw)
     # Preserve reported usage separately, without copying arbitrary service
     # payload fields (which can echo authorization) into the ledger.
     usage_raw = {key: value for key, value in (usage_raw or {}).items()
                  if key in {"prompt_tokens", "completion_tokens", "total_tokens", "input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"}
                  and type(value) is int and value >= 0} if isinstance(usage_raw, dict) else {}
     usage = UsageReported(raw_usage=usage_raw) if usage_raw else UsageMissing(reason="HTTP error omitted token usage")
+    if not usage_received and status == 429 and category == "temporary_rate_limit":
+        usage = rejected_request_usage()
     request_id = response.headers.get("x-request-id", response.headers.get("request-id"))
     if request_id is None and isinstance(body, dict):
         request_id = body.get("request_id", body.get("id"))
@@ -93,7 +111,7 @@ def http_failure(response: httpx.Response, *, secret: str, provider: str | None 
         "service_error_type": _sanitize(error_type, secret)[:256] if error_type is not None else None,
         "body_excerpt": _sanitize(response.text, secret).encode("utf-8")[:2048].decode("utf-8", errors="ignore"),
         "request_id": _sanitize(request_id, secret)[:256] if request_id is not None else None,
-        "usage_received": bool(usage_raw),
+        "usage_received": usage_received,
     }, usage)
 
 

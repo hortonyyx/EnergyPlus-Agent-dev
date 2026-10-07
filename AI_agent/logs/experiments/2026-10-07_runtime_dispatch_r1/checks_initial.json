@@ -1,0 +1,123 @@
+{
+  "selection": "test_runtime*.py, test_role*.py, test_agent_runtime.py; not repository-wide",
+  "workers": 2,
+  "model_service_requests": 0,
+  "elapsed_seconds": 2461.99,
+  "counts": {
+    "tests": 610,
+    "passed": 558,
+    "failures": 52
+  },
+  "failure_classification": {
+    "registered_loop_hash_mismatch": 52
+  },
+  "failed_tests": [
+    "tests.test_runtime_parallel_delegation::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[4-3]",
+    "tests.test_runtime_stage2_integration::test_real_frozen_entry_builds_offline_and_completed_resume_does_not_write_again",
+    "tests.test_runtime_parallel_delegation::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[1-1]",
+    "tests.test_runtime_parallel_delegation::test_parallel_results_are_rechecked_against_saved_version_before_application",
+    "tests.test_runtime_parallel_delegation::test_duplicate_batch_identity_is_rejected_before_any_child_request",
+    "tests.test_runtime_parallel_delegation::test_parallel_batch_preserves_root_request_cap",
+    "tests.test_runtime_parallel_delegation::test_real_frozen_service_serializes_concurrent_views_without_mixing_results",
+    "tests.test_runtime_r3::test_half_near_deadline_and_late_tool_refusal_through_runtime",
+    "tests.test_runtime_r3::test_tool_preparation_uses_the_same_start_and_does_not_restart_clock",
+    "tests.test_runtime_r3::test_claude_receipt_identifies_registered_agent_without_starting_model",
+    "tests.test_runtime_r3::test_stops_deliver_complete_before_newer_partial[deadline]",
+    "tests.test_runtime_r3::test_stops_deliver_complete_before_newer_partial[normal]",
+    "tests.test_runtime_r3::test_stops_deliver_complete_before_newer_partial[model_limit]",
+    "tests.test_runtime_r3::test_only_partial_saved_is_delivered_as_incomplete",
+    "tests.test_runtime_r3::test_non_timeout_preserves_model_selection",
+    "tests.test_runtime_r3::test_external_coordinator_also_finalizes_saved_work",
+    "tests.test_runtime_r3::test_observer_service_uses_own_deadline_and_cannot_extend_parent[30-30]",
+    "tests.test_runtime_r3::test_observer_service_uses_own_deadline_and_cannot_extend_parent[300-100]",
+    "tests.test_runtime_delegation::test_stage3_real_format_failures_are_repaired_once_and_recorded[extra_closing_bracket]",
+    "tests.test_runtime_delegation::test_stage3_real_format_failures_are_repaired_once_and_recorded[interpretation_ids]",
+    "tests.test_runtime_delegation::test_stage3_real_format_failures_still_wrong_are_rejected_after_one_repair[extra_closing_bracket]",
+    "tests.test_runtime_delegation::test_stage3_real_format_failures_still_wrong_are_rejected_after_one_repair[interpretation_ids]",
+    "tests.test_runtime_delegation::test_format_repair_without_remaining_model_budget_records_request_but_does_not_send",
+    "tests.test_runtime_delegation::test_format_repair_tool_call_is_rejected_without_execution_or_third_request",
+    "tests.test_runtime_delegation::test_run_observer_updates_budget_revision_for_two_tools_in_one_response",
+    "tests.test_runtime_delegation::test_run_observer_updates_budget_revision_across_two_tool_rounds",
+    "tests.test_runtime_delegation::test_run_observer_recovers_from_known_bad_image_name_with_budget_update",
+    "tests.test_runtime_delegation::test_coordinator_applies_current_result_once_rejects_stale_and_logs_rejections",
+    "tests.test_runtime_coordinator_root_limits::test_child_model_may_answer_but_child_tool_cannot_exceed_root_tool_cap",
+    "tests.test_runtime_coordinator_root_limits::test_frozen_write_uses_root_deadline_and_restores_unknown_without_replay",
+    "tests.test_runtime_agent_registry::test_historical_frozen_agent_is_a_verified_registry_version",
+    "tests.test_runtime_agent_registry::test_verify_cli_and_runtime_manifest_record_current_agent_version",
+    "tests.test_runtime_a4r_money::test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_budget_exhausted]",
+    "tests.test_runtime_a4r_money::test_money_stop_delivers_latest_complete_instead_of_selected_partial[root_money_budget_exhausted]",
+    "tests.test_runtime_a4r_money::test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_cny_usage_unavailable]",
+    "tests.test_role_trial::test_real_profile_is_resolved_to_recoverable_independent_numeric_plan",
+    "tests.test_role_single_parity::test_three_single_cases_prepare_identical_shared_first_request_bytes",
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]",
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]",
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]",
+    "tests.test_role_end_to_end::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial",
+    "tests.test_role_end_to_end::test_resume_after_all_readers_preserves_reader_records",
+    "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]",
+    "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]",
+    "tests.test_runtime_frozen_tools::test_real_frozen_server_catalogs_roles_and_materials",
+    "tests.test_runtime_frozen_tools::test_real_mesh_input_adds_exact_frozen_mesh_catalog_variants",
+    "tests.test_runtime_frozen_tools::test_real_readonly_call_preserves_sent_and_original_image_metadata",
+    "tests.test_runtime_frozen_tools::test_disabled_capability_returns_known_block_before_execution",
+    "tests.test_runtime_frozen_tools::test_frozen_catalog_rejects_same_names_with_changed_description",
+    "tests.test_runtime_frozen_long_task::test_real_frozen_tools_keep_run99_state_across_75_steps",
+    "tests.test_runtime_frozen_long_task::test_historical_replay_exposes_only_legacy_claims_and_preserves_write_grants",
+    "tests.test_runtime_estimation::test_code_manifest_hashes_model_profile_data"
+  ],
+  "example_failure": "src.agent_runtime.agent_registry.AgentVersionMismatch: Agent version t1-20261007-d1i.1 file mismatch: {\"src/agent_runtime/loop.py\": \"889c5f41013283f2b4c4f0eb5bd5c4fb5ec9bfb3eebcb441a3249887f7bdc916\"}",
+  "long_recovery_checks": [
+    {
+      "id": "test_run99_fixture_recovers_exact_ordered_calls_results_and_image_bytes",
+      "seconds": 0.143,
+      "passed": true
+    },
+    {
+      "id": "test_simulated_backend_keeps_writes_in_copy_and_counts_each_once",
+      "seconds": 0.223,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_recovers_across_request_boundaries[before_request-<lambda>]",
+      "seconds": 165.628,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_recovers_across_request_boundaries[after_request-<lambda>]",
+      "seconds": 462.462,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_recovers_across_request_boundaries[after_response-<lambda>]",
+      "seconds": 351.982,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_recovers_write_interrupted_before_intent",
+      "seconds": 313.121,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_replays_durable_write_result_without_repeating_write",
+      "seconds": 324.639,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_unknown_write_stops_after_state_check_without_retry",
+      "seconds": 270.878,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_recovers_after_compaction_and_retrieves_exact_removed_image",
+      "seconds": 363.078,
+      "passed": true
+    },
+    {
+      "id": "test_long_run_budget_stops_before_sixty_first_model_call",
+      "seconds": 177.702,
+      "passed": true
+    }
+  ],
+  "initial_junit_sha256": "4c7453267de00f950ad4fda36f6876607b75333b26eb49a7b9fe49b1ecade0f5",
+  "note": "Initial scoped checks. Final changes to timing and refusal recovery are covered by the subsequent targeted run; the completed long-task checks are reused."
+}
