@@ -104,6 +104,48 @@ def _descends(session, candidate, ancestor):
     return False
 
 
+async def carry_room_uses(session, candidate, plans):
+    """Preserve the reader's type as an explicitly inferred, image-backed use.
+
+    The seed format cannot distinguish a printed use label from interpretation;
+    do not promote arbitrary evidence prose to an observed label. Existing use
+    evidence (including deliberate local revisions) is never overwritten.
+    """
+    source = session._source(candidate)
+    operations = []
+    references = []
+    for space in source["spaces"]:
+        if space.get("role_evidence") or space.get("role", "unknown") == "unknown":
+            continue
+        floor = space["floor_id"]
+        if floor not in plans:
+            raise ValueError(f"room use has no selected plan: {space['id']}")
+        task_id, artifact = plans[floor]
+        image = session.registry.records[task_id]["image"]
+        seed_id = space["id"].removeprefix(floor + ":") if len(plans) > 1 else space["id"]
+        seed = next((row for row in artifact["plan"].get("space_seeds", []) if row["id"] == seed_id), None)
+        if seed is None:
+            raise ValueError(f"room use cannot be traced to a reader seed: {space['id']}")
+        evidence = [row for row in artifact.get("evidence", []) if row.get("item") == "plan.space_seeds:" + seed_id]
+        refs = [f"image:{image}", f"reader:{task_id}/plan.space_seeds:{seed_id}", *seed.get("source_refs", [])]
+        refs.extend(json.dumps(row, ensure_ascii=False, sort_keys=True) for row in evidence)
+        reason = f"Plan reader assigned {space['role']} at seed {seed_id}; use inferred from {image}, not a verified printed use label."
+        operations.append({"op": "set_space_role", "space_id": space["id"], "role": space["role"],
+                           "basis": "inferred", "assumptions": [reason], "reason": reason,
+                           "source_refs": list(dict.fromkeys(refs))})
+        references.append({"space_id": space["id"], "task_id": task_id,
+                           "artifact_sha256": session.registry.records[task_id]["artifact"]["sha256"]})
+    if not operations:
+        return candidate
+    result = await session._once("room_uses:" + _hash({"candidate": candidate, "operations": operations}),
+        "revise_bim", {"candidate": candidate, "operations_json": json.dumps(operations, ensure_ascii=False)},
+        reference={"reader_room_uses": references})
+    meta = metadata(result)
+    if not meta.get("source_geometry_ready") or not meta.get("candidate"):
+        raise ValueError("Reader room-use evidence could not be saved; inspect the retained room_uses receipt")
+    return meta["candidate"]
+
+
 async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
     """Caller holds the write lock. Every mutation has a durable _once receipt."""
     plans, elevations, references = select_deliveries(session, task_ids)
@@ -138,7 +180,8 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
             "level_tolerance_m": LEVEL_TOLERANCE_M,
             "facades": [{"task_id": v["task_id"], "orientation": v["result"]["orientation"],
                 "matched": len(v["result"]["matches"]), "source_only": len(v["result"]["source_only"]),
-                "elevation_only": len(v["result"]["elevation_only"]), "conflicts": len(v["result"]["conflicts"])} for v in matches],
+                "elevation_only": len(v["result"]["elevation_only"]), "conflicts": len(v["result"]["conflicts"]),
+                "horizontal_fits": v["result"].get("horizontal_fits", [])} for v in matches],
             "height_write": write, "assembly_review": None if not review else {
                 key: review[key] for key in ("review_id", "status", "checked_floors", "changes", "blockers", "delivery_scope")
                 if key in review},
@@ -211,6 +254,9 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
     if review and review["status"] in {"needs_review", "blocked"}:
         return finish(candidate, review=review, status=("assembly_delivery_blocked"
             if review["status"] == "blocked" else "assembly_review_required"))
+    candidate = await carry_room_uses(session, candidate, plans)
+    state["candidate"] = candidate
+    save()
     matches = [session.match(task_id, candidate, height_bounds=True) for task_id in sorted(elevations)]
     for value in matches:
         issues.extend(_issues_from_match(value))

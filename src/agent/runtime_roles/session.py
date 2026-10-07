@@ -79,13 +79,28 @@ COORDINATOR_TASK_SCHEMA["properties"]["instructions"] = {"type": "string", "maxL
 # Internal task admission still reads older saved tasks without an origin. The
 # model-facing schema requires one for every new dispatch.
 COORDINATOR_ORDINARY_TOOLS = frozenset({"inputs", "view_image", "inspect_candidate", "check_openings",
-    "view_elevation_candidate", "revise_bim", "finish_bim"})
+    "view_elevation_candidate", "finish_bim"})
 LEVEL_REFERENCE_SCHEMA = schema({"task_id": {"type": "string"}, "elevation_id": {"type": "string"}},
                                 ("task_id", "elevation_id"))
 HEIGHT_SCHEMA = schema({"match_id": {"oneOf": [{"type": "string"},
     {"type": "array", "items": {"type": "string"}, "minItems": 1}]}}, ("match_id",))
 
 EXTRA_TOOLS = [
+    {"name": "edit_bim", "description":
+     "Correct a saved candidate with flat edits and a reason each: height(id,sill_m,head_m,image,bbox), "
+     "use(id,role,image,basis optional: inferred default or observed), "
+     "position(id,along_start_m,along_end_m,image), note(text). Heights are absolute Z; position is "
+     "an interval on the existing wall axis. Height edits form a separate batch and save located evidence. "
+     "Uses carry evidence; notes append without deleting older notes. Reader errors should go back to that reader.",
+     "inputSchema": schema({"candidate": {"type": "string"}, "edits": {"type": "array", "minItems": 1,
+         "maxItems": 100, "items": schema({
+             "action": {"enum": ["height", "use", "position", "note"]}, "id": {"type": "string"},
+             "reason": {"type": "string", "minLength": 1}, "image": {"type": "string"},
+             "bbox": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+             "sill_m": {"type": "number"}, "head_m": {"type": "number"}, "role": {"type": "string"},
+             "basis": {"enum": ["observed", "inferred"]}, "along_start_m": {"type": "number"},
+             "along_end_m": {"type": "number"}, "text": {"type": "string", "minLength": 1}},
+             ("action", "reason"))}}, ("candidate", "edits"))},
     {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently, plans first. Give floor/facade target and common origin. Optional instructions (400 characters) contain only building facts or specific rework questions; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
@@ -111,7 +126,7 @@ INTERNAL_TOOLS = [t for t in EXTRA_TOOLS if t["name"] in {
     "build_from_artifact", "match_elevation", "apply_elevation_heights"}]
 EXTRA_TOOLS = [t for t in EXTRA_TOOLS if t not in INTERNAL_TOOLS]
 EXTRA_TOOLS.insert(2, {"name": "assemble_from_readers",
-    "description": "Build floors, resolve cited elevation levels, assemble, match facades and write all safe heights in one resumable call. Omit task_ids to use each floor/facade's latest accepted delivery. Returns candidate, level citations, matches and located decisions; missing/conflicting levels retain explicit plan assumptions. Repeat after reader rework or a local candidate correction. level_overrides use absolute cited floor Z and ceiling_height=top Z-floor Z. Assembly changes require review_role_assembly before further writes.",
+    "description": "Build/assemble accepted floors with room-use evidence and one safe height batch. Omit task_ids for latest deliveries. Returns cited levels, matches, horizontal fits and located decisions; conflicting levels retain plan assumptions. Re-call after rework or edits; unchanged inputs reuse receipts. level_overrides cite absolute floor Z and ceiling_height=top Z-floor Z. Changed reader geometry requires review_role_assembly before further writes.",
     "inputSchema": schema({"task_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": True},
         "level_overrides": {"type": "array", "items": schema({
             "floor_id": {"type": "string"}, "z_floor": {"type": "number"},
@@ -150,7 +165,7 @@ class RoleSession:
         if name in self.schemas:
             if name == "review_role_assembly":
                 return "idempotent_write"
-            return "non_idempotent_write" if name in {"build_from_artifact", "apply_elevation_heights", "assemble_from_readers"} else "read_only"
+            return "non_idempotent_write" if name in {"build_from_artifact", "apply_elevation_heights", "assemble_from_readers", "edit_bim"} else "read_only"
         return self.frozen.repeatability(name)
 
     def snapshot_state(self):
@@ -205,6 +220,9 @@ class RoleSession:
                 arguments = {key: value for key, value in arguments.items() if key != "confirm"}
             arguments = normalize_stringified_parameters(arguments, self.schemas[name])
             jsonschema.validate(arguments, self.schemas[name])
+            if name == "edit_bim":
+                async with self.write_lock:
+                    return await self.edit_candidate(**arguments)
             if name == "delegate_readers":
                 value = await self.delegate_many(arguments["tasks"])
                 first = {}
@@ -237,7 +255,140 @@ class RoleSession:
                 return envelope(self.assembly.acknowledge(**arguments))
             return envelope(self.state())
         except (ValueError, KeyError, jsonschema.ValidationError) as error:
+            if name == "edit_bim":
+                detail = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
+                return envelope({"status": "rejected", "reason": " ".join(detail.split()) +
+                    "; edits: height(id,sill_m,head_m,image,bbox), use(id,role,image), "
+                    "position(id,along_start_m,along_end_m,image), note(text); each needs reason."}, error=True)
             return envelope({"status": "rejected", "reason": str(error)}, error=True)
+
+    async def edit_candidate(self, candidate, edits):
+        from .elevation import _number, _string, _bbox
+        from .lineage import guard_replaced_plans, metadata
+        from src.agent.roles import require_role
+        from scripts.tool_scripts.bim_agent_role_heights import build_role_height_batch_entry
+        guard_replaced_plans(self, candidate)
+        source = self._source(candidate)
+        proposal = json.loads((self.run_directory / candidate / "proposal.json").read_bytes())
+        spaces = {row["id"]: row for row in source["spaces"]}
+        openings = {row["id"]: row for row in source["openings"]}
+        operations, entries, types, seen = [], [], [], set()
+        notes = {field: list(proposal[field]) for field in ("assumptions", "unresolved")}
+        if any(row["action"] == "height" for row in edits) and any(row["action"] != "height" for row in edits):
+            raise ValueError("send height edits in a separate batch")
+        for row in edits:
+            action, reason = row["action"], _string(row["reason"], "reason")
+            fields = {"height": {"id", "sill_m", "head_m", "image", "bbox", "basis"},
+                      "use": {"id", "role", "image", "bbox", "basis"},
+                      "position": {"id", "along_start_m", "along_end_m", "image", "bbox"},
+                      "note": {"text"}}[action]
+            if set(row) - fields - {"action", "reason"}:
+                raise ValueError(f"{action} has fields for another operation")
+            if action == "note":
+                text = _string(row.get("text"), "text")
+                if text not in notes["unresolved"]:
+                    notes["unresolved"].append(text)
+                continue
+            identity = _string(row.get("id"), "id")
+            if (action, identity) in seen:
+                raise ValueError(f"duplicate {action} target {identity}")
+            seen.add((action, identity))
+            image = _string(row.get("image"), "image")
+            if image not in self.manifest["images"]:
+                raise ValueError("image must name an admitted original")
+            refs = [f"image:{image}", reason]
+            bbox = None
+            if "bbox" in row:
+                from .plan_review import box
+                bbox = _bbox(row["bbox"], "bbox")
+                box(bbox, self.manifest["images"][image]["size"])
+                refs.append(f"{image}: bbox {bbox}")
+            if action == "use":
+                if identity not in spaces:
+                    raise ValueError(f"unknown space {identity}")
+                role = require_role(_string(row.get("role"), "role"))
+                basis = "unknown" if role == "unknown" else row.get("basis", "inferred")
+                operations.append({"op": "set_space_role", "space_id": identity, "role": role,
+                    "basis": basis, "assumptions": [reason] if basis == "inferred" else [],
+                    "reason": reason, "source_refs": refs})
+                continue
+            opening = openings.get(identity)
+            if opening is None:
+                raise ValueError(f"unknown opening {identity}")
+            op = "update_window" if opening["kind"] == "window" else "update_opening"
+            if action == "height":
+                if bbox is None:
+                    raise ValueError("height needs an original-image bbox")
+                sill, head = _number(row.get("sill_m"), "sill_m"), _number(row.get("head_m"), "head_m")
+                if sill >= head:
+                    raise ValueError("height requires sill_m < head_m")
+                host = next(item for item in source["boundaries"] if item["id"] == opening["host_boundary_id"])
+                if sill < min(p[2] for p in host["vertices"]) or head > max(p[2] for p in host["vertices"]):
+                    raise ValueError("height must fit the existing host wall")
+                inferred = row.get("basis", "observed") == "inferred"
+                entries.append({"claim": {"candidate": candidate,
+                    "objects": [{"kind": "window" if opening["kind"] == "window" else "opening", "id": identity}],
+                    "basis": "inference" if inferred else "pixels", "reason": reason,
+                    "sources": [{"image": image, "box": bbox}],
+                    "values": {"height": {"type": "literal", "value": [sill, head], "unit": "m"}},
+                    "observation_mode": "candidate_review" if inferred else "direct",
+                    "unresolved": [reason] if inferred else []},
+                    "action": "apply", "reason": reason,
+                    "operations": [{"op": op, "id": identity,
+                        "changes": {"z": {"claim": "$claim", "value": "height"}}, "reason": reason}]})
+                types.append("assumption" if inferred else "pixels")
+            else:
+                start = _number(row.get("along_start_m"), "along_start_m")
+                end = _number(row.get("along_end_m"), "along_end_m")
+                if start >= end:
+                    raise ValueError("position requires along_start_m < along_end_m")
+                points = sorted({tuple(p[:2]) for p in opening["vertices"]})
+                if len(points) != 2 or (points[0][0] != points[1][0] and points[0][1] != points[1][1]):
+                    raise ValueError("position requires an existing straight axis-aligned opening")
+                axis = 0 if points[0][0] != points[1][0] else 1
+                if op == "update_window":
+                    changes = {"span": [start, end]}
+                else:
+                    original = next(item for item in proposal["geometry"]["openings"] if item["id"] == identity)
+                    p1, p2 = list(original["p1"]), list(original["p2"])
+                    p1[axis], p2[axis] = (start, end) if p1[axis] < p2[axis] else (end, start)
+                    changes = {"p1": p1, "p2": p2}
+                operations.append({"op": op, "id": identity, "changes": changes,
+                                   "reason": reason, "source_refs": refs})
+        if notes != {field: proposal[field] for field in notes}:
+            operations.append({"op": "set_notes", **notes})
+        if entries:
+            batch = build_role_height_batch_entry(entries, evidence_types=types)
+            if all(sorted({p[2] for p in openings[e["claim"]["objects"][0]["id"]]["vertices"]}) ==
+                   e["claim"]["values"]["height"]["value"] for e in entries):
+                batch["entry"]["action"] = "confirm"
+            name, args = "claim_transaction", {"candidate": candidate,
+                "entries_json": json.dumps([batch["entry"]], ensure_ascii=False)}
+        else:
+            if not operations:
+                return envelope({"status": "unchanged", "candidate": candidate, "source_geometry_ready": True})
+            # Reject the entire batch before a write if a role or geometry operation is invalid.
+            from src.agent.geometry.proposal_edits import apply_proposal_edits
+            apply_proposal_edits(proposal, operations)
+            name, args = "revise_bim", {"candidate": candidate, "operations_json": json.dumps(operations, ensure_ascii=False)}
+        identity = "edit:" + hashlib.sha256(json_bytes({"candidate": candidate, "edits": edits})).hexdigest()
+        receipt = self.store.directory / "role_operations" / (hashlib.sha256(identity.encode()).hexdigest() + ".json")
+        if not receipt.is_file():
+            self.assembly.guard()
+        # A known write can itself trigger assembly review. Recover its durable
+        # result before asking for that review; an unfinished receipt still
+        # refuses repetition in _once, and every new edit remains guarded.
+        result = await self._once(identity,
+                                 name, args, reference={"coordinator_edits": edits})
+        meta = metadata(result)
+        current = (meta.get("claim_application") or {}).get("candidate") or meta.get("candidate", candidate)
+        ready = meta.get("source_geometry_ready") or meta.get("status") == "completed"
+        if not ready:
+            raise ValueError(str(meta.get("error", meta.get("reason", "edit failed; inspect its saved receipt"))))
+        review = self.assembly.check(current)
+        return envelope({"status": "completed", "candidate": current, "source_geometry_ready": True,
+                         "edited": len(edits), "assembly_review": review,
+                         "receipt": meta.get("role_application")})
 
     def state(self):
         return {"readers": self.registry.state(), "max_concurrent_readers": self.max_concurrent_readers,
@@ -276,6 +427,9 @@ class RoleSession:
             task["previous_artifact"] = previous.get("artifact")
         parse_target(arguments["role_id"], arguments["target"])
         task["coordinate_contract"] = task_coordinates(arguments)
+        if task["role_id"] == "elevation_reader":
+            from .elevation import ELEVATION_COORDINATES
+            task["coordinate_contract"]["units"] = ELEVATION_COORDINATES
         return task
 
     def _with_plan_floors(self, tasks):
@@ -383,7 +537,9 @@ class RoleSession:
                 # The accepted review also covers warnings from trials made
                 # after the selected successful geometry receipt.
                 trial.inherited_topology_issues = validation.get("topology_issues", [])
-            tools = ReaderTools(scoped, role_id=task["role_id"], image_name=task["image"], trial=trial, target=task["target"])
+            from .elevation import ElevationReaderTools, ELEVATION_COORDINATES
+            tool_class = ElevationReaderTools if task["role_id"] == "elevation_reader" else ReaderTools
+            tools = tool_class(scoped, role_id=task["role_id"], image_name=task["image"], trial=trial, target=task["target"])
             catalog = await tools.list_tools()
             role = base_role.model_copy(update={"role_id": task["role_id"],
                 "read_only": False, "tool_whitelist": tuple(
@@ -396,7 +552,8 @@ class RoleSession:
             versions = make_versions(child, root=self.root, prompt=guide, tools=specs, parameters=parameters,
                                      route=route, code_paths=("src/agent/runtime_roles", "src/agent/runtime_tools.py"))
             content = [{"type": "text", "text": json.dumps({"task": task, "previous_artifact": previous,
-                       "coordinates": READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
+                       "coordinates": ELEVATION_COORDINATES if task["role_id"] == "elevation_reader"
+                       else READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
                        {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw_image).decode()}}]
             def validate(text):
                 submitted = tools.submission.read()
@@ -562,7 +719,7 @@ class RoleSession:
                 continue
             if call.tool_name == "delegate_readers":
                 raw = await self.call_tool(call.tool_name, call.full_arguments)
-            elif call.tool_name == "assemble_from_readers":
+            elif call.tool_name in {"assemble_from_readers", "edit_bim"}:
                 raw = await self.call_tool(call.tool_name, call.full_arguments)
                 if raw.get("isError"):
                     # Unacknowledged inner writes keep their original refusal.

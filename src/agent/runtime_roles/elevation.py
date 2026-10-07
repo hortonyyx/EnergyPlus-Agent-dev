@@ -12,12 +12,15 @@ It never edits a candidate or treats a count match as geometric evidence.
 from __future__ import annotations
 
 import hashlib
+import copy
 import json
 import math
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
+
+from .readers import ReaderTools
 
 
 SCHEMA_VERSION = "elevation_reader_v1"
@@ -35,6 +38,90 @@ _EVIDENCE_TYPES = {
     "assumption",
     "declared",
 }
+
+ELEVATION_COORDINATES = (
+    "x_px, calibration pixel_start/pixel_end and bboxes are original-image pixels. "
+    "Give distance_start_m/distance_end_m measured from the building's LEFT edge in "
+    "this image, increasing left to right, and facade_length_m from the overall "
+    "dimension chain. The two pixels locate those distances. The task fixes the facade; "
+    "the domain tool derives exterior viewing direction and world axis. "
+    "width_m and absolute value_m/sill_m/head_m use metres."
+)
+
+
+def elevation_submission_tool():
+    """Facade-only adapter; the shared plan submission module stays untouched."""
+    from .submission import ELEVATION_SCHEMA
+    schema = copy.deepcopy(ELEVATION_SCHEMA)
+    for name in ("orientation", "view_direction"):
+        schema["properties"].pop(name)
+        schema["required"].remove(name)
+    schema["properties"]["x_calibration"] = {
+        "type": "object", "additionalProperties": False,
+        "properties": {name: {"type": "number"} for name in
+                       ("pixel_start", "pixel_end", "distance_start_m", "distance_end_m", "facade_length_m")},
+        "required": ["pixel_start", "pixel_end", "distance_start_m", "distance_end_m", "facade_length_m"],
+    }
+    return {"name": "submit_elevation_reading", "description":
+        "Submit the assigned facade: two dimension-chain pixels, distances from the image-left building edge, and total facade length; "
+        "direction/axis come from task.target. Openings and boxes stay in image order; heights are absolute Z. "
+        "Counts, locations and the immutable submission are checked.", "inputSchema": schema}
+
+
+def expand_elevation_submission(arguments, target):
+    from .submission import parse_target
+    orientation, _ = parse_target("elevation_reader", target)
+    if orientation is None:
+        raise ValueError("an assigned facade target is required")
+    row = copy.deepcopy(_mapping(arguments, "arguments"))
+    calibration = _mapping(row.get("x_calibration"), "x_calibration")
+    if "world_start_m" in calibration:
+        # Retain the exact interpretation of old recorded tool calls/artifacts.
+        return row
+    import jsonschema
+    jsonschema.validate(row, elevation_submission_tool()["inputSchema"])
+    low = _number(calibration["distance_start_m"], "distance_start_m", minimum=0)
+    high = _number(calibration["distance_end_m"], "distance_end_m", minimum=0)
+    length = _number(calibration["facade_length_m"], "facade_length_m", minimum=0)
+    if not low < high <= length:
+        raise ValueError("calibration needs 0 <= distance_start_m < distance_end_m <= facade_length_m")
+    view = {"North": "South", "South": "North", "East": "West", "West": "East"}[orientation]
+    start, end = (low, high) if _expected_world_sign(orientation, view) > 0 else (length - low, length - high)
+    row.update(orientation=orientation, view_direction=view,
+               x_calibration={"pixel_start": calibration["pixel_start"], "pixel_end": calibration["pixel_end"],
+                              "world_start_m": start, "world_end_m": end,
+                              "world_axis": _world_axis(orientation)})
+    return row
+
+
+class ElevationReaderTools(ReaderTools):
+    """Expose a smaller facade contract, then use the existing durable validator."""
+
+    async def list_tools(self):
+        tools = await super().list_tools()
+        tools = [elevation_submission_tool() if tool["name"] == "submit_elevation_reading" else tool
+                 for tool in tools]
+        self._catalog = {tool["name"]: tool for tool in tools}
+        return tools
+
+    async def call_tool(self, name, arguments):
+        if name != "submit_elevation_reading":
+            return await super().call_tool(name, arguments)
+        from .parameters import normalize_stringified_parameters
+        from .session import envelope
+        import jsonschema
+        try:
+            arguments = normalize_stringified_parameters(arguments, elevation_submission_tool()["inputSchema"])
+            expanded = expand_elevation_submission(arguments, self.submission.target)
+            result = await super().call_tool(name, expanded)
+            if not result.get("isError"):
+                return result
+            reason = result["structuredContent"]["reason"].split(". Minimum correct example:", 1)[0]
+        except (ValueError, KeyError, TypeError, jsonschema.ValidationError) as error:
+            reason = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
+        from .guidance import COMPACT_ELEVATION_EXAMPLE
+        return envelope({"status": "rejected", "reason": reason,
+                         "example": COMPACT_ELEVATION_EXAMPLE}, error=True)
 
 
 def _canonical_hash(value: Any) -> str:
@@ -576,6 +663,41 @@ def _ordered_assignment(
     )
 
 
+def _horizontal_fit(elevation, source, *, position_tolerance_m, width_tolerance_m):
+    """Fit a complete, uniquely ordered group, never a selected subset.
+
+    Three points leave a residual check (two always fit perfectly). Widths stay
+    independent observations; neither a count match nor a fit can waive them.
+    These conservative limits cover the measured 2.4% drift in sm24 run7.
+    """
+    if len(elevation) != len(source) or len(elevation) < 3:
+        return None
+    x = [row["world_coordinate_m"] for row in elevation]
+    y = [row["world_coordinate_m"] for row in source]
+    residual_limit = min(0.10, position_tolerance_m)
+    if (max(x) - min(x) < 1.4 or max(y) - min(y) < 1.4
+            or any(abs(b - a) <= 2 * residual_limit for values in (x, y)
+                   for a, b in zip(values, values[1:]))):
+        return None
+    if any(abs(left["width_m"] - right["width_m"]) > width_tolerance_m
+           for left, right in zip(elevation, source, strict=True)):
+        return None
+    mean_x, mean_y = sum(x) / len(x), sum(y) / len(y)
+    scale = sum((a - mean_x) * (b - mean_y) for a, b in zip(x, y, strict=True)) / sum(
+        (a - mean_x) ** 2 for a in x)
+    offset = mean_y - scale * mean_x
+    residual = max(abs(scale * a + offset - b) for a, b in zip(x, y, strict=True))
+    if not (0.90 <= scale <= 1.10 and abs(offset) <= position_tolerance_m
+            and residual <= residual_limit):
+        return None
+    if any(abs(scale * left["calibrated_width_m"] - left["width_m"]) > width_tolerance_m
+           for left in elevation):
+        return None
+    return {"scale": scale, "offset_m": offset, "max_residual_m": residual,
+            "residual_tolerance_m": residual_limit, "opening_count": len(x),
+            "method": "complete_ordered_group_least_squares"}
+
+
 def match_elevation(
     source_bim: Mapping[str, Any],
     artifact: Mapping[str, Any],
@@ -631,6 +753,7 @@ def match_elevation(
     matches: list[dict[str, Any]] = []
     elevation_only: list[dict[str, Any]] = []
     source_only: list[dict[str, Any]] = []
+    horizontal_fits = []
     all_groups = sorted(set(by_group_elevation) | set(by_group_source))
     for floor_id, kind in all_groups:
         left = by_group_elevation[(floor_id, kind)]
@@ -641,6 +764,14 @@ def match_elevation(
             position_tolerance_m=position_tolerance_m,
             width_tolerance_m=width_tolerance_m,
         )
+        fit = None
+        if (not ambiguous and not only_left and not only_right
+                and any(abs(left[i]["world_coordinate_m"] - right[j]["world_coordinate_m"])
+                        > position_tolerance_m for i, j in pairs)):
+            fit = _horizontal_fit(left, right, position_tolerance_m=position_tolerance_m,
+                                  width_tolerance_m=width_tolerance_m)
+            if fit:
+                horizontal_fits.append({"floor_id": floor_id, "kind": kind, **fit})
         if ambiguous:
             conflicts.append(
                 {
@@ -654,7 +785,9 @@ def match_elevation(
         for left_index, right_index in pairs:
             observed = left[left_index]
             actual = right[right_index]
-            position_difference = observed["world_coordinate_m"] - actual["world_coordinate_m"]
+            aligned = (fit["scale"] * observed["world_coordinate_m"] + fit["offset_m"]
+                       if fit else observed["world_coordinate_m"])
+            position_difference = aligned - actual["world_coordinate_m"]
             width_difference = observed["width_m"] - actual["width_m"]
             match = {
                 "artifact_opening_id": observed["id"],
@@ -673,6 +806,9 @@ def match_elevation(
                 "bbox": observed["bbox"],
                 "ambiguous": ambiguous,
             }
+            if fit:
+                match.update(horizontal_fit=fit, aligned_world_coordinate_m=aligned,
+                             raw_position_difference_m=observed["world_coordinate_m"] - actual["world_coordinate_m"])
             safe = (
                 not ambiguous
                 and abs(position_difference) <= position_tolerance_m
@@ -740,6 +876,7 @@ def match_elevation(
         "source_only": source_only,
         "conflicts": conflicts,
         "counts": count_comparison,
+        "horizontal_fits": horizontal_fits,
         "can_apply": bool(matches),
         "stale": False,
     }

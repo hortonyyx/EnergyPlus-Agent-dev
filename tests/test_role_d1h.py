@@ -100,6 +100,8 @@ class LocalTools:
             return envelope(self.toolkit.build_plan(args["image"], args["plan_json"]))
         if name == "assemble_plan_bim":
             return envelope(self.toolkit.assemble_plans(args["floors_json"]))
+        if name == "revise_bim":
+            return envelope(self.toolkit.revise(args["candidate"], args["operations_json"]))
         raise AssertionError(name)
 
 
@@ -150,12 +152,15 @@ def test_repeated_assembly_and_one_floor_rework_reuse_unaffected_build(tmp_path)
             select_deliveries(session, ["f1", "f2"])
         changed = runner.run(session.call_tool("assemble_from_readers", {}))
         assert not changed["isError"], changed
-        assert changed["structuredContent"]["candidate"] == "candidate_05"
+        updated = session._source(changed["structuredContent"]["candidate"])
+        room = next(row for row in updated["spaces"] if row["id"] == "F2:room")
+        assert room["role"] == "office" and room["role_evidence"]["basis"] == "inferred"
         assert [n for n, _ in frozen.calls].count("build_plan_bim") == 3
         assert sum(json.loads(args["plan_json"])["floor_id"] == "F1" for name, args in frozen.calls
                    if name == "build_plan_bim") == 1
         assert runner.run(session.call_tool("assemble_from_readers", {}))["structuredContent"] == changed["structuredContent"]
-        assert len(list(run.glob("candidate_*/report.json"))) == 5
+        assert [n for n, _ in frozen.calls].count("revise_bim") == 1
+        assert len(list(run.glob("candidate_*/report.json"))) == len(frozen.calls)
 
 
 def test_vertical_conflict_is_excluded_before_safe_batch(tmp_path):
