@@ -32,6 +32,10 @@ _ALLOWED_MODELS = frozenset(
     }
 )
 _ENV_ALLOWLIST = ("PATH", "HOME", "LANG", "LC_ALL")
+# Windows: the CLI cannot open network connections without SystemRoot and finds
+# the logged-in subscription under USERPROFILE; the rest are its standard paths.
+_WINDOWS_ENV_ALLOWLIST = ("SYSTEMROOT", "WINDIR", "USERPROFILE", "APPDATA",
+                          "LOCALAPPDATA", "TEMP", "TMP", "PATHEXT", "COMSPEC")
 _MCP_CONFIG = '{"mcpServers":{}}'
 _SECRET_VALUE = re.compile(
     r"(?i)(\b(?:[A-Za-z0-9_]*?(?:api[_ -]?key|authorization|"
@@ -80,7 +84,8 @@ def _prompt_summary(system_prompt: str, human: str, guidance: str) -> dict[str, 
 
 def _isolated_env() -> dict[str, str]:
     """Pass only OAuth's home and locale/path plumbing to the subscription CLI."""
-    return {key: os.environ[key] for key in _ENV_ALLOWLIST if key in os.environ}
+    keys = _ENV_ALLOWLIST + (_WINDOWS_ENV_ALLOWLIST if os.name == "nt" else ())
+    return {key: os.environ[key] for key in keys if key in os.environ}
 
 
 def _model_name(section: dict[str, Any]) -> str:

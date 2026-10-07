@@ -22,9 +22,11 @@ BASELINE = "e07764e6"
 CONFIGS = ROOT / "AI_agent/logs/experiments/2026-10-06_role_division_d1/configs"
 T1 = importlib.import_module("AI_agent.logs.experiments.2026-10-03_tool_package_t1.glm_tests")
 
+# run_bim_agent.py also hosts the Claude Code route, which changes for reasons unrelated to
+# the first request (N1 display, 10-07 Windows env and worker option); the request bytes
+# themselves are pinned by test_three_single_cases_prepare_identical_shared_first_request_bytes.
 FIRST_REQUEST_SOURCES = (
     "src/agent/runtime_entry.py",
-    "scripts/tool_scripts/run_bim_agent.py",
     "scripts/tool_scripts/bim_agent_guidance.py",
     "src/agent/bim_inputs.py",
     "src/agent/runtime_tools.py",
@@ -39,10 +41,6 @@ def canonical(value) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True,
                       separators=(",", ":")).encode()
 
-
-# N1 (10-07) moved the delivery-report HTML out of run_bim_agent.py; the shared first
-# request itself stays byte-identical (test_three_single_cases_prepare_identical_shared_first_request_bytes).
-SOURCE_BASELINES = {"scripts/tool_scripts/run_bim_agent.py": "25d9d6b9"}
 
 
 def git_bytes(path: str, commit: str = BASELINE) -> bytes:
@@ -70,8 +68,7 @@ def test_single_configuration_loading_and_argv_match_the_dispatch_baseline():
 
 def test_first_request_sources_are_byte_identical_to_the_dispatch_baseline():
     for relative in FIRST_REQUEST_SOURCES:
-        assert (ROOT / relative).read_bytes() == git_bytes(
-            relative, SOURCE_BASELINES.get(relative, BASELINE)), relative
+        assert (ROOT / relative).read_bytes() == git_bytes(relative), relative
 
 
 def test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes(tmp_path):

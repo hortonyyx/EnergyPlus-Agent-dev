@@ -246,14 +246,37 @@ def run_guide(run: Path) -> str:
     return build_guide(images=kind, mesh=mesh, **tool_capabilities(manifest))
 
 
+MAIN_MODELS = ("claude-sonnet-5", "claude-sonnet-5-5")
+WORKER_MODELS = {"haiku": "claude-haiku-4-5-20251001"}
+WORKER_AGENT = "worker"
+# Built-in Claude Code subagents run on other models; a worker run allows only WORKER_AGENT.
+BUILTIN_AGENTS = ("claude", "claude-code-guide", "Explore", "general-purpose", "Plan", "statusline-setup")
+
+
+def worker_agents(run: Path, workers: str) -> str:
+    """Claude Code --agents JSON: one worker with this run's tools and guide."""
+    prompt = ("You are a worker delegated by the coordinating model of this BIM run. Do only the "
+              "delegated sub-task with the BIM tools, keep to its floor, facade or objects, and do not "
+              "call finish_bim. Report results the coordinator can verify: draft or candidate ids, "
+              "values with their original-pixel evidence, and anything unresolved.\n\n" + run_guide(run))
+    return json.dumps({WORKER_AGENT: {
+        "description": ("Claude Haiku 4.5 worker with this run's BIM tools and inputs. Give it one "
+                        "self-contained sub-task, e.g. read one floor plan and build it, or read one "
+                        "elevation's opening positions and heights. Several calls in one message run "
+                        "in parallel. It cannot delegate further."),
+        "prompt": prompt, "model": WORKER_MODELS[workers]}}, ensure_ascii=False)
+
+
 def subscription(run: Path, prompt: str, *, model: str, name: str,
                  readonly: bool = False, timeout: int = 900,
                  log_run: Path | None = None, receipt_context: dict | None = None,
-                 effort: str | None = None, exploratory_opus: bool = False):
+                 effort: str | None = None, exploratory_opus: bool = False,
+                 main_model: str | None = None, workers: str | None = None):
     """Only the logged-in subscription; isolated cwd/env, explicit MCP tools.
 
     ``run`` is the MCP-visible workspace. ``log_run`` can retain a child
     observation's request, stream and receipt alongside its parent run.
+    ``main_model`` and ``workers`` apply to the Claude main Sonnet call only.
     """
     if effort not in {None, "low", "medium"}:
         raise ValueError("effort must be low or medium when supplied")
@@ -269,12 +292,22 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         raise ValueError("unsupported subscription provider")
     if provider == "glm" and exploratory_opus:
         raise ValueError("GLM routing cannot be combined with exploratory Opus")
+    if (main_model or workers) and (provider != "claude" or model != "sonnet" or readonly):
+        raise ValueError("main_model and workers apply only to the Claude main Sonnet invocation")
+    if main_model is not None and main_model not in MAIN_MODELS:
+        raise ValueError("main_model must be one of " + ", ".join(MAIN_MODELS))
+    if workers is not None and workers not in WORKER_MODELS:
+        raise ValueError("workers must be one of " + ", ".join(WORKER_MODELS))
     from src.agent.execution.subscription_json import _isolated_env, _redact_secrets, subscription_model_id
-    routed_model = "glm-5.3-flash" if provider == "glm" else subscription_model_id(model)
+    routed_model = "glm-5.3-flash" if provider == "glm" else (main_model or subscription_model_id(model))
     launcher = ([sys.executable, str(ROOT / "scripts/glm_code.py")] if os.name == "nt"
                 else [str(ROOT / "scripts/glm_code.sh")]) if provider == "glm" else ["claude"]
-    command = [*launcher, "-p", "--model", routed_model, "--tools", "",
-               "--allowedTools", "mcp__bim__*", "--permission-mode", "dontAsk",
+    command = [*launcher, "-p", "--model", routed_model,
+               "--tools", "Agent" if workers else "",
+               "--allowedTools", f"mcp__bim__*,Agent({WORKER_AGENT})" if workers else "mcp__bim__*",
+               *(["--disallowedTools", ",".join(f"Agent({agent})" for agent in BUILTIN_AGENTS),
+                  "--agents", worker_agents(run, workers)] if workers else []),
+               "--permission-mode", "dontAsk",
                "--strict-mcp-config", "--setting-sources", "",
                "--settings", '{"disableAllHooks":true}',
                "--no-session-persistence", "--output-format", "stream-json", "--verbose",
@@ -310,6 +343,8 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
               "readonly": readonly, "timeout_seconds": timeout,
               "exploratory_opus": exploratory_opus,
               "effort": (effort or "medium") if not readonly or model == "sonnet" else None}
+    if workers:
+        record.update(workers=workers, worker_model=WORKER_MODELS[workers])
     if receipt_context:
         record.update(receipt_context)
     dump(log_run / f"{name}_request.json", {**record, "prompt": prompt,
@@ -317,7 +352,9 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     stdout_path, stderr_path = log_run / f"{name}_stream.jsonl", log_run / f"{name}_stderr.log"
     with tempfile.TemporaryDirectory(prefix="bim-agent-cwd-") as cwd:
         with stdout_path.open("x") as stdout, stderr_path.open("x") as stderr:
-            env = {**_isolated_env(), "ENABLE_TOOL_SEARCH": "false"}
+            # No CLI side calls (title/summary Haiku, updater) inside a measured run.
+            env = {**_isolated_env(), "ENABLE_TOOL_SEARCH": "false",
+                   "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"}
             if provider == "glm":
                 env.update(GLM_MODEL=routed_model, GLM_SMALL_MODEL=routed_model)
             deadline = manifest.get("deadline_epoch")
@@ -350,8 +387,9 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         record["routing_error"] = "GLM invocation did not confirm the requested image model"
     if provider == "claude" and model == "sonnet":
         used_models = record.get("result", {}).get("modelUsage", {})
-        if record.get("actual_model") != routed_model or any(used != routed_model for used in used_models):
-            record["routing_error"] = "Claude invocation did not stay on the pinned Sonnet 5 model"
+        allowed = {routed_model} | ({WORKER_MODELS[workers]} if workers else set())
+        if record.get("actual_model") != routed_model or any(used not in allowed for used in used_models):
+            record["routing_error"] = f"Claude invocation did not stay on {' and '.join(sorted(allowed))}"
     dump(log_run / f"{name}_receipt.json", record)
     return record
 
@@ -2817,6 +2855,9 @@ def run_experiment(args):
         raise ValueError("continuation_rounds must be an integer from 0 to 4")
     if provider == "glm" and getattr(args, "exploratory_opus", False):
         raise ValueError("--provider glm cannot be combined with --exploratory-opus")
+    main_model, workers = getattr(args, "main_model", None), getattr(args, "workers", None)
+    if (main_model or workers) and (provider != "claude" or getattr(args, "exploratory_opus", False)):
+        raise ValueError("--main-model and --workers apply only to the Claude Sonnet route")
     from src.agent.bim_inputs import prepare_bim_inputs
     run = args.out.resolve()
     seed_path = getattr(args, "resume_candidate", None)
@@ -2872,13 +2913,15 @@ def run_experiment(args):
                           model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
                           name="agent", timeout=args.timeout,
                           effort=getattr(args, "effort", None),
-                          exploratory_opus=getattr(args, "exploratory_opus", False))
+                          exploratory_opus=getattr(args, "exploratory_opus", False),
+                          main_model=main_model, workers=workers)
     from scripts.tool_scripts.bim_agent_continuation import run_continuations, response_completed as completed
     def invoke_followup(prompt, *, name, timeout):
         return subscription(run, prompt,
             model="opus" if getattr(args, "exploratory_opus", False) else "sonnet",
             name=name, timeout=timeout, effort=getattr(args, "effort", None),
             exploratory_opus=getattr(args, "exploratory_opus", False),
+            main_model=main_model, workers=workers,
             receipt_context={"role": "main_agent_continuation", "continuation_turn": name})
     records, continuation_status = run_continuations(Toolkit(run), record,
         max_rounds=continuation_rounds, invoke=invoke_followup, compact=delivery_tool_reply)
@@ -2970,6 +3013,10 @@ def main():
                      help="Explicit task-authorized exploratory Opus subscription run; default remains Sonnet")
     run.add_argument("--effort", choices=("low", "medium"), default="medium",
                      help="Sonnet reasoning effort for this run; local Haiku configuration is unchanged")
+    run.add_argument("--main-model", choices=MAIN_MODELS,
+                     help="Claude main model; default stays claude-sonnet-5")
+    run.add_argument("--workers", choices=tuple(WORKER_MODELS),
+                     help="Let the Claude main model delegate sub-tasks to one worker subagent on this model")
     recovery = run.add_mutually_exclusive_group()
     recovery.add_argument("--resume-candidate",type=Path,
                           help="Recover from a saved proposal directory, not an independent cold start")

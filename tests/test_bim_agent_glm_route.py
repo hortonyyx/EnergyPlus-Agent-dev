@@ -80,3 +80,44 @@ def test_claude_recovery_pins_version_and_detects_usage_drift(tmp_path, monkeypa
     assert receipt["requested_role"] == "sonnet" and receipt["requested_model"] == "claude-sonnet-5"
     assert bool(receipt.get("routing_error")) == (used != "claude-sonnet-5")
     assert len(calls) == 1
+    command = calls[0]
+    assert command[command.index("--tools") + 1] == ""
+    assert command[command.index("--allowedTools") + 1] == "mcp__bim__*"
+    assert "--agents" not in command and "--disallowedTools" not in command
+
+
+@pytest.mark.parametrize("used", [("claude-sonnet-5-5", "claude-haiku-4-5-20251001"),
+                                  ("claude-sonnet-5-5", "claude-sonnet-5")])
+def test_sonnet55_main_with_haiku_worker(tmp_path, monkeypatch, used):
+    run = _run_with_one_image(tmp_path)
+    calls = []
+
+    class OfflineProcess:
+        returncode = 0
+
+        def __init__(self, command, **kwargs):
+            calls.append((command, kwargs))
+            kwargs["stdout"].write(json.dumps({"type": "system", "subtype": "init",
+                                               "model": "claude-sonnet-5-5"}) + "\n")
+            kwargs["stdout"].write(json.dumps({"type": "result", "is_error": False,
+                                               "modelUsage": {name: {} for name in used}}) + "\n")
+
+        def communicate(self, prompt, timeout):
+            pass
+
+    monkeypatch.setattr(runner.subprocess, "Popen", OfflineProcess)
+    receipt = runner.subscription(run, "offline only", model="sonnet", name="agent",
+                                  main_model="claude-sonnet-5-5", workers="haiku")
+    command, kwargs = calls[0]
+    assert command[command.index("--model") + 1] == "claude-sonnet-5-5"
+    assert command[command.index("--tools") + 1] == "Agent"
+    denied = command[command.index("--disallowedTools") + 1].split(",")
+    assert "Agent(general-purpose)" in denied and "Agent(worker)" not in denied
+    worker = json.loads(command[command.index("--agents") + 1])["worker"]
+    assert worker["model"] == "claude-haiku-4-5-20251001"
+    assert worker["prompt"].endswith(runner.run_guide(run))
+    assert kwargs["env"]["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "1"
+    assert receipt["worker_model"] == "claude-haiku-4-5-20251001"
+    assert bool(receipt.get("routing_error")) == ("claude-sonnet-5" in used)
+    with pytest.raises(ValueError, match="main_model must be"):
+        runner.subscription(run, "unused", model="sonnet", name="x", main_model="claude-opus-5-5")
