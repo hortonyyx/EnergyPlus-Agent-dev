@@ -106,11 +106,18 @@ def test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_l
         tools = Tools(ready=False)
         trial = PlanTrial(tools, image_name="plan.png")
         first = await trial.run(plan())
-        assert first["source_geometry_ready"] is False and trial.baseline() == (None, None)
+        assert first["source_geometry_ready"] is False
+        assert trial.baseline() == (plan(), first["plan_sha256"])
+        with pytest.raises(ValueError):
+            trial.verified_plan(first["plan_sha256"])
         second_plan = plan()
         second_plan["basis"] += " revised calibration"
         second = await trial.run(second_plan)
-        assert second["base_plan_sha256"] is None
+        assert second["base_plan_sha256"] == first["plan_sha256"]
+        fixed_draft = await trial.run(operations=[operation(p2=[10, 41])])
+        assert fixed_draft["base_plan_sha256"] == second["plan_sha256"]
+        assert fixed_draft["status"] == "failed"
+        assert trial.baseline()[1] == fixed_draft["plan_sha256"]
         tools.ready = True
         third_plan = plan()
         third_plan["basis"] += " final calibration"
@@ -124,8 +131,6 @@ def test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_l
         assert repaired["base_plan_sha256"] == good["plan_sha256"]
         assert repaired["changes"][0]["before"]["p2"] == [10, 40]
         assert repaired["plan_revision"]["unchanged_ids"]["partitions"] == ["P1"]
-        with pytest.raises(ValueError, match="operations"):
-            await trial.run(trial.load_plan(repaired))
     asyncio.run(scenario())
 
 
@@ -168,8 +173,6 @@ def test_cross_task_operations_only_touch_named_targets_and_continue_from_new_ba
         good = await prior.run(plan())
         current = PlanTrial(Tools(), image_name="plan.png")
         current.inherit_reference(prior, good["plan_sha256"], ["plan.openings:W1"])
-        with pytest.raises(ValueError, match="operations"):
-            await current.run(plan())
         with pytest.raises(ValueError, match="outside the coordinator"):
             await current.run(operations=[{**operation(), "collection": "partitions", "id": "P1",
                                           "changes": {"points": [[61, 10], [61, 110]]}}])

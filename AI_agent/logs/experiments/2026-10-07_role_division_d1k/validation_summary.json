@@ -1,0 +1,125 @@
+{
+  "agent_version": "t1-20261007-d1k.1",
+  "registered_files": 84,
+  "pytest_sessions": [
+    {
+      "file": "role_tests.xml",
+      "name": "pytest",
+      "errors": "0",
+      "failures": "2",
+      "skipped": "0",
+      "tests": "197",
+      "time": "420.112",
+      "timestamp": "2026-10-07T12:04:24.900109+08:00",
+      "hostname": "DESKTOP-Horton"
+    },
+    {
+      "file": "role_recheck.xml",
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "9",
+      "time": "26.604",
+      "timestamp": "2026-10-07T12:12:38.026741+08:00",
+      "hostname": "DESKTOP-Horton"
+    }
+  ],
+  "final_unique_cases": 197,
+  "final_status_counts": {
+    "passed": 197,
+    "failed": 0,
+    "skipped": 0
+  },
+  "required_case_results": {
+    "tests.test_role_single_parity::test_single_configuration_loading_and_argv_match_the_dispatch_baseline": {
+      "status": "passed",
+      "seconds": 1.294
+    },
+    "tests.test_role_single_parity::test_first_request_sources_are_byte_identical_to_the_dispatch_baseline": {
+      "status": "passed",
+      "seconds": 0.614
+    },
+    "tests.test_role_single_parity::test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes": {
+      "status": "passed",
+      "seconds": 0.445
+    },
+    "tests.test_role_single_parity::test_three_single_cases_prepare_identical_shared_first_request_bytes": {
+      "status": "passed",
+      "seconds": 23.532
+    },
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]": {
+      "status": "passed",
+      "seconds": 58.164
+    },
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]": {
+      "status": "passed",
+      "seconds": 35.24
+    },
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]": {
+      "status": "passed",
+      "seconds": 54.994
+    },
+    "tests.test_role_end_to_end::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial": {
+      "status": "passed",
+      "seconds": 52.42
+    },
+    "tests.test_role_end_to_end::test_resume_after_all_readers_preserves_reader_records": {
+      "status": "passed",
+      "seconds": 43.528
+    },
+    "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]": {
+      "status": "passed",
+      "seconds": 51.962
+    },
+    "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]": {
+      "status": "passed",
+      "seconds": 60.959
+    }
+  },
+  "all_edited_text_lf": true,
+  "cr_files": [],
+  "changed_tracked_files": [
+    "src/agent/runtime_roles/guidance.py",
+    "src/agent/runtime_roles/plan_format.py",
+    "src/agent/runtime_roles/readers.py",
+    "src/agent/runtime_roles/submission.py",
+    "src/agent/runtime_roles/trial.py",
+    "src/agent_runtime/agent_versions.json",
+    "tests/role_d1_fixtures.py",
+    "tests/test_role_plan_revisions.py",
+    "tests/test_role_review_regressions.py",
+    "tests/test_role_submission.py",
+    "tests/test_role_trial.py"
+  ],
+  "untracked_files": [
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/README.md",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/after_metrics.json",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/before_metrics.json",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/dispatch_baseline_replay.json",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/replay.py",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/replay_results.json",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/role_recheck.xml",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/role_tests.xml",
+    "AI_agent/logs/experiments/2026-10-07_role_division_d1k/validation_summary.json",
+    "tests/test_role_plan_submission_short.py"
+  ],
+  "remaining_temporary_directories": [
+    {
+      "path": "AI_agent/archive/local_backup/d1k/pytest",
+      "files": 9,
+      "bytes": 8211
+    },
+    {
+      "path": "AI_agent/archive/local_backup/d1k/replay",
+      "files": 93,
+      "bytes": 6600523
+    }
+  ],
+  "cleanup": "PowerShell recursive deletion of own repair_run5 directory was rejected by automatic review: blocked by policy; no bypass attempted.",
+  "model_requests": 0,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "git_writes": 0,
+  "full_repository_test_suite": false
+}

@@ -12,9 +12,8 @@ from src.agent.runtime_roles.plan_review import (
 )
 from src.agent.runtime_roles.readers import ReaderTools
 from src.agent.runtime_roles.submission import ReaderSubmission
-from src.agent.runtime_roles.trial import PlanTrial, canonical_plan_sha256
+from src.agent.runtime_roles.trial import canonical_plan_sha256
 from tests.test_role_readers import Frozen, artifact, plan
-from tests.test_role_trial import Tools
 
 
 WALL_REFERENCE = {
@@ -75,7 +74,7 @@ def test_plan_submission_preserves_exact_trial_with_additional_outer_unresolved(
         resumed.read()
 
 
-def test_failed_or_rewritten_trial_and_evidence_gaps_cannot_submit():
+def test_failed_or_rewritten_trial_cannot_submit():
     trial = PassedTrial()
     submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
     with pytest.raises(ValueError, match="successful.*Minimum correct example"):
@@ -84,8 +83,6 @@ def test_failed_or_rewritten_trial_and_evidence_gaps_cannot_submit():
     with pytest.raises(ValueError, match="successful.*Minimum correct example"):
         submission.submit(arguments(trial))
     trial.receipt["status"] = "passed"
-    with pytest.raises(ValueError, match="plan.space_seeds:left.*Minimum correct example"):
-        submission.submit({**arguments(trial), "evidence": artifact()["evidence"][:-1]})
     with pytest.raises(ValueError, match="Additional properties.*Minimum correct example"):
         submission.submit({**arguments(trial), "plan": trial.plan})
     assert submission.read() is None
@@ -161,20 +158,3 @@ def test_local_operations_preserve_untouched_rows_and_reject_unpointed_edits():
     assert audit["unchanged_ids"]["partitions"] == ["P1"]
     with pytest.raises(ValueError, match="outside the coordinator"):
         revise_operations(old, [operation(p2=[10, 41])], allowed_targets=["plan.partitions:P1"])
-
-
-def test_trial_rework_remembers_baseline_and_records_actual_changes():
-    async def scenario():
-        tools = Tools()
-        trial = PlanTrial(tools, image_name="plan.png")
-        first = await trial.run(plan())
-        modified = plan()
-        modified["openings"][0]["p2"][1] += 1
-        with pytest.raises(ValueError, match="operations"):
-            await trial.run(modified)
-        assert len(tools.calls) == 1
-        changed = await trial.run(operations=[operation(p2=[10, 41])])
-        assert len(tools.calls) == 2 and changed["changes"][0]["item"] == "plan.openings:W1"
-        assert changed["base_plan_sha256"] == first["plan_sha256"]
-        assert trial.load_plan(changed) == modified
-    asyncio.run(scenario())

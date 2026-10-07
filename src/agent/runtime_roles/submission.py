@@ -25,7 +25,7 @@ STRINGS = {"type": "array", "items": TEXT}
 EVIDENCE_TYPE = {"enum": ["annotation", "pixels", "annotation_and_pixels", "visual_estimate", "assumption", "declared"]}
 WALL_LINE_SCHEMA = obj({"convention": {"enum": ["centerline", "inner_face", "outer_face", "explicit_face"]},
                         "dimension_basis": TEXT, "basis": TEXT, "bbox": BOX},
-                       ("convention", "dimension_basis", "basis", "bbox"))
+                       ("convention", "basis"))
 WALL_REFERENCE_EXAMPLE = {
     "perimeter": {"convention": "outer_face", "dimension_basis": "outer_face",
                   "basis": "overall dimensions end on the observed outer faces", "bbox": [0, 0, 10, 10]},
@@ -44,20 +44,21 @@ OPERATION_SCHEMA = {"oneOf": [
     }.items()
 ]}
 PLAN_SCHEMA = obj({
+    "trial_id": {"type": "string", "pattern": "^(latest|trial_[0-9]{3,})$"},
     "plan_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-    "evidence": {"type": "array", "items": obj({"item": TEXT, "source": TEXT, "bbox": BOX, "basis": TEXT},
-                                                   ("item", "source", "bbox"))},
+    "notes": {"type": "array", "items": obj({"item": TEXT,
+        "kind": {"enum": ["assumption", "inferred", "unresolved"]}, "basis": TEXT}, ("item", "kind", "basis"))},
     "unresolved": STRINGS,
     "north_arrow": obj({"bbox": BOX, "basis": TEXT,
         "world_north_toward": {"enum": ["image_top", "image_bottom"]},
         "world_east_toward": {"enum": ["image_left", "image_right"]}},
         ("bbox", "basis", "world_north_toward", "world_east_toward")),
-    "wall_reference": obj({"perimeter": WALL_LINE_SCHEMA, "partitions": WALL_LINE_SCHEMA},
-                          ("perimeter", "partitions")),
+    "wall_reference": obj({"perimeter": WALL_LINE_SCHEMA, "partitions": WALL_LINE_SCHEMA}),
     "topology_decisions": {"type": "array", "items": obj({"issue_id": TEXT,
         "decision": {"enum": ["retain_opening", "continuous_space"]}, "basis": TEXT, "bbox": BOX},
         ("issue_id", "decision", "basis", "bbox"))},
-}, ("plan_sha256", "evidence", "unresolved", "wall_reference", "topology_decisions"))
+})
+PLAN_SCHEMA["anyOf"] = [{"required": ["trial_id"]}, {"required": ["plan_sha256"]}]
 
 ELEVATION_SCHEMA = obj({
     "orientation": {"enum": ["North", "South", "East", "West"]},
@@ -81,7 +82,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "Submit the successful trial by plan_sha256 with located evidence and separate wall references. No topology warnings: topology_decisions=[]. Mirrored axes require north_arrow with the original arrow bbox, basis and both reported directions. Normal orientation needs no extra field.",
+        "description": "Submit the latest passed trial: trial_id=latest (or its ID/hash). Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this facade's readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute elevations value_m/sill_z_m/head_z_m use metres. The tool checks fields, counts, ordering and evidence; fix pointed errors and resubmit.",
@@ -135,6 +136,28 @@ def _bytes(value):
     return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False) + "\n").encode()
 
 
+def _wall_defaults(plan, evidence, overrides, *, image_size=None):
+    by_item = {row["item"]: row for row in evidence}
+    result = {}
+    for category, convention in (("perimeter", "outer_face"), ("partitions", "centerline")):
+        # A default is a modeling convention, never a claim about a drawn label.
+        result[category] = {
+            "convention": convention, "dimension_basis": convention,
+            "basis": f"Default modeling convention: {convention}; automatic box locates declared wall pixels, "
+                     "not a measured dimension chain. Check plan.basis and assumptions for calibration.",
+            "bbox": by_item["plan.footprint_pixels"]["bbox"],
+        }
+        if category == "partitions" and plan.get("partitions"):
+            from .readers import pixel_box
+            result[category]["bbox"] = pixel_box(
+                [point for row in plan["partitions"] for point in row["points"]], image_size=image_size)
+        if category in overrides:
+            override = overrides[category]
+            result[category].update(override)
+            result[category]["dimension_basis"] = override.get("dimension_basis", override["convention"])
+    return validate_wall_reference(result, image_size=image_size)
+
+
 class ReaderSubmission:
     def __init__(self, *, role_id, image_name, directory=None, trial=None, target=None):
         self.role_id, self.image_name, self.trial, self.target = role_id, image_name, trial, target
@@ -177,52 +200,81 @@ class ReaderSubmission:
                 raise ValueError(str(error)) from error
             from .guidance import ELEVATION_EXAMPLE
             example = ELEVATION_EXAMPLE if self.role_id == "elevation_reader" else {
-                "plan_sha256": "copy the passed trial plan_sha256",
-                "evidence": [{"item": "plan.x_anchors", "source": self.image_name,
-                              "bbox": [0, 0, 10, 10], "basis": "printed dimension chain"}],
-                "unresolved": [], "wall_reference": WALL_REFERENCE_EXAMPLE,
-                "topology_decisions": []}
-            suffix = (" Cover every declared object in evidence and every trial topology issue in topology_decisions."
+                "trial_id": "latest"}
+            suffix = (" Include a decision for each reported topology issue; mirrored axes need north_arrow."
                       if self.role_id == "plan_reader" else "")
             raise ValueError(f"{SUBMISSION_TOOLS[self.role_id]['name']}: {error}. Minimum correct example: "
                              + json.dumps(example, separators=(",", ":")) + suffix) from error
 
     def _submit(self, arguments):
-        from .readers import validate_plan_artifact
+        from .readers import automatic_plan_evidence, validate_plan_artifact
         from .elevation import validate_elevation_artifact
         from .guidance import ELEVATION_EXAMPLE
 
         tool = SUBMISSION_TOOLS[self.role_id]
+        # Old recorded calls may still supply located evidence. Keep and validate
+        # it, but do not advertise redundant handwriting in the new tool schema.
+        arguments = dict(arguments)
+        legacy_evidence = arguments.pop("evidence", None) if self.role_id == "plan_reader" else None
         try:
             jsonschema.validate(arguments, tool["inputSchema"])
         except jsonschema.ValidationError as error:
             path = ".".join(str(part) for part in error.absolute_path) or "arguments"
             example = ELEVATION_EXAMPLE if self.role_id == "elevation_reader" else {
-                "plan_sha256": "copy the successful trial hash", "evidence": [], "unresolved": [],
-                "wall_reference": WALL_REFERENCE_EXAMPLE,
-                "topology_decisions": []}
+                "trial_id": "latest"}
             raise ValueError(f"{tool['name']}.{path}: {error.message}. Minimum correct example: "
                              + json.dumps(example, separators=(",", ":"))) from error
         if self.role_id == "plan_reader":
             from .coordinates import validate_north_arrow
-            plan, validation = self.trial.verified_plan(arguments["plan_sha256"])
+            passed = [(index, row) for index, row in enumerate(self.trial.receipts, 1)
+                      if row.get("status") == "passed" and row.get("source_geometry_ready") is not False]
+            if not passed:
+                raise ValueError("submission requires a successful isolated trial in this task")
+            index, latest = passed[-1]
+            latest_id = latest.get("trial_id", f"trial_{index:03d}")
+            if arguments.get("trial_id", "latest") not in {"latest", latest_id}:
+                raise ValueError(f"submit the latest successful trial {latest_id}")
+            digest = arguments.get("plan_sha256", latest["plan_sha256"])
+            if digest != latest["plan_sha256"]:
+                raise ValueError(f"submit the latest successful trial {latest_id} or its plan_sha256")
+            plan, validation = self.trial.verified_plan(digest)
             if self.target_identity is not None and plan.get("floor_id") != self.target_identity:
                 raise ValueError(f"plan.floor_id {plan.get('floor_id')!r} differs from the task floor "
                                  f"{self.target_identity!r}; submit a trial made after this task started")
-            artifact = validate_plan_artifact({"plan": plan, "evidence": arguments["evidence"],
+            numeric = self.trial.numeric_plan(validation)
+            generated = automatic_plan_evidence(numeric, image_name=self.image_name, image_size=self.image_size)
+            evidence = generated
+            if legacy_evidence is not None:
+                if not isinstance(legacy_evidence, list):
+                    raise ValueError("legacy evidence must be a list")
+                supplied = {row.get("item") for row in legacy_evidence if isinstance(row, dict)}
+                evidence = [*legacy_evidence, *(row for row in generated if row["item"] not in supplied)]
+            artifact = validate_plan_artifact({"plan": plan, "evidence": evidence,
                                                "unresolved": plan["unresolved"]}, image_name=self.image_name)
+            for note in arguments.get("notes", []):
+                located = [row for row in artifact["evidence"] if row["item"] == note["item"]]
+                if not located:
+                    raise ValueError(f"notes.item is not a declared plan object: {note['item']}")
+                for row in located:
+                    row["basis"] = row.get("basis", "") + f" [{note['kind']}] {note['basis']}"
             # The delivery never edits the plan, including assumptions/unresolved.
             artifact["plan"] = plan
-            artifact["unresolved"] = list(dict.fromkeys([*plan["unresolved"], *arguments["unresolved"]]))
+            artifact["unresolved"] = list(dict.fromkeys([*plan["unresolved"], *arguments.get("unresolved", []),
+                *(f"{note['item']}: {note['basis']}" for note in arguments.get("notes", []) if note["kind"] == "unresolved")]))
             issues = list({row["issue_id"]: row for row in [*self.trial.inherited_topology_issues,
                            *topology_issues(self.trial.receipts)]}.values())
             validation = {**validation, "validation_passed": True,
-                "wall_reference": validate_wall_reference(arguments["wall_reference"], image_size=self.image_size),
-                "opening_hosts": opening_hosts(self.trial.numeric_plan(validation)),
+                "wall_reference": _wall_defaults(numeric, generated, arguments.get("wall_reference", {}),
+                                                  image_size=self.image_size),
+                "evidence_origin": {"method": "verified_trial_pixels", "plan_sha256": digest,
+                    "numeric_plan_sha256": validation.get("compiled_numeric_plan_sha256"),
+                    "legacy_evidence_items": [row["item"] for row in legacy_evidence or []]},
+                "notes": arguments.get("notes", []),
+                "opening_hosts": opening_hosts(numeric),
                 "topology_issues": issues,
-                "topology_decisions": validate_topology(issues, arguments["topology_decisions"],
-                                                       self.trial.numeric_plan(validation), image_size=self.image_size)}
-            north_arrow = validate_north_arrow(self.trial.numeric_plan(validation), arguments.get("north_arrow"),
+                "topology_decisions": validate_topology(issues, arguments.get("topology_decisions", []),
+                                                       numeric, image_size=self.image_size)}
+            north_arrow = validate_north_arrow(numeric, arguments.get("north_arrow"),
                                                image_size=self.image_size)
             if north_arrow is not None:
                 validation["north_arrow"] = north_arrow

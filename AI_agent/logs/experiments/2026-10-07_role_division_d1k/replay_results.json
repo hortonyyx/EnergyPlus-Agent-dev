@@ -1,0 +1,922 @@
+{
+  "model_requests": 0,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "scope": "Saved trial integrity + deterministic compile + real submission validation; two real isolated tool repairs, no new model reading.",
+  "submissions": [
+    {
+      "run": "sm24_run3",
+      "event": "event-000508",
+      "task": "plan_F1",
+      "old_status": "rejected",
+      "new_status": "rejected",
+      "old_characters": 10517,
+      "new_characters": 2211,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "Left chain intermediate label read as 2330: 540+1500+2330+1200+1740+1500+1220+1500+3080+4800+540 = 19950 vs 20000 total; subtotals 4080/2940/4940/8080 not fully reconciled",
+          "Right chain intermediate labels 740/1540/5700 and subtotals 4080/1940/5940 not fully reconciled with 20000; 1600 verified as the east double-door width",
+          "W1 and W4 read as continuous 4800 mm window bands; no intermediate mullion cyan detected between their jamb pixels",
+          "Ceiling height 3.0 m and opening heights (doors 2.1 m, windows 0.9-2.1 m) assumed - no elevation drawing supplied",
+          "North arrow orientation: coordinator-assigned mapping plan y = image y puts world +y toward image bottom; no separate north arrow label was found to contradict or confirm this",
+          "Some very faint single-line strokes near furniture in officeB/meetingR judged as furniture/cabinet outlines, not dividers; line-weight ambiguity remains at x 505-590 y 315-340",
+          "Pixel-to-world calibration per coordinator instruction (10000 mm over x 247-612, 20000 mm over y 150-878); not independently verified against a scale bar"
+        ],
+        "topology_decisions": [
+          {
+            "basis": "No ink divider found inside the corridor seed area x 401-608 y 296-878; wall-B and wall-C1/C2 end at wall-G/wall-F/wall-I junctions; all openings preserved at their observed jambs",
+            "bbox": [
+              401,
+              296,
+              612,
+              878
+            ],
+            "decision": "continuous_space",
+            "issue_id": "corridor_continuity_T_shaped_strip"
+          },
+          {
+            "basis": "Open wall band between meetingL and meetingL-side alcove x 401-460 y 752-878 is continuous floor between wall-B end, wall-I and bottom exterior wall; no door drawn",
+            "bbox": [
+              401,
+              752,
+              460,
+              878
+            ],
+            "decision": "continuous_space",
+            "issue_id": "wall-I_gap_anticlockwise_connection"
+          },
+          {
+            "basis": "Double cyan swing arcs with jambs x 408-450 in wall-A double-line band; passage is D4, wall-A line pair continues both sides",
+            "bbox": [
+              400,
+              285,
+              460,
+              310
+            ],
+            "decision": "retain_opening",
+            "issue_id": "wall-A_double_door_gap_D4"
+          },
+          {
+            "basis": "Cyan swing arc between jambs y 613-671 in east exterior wall double line; exterior double door kept on footprint line",
+            "bbox": [
+              604,
+              605,
+              622,
+              680
+            ],
+            "decision": "retain_opening",
+            "issue_id": "east_wall_double_door_D2"
+          }
+        ]
+      },
+      "old_reason": null,
+      "new_reason": "submit_plan_reading: 本稿没有需要决定的警告，这一项传空列表：topology_decisions=[]. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+      "explicit_checks_status": "rejected"
+    },
+    {
+      "run": "sm24_run3",
+      "event": "event-000519",
+      "task": "plan_F1",
+      "old_status": "accepted",
+      "new_status": "rejected",
+      "old_characters": 9450,
+      "new_characters": 1118,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "Left chain intermediate label read as 2330: 540+1500+2330+1200+1740+1500+1220+1500+3080+4800+540 = 19950 vs 20000 total; subtotals 4080/2940/4940/8080 not fully reconciled",
+          "Right chain intermediate labels 740/1540/5700 and subtotals 4080/1940/5940 not fully reconciled with 20000; 1600 verified as the east double-door width",
+          "W1 and W4 read as continuous 4800 mm window bands; no intermediate mullion cyan detected between their jamb pixels",
+          "Ceiling height 3.0 m and opening heights (doors 2.1 m, windows 0.9-2.1 m) assumed - no elevation drawing supplied",
+          "North arrow orientation: coordinator-assigned mapping plan y = image y puts world +y toward image bottom; no separate north arrow label was found to contradict or confirm this",
+          "Some very faint single-line strokes near furniture in officeB/meetingR judged as furniture/cabinet outlines, not dividers; line-weight ambiguity remains at x 505-590 y 315-340",
+          "Pixel-to-world calibration per coordinator instruction (10000 mm over x 247-612, 20000 mm over y 150-878); not independently verified against a scale bar"
+        ]
+      },
+      "old_reason": null,
+      "new_reason": "submit_plan_reading: Mirrored calibration: locate the original north arrow with north_arrow.bbox, explain its basis and confirm world_north_toward/world_east_toward; coordinator instructions are not orientation evidence. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+      "explicit_checks_status": "rejected"
+    },
+    {
+      "run": "sm24_run3",
+      "event": "event-000664",
+      "task": "plan_F1_r2",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 10356,
+      "new_characters": 697,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "North arrow orientation corrected this revision (plan_F1_r2): North/South/East/West elevations show north toward the plan image top; y_anchors flipped to [[878,0],[150,20]] so D1/W1 sit on the North facade (world y=20) and D3/W10/W11 on the South facade (world y=0); x anchors and all pixel geometry unchanged",
+          "Pixel-to-world calibration (10000 mm over x 247-612, 20000 mm over y 150-878) was supplied/derived from dimension chains and not independently verified against a scale bar",
+          "Ceiling height 3.0 m and opening heights (doors 2.1 m, windows 0.9-2.1 m) remain assumed in this rework; opening z values were outside the rework_targets and unchanged"
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 42,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm24_run5",
+      "event": "event-000805",
+      "task": "plan_f1",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 9786,
+      "new_characters": 459,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "No north arrow found on the drawing; per task instructions the top (entrance) edge is treated as South and y increases toward it from the lower-left origin (0,0 at lower-left outer corner); any arrow elsewhere would conflict with this",
+          "Room uses inferred from furniture only; no text labels legible on plan",
+          "Ceiling height and all opening heights assumed (doors 0-2.1 m, windows 0.9-2.4 m); no height data on plan"
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 44,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm24_run6",
+      "event": "event-000603",
+      "task": "plan_f1_v1",
+      "old_status": "rejected",
+      "new_status": "accepted",
+      "old_characters": 9028,
+      "new_characters": 1039,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "East-side vertical chain segment labels (740/1540/1600) only partly legible at this resolution; element positions on the east wall were taken from the drawn marks rather than fully reconciled labels.",
+          "Segmented bottom chain 540/1500/2520/900/2520/1500/540 sums to 10020 vs the annotated 10000 overall; a small annotation inconsistency.",
+          "The gap in the corridor east wall line between y=585 and y=697 px has no drawn door leaf; treated as an open passage, so the corridor and the lobby area holding east door D3 and door D10 are one continuous circulation space with seed corridor_lobby.",
+          "Ceiling height 3.6 m, door heights 2.1 m and window sill/head 0.9/2.4 m are assumed; the plan carries no height annotations.",
+          "Room names are not annotated on the drawing; roles were assigned from furniture (desks, conference table, cabinet runs).",
+          "Opening widths converted from pixels differ slightly from nominal chain labels (e.g. D1 1.58 m vs 1600, D3 1.54 m vs 1600); positions match the chains."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "rejected",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 41,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm24_run6",
+      "event": "event-000614",
+      "task": "plan_f1_v1",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 8751,
+      "new_characters": 1039,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "East-side vertical chain segment labels (740/1540/1600) only partly legible at this resolution; element positions on the east wall were taken from the drawn marks rather than fully reconciled labels.",
+          "Segmented bottom chain 540/1500/2520/900/2520/1500/540 sums to 10020 vs the annotated 10000 overall; a small annotation inconsistency.",
+          "The gap in the corridor east wall line between y=585 and y=697 px has no drawn door leaf; treated as an open passage, so the corridor and the lobby area holding east door D3 and door D10 are one continuous circulation space with seed corridor_lobby.",
+          "Ceiling height 3.6 m, door heights 2.1 m and window sill/head 0.9/2.4 m are assumed; the plan carries no height annotations.",
+          "Room names are not annotated on the drawing; roles were assigned from furniture (desks, conference table, cabinet runs).",
+          "Opening widths converted from pixels differ slightly from nominal chain labels (e.g. D1 1.58 m vs 1600, D3 1.54 m vs 1600); positions match the chains."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 41,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm24_run7",
+      "event": "event-000617",
+      "task": "plan_f1",
+      "old_status": "rejected",
+      "new_status": "accepted",
+      "old_characters": 9185,
+      "new_characters": 803,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "The task's left chain 540+1500+2380+1200+1740+1500+1220+1500+3080+4880+540 sums to 20080 mm and the right chain ...+1540+3120+4880+540 sums to 21320 mm; both exceed the stated 20000 mm overall. Drawn pixels match the left segment pattern exactly (slightly compressed to 20000). On the right, the measured south end is wall 1540 + exterior door 1600 + wall ~5080 + 540; the stated 3120/4880 tail could not be reconciled with the drawn wall.",
+          "Whether the long 4800/4880 cyan bands (top wall, left conference wall, right meeting-room wall) are punched windows or full-height glazing is not determinable from this plan alone; sill 0.9 / head 2.4 m assumed.",
+          "Opening heights and ceiling height are assumed (3.0 m ceiling, doors 2.1 m); no elevation was supplied."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 42,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm24_run7",
+      "event": "event-000635",
+      "task": "plan_f1",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 9163,
+      "new_characters": 803,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "The task's left chain 540+1500+2380+1200+1740+1500+1220+1500+3080+4880+540 sums to 20080 mm and the right chain ...+1540+3120+4880+540 sums to 21320 mm; both exceed the stated 20000 mm overall. Drawn pixels match the left segment pattern exactly (slightly compressed to 20000). On the right, the measured south end is wall 1540 + exterior door 1600 + wall ~5080 + 540; the stated 3120/4880 tail could not be reconciled with the drawn wall.",
+          "Whether the long 4800/4880 cyan bands (top wall, left conference wall, right meeting-room wall) are punched windows or full-height glazing is not determinable from this plan alone; sill 0.9 / head 2.4 m assumed.",
+          "Opening heights and ceiling height are assumed (3.0 m ceiling, doors 2.1 m); no elevation was supplied."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 42,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm21_run1",
+      "event": "event-000906",
+      "task": "plan_f2",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 6873,
+      "new_characters": 814,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "Task text says central corridor ~1200 clear, but the drawn corridor walls (y603-614 and y788-799) give ~1886 mm clear; the chains' '1200' segments measure the west/east window height (drawn cyan y645-757). Drawn geometry retained.",
+          "North window W-N2 drawn at px 1300-1633 (~9444-13053 mm) is ~120 mm offset from the top chain (9330-12930 mm); drawn position kept.",
+          "Side chains label corridor-wall piers as 340 (right) / 400 (left) while the drawn line pairs are ~120 mm thick; wall reference planes taken from the drawn line-pair centerlines.",
+          "Door swing directions are drawn but leaf state is unknown; 2.1 m door height and 0.9-2.7 m window band assumed (no elevation supplied); ceiling 3.0 m assumed; z_floor set to 0 for F2 as no slab elevation data was supplied."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 30,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm21_run1",
+      "event": "event-000982",
+      "task": "plan_f1",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 6610,
+      "new_characters": 675,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "Task instructions say corridor ~1200 clear, but the left chain 3000+250+1500+250+3000 and the drawn 120 walls (centerlines 3000/5000) give a ~1880 clear corridor; drawn geometry followed",
+          "No north arrow symbol found on the sheet; north assumed to image top per coordinate contract (axis_orientation: east=image_right, north=image_top)",
+          "Right facade vertical chain (2940|340|1200|340|2940) sums to 7760 and does not chain cleanly to 8000; east window placed 3400-4600 from its drawn mark (1200 wide, 340 piers off the corridor-wall inner faces)",
+          "Door/window head and sill heights assumed (2100 / 900-2700); no elevation in scope"
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 31,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm25_run1",
+      "event": "event-000975",
+      "task": "plan_f2",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 12883,
+      "new_characters": 1584,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "North arrow: NO arrow is drawn anywhere on this sheet. North assumed toward image top, matching the trial's reported axis orientation; this remains an assumption, not a drawn fact.",
+          "Room names/numbers: none are drawn; all 15 spaces are unlabeled. Roles (office/conference/corridor) were assigned from furniture only.",
+          "The flagged line y=1251 (x481-1376) is retained as the inner-face line of the 240 mm south exterior wall (outer face y=1268 with cyan windows between), not an interior divider.",
+          "Dimension-string mapping: all read dimension chains are recorded in the drawing text; the right-side fine chain (900,720,900,1480,900,720,900,1100,900,740) could not be tied segment-by-segment to individual east windows; east windows were placed from the drawn cyan marks.",
+          "The ribbon glazing also continues westward across office-5's south wall (x750-929, interior glazing); only the exterior part (W_ribbon) is modelled as a window.",
+          "Footprint vs floor below: no comparative annotation (cantilever/setback note, outline of lower floor) is present on this sheet; no difference to F1 can be established from this image.",
+          "z_floor=4.0 m, ceiling 3.0 m, door z 4-6.1 m and window z 4.9-6.4 m are assumed; the plan sheet carries no level or opening-height annotations.",
+          "W_mgr sits between chains 4100 and 300 on the north facade (window ~810/300 annotation set); its small width (~0.8 m) is as drawn.",
+          "No stairs, lifts, risers or entrance marks are drawn on this floor; F2 circulation to other storeys is not represented on the sheet."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 65,
+      "scoring_answer_unchanged": true
+    },
+    {
+      "run": "sm25_run1",
+      "event": "event-001100",
+      "task": "plan_f1",
+      "old_status": "accepted",
+      "new_status": "accepted",
+      "old_characters": 13868,
+      "new_characters": 1264,
+      "reference_only_characters": 22,
+      "new_arguments": {
+        "trial_id": "latest",
+        "unresolved": [
+          "No north arrow is drawn on the sheet; north assumed toward image top (world +y = image top), matching the coordinate contract. If site north differs, the plan needs rotation.",
+          "No room name/number labels on the drawing; room roles (meeting/office/conference/corridor) assigned from furniture evidence (workstations, meeting and conference tables).",
+          "Ceiling height 3.0 m assumed (not annotated); door height 2.1 m and window sill 0.9 m / head 2.1 m assumed (no elevations on sheet).",
+          "Door leaf widths not annotated except the west entry (800) and east double entry (1600); other single leaves measure ~800 mm and the conference double leaves ~1600 mm at the drawing scale.",
+          "Exterior wall 240 mm annotated five times (meeting block west/south, middle block north, south wall, office column north-east); interior partitions drawn ~120 mm; conference divider drawn 720 mm per bottom chain.",
+          "The entry corridor, main north-south corridor, south corridor and east lobby form one connected circulation space (no separator drawn at any bend or at the band north wall gap x1252-1426).",
+          "Scale 21.63 mm/px established from the overall 25000 x 20000 chains (outer faces); all internal chains add up to their overall totals."
+        ]
+      },
+      "old_reason": null,
+      "new_reason": null,
+      "explicit_checks_status": "accepted",
+      "plan_unchanged": true,
+      "unresolved_preserved": true,
+      "coverage_complete": true,
+      "evidence_count": 75,
+      "scoring_answer_unchanged": true
+    }
+  ],
+  "trial_products": [
+    {
+      "run": "sm24_run3",
+      "task": "plan_F1",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "passed",
+      "plan_sha256": "c799f7e4ecc92b142816c0bfb115efa168bdd354ebe92ce40dd19d04dcf6d7b4",
+      "deterministic_compile": "passed",
+      "rooms": 8
+    },
+    {
+      "run": "sm24_run3",
+      "task": "plan_F1",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "passed",
+      "plan_sha256": "f8a524411105319768f19b5ae0fa81d7074397c58290c8b9eb694d5eafe8307c",
+      "deterministic_compile": "passed",
+      "rooms": 8
+    },
+    {
+      "run": "sm24_run3",
+      "task": "plan_F1_r2",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "passed",
+      "plan_sha256": "43d7597af4287f9db4ec273ca69d2a12dfcaca5bb217891949ed295e48b3aad4",
+      "deterministic_compile": "passed",
+      "rooms": 8
+    },
+    {
+      "run": "sm24_run5",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "16ad8ce15edc3844eb1a1d58020f52dc1954ea1bda26c56077147e2e4652e04b",
+      "deterministic_compile": "not_resolvable"
+    },
+    {
+      "run": "sm24_run5",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "failed",
+      "plan_sha256": "3729ea37670392555a19c3bb63e5818a99b34a9afd5672d02ee1c1efafa2389f",
+      "deterministic_compile": "failed",
+      "reason": "space seeds conference and hall_office occupy the same space"
+    },
+    {
+      "run": "sm24_run5",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_003.json",
+      "old_status": "passed",
+      "plan_sha256": "856c575758def9f15c0dc998d435d7ad7103cc9ee1ff173de11f4c197adbdde4",
+      "deterministic_compile": "passed",
+      "rooms": 8
+    },
+    {
+      "run": "sm24_run6",
+      "task": "plan_f1_v1",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "798d65047923c073ef69fb7df38e9b998c1a555645d8d0ebd66e2031be41e10c",
+      "deterministic_compile": "failed",
+      "reason": "polygonize produced dangles: [{'partition_ids': ['w_corr_east_s'], 'pixel_points': [[462.0, 752.0], [462.0, 753.0]]}, {'partition_ids': ['w_lobby_s'], 'pixel_points': [[459.0, 697.0], [462.0, 697.0]]}, {'partition_ids': ['w_office_mr_s'], 'pixel_points': [[459.0, 585.0], [460.0, 585.0]]}, {'partition_ids': ['w_office_ur'], 'pixel_points': [[459.0, 365.0], [460.0, 365.0]]}, {'partition_ids': ['w_corr_end'], 'pixel_points': [[401.0, 752.0], [462.0, 752.0]]}, {'partition_ids': ['w_corr_east_s'], 'pixel_points': [[462.0, 697.0], [462.0, 752.0]]}, {'partition_ids': ['w_lobby_s'], 'pixel_points': [[462.0, 697.0], [613.0, 697.0]]}, {'partition_ids': ['w_meeting_n'], 'pixel_points': [[400.0, 585.0], [401.0, 585.0]]}, {'partition_ids': ['w_office_ul'], 'pixel_points': [[400.0, 405.0], [401.0, 405.0]]}]; nearest disconnected endpoints: [{'partition_id': 'w_office_ul', 'endpoint_pixel': [401.0, 405.0], 'nearest_line': 'w_corr_west', 'distance_pixels': 1.0, 'nearest_point_pixel': [400.0, 405.0]}, {'partition_id': 'w_meeting_n', 'endpoint_pixel': [401.0, 585.0], 'nearest_line': 'w_corr_west', 'distance_pixels': 1.0, 'nearest_point_pixel': [400.0, 585.0]}, {'partition_id': 'w_office_ur', 'endpoint_pixel': [459.0, 365.0], 'nearest_line': 'w_corr_east_n', 'distance_pixels': 1.0, 'nearest_point_pixel': [460.0, 365.0]}, {'partition_id': 'w_office_mr_s', 'endpoint_pixel': [459.0, 585.0], 'nearest_line': 'w_corr_east_n', 'distance_pixels': 1.0, 'nearest_point_pixel': [460.0, 585.0]}, {'partition_id': 'w_lobby_s', 'endpoint_pixel': [459.0, 697.0], 'nearest_line': 'w_corr_east_s', 'distance_pixels': 3.0, 'nearest_point_pixel': [462.0, 697.0]}, {'partition_id': 'w_corr_end', 'endpoint_pixel': [401.0, 752.0], 'nearest_line': 'w_corr_west', 'distance_pixels': 1.0, 'nearest_point_pixel': [400.0, 752.0]}, {'partition_id': 'w_corr_east_s', 'endpoint_pixel': [462.0, 753.0], 'nearest_line': 'w_corr_end', 'distance_pixels': 1.0, 'nearest_point_pixel': [462.0, 752.0]}]; coordinates unchanged; no automatic snapping"
+    },
+    {
+      "run": "sm24_run6",
+      "task": "plan_f1_v1",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "failed",
+      "plan_sha256": "9d0d37b9d009c681148493a632324a835be76baf3c2123669c7d60aa6f698775",
+      "deterministic_compile": "failed",
+      "reason": "space seeds corridor and lobby occupy the same space"
+    },
+    {
+      "run": "sm24_run6",
+      "task": "plan_f1_v1",
+      "receipt": "trial_receipts/trial_003.json",
+      "old_status": "failed",
+      "plan_sha256": "0025c985abb28c4e5dc7f5857ade9b88676730f21ba2613bd571e4a508a17dbd",
+      "deterministic_compile": "failed",
+      "reason": "opening D1 at pixels [267.0, 157.0] -> [325.0, 157.0] requires one exterior or two interior full-boundary hosts; found []"
+    },
+    {
+      "run": "sm24_run6",
+      "task": "plan_f1_v1",
+      "receipt": "trial_receipts/trial_004.json",
+      "old_status": "passed",
+      "plan_sha256": "09735f56810a48f5703a62edb46c0a5c181deaf06d7ff49b0e464043695f422f",
+      "deterministic_compile": "passed",
+      "rooms": 8
+    },
+    {
+      "run": "sm24_run7",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "f02d6efbc3db357769c6608bd59efef54fc73a7f1047af673654018c4942efef",
+      "deterministic_compile": "failed",
+      "reason": "space seeds s-cor and s-lob occupy the same space"
+    },
+    {
+      "run": "sm24_run7",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "passed",
+      "plan_sha256": "0c2ed30ec2c7f80b44270a8ca21c347ab84b6a495474810dc200766aa9971d73",
+      "deterministic_compile": "passed",
+      "rooms": 8
+    },
+    {
+      "run": "sm21_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "a59557bc2fa3cb224883aeedffa79a956c34ff6f463fd3185fc2c740b3064b87",
+      "deterministic_compile": "not_resolvable"
+    },
+    {
+      "run": "sm21_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "passed",
+      "plan_sha256": "d685ecb2feaae663a647827c61357f03b130db909dc2c179a2c07b75dbf58d0d",
+      "deterministic_compile": "passed",
+      "rooms": 7
+    },
+    {
+      "run": "sm21_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "e6f374ab6a0cf8ac9a7636d3f89a7c2428d0b23023d04a0564a3b35d02e86258",
+      "deterministic_compile": "failed",
+      "reason": "polygonize produced dangles: [{'partition_ids': ['CW-S'], 'pixel_points': [[1353.0, 810.0], [1795.0, 810.0]]}, {'partition_ids': ['CW-N'], 'pixel_points': [[1353.0, 624.0], [1795.0, 624.0]]}, {'partition_ids': ['P2-S'], 'pixel_points': [[1353.0, 810.0], [1353.0, 1065.0]]}, {'partition_ids': ['P2-N'], 'pixel_points': [[1353.0, 369.0], [1353.0, 624.0]]}, {'partition_ids': ['P1-S'], 'pixel_points': [[890.0, 810.0], [890.0, 1065.0]]}, {'partition_ids': ['P1-N'], 'pixel_points': [[890.0, 369.0], [890.0, 624.0]]}, {'partition_ids': ['CW-S'], 'pixel_points': [[448.0, 810.0], [890.0, 810.0]]}, {'partition_ids': ['CW-N'], 'pixel_points': [[448.0, 624.0], [890.0, 624.0]]}]; nearest disconnected endpoints: [{'partition_id': 'CW-N', 'endpoint_pixel': [448.0, 624.0], 'nearest_line': 'footprint[3]', 'distance_pixels': 22.0, 'nearest_point_pixel': [426.0, 624.0]}, {'partition_id': 'CW-N', 'endpoint_pixel': [1795.0, 624.0], 'nearest_line': 'footprint[1]', 'distance_pixels': 22.0, 'nearest_point_pixel': [1817.0, 624.0]}, {'partition_id': 'CW-S', 'endpoint_pixel': [448.0, 810.0], 'nearest_line': 'footprint[3]', 'distance_pixels': 22.0, 'nearest_point_pixel': [426.0, 810.0]}, {'partition_id': 'CW-S', 'endpoint_pixel': [1795.0, 810.0], 'nearest_line': 'footprint[1]', 'distance_pixels': 22.0, 'nearest_point_pixel': [1817.0, 810.0]}, {'partition_id': 'P1-N', 'endpoint_pixel': [890.0, 369.0], 'nearest_line': 'footprint[2]', 'distance_pixels': 22.0, 'nearest_point_pixel': [890.0, 347.0]}, {'partition_id': 'P1-S', 'endpoint_pixel': [890.0, 1065.0], 'nearest_line': 'footprint[0]', 'distance_pixels': 22.0, 'nearest_point_pixel': [890.0, 1087.0]}, {'partition_id': 'P2-N', 'endpoint_pixel': [1353.0, 369.0], 'nearest_line': 'footprint[2]', 'distance_pixels': 22.0, 'nearest_point_pixel': [1353.0, 347.0]}, {'partition_id': 'P2-S', 'endpoint_pixel': [1353.0, 1065.0], 'nearest_line': 'footprint[0]', 'distance_pixels': 22.0, 'nearest_point_pixel': [1353.0, 1087.0]}]; coordinates unchanged; no automatic snapping"
+    },
+    {
+      "run": "sm21_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "failed",
+      "plan_sha256": "e1dc23a7961ed05e447e35ff94e03699ae8ae742adcc741b647d7bf7d535f4ad",
+      "deterministic_compile": "failed",
+      "reason": "opening D-W1 at pixels [437.0, 786.0] -> [437.0, 648.0] requires one exterior or two interior full-boundary hosts; found []"
+    },
+    {
+      "run": "sm21_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_003.json",
+      "old_status": "passed",
+      "plan_sha256": "5dc225dc003d11f8f42b845009709cf06af4241e6dbf4c743f1741912950e18d",
+      "deterministic_compile": "passed",
+      "rooms": 7
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "c058c9f7526052b09e0571af2d6930b785717ee0729c0db6957cc4d4980ba491",
+      "deterministic_compile": "not_resolvable"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "failed",
+      "plan_sha256": "247bddc0cd1618d5e6fb80cbd50db2b87c9a94e56a56c78cdc4216a7374ee8b9",
+      "deterministic_compile": "failed",
+      "reason": "polygonize produced dangles: [{'partition_ids': ['P_scN_e'], 'pixel_points': [[751.0, 993.0], [929.0, 993.0]]}, {'partition_ids': ['P_offW'], 'pixel_points': [[751.0, 890.0], [751.0, 993.0]]}, {'partition_ids': ['P_meet_div2'], 'pixel_points': [[700.0, 341.0], [700.0, 519.0]]}, {'partition_ids': ['P_meet_div1'], 'pixel_points': [[473.0, 341.0], [473.0, 519.0]]}]; nearest disconnected endpoints: [{'partition_id': 'P_meet_div1', 'endpoint_pixel': [473.0, 519.0], 'nearest_line': 'P_corrN', 'distance_pixels': 3.0, 'nearest_point_pixel': [473.0, 522.0]}, {'partition_id': 'P_meet_div2', 'endpoint_pixel': [700.0, 519.0], 'nearest_line': 'P_corrN', 'distance_pixels': 3.0, 'nearest_point_pixel': [700.0, 522.0]}, {'partition_id': 'P_scN_e', 'endpoint_pixel': [929.0, 993.0], 'nearest_line': 'footprint[1]', 'distance_pixels': 5.0, 'nearest_point_pixel': [929.0, 988.0]}]; coordinates unchanged; no automatic snapping"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_003.json",
+      "old_status": "failed",
+      "plan_sha256": "7f5d02bb38439123889da9ad34e197ebbfeeeb34582e279ea6f91b32c236ea76",
+      "deterministic_compile": "failed",
+      "reason": "space seeds corridor_w and corridor_v occupy the same space"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_004.json",
+      "old_status": "failed",
+      "plan_sha256": "ae07f6059066ba0c4e9ed6ff349d8ac74589f89940d11572c1443f69b910f87b",
+      "deterministic_compile": "failed",
+      "reason": "opening D_m1.z [0.0, 2.1] is outside floor vertical bounds [4.0, 7.0]"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f2",
+      "receipt": "trial_receipts/trial_005.json",
+      "old_status": "passed",
+      "plan_sha256": "56d8e9cd5d8f221f9382d68e493c09c795d9ddb079f6f6a7cf2511ebf5dacc1f",
+      "deterministic_compile": "passed",
+      "rooms": 15
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_001.json",
+      "old_status": "failed",
+      "plan_sha256": "18f22250d8f2e653bfa0d5208c371184350f9a34573fe152206038e34079016b",
+      "deterministic_compile": "not_resolvable"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_002.json",
+      "old_status": "failed",
+      "plan_sha256": "b8558b724b9c5141f6d8d5fc0497d1f531f6c7e4d8aab64244ca6b854da1ca9c",
+      "deterministic_compile": "failed",
+      "reason": "partition wall_corr_south: line is outside footprint at LINESTRING (282 593, 513 593)"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_003.json",
+      "old_status": "failed",
+      "plan_sha256": "d2ec00f3eabe2edb9df5fcb9aae48c937fe282429802d23b695a08f21b6b9ae5",
+      "deterministic_compile": "failed",
+      "reason": "polygonize produced dangles: [{'partition_ids': ['wall_off_south'], 'pixel_points': [[793.0, 963.0], [975.0, 963.0]]}, {'partition_ids': ['wall_off_west'], 'pixel_points': [[793.0, 865.0], [793.0, 963.0]]}]; nearest disconnected endpoints: [{'partition_id': 'wall_off_south', 'endpoint_pixel': [975.0, 963.0], 'nearest_line': 'footprint[1]', 'distance_pixels': 5.0, 'nearest_point_pixel': [975.0, 958.0]}]; coordinates unchanged; no automatic snapping"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_004.json",
+      "old_status": "failed",
+      "plan_sha256": "e861ca57594772e99e81fb710bd897ee3f7e590b699e7791eb083085827e15c3",
+      "deterministic_compile": "failed",
+      "reason": "partition wall_off_south segment 0 is not orthogonal: [793.0, 963.0] -> [975.0, 958.0]"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_005.json",
+      "old_status": "failed",
+      "plan_sha256": "6bec12aca89b521e1a1853b366af3e60938af7b8a2282ce5a3a07798da998cab",
+      "deterministic_compile": "not_resolvable"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_006.json",
+      "old_status": "failed",
+      "plan_sha256": "81920eaf3d67f4ecb3db6fc6cdbd9fb983f76f072cf03a803baf0e78ea0b5e41",
+      "deterministic_compile": "failed",
+      "reason": "polygonize produced an unsupported space with an inner ring; source partition evidence: [{'partition_ids': ['wall_corr_south', 'wall_mid_east', 'wall_mid_south', 'wall_mid_west'], 'pixel_points': [[518.0, 593.0], [695.0, 593.0], [695.0, 772.0], [695.0, 963.0], [518.0, 963.0], [518.0, 772.0]]}]"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_007.json",
+      "old_status": "failed",
+      "plan_sha256": "d0cc0a9387d7973a88e95cfdea9cc5329dc683efe8368a16a2ca53b2d4f71ee7",
+      "deterministic_compile": "failed",
+      "reason": "polygonize produced an unsupported space with an inner ring; source partition evidence: [{'partition_ids': ['wall_corr_south', 'wall_mid_east_a', 'wall_mid_east_b', 'wall_mid_south', 'wall_mid_west_a', 'wall_mid_west_b'], 'pixel_points': [[518.0, 593.0], [695.0, 593.0], [695.0, 772.0], [695.0, 963.0], [518.0, 963.0], [518.0, 772.0]]}]"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_008.json",
+      "old_status": "failed",
+      "plan_sha256": "2c53fde8f1aa5ff95840db66b78a8e06d8672f6885c15d692688b5836b9794da",
+      "deterministic_compile": "failed",
+      "reason": "space seeds corr_entry and corr_main occupy the same space"
+    },
+    {
+      "run": "sm25_run1",
+      "task": "plan_f1",
+      "receipt": "trial_receipts/trial_009.json",
+      "old_status": "passed",
+      "plan_sha256": "3f4f8d2e310b32eaf330deb9899706ccbaf7fe9d6c502a303cc39d244dcd961b",
+      "deterministic_compile": "passed",
+      "rooms": 14
+    }
+  ],
+  "rejected_operations": {
+    "sm24_run5": {
+      "event": "event-000769",
+      "old_status": "rejected",
+      "new_status": "passed",
+      "baseline_status": "failed",
+      "base_plan_sha256": "3729ea37670392555a19c3bb63e5818a99b34a9afd5672d02ee1c1efafa2389f",
+      "reason": null,
+      "changed_items": [
+        "plan.openings:D_recep",
+        "plan.partitions:wall_confE"
+      ]
+    },
+    "sm24_run3": {
+      "event": "event-000642",
+      "old_status": "rejected",
+      "new_status": "passed",
+      "changed_items": [
+        "plan.y_anchors"
+      ],
+      "annotation_changes": [
+        "plan.unresolved"
+      ]
+    }
+  },
+  "original_files_unchanged": true,
+  "original_file_hashes": {
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\candidate_01\\source_model.json": "e24e47d36999a2147d6e30443c364edfa3f2ab9d609646128d98a8e434173c38",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\reader_submission.json": "0ef0c8a789c013712f499df4078e1a69caa19710a0b27ebb5c70884392b3f1fe",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\inputs.json": "caecbd539fda5610f26af991f72f220098d2e1b9064bb3874404cbf7e4d64a7b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "51a89aaa4c35ae5d2809ad8d91b5fbcdbebf8cdf7429ec415440114a4ed68cb6",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\02_264132b3451c.png": "264132b3451c8fad4e7a222585fec9b38afc08ce4c41c46c746059e9e79e21aa",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\candidate_02\\source_model.json": "5d9d374238bef3e3113bc2260ba575c523f316dc0085614759662e8495d73834",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\02_7f0bfdbc5e7c.png": "7f0bfdbc5e7cab131b96fe1498d60e2db8f879da70d038173979d02e61061f0e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\candidate_01\\source_model.json": "5cdc5cf8a25751e148a2153a3a285bb159ff8fe8f6200f975b0340ea550a3009",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\candidate_01\\precision_report.json": "b5c438148362c3f97497acafc5b54914c23b498597637963f456b0cf7195d4f1",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "d0e5011f528c8f96c9929431c15670b4f53f7bafbffd26cd07a75ff9da2fd045",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\02_34ce9f8ceeef.png": "34ce9f8ceeefb8bab211800ec4bc47286d12998eb218d9e325af8e936b7acc9e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "43d7597af4287f9db4ec273ca69d2a12dfcaca5bb217891949ed295e48b3aad4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\reader_submission.json": "6e127e8b33170fb817bcef05d02ad017970b5342b73212a75a129df9c3e335a1",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\trial_receipts\\trial_001_numeric_plan.json": "43d7597af4287f9db4ec273ca69d2a12dfcaca5bb217891949ed295e48b3aad4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\candidate_01\\precision_report.json": "0489319a67ec979f16cbdf1fb9dbf0e265e5984fb0c21c5ead7438aff2c90563",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\candidate_02\\precision_report.json": "8a5b3b9464a53128b4df4984e447f54ed4d669ba5e0375a7229bd968cb522112",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\images\\1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_4134317b7acd.png": "4134317b7acdaa2e1f4757fc8ffb83785f90eec300e9a9ff473b05d7779d7d48",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\01_4f1cc8a3836b.png": "4f1cc8a3836b8adb01eda3c49150fe4b10ef8b9776ccdfa8ab0af226275f92dd",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "c799f7e4ecc92b142816c0bfb115efa168bdd354ebe92ce40dd19d04dcf6d7b4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\images\\1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\events.jsonl": "5fef376fc515719b399b614e2f3ed8629e23df8705bc2061ba48be93f32b8610",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\inputs.json": "5843b0573f29c72365f47b4d32bdbea84ddcce43bbd8534971a91e510f505e51",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_001_numeric_plan.json": "c799f7e4ecc92b142816c0bfb115efa168bdd354ebe92ce40dd19d04dcf6d7b4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "eb9c439c0ecdae20f2de585fdc22d8e760c6d0c93060ddab043074b916af3a95",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\5d59e57b4037ca206052b044ab45be48e024bd62858fee89e832f70506aa67c5\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\01_4134317b7acd.png": "4134317b7acdaa2e1f4757fc8ffb83785f90eec300e9a9ff473b05d7779d7d48",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "f8a524411105319768f19b5ae0fa81d7074397c58290c8b9eb694d5eafe8307c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run3\\tasks\\587b85c1c6cc0c13b50bc5b110a6595480e8c337f9cb2e98b976fccbcca6ec5d\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "f8a524411105319768f19b5ae0fa81d7074397c58290c8b9eb694d5eafe8307c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\images\\1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\02_d43a81be828c.png": "d43a81be828ce105cb4c6ff6d349aa3b2d5606b662943dc605aacd085daa94e8",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "3729ea37670392555a19c3bb63e5818a99b34a9afd5672d02ee1c1efafa2389f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\source_model.json": "235cdaeadd51e1e08ddd3b2a5111f7bf5eb5b04dbdd29b9b2021559c943f8cbe",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\reader_submission.json": "061d8a27139a8c2b8ce10b4f532a735e3a2541bd81d0b57217158f4b0d48ff16",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_655ef62e2ecb.png": "655ef62e2ecb82b9f8125a377770a676a8c47e520511f24972af4e7f6b9b4734",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\01_b1dcd3be2f18.png": "b1dcd3be2f1860bbbcd0a025af1f486bd8d917c95db10c8e325aec84ff111058",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\inputs.json": "6918ec652a618b2cbcabf99ab45fc0ba8cc2127e531484f154124f35a691b05b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\events.jsonl": "cb6ff30106506c8a38ffaedf79ad762e2cfdc483b0b50084ed909a4262823972",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_plan.json": "856c575758def9f15c0dc998d435d7ad7103cc9ee1ff173de11f4c197adbdde4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "3729ea37670392555a19c3bb63e5818a99b34a9afd5672d02ee1c1efafa2389f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\precision_report.json": "d1906344b850f221b109cb7c03e719537f9fd95d5cf608ff44fd6a03a6d586ed",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "8b68dcd4967fdcac604f3006478335294a67bf745839dcbd4ba1d807c7157f9d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_numeric_plan.json": "856c575758def9f15c0dc998d435d7ad7103cc9ee1ff173de11f4c197adbdde4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "b2270dbbd712bf18216c8a0f47c37eaaa3828adb17084f542d23cdd3c2dd98ac",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003.json": "75fc8a9bfbce5962a98531d40efcb1a5bbde1bb458abd46cf0c8da44a1abc9b3",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run5\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "16ad8ce15edc3844eb1a1d58020f52dc1954ea1bda26c56077147e2e4652e04b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_004_images\\01_d069a0e5d416.png": "d069a0e5d4160317b408f0708ff1d75f66518601d4a136d94c6863d2611362f2",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\01_bda10056fbc6.png": "bda10056fbc6b720b37ceb146c04e3c65b0ca2f514e9524d50fd6f8b77e8e49b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_004.json": "a046f209d56ccebefc3d497a35b60eb43080c21301ab4fd1c476ff9c8fdeac2d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_004_numeric_plan.json": "09735f56810a48f5703a62edb46c0a5c181deaf06d7ff49b0e464043695f422f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\events.jsonl": "9e93defdec81877b607558c28141183f8858f27d1addc338d3575d1236477974",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\reader_submission.json": "bc2537a8276b495661651426ac43551ff356b224d030f9d281dfcaffd27c3ae1",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "798d65047923c073ef69fb7df38e9b998c1a555645d8d0ebd66e2031be41e10c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_004_images\\02_facba18876b6.png": "facba18876b6f6988bef3858650ad9bd6190fa8c0f741289e84579fcf1c7566a",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_003_plan.json": "0025c985abb28c4e5dc7f5857ade9b88676730f21ba2613bd571e4a508a17dbd",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_bda10056fbc6.png": "bda10056fbc6b720b37ceb146c04e3c65b0ca2f514e9524d50fd6f8b77e8e49b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "51a8f1b5965f60c8fdbc8ccf1f9fa5f1ab0b0988562aa72c2c3ad36be23a339e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\02_5746cab691db.png": "5746cab691dbf825ba173ad0cf0ec79ee0f99de6dd150999882970d716751110",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\candidate_01\\source_model.json": "2b2b451d203dd81ecf9d26d0d6fd8a3090ecf1a551315c2be7e9060c4e53b825",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\inputs.json": "d859210c32be06e11b42e01d987c1936467fbb486ce7df1bb32f7011d6f9c1bb",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "9d0d37b9d009c681148493a632324a835be76baf3c2123669c7d60aa6f698775",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_001_numeric_plan.json": "798d65047923c073ef69fb7df38e9b998c1a555645d8d0ebd66e2031be41e10c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_003_numeric_plan.json": "0025c985abb28c4e5dc7f5857ade9b88676730f21ba2613bd571e4a508a17dbd",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_004_plan.json": "09735f56810a48f5703a62edb46c0a5c181deaf06d7ff49b0e464043695f422f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_003.json": "df761ac63465adec8ee73836f39fe7d1b70aa4518431b1bb5ed351ba336d83c0",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "4c1af8ac8d29782d31767c6d67df0d30b8e8fc3bd7a1aed4d784c9d889e53182",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\01_5eb1185d52dc.png": "5eb1185d52dc1696b555ce7a6512e75a9fc2704f2932a5216d5db747764b3d5f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\candidate_01\\precision_report.json": "8883c09f6ffe7d498979a97ab4b5eb0fa4d9d8c8b604c2fff5bae3719a6a6d5a",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "9d0d37b9d009c681148493a632324a835be76baf3c2123669c7d60aa6f698775",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run6\\tasks\\a5337fbb5cc7a904cf2d1851ee198c26075393f693b1ae09180b971d8e087e89\\bim\\trial_workspace\\images\\1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\reader_submission.json": "ad518077b478931d5a4e5ff0ba1d6d541cb1824a820996a8351714d460f69d41",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\events.jsonl": "aabcd10943c91f89dc644bb7f697e1ab622183ed68ae0b3eb2306782099a20ef",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "0c2ed30ec2c7f80b44270a8ca21c347ab84b6a495474810dc200766aa9971d73",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\01_396648db3219.png": "396648db32190db0cebbc3778b726ca239f37b76d21dbff34fb87172371820f2",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\inputs.json": "0fff36585632dfb0437ec98848823efe5198293d607d4e90a26259f5e1573bdd",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\precision_report.json": "8cd653afc990f1cef5aaccc4df63a4a58d53848558b18e465fa80d2fd89857a0",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_b9883ea8dc10.png": "b9883ea8dc102031f571a06197334dbc065e65c313189ab1fa854d5598bd0ec8",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "0c2ed30ec2c7f80b44270a8ca21c347ab84b6a495474810dc200766aa9971d73",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "6ccad132fd1daeac22ace8dfaa715598efa36542918a672993d924525c5fe98d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\source_model.json": "a48e33c17f203f5a5b7d92004d9b406529cf7de44f565cf97a9ddf08c776dbb7",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\02_2052a453f62d.png": "2052a453f62d3a4b94d4f06a3b89c7a5a0c0391241160f30e585a80d18173bbf",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_numeric_plan.json": "f02d6efbc3db357769c6608bd59efef54fc73a7f1047af673654018c4942efef",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "f02d6efbc3db357769c6608bd59efef54fc73a7f1047af673654018c4942efef",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "96c12aebf45f3355519b34b9b86bebaa7b09141a881c3733dbc53c2166909019",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm24_run7\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\images\\1f_view.png": "47cf5eeeb574d0107c15898c389e4397123a34ddcefcd8c8bc61a8fd57f34350",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "e6f374ab6a0cf8ac9a7636d3f89a7c2428d0b23023d04a0564a3b35d02e86258",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_49f7c608ae4c.png": "49f7c608ae4c7c5469f3d50396ed0ddce6edeac7ca9817c57915b0f73e22f26e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\inputs.json": "fa8b1415ed08a93ebfa3ce8cdef2ab4966949a812b5c265da4fc3c4f98390ea2",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_numeric_plan.json": "5dc225dc003d11f8f42b845009709cf06af4241e6dbf4c743f1741912950e18d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\candidate_01\\precision_report.json": "25816a6bfabe1fd309b7c9cdc7e2a3c4d177eb48c369b5ab28fc9d39b44fd25f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\events.jsonl": "72792855ad0bd9a039bbccc434221869a8f180af6f85d2b2d1f0f4334555fdce",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "fe48aec0a46c9bb47cc2eae9c9008902abe2df6a8acb0ee3d1cc83c63dcb1416",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "a59557bc2fa3cb224883aeedffa79a956c34ff6f463fd3185fc2c740b3064b87",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\precision_report.json": "9bad26cdb0ce9bb52843847073f3ec137549d7289dfa7c1727c9361a888da3d0",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\images\\2f_view.png": "d7cd58d34bc6243ec074a559624c90de743177aa80c89299f3d5872fb1adcd74",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\inputs.json": "272b9099e4d45d31d573f27ce9513509939c8e3747837c8c467fc84703f3ef21",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_images\\01_b118ec5ef003.png": "b118ec5ef003a66b8361a6ddfcefd1974f2ee5660e16e190c3d7dcc7f81cf02e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "e1dc23a7961ed05e447e35ff94e03699ae8ae742adcc741b647d7bf7d535f4ad",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "963888c65cd56fbb69f545821c1171adf1c3e35b01edc57420a8db49f1a9e1c3",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\02_ddce137a0adf.png": "ddce137a0adfee264202d1005ea7f46701a05758d49c51da27254449642cf2d5",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_plan.json": "5dc225dc003d11f8f42b845009709cf06af4241e6dbf4c743f1741912950e18d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "e1dc23a7961ed05e447e35ff94e03699ae8ae742adcc741b647d7bf7d535f4ad",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\candidate_01\\source_model.json": "9a1203a50f047bf3728c2d210c98fac67fc536c4d6d4e5d7b8edb3a5aacde3cb",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003.json": "5aa71d6fcf248bbbd137ade3e79e52329b604d0648f9ecec5d598bcc18caa7d6",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_numeric_plan.json": "e6f374ab6a0cf8ac9a7636d3f89a7c2428d0b23023d04a0564a3b35d02e86258",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\source_model.json": "b3da9d56d32196b97b1c0cbc0d94c5e4628fe64b8213c7f06e6d25e3262aef04",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\reader_submission.json": "34a96d8723208eabb201002e02c8ae817cedd05f03402f9327e7a39490790687",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "d685ecb2feaae663a647827c61357f03b130db909dc2c179a2c07b75dbf58d0d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "d685ecb2feaae663a647827c61357f03b130db909dc2c179a2c07b75dbf58d0d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\images\\1f_view.png": "ac62091683dde4ab7ca647f27a87a14eb386a6784a0e5bdf8852c7a9da1628a4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "0065b84ffa72f9ae47253e7ce54adcd1773d9189d4ebaf4c2f0e0a6073e348b8",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_6afd97e0669c.png": "6afd97e0669c101e4a3ae95bb77ac08ec05ef4b5e9cdaa2bfd09541fc039d15d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\01_fc72f9d7eba4.png": "fc72f9d7eba4fb1917c816f6a924e6762813e6b078d1f3096cdedb56619b8a6d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "2d44cfd39b73ed3a96b9cd84338609c12098aac7888bd895e896d2b50b20a471",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\02_3e6795890eb8.png": "3e6795890eb8c3d841a8fd9a4d2b9bd6a2d8146629186cd33f1350e660bfaaf8",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\reader_submission.json": "2d202aab7be17ff8baa645c08410d1904c608b05316587545e348bd3b0585751",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm21_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\02_6b113180076d.png": "6b113180076de2f0a79affed84c58a43a81fa22aaea77a218a31a0d71e1fce2c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_008_numeric_plan.json": "2c53fde8f1aa5ff95840db66b78a8e06d8672f6885c15d692688b5836b9794da",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_003_plan.json": "7f5d02bb38439123889da9ad34e197ebbfeeeb34582e279ea6f91b32c236ea76",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_004_numeric_plan.json": "ae07f6059066ba0c4e9ed6ff349d8ac74589f89940d11572c1443f69b910f87b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_009_images\\01_e6b22a3dd95d.png": "e6b22a3dd95da5ec7c7623cd8f2726b3d80afc76e67b6553268ad6aa608b48a4",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_005_images\\02_1b6a321aa639.png": "1b6a321aa6391723f42cfe9c8e1fd1a67258815a4f3167519474f5d7884d4dad",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_005_numeric_plan.json": "56d8e9cd5d8f221f9382d68e493c09c795d9ddb079f6f6a7cf2511ebf5dacc1f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_006_numeric_plan.json": "81920eaf3d67f4ecb3db6fc6cdbd9fb983f76f072cf03a803baf0e78ea0b5e41",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_005_plan.json": "56d8e9cd5d8f221f9382d68e493c09c795d9ddb079f6f6a7cf2511ebf5dacc1f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_005_plan.json": "6bec12aca89b521e1a1853b366af3e60938af7b8a2282ce5a3a07798da998cab",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "7f09d524e857ea56b8e9a0ec0004d03312ce209e271328616715749f1217a42e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\candidate_01\\source_model.json": "cc7fb4b0d0e7a37f3afa4f7610aa9e469b0f4c66df0b07a46b13a0aeeb1f16a5",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\01_3706b1b4de7b.png": "3706b1b4de7bd9e897c874c785563892a0d5e7f68ed1370c8a8d6d730c4c5951",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "247bddc0cd1618d5e6fb80cbd50db2b87c9a94e56a56c78cdc4216a7374ee8b9",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_004_plan.json": "e861ca57594772e99e81fb710bd897ee3f7e590b699e7791eb083085827e15c3",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_003_numeric_plan.json": "7f5d02bb38439123889da9ad34e197ebbfeeeb34582e279ea6f91b32c236ea76",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_numeric_plan.json": "d2ec00f3eabe2edb9df5fcb9aae48c937fe282429802d23b695a08f21b6b9ae5",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_baff91b12078.png": "baff91b12078467fcb8a39ea92930ce46f2514b9ddd872b360018b603e71cec2",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\images\\2f_view.png": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_007.json": "cbb7059fd402cddc26d74586c2b0f24b774f66020d888b7a40a3c055652cd5c5",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "c058c9f7526052b09e0571af2d6930b785717ee0729c0db6957cc4d4980ba491",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "247bddc0cd1618d5e6fb80cbd50db2b87c9a94e56a56c78cdc4216a7374ee8b9",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_006.json": "0463c4dabc69dae7a3490789718582ac9b272d0520f591e838d56c8d7e907c41",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_001_plan.json": "18f22250d8f2e653bfa0d5208c371184350f9a34573fe152206038e34079016b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_008_plan.json": "2c53fde8f1aa5ff95840db66b78a8e06d8672f6885c15d692688b5836b9794da",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_numeric_plan.json": "b8558b724b9c5141f6d8d5fc0497d1f531f6c7e4d8aab64244ca6b854da1ca9c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "0e296060aa393809d1c1846e080ef26b1a5b1b87a58f8cea18c5a0cd165c7653",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_006_images\\01_4509509f6959.png": "4509509f69599dd8b5ef64110078f4ad0338838c5ec5f16365d02ec467776601",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\images\\1f_view.png": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_008_images\\01_b4015340c8d4.png": "b4015340c8d4bb2cf850100e4c922ac7388dc1b5455093e12f8f8ba85a333ea7",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_004_numeric_plan.json": "e861ca57594772e99e81fb710bd897ee3f7e590b699e7791eb083085827e15c3",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_003_images\\01_765abe62a436.png": "765abe62a436fc78587bed218121edf5acf80f01ff4f5a3ea0bc9537cc11e128",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_004_plan.json": "ae07f6059066ba0c4e9ed6ff349d8ac74589f89940d11572c1443f69b910f87b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_005.json": "d7831c0608baa2bd252d9ff2c5b3f043342349c4636ea298867f4d773a7950f3",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_007_numeric_plan.json": "d0cc0a9387d7973a88e95cfdea9cc5329dc683efe8368a16a2ca53b2d4f71ee7",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_008.json": "cbde5c5faf227aeecf920130f5c21967dacba17dd5f5e08f4d8c75670b445ed5",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\inputs.json": "117f3e393db87d9a0941d40979015ab3baa95b5850c0090ff941f855aa37a418",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_007_images\\01_7015cd3e04b0.png": "7015cd3e04b02c927180a9127a61b8cc62bd429e2d18f51a4cb3c8e1bcdf2fa2",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003.json": "9ccbe9f187560ec48fa5e5079dc83e6488ff5a5c84430a8cb48139fd1e29d3ca",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_009_numeric_plan.json": "3f4f8d2e310b32eaf330deb9899706ccbaf7fe9d6c502a303cc39d244dcd961b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_009_plan.json": "3f4f8d2e310b32eaf330deb9899706ccbaf7fe9d6c502a303cc39d244dcd961b",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_007_plan.json": "d0cc0a9387d7973a88e95cfdea9cc5329dc683efe8368a16a2ca53b2d4f71ee7",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_009.json": "9f48718de07f2cf52ea9907ecf55d3804dd1a4c5bdec80698cbe5bb4c34cdc7c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_003.json": "20005952c9f3dd75b50baed4b52574e9c01a53b5b65d156e81733dd2f0d1a41d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_004.json": "842dbcb72fa75811b0d44508104b0cd7f432e7c791086888b1f6354923e05fe9",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_images\\01_9a97f4a500a4.png": "9a97f4a500a46e65561c6b90f02ce56d197a1c4165074800ef652efe02d7e590",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\inputs.json": "9555eaf9088d058dd169c6df6f18bb1c3dccb22d7fa0757b8ed18ff59ab4bf95",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\events.jsonl": "fbb24ff11aabdc6318f5168e0ad3e87770f744e34c803a15708ffedffa18aa20",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_004_images\\01_dc9cedd4e75a.png": "dc9cedd4e75a24c4bde5e4257be15f54531f1ba223f266d22dba9f53a6b39e6c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\precision_report.json": "8dba5860788d46501ddf9a31d5c3e9e8e63946cdaf8c0ee264ddcdd00fac9abb",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_005.json": "9d68a8cd175e11e0608e14d8440a3e3fd8ab9ef51b0ab226f11e14ffda9bc801",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_002_plan.json": "b8558b724b9c5141f6d8d5fc0497d1f531f6c7e4d8aab64244ca6b854da1ca9c",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\reader_submission.json": "0974a987c421384f85accdb3a86778935eea58634fede7a31e5ff5a2db7ff263",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_003_plan.json": "d2ec00f3eabe2edb9df5fcb9aae48c937fe282429802d23b695a08f21b6b9ae5",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_006_plan.json": "81920eaf3d67f4ecb3db6fc6cdbd9fb983f76f072cf03a803baf0e78ea0b5e41",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\trial_receipts\\trial_009_images\\02_e4818cb30a68.png": "e4818cb30a68fede6488992874ddae2c76238188d3833baa5ad6350ed950830e",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_005_images\\01_461b826fd4b1.png": "461b826fd4b165894d588f6247929c4b200b9388faaca07256658f1fc0d45281",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\reader_submission.json": "116079629f7c8321407799263812fb1382e0968e9a80dd67e66ebb44cee8320f",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\candidate_01\\precision_report.json": "19248955033bfe5c7c80a517879a6abda338484c4a028bd49fa6d3cd799ad77d",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_002.json": "11f4217556b155a57537b46930808be231040d5416c0a85ad2e1bd4b4ebd614a",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\c1c3b11072b0cc1a10539ba75831d98e96c9275f8d8498eeb15cff1977aa386d\\bim\\trial_workspace\\candidate_01\\source_model.json": "30076fc84a0dcc42ed77879202abe71b7d542226e36fe35b4184a200bd55ffa2",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_001.json": "dd3f3935a8801244c6745b3dfb8464d07324a3e92f68d4b128a45bcbe8a0979a",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_004_images\\01_765abe62a436.png": "765abe62a436fc78587bed218121edf5acf80f01ff4f5a3ea0bc9537cc11e128",
+    "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\AI_agent\\archive\\local_backup\\role_debug\\sm25_run1\\tasks\\8aee81500aae73add00799590f6cd35b61d84faf12fb6be2bb4194986d1376b4\\bim\\trial_workspace\\trial_receipts\\trial_004.json": "acd6e603ecc6f39c3fda1a37efc7ef6b0b394735d595a508b6ed801d22c008e4"
+  },
+  "after_metrics": {
+    "plan_schema_chars": 2361,
+    "guidance": {
+      "single_model": {
+        "character_count": 9670,
+        "sha256": "5ac8e4c4c67c4cb9556ab5bba382602f564dd1954290f147e701ea758e116b42",
+        "unchanged_source": "scripts/tool_scripts/bim_agent_guidance.py:build_guide"
+      },
+      "roles": {
+        "coordinator": {
+          "character_count": 1930,
+          "sha256": "e835c8cd9009cc7ef2469e787daf46602bd05ea79878a7c47650dba2a15ca234",
+          "tools": [
+            "delegate_readers",
+            "read_role_artifact",
+            "assemble_from_readers",
+            "role_state",
+            "review_role_assembly"
+          ]
+        },
+        "plan_reader": {
+          "character_count": 9045,
+          "sha256": "af7c7b7b2b239dafb94957adacd17c7317717af77f7c8015a426c2d29abdd0e2",
+          "tools": [
+            "inputs",
+            "view_image",
+            "pixel_profile",
+            "view_pixel_profile",
+            "view_pixel_region_overview",
+            "view_pixel_region",
+            "map_pixels",
+            "map_dimension_chain",
+            "get_bim_reference",
+            "trial_plan_bim",
+            "submit_plan_reading"
+          ]
+        },
+        "elevation_reader": {
+          "character_count": 5770,
+          "sha256": "62a73f1a30c819c683e26611748256cf3b0c1c662356c3b5547befc7fc977767",
+          "tools": [
+            "inputs",
+            "view_image",
+            "pixel_profile",
+            "view_pixel_profile",
+            "view_pixel_region_overview",
+            "view_pixel_region",
+            "map_pixels",
+            "map_dimension_chain",
+            "get_bim_reference",
+            "submit_elevation_reading"
+          ]
+        }
+      }
+    },
+    "submit_description_chars": 364
+  }
+}

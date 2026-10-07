@@ -1,0 +1,61 @@
+{
+  "guidance": {
+    "single_model": {
+      "character_count": 9670,
+      "sha256": "5ac8e4c4c67c4cb9556ab5bba382602f564dd1954290f147e701ea758e116b42",
+      "unchanged_source": "scripts/tool_scripts/bim_agent_guidance.py:build_guide"
+    },
+    "roles": {
+      "coordinator": {
+        "character_count": 1930,
+        "sha256": "e835c8cd9009cc7ef2469e787daf46602bd05ea79878a7c47650dba2a15ca234",
+        "tools": [
+          "delegate_readers",
+          "read_role_artifact",
+          "assemble_from_readers",
+          "role_state",
+          "review_role_assembly"
+        ]
+      },
+      "plan_reader": {
+        "character_count": 9045,
+        "sha256": "af7c7b7b2b239dafb94957adacd17c7317717af77f7c8015a426c2d29abdd0e2",
+        "tools": [
+          "inputs",
+          "view_image",
+          "pixel_profile",
+          "view_pixel_profile",
+          "view_pixel_region_overview",
+          "view_pixel_region",
+          "map_pixels",
+          "map_dimension_chain",
+          "get_bim_reference",
+          "trial_plan_bim",
+          "submit_plan_reading"
+        ]
+      },
+      "elevation_reader": {
+        "character_count": 5770,
+        "sha256": "62a73f1a30c819c683e26611748256cf3b0c1c662356c3b5547befc7fc977767",
+        "tools": [
+          "inputs",
+          "view_image",
+          "pixel_profile",
+          "view_pixel_profile",
+          "view_pixel_region_overview",
+          "view_pixel_region",
+          "map_pixels",
+          "map_dimension_chain",
+          "get_bim_reference",
+          "submit_elevation_reading"
+        ]
+      }
+    }
+  },
+  "plan_schema_chars": 2361,
+  "plan_schema_compact_chars": 2154,
+  "submit_description_chars": 364,
+  "trial_description_chars_before": 396,
+  "trial_description_chars_after": 343,
+  "counting": "Unicode characters via json.dumps(ensure_ascii=False); normal JSON uses default separators, compact shown separately."
+}

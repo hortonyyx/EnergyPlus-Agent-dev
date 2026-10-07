@@ -8,7 +8,6 @@ import json
 from scripts.tool_scripts.bim_agent_guidance import CORE, DRAWING_METHOD, build_guide
 from src.agent.runtime_roles.readers import READER_TOOL_NAMES
 from .plan_format import COMMON_ROOM_TYPES, READER_PLAN_EXAMPLE
-from .submission import WALL_REFERENCE_EXAMPLE
 
 
 def _numbered_sections() -> dict[int, str]:
@@ -52,8 +51,8 @@ _PLAN_CALIBRATION = (_SECTIONS[3]
 
 _PLAN_DRAFT = """4. DRAFT THIS FLOOR EARLY. Once the overall dimension chains and divider lines are read,
 call trial_plan_bim with a complete plan; its overlay and drawing_differences show where
-to look closer. Until a trial returns source_geometry_ready=true, every format/compile
-failure can be followed by another full plan, without a hash or change declaration.
+to look closer. Full plans are accepted at any stage. Operations need a remembered
+plan: a verified baseline, or the last resolved draft before any trial passes.
 Complete minimum example (plan_partition format at image scale):
 {example}
 Replace the synthetic values with drawing observations. Use partitions[].points,
@@ -67,17 +66,18 @@ through door apertures; junction coordinates coincide. No automatic snapping or 
 Only exterior windows are supported. Door state=unknown/open/closed; omit window state.
 Pixels can use selected profile references (syntax in plan_partition). Label assumed heights.
 
-Once geometry exists, use trial_plan_bim with operations; never retype the whole plan.
-The tool remembers the last source-producing baseline; a failed revision does not replace
-it. Each operation needs reason, source_refs and bbox in original-image pixels, plus:
+For local corrections, send operations to avoid retyping unchanged rows. The tool uses
+the last verified baseline if present; failed drafts remain editable before it. Each operation
+needs reason, source_refs and bbox in original-image pixels, plus:
 update: collection, id, changes (nonempty, no id); add: collection, value (complete row);
 remove: collection, id; set: field, value (top-level except floor_id/collections).
 Collections are partitions/openings/space_seeds. Edit each row/field once per batch, 1-100
 operations. Example (replace with actual evidence):
 {{"operations":[{{"op":"update","collection":"openings","id":"D1","changes":{{"p2":[340,264]}},"reason":"observed jamb endpoint","source_refs":["plan.png: door mark"],"bbox":[320,190,360,270]}}]}}
 The audit lists actual edits and unchanged IDs/fields; topology edits can change derived
-rooms/hosts. Cross-task rework starts at the verified previous artifact and only changes
-rework_targets. Failed previous drafts allow full drafting again.""".format(
+rooms/hosts. Cross-task rework preserves unpointed objects in either input format. Notes
+(basis, assumptions, unresolved, source descriptions) may change without naming a rework
+target; they cannot authorize geometry or room-use changes.""".format(
     example=json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")),
     room_types=", ".join(COMMON_ROOM_TYPES))
 
@@ -90,27 +90,26 @@ same physical wall. If not, remove the artificial separator and opening in the S
 revision; remove a redundant seed if the merged space contains two seeds. Preserve real
 wall portions. Each reported topology_issues row needs a located
 topology_decisions row: issue_id, decision=retain_opening/continuous_space, basis and bbox.
-The final plan must implement it; unresolved text cannot waive it. No warnings: pass []."""
+The final plan must implement it; unresolved text cannot waive it. No warnings: omit decisions."""
 
-_ARTIFACT_SCHEMA = """Deliver through submit_plan_reading. Copy plan_sha256 from the successful trial;
-the tool retrieves that saved plan. Supply evidence, unresolved, wall_reference and
-topology_decisions. If axis_orientation puts North at image_bottom or East at image_left,
-also supply north_arrow with the original arrow bbox, drawing-based basis,
+_ARTIFACT_SCHEMA = """Deliver through submit_plan_reading with {"trial_id":"latest"}, or the latest passed
+trial_id/plan_sha256. The tool retrieves the immutable saved plan and generates original
+pixel evidence for every anchor, footprint, partition, seed and opening. Do not resend
+the plan or an evidence table. Generated boxes locate declarations, not proof that they
+were correctly observed; anchor bands do not locate printed dimensions. Keep assumptions
+in the plan. Optional notes: {"item":"plan.space_seeds:S1","kind":"inferred","basis":"use inferred from furniture"};
+kind is assumption/inferred/unresolved. Optional unresolved adds delivery questions.
+Wall defaults are perimeter=outer_face and partitions=centerline, explicitly modeling
+conventions. If different, supply only that wall_reference category with convention and
+basis explaining the dimension-to-line conversion; optional dimension_basis must match
+convention, optional bbox locates the actual supporting annotation. Conventions allowed:
+centerline/inner_face/outer_face/explicit_face. Defaults never move geometry.
+Supply topology_decisions only for reported warnings. If axis_orientation puts North at
+image_bottom or East at image_left, supply north_arrow with the original arrow bbox, drawing-based basis,
 world_north_toward and world_east_toward matching the reported directions. Instructions
 and overlays are not arrow evidence. Normal orientation requires no north_arrow.
-Evidence rows: {{"item":"plan.openings:W1","source":"the exact task image name",
-"bbox":[left,top,right,bottom],"basis":"observed mark"}}. Cover plan.x_anchors,
-plan.y_anchors, plan.footprint_pixels and every plan.partitions:<id>,
-plan.space_seeds:<id>, plan.openings:<id> with localized boxes. unresolved may add questions,
-but does not edit the saved plan. A failed trial cannot be submitted.
-wall_reference separately describes perimeter and partitions, matching step 3:
-{wall_example}
-Allowed conventions: centerline/inner_face/outer_face/explicit_face. Each dimension_basis
-names that category's reference line after the conversion explained in basis. Categories
-may differ; each bbox locates its dimension chain. Only declaration consistency is checked.
-If submission rejects an item, correct that issue (operations if the plan changes) and
-resubmit. After acceptance, end with a short acknowledgement.""".format(
-    wall_example=json.dumps(WALL_REFERENCE_EXAMPLE, separators=(",", ":")))
+A failed or stale trial cannot be submitted. Correct the named rejection and resubmit;
+plan changes require another trial. After acceptance, end with a short acknowledgement."""
 
 PLAN_READER_GUIDANCE = "\n\n".join((
     _SHARED_READER_SCOPE,

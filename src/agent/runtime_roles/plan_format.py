@@ -183,3 +183,50 @@ def format_failure(errors):
             "format_errors": errors, "reason": f"{len(errors)} plan format problems; correct all listed fields",
             "repair_hint": {"example": copy.deepcopy(READER_PLAN_EXAMPLE),
                             "note": "Complete minimum format (plan_partition example at image scale); synthetic values are not observations."}}
+
+
+PLAN_NOTE_FIELDS = frozenset({"basis", "assumptions", "unresolved"})
+ROW_NOTE_FIELDS = frozenset({"source_refs", "assumptions"})
+
+
+def audit_plan_replacement(before, after, *, allowed_targets=None):
+    """Check full-plan and operation edits by their actual effect, with one scope rule.
+
+    Notes remain in the audit and the hashed plan. They do not consume a pointed
+    geometry target, and cannot authorize a coordinate, topology or role change.
+    """
+    collections = ("partitions", "openings", "space_seeds")
+    if before["floor_id"] != after["floor_id"]:
+        raise ValueError("a plan revision cannot change floor_id")
+    changes, notes, unchanged_ids = [], [], {}
+
+    def compare(field, identity, old, new):
+        if old == new:
+            return
+        item = "plan." + field + (":" + identity if identity is not None else "")
+        row = {"item": item, "field": field, "id": identity,
+               "before": copy.deepcopy(old), "after": copy.deepcopy(new)}
+        note_only = field in PLAN_NOTE_FIELDS
+        if identity is not None and isinstance(old, dict) and isinstance(new, dict):
+            note_only = ({key: value for key, value in old.items() if key not in ROW_NOTE_FIELDS}
+                         == {key: value for key, value in new.items() if key not in ROW_NOTE_FIELDS})
+        if note_only:
+            notes.append(row)
+        else:
+            if allowed_targets is not None and item not in allowed_targets:
+                raise ValueError("Rework changed items outside the coordinator's pointed issues: " + item)
+            changes.append(row)
+
+    for field in sorted(set(before) | set(after)):
+        if field not in collections:
+            compare(field, None, before.get(field), after.get(field))
+            continue
+        old = {row["id"]: row for row in before.get(field, [])}
+        new = {row["id"]: row for row in after.get(field, [])}
+        unchanged_ids[field] = [identity for identity in old if old[identity] == new.get(identity)]
+        for identity in sorted(set(old) | set(new)):
+            compare(field, identity, old.get(identity), new.get(identity))
+    return {"actual_changes": changes, "annotation_changes": notes,
+            "unchanged_ids": unchanged_ids,
+            "unchanged_fields": [key for key in before if before[key] == after.get(key)],
+            "scope": "Actual declaration changes; notes are retained separately. Geometry and topology still require a successful trial."}

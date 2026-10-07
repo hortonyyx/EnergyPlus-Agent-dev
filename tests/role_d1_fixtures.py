@@ -103,9 +103,7 @@ def plan_submission(artifact: dict[str, Any]) -> dict[str, Any]:
     """Tool arguments for the immutable successful trial represented by artifact."""
     evidence_box = artifact["evidence"][0]["bbox"]
     return {
-        "plan_sha256": canonical_plan_sha256(artifact["plan"]),
-        "evidence": artifact["evidence"],
-        "unresolved": artifact["unresolved"],
+        "trial_id": "latest",
         "wall_reference": {
             category: {
                 "convention": "explicit_face", "dimension_basis": "explicit_face",

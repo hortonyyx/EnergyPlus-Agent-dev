@@ -258,7 +258,7 @@ def test_trial_bad_schema_and_nested_business_name_return_repairable_envelopes()
         wrong_shape = await tools.call_tool("trial_plan_bim", {"plan": []})
         assert wrong_shape["isError"] is True
         assert wrong_shape["structuredContent"]["status"] == "rejected"
-        assert "requires one plan object" in wrong_shape["structuredContent"]["reason"]
+        assert trial.calls == []
 
         # This is the exact collision from the real D1b run: ``name`` is a
         # floor business field, not a request to read another image.
