@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="10" skipped="0" tests="108" time="20.587" timestamp="2026-10-08T05:19:06.875074+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_plan_regularization" name="test_direct_compiler_remains_literal_until_regularization_is_explicit" time="0.007" /><testcase classname="tests.test_plan_regularization" name="test_effective_passage_state_conflict_is_rejected_even_when_kind_matches" time="0.027" /><testcase classname="tests.test_plan_regularization" name="test_precompile_joins_tiny_gap_or_overshoot_and_projects_whole_opening[39.9996]" time="0.016" /><testcase classname="tests.test_plan_regularization" name="test_precompile_joins_tiny_gap_or_overshoot_and_projects_whole_opening[40.0004]" time="0.017" /><testcase classname="tests.test_plan_regularization" name="test_target_line_duplicates_and_transitive_overlap_group_collapse_together" time="0.025" /><testcase classname="tests.test_plan_regularization" name="test_precompile_rolls_back_all_edits_if_a_real_missing_divider_remains" time="0.011" /><testcase classname="tests.test_plan_regularization" name="test_more_collinear_disjoint_wall_pieces_win_same_floor_merge_priority" time="0.009"><failure message="src.agent.geometry.plan_regularization.PlanRegularizationError: polygonize produced dangles: [{'partition_ids': ['shared-bottom'], 'pixel_points': [[40.0, 60.0], [40.0, 100.0]]}, {'partition_ids': ['shared-top'], 'pixel_points': [[40.0, 0.0], [40.0, 40.0]]}]; nearest disconnected endpoints: [{'partition_id': 'shared-top', 'endpoint_pixel': [40.0, 40.0], 'nearest_line': 'single', 'distance_pixels': 2.0, 'nearest_point_pixel': [42.0, 40.0]}, {'partition_id': 'shared-bottom', 'endpoint_pixel': [40.0, 60.0], 'nearest_line': 'single', 'distance_pixels': 2.0, 'nearest_point_pixel': [42.0, 60.0]}]; coordinates unchanged; no automatic snapping">def test_more_collinear_disjoint_wall_pieces_win_same_floor_merge_priority():
+        plan = _plan([
+            ("shared-top", [[40, 0], [40, 40]]),
+            ("shared-bottom", [[40, 60], [40, 100]]),
+            ("single", [[42, 0], [42, 100]]),
+        ])
+    
+&gt;       regularized, report = regularize_plan(
+            plan, image_size=IMAGE_SIZE, image_name="plan.png")
+
+tests\test_plan_regularization.py:323: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+plan = {'assumptions': [], 'basis': 'synthetic exact 0.1 m/pixel calibration', 'ceiling_height': 3.0, 'floor_id': 'F1', ...}
+
+    def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
+                        rule_version: str = RULE_VERSION) -&gt; tuple[dict, dict]:
+        """Regularise one floor draft and return it with a persistent full report."""
+        if rule_version != RULE_VERSION:
+            raise ValueError(f"unsupported regularization rule version {rule_version!r}")
+        if not isinstance(plan, dict):
+            raise TypeError("plan must be an object")
+        existing = plan.get("regularization")
+        if (isinstance(existing, dict) and existing.get("rule_version") == rule_version
+                and existing.get("status") == "pass"
+                and existing.get("plan_sha256") == _plan_digest(plan)):
+            # A plan can carry caller-supplied metadata.  The digest makes replay
+            # deterministic, not trusted: always re-run the current hard rules
+            # before accepting the cached change list.
+            hard = enforce_regularized_plan(plan, image_size=image_size, image_name=image_name)
+            replayed_plan, replayed_report = copy.deepcopy(plan), copy.deepcopy(existing)
+            replayed_report["hard_constraints"] = hard
+            replayed_plan["regularization"] = copy.deepcopy(replayed_report)
+            return replayed_plan, replayed_report
+        result, preparation = prepare_plan_junctions(plan, image_size=image_size, image_name=image_name)
+        result.pop("regularization", None)
+        if preparation["compile_error_before"] and preparation["status"] != "applied":
+            error = preparation["compile_error"] or preparation["compile_error_before"]
+            attempted = preparation["attempted_changes"]
+            report = {
+                "schema": "plan_regularization_report_v1", "rule_version": rule_version,
+                "status": "rejected", "floor_id": result.get("floor_id"),
+                "junction_preparation": preparation, "changes": [], "attempted_changes": attempted,
+                "rejections": [{"type": "strict_compile_failed_after_junction_preparation",
+                                "error": error, "message": error}],
+                "summary": {"moved_or_merged": 0, "attempted_changes": len(attempted),
+                            "maximum_movement_m": 0.0, "rejected": 1,
+                            "change_counts": {},
+                            "attempted_change_counts": dict(Counter(row["type"] for row in attempted)),
+                            "rejection_counts": {"strict_compile_failed_after_junction_preparation": 1}},
+            }
+&gt;           raise PlanRegularizationError(error, report=report)
+E           src.agent.geometry.plan_regularization.PlanRegularizationError: polygonize produced dangles: [{'partition_ids': ['shared-bottom'], 'pixel_points': [[40.0, 60.0], [40.0, 100.0]]}, {'partition_ids': ['shared-top'], 'pixel_points': [[40.0, 0.0], [40.0, 40.0]]}]; nearest disconnected endpoints: [{'partition_id': 'shared-top', 'endpoint_pixel': [40.0, 40.0], 'nearest_line': 'single', 'distance_pixels': 2.0, 'nearest_point_pixel': [42.0, 40.0]}, {'partition_id': 'shared-bottom', 'endpoint_pixel': [40.0, 60.0], 'nearest_line': 'single', 'distance_pixels': 2.0, 'nearest_point_pixel': [42.0, 60.0]}]; coordinates unchanged; no automatic snapping
+
+src\agent\geometry\plan_regularization.py:1813: PlanRegularizationError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_precompile_never_bridges_over_tolerance_or_shortens_openings" time="0.012" /><testcase classname="tests.test_plan_regularization" name="test_precompile_partial_collinear_overlap_preserves_union_and_declared_rooms" time="0.011" /><testcase classname="tests.test_plan_regularization" name="test_saved_rule_metadata_only_short_circuits_the_exact_saved_plan" time="0.042" /><testcase classname="tests.test_plan_regularization" name="test_forged_matching_regularization_digest_cannot_skip_hard_rules" time="0.004" /><testcase classname="tests.test_plan_regularization" name="test_parallel_strip_without_seed_or_opening_merges_to_existing_priority_line" time="0.037" /><testcase classname="tests.test_plan_regularization" name="test_named_seed_in_narrow_strip_is_removed_with_applied_audit" time="0.034" /><testcase classname="tests.test_plan_regularization" name="test_openings_on_both_duplicate_lines_move_and_overlap_collapses_but_disjoint_survives" time="0.034" /><testcase classname="tests.test_plan_regularization" name="test_incompatible_overlapping_openings_reject_with_contradiction_and_no_applied_changes" time="0.012"><failure message="StopIteration">def test_incompatible_overlapping_openings_reject_with_contradiction_and_no_applied_changes():
+        window = {**_door("window", 42, 20, 30), "kind": "window", "z": [1.0, 2.0]}
+        plan = _plan(
+            [("A", [[40, 0], [40, 100]]), ("B", [[42, 0], [42, 100]])],
+            openings=[_door("door", 40, 20, 30), window],
+        )
+        with pytest.raises(PlanRegularizationError) as caught:
+            regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+        report = caught.value.report
+&gt;       conflict = next(row for row in report["rejections"]
+                        if row["type"] == "narrow_strip_opening_conflict")
+E       StopIteration
+
+tests\test_plan_regularization.py:250: StopIteration</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_exactly_overlapping_internal_wall_lines_are_deduplicated" time="0.017" /><testcase classname="tests.test_plan_regularization" name="test_internal_wall_exactly_on_fixed_footprint_is_deduplicated" time="0.011" /><testcase classname="tests.test_plan_regularization" name="test_polyline_leg_merges_without_deleting_its_other_legs_and_inherits_refs" time="0.027" /><testcase classname="tests.test_plan_regularization" name="test_polyline_merge_can_select_the_straight_line_without_losing_other_legs" time="0.026" /><testcase classname="tests.test_plan_regularization" name="test_opening_defaults_and_z_differences_merge_by_compiled_connectivity_meaning" time="0.024" /><testcase classname="tests.test_plan_regularization" name="test_polyline_leg_can_merge_into_fixed_footprint_without_moving_outline" time="0.016" /><testcase classname="tests.test_plan_regularization" name="test_overall_rejection_separates_prior_attempts_from_final_applied_changes" time="0.020"><failure message="assert False&#10; +  where False = any(&lt;generator object test_overall_rejection_separates_prior_attempts_from_final_applied_changes.&lt;locals&gt;.&lt;genexpr&gt; at 0x00000237F8F386C0&gt;)">def test_overall_rejection_separates_prior_attempts_from_final_applied_changes():
+        window = {**_door("window", 72, 20, 30), "kind": "window", "z": [1.0, 2.0]}
+        plan = _plan([
+            ("A", [[40, 0], [40, 100]]), ("B", [[42, 0], [42, 100]]),
+            ("C", [[70, 0], [70, 100]]), ("D", [[72, 0], [72, 100]]),
+        ], openings=[_door("door", 70, 20, 30), window])
+        with pytest.raises(PlanRegularizationError) as caught:
+            regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+        report = caught.value.report
+        assert report["changes"] == []
+&gt;       assert any(row["type"] == "merge_duplicate_wall_lines"
+                   for row in report["attempted_changes"])
+E       assert False
+E        +  where False = any(&lt;generator object test_overall_rejection_separates_prior_attempts_from_final_applied_changes.&lt;locals&gt;.&lt;genexpr&gt; at 0x00000237F8F386C0&gt;)
+
+tests\test_plan_regularization.py:573: AssertionError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_polyline_partial_overlap_retains_real_nonoverlap_and_connections" time="0.051" /><testcase classname="tests.test_plan_regularization" name="test_polyline_merge_moves_opening_and_removes_named_strip_seed_with_audit" time="0.029" /><testcase classname="tests.test_plan_regularization" name="test_touching_offset_wall_ends_align_and_move_hosted_opening_without_resizing" time="0.007"><failure message="src.agent.geometry.plan_regularization.PlanRegularizationError: polygonize produced dangles: [{'partition_ids': ['lower'], 'pixel_points': [[42.0, 50.0], [42.0, 100.0]]}, {'partition_ids': ['upper'], 'pixel_points': [[40.0, 0.0], [40.0, 50.0]]}]; nearest disconnected endpoints: [{'partition_id': 'upper', 'endpoint_pixel': [40.0, 50.0], 'nearest_line': 'lower', 'distance_pixels': 2.0, 'nearest_point_pixel': [42.0, 50.0]}, {'partition_id': 'lower', 'endpoint_pixel': [42.0, 50.0], 'nearest_line': 'upper', 'distance_pixels': 2.0, 'nearest_point_pixel': [40.0, 50.0]}]; coordinates unchanged; no automatic snapping">def test_touching_offset_wall_ends_align_and_move_hosted_opening_without_resizing():
+        plan = _plan(
+            [("upper", [[40, 0], [40, 50]]), ("lower", [[42, 50], [42, 100]])],
+            openings=[_door("D1", 42)],
+        )
+&gt;       regularized, report = regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_plan_regularization.py:584: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+plan = {'assumptions': [], 'basis': 'synthetic exact 0.1 m/pixel calibration', 'ceiling_height': 3.0, 'floor_id': 'F1', ...}
+
+    def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
+                        rule_version: str = RULE_VERSION) -&gt; tuple[dict, dict]:
+        """Regularise one floor draft and return it with a persistent full report."""
+        if rule_version != RULE_VERSION:
+            raise ValueError(f"unsupported regularization rule version {rule_version!r}")
+        if not isinstance(plan, dict):
+            raise TypeError("plan must be an object")
+        existing = plan.get("regularization")
+        if (isinstance(existing, dict) and existing.get("rule_version") == rule_version
+                and existing.get("status") == "pass"
+                and existing.get("plan_sha256") == _plan_digest(plan)):
+            # A plan can carry caller-supplied metadata.  The digest makes replay
+            # deterministic, not trusted: always re-run the current hard rules
+            # before accepting the cached change list.
+            hard = enforce_regularized_plan(plan, image_size=image_size, image_name=image_name)
+            replayed_plan, replayed_report = copy.deepcopy(plan), copy.deepcopy(existing)
+            replayed_report["hard_constraints"] = hard
+            replayed_plan["regularization"] = copy.deepcopy(replayed_report)
+            return replayed_plan, replayed_report
+        result, preparation = prepare_plan_junctions(plan, image_size=image_size, image_name=image_name)
+        result.pop("regularization", None)
+        if preparation["compile_error_before"] and preparation["status"] != "applied":
+            error = preparation["compile_error"] or preparation["compile_error_before"]
+            attempted = preparation["attempted_changes"]
+            report = {
+                "schema": "plan_regularization_report_v1", "rule_version": rule_version,
+                "status": "rejected", "floor_id": result.get("floor_id"),
+                "junction_preparation": preparation, "changes": [], "attempted_changes": attempted,
+                "rejections": [{"type": "strict_compile_failed_after_junction_preparation",
+                                "error": error, "message": error}],
+                "summary": {"moved_or_merged": 0, "attempted_changes": len(attempted),
+                            "maximum_movement_m": 0.0, "rejected": 1,
+                            "change_counts": {},
+                            "attempted_change_counts": dict(Counter(row["type"] for row in attempted)),
+                            "rejection_counts": {"strict_compile_failed_after_junction_preparation": 1}},
+            }
+&gt;           raise PlanRegularizationError(error, report=report)
+E           src.agent.geometry.plan_regularization.PlanRegularizationError: polygonize produced dangles: [{'partition_ids': ['lower'], 'pixel_points': [[42.0, 50.0], [42.0, 100.0]]}, {'partition_ids': ['upper'], 'pixel_points': [[40.0, 0.0], [40.0, 50.0]]}]; nearest disconnected endpoints: [{'partition_id': 'upper', 'endpoint_pixel': [40.0, 50.0], 'nearest_line': 'lower', 'distance_pixels': 2.0, 'nearest_point_pixel': [42.0, 50.0]}, {'partition_id': 'lower', 'endpoint_pixel': [42.0, 50.0], 'nearest_line': 'upper', 'distance_pixels': 2.0, 'nearest_point_pixel': [40.0, 50.0]}]; coordinates unchanged; no automatic snapping
+
+src\agent\geometry\plan_regularization.py:1813: PlanRegularizationError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_polyline_merge_real_opening_conflict_rolls_back_split_and_merge" time="0.014"><failure message="assert False&#10; +  where False = any(&lt;generator object test_polyline_merge_real_opening_conflict_rolls_back_split_and_merge.&lt;locals&gt;.&lt;genexpr&gt; at 0x00000247ADB8DCB0&gt;)">def test_polyline_merge_real_opening_conflict_rolls_back_split_and_merge():
+        window = {**_door("window", 42, 20, 30), "kind": "window", "z": [1.0, 2.0]}
+        plan = _plan([
+            ("poly", [[40, 0], [40, 50], [60, 50], [60, 100]]),
+            ("source", [[42, 0], [42, 50]]),
+        ], openings=[_door("door", 40, 20, 30), window])
+    
+        with pytest.raises(PlanRegularizationError) as caught:
+            regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+    
+        report = caught.value.report
+        assert report["changes"] == []
+&gt;       assert any(row["type"] == "split_polyline_for_merge"
+                   for row in report["attempted_changes"])
+E       assert False
+E        +  where False = any(&lt;generator object test_polyline_merge_real_opening_conflict_rolls_back_split_and_merge.&lt;locals&gt;.&lt;genexpr&gt; at 0x00000247ADB8DCB0&gt;)
+
+tests\test_plan_regularization.py:507: AssertionError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_transitive_opening_survivor_mapping_resolves_to_final_opening" time="0.035" /><testcase classname="tests.test_plan_regularization" name="test_opening_crossing_partial_merge_boundary_is_an_explicit_contradiction" time="0.007"><failure message="KeyError: 'contradiction_category'">def test_opening_crossing_partial_merge_boundary_is_an_explicit_contradiction():
+        plan = _plan(
+            [("source", [[40, 0], [40, 100]]), ("target", [[42, 20], [42, 80]])],
+            openings=[_door("crossing", 40, 10, 30)],
+        )
+        plan["regularization_inputs"] = {
+            "line_references": [{"partition_id": "target", "basis": "dimension",
+                                 "source_refs": ["drawing:dimension"]}],
+            "coordinate_references": [],
+        }
+        with pytest.raises(PlanRegularizationError) as caught:
+            regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+        conflict = caught.value.report["rejections"][0]
+&gt;       assert conflict["contradiction_category"] == "opening_crosses_partial_merge_boundary"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'contradiction_category'
+
+tests\test_plan_regularization.py:558: KeyError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_dimensioned_internal_head_to_tail_moves_to_fixed_footprint_not_outline" time="0.008"><failure message="src.agent.geometry.plan_regularization.PlanRegularizationError: polygonize produced dangles: [{'partition_ids': ['dimensioned-internal'], 'pixel_points': [[20.0, 48.0], [70.0, 48.0]]}, {'partition_ids': ['end-wall'], 'pixel_points': [[70.0, 0.0], [70.0, 48.0]]}]; nearest disconnected endpoints: [{'partition_id': 'dimensioned-internal', 'endpoint_pixel': [20.0, 48.0], 'nearest_line': 'footprint[3]', 'distance_pixels': 2.0, 'nearest_point_pixel': [20.0, 50.0]}]; coordinates unchanged; no automatic snapping">def test_dimensioned_internal_head_to_tail_moves_to_fixed_footprint_not_outline():
+        footprint = [[0, 0], [100, 0], [100, 100], [20, 100], [20, 50], [0, 50]]
+        plan = _plan([
+            ("dimensioned-internal", [[20, 48], [70, 48]]),
+            ("end-wall", [[70, 0], [70, 48]]),
+        ], footprint=footprint)
+        plan["regularization_inputs"] = {
+            "line_references": [{
+                "partition_id": "dimensioned-internal", "basis": "dimension",
+                "source_refs": ["drawing:dimension-chain"],
+            }],
+            "coordinate_references": [],
+        }
+        before = copy.deepcopy(plan["footprint_pixels"])
+    
+&gt;       regularized, report = regularize_plan(
+            plan, image_size=IMAGE_SIZE, image_name="plan.png")
+
+tests\test_plan_regularization.py:611: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+plan = {'assumptions': [], 'basis': 'synthetic exact 0.1 m/pixel calibration', 'ceiling_height': 3.0, 'floor_id': 'F1', ...}
+
+    def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
+                        rule_version: str = RULE_VERSION) -&gt; tuple[dict, dict]:
+        """Regularise one floor draft and return it with a persistent full report."""
+        if rule_version != RULE_VERSION:
+            raise ValueError(f"unsupported regularization rule version {rule_version!r}")
+        if not isinstance(plan, dict):
+            raise TypeError("plan must be an object")
+        existing = plan.get("regularization")
+        if (isinstance(existing, dict) and existing.get("rule_version") == rule_version
+                and existing.get("status") == "pass"
+                and existing.get("plan_sha256") == _plan_digest(plan)):
+            # A plan can carry caller-supplied metadata.  The digest makes replay
+            # deterministic, not trusted: always re-run the current hard rules
+            # before accepting the cached change list.
+            hard = enforce_regularized_plan(plan, image_size=image_size, image_name=image_name)
+            replayed_plan, replayed_report = copy.deepcopy(plan), copy.deepcopy(existing)
+            replayed_report["hard_constraints"] = hard
+            replayed_plan["regularization"] = copy.deepcopy(replayed_report)
+            return replayed_plan, replayed_report
+        result, preparation = prepare_plan_junctions(plan, image_size=image_size, image_name=image_name)
+        result.pop("regularization", None)
+        if preparation["compile_error_before"] and preparation["status"] != "applied":
+            error = preparation["compile_error"] or preparation["compile_error_before"]
+            attempted = preparation["attempted_changes"]
+            report = {
+                "schema": "plan_regularization_report_v1", "rule_version": rule_version,
+                "status": "rejected", "floor_id": result.get("floor_id"),
+                "junction_preparation": preparation, "changes": [], "attempted_changes": attempted,
+                "rejections": [{"type": "strict_compile_failed_after_junction_preparation",
+                                "error": error, "message": error}],
+                "summary": {"moved_or_merged": 0, "attempted_changes": len(attempted),
+                            "maximum_movement_m": 0.0, "rejected": 1,
+                            "change_counts": {},
+                            "attempted_change_counts": dict(Counter(row["type"] for row in attempted)),
+                            "rejection_counts": {"strict_compile_failed_after_junction_preparation": 1}},
+            }
+&gt;           raise PlanRegularizationError(error, report=report)
+E           src.agent.geometry.plan_regularization.PlanRegularizationError: polygonize produced dangles: [{'partition_ids': ['dimensioned-internal'], 'pixel_points': [[20.0, 48.0], [70.0, 48.0]]}, {'partition_ids': ['end-wall'], 'pixel_points': [[70.0, 0.0], [70.0, 48.0]]}]; nearest disconnected endpoints: [{'partition_id': 'dimensioned-internal', 'endpoint_pixel': [20.0, 48.0], 'nearest_line': 'footprint[3]', 'distance_pixels': 2.0, 'nearest_point_pixel': [20.0, 50.0]}]; coordinates unchanged; no automatic snapping
+
+src\agent\geometry\plan_regularization.py:1813: PlanRegularizationError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_junction_preparation_removes_zero_length_and_duplicate_segments_with_audit" time="0.009" /><testcase classname="tests.test_plan_regularization" name="test_strict_less_than_0_30_does_not_merge_exact_threshold_but_width_gate_rejects" time="0.023" /><testcase classname="tests.test_plan_regularization" name="test_minimum_width_gate_finds_concave_half_metre_neck" time="0.005" /><testcase classname="tests.test_plan_regularization" name="test_stack_changes_plan_draft_recompiles_and_aligns_xy_and_z" time="0.058" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_move_keeps_perpendicular_endpoint_attached_before_recompile" time="0.073" /><testcase classname="tests.test_plan_regularization" name="test_attached_endpoint_does_not_chase_a_second_nearby_perpendicular_line" time="0.001" /><testcase classname="tests.test_plan_regularization" name="test_fixed_footprint_absorbs_unprotected_duplicate_and_catches_near_endpoint" time="0.026" /><testcase classname="tests.test_plan_regularization" name="test_named_strip_at_fixed_footprint_is_eliminated_without_moving_outline" time="0.017" /><testcase classname="tests.test_plan_regularization" name="test_opening_already_on_retained_footprint_gets_explicit_host_mapping" time="0.014" /><testcase classname="tests.test_plan_regularization" name="test_partial_overlap_with_fixed_footprint_merges_only_overlap_and_keeps_remainder" time="0.025" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_target_accepts_multiple_disjoint_source_segments" time="0.070" /><testcase classname="tests.test_plan_regularization" name="test_adjacent_partial_footprint_merges_collapse_the_corner_step" time="0.026" /><testcase classname="tests.test_plan_regularization" name="test_adjacent_footprint_merges_remove_only_the_endpoint_collapsed_remainder" time="0.025" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_target_lock_moves_connected_collinear_chain_without_cycle" time="0.122" /><testcase classname="tests.test_plan_regularization" name="test_adjacent_footprint_merge_does_not_collapse_an_opening_host" time="0.023" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_policy_does_not_change_same_floor_fixed_outline" time="0.013" /><testcase classname="tests.test_plan_regularization" name="test_failed_cross_storey_footprint_move_rolls_back_transactionally" time="0.044" /><testcase classname="tests.test_plan_regularization" name="test_wall_retry_without_a_corresponding_exterior_target_rejects_structurally" time="0.088" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_coordinate_shared_by_more_floors_wins_before_lower_tie_break" time="0.074" /><testcase classname="tests.test_plan_regularization" name="test_reading_alignment_audit_is_persisted_but_never_drives_literal_compile" time="0.018" /><testcase classname="tests.test_plan_reader_alignment" name="test_ink_alignment_moves_wall_attached_opening_and_junction_to_supported_lines" time="0.025" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_move_may_change_real_separation_when_it_stays_at_least_0_30m" time="0.071" /><testcase classname="tests.test_plan_reader_alignment" name="test_wall_move_assigns_one_exact_coordinate_to_every_attached_endpoint" time="0.001" /><testcase classname="tests.test_plan_reader_alignment" name="test_reading_alignment_rolls_back_when_only_original_strictly_compiles" time="0.036" /><testcase classname="tests.test_plan_reader_alignment" name="test_missing_ink_never_moves_geometry_and_is_explicit" time="0.023" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_move_that_creates_sub_0_30m_same_floor_pair_is_not_saved" time="0.078" /><testcase classname="tests.test_plan_reader_alignment" name="test_low_resolution_scan_never_applies_a_candidate_beyond_world_radius" time="0.003" /><testcase classname="tests.test_plan_reader_alignment" name="test_overall_dimension_chain_sets_outer_face_axis_and_overrides_ink_priority" time="0.024" /><testcase classname="tests.test_plan_reader_alignment" name="test_dimension_chain_nonzero_origin_sets_both_axis_endpoints_and_audits_old_anchors" time="0.004" /><testcase classname="tests.test_plan_reader_alignment" name="test_dimension_chain_origin_follows_first_tick_when_pixels_run_in_reverse" time="0.003" /><testcase classname="tests.test_plan_reader_alignment" name="test_dimension_chain_rejects_nonfinite_or_wrong_shape_origin_values" time="0.010" /><testcase classname="tests.test_plan_reader_alignment" name="test_dimension_ticks_move_only_nearby_concave_footprint_edge_with_attached_objects" time="0.002" /><testcase classname="tests.test_plan_reader_alignment" name="test_consistent_supplemental_overall_chain_adds_ticks_and_conflict_is_rejected" time="0.002" /><testcase classname="tests.test_plan_reader_alignment" name="test_bad_or_internal_dimension_chain_does_not_replace_axis" time="0.002" /><testcase classname="tests.test_plan_reader_alignment" name="test_concave_footprint_uses_edge_normal_and_keeps_existing_geometry_inside" time="0.014" /><testcase classname="tests.test_plan_regularization" name="test_stack_rejects_upper_trusted_elevation_instead_of_changing_lower_height" time="0.054" /><testcase classname="tests.test_plan_reader_alignment" name="test_trial_compiles_aligned_numeric_plan_and_returns_only_compact_summary" time="0.112" /><testcase classname="tests.test_plan_regularization" name="test_stack_aligns_upper_convex_footprint_edge_to_lower_edge" time="0.037" /><testcase classname="tests.test_plan_regularization" name="test_stack_aligns_only_the_matching_concave_notch_edge" time="0.045" /><testcase classname="tests.test_plan_reader_alignment" name="test_trial_rejects_unverified_regularized_toolkit_plan" time="0.088" /><testcase classname="tests.test_plan_regularization" name="test_stack_footprint_move_carries_openings_collinear_chain_and_perpendicular_endpoint" time="0.065" /><testcase classname="tests.test_plan_regularization" name="test_connected_footprint_continuation_anchors_the_opposite_internal_wall" time="0.068" /><testcase classname="tests.test_bim_regularization_integration" name="test_new_plan_retains_raw_input_and_full_audit_with_compact_reply" time="0.543" /><testcase classname="tests.test_plan_regularization" name="test_upper_only_dimension_evidence_reverses_footprint_alignment_direction" time="0.047" /><testcase classname="tests.test_plan_regularization" name="test_dimensions_on_both_footprint_edges_keep_default_upper_to_lower_direction" time="0.047" /><testcase classname="tests.test_plan_regularization" name="test_upper_dimension_coordinate_propagates_through_three_storey_footprints" time="0.071" /><testcase classname="tests.test_plan_regularization" name="test_cross_storey_footprint_setback_at_exact_threshold_is_preserved" time="0.032" /><testcase classname="tests.test_bim_regularization_integration" name="test_source_refusal_stays_primary_when_plan_and_stack_prechecks_pass" time="1.079" /><testcase classname="tests.test_bim_regularization_integration" name="test_thin_named_space_rejects_with_audit_and_without_a_candidate" time="0.062" /><testcase classname="tests.test_bim_regularization_integration" name="test_legacy_policy_is_owned_by_the_run_manifest" time="0.208" /><testcase classname="tests.test_bim_regularization_integration" name="test_stack_saves_effective_drafts_and_full_floor_reports[0.0]" time="0.824" /><testcase classname="tests.test_bim_a3t" name="test_aliases_keep_geometry_and_original_bytes_with_explicit_receipt" time="0.231" /><testcase classname="tests.test_bim_a3t" name="test_conflicting_alias_and_unknown_field_do_not_guess" time="0.076" /><testcase classname="tests.test_bim_regularization_integration" name="test_stack_saves_effective_drafts_and_full_floor_reports[0.2]" time="0.882" /><testcase classname="tests.test_bim_a3t" name="test_disconnected_endpoint_reports_nearest_declared_line_without_snapping" time="0.008"><failure message="AssertionError: assert [{'distance_p...branch', ...}] == [{'distance_p...zontal', ...}]&#10;  &#10;  At index 0 diff: {'path': 'plan.partitions[1].points[1]', 'partition_id': 'P_left_branch', 'original_endpoint_pixel': [49, 50], 'failed_endpoint_pixel': [49.0, 50.0], 'target': {'path': 'plan.partitions[0].points', 'partition_id': 'P_vertical', 'segment_index': 0, 'segment_original_pixels': [[50, 10], [50, 50]], 'line_id': 'P_vertical', 'reported_point_after_alignment_original_pixels': [50.0, 50.0], 'point_original_pixels': [50, 50]}, 'distance_pixels': 1.0, 'set_to_original_pixels': [50, 50], 'requires_synchronous_target_endpoint_move': False} != {'path': 'plan.partiti...&#10;  &#10;  ...Full output truncated (2 lines hidden), use '-vv' to show">def test_disconnected_endpoint_reports_nearest_declared_line_without_snapping():
+        plan = _plan()
+        plan['partitions'][1]['points'][-1] = [49, 50]
+        before = copy.deepcopy(plan)
+        with pytest.raises(ValueError) as exc:
+            compile_plan_partition(plan, image_size=(100, 100), image_name='plan.png')
+        message = str(exc.value)
+        assert "'nearest_line': 'P_vertical'" in message
+        assert "'distance_pixels': 1.0" in message
+        assert 'no automatic snapping' in message
+        hint = plan_error_hint(plan, message)
+        assert hint['path'] == 'plan.partitions[1].points[1]'
+&gt;       assert hint['junction_repairs'] == [{
+            'path': 'plan.partitions[1].points[1]',
+            'partition_id': 'P_horizontal',
+            'original_endpoint_pixel': [49, 50],
+            'failed_endpoint_pixel': [49.0, 50.0],
+            'target': {
+                'path': 'plan.partitions[0].points',
+                'partition_id': 'P_vertical',
+                'segment_index': 0,
+                'segment_original_pixels': [[50, 0], [50, 100]],
+                'line_id': 'P_vertical',
+                'reported_point_after_alignment_original_pixels': [50.0, 50.0],
+                'point_original_pixels': [50.0, 50.0],
+            },
+            'set_to_original_pixels': [50.0, 50.0],
+            'requires_synchronous_target_endpoint_move': False,
+            'distance_pixels': 1.0,
+        }]
+E       AssertionError: assert [{'distance_p...branch', ...}] == [{'distance_p...zontal', ...}]
+E         
+E         At index 0 diff: {'path': 'plan.partitions[1].points[1]', 'partition_id': 'P_left_branch', 'original_endpoint_pixel': [49, 50], 'failed_endpoint_pixel': [49.0, 50.0], 'target': {'path': 'plan.partitions[0].points', 'partition_id': 'P_vertical', 'segment_index': 0, 'segment_original_pixels': [[50, 10], [50, 50]], 'line_id': 'P_vertical', 'reported_point_after_alignment_original_pixels': [50.0, 50.0], 'point_original_pixels': [50, 50]}, 'distance_pixels': 1.0, 'set_to_original_pixels': [50, 50], 'requires_synchronous_target_endpoint_move': False} != {'path': 'plan.partiti...
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests\test_bim_a3t.py:69: AssertionError</failure></testcase><testcase classname="tests.test_bim_a3t" name="test_disconnected_endpoint_hint_maps_an_aligned_target_back_to_the_original_line" time="0.002"><failure message="assert [[50, 10], [50, 50]] == [[50, 0], [50, 100]]&#10;  &#10;  At index 0 diff: [50, 10] != [50, 0]&#10;  Use -v to get more diff">def test_disconnected_endpoint_hint_maps_an_aligned_target_back_to_the_original_line():
+        plan = _plan()
+        plan['partitions'][1]['points'][-1] = [49, 50]
+        message = (
+            "polygonize produced dangles: []; nearest disconnected endpoints: "
+            "[{'partition_id': 'P_horizontal', 'endpoint_pixel': [49.0, 50.0], "
+            "'nearest_line': 'P_vertical', 'distance_pixels': 2.0, "
+            "'nearest_point_pixel': [51.0, 50.0]}]; aligned draft")
+        repair = plan_error_hint(plan, message)['junction_repairs'][0]
+        assert repair['target']['reported_point_after_alignment_original_pixels'] == [51.0, 50.0]
+&gt;       assert repair['target']['segment_original_pixels'] == [[50, 0], [50, 100]]
+E       assert [[50, 10], [50, 50]] == [[50, 0], [50, 100]]
+E         
+E         At index 0 diff: [50, 10] != [50, 0]
+E         Use -v to get more diff
+
+tests\test_bim_a3t.py:100: AssertionError</failure></testcase><testcase classname="tests.test_bim_a3t" name="test_same_space_seed_hint_points_to_the_original_region_without_inventing_a_wall" time="0.002" /><testcase classname="tests.test_bim_a3t" name="test_compact_reply_keeps_usable_ids_geometry_images_and_complete_readback" time="5.882" /><testcase classname="tests.test_bim_regularization_integration" name="test_generic_build_and_revision_refuse_thin_spaces_without_allocating_candidates" time="0.173" /><testcase classname="tests.test_bim_regularization_integration" name="test_compact_audit_counts_delivered_merges_but_not_rejected_floor_attempts" time="0.001" /><testcase classname="tests.test_bim_a3t" name="test_only_identical_submitted_operations_are_deduplicated" time="0.001" /><testcase classname="tests.test_bim_a3t" name="test_fixed_parameter_values_are_in_catalog" time="3.502" /><testcase classname="tests.test_bim_a3t" name="test_empty_profile_explains_color_and_support_adjustments" time="0.037" /><testcase classname="tests.test_role_plan_revisions" name="test_reference_example_is_complete_compilable_and_present_in_reader_guidance" time="0.022"><failure message="AssertionError: assert 'automatically connects' in 'You are one drawing reader. You receive exactly one original image and a located task.\nUse only that image and its r...eject failed/stale trials; retry changed plans before\nsubmission. Correct named rejections, then acknowledge briefly.'">def test_reference_example_is_complete_compilable_and_present_in_reader_guidance():
+        assert plan_format_errors(PLAN_EXAMPLE) == []
+        proposal, _ = compile_plan_partition(PLAN_EXAMPLE, image_size=(12, 8), image_name="plan.png")
+        assert proposal
+        for stale in ("Even a failed trial is the next rework base", "base_plan_sha256", "finishing budget below"):
+            assert stale not in PLAN_READER_GUIDANCE
+&gt;       assert "automatically connects" in PLAN_READER_GUIDANCE
+E       AssertionError: assert 'automatically connects' in 'You are one drawing reader. You receive exactly one original image and a located task.\nUse only that image and its r...eject failed/stale trials; retry changed plans before\nsubmission. Correct named rejections, then acknowledge briefly.'
+
+tests\test_role_plan_revisions.py:30: AssertionError</failure></testcase><testcase classname="tests.test_role_plan_revisions" name="test_reader_example_is_the_reference_plan_at_image_scale" time="0.030" /><testcase classname="tests.test_role_plan_revisions" name="test_world_metre_points_and_invented_room_uses_are_named_before_compiling" time="0.008" /><testcase classname="tests.test_role_plan_revisions" name="test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_call" time="0.064" /><testcase classname="tests.test_role_plan_revisions" name="test_all_alias_conflicts_and_bad_quantities_are_listed_together" time="0.003" /><testcase classname="tests.test_role_plan_revisions" name="test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_last_success" time="0.052" /><testcase classname="tests.test_role_plan_revisions" name="test_all_shared_operation_kinds_and_failed_batch_leave_input_unchanged" time="0.002" /><testcase classname="tests.test_role_plan_revisions" name="test_role_tool_catalog_removes_manual_bookkeeping_and_accepts_only_one_mode" time="0.186" /><testcase classname="tests.test_role_plan_revisions" name="test_cross_task_operations_only_touch_named_targets_and_continue_from_new_baseline" time="0.026" /><testcase classname="tests.test_role_plan_revisions" name="test_failed_noop_revision_does_not_invalidate_prior_success_with_same_hash" time="0.016" /><testcase classname="tests.test_role_plan_revisions" name="test_invalid_operation_type_is_a_correctable_prewrite_rejection" time="0.009" /><testcase classname="tests.test_role_plan_revisions" name="test_topology_warnings_from_a_trial_without_geometry_do_not_bind" time="0.006" /><testcase classname="tests.test_role_plan_revisions" name="test_host_failure_lists_every_unhosted_opening_with_its_nearest_line" time="0.018" /><testcase classname="tests.test_role_plan_revisions" name="test_failed_trial_names_loose_divider_ends_and_source_self_check_findings" time="0.650" /><testcase classname="tests.test_role_plan_revisions" name="test_wall_reference_allows_distinct_lines_but_rejects_contradiction_per_category" time="0.002" /><testcase classname="tests.test_bim_a3t" name="test_report_detects_tampering_and_does_not_mutate_full_result" time="0.014" /></testsuite></testsuites>
