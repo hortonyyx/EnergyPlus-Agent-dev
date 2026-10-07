@@ -169,8 +169,9 @@ def test_trial_persists_images_and_resume_reuses_verified_receipt(tmp_path):
         assert any(path.name == "source_model.json" for path in first.artifacts())
         resumed_tools = Tools(workspace=workspace)
         resumed = PlanTrial(resumed_tools, image_name="plan.png", receipt_directory=receipts, workspace=workspace)
-        with pytest.raises(ValueError, match="use trial_plan_bim with operations"):
-            await resumed.call(value)
+        reused = await resumed.call(value)
+        assert reused["structuredContent"]["plan_sha256"] == full_receipt["plan_sha256"]
+        assert reused["structuredContent"]["status"] == "passed"
         assert resumed_tools.calls == []
         assert resumed._image_content(resumed.require_success(value))[0]["data"] == envelope["content"][0]["data"]
         assert resumed.delivery_receipt(value)["validation_passed"] is True

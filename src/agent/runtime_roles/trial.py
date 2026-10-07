@@ -15,7 +15,7 @@ from typing import Any
 from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
-from .plan_format import format_failure, plan_format_errors
+from .plan_format import audit_plan_replacement, format_failure, plan_format_errors
 from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
 
 
@@ -430,12 +430,23 @@ class PlanTrial:
         return blocks
 
     def baseline(self):
-        """Only a verified source-producing trial can advance the edit baseline."""
+        """Prefer a verified plan; before one exists, allow repairing a resolved draft.
+
+        A failed compiler result is editable, never submit-ready. Format/profile
+        failures have no resolved draft. Later failures do not replace a verified
+        baseline or an inherited plan with a narrower rework scope.
+        """
         prior = self._successful()
-        return (self.load_plan(prior), prior["plan_sha256"]) if prior else (
-            self.reference_plan,
-            canonical_plan_sha256(self.reference_plan) if self.reference_plan is not None else None,
-        )
+        if prior:
+            return self.load_plan(prior), prior["plan_sha256"]
+        if self.reference_plan is not None:
+            return copy.deepcopy(self.reference_plan), canonical_plan_sha256(self.reference_plan)
+        draft = next((row for row in reversed(self.receipts)
+                      if row.get("compiled_numeric_plan_sha256")), None)
+        if draft:
+            self.numeric_plan(draft)  # A resumed draft must retain its verified numeric product.
+            return self.load_plan(draft), draft["plan_sha256"]
+        return None, None
 
     def inherit_reference(self, prior, plan_sha256, allowed_targets):
         from src.agent.geometry.plan_revision import SCALARS, COLLECTIONS
@@ -467,17 +478,12 @@ class PlanTrial:
         preservation = None
         if operations is not None:
             if previous_plan is None:
-                raise ValueError("No source geometry baseline yet; submit a complete plan until a trial produces geometry")
+                raise ValueError("No editable plan yet; submit a complete plan with valid fields and pixel references")
             manifest_path = self.workspace / "inputs.json" if self.workspace else None
             image_size = (json.loads(manifest_path.read_bytes()).get("images", {}).get(self.image_name, {}).get("size")
                           if manifest_path and manifest_path.is_file() else None)
             plan, preservation = revise_operations(previous_plan, operations, image_size=image_size,
-                                                   allowed_targets=self.allowed_rework_targets)
-        elif previous_plan is not None:
-            raise ValueError('Source geometry already exists; use trial_plan_bim with operations, not a full plan. '
-                             'Minimum correct example: {"operations":[{"op":"update","collection":"openings",'
-                             '"id":"W1","changes":{"p2":[1,3]},"reason":"correct observed endpoint",'
-                             '"source_refs":["original image window"],"bbox":[0,0,10,10]}]}')
+                                                   allowed_targets=None)
         if not isinstance(plan, Mapping):
             raise ValueError("trial plan must be an object")
         errors = plan_format_errors(plan)
@@ -485,6 +491,10 @@ class PlanTrial:
             normalized, _ = normalize_plan_fields(dict(plan))
         except (ValueError, TypeError, KeyError):
             normalized = copy.deepcopy(dict(plan))
+        if previous_plan is not None and not errors:
+            audit = audit_plan_replacement(previous_plan, normalized,
+                                          allowed_targets=self.allowed_rework_targets)
+            preservation = {**(preservation or {}), **audit}
         try:
             plan_bytes = _plan_bytes(normalized)
         except ValueError:
@@ -518,6 +528,7 @@ class PlanTrial:
         except (ValueError, TypeError, KeyError) as error:
             receipt = {
                 "status": "failed",
+                "trial_id": f"trial_{number:03d}",
                 "plan_sha256": plan_hash,
                 "original_plan_sha256": plan_hash,
                 "image": self.image_name,
@@ -591,6 +602,7 @@ class PlanTrial:
                      }))
         receipt: dict[str, Any] = {
             "status": "passed" if ready else "failed",
+            "trial_id": f"trial_{number:03d}",
             "plan_sha256": plan_hash,
             "original_plan_sha256": plan_hash,
             "image": self.image_name,
@@ -713,7 +725,7 @@ class PlanTrial:
             if not path.is_file() or _file_sha256(path) != receipt["plan_sha256"]:
                 raise ValueError("trial input plan hash mismatch")
             return json.loads(path.read_bytes())
-        return self._memory_plans[receipt["plan_sha256"]]
+        return copy.deepcopy(self._memory_plans[receipt["plan_sha256"]])
 
     def numeric_plan(self, receipt):
         if receipt.get("compiled_numeric_plan_file") and self.workspace is not None:
@@ -721,7 +733,7 @@ class PlanTrial:
             if not path.is_file() or _file_sha256(path) != receipt["compiled_numeric_plan_sha256"]:
                 raise ValueError("trial numeric plan hash mismatch")
             return json.loads(path.read_bytes())
-        return self._memory_numeric[receipt["plan_sha256"]]
+        return copy.deepcopy(self._memory_numeric[receipt["plan_sha256"]])
 
     def verified_plan(self, plan_sha256):
         receipt = self._successful(plan_sha256)

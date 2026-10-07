@@ -196,6 +196,58 @@ def _evidence_targets(plan: Mapping[str, Any]) -> set[str]:
     return targets
 
 
+def pixel_box(points, *, image_size=None, padding=2):
+    """Locate declared pixels, not a new visual observation or dimension reading."""
+    if not points or any(not isinstance(point, (list, tuple)) or len(point) != 2
+                         or not all(_finite_number(value) for value in point) for point in points):
+        raise ValueError("automatic evidence requires resolved original-image pixels")
+    xs, ys = zip(*points)
+    if min(xs) < 0 or min(ys) < 0 or (image_size and (
+            max(xs) > image_size[0] or max(ys) > image_size[1])):
+        raise ValueError("declared evidence pixels lie outside the original image")
+    bounds = [max(0, min(xs) - padding), max(0, min(ys) - padding),
+              max(xs) + padding, max(ys) + padding]
+    if image_size:
+        bounds[2], bounds[3] = min(image_size[0], bounds[2]), min(image_size[1], bounds[3])
+    from .plan_review import box
+    return box(bounds, image_size)
+
+
+def automatic_plan_evidence(plan, *, image_name, image_size=None):
+    """Keep the existing artifact contract, with boxes from the verified numeric plan.
+
+    Anchors have only one pixel axis. Their boxes are coordinate bands across the
+    footprint, not invented locations of printed dimensions. Original references,
+    assumptions and unresolved statements remain in the immutable plan.
+    """
+    ring = plan["footprint_pixels"]
+    xs, ys = zip(*ring)
+    rows = []
+
+    def add(item, points, basis):
+        rows.append({"item": item, "source": image_name,
+                     "bbox": pixel_box(points, image_size=image_size), "basis": basis})
+
+    for axis, other in (("x", ys), ("y", xs)):
+        positions = [row[0] for row in plan[f"{axis}_anchors"]]
+        points = ([[value, bound] if axis == "x" else [bound, value]
+                   for value in positions for bound in (min(other), max(other))])
+        add(f"plan.{axis}_anchors", points,
+            f"Derived {axis}-anchor coordinate band; the perpendicular dimension-text location is not supplied. "
+            "Calibration interpretation remains in plan.basis; this box is not verification of the annotation.")
+    add("plan.footprint_pixels", ring,
+        "Derived footprint extent from trial pixels; observation and assumptions remain in plan.basis/assumptions.")
+    for collection in ("partitions", "space_seeds", "openings"):
+        for row in plan.get(collection, []):
+            points = (row["points"] if collection == "partitions" else
+                      [row["point"]] if collection == "space_seeds" else [row["p1"], row["p2"]])
+            add(f"plan.{collection}:{row['id']}", points,
+                "Derived location of the trial declaration, not an observation verdict. "
+                + "Source descriptions: " + "; ".join(row.get("source_refs", []))
+                + (". Assumptions: " + "; ".join(row["assumptions"]) if row.get("assumptions") else ""))
+    return rows
+
+
 def validate_plan_artifact(value: object, *, image_name: str | None = None) -> dict[str, Any]:
     """Return the normalized plan-reader artifact or a repair-oriented ValueError.
 
@@ -387,7 +439,7 @@ class ReaderTools:
         if self.role_id == "plan_reader":
             tools.append({
                 "name": "trial_plan_bim",
-                "description": "Compile/check/overlay one isolated plan. Before source geometry exists, submit a full plan; format/compile failures never become the baseline. After geometry exists, send operations (update/add/remove/set), each with reason, source_refs and bbox; the tool remembers the baseline and preserves untouched declarations. Failed revisions keep it. Submit the successful hash using submit_plan_reading.",
+                "description": "Compile/check/overlay one isolated plan. Send a full plan or operations (update/add/remove/set). Operations use the remembered verified plan, or the latest resolved draft before any passes. Each operation needs reason, source_refs and bbox. Rework preserves unpointed objects; notes are not geometry edits. Only passed trials can be submitted.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {"plan": {"type": "object"},
@@ -452,7 +504,7 @@ class ReaderTools:
                 or (set(arguments) == {"operations"} and isinstance(arguments["operations"], list))
             ):
                 raise _minimum("trial_plan_bim", {"plan": {}},
-                               "requires one plan object before geometry, or operations after geometry; never both")
+                               "requires one complete plan or operations against a remembered plan; never both")
             self._enforce_single_image(arguments, plan_object=name == "trial_plan_bim")
         except ValueError as error:
             if name not in {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}:
