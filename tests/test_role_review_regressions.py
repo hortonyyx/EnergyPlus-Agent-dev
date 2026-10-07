@@ -94,10 +94,11 @@ def test_rework_change_bbox_must_be_inside_original_image(tmp_path):
     async def scenario():
         (tmp_path / "images").mkdir()
         image = tmp_path / "images" / "plan.png"
-        Image.new("RGB", (100, 100), "white").save(image)
+        # Shared plan() uses original-image coordinates through pixel 110.
+        Image.new("RGB", (120, 120), "white").save(image)
         (tmp_path / "inputs.json").write_text(json.dumps({
             "images": {"plan.png": {
-                "size": [100, 100],
+                "size": [120, 120],
                 "sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
             }},
         }), encoding="utf-8", newline="\n")

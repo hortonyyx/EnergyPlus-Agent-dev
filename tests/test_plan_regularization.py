@@ -12,6 +12,7 @@ from src.agent.geometry.plan_regularization import (
     _calibration,
     _plan_digest,
     enforce_regularized_plan,
+    prepare_plan_junctions,
     regularize_plan,
     regularize_plan_stack,
     validate_regularized_plan,
@@ -63,6 +64,103 @@ def test_direct_compiler_remains_literal_until_regularization_is_explicit():
     assert plan == original
     assert len(proposal["geometry"]["floors"][0]["cells"]) == 3
     assert metadata["method"]["snap"] is False
+
+
+@pytest.mark.parametrize("terminal_x", [39.9996, 40.0004])
+def test_precompile_joins_tiny_gap_or_overshoot_and_projects_whole_opening(terminal_x):
+    plan = _plan(
+        [("vertical", [[40, 0], [40, 100]]),
+         ("horizontal", [[0, 50], [terminal_x, 50]])],
+        seeds=[{"id": "upper", "point": [20, 20]},
+               {"id": "lower", "point": [20, 70]},
+               {"id": "right", "point": [80, 50]}],
+        openings=[{**_door("door", 0), "p1": [10, 50.0004], "p2": [20, 50.0004]}],
+    )
+    original = copy.deepcopy(plan)
+    with pytest.raises(ValueError):
+        compile_plan_partition(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+    prepared, report = prepare_plan_junctions(plan, image_size=IMAGE_SIZE)
+    proposal, _ = compile_plan_partition(prepared, image_size=IMAGE_SIZE, image_name="plan.png")
+    assert prepared["partitions"][1]["points"][-1] == [40, 50]
+    assert prepared["openings"][0]["p1"] == [10, 50]
+    assert prepared["openings"][0]["p2"] == [20, 50]
+    assert len(proposal["geometry"]["floors"][0]["cells"]) == 3
+    assert prepared["space_seeds"] == plan["space_seeds"]
+    assert plan == original and report["status"] == "applied"
+    assert {row["type"] for row in report["changes"]} == {
+        "join_near_endpoint", "project_opening_to_host"}
+    assert max(report["tolerance_m"].values()) <= .30
+
+
+def test_precompile_rolls_back_all_edits_if_a_real_missing_divider_remains():
+    plan = _plan(
+        [("A", [[40, 0], [40, 100]]), ("B", [[0, 50], [39.9996, 50]])],
+        seeds=[{"id": "first", "point": [10, 20]}, {"id": "second", "point": [20, 20]}],
+    )
+    prepared, report = prepare_plan_junctions(plan, image_size=IMAGE_SIZE)
+    assert prepared == plan and report["status"] == "rolled_back"
+    assert report["changes"] == [] and report["attempted_changes"]
+    assert "first and second occupy the same space" in report["compile_error"]
+    with pytest.raises(PlanRegularizationError) as caught:
+        regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+    assert caught.value.report["changes"] == []
+    assert caught.value.report["junction_preparation"] == report
+
+
+def test_precompile_never_bridges_over_tolerance_or_shortens_openings():
+    for plan in (
+        _plan([("too-far", [[3.01, 50], [100, 50]])]),
+        _plan([("L", [[40, 0], [40, 50], [100, 50]])],
+              openings=[_door("long-door", 40.001, 40, 70)]),
+    ):
+        prepared, report = prepare_plan_junctions(plan, image_size=IMAGE_SIZE)
+        assert prepared == plan and report["compile_error"]
+        assert report["changes"] == []
+
+
+def test_precompile_partial_collinear_overlap_preserves_union_and_declared_rooms():
+    plan = _plan(
+        [("top", [[40, 0], [40, 60]]), ("bottom", [[40, 40], [40, 100]])],
+        seeds=[{"id": "left", "point": [20, 50]}, {"id": "right", "point": [70, 50]}],
+    )
+    prepared, report = prepare_plan_junctions(plan, image_size=IMAGE_SIZE)
+    proposal, _ = compile_plan_partition(prepared, image_size=IMAGE_SIZE, image_name="plan.png")
+    assert len(proposal["geometry"]["floors"][0]["cells"]) == 2
+    assert [row["id"] for row in prepared["partitions"]] == ["top", "bottom"]
+    assert prepared["partitions"][1]["points"] == [[40, 60], [40, 100]]
+    assert prepared["space_seeds"] == plan["space_seeds"]
+    assert report["changes"][0]["partition_id"] == "bottom"
+
+
+def test_precompile_respects_total_movement_and_equal_target_ambiguity():
+    for partitions in (
+        [("short-vertical", [[40, 0], [40, 47.5]]),
+         ("short-horizontal", [[42.5, 50], [100, 50]])],
+        [("vertical", [[40, 0], [40, 50]]),
+         ("upper", [[0, 49], [100, 49]]),
+         ("lower", [[0, 51], [100, 51]])],
+    ):
+        plan = _plan(partitions)
+        prepared, report = prepare_plan_junctions(plan, image_size=IMAGE_SIZE)
+        assert prepared == plan
+        assert not report["changes"]
+        assert not any(row["type"] == "join_near_endpoint" for row in report["attempted_changes"])
+
+
+def test_duplicate_cleanup_transfers_dimension_evidence_to_retained_wall():
+    plan = _plan([("first", [[40, 0], [40, 100]]),
+                  ("dimensioned", [[40, 0], [40, 100]]),
+                  ("nearby", [[42, 0], [42, 100]])])
+    plan["regularization_inputs"] = {"line_references": [
+        {"partition_id": "dimensioned", "basis": "dimension", "source_refs": ["dimension:40"]}]}
+    prepared, report = prepare_plan_junctions(plan, image_size=IMAGE_SIZE)
+    assert prepared["regularization_inputs"]["line_references"] == [
+        {"partition_id": "first", "basis": "dimension", "source_refs": ["dimension:40"]}]
+    assert "drawing:dimensioned" in prepared["partitions"][0]["source_refs"]
+    assert report["changes"][0]["reference_survivor_ids"] == ["first"]
+    regularized, _ = regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+    assert [row["id"] for row in regularized["partitions"]] == ["first"]
+    assert regularized["partitions"][0]["points"] == [[40, 0], [40, 100]]
 
 
 def test_saved_rule_metadata_only_short_circuits_the_exact_saved_plan():
@@ -284,8 +382,8 @@ def test_exactly_overlapping_internal_wall_lines_are_deduplicated():
 
     assert [row["id"] for row in regularized["partitions"]] == ["A"]
     merge = next(row for row in report["changes"]
-                 if row["type"] == "merge_duplicate_wall_lines")
-    assert merge["removed_partition_id"] == "B"
+                 if row["type"] == "remove_redundant_partition_segments")
+    assert merge["partition_id"] == "B" and merge["surviving_partition_ids"] == []
     assert merge["movement_m"] == 0
     assert report["hard_constraints"]["status"] == "pass"
 
@@ -298,8 +396,8 @@ def test_internal_wall_exactly_on_fixed_footprint_is_deduplicated():
 
     assert regularized["partitions"] == []
     merge = next(row for row in report["changes"]
-                 if row["type"] == "merge_duplicate_wall_into_fixed_footprint")
-    assert merge["removed_partition_id"] == "duplicate-west"
+                 if row["type"] == "remove_redundant_partition_segments")
+    assert merge["partition_id"] == "duplicate-west" and merge["surviving_partition_ids"] == []
     assert merge["movement_m"] == 0
     assert report["hard_constraints"]["status"] == "pass"
 
@@ -373,10 +471,10 @@ def test_polyline_leg_can_merge_into_fixed_footprint_without_moving_outline():
 
     assert regularized["footprint_pixels"] == footprint_before
     assert [(row["id"], row["points"]) for row in regularized["partitions"]] == [
-        ("poly::segment-2", [[0.0, 50], [100, 50]]),
+        ("poly", [[0.0, 50], [100, 50]]),
     ]
     assert [row["type"] for row in report["changes"]] == [
-        "split_polyline_for_merge", "merge_duplicate_wall_into_fixed_footprint",
+        "join_partition_to_footprint", "remove_redundant_partition_segments",
     ]
     assert report["hard_constraints"]["status"] == "pass"
 
@@ -590,7 +688,7 @@ def test_fixed_footprint_absorbs_unprotected_duplicate_and_catches_near_endpoint
         suspended, image_size=IMAGE_SIZE, image_name="plan.png",
     )
     assert regularized["partitions"][0]["points"][0] == [0, 50]
-    assert any(row["type"] == "attach_suspended_endpoint" for row in report["changes"])
+    assert any(row["type"] == "join_near_endpoint" for row in report["changes"])
 
 
 def test_named_strip_at_fixed_footprint_is_eliminated_without_moving_outline():
@@ -706,7 +804,7 @@ def test_adjacent_footprint_merges_remove_only_the_endpoint_collapsed_remainder(
     collapsed = next(row for row in report["changes"]
                      if row["type"] == "remove_collapsed_wall_step")
     assert collapsed["partition_id"] == "mwW"
-    assert collapsed["points_before"] == [[20.0, 52.0], [20.0, 50.0]]
+    assert set(map(tuple, collapsed["points_before"])) == {(20.0, 52.0), (20.0, 50.0)}
     assert collapsed["point_after"] == [20.0, 50.0]
     assert collapsed["movement_m"] == pytest.approx(.2)
     assert report["hard_constraints"]["status"] == "pass"
@@ -736,22 +834,18 @@ def test_adjacent_footprint_merge_does_not_collapse_an_opening_host():
     assert conflict["opening_ids"] == ["remainder-door"]
 
 
-def test_zero_distance_footprint_merge_does_not_remove_preexisting_degenerate_input():
+def test_junction_preparation_removes_zero_length_and_duplicate_segments_with_audit():
     plan = _plan([
         ("duplicate-west", [[0, 0], [0, 100]]),
         ("preexisting-degenerate", [[0, 50], [0, 50]]),
     ])
 
-    with pytest.raises(PlanRegularizationError) as caught:
-        regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
-
-    report = caught.value.report
-    assert report["changes"] == []
-    assert not any(row["type"] == "remove_collapsed_wall_step"
-                   for row in report["attempted_changes"])
-    compile_failure = next(row for row in report["rejections"]
-                           if row["type"] == "strict_compile_failed_after_regularization")
-    assert "preexisting-degenerate segment 0 is degenerate" in compile_failure["error"]
+    prepared, report = regularize_plan(plan, image_size=IMAGE_SIZE, image_name="plan.png")
+    assert prepared["partitions"] == []
+    assert {row["partition_id"] for row in report["changes"]} == {
+        "duplicate-west", "preexisting-degenerate"}
+    assert all(row["type"] == "remove_redundant_partition_segments" for row in report["changes"])
+    assert report["hard_constraints"]["status"] == "pass"
 
 
 def test_strict_less_than_0_30_does_not_merge_exact_threshold_but_width_gate_rejects():

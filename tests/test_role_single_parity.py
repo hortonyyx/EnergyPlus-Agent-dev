@@ -69,9 +69,10 @@ def test_single_configuration_loading_and_argv_match_the_dispatch_baseline():
 
 def test_first_request_sources_are_byte_identical_to_the_dispatch_baseline():
     permitted = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/intentional_model_text_changes.json").read_text(encoding="utf-8"))
+    junction_wording = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-08_quality_q1b/intentional_model_text_changes.json").read_text(encoding="utf-8"))
     for relative in FIRST_REQUEST_SOURCES:
         expected = git_bytes(relative)
-        for replacement in permitted.get(relative, []):
+        for replacement in [*permitted.get(relative, []), *junction_wording.get(relative, [])]:
             before, after = replacement["before"].encode(), replacement["after"].encode()
             assert expected.count(before) == 1, relative
             expected = expected.replace(before, after, 1)

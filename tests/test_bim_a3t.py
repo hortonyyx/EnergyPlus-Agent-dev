@@ -8,6 +8,7 @@ import pytest
 
 from scripts.tool_scripts.run_bim_agent import Toolkit
 from scripts.tool_scripts.bim_agent_replies import compact_reply, read_report, summarize_reply
+from src.agent.geometry.plan_input import plan_error_hint
 from src.agent.geometry.plan_partition import compile_plan_partition
 from tests.test_bim_agent_plan_partition import example
 from tests.test_bim_agent_tools import _json_result, _run_with_one_image, _server_session
@@ -63,7 +64,60 @@ def test_disconnected_endpoint_reports_nearest_declared_line_without_snapping():
     assert "'nearest_line': 'P_vertical'" in message
     assert "'distance_pixels': 1.0" in message
     assert 'no automatic snapping' in message
+    hint = plan_error_hint(plan, message)
+    assert hint['path'] == 'plan.partitions[1].points[1]'
+    assert hint['junction_repairs'] == [{
+        'path': 'plan.partitions[1].points[1]',
+        'partition_id': 'P_left_branch',
+        'original_endpoint_pixel': [49, 50],
+        'failed_endpoint_pixel': [49.0, 50.0],
+        'target': {
+            'path': 'plan.partitions[0].points',
+            'partition_id': 'P_vertical',
+            'segment_index': 0,
+            'segment_original_pixels': [[50, 10], [50, 50]],
+            'line_id': 'P_vertical',
+            'reported_point_after_alignment_original_pixels': [50.0, 50.0],
+            'point_original_pixels': [50.0, 50.0],
+        },
+        'set_to_original_pixels': [50.0, 50.0],
+        'requires_synchronous_target_endpoint_move': False,
+        'distance_pixels': 1.0,
+    }]
     assert plan == before
+
+
+def test_disconnected_endpoint_hint_maps_an_aligned_target_back_to_the_original_line():
+    plan = _plan()
+    plan['partitions'][1]['points'][-1] = [49, 50]
+    message = (
+        "polygonize produced dangles: []; nearest disconnected endpoints: "
+        "[{'partition_id': 'P_left_branch', 'endpoint_pixel': [49.0, 50.0], "
+        "'nearest_line': 'P_vertical', 'distance_pixels': 2.0, "
+        "'nearest_point_pixel': [51.0, 50.0]}]; aligned draft")
+    repair = plan_error_hint(plan, message)['junction_repairs'][0]
+    assert repair['target']['reported_point_after_alignment_original_pixels'] == [51.0, 50.0]
+    assert repair['target']['segment_original_pixels'] == [[50, 10], [50, 50]]
+    assert repair['set_to_original_pixels'] == [50, 50]
+    assert repair['requires_synchronous_target_endpoint_move'] is False
+
+
+def test_same_space_seed_hint_points_to_the_original_region_without_inventing_a_wall():
+    plan = _plan()
+    plan['space_seeds'] = [
+        {'id': 'west-a', 'point': [20, 20]},
+        {'id': 'west-b', 'point': [30, 40]},
+    ]
+    hint = plan_error_hint(plan, 'space seeds west-a and west-b occupy the same space')
+    assert [row['path'] for row in hint['space_seeds']] == [
+        'plan.space_seeds[0]', 'plan.space_seeds[1]']
+    assert hint['missing_wall_check'] == {
+        'between_seed_points_original_pixels': [[20, 20], [30, 40]],
+        'midpoint_original_pixels': [25.0, 30.0],
+        'search_box_original_pixels': [20, 20, 30, 40],
+    }
+    assert 'only if that wall is visible' in hint['note']
+    assert 'does not create a wall' in hint['note']
 
 
 def test_compact_reply_keeps_usable_ids_geometry_images_and_complete_readback(tmp_path):

@@ -22,6 +22,7 @@ from src.agent.geometry.source_image_overlay import _axis_anchors
 RULE_VERSION = "plan_regularization_v1"
 ALIGNMENT_THRESHOLD_M = 0.30
 MIN_SPACE_WIDTH_M = 0.60
+PIXEL_DECIMALS = 9
 _EPS = 1e-8
 
 
@@ -78,9 +79,11 @@ def _pixel_coordinate(calibration: dict, axis: str, value_m: float) -> float:
     row = calibration[axis]
     pixel = (value_m - row["offset"]) / row["slope"]
     nearest_integer = round(pixel)
-    if math.isclose(pixel, nearest_integer, abs_tol=1e-9):
+    if math.isclose(pixel, nearest_integer, rel_tol=0.0, abs_tol=1e-9):
         return float(nearest_integer)
-    return pixel
+    # Match the precompile pixel precision; inverse world calibration must not
+    # reopen an exactly joined endpoint with a neighbouring binary float.
+    return round(pixel, PIXEL_DECIMALS)
 
 
 def _axis_segment(first: list[float], second: list[float], calibration: dict) -> dict | None:
@@ -1528,6 +1531,294 @@ def _eliminated_strip_spaces(plan: dict, calibration: dict,
     return eliminated
 
 
+def _junction_lines(plan: dict) -> list[dict]:
+    """Pixel lines referencing the actual mutable endpoint lists."""
+    rows = []
+    ring = plan["footprint_pixels"]
+    groups = [(f"footprint[{i}]", None, [a, b])
+              for i, (a, b) in enumerate(zip(ring, ring[1:] + ring[:1]))]
+    groups += [(row["id"], row, row["points"]) for row in plan["partitions"]]
+    for identity, partition, points in groups:
+        for index, (a, b) in enumerate(zip(points, points[1:])):
+            if a == b:
+                continue
+            axis = 0 if a[0] == b[0] else 1 if a[1] == b[1] else None
+            if axis is not None:
+                rows.append(dict(id=identity, partition=partition, index=index, a=a, b=b,
+                                 axis=axis, at=a[axis], span=sorted((a[1-axis], b[1-axis]))))
+    return rows
+
+
+def _junction_cleanup(plan: dict, changes: list[dict]) -> None:
+    """Remove only zero-length and exactly covered linework, never a wall gap."""
+    from shapely.ops import linemerge
+
+    covered = Polygon(plan["footprint_pixels"]).boundary
+    footprint_edges = [row for row in _junction_lines(plan) if row["partition"] is None]
+    kept, replacements = [], {}
+    used_ids = {row["id"] for row in plan["partitions"]}
+    for row in plan["partitions"]:
+        points = row["points"]
+        line = unary_union([LineString([a, b]) for a, b in zip(points, points[1:]) if a != b])
+        remaining = line.difference(covered)
+        if remaining.geom_type == "MultiLineString":
+            remaining = linemerge(remaining)
+        parts = ([remaining] if remaining.geom_type == "LineString" else
+                 list(getattr(remaining, "geoms", [])))
+        parts = [p for p in parts if p.geom_type == "LineString" and p.length > 0]
+        unchanged = (all(a != b for a, b in zip(points, points[1:]))
+                     and LineString(points).is_simple and line.equals(remaining))
+        if unchanged:
+            kept.append(row)
+            covered = unary_union([covered, line])
+            continue
+        reference_targets = []
+        for retained in kept:
+            if line.intersection(LineString(retained["points"])).length > 0:
+                reference_targets.append(retained["id"])
+                retained["source_refs"] = list(dict.fromkeys(
+                    [*retained["source_refs"], *row["source_refs"]]))
+        reference_targets.extend(
+            edge["id"] for edge in footprint_edges
+            if line.intersection(LineString([edge["a"], edge["b"]])).length > 0)
+        survivors = []
+        for index, part in enumerate(sorted(parts, key=lambda p: (p.bounds, p.wkt))):
+            identity = row["id"]
+            if index:
+                suffix = index + 1
+                identity = f"{row['id']}__junction_{suffix}"
+                while identity in used_ids:
+                    suffix += 1
+                    identity = f"{row['id']}__junction_{suffix}"
+                used_ids.add(identity)
+            item = copy.deepcopy(row)
+            item.update(id=identity, points=[list(p) for p in part.coords])
+            kept.append(item)
+            survivors.append(identity)
+        replacements[row["id"]] = list(dict.fromkeys([*survivors, *reference_targets]))
+        changes.append(dict(type="remove_redundant_partition_segments", partition_id=row["id"],
+                            before=copy.deepcopy(points),
+                            after=[copy.deepcopy(p["points"]) for p in kept if p["id"] in survivors],
+                            surviving_partition_ids=survivors, source_refs=copy.deepcopy(row["source_refs"]),
+                            reference_survivor_ids=replacements[row["id"]],
+                            movement_m=0.0, reason="zero-length segments or exact overlap with existing walls/footprint"))
+        covered = unary_union([covered, line])
+    plan["partitions"] = kept
+    inputs = plan.get("regularization_inputs", {})
+    if replacements and isinstance(inputs, dict) and "line_references" in inputs:
+        inputs["line_references"] = [
+            {**row, "partition_id": identity}
+            for row in inputs["line_references"]
+            for identity in replacements.get(row["partition_id"], [row["partition_id"]])]
+
+
+def prepare_plan_junctions(plan: dict, *, image_size: tuple[int, int],
+                           image_name: str = "plan") -> tuple[dict, dict]:
+    """Repair small pixel joins before literal compilation, or roll back.
+
+    Per-axis tolerance is max(5 cm, three pixels), capped at 30 cm. No seed or
+    opening is removed and no wall inferred. Failure or changed relationships
+    in a previously valid draft rolls back all edits; Q1 then runs separately.
+    """
+    from src.agent.geometry.plan_input import normalize_plan_fields
+    from src.agent.geometry.plan_partition import (
+        _OPENING_FIELDS, _PARTITION_FIELDS, _SEED_FIELDS, _fields, _point, _strings, _text,
+    )
+
+    original, _ = normalize_plan_fields(plan)
+    result = copy.deepcopy(original)
+    calibration = _calibration(result, image_size)
+    _regularization_inputs(result)  # Validate evidence before cleanup can remap it.
+    scales = [abs(calibration[axis]["slope"]) for axis in ("x", "y")]
+    tolerances = [min(ALIGNMENT_THRESHOLD_M, max(0.05, 3 * scale)) / scale for scale in scales]
+    before, before_error = _compile(original, image_size, image_name)
+    changes: list[dict] = []
+    for key in ("partitions", "openings", "space_seeds"):
+        if not isinstance(result.get(key, []), list):
+            raise TypeError(f"plan.{key} must be a list")
+    for index, row in enumerate(result["openings"]):
+        _fields(row, path=f"plan.openings[{index}]", allowed=_OPENING_FIELDS,
+                required=frozenset({"id", "kind", "p1", "p2", "z", "source_refs"}))
+    for index, row in enumerate(result.get("space_seeds", [])):
+        _fields(row, path=f"plan.space_seeds[{index}]", allowed=_SEED_FIELDS,
+                required=frozenset({"id", "point"}))
+    # Validate data which could disappear during deduplication.
+    seen = set()
+    for index, row in enumerate(result["partitions"]):
+        _fields(row, path=f"plan.partitions[{index}]", allowed=_PARTITION_FIELDS, required=_PARTITION_FIELDS)
+        identity = _text(row["id"], path=f"plan.partitions[{index}].id")
+        if identity in seen:
+            raise ValueError(f"duplicate partition id {identity!r}")
+        seen.add(identity)
+        _strings(row["source_refs"], path=f"partition {identity}.source_refs", require_one=True)
+        if not isinstance(row["points"], list) or len(row["points"]) < 2:
+            raise ValueError(f"partition {identity}: points must contain at least two points")
+    positions = [("footprint_pixels", result["footprint_pixels"])]
+    positions += [(f"partition {r['id']}", r["points"]) for r in result["partitions"]]
+    positions += [(f"opening {r.get('id')}", [r["p1"], r["p2"]]) for r in result["openings"]]
+    positions += [(f"space seed {r.get('id')}", [r["point"]]) for r in result.get("space_seeds", [])]
+    precision_changes = []
+    for identity, points in positions:
+        for index, point in enumerate(points):
+            _point(point, path=f"{identity}.points[{index}]", width=image_size[0], height=image_size[1])
+            rounded = [round(v, PIXEL_DECIMALS) for v in point]
+            if rounded != point:
+                precision_changes.append(dict(
+                    object=identity, point_index=index, before=list(point), after=rounded,
+                    movement_m=math.hypot(*[(a-b)*s for a,b,s in zip(point,rounded,scales)])))
+                point[:] = rounded
+    if precision_changes:
+        changes.append(dict(type="pixel_coordinate_precision", points=precision_changes,
+                            movement_m=max(row["movement_m"] for row in precision_changes)))
+    supported = all(a == b or a[0] == b[0] or a[1] == b[1]
+                    for _, points in positions[:1+len(result["partitions"])]
+                    for a, b in zip(points, points[1:]))
+    footprint = Polygon(result["footprint_pixels"])
+    if supported and footprint.is_valid and footprint.area > 0:
+        # Fixed outline: move a duplicate and attached endpoints atomically.
+        for _ in range(sum(len(r["points"]) for r in result["partitions"]) + 1):
+            lines = _junction_lines(result)
+            pair = None
+            for wall in lines:
+                if wall["partition"] is None:
+                    continue
+                targets = [e for e in lines if e["partition"] is None and e["axis"] == wall["axis"]
+                           and 0 < abs(e["at"]-wall["at"]) <= tolerances[wall["axis"]]
+                           and e["span"][0] <= wall["span"][0] <= wall["span"][1] <= e["span"][1]]
+                if targets:
+                    nearest = min(targets, key=lambda e: abs(e["at"]-wall["at"]))
+                    tied = [e for e in targets if math.isclose(
+                        abs(e["at"]-wall["at"]), abs(nearest["at"]-wall["at"]), abs_tol=1e-9)]
+                    if len({edge["at"] for edge in tied}) == 1:
+                        pair = wall, nearest
+                        break
+            if pair is None:
+                break
+            wall, edge = pair
+            axis, along, old = wall["axis"], 1-wall["axis"], wall["at"]
+            attached = []
+            for identity, points in positions[1:1+len(result["partitions"])]:
+                for index, point in enumerate(points):
+                    if point[axis] == old and wall["span"][0] <= point[along] <= wall["span"][1]:
+                        attached.append(dict(object=identity, point_index=index, before=list(point)))
+                        point[axis] = edge["at"]
+            for opening in result["openings"]:
+                if all(opening[k][axis] == old and wall["span"][0] <= opening[k][along] <= wall["span"][1] for k in ("p1","p2")):
+                    for key in ("p1", "p2"):
+                        attached.append(dict(object=f"opening {opening['id']}", point=key, before=list(opening[key])))
+                        opening[key][axis] = edge["at"]
+            changes.append(dict(type="join_partition_to_footprint", partition_id=wall["id"],
+                                target=edge["id"], from_pixel=old, to_pixel=edge["at"],
+                                movement_m=abs(old-edge["at"])*scales[axis], attached=attached))
+        _junction_cleanup(result, changes)
+        # Disconnected terminals move only along their own wall. Two short
+        # terminals may extend together to their existing lines' intersection.
+        for _ in range(max(1, 4*sum(len(r["points"]) for r in result["partitions"]))):
+            lines = _junction_lines(result)
+            candidates = []
+            for row in result["partitions"]:
+                for index, neighbor_index in ((0,1),(len(row["points"])-1,len(row["points"])-2)):
+                    point, neighbor = row["points"][index], row["points"][neighbor_index]
+                    own_axis = 0 if point[0] == neighbor[0] else 1 if point[1] == neighbor[1] else None
+                    if own_axis is None or point == neighbor:
+                        continue
+                    axis = 1-own_axis
+                    if any(w["partition"] is not row and point[w["axis"]] == w["at"]
+                           and w["span"][0] <= point[1-w["axis"]] <= w["span"][1] for w in lines):
+                        continue
+                    others = [w for w in lines if w["partition"] is not row and w["axis"] == axis]
+                    for wall in others:
+                        distance = abs(point[axis]-wall["at"])
+                        if (distance > tolerances[axis]
+                                or (wall["at"] - neighbor[axis]) * (point[axis] - neighbor[axis]) <= 0):
+                            continue
+                        reach = max(wall["span"][0]-point[own_axis],point[own_axis]-wall["span"][1],0)
+                        if reach > tolerances[own_axis] or (reach and wall["partition"] is None):
+                            continue
+                        other_endpoint = None
+                        if reach:
+                            other_endpoint = min((wall["a"],wall["b"]),key=lambda p:abs(p[own_axis]-point[own_axis]))
+                            other_points = wall["partition"]["points"]
+                            if not (other_endpoint is other_points[0] or other_endpoint is other_points[-1]):
+                                continue
+                            if any(w["partition"] is not wall["partition"] and w["axis"] == own_axis
+                                   and other_endpoint[own_axis] == w["at"]
+                                   and w["span"][0] <= other_endpoint[axis] <= w["span"][1] for w in lines):
+                                continue
+                        movement = math.hypot(distance*scales[axis], reach*scales[own_axis])
+                        if 0 < movement <= ALIGNMENT_THRESHOLD_M:
+                            candidates.append((movement,
+                                               row["id"],index,point,axis,wall,other_endpoint))
+            # Equal-distance alternatives on different target coordinates are
+            # ambiguous. Keep that endpoint for an explicit reader correction.
+            by_endpoint = defaultdict(list)
+            for candidate in candidates:
+                by_endpoint[candidate[1:3]].append(candidate)
+            candidates = []
+            for options in by_endpoint.values():
+                nearest = min(options, key=lambda c: c[0])
+                tied = [c for c in options if math.isclose(c[0], nearest[0], abs_tol=1e-9)]
+                if len({(c[5]["at"], tuple(c[6]) if c[6] is not None else None)
+                        for c in tied}) == 1:
+                    candidates.append(nearest)
+            if not candidates:
+                break
+            distance,identity,index,point,axis,wall,other_endpoint = min(candidates,key=lambda c:c[:3])
+            old = list(point)
+            other_before = list(other_endpoint) if other_endpoint is not None else None
+            point[axis] = wall["at"]
+            if other_endpoint is not None:
+                other_endpoint[1-axis] = point[1-axis]
+            changes.append(dict(type="join_near_endpoint",partition_id=identity,endpoint_index=index,
+                                before=old,after=list(point),target=wall["id"],target_endpoint_before=other_before,
+                                target_endpoint_after=list(other_endpoint) if other_endpoint is not None else None,
+                                movement_m=distance))
+        _junction_cleanup(result, changes)
+        # Project a whole opening normally onto one fully covering host line.
+        # Do not shorten it or bridge a missing piece of wall.
+        lines = _junction_lines(result)
+        for opening in result["openings"]:
+            a, b = opening["p1"], opening["p2"]
+            axis = 0 if a[0] == b[0] else 1 if a[1] == b[1] else None
+            if axis is None or a == b:
+                continue
+            candidates = []
+            for at in {w["at"] for w in lines if w["axis"] == axis}:
+                if abs(at-a[axis]) > tolerances[axis]:
+                    continue
+                hosts = [w for w in lines if w["axis"] == axis and w["at"] == at]
+                projected = [list(a), list(b)]
+                for p in projected:
+                    p[axis] = at
+                if unary_union([LineString([w["a"],w["b"]]) for w in hosts]).covers(LineString(projected)):
+                    candidates.append((abs(at-a[axis]),at,projected))
+            candidates.sort()
+            if not candidates or candidates[0][0] == 0:
+                continue
+            if len(candidates)>1 and math.isclose(candidates[0][0],candidates[1][0],abs_tol=1e-6):
+                continue
+            distance, at, projected = candidates[0]
+            changes.append(dict(type="project_opening_to_host",opening_id=opening["id"],
+                                before=[list(a),list(b)],after=copy.deepcopy(projected),movement_m=distance*scales[axis]))
+            a[:], b[:] = projected
+    after, after_error = _compile(result, image_size, image_name)
+    rejection = None
+    if before is not None and after is not None:
+        named = {r["id"] for r in original.get("space_seeds", [])}
+        if _relationship_signature(before,named_space_ids=named) != _relationship_signature(after,named_space_ids=named):
+            rejection = "Junction preparation would change rooms, opening hosts or connections; kept the original draft."
+    applied = bool(changes) and after_error is None and rejection is None
+    report = dict(schema="plan_junction_preparation_v1",status="applied" if applied else "rolled_back" if changes else "unchanged",
+                  floor_id=plan.get("floor_id"),pixel_decimals=PIXEL_DECIMALS,
+                  tolerance_m=dict(zip(("x","y"),(t*s for t,s in zip(tolerances,scales)))),
+                  tolerance_pixels=dict(zip(("x","y"),tolerances)),
+                  changes=changes if applied else [],attempted_changes=changes if not applied else [],
+                  compile_error_before=before_error,compile_error=after_error,rejection=rejection,
+                  declared_seed_count=len(original.get("space_seeds",[])),opening_count=len(original.get("openings",[])),
+                  space_count=sum(len(f["cells"]) for f in after["geometry"]["floors"]) if after is not None else None)
+    return (result if applied else original), report
+
+
 def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
                     rule_version: str = RULE_VERSION) -> tuple[dict, dict]:
     """Regularise one floor draft and return it with a persistent full report."""
@@ -1547,13 +1838,13 @@ def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
         replayed_report["hard_constraints"] = hard
         replayed_plan["regularization"] = copy.deepcopy(replayed_report)
         return replayed_plan, replayed_report
-    result = copy.deepcopy(plan)
+    result, preparation = prepare_plan_junctions(plan, image_size=image_size, image_name=image_name)
     result.pop("regularization", None)
     calibration = _calibration(result, image_size)
     line_refs, coordinate_refs = _regularization_inputs(result)
     original_separations = _separation_rows(_segments(result, calibration))
     before, _ = _compile(result, image_size, image_name)
-    changes: list[dict] = []
+    changes: list[dict] = copy.deepcopy(preparation["changes"])
     rejections: list[dict] = []
 
     # Close stepped representatives first; the shared connector is extended or
@@ -1715,10 +2006,11 @@ def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
             })
     status = "pass" if not rejections else "rejected"
     applied_changes = changes if status == "pass" else []
-    attempted_changes = [] if status == "pass" else changes
+    attempted_changes = [] if status == "pass" else [*preparation["attempted_changes"], *changes]
     semantic_mapping["status"] = "applied" if status == "pass" else "attempted_not_saved"
     report = {
         "schema": "plan_regularization_report_v1", "rule_version": rule_version,
+        "junction_preparation": preparation,
         "status": status, "floor_id": result.get("floor_id"),
         "plan_sha256": _plan_digest(result),
         "thresholds": {"alignment_strictly_less_than_m": ALIGNMENT_THRESHOLD_M,

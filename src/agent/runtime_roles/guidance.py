@@ -55,9 +55,10 @@ scale/origin; failed/internal chains never set an axis. Use outer perimeter face
 partition midlines; start_world_m is metres, axes keep East/North even with reversed ticks."""
 
 _PLAN_DRAFT = """4. Submit ALL floor walls, openings and room seeds together to trial_plan_bim, using
-approximate original pixels. The tool aligns nearby ink within 0.30m: outer perimeter
-faces, partition midlines and jambs; openings/junctions follow their wall. Dimensions
-override ink; missing ink is recorded without moving it. Complete plan example:
+approximate original pixels. Nearby ink is aligned; endpoints within the reported
+tolerance (at most 0.30m) connect automatically. If a junction still fails, set the
+named endpoint to the error's exact original-pixel target. Openings follow their wall.
+Dimensions override ink; missing ink is recorded without moving it. Complete plan example:
 {example}
 Replace synthetic values with observations. Use partitions[].points, openings[].p1/p2,
 space_seeds[].point, not wall/room polygons or opening room/space_id/facade fields.

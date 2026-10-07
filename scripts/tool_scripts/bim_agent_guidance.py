@@ -104,8 +104,10 @@ adding or removing a divider.
 
 5. RESOLVE THE DIFFERENCES. drawing_differences compares ink with declared
 walls/openings; zero covers only its stated scope. Plan builds and assembly
-regularize offsets strictly below 0.30 m before strict compilation. Remaining
-near faces or any room part narrower than 0.60 m reject the draft. Read the
+automatically connect endpoints within the reported tolerance (at most 0.30 m) before strict
+compilation and regularize eligible offsets below 0.30 m; if a junction still rejects,
+set its named endpoint to the exact original-pixel target in the error. Remaining near
+faces or any room part narrower than 0.60 m reject the draft. Read the
 regularization summary and saved full trace: same-floor merges keep the perimeter
 fixed; assembly also aligns near perimeter edges across floors. Openings follow
 their host. Repair rejected objects from evidence; check the source and overlay.
@@ -393,8 +395,10 @@ Nonorthogonal rings, holes and ambiguous hosts explicitly fail.
 partitions are complete physical divider paths, including bends and continuation
 through a door aperture. Put the aperture separately in openings. Shared path
 endpoints describe actual junctions. Before strict compilation, the build entry
-regularizes near parallel lines and dangling endpoints strictly below 0.30 m;
-it preserves the outer footprint and moves hosted openings with their wall.
+automatically joins endpoints within its reported tolerance (at most 0.30 m) and
+regularizes near parallel lines; a remaining junction error gives the named original-
+pixel endpoint and exact target to copy. It preserves the outer footprint and moves
+hosted openings with their wall.
 Targets prefer dimension references, then the perimeter, then the line shared
 by more walls/floors. Sub-0.30 m wall strips collapse even with named seeds:
 strip seeds are removed, hosted openings move to the retained line, overlapping
