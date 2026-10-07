@@ -119,7 +119,7 @@
 Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可写，仓库外的独立探测目录拒绝写入。首次设置写权限花了约 47 秒，设置完成后探测正常。容器时期“只能完全访问”的限制不再用于这台本机。
 
 **10-06 首次实际派工前，用 `codex sandbox -P :workspace` 逐项核对（0 次模型请求），修正了三处：**
-- **工作树位置：** 沙箱进程在 `%LOCALAPPDATA%` 下的目录启动不了（`CreateProcessWithLogonW failed: 267`）；桌面、用户目录、D 盘下的目录都实测可以。用户定“那就放桌面就行，反正要回收”：工作树放仓库旁的 `C:\Users\Horton\Desktop\EnergyPlus-Agent-worktrees\<任务名>`。每个约 3.6 GB（含 0.45 GB 虚拟环境），建一个约 40 秒；包合入后整个收回，没有在用的工作树时连这个文件夹也删掉。不放进仓库目录里：那样标准答案会多出一份副本，旧底座防偷看的路径规则管不到。
+- **工作树位置（10-07 起）：** 用户定“之后工作树都建在D盘，用完回收，收工时检查”。所有工作树（派工包与跑整案用的 `runs-<名>`）建在 `D:\EnergyPlus-Agent-worktrees\<任务名>`；包合入或整案运行目录拷回主树后立即收回，没有在用的工作树时连 `D:\EnergyPlus-Agent-worktrees` 也删掉。起因是 10-07 16:48 C 盘写满、全量检查被打断。沙箱进程在 `%LOCALAPPDATA%` 下启动不了（`CreateProcessWithLogonW failed: 267`），D 盘 10-06、10-07 两次实测可用。每个约 3.6 GB（含约 0.5 GB 虚拟环境），建一个约 40 秒。不放进仓库目录里：那样标准答案会多出一份副本，旧底座防偷看的路径规则管不到。C 盘桌面 `EnergyPlus-Agent-worktrees` 下的旧残留（沙箱建的受限目录）由用户以管理员权限删除。
 - **不能提交：** 工作空间写模式下所有 `.git` 都只读。工作树的 Git 目录、另加主仓库 `.git` 写权限、独立本地克隆自己的 `.git`，三种都写不进 `index.lock`。所以执行方不提交：改动留在工作树，报告给出建议的提交分组，由 Opus 复核后在工作树里提交。这是 Codex 对 Git 元数据的保护，不用绕开它的办法。
 - **启动方式：** 用 `Start-Process` 拉起的进程在工具调用结束后继续运行，不受 Claude Code 后台任务 2 小时上限影响。沙箱里用虚拟环境的完整路径能运行 Python，也能联网。
 
@@ -172,7 +172,7 @@ Get-FileHash -Algorithm SHA256 -LiteralPath $taskArchive
 - **工作树操作慢**：仓库工作树约 3 GB，机器忙时建或删一个工作树要 10–25 分钟；放后台执行、时限给足（10-04 一次 30 分钟时限中途被停，留下半截目录）。
 - **整案启动入口**：A2-R 起改为 `python -m src.agent.runtime_configuration check|command|launch <配置> --case <编号>`（原 `runtime_r1_preparation`）；按量计费线路可在配置里写人民币上限（A4-R）。
 **10-07 补充（夜间连续调试的做法）：**
-- **整案从固定提交的独立工作树启动**：`git worktree add --detach <EnergyPlus-Agent-worktrees>/runs-<名> <提交>`，`.venv` 用 `uv sync --frozen --offline --python 3.12`（缓存已有，离线约 1–2 分钟；在线同步曾遇代理 TLS 中断）。运行中不改该工作树的代码（新起的读图任务会做版本校验），主线可以照常合并；要测新版本时等当前整案退出，再 `git checkout --detach <新提交>` 后启动。运行目录退出后拷回主树 `AI_agent/archive/local_backup/` 再评估、打包，最后收回工作树。
+- **整案从固定提交的独立工作树启动**：`git worktree add --detach D:/EnergyPlus-Agent-worktrees/runs-<名> <提交>`，`.venv` 用 `uv sync --frozen --offline --python 3.12`（缓存已有，离线约 1–2 分钟；在线同步曾遇代理 TLS 中断）。运行中不改该工作树的代码（新起的读图任务会做版本校验），主线可以照常合并；要测新版本时等当前整案退出，再 `git checkout --detach <新提交>` 后启动。运行目录退出后拷回主树 `AI_agent/archive/local_backup/` 再评估、打包，最后收回工作树。
 - **GLM 订阅不同时跑两个整案**：10-07 两个分工整案同时跑（约 8 路并发）出现 429（代码 1302），单个整案的 5–8 路并发未见限流。整案配置的限流重试用 5 次、起始 4 秒（原 2 次、1 秒在限流下几秒就放弃）。可以写一个后台等待脚本，在上一个整案的退出文件出现后再切提交、启动下一个，避免重叠。
 - **登记含新文件的 Agent 版本要用 `--add-file KIND:PATH`**：登记表沿用上一版的文件清单，不会自动加入新模块（10-07 d1h.5／.6 漏登 `assembly.py`，到 b1.1 才补上）。合并别人登记过的分支时，取主线的登记表、合并后统一重新登记。
 - **派 Astra 后立即退出、事件里是 “workspace routing discovery failed”**：本机代理到 chatgpt.com 的 TLS 握手失败（同站其他子域、api.openai.com 正常）。后台每分钟用 curl 探测 chatgpt.com，返回 403（Cloudflare 对 curl 的正常反应）即恢复；把失败那次的事件与日志移进派工状态目录的子目录，再用同一个启动脚本重派。
