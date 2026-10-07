@@ -134,7 +134,8 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert tools["trial_plan_bim"] == len(plan_records)
     assert tools["submit_plan_reading"] == len(plan_records)
     assert tools["submit_elevation_reading"] == 4
-    assert tools["assemble_from_readers"] == 1
+    position_state = json.loads((fixture.output / "role_position_review.json").read_bytes())["items"]
+    assert tools["assemble_from_readers"] == (2 if any(row.get("decision") for row in position_state.values()) else 1)
     assert not any(tools[name] for name in (
         "read_role_artifact", "build_from_artifact", "match_elevation",
         "apply_elevation_heights", "assemble_plan_bim", "inspect_plan_draft"))
@@ -148,18 +149,29 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     source = json.loads((fixture.output / "bim" / assembled["candidate"] / "source_model.json").read_bytes())
     opening_z = {row["id"]: sorted({p[2] for p in row["vertices"]}) for row in source["openings"]}
 
-    matches = [
-        json.loads(path.read_bytes())
-        for path in (fixture.output / "role_matches").glob("*.json")
-    ]
+    latest_matches = {}
+    for path in sorted((fixture.output / "role_matches").glob("*.json"), key=lambda p: p.stat().st_mtime_ns):
+        value = json.loads(path.read_bytes())
+        latest_matches[value["task_id"]] = value
+    matches = list(latest_matches.values())
     assert len(matches) == 4
     assert all(row["result"]["matches"] for row in matches)
-    assert all(not row["result"]["conflicts"] for row in matches)
+    # Old replay x ranges can disagree with the independently read plan once
+    # Q2 recalculates their widths. They must be explicitly decided, not hidden.
+    positions = json.loads((fixture.output / "role_position_review.json").read_bytes())["items"]
+    assert all(row["status"] not in {"pending", "reread"} for row in positions.values())
+    for match in matches:
+        for conflict in match["result"]["conflicts"]:
+            assert conflict["type"] == "position_or_width_conflict"
+            assert any(row["source_opening_id"] == conflict["source_opening_id"]
+                       and row.get("decision", {}).get("choice") == "keep_plan" for row in positions.values())
     assert all(not row["result"]["source_only"] for row in matches)
     assert all(not row["result"]["elevation_only"] for row in matches)
     for match in matches:
         for row in match["result"]["matches"]:
             assert opening_z[row["source_opening_id"]] == [row["sill_m"], row["head_m"]]
+    delivery = json.loads((fixture.output / "bim/delivery.json").read_bytes())
+    assert delivery["position_review"]["items"] == positions
     accounting = result["role_accounting"]
     assert accounting["requests"] > 0
     assert accounting["by_role"]["coordinator"]["requests"] > 0
@@ -288,5 +300,7 @@ def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch,
     _assert_complete_pipeline(fixture, result, two_floors=False)
     operations = [json.loads(p.read_bytes()) for p in (fixture.output / "role_operations").glob("*.json")]
     assert sum(row["tool"] == "build_plan_bim" for row in operations) == 1
-    assert sum(row["tool"] == "claim_transaction" for row in operations) == 1
+    # One initial batch, plus one batch resolving previously conflicted heights
+    # after the scripted position choices; neither is repeated by recovery.
+    assert sum(row["tool"] == "claim_transaction" for row in operations) == 2
     assert len(list((fixture.output / "bim/plan_drafts").glob("draft_*"))) == 1

@@ -57,6 +57,16 @@ class Frozen:
     @asynccontextmanager
     async def task_session(*, directory, images, **kwargs):
         directory.mkdir(parents=True, exist_ok=True)
+        (directory / "images").mkdir(exist_ok=True)
+        manifest = {"images": {}}
+        for name, (raw, size) in images.items():
+            path = directory / "images" / name
+            if path.is_file():
+                assert path.read_bytes() == raw
+            else:
+                path.write_bytes(raw)
+            manifest["images"][name] = {"sha256": hashlib.sha256(raw).hexdigest(), "size": list(size)}
+        (directory / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8", newline="\n")
         yield Frozen(directory)
 
     async def list_tools(self):

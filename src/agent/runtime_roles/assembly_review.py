@@ -213,6 +213,318 @@ class AssemblyReview:
         return report
 
 
+class PositionReview:
+    """Durable, evidence-bound plan/elevation choices; no geometry averaging."""
+
+    def __init__(self, session):
+        self.session = session
+
+    def current(self):
+        return self.session.assembly._load("role_position_review.json", {"items": {}})
+
+    def _save(self, value):
+        for key, row in value["items"].items():
+            self.session.store.write_json("role_position_items/" + key + ".json", row)
+        self.session.store.write_json("role_position_review.json", value)
+
+    def bind(self, candidate, references, *, assembly_id, position_revision=None):
+        scope = {"task_ids": [row["task_id"] for row in references], "assembly_id": assembly_id,
+                 "assembled_position_revision": position_revision}
+        # finish_bim selects a candidate, so the latest explicit assembly of
+        # that candidate is active. Replaying an older assembly reactivates its
+        # own scope instead of consulting globally newer facade deliveries.
+        self.session.store.write_json("role_position_scopes/" + assembly_id + "/" + candidate + ".json", scope)
+        self.session.store.write_json("role_position_scopes/" + candidate + ".json", scope)
+        state = self.current()
+        state["items"] = {key: row for key, row in state["items"].items()
+                          if row["elevation_task_id"] in scope["task_ids"]}
+        self._save(state)
+
+    def _scope_record(self, candidate):
+        seen = set()
+        while candidate and candidate not in seen:
+            seen.add(candidate)
+            self.session._source(candidate)
+            scope = self.session.assembly._load("role_position_scopes/" + candidate + ".json", None)
+            if scope is not None:
+                return scope
+            path = self.session.run_directory / candidate / "report.json"
+            report = json.loads(path.read_bytes()) if path.is_file() else {}
+            candidate = (report.get("provenance") or {}).get("parent_candidate")
+        return None
+
+    def _scope(self, candidate):
+        record = self._scope_record(candidate)
+        return record["task_ids"] if record else None
+
+    def revision(self):
+        decisions = {key: row.get("decision") for key, row in self.current()["items"].items()}
+        return hashlib.sha256(json_bytes(decisions)).hexdigest()
+
+    @staticmethod
+    def _opening(source, identity):
+        opening = next((row for row in source["openings"] if row["id"] == identity), None)
+        if opening is None:
+            raise ValueError("position review opening no longer exists: " + identity)
+        return opening
+
+    @staticmethod
+    def _span(opening, axis):
+        index = 0 if axis == "x" else 1
+        return [min(p[index] for p in opening["vertices"]), max(p[index] for p in opening["vertices"])]
+
+    def _plan(self, comparison):
+        floor, identity = comparison["floor_id"], comparison["source_opening_id"]
+        binding = self.session.assembly._load("role_floor_sources.json", {}).get(floor)
+        if not binding:
+            return {"task_id": None, "image": None, "bbox": None,
+                    "span_m": comparison["plan_span_m"], "basis": "candidate; reader evidence unavailable"}
+        task = binding["task_id"]
+        artifact = self.session.registry.read(task, sha256=binding["artifact_sha256"], role_id="plan_reader")
+        receipt = self.session.registry.records[task]["validation"]
+        workspace = self.session.registry.child(task).task_directory / "bim/trial_workspace"
+        path = (workspace / receipt["candidate"] / "source_model.json").resolve()
+        if not path.is_relative_to(workspace.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != binding["source_sha256"]:
+            raise ValueError("position review plan trial source changed")
+        seed_id = identity.removeprefix(floor + ":")
+        source = json.loads(path.read_bytes())
+        opening = next((row for row in source["openings"] if row["id"] in {identity, seed_id}), None)
+        evidence = [row for row in artifact.get("evidence", []) if row.get("item") == "plan.openings:" + seed_id]
+        located = next((row for row in evidence if row.get("bbox")), {})
+        return {"task_id": task, "artifact_sha256": binding["artifact_sha256"],
+                "source_sha256": binding["source_sha256"], "candidate": receipt["candidate"],
+                "image": self.session.registry.records[task]["image"], "bbox": located.get("bbox"),
+                "span_m": self._span(opening, comparison["world_axis"]) if opening else None,
+                "basis": "accepted plan trial" if opening else "opening absent from accepted plan trial",
+                "evidence": evidence}
+
+    def record(self, task_id, candidate, result):
+        from .elevation import compare_opening_positions, attach_ink_review
+        source = self.session._source(candidate)
+        artifact_sha = self.session.registry.records[task_id]["artifact"]["sha256"]
+        state = self.current()
+        state["items"] = {key: row for key, row in state["items"].items() if row["elevation_task_id"] != task_id}
+        for comparison in result.get("position_comparisons", []):
+            plan = self._plan(comparison)
+            independent = (compare_opening_positions(plan["span_m"], comparison["elevation_span_m"])
+                if plan["span_m"] is not None else {
+                    "plan_span_m": None, "plan_width_m": None, "differences_m": None,
+                    "max_difference_m": None, "status": "reread", "bucket": "unavailable",
+                    "requires_both_views": False})
+            row = {**comparison, **independent, "candidate_span_m": comparison["plan_span_m"], "plan_evidence": plan,
+                   "elevation_task_id": task_id, "elevation_artifact_sha256": artifact_sha}
+            attach_ink_review(row, comparison.get("ink_inconsistencies", []))
+            # A height-only candidate change must not invalidate a choice. The
+            # two independent observations, including their evidence, do bind it.
+            identity = hashlib.sha256(json_bytes({key: row[key] for key in (
+                "source_opening_id", "artifact_opening_id", "floor_id", "world_axis", "plan_evidence",
+                "elevation_task_id", "elevation_artifact_sha256", "elevation_span_m")})).hexdigest()[:24]
+            row["decision_id"] = identity
+            row["candidate"] = candidate
+            opening = self._opening(source, row["source_opening_id"])
+            row["host_boundary_id"] = opening["host_boundary_id"]
+            row["space_ids"] = opening["space_ids"]
+            previous = state["items"].get(identity) or self.session.assembly._load(
+                "role_position_items/" + identity + ".json", {})
+            if previous.get("decision"):
+                row["decision"] = previous["decision"]
+                row["status"] = previous["status"]
+                row["host_boundary_id"] = previous["host_boundary_id"]
+                row["space_ids"] = previous["space_ids"]
+            for key, old in list(state["items"].items()):
+                if (old["orientation"], old["source_opening_id"]) == (row["orientation"], row["source_opening_id"]):
+                    del state["items"][key]
+            state["items"][identity] = row
+        self._save(state)
+
+    def refresh(self, candidate):
+        from .assembly import select_deliveries
+        from .elevation import match_elevation
+        # Preserve compatibility with partial/offline sessions without a plan
+        # delivery, but check any rows already established in those sessions.
+        try:
+            _, elevations, _ = select_deliveries(self.session, self._scope(candidate))
+        except ValueError as error:
+            if "no validated plan delivery" not in str(error):
+                raise
+            elevations = {}
+        if elevations:
+            state = self.current()
+            state["items"] = {key: row for key, row in state["items"].items()
+                              if row["elevation_task_id"] in elevations}
+            self._save(state)
+            source = self.session._source(candidate)
+            for task_id, artifact in elevations.items():
+                self.record(task_id, candidate, match_elevation(source, artifact, candidate=candidate))
+        return self.current()
+
+    def resolve_match(self, task_id, result):
+        """An explicit position choice establishes identity, never waives Z bounds."""
+        choices = {row["source_opening_id"]: row for row in self.current()["items"].values()
+                   if row["elevation_task_id"] == task_id and row["status"] == "decided"}
+        remaining, resolved = [], []
+        for conflict in result["conflicts"]:
+            row = choices.get(conflict.get("source_opening_id"))
+            if (row and conflict.get("type") == "position_or_width_conflict" and not conflict.get("ambiguous")
+                    and row["artifact_opening_id"] == conflict["artifact_opening_id"]):
+                accepted = {k: v for k, v in conflict.items() if k != "type"}
+                accepted.update(status="matched", position_decision_id=row["decision_id"])
+                result["matches"].append(accepted)
+                resolved.append({"decision_id": row["decision_id"], "opening": row["source_opening_id"]})
+            else:
+                remaining.append(conflict)
+        result["conflicts"] = remaining
+        if resolved:
+            result["resolved_position_conflicts"] = resolved
+        result["can_apply"] = bool(result["matches"])
+
+    def summary(self):
+        rows = sorted(self.current()["items"].values(), key=lambda row: (
+            -max(row["max_difference_m"] if row["max_difference_m"] is not None else float("inf"),
+                 row.get("evidence_max_difference_m", 0)), row["decision_id"]))
+        return {"pending": [{"decision_id": row["decision_id"], "opening": row["source_opening_id"],
+            "facade": row["orientation"], "difference_cm": (
+                round(row["max_difference_m"] * 100, 1) if row["max_difference_m"] is not None else None),
+            "ink_difference_cm": round(row.get("ink_max_difference_m", 0) * 100, 1),
+            "ink_issue_count": len(row.get("ink_inconsistencies", [])),
+            "numeric_width_conflict": bool(row.get("width_span_conflict")),
+            "both_views_required": row["requires_both_views"], "status": row["status"]}
+            for row in rows if row["status"] in {"pending", "reread"}],
+            "receipt_file": "role_position_review.json"}
+
+    def guard(self, candidate):
+        state = self.refresh(candidate)
+        scope = self._scope_record(candidate)
+        if scope and scope.get("assembled_position_revision") != self.revision():
+            raise ValueError("position decisions changed; re-call assemble_from_readers before delivery")
+        source = self.session._source(candidate)
+        for row in state["items"].values():
+            opening = self._opening(source, row["source_opening_id"])
+            choice = row.get("decision", {}).get("choice")
+            expected = row["elevation_span_m"] if choice == "use_elevation" else row["plan_span_m"]
+            if (row["status"] in {"pending", "reread"}
+                    or any(abs(a - b) > 1e-7 for a, b in zip(self._span(opening, row["world_axis"]), expected))):
+                raise ValueError("position decision required before delivery: " + row["decision_id"])
+            if opening["host_boundary_id"] != row["host_boundary_id"] or opening["space_ids"] != row["space_ids"]:
+                raise ValueError("position decision cannot change host or connectivity")
+
+    def _views(self, row, view_ids):
+        """Views must be persisted original-image views covering both evidence boxes."""
+        views = []
+        from pathlib import Path
+        for identity in view_ids:
+            if Path(identity).name != identity or not identity.startswith("view_"):
+                raise ValueError("view_ids must name saved original-image views")
+            path = self.session.run_directory / "image_views" / (identity.removesuffix(".json") + ".json")
+            if not path.is_file():
+                raise ValueError("original view does not exist: " + identity)
+            view = json.loads(path.read_bytes())
+            views.append(view)
+        if row["requires_both_views"]:
+            for side in ("plan_evidence", "elevation_evidence"):
+                evidence = row[side]
+                image, box = evidence.get("image"), evidence.get("bbox")
+                if not image or not box:
+                    raise ValueError("over 30 cm requires located evidence from both readers; re-read missing evidence")
+                manifest = self.session.manifest["images"][image]
+                if hashlib.sha256((self.session.run_directory / "images" / image).read_bytes()).hexdigest() != manifest["sha256"]:
+                    raise ValueError("position evidence image changed")
+                if not any(v.get("name") == image and v.get("image_sha256") == manifest["sha256"]
+                           and (b := v.get("box_original_pixels")) and b[0] <= box[0] and b[1] <= box[1]
+                           and b[2] >= box[2] and b[3] >= box[3] for v in views):
+                    raise ValueError("over 30 cm: view_image must cover both reader evidence boxes; supply their view_ids")
+        return views
+
+    async def decide(self, candidate, edits):
+        from .session import envelope
+        from .lineage import metadata
+        request = {"candidate": candidate, "edits": edits}
+        identity = hashlib.sha256(json_bytes(request)).hexdigest()
+        path = "role_position_actions/" + identity + ".json"
+        prior = self.session.assembly._load(path, None)
+        if prior and prior.get("result"):
+            return envelope(prior["result"])
+        state = self.refresh(candidate)
+        prepared, corrections, seen = [], [], set()
+        source = self.session._source(candidate)
+        for edit in edits:
+            if set(edit) - {"action", "decision_id", "choice", "reason", "view_ids"}:
+                raise ValueError("position_decision accepts decision_id, choice, reason and view_ids only")
+            key = edit.get("decision_id")
+            if key in seen or key not in state["items"]:
+                raise ValueError("each position decision_id must be current and appear once")
+            seen.add(key)
+            row = state["items"][key]
+            choice, reason = edit.get("choice"), edit["reason"].strip()
+            if not reason or choice not in {"keep_plan", "use_elevation", "reread_plan", "reread_elevation"}:
+                raise ValueError("position decision requires a choice and a concrete reason")
+            if row.get("decision") and not prior:
+                raise ValueError("position decision is already recorded; reassemble changed reader evidence")
+            if row["plan_span_m"] is None and not choice.startswith("reread_"):
+                raise ValueError("independent plan reading is unavailable; request a reader re-read with the missing opening")
+            if (choice == "use_elevation" and row["elevation_evidence"]["evidence_type"] != "pixels"
+                    and abs(row.get("reader_width_m", row["elevation_width_m"]) - row["elevation_width_m"]) > 1e-7):
+                raise ValueError("retained numeric width conflicts with the pixel interval; keep plan or re-read before using elevation")
+            # Requesting better evidence is allowed before views exist. Selecting
+            # either side above 30 cm is allowed only after both were viewed.
+            views = [] if choice.startswith("reread_") else self._views(row, edit.get("view_ids", []))
+            opening = self._opening(source, row["source_opening_id"])
+            if row["plan_span_m"] is not None and any(abs(a - b) > 1e-7
+                    for a, b in zip(self._span(opening, row["world_axis"]), row["plan_span_m"])):
+                raise ValueError("candidate position changed; reassemble before deciding")
+            decision = {"choice": choice, "reason": reason, "views": views,
+                        "plan_evidence": row["plan_evidence"], "elevation_evidence": row["elevation_evidence"]}
+            if choice.startswith("reread_"):
+                task_id = row["plan_evidence"].get("task_id") if choice == "reread_plan" else row["elevation_task_id"]
+                decision["rework"] = {"previous_task_id": task_id, "issues": [reason]}
+                if choice == "reread_plan":
+                    decision["rework"]["rework_targets"] = ["plan.openings:" + row["source_opening_id"].removeprefix(row["floor_id"] + ":")]
+            prepared.append((key, decision))
+            if choice == "use_elevation":
+                corrections.append({"action": "position", "id": row["source_opening_id"],
+                    "along_start_m": row["elevation_span_m"][0], "along_end_m": row["elevation_span_m"][1],
+                    "image": row["elevation_evidence"]["image"], "bbox": row["elevation_evidence"]["bbox"], "reason": reason})
+        self.session.store.write_json(path, {"request": request})
+        current = candidate
+        if corrections:
+            result = await self.session.edit_candidate(candidate, corrections)
+            current = metadata(result)["candidate"]
+        for key, decision in prepared:
+            state["items"][key].update(decision=decision,
+                status="reread" if decision["choice"].startswith("reread_") else "decided")
+        self._save(state)
+        result = {"status": "completed", "candidate": current, "source_geometry_ready": True,
+                  "position_review": self.summary(), "decisions": [{"decision_id": k, **d} for k, d in prepared],
+                  "next_action": "Re-call assemble_from_readers to refresh matches and safe heights; re-read choices need a corrected reader delivery first."}
+        self.session.store.write_json(path, {"request": request, "result": result})
+        return envelope(result)
+
+    def write_delivery(self, candidate):
+        """Role-only report attachment, also after fallback regenerates delivery."""
+        import html
+        self.guard(candidate)
+        state = self.current()
+        root = self.session.run_directory
+        state["assembly_scope"] = self._scope_record(candidate)
+        path = root / "delivery.json"
+        if path.is_file():
+            value = json.loads(path.read_bytes())
+            value["position_review"] = state
+            path.write_bytes(json_bytes(value))
+        report = root / "position_review.json"
+        report.write_bytes(json_bytes(state))
+        page = root / "delivery.html"
+        if page.is_file():
+            text = page.read_text(encoding="utf-8")
+            begin, end = "<!-- role-position-start -->", "<!-- role-position-end -->"
+            if begin in text:
+                text = text[:text.index(begin)] + text[text.index(end) + len(end):]
+            section = begin + '<section><h2>平面与立面位置裁决</h2><pre>' + html.escape(
+                json.dumps(state, ensure_ascii=False, indent=2)) + "</pre></section>" + end
+            text = text.replace("</body>", section + "</body>") if "</body>" in text else text + section
+            page.write_text(text, encoding="utf-8", newline="\n")
+
+
 def finalize_role_building(engine, reason):
     """The timeout/stop fallback cannot silently deliver an unreviewed assembly."""
     from scripts.tool_scripts.bim_agent_budget import fallback_selection
@@ -230,6 +542,7 @@ def finalize_role_building(engine, reason):
             report = engine.tools.assembly.check(chosen, require_all=True)
             try:
                 engine.tools.assembly.guard()
+                engine.tools.positions.guard(chosen)
             except ValueError as error:
                 if report and report["status"] == "needs_review":
                     return {"status": "assembly_review_required", "delivery": None,
@@ -238,4 +551,7 @@ def finalize_role_building(engine, reason):
                         "assembly_review": report, "reason": str(error)}
     except (ValueError, OSError, KeyError) as error:
         return {"status": "assembly_review_failed", "delivery": None, "reason": str(error)}
-    return finalize_runtime_building(engine, reason)
+    result = finalize_runtime_building(engine, reason)
+    if chosen and result.get("status") == "delivered":
+        engine.tools.positions.write_delivery(chosen)
+    return result
