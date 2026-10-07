@@ -179,7 +179,7 @@ work model、dev model 见第二节。
 | 工作包 | work package | 派工单位：谁、做什么、在哪个分支、改哪些文件 | |
 | 能力包 | capability package | 一起开发、一起评价的一组改动，如清理包、吸收包、工具改进包 | |
 | 检查分档 | test tiers | 全量检查（全部检查，约 35 分钟，节点前跑）；合并检查（改到共用代码时的大集合）；角色检查（分工模块的检查与三例离线贯通） | |
-| Agent 版本 | agent version | 登记的版本号，如 `t1-20261007-d1i.1`，对应一组文件哈希，运行时核对 | |
+| 版本号 | version | runtime 与 domain 各一条版本线，命名 `runtime-v<序号>-<日期>`、`domain-v<序号>-<日期>`，口头说“domain v41（10-07）”；一次运行用“runtime 版本＋domain 版本＋模式＋模型配置”标明（10-07 用户定，待实现；现行仍是单一 Agent 版本号，如 `t1-20261007-d1i.1`，届时保留作别名） | Agent 版本（单说） |
 | 基线 | baseline | 固定的对照状态：代码标签加运行结果 | |
 | 冻结基准 | frozen baseline | 底座迁移对照用的工具与指引版本：`5bb10538`（标签 `checkpoint/2026-10-02-harness-baseline`） | |
 | 证据分支 | evidence branch | 大运行记录压缩包所在的独立分支，主线只留清单 | |
