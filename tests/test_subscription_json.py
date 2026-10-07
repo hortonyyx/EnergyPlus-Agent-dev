@@ -56,7 +56,7 @@ def test_subscription_cli_is_isolated_tool_free_and_records_cli_usage(tmp_path: 
     ]
     assert "--bare" not in call["command"]
     assert Path(call["cwd"]).resolve() != Path.cwd().resolve()
-    platform_keys = set(_WINDOWS_ENV_ALLOWLIST) if os.name == "nt" else set()
+    platform_keys = {*_WINDOWS_ENV_ALLOWLIST, "PYTHONUTF8"} if os.name == "nt" else set()
     assert set(call["env"]) <= {"PATH", "HOME", "LANG", "LC_ALL"} | platform_keys
     assert "API_KEY" not in call["env"]
     assert "BASE_URL" not in call["env"]

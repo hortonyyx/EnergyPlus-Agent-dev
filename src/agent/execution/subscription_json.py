@@ -85,7 +85,12 @@ def _prompt_summary(system_prompt: str, human: str, guidance: str) -> dict[str, 
 def _isolated_env() -> dict[str, str]:
     """Pass only OAuth's home and locale/path plumbing to the subscription CLI."""
     keys = _ENV_ALLOWLIST + (_WINDOWS_ENV_ALLOWLIST if os.name == "nt" else ())
-    return {key: os.environ[key] for key in keys if key in os.environ}
+    env = {key: os.environ[key] for key in keys if key in os.environ}
+    if os.name == "nt":
+        # Python tool servers started by the CLI read UTF-8 run files; without UTF-8
+        # mode they decode with the console code page (GBK here) and fail (10-07 A1).
+        env["PYTHONUTF8"] = "1"
+    return env
 
 
 def _model_name(section: dict[str, Any]) -> str:

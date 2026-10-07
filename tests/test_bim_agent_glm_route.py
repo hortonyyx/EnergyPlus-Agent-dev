@@ -117,6 +117,8 @@ def test_sonnet55_main_with_haiku_worker(tmp_path, monkeypatch, used):
     assert worker["model"] == "claude-haiku-4-5-20251001"
     assert worker["prompt"].endswith(runner.run_guide(run))
     assert kwargs["env"]["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] == "1"
+    if os.name == "nt":  # the CLI's Python tool server must read UTF-8 run files
+        assert kwargs["env"]["PYTHONUTF8"] == "1"
     assert receipt["worker_model"] == "claude-haiku-4-5-20251001"
     assert bool(receipt.get("routing_error")) == ("claude-sonnet-5" in used)
     with pytest.raises(ValueError, match="main_model must be"):
