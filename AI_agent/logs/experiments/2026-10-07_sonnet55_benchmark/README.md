@@ -20,8 +20,31 @@
 
 ## 结果
 
-（运行后填写）
+| 运行 | 用时 | 轮数 | 空间 | 实质错误 | 门窗位置 ≤5／5–10／10–30／>30 cm | 房间边界 | 外墙高度 | CLI 估价（非账单） |
+|---|---|---|---|---|---|---|---|---|
+| A1 第一次 | 9.2 分钟中断 | 30 | — | — | — | — | — | 1.75 美元 |
+| A1 重跑 | 9.2 分钟被 Claude 会话额度打断，按最近完整稿兜底交付 | 29 | 29/29/29 | 无 | 60／1／0／0 | 22／0／7／0 | 34/34 在 5 cm 内 | 2.09 美元 |
+| **A2** | **12.2 分钟，自己交付** | 37 | 29/29/29 | **无** | **61／0／0／0** | 22／0／7／0 | **34/34** | 2.76 美元 |
+| A0 | 见下 | | | | | | | |
+| 参照：GLM 分工（合入后，同晚） | 54.8 分钟 | 107 次请求 | 29/29/29 | 二层走廊被拆 | 43／15／2／0 | 2／15／9／3 | 34/34 | — |
+| 参照：GLM 单模型（10-07 下午） | 130.5 分钟 | 86 次请求 | 漏走廊 | 有 | 49／7／1／4 | — | 31/34 | — |
+
+- **A1 第一次失败是我方线路的问题：** Claude Code 线路迁到 Windows 后没真正跑过，CLI 拉起的工具服务按 GBK 读 UTF-8 文件，所有建模工具报 `'gbk' codec can't decode`（11 次）。修复（`81a6cc69`）后用这次的真实平面稿按同一隔离环境确定性重放，保存正常。我先做的冒烟测试只调了 `inputs`、没建模，所以没测出来。
+- **A1 重跑被额度打断：** 第 9.2 分钟收到 “You've hit your session limit”，这是 Claude Plus 的 5 小时会话额度，与 Opus 主会话共用；此前已建出两层完整稿，评价用的是兜底交付的候选 6。
+- **A2 没有派 Haiku：** 子代理可用（冒烟测试已证实 Haiku 能调同一套工具），但 Sonnet 5.5 自己判断不需要，原话 “I did not use the Haiku worker; all reading and building was done directly”。所以 A2 事实上是一次完整的单模型标杆；“强模型自己会怎样分工”这一问没有得到答案，只说明在现有 domain 上做 sm25 这种规模它不觉得分工划算。
+- 房间边界 10–30 cm 的 7 处两次相同，待看是否为外皮／中线等约定差（不影响实质判断）。
+
+成果查看（A2）：[平面图 F1](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/display/plan_F1.png)、[F2](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/display/plan_F2.png)；回叠图 [平面 F1](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/overlays/plan_F1.png)、[F2](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/overlays/plan_F2.png)、[北](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/overlays/elevation_North.png)、[南](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/overlays/elevation_South.png)、[东](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/overlays/elevation_East.png)、[西](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/overlays/elevation_West.png)；[BIM 查看页](../../../archive/local_backup/bench/A2_sonnet55_haiku_workers/dev_evaluation/display/viewer.html)。A1 重跑的同名文件在 `bench/A1_sonnet55_single/dev_evaluation/` 下。
 
 ## 行为观察
 
-（运行后填写：时间线、请求数与每次用时、工具构成、时间花在哪、错误最早出现在哪一稿哪一步；A2 另记派了哪些活、Haiku 做得怎样）
+**A2 的做法（36 次工具调用，`scripts/dev/observe_run.py`）：**
+1. 盘点输入，看两张平面整图，读平面格式参考（第 0–1 分钟）。
+2. 按块放大逐块看：一层 6 块、二层 5 块，每块约 500×400 像素、放大 3 倍；**一次像素剖面都没用**。四个立面各看一次整图。
+3. 用外轮廓总尺寸 25000×20000 定比例（每轴两个锚点），外墙取外皮、隔墙取中线，一次写出整层：第 4.1 分钟建一层、4.7 分钟建二层，都是一次建成；第 4.9 分钟总装出 29 个空间、61 个门窗。
+4. 高度：读依据参考，放大一处立面细节，按立面的标注尺寸链（1000/1600/1000 等）分 3 批写入全部 34 个外墙门窗高度，每个立面画一次回叠图核对（第 6–10 分钟）。
+5. 一次批量设房间用途、改一条说明，第 11.6 分钟交付。
+
+**与 GLM 的差别：** GLM 分工的平面读图员每层用 21–22 次像素剖面、第 24 分钟才首次试建；GLM 单模型第 38 分钟才首次建模（看图 56 次、剖面 49 次）。Sonnet 第一眼读得准，又按“整图 → 分块放大 → 一次写全 → 建 → 回叠核对 → 成组写高度”的顺序干脆地做完。前者是模型能力，后者是方法，可以写进 domain 给小模型用：提速包 D1l 按这个顺序改写平面读图员的做法；配合 Q1 的墨线对齐与尺寸链，读图员只需给出大致位置，由代码对准。
+
+**副作用：** 每写一批高度就存一份候选，A2 共存 38 份（上限 64），是 10-06 登记待议的“单模型存档改法”问题，这次没有超限。

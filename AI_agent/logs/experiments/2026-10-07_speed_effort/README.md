@@ -19,6 +19,15 @@
 
 **看点：** 用时与关键路径（平面读图员首次试建时刻、交付时刻，调度员收尾）；质量按 5/10/30 三档与实质错误，不得比 medium 差；请求数、token。
 
-## 结果
+## 结果（10-07 22:06–22:30，只跑了 `sm24_role_low`）
 
-未运行：配置已备好并通过校验；用户 10-07 傍晚定“这轮在做的做完就收工了，不要再发了”，留待汇报讨论后再定。D 盘运行工作树已撤（重建只需 `git worktree add --detach` 加 `uv sync --frozen --python 3.12`，约 1 分钟）。
+| 运行 | 用时 | 请求 | 空间 | 实质错误 | 门窗位置 ≤5／5–10／10–30／>30 cm | 外墙高度 |
+|---|---|---|---|---|---|---|
+| sm24 分工全 low | 23.3 分钟 | 61 | 8/8/8 | 多 1 扇门窗 | 4／7／4／**6** | 14/14 在 5 cm 内 |
+| 对照：10-07 sm24 分工 medium | 23.0 分钟 | 59 | 8/8/8 | 无 | 14／3／4／0 | 14/14 |
+
+成果查看：[平面图](../../../archive/local_backup/speed/sm24_role_low/dev_evaluation/display/plan_F1.png)、回叠图 [平面](../../../archive/local_backup/speed/sm24_role_low/dev_evaluation/overlays/plan_F1.png)、[南](../../../archive/local_backup/speed/sm24_role_low/dev_evaluation/overlays/elevation_South.png)、[东](../../../archive/local_backup/speed/sm24_role_low/dev_evaluation/overlays/elevation_East.png)（北、西两面运行中没有登记立面标定，补不出）、[BIM 查看页](../../../archive/local_backup/speed/sm24_role_low/dev_evaluation/display/viewer.html)。
+
+**行为观察：** 平面读图员每次请求中位 17 秒（medium 约 45 秒），但请求 28 次、第 11.2 分钟首次试建、第 16.2 分钟交出（medium 15.1／18.0 分钟），只快了约 2 分钟；四个立面读图员 2–4 分钟交出、高度全对；调度员 4.3 分钟模型用时，交付 22.7 分钟。整案没有变快，是因为平面读图员想得少了、看得更多，且调度员收尾时间不变。
+
+**结论（思考档由 Opus 按实测定）：** 平面读图员不能用 low——6 扇门窗沿墙偏差超过 30 cm，正是精度三档里要专门处理的那一档。立面读图员在 low 下质量未见下降，但不在关键路径上，降档省不了时间。思考档不是提速的主要杠杆；`sm24_single_low`、`sm24_role_readers_low` 不再跑，提速转向平面读图员的做法（D1l，以 Sonnet 5.5 标杆的做法为范本）。
