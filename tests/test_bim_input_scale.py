@@ -93,8 +93,10 @@ def test_tool_rejects_plan_revision_and_restored_draft_assembly_without_new_sour
     floors = [dict(draft_id=d, expected_plan_sha256=s, floor_id=f, z_floor=z, evidence="synthetic")
               for d, s, f, z in [("draft_001", binding["plan_sha256"], "F1", 0),
                                 ("draft_002", failed["plan_sha256"], "F2", 3)]]
-    with pytest.raises(ScaleMismatchError, match="plan.x_anchors"):
-        toolkit.assemble_plans(json.dumps(floors))
+    # Q1: assembly regularizes the stack first and returns the unit error as a structured rejection.
+    rejected = toolkit.assemble_plans(json.dumps(floors))
+    assert rejected["status"] == "error" and not rejected["source_geometry_ready"]
+    assert "plan.x_anchors" in json.dumps(rejected["regularization"]["rejections"], ensure_ascii=False)
     assert list(run.glob("candidate_*")) == [run / "candidate_01"]
     assert (run / "candidate_01/source_model.json").read_bytes() == original_bytes
 

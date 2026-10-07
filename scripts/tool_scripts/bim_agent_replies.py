@@ -113,7 +113,8 @@ def change_fields(rows):
 
 
 def precision_summary(report):
-    if report.get('status') != 'reported':
+    # building_precision_v1 reported; v2 (Q1 hard constraints) passes or rejects.
+    if report.get('status') not in {'reported', 'pass', 'rejected'}:
         return report
     result = pick(report, ('schema', 'status', 'source_model_sha256', 'total', 'counts', 'evidence_errors'))
     placement = copy.deepcopy(report.get('wall_placement', {}))

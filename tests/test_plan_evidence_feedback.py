@@ -26,7 +26,9 @@ def test_explicit_mixed_units_reach_numeric_saved_plan_without_scaling_pixels(tm
     result = Toolkit(run).build_plan("plan.png", raw)
     assert result["source_geometry_ready"]
     record = result["plan_input"]
-    assert json.loads((run / record["plan_file"]).read_text()) == example()
+    saved = json.loads((run / record["plan_file"]).read_text())
+    assert saved.pop("regularization")["changes"] == []  # Q1: the audit travels with the effective plan
+    assert saved == example()
     assert (run / record["submitted_plan_file"]).read_text() == raw
     assert record["measurement_bindings"]["length_count"] == 5
     assert record["geometry_feedback"]["footprint_span_m"] == pytest.approx([6, 4])

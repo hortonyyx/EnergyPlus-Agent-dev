@@ -31,7 +31,9 @@ def test_aliases_keep_geometry_and_original_bytes_with_explicit_receipt(tmp_path
     record = result['plan_input']
     assert record['field_aliases'] == meta['field_aliases']
     assert (run / record['submitted_plan_file']).read_text() == raw
-    assert json.loads((run / record['plan_file']).read_text()) == original
+    saved = json.loads((run / record['plan_file']).read_text())
+    assert saved.pop('regularization')['changes'] == []  # Q1: the audit travels with the effective plan
+    assert saved == original
 
 
 def test_conflicting_alias_and_unknown_field_do_not_guess(tmp_path):
