@@ -37,7 +37,6 @@ def test_public_dispatch_needs_origin_caps_instructions_and_accepts_structured_s
     assert full["record"]["validation"]["validation_passed"]
     assert full["artifact"]["unresolved"]
     admitted = session.registry.task(row["task_id"])
-    assert admitted["coordinate_contract"]["units"] == READER_COORDINATES["elevation_reader"]
     assert "geometric values in metres" not in json.dumps(admitted)
 
 

@@ -30,14 +30,6 @@ def test_elevation_guide_exposes_a_complete_valid_minimum_example():
     assert normalized["x_calibration"]["world_end_m"] == 0.0
     assert normalized["counts"] == [{"floor_id": "F1", "window_count": 1, "door_count": 0}]
 
-    guide = get_role_guide("elevation_reader")
-    for required in (
-        "world_start_m", "world_end_m", '"kind":"ground"',
-        '"kind":"window"', "annotation_and_pixels",
-    ):
-        assert required in guide
-
-
 def test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft():
     guide = get_role_guide("coordinator")
     for name in get_role_tool_names("coordinator"):

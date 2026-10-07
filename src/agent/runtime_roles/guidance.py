@@ -149,17 +149,23 @@ ELEVATION_EXAMPLE = {
     "unresolved": [],
 }
 
+COMPACT_ELEVATION_EXAMPLE = {key: value for key, value in ELEVATION_EXAMPLE.items()
+                             if key not in {"orientation", "view_direction", "x_calibration"}}
+COMPACT_ELEVATION_EXAMPLE["x_calibration"] = {
+    "pixel_start": 100, "pixel_end": 900, "distance_start_m": 0, "distance_end_m": 10,
+    "facade_length_m": 10}
+
 _ELEVATION_SCHEMA = """Deliver by calling submit_elevation_reading with these structured parameters;
 free text is not a delivery. Complete minimum example:
 {example}
-Replace every example value with observations from the assigned image. orientation is North,
-South, East or West. view_direction uses the same enum and must be North/South for a
-North/South facade or East/West for an East/West facade. Image left-to-right world direction:
-North facade viewed South decreases X; South viewed North increases X; East viewed West
-increases Y; West viewed East decreases Y. Opening x_px stays in ascending image-pixel order
-even when the corresponding world coordinate decreases.
-x_calibration requires pixel_start, pixel_end, world_start_m and world_end_m; world_axis is
-optional and must be x for North/South or y for East/West. elevation kind is ground, floor,
+Replace examples with original-image observations. The task fixes the facade; the tool
+derives exterior viewing direction and world axis. Give two dimension-chain pixel
+positions and distance_start_m/distance_end_m measured from the building's LEFT edge
+in this image, increasing left to right; facade_length_m is the overall dimension.
+For a partial chain, keep its offset from that left edge. The tool converts to the common
+building origin, including reversed facades. Opening x_px stays in ascending
+image-pixel order. A nonstandard/mirrored view is unresolved, not a new coordinate convention.
+elevation kind is ground, floor,
 eave, roof or other; kind=floor also requires floor_id. opening kind is window or door.
 evidence_type is annotation, pixels, annotation_and_pixels, visual_estimate, assumption or
 declared. sill_m/head_m and elevation value_m are absolute building Z metres. Openings stay
@@ -168,7 +174,7 @@ original-image [left,top,right,bottom], and unresolved is a string list. image, 
 and artifact_id are bound by the runtime, not tool parameters. A rejection identifies the
 field and minimum example; correct that item and resubmit within the task budget. After
 acceptance, end with a short acknowledgement without copying the readings.""".format(
-    example=json.dumps(ELEVATION_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
+    example=json.dumps(COMPACT_ELEVATION_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
 
 ELEVATION_READER_GUIDANCE = "\n\n".join((
     _SHARED_READER_SCOPE,
@@ -182,30 +188,28 @@ ELEVATION_READER_GUIDANCE = "\n\n".join((
 
 
 COORDINATOR_GUIDANCE = """Build lightweight BIM through drawing readers. Inventory inputs, then delegate_readers
-(plans first). Give common origin and target: plan floor ID; elevation North/South/East/West,
-optionally /F1,F2. Optional instructions give only building facts or specific rework questions;
-the reader guide and runtime supply method, units and coordinates.
-Use role_state for progress and read_role_artifact for accepted deliveries.
+(plans first) with common origin and target: plan floor ID; elevation North/South/East/West,
+optionally /F1,F2. Instructions give building facts or rework questions; the runtime supplies
+method and coordinates. Use role_state for progress and read_role_artifact for deliveries.
 
-Call assemble_from_readers once after deliveries. It selects the latest accepted plan
-per floor and elevation per facade, resolves levels, builds/assembles floors, matches
-openings and writes safe heights together. Read its decisions: missing/conflicting
-levels retain plan assumptions, unmatched openings remain unresolved. Inspect cited
-marks; resolve levels with level_overrides (floor_id, z_floor/ceiling_height and each
-*_evidence: task_id + elevation_id). Heights equal cited top Z minus floor Z. Re-call
-after reader rework or a local revision; unchanged inputs reuse the saved candidate.
-Compare candidates to drawings and fix concrete errors before delivery.
+Call assemble_from_readers after deliveries. It selects the latest per floor/facade,
+resolves levels, carries room-use evidence and writes safe heights. Reported horizontal
+fits never change plan geometry. Read its decisions: conflicting levels retain plan
+assumptions; unmatched openings stay unresolved. Inspect cited marks and resolve levels
+with level_overrides: floor_id, z_floor/ceiling_height, each *_evidence={task_id,elevation_id}.
+Height equals cited top Z minus floor Z. Re-call after reader rework or local edits;
+unchanged inputs reuse the saved candidate. Check drawings before delivery.
 
-Re-dispatch failures as a new task with previous_task_id and specific issues. For plan
-rework, name rework_targets (plan.partitions:<id>, plan.space_seeds:<id>,
-plan.openings:<id> or a plan field); preserve everything else. Inspect the local box for
-continuous-space/wall-hole conflicts. Assembly compares room counts, adjacency and
-opening XY with reader trials. If changes appear, inspect and call review_role_assembly
-with review_id and a reason per change before further writes; fix accidental changes.
-Missing-floor decisions accept partial delivery; stale plans must be reassembled.
-Reader errors require reader rework; small geometry corrections use revise_bim. The
-coordinator does not independently draft plan walls or read elevation heights when a
-reader can do it. Preserve unresolved evidence and finish through delivery checks."""
+Re-dispatch failures with new task_id, previous_task_id and specific issues. Plan rework
+needs rework_targets: plan.partitions:<id>, plan.space_seeds:<id>, plan.openings:<id> or a
+plan field; preserve the rest. Inspect local boxes for continuous-space/wall-hole conflicts.
+Assembly compares rooms, adjacency and opening XY against reader trials. Inspect changes,
+then review_role_assembly with review_id and a reason per change before further writes;
+fix accidental changes. Missing-floor decisions allow partial delivery; stale plans require
+reassembly. Small corrections use edit_bim: height, use, position or note, each with reason.
+Use defaults to inferred; height needs located evidence in a separate batch. Room uses
+already carry reader evidence. The coordinator does not independently draft plan walls or
+read heights when a reader can. Keep unresolved evidence and finish through delivery checks."""
 
 ROLE_GUIDANCE = {
     "coordinator": COORDINATOR_GUIDANCE,
@@ -227,7 +231,7 @@ def get_role_tool_names(role_id: str) -> tuple[str, ...]:
     if role_id == "coordinator":
         return (
             "delegate_readers", "read_role_artifact", "assemble_from_readers", "role_state",
-            "review_role_assembly",
+            "review_role_assembly", "edit_bim",
         )
     raise ValueError(f"unknown role catalog {role_id!r}")
 
