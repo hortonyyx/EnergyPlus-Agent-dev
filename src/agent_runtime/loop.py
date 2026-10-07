@@ -6,6 +6,7 @@ import asyncio
 import copy
 import json
 import time
+from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -15,7 +16,7 @@ from pydantic import Field
 
 from src.harness_contracts import (
     AnswerRepairPayload, BudgetAmounts, BudgetEventPayload, BudgetOverrunPayload, CheckpointPayload, HashedBlobRef,
-    MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
+    EstimatedCostUpperBound, MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
     StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload,
     ToolPresentationPayload, UsageMissing, UsageReported, authorize_tool_call,
     TruncationPayload,
@@ -27,7 +28,8 @@ from .accounting import (account_request_usage, bills_images_separately,
     get_cny_price_schedule, require_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
 from .estimation import get_model_profile, estimate_chat_request
-from .failures import ModelServiceError, classify_failure
+from .failures import ModelServiceError, classify_failure, is_unprocessed_rejection, rejected_request_usage
+from .dispatch import get_dispatcher, route_policies
 from src.harness_contracts.events import ModelFailureDetails
 from .output_limits import validate_output_limit
 from .store import EventStore
@@ -107,6 +109,8 @@ class Runtime:
         self.stage = "initialization"
         self.terminal_reason = None
         self.retry_of = None
+        self.redispatch_of = None
+        self._queue_interruption = None
         self.answer_repair_request_id = None
         self.answer_repair_response_id = None
         self.answer_repair_original = None
@@ -146,7 +150,8 @@ class Runtime:
                 return self._stop(reason)
         else:
             self.store.append(RunLifecyclePayload(action="start", reason="single-role run started"),
-                source_refs=(self.store.source("runtime-config", self._config()),))
+                source_refs=(self.store.source("runtime-config", self._config()),
+                    self.store.source("task-timing", {"started_epoch": self.started_epoch}),))
             sources = list(message_sources or [self.store.source(f"initial-message-{i}", m,
                 kind="user" if m.get("role") == "user" else "runtime")
                 for i, m in enumerate(messages)])
@@ -203,7 +208,7 @@ class Runtime:
                 if reason:
                     return self._stop(reason)
                 self._accept_response(result)
-                self.retry_of = None
+                self.retry_of = self.redispatch_of = None
                 self._checkpoint()
         except (Exception, asyncio.CancelledError) as exc:
             return self._exception_stop(exc)
@@ -225,6 +230,8 @@ class Runtime:
             "pricing": self.pricing.model_dump(mode="json") if self.pricing else None,
             "echo_fields": list(self.echo_fields),
             "reasoning_history": self.reasoning_history,
+            **({"route_dispatch": asdict(route_policies()[self.versions.remote_model.route_id])}
+               if self.versions.remote_model.route_id in route_policies() else {}),
             "tool_budget_update_enabled": self.tool_budget_update is not None,
             "answer_validation_enabled": self.answer_validator is not None,
             "max_answer_repairs": self.max_answer_repairs,
@@ -315,180 +322,202 @@ class Runtime:
         degradation = None
         logical_purpose = "context_summary" if purpose == "context_summary" else "primary_task"
         while True:
-            self.stage = "prepare_request"
-            prepared = prepare_request(store=self.store, model=self.model,
-                messages=messages, message_sources=sources, tools=tools,
-                tool_source=self.tool_source, parameters=parameters, versions=self.versions,
-                image_originals=self.originals,
-                reasoning_history=self.reasoning_history,
-                strict_model_profile=self.strict_model_profile)
-            profile_limit = prepared.context_window_tokens
-            configured_limit = self.limits.context_tokens
-            available_limits = tuple(limit for limit in (profile_limit, configured_limit)
-                                     if limit is not None)
-            effective_context_limit = min(available_limits) if available_limits else None
-            if (effective_context_limit is not None
-                    and prepared.token_reservation_estimate > effective_context_limit):
-                if profile_limit is not None and profile_limit <= effective_context_limit:
-                    return None, "model_profile_context_limit_exhausted"
-                return None, "configured_context_limit_exhausted"
-            self._load_budget()
-            remaining = self._remaining()
-            if remaining <= 0:
-                return None, self._scoped_budget_reason("time", task=True)
-            # Wall-clock deadline covers tools, summaries, retries, and restart downtime.
-            seconds = min(
-                Decimal(str(remaining)),
-                self.budget.available.seconds,
-                self.task_budget.available.seconds,
-            )
-            if self.request_timeout_seconds is not None:
-                seconds = min(seconds, Decimal(str(self.request_timeout_seconds)))
-            if seconds <= 0:
-                return None, self._scoped_budget_reason(
-                    "time", task=self.task_budget.available.seconds <= 0
-                )
-            budget_purpose = (
-                "child_task"
-                if purpose == "primary_task" and not self.store.is_root_task
-                else purpose
-            )
-            estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
-                input_token_upper_bound=prepared.input_token_upper_bound,
-                image_input_tokens_estimate=prepared.token_estimate.image_tokens,
-                additional_image_tokens_estimate=(prepared.token_estimate.image_tokens
-                    if bills_images_separately(get_cny_price_schedule(self.model,
-                        route_id=self.versions.remote_model.route_id)) else 0),
-                output_token_limit=prepared.output_token_limit, seconds=seconds,
-                reasoning_token_allowance=prepared.token_estimate.reasoning_token_allowance,
-                estimate_source=prepared.estimate_source,
-                pricing=self.pricing, cny_pricing=self.cny_pricing)
-            reservation_id = self.store.next_reservation_id()
-            task_decision = self.task_budget.reserve(reservation_id, estimate)
-            if task_decision.action == "stop":
-                return None, self._budget_reason(
-                    task_decision,
-                    scope=None if self.store.is_root_task else "child",
-                )
-            effective = task_decision.effective_estimate
-            decision = self.budget.reserve(reservation_id, effective)
-            if decision.action == "stop":
-                return None, self._budget_reason(
-                    decision,
-                    scope="root" if not self.store.is_root_task else None,
-                )
-            if task_decision.action == "reduce_output" or decision.action == "reduce_output":
-                reduction = (
-                    decision
-                    if decision.action == "reduce_output"
-                    else task_decision
-                )
-                degradation = reduction.model_dump(mode="json")
-                key = "max_tokens" if "max_tokens" in parameters else "max_completion_tokens"
-                parameters[key] = reduction.output_token_limit
-                # No event or request has been emitted yet. Re-estimate exact wire bytes.
+            async with self._dispatch_slot() as lease:
+                self.stage = "prepare_request"
+                prepared = prepare_request(store=self.store, model=self.model,
+                    messages=messages, message_sources=sources, tools=tools,
+                    tool_source=self.tool_source, parameters=parameters, versions=self.versions,
+                    image_originals=self.originals,
+                    reasoning_history=self.reasoning_history,
+                    strict_model_profile=self.strict_model_profile)
+                profile_limit = prepared.context_window_tokens
+                configured_limit = self.limits.context_tokens
+                available_limits = tuple(limit for limit in (profile_limit, configured_limit)
+                                         if limit is not None)
+                effective_context_limit = min(available_limits) if available_limits else None
+                if (effective_context_limit is not None
+                        and prepared.token_reservation_estimate > effective_context_limit):
+                    if profile_limit is not None and profile_limit <= effective_context_limit:
+                        return None, "model_profile_context_limit_exhausted"
+                    return None, "configured_context_limit_exhausted"
                 self._load_budget()
-                continue
-            reservation = decision.reservation
-            self.store.append(BudgetEventPayload(action="reserve", reservation=reservation),
-                source_refs=(self.store.source("request-budget-decision", {
-                    **decision.model_dump(mode="json"), "original_output_limit": self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
-                    "actual_output_limit": prepared.output_token_limit,
-                    "near_limit_action": "reduce_output" if degradation else "allow",
-                    "degradation": degradation,
-                    "token_estimate": asdict(prepared.token_estimate),
-                    "cny_reservation": ({
-                        "price_schedule": {k: str(v) if isinstance(v, Decimal) else v
-                                           for k, v in asdict(self.cny_pricing).items()},
-                        "assumed_cache_read_tokens": 0,
-                        "note": "No future cache hit assumed; full prompt plus separate images and output/reasoning allowance. Estimate, not a bill."
-                    } if self.cny_pricing else None),
-                    "context_limits": {"model_profile": profile_limit,
-                        "configured": configured_limit,
-                        "effective": effective_context_limit}}),))
-            self._fault("after_reservation")
-            if self.retry_of:
-                self.store.append(RunLifecyclePayload(action="retry", reason="explicit bounded model retry",
-                    retry_of_event_id=self.retry_of, attempt=self._request_retry_count(self.retry_of) + 2))
-                self._fault("after_retry")
-            self.stage = "model_request"
-            request = self.store.append(prepared.event_payload.model_copy(update={
-                "reservation_id": reservation.reservation_id, "logical_purpose": logical_purpose}))
-            self._refresh_counts()
-            self._fault("after_request")
-            sent_at = time.monotonic()
-            request_timeout = min(self._remaining(), float(seconds))
-            try:
-                raw = await asyncio.wait_for(
-                    self.adapter.send(prepared, timeout=request_timeout),
-                    timeout=request_timeout,
+                remaining = self._remaining()
+                if remaining <= 0:
+                    return None, self._scoped_budget_reason("time", task=True)
+                # Wall-clock deadline covers tools, summaries, retries, and restart downtime.
+                seconds = min(
+                    Decimal(str(remaining)),
+                    self.budget.available.seconds,
+                    self.task_budget.available.seconds,
                 )
-            except (Exception, asyncio.CancelledError) as exc:
-                failure = classify_failure(exc, request.event_id)
-                self._record_model_failure(failure)
-                usage = exc.usage if isinstance(exc, ModelServiceError) else UsageMissing(reason="request ended without a service usage receipt")
-                settlement_stop = self._settle(reservation.reservation_id, usage,
-                             seconds=time.monotonic() - sent_at)
-                self._refresh_counts()
-                if settlement_stop:
-                    return None, settlement_stop
-                if await self._allow_model_retry(failure):
-                    self.retry_of, purpose = request.event_id, "retry"
+                if self.request_timeout_seconds is not None:
+                    seconds = min(seconds, Decimal(str(self.request_timeout_seconds)))
+                if seconds <= 0:
+                    return None, self._scoped_budget_reason(
+                        "time", task=self.task_budget.available.seconds <= 0
+                    )
+                budget_purpose = (
+                    "child_task"
+                    if purpose == "primary_task" and not self.store.is_root_task
+                    else purpose
+                )
+                estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
+                    input_token_upper_bound=prepared.input_token_upper_bound,
+                    image_input_tokens_estimate=prepared.token_estimate.image_tokens,
+                    additional_image_tokens_estimate=(prepared.token_estimate.image_tokens
+                        if bills_images_separately(get_cny_price_schedule(self.model,
+                            route_id=self.versions.remote_model.route_id)) else 0),
+                    output_token_limit=prepared.output_token_limit, seconds=seconds,
+                    reasoning_token_allowance=prepared.token_estimate.reasoning_token_allowance,
+                    estimate_source=prepared.estimate_source,
+                    pricing=self.pricing, cny_pricing=self.cny_pricing)
+                reservation_id = self.store.next_reservation_id()
+                task_decision = self.task_budget.reserve(reservation_id, estimate)
+                if task_decision.action == "stop":
+                    return None, self._budget_reason(
+                        task_decision,
+                        scope=None if self.store.is_root_task else "child",
+                    )
+                effective = task_decision.effective_estimate
+                decision = self.budget.reserve(reservation_id, effective)
+                if decision.action == "stop":
+                    return None, self._budget_reason(
+                        decision,
+                        scope="root" if not self.store.is_root_task else None,
+                    )
+                if task_decision.action == "reduce_output" or decision.action == "reduce_output":
+                    reduction = (
+                        decision
+                        if decision.action == "reduce_output"
+                        else task_decision
+                    )
+                    degradation = reduction.model_dump(mode="json")
+                    key = "max_tokens" if "max_tokens" in parameters else "max_completion_tokens"
+                    parameters[key] = reduction.output_token_limit
+                    # No event or request has been emitted yet. Re-estimate exact wire bytes.
+                    self._load_budget()
                     continue
-                return None, self._failure_stop_reason(failure)
-            self.stage = "model_response"
-            parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
-            elapsed = time.monotonic() - sent_at
-            response = self.store.append(parsed.event_payload,
-                source_refs=(self.store.source("request-duration", {"elapsed_seconds": elapsed,
-                    "basis": "local monotonic wall time from send through returned response"}),))
-            reason = self._settle(reservation.reservation_id, parsed.event_payload.usage,
-                                  seconds=elapsed)
-            self._refresh_counts()
-            self._present_tools(prepared.body, sources, request, response, context_event_id)
-            truncation = None
-            if parsed.finish_reason == "length":
-                blocked = reason
-                if reported_tokens(parsed.event_payload.usage) is None:
-                    blocked = blocked or "token_usage_unavailable"
-                if self._remaining() <= 0:
-                    blocked = blocked or self._scoped_budget_reason("time", task=True)
-                truncation = self._record_truncation(response, blocked=blocked)
-            self._fault("after_response")
-            if reason:
-                return None, reason
-            if truncation is not None:
-                if truncation.payload.action == "stop":
-                    return None, truncation.payload.reason
-                message = self._truncation_prompt()
-                source = self._event_source(truncation)
-                self.retry_of = None
-                if logical_purpose == "primary_task":
-                    self._append_truncation_prompt(truncation)
-                    messages, sources, context_event_id = self._project()
-                else:
-                    messages, sources = [*messages, message], [*sources, source]
-                self._checkpoint()
-                # This is another paid request under the same task's remaining
-                # budget and deadline, not a free protocol or transport retry.
-                purpose = logical_purpose
-                continue
-            if parsed.protocol_error:
-                if parsed.protocol_error == "empty_response" and reported_tokens(parsed.event_payload.usage) == 0:
-                    failure = ModelFailureDetails(request_event_id=request.event_id,
-                        category="empty_response", retryable=True, usage_received=True,
-                        service_error_type="empty_response", request_id=str(raw.get("id")) if raw.get("id") else None)
-                    self._record_model_failure(failure)
+                reservation = decision.reservation
+                self.store.append(BudgetEventPayload(action="reserve", reservation=reservation),
+                    source_refs=(self.store.source("request-budget-decision", {
+                        **decision.model_dump(mode="json"), "original_output_limit": self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
+                        "actual_output_limit": prepared.output_token_limit,
+                        "near_limit_action": "reduce_output" if degradation else "allow",
+                        "degradation": degradation,
+                        "token_estimate": asdict(prepared.token_estimate),
+                        "cny_reservation": ({
+                            "price_schedule": {k: str(v) if isinstance(v, Decimal) else v
+                                               for k, v in asdict(self.cny_pricing).items()},
+                            "assumed_cache_read_tokens": 0,
+                            "note": "No future cache hit assumed; full prompt plus separate images and output/reasoning allowance. Estimate, not a bill."
+                        } if self.cny_pricing else None),
+                        "context_limits": {"model_profile": profile_limit,
+                            "configured": configured_limit,
+                            "effective": effective_context_limit}}),))
+                self._fault("after_reservation")
+                if self.retry_of:
+                    self.store.append(RunLifecyclePayload(action="retry", reason="explicit bounded model retry",
+                        retry_of_event_id=self.retry_of, attempt=self._request_retry_count(self.retry_of) + 2))
+                    self._fault("after_retry")
+                self.stage = "model_request"
+                request = self.store.append(prepared.event_payload.model_copy(update={
+                    "reservation_id": reservation.reservation_id, "logical_purpose": logical_purpose}),
+                    source_refs=(self.store.source("request-dispatch", lease.evidence if lease else {
+                        "route_id": self.versions.remote_model.route_id,
+                        "queue_seconds": 0.0, "mode": "unconfigured"}),))
+                if lease:
+                    lease.recorded = True
+                self._queue_interruption = None
+                self._refresh_counts()
+                self._fault("after_request")
+                sent_at = time.monotonic()
+                request_timeout = min(self._remaining(), float(seconds))
+                try:
+                    raw = await asyncio.wait_for(
+                        self.adapter.send(prepared, timeout=request_timeout),
+                        timeout=request_timeout,
+                    )
+                except (Exception, asyncio.CancelledError) as exc:
+                    failure = classify_failure(exc, request.event_id)
+                    elapsed = time.monotonic() - sent_at
+                    redispatch = lease is not None and failure.category == "temporary_rate_limit"
+                    adjustment = lease.rejected() if redispatch else None
+                    if lease:
+                        lease.release()
+                    self._record_model_failure(failure, elapsed=elapsed, dispatch_adjustment=adjustment)
+                    usage = exc.usage if isinstance(exc, ModelServiceError) else UsageMissing(reason="request ended without a service usage receipt")
+                    settlement_stop = self._settle(reservation.reservation_id, usage,
+                                 seconds=elapsed)
+                    self._refresh_counts()
+                    if settlement_stop:
+                        return None, settlement_stop
+                    if redispatch and self._budget_stop() is None:
+                        self.redispatch_of, self.retry_of = request.event_id, None
+                        purpose = logical_purpose
+                        continue
+                    self.redispatch_of = None
                     if await self._allow_model_retry(failure):
                         self.retry_of, purpose = request.event_id, "retry"
                         continue
                     return None, self._failure_stop_reason(failure)
-                return None, parsed.protocol_error
-            if reported_tokens(parsed.event_payload.usage) is None:
-                return None, "token_usage_unavailable"
-            if self._remaining() <= 0:
-                return None, "time_budget_exhausted"
-            return response, None
+                if lease:
+                    lease.release()
+                self.stage = "model_response"
+                parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
+                elapsed = time.monotonic() - sent_at
+                adjustment = lease.succeeded() if lease else None
+                self.redispatch_of = None
+                response = self.store.append(parsed.event_payload,
+                    source_refs=(self.store.source("request-duration", {"elapsed_seconds": elapsed,
+                        "basis": "local monotonic wall time from send through returned response"}),
+                        *((self.store.source("dispatch-adjustment", adjustment),) if adjustment else ())))
+                reason = self._settle(reservation.reservation_id, parsed.event_payload.usage,
+                                      seconds=elapsed)
+                self._refresh_counts()
+                self._present_tools(prepared.body, sources, request, response, context_event_id)
+                truncation = None
+                if parsed.finish_reason == "length":
+                    blocked = reason
+                    if reported_tokens(parsed.event_payload.usage) is None:
+                        blocked = blocked or "token_usage_unavailable"
+                    if self._remaining() <= 0:
+                        blocked = blocked or self._scoped_budget_reason("time", task=True)
+                    truncation = self._record_truncation(response, blocked=blocked)
+                self._fault("after_response")
+                if reason:
+                    return None, reason
+                if truncation is not None:
+                    if truncation.payload.action == "stop":
+                        return None, truncation.payload.reason
+                    message = self._truncation_prompt()
+                    source = self._event_source(truncation)
+                    self.retry_of = None
+                    if logical_purpose == "primary_task":
+                        self._append_truncation_prompt(truncation)
+                        messages, sources, context_event_id = self._project()
+                    else:
+                        messages, sources = [*messages, message], [*sources, source]
+                    self._checkpoint()
+                    # This is another paid request under the same task's remaining
+                    # budget and deadline, not a free protocol or transport retry.
+                    purpose = logical_purpose
+                    continue
+                if parsed.protocol_error:
+                    if parsed.protocol_error == "empty_response" and reported_tokens(parsed.event_payload.usage) == 0:
+                        failure = ModelFailureDetails(request_event_id=request.event_id,
+                            category="empty_response", retryable=True, usage_received=True,
+                            service_error_type="empty_response", request_id=str(raw.get("id")) if raw.get("id") else None)
+                        self._record_model_failure(failure)
+                        if await self._allow_model_retry(failure):
+                            self.retry_of, purpose = request.event_id, "retry"
+                            continue
+                        return None, self._failure_stop_reason(failure)
+                    return None, parsed.protocol_error
+                if reported_tokens(parsed.event_payload.usage) is None:
+                    return None, "token_usage_unavailable"
+                if self._remaining() <= 0:
+                    return None, "time_budget_exhausted"
+                return response, None
 
     @staticmethod
     def _truncation_prompt():
@@ -567,6 +596,9 @@ class Runtime:
             "additional_image_tokens": accounting.additional_image_tokens,
             "reported_usage_includes_image_tokens": accounting.reported_usage_includes_image_tokens}
         reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
+        if accounting.usage_basis == "rejected_before_processing" and reservation.amounts.money_usd is not None:
+            image_charge["cost"] = EstimatedCostUpperBound(usd=Decimal(0),
+                reason="Known unprocessed rejection; no charge inferred from the request estimate")
         if reservation.amounts.money_cny is not None:
             image_charge["estimated_cost_cny"] = (accounting.estimated_cost_cny
                 if reported_tokens(usage) is not None else None)
@@ -842,13 +874,20 @@ class Runtime:
             self._refresh_counts()
             if self.tool_budget_update is not None:
                 self.tool_budget_update(self)
+            tool_started = time.monotonic()
+            tool_epoch = time.time()
             try:
                 raw = await asyncio.wait_for(self.tools.call_tool(call.tool_name, call.full_arguments), timeout=self._remaining())
             except (Exception, asyncio.CancelledError) as exc:
-                failed = self._unknown_execution(intent)
+                failed = self._unknown_execution(intent, elapsed=time.monotonic() - tool_started,
+                                                 started_epoch=tool_epoch)
                 if write:
                     self._inspect_unknown(failed.event_id, before)
                 return "unknown_write_outcome" if write else self._exception_reason(exc)
+            tool_elapsed = time.monotonic() - tool_started
+            duration = self.store.source("tool-duration", {"elapsed_seconds": tool_elapsed,
+                "started_epoch": tool_epoch,
+                "basis": "local monotonic wall time awaiting tool, including any child tasks"})
             self._fault("after_tool")
             try:
                 _, _, shown, _ = convert_tool_result(call.call_id, raw, self.store)
@@ -858,7 +897,7 @@ class Runtime:
                     raw_result=self.store.capture(raw, force_blob=True),
                     shown_result=MissingCapture(reason="MCP presentation conversion failed"),
                     repeatability=repeatability, operation_key=key, outcome="failed",
-                    invocation_event_id=intent.event_id, presentation_status="prepared"))
+                    invocation_event_id=intent.event_id, presentation_status="prepared"), source_refs=(duration,))
                 return "tool_presentation_failed"
             self._tool_state = copy.deepcopy(self.tools.snapshot_state())
             execution = self.store.append(ToolExecutionPayload(call_id=call.call_id,
@@ -869,7 +908,7 @@ class Runtime:
                 outcome="failed" if raw.get("isError") else "succeeded",
                 applied_write_id=key if write and not raw.get("isError") else None,
                 invocation_event_id=intent.event_id, presentation_status="prepared"),
-                source_refs=(self.store.source("tool-state-after", self._tool_state),))
+                source_refs=(self.store.source("tool-state-after", self._tool_state), duration))
             self._fault("after_execution")
             self._accept_execution(execution)
             self._checkpoint()
@@ -923,13 +962,16 @@ class Runtime:
         if self.context:
             self.context.append(message, source, kind=kind)
 
-    def _unknown_execution(self, invocation):
+    def _unknown_execution(self, invocation, *, elapsed=None, started_epoch=None):
         p = invocation.payload
         return self.store.append(ToolExecutionPayload(call_id=p.call_id, tool_name=p.tool_name,
             full_arguments=p.full_arguments, repeatability=p.repeatability, operation_key=p.operation_key,
             outcome="unknown", raw_result=MissingCapture(reason="interrupted after durable intent; result not captured"),
             shown_result=MissingCapture(reason="no result was presented"),
-            invocation_event_id=invocation.event_id, presentation_status="prepared"))
+            invocation_event_id=invocation.event_id, presentation_status="prepared"),
+            source_refs=((self.store.source("tool-duration", {"elapsed_seconds": elapsed,
+                **({"started_epoch": started_epoch} if started_epoch is not None else {})}),)
+                         if elapsed is not None else ()))
 
     def _inspect_unknown(self, event_id, before):
         state = self.store.put_json({"before": before.model_dump(mode="json") if before else None,
@@ -950,6 +992,7 @@ class Runtime:
             "pending_pictures": self.store.capture(self.pending_pictures).model_dump(mode="json"),
             "pending_picture_events": self.pending_picture_events,
             "terminal_reason": self.terminal_reason, "retry_of": self.retry_of,
+            "redispatch_of": self.redispatch_of,
             "answer_repair_request_id": self.answer_repair_request_id,
             "answer_repair_response_id": self.answer_repair_response_id,
             "answer_repair_original": self.answer_repair_original,
@@ -1002,6 +1045,7 @@ class Runtime:
             self.pending_pictures = []
         self.pending_picture_events = saved.get("pending_picture_events", [])
         self.retry_of = saved.get("retry_of")
+        self.redispatch_of = saved.get("redispatch_of")
         self.answer_repair_request_id = saved.get("answer_repair_request_id")
         self.answer_repair_response_id = saved.get("answer_repair_response_id")
         self.answer_repair_original = saved.get("answer_repair_original")
@@ -1024,6 +1068,9 @@ class Runtime:
         for event in suffix:
             p = event.payload
             if p.event_type == "model_response":
+                # A durable response finishes the old admission attempt, even
+                # when the process died before saving the next checkpoint.
+                self.redispatch_of = None
                 request = next(e for e in self.store.events if e.event_id == p.request_event_id)
                 reservation_id = request.payload.reservation_id
                 if reservation_id:
@@ -1104,6 +1151,8 @@ class Runtime:
                      and e.payload.request_event_id not in failures}
         retried = {e.payload.retry_of_event_id for e in self.store.events
             if e.payload.event_type == "run_lifecycle" and e.payload.action == "retry"}
+        retried.update(self._redispatch_parent(e) for e in self.store.events
+                       if e.payload.event_type == "adapter_request" and self._redispatch_parent(e))
         dangling = [e for e in self.store.events if e.payload.event_type == "adapter_request"
                     and e.event_id not in responded and e.event_id not in retried]
         if dangling:
@@ -1112,14 +1161,30 @@ class Runtime:
             if failure and not failure.retryable:
                 return failure.category
             if request.payload.reservation_id:
-                self._settle(request.payload.reservation_id, UsageMissing(reason="process interrupted with request outcome unknown"), seconds=None)
-            if self.answer_repair_request_id is not None:
+                rejected = failure and is_unprocessed_rejection(failure)
+                failure_event = next((e for e in self.store.events
+                    if e.payload.event_type == "run_lifecycle" and e.payload.model_failure
+                    and e.payload.model_failure.request_event_id == request.event_id), None)
+                timing = next((s.blob for s in failure_event.source_refs
+                    if s.source_id == "request-duration"), None) if failure_event else None
+                elapsed = json.loads(self.store.get_bytes(timing))["elapsed_seconds"] if timing else None
+                self._settle(request.payload.reservation_id,
+                    rejected_request_usage() if rejected else UsageMissing(reason="process interrupted with request outcome unknown"),
+                    seconds=elapsed)
+            if (failure and failure.category == "temporary_rate_limit"
+                    and self.versions.remote_model.route_id in route_policies()):
+                # Resume explicit rate-limit refusals through admission, without
+                # consuming transport-failure retries. Usage may still be
+                # unknown if a provider receipt was lost before settlement.
+                self.redispatch_of, self.retry_of = request.event_id, None
+            elif self.answer_repair_request_id is not None:
                 return "resume_request_outcome_unknown"
-            if self._request_retry_count(request.event_id) >= self.limits.max_model_retries:
+            elif self._request_retry_count(request.event_id) >= self.limits.max_model_retries:
                 return self._failure_stop_reason(failure) if failure else "resume_request_outcome_unknown"
-            if request.payload.logical_purpose == "context_summary":
+            elif request.payload.logical_purpose == "context_summary":
                 return "resume_request_outcome_unknown"
-            self.retry_of = request.event_id
+            else:
+                self.redispatch_of, self.retry_of = None, request.event_id
         self._refresh_counts()
         if self.budget.fatal_reason:
             return "token_reservation_exceeded"
@@ -1239,6 +1304,10 @@ class Runtime:
         count = 0
         while request_id:
             request = next(e for e in self.store.events if e.event_id == request_id)
+            parent = self._redispatch_parent(request)
+            if parent:
+                request_id = parent
+                continue
             prior = [e for e in self.store.events if e.sequence < request.sequence
                      and (e.payload.event_type == "adapter_request" or
                           e.payload.event_type == "run_lifecycle" and e.payload.action == "retry")]
@@ -1248,9 +1317,49 @@ class Runtime:
             request_id = prior[-1].payload.retry_of_event_id
         return count
 
-    def _record_model_failure(self, failure):
+    def _redispatch_parent(self, request):
+        ref = next((s.blob for s in request.source_refs if s.source_id == "request-dispatch"), None)
+        return json.loads(self.store.get_bytes(ref)).get("redispatch_of") if ref else None
+
+    @asynccontextmanager
+    async def _dispatch_slot(self):
+        gate = get_dispatcher(self.versions.remote_model.route_id)
+        if gate is None:
+            yield None
+            return
+        self.stage = "request_queue"
+        started, epoch = time.monotonic(), time.time()
+        previous = self._queue_interruption or {}
+        try:
+            lease = await gate.acquire(timeout=self._remaining(), redispatch_of=self.redispatch_of)
+        except (TimeoutError, asyncio.CancelledError):
+            self._queue_interruption = {"route_id": gate.route_id,
+                "started_epoch": previous.get("started_epoch", epoch),
+                "ended_epoch": time.time(),
+                "queue_seconds": previous.get("queue_seconds", 0.0) + time.monotonic() - started,
+                "outcome": "not_sent", "redispatch_of": self.redispatch_of}
+            raise
+        if previous:
+            # Output-budget reduction can re-prepare before any send. Keep the
+            # already observed queue wait when acquiring a fresh permit.
+            lease.evidence["queue_seconds"] += previous["queue_seconds"]
+            lease.evidence["started_epoch"] = previous["started_epoch"]
+        try:
+            yield lease
+        finally:
+            if not getattr(lease, "recorded", False):
+                self._queue_interruption = {**lease.evidence, "outcome": "not_sent"}
+            lease.release()
+
+    def _record_model_failure(self, failure, *, elapsed=None, dispatch_adjustment=None):
+        sources = []
+        if elapsed is not None:
+            sources.append(self.store.source("request-duration", {"elapsed_seconds": elapsed,
+                "basis": "local monotonic wall time from send through failure"}))
+        if dispatch_adjustment is not None:
+            sources.append(self.store.source("dispatch-adjustment", dispatch_adjustment))
         self.store.append(RunLifecyclePayload(action="failure", failure_stage="model_request",
-            reason=failure.category, model_failure=failure))
+            reason=failure.category, model_failure=failure), source_refs=tuple(sources))
 
     async def _allow_model_retry(self, failure):
         attempt = self._request_retry_count(failure.request_event_id)
@@ -1289,7 +1398,9 @@ class Runtime:
         action = "timeout" if timeout else "cancel" if cancel else "failure"
         fields = {"failure_stage": self.stage} if action == "failure" else {}
         self.store.append(RunLifecyclePayload(action=action,
-            reason=f"{reason}; error_type={type(exc).__name__}", **fields))
+            reason=f"{reason}; error_type={type(exc).__name__}", **fields),
+            source_refs=((self.store.source("request-dispatch", self._queue_interruption),)
+                         if getattr(self, "_queue_interruption", None) else ()))
         return reason
 
     def _exception_stop(self, exc):
@@ -1313,6 +1424,13 @@ class Runtime:
             for e in self.store.all_events if e.payload.event_type == "adapter_request"]
         task_accounting = summarize_request_accounting(
             row for row in accounting_records if row.task_id == self.store.task_id)
+        from .timing import summarize_timing
+        # A timeout/cleanup may finish beyond the deadline; timing must retain
+        # the observed wall duration instead of clipping it to the time limit.
+        elapsed = self.elapsed_before + max(0.0, time.monotonic() - self.started)
+        timing = summarize_timing(self.store, current_task=self.store.task_id,
+            started_epoch=self.started_epoch, ended_epoch=self.started_epoch + elapsed,
+            status=reason, pending_queue=getattr(self, "_queue_interruption", None))
         receipt = {"status": reason, "answer": self.answer,
             **({"finalization": finalization} if finalization is not None else {}),
             "started_epoch": self.started_epoch,
@@ -1321,7 +1439,7 @@ class Runtime:
             "output_limit_policy": validate_output_limit(self.model,
                 self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
                 reason=self.low_output_limit_reason),
-            **self.counts, "elapsed_seconds": self.limits.seconds - self._remaining(),
+            **self.counts, "elapsed_seconds": elapsed, "timing": timing,
             "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
             "truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.events),
             "root_truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.all_events),
@@ -1344,7 +1462,9 @@ class Runtime:
             "task_budget_available": self.task_budget.available.model_dump(mode="json"),
             "budget_scope": "root" if self.store.is_root_task else "child"}
         self.store.append(RunLifecyclePayload(action="stop", reason=reason, partial_artifacts=tuple(artifacts)),
-            source_refs=(self.store.source("run-receipt", receipt),))
+            source_refs=(self.store.source("run-receipt", receipt),
+                *((self.store.source("request-dispatch", self._queue_interruption),)
+                  if getattr(self, "_queue_interruption", None) else ())))
         usage = UsageReported(raw_usage={"total_tokens": self.counts["reported_tokens"]}) if self.counts["usage_complete"] and self.counts["model_calls"] else UsageMissing(reason="one or more requests lacked complete usage, or none were sent")
         self.store.append(RunAggregateUsagePayload(usage=usage,
             raw_summary=self.store.capture(receipt), notes=("Locally summed usage; no aggregate provider bill was supplied.",)))
