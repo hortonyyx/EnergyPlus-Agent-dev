@@ -170,6 +170,13 @@ Get-FileHash -Algorithm SHA256 -LiteralPath $taskArchive
 - **派工单逐文件写清归属**：两包并行时，共享文件（如行为记录脚本、运行器里不同函数）写到函数一级；Agent 版本登记表只归一包，另一包改了登记文件时按约不改登记，合并后由 Opus 统一重新登记共同版本（`python -m src.agent_runtime.agent_registry register --version … [--add-file KIND:PATH]`）。
 - **工作树操作慢**：仓库工作树约 3 GB，机器忙时建或删一个工作树要 10–25 分钟；放后台执行、时限给足（10-04 一次 30 分钟时限中途被停，留下半截目录）。
 - **整案启动入口**：A2-R 起改为 `python -m src.agent.runtime_configuration check|command|launch <配置> --case <编号>`（原 `runtime_r1_preparation`）；按量计费线路可在配置里写人民币上限（A4-R）。
+**10-07 补充（夜间连续调试的做法）：**
+- **整案从固定提交的独立工作树启动**：`git worktree add --detach <EnergyPlus-Agent-worktrees>/runs-<名> <提交>`，`.venv` 用 `uv sync --frozen --offline --python 3.12`（缓存已有，离线约 1–2 分钟；在线同步曾遇代理 TLS 中断）。运行中不改该工作树的代码（新起的读图任务会做版本校验），主线可以照常合并；要测新版本时等当前整案退出，再 `git checkout --detach <新提交>` 后启动。运行目录退出后拷回主树 `AI_agent/archive/local_backup/` 再评估、打包，最后收回工作树。
+- **GLM 订阅不同时跑两个整案**：10-07 两个分工整案同时跑（约 8 路并发）出现 429（代码 1302），单个整案的 5–8 路并发未见限流。整案配置的限流重试用 5 次、起始 4 秒（原 2 次、1 秒在限流下几秒就放弃）。可以写一个后台等待脚本，在上一个整案的退出文件出现后再切提交、启动下一个，避免重叠。
+- **登记含新文件的 Agent 版本要用 `--add-file KIND:PATH`**：登记表沿用上一版的文件清单，不会自动加入新模块（10-07 d1h.5／.6 漏登 `assembly.py`，到 b1.1 才补上）。合并别人登记过的分支时，取主线的登记表、合并后统一重新登记。
+- **派 Astra 后立即退出、事件里是 “workspace routing discovery failed”**：本机代理到 chatgpt.com 的 TLS 握手失败（同站其他子域、api.openai.com 正常）。后台每分钟用 curl 探测 chatgpt.com，返回 403（Cloudflare 对 curl 的正常反应）即恢复；把失败那次的事件与日志移进派工状态目录的子目录，再用同一个启动脚本重派。
+- **已知不稳定检查**：`test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial` 在机器忙时偶发失败，单独重跑能过（10-07 共 5 次：3 过 2 败）；遇到时单独重跑并如实记录，列入下次审查的清理。
+
 main 是持续集成主干，由 Codex 主助手负责合并与推送。短期分支/worktree 明确文件范围，公共模型/内核/出口及时集成；验收合入后由主助手收树，未知改动先保存。共享历史不强推，回退已共享改动优先用 revert 或另开旧版本查看目录。工作树放在已确认持久化的位置，各实验独立输出目录。
 日常开发使用 Windows 原生 Python 3.12 与 uv，仓库根执行 `. ./scripts/activate_windows.ps1`；配置与入口见[会话设置](session_setup.md)。共享 editable 安装可能被另树启动改变；怀疑串树时检查模块 `__file__`。不要反复自动同步依赖或为普通文件改动新装环境，确需不同依赖时再隔离环境。运行配置的 `run_root` 也应放本地磁盘；Windows 检查副本位于 `workflow/configs/windows_migration/`，旧实验配置保留原状。
 
