@@ -106,7 +106,10 @@ async def prepared_case(case_name: str, tmp_path: Path) -> dict:
         launches.append(command)
         raise ModelBoundary()
 
-    with patch.object(T1.runner.subprocess, "Popen", stop):
+    # The receipt now reads Git identity before the guarded model launch. Keep
+    # that metadata lookup outside this deliberately broad Popen interception.
+    with patch("src.agent_runtime.versions.source_commit", return_value="offline-parity"), \
+            patch.object(T1.runner.subprocess, "Popen", stop):
         try:
             T1.runner.run_experiment(old_args)
         except ModelBoundary:

@@ -335,10 +335,19 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
     command.extend(["--mcp-config", json.dumps({"mcpServers": {"bim": {
         "command": server[0], "args": server[1:], "alwaysLoad": True}}})])
     started = time.monotonic()
-    from src.agent_runtime.agent_registry import agent_version_record
-    agent_version = agent_version_record(ROOT)["version_id"]
+    from src.agent_runtime.versions import external_run_identity
+    role_models = {"local_observer" if readonly else "coordinator": {
+        "route_id": f"{provider}-subscription-claude-code", "model": routed_model,
+        "reasoning_effort": (effort or "medium") if not readonly or model == "sonnet" else None,
+        "output_tokens": None, "output_limit_source": "client_default_not_exposed",
+        "parameters": {"effort": (effort or "medium") if not readonly or model == "sonnet" else None}}}
+    if workers:
+        role_models[WORKER_AGENT] = {"route_id": "claude-subscription-claude-code",
+            "model": WORKER_MODELS[workers], "reasoning_effort": None, "output_tokens": None,
+            "output_limit_source": "client_default_not_exposed", "parameters": {}}
+    version_identity = external_run_identity(ROOT, mode="single_model", role_models=role_models)
     record = {"requested_model": routed_model, "requested_role": model, "provider": provider,
-              "agent_version": agent_version,
+              **version_identity,
               "channel": f"{provider} subscription; no paid API/fallback",
               "readonly": readonly, "timeout_seconds": timeout,
               "exploratory_opus": exploratory_opus,
@@ -347,6 +356,10 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         record.update(workers=workers, worker_model=WORKER_MODELS[workers])
     if receipt_context:
         record.update(receipt_context)
+    # Caller context cannot override the verified identity. This sidecar and
+    # request/receipt retain the same invocation-specific version/configuration.
+    record.update(version_identity)
+    dump(log_run / f"{name}_versions.json", version_identity)
     dump(log_run / f"{name}_request.json", {**record, "prompt": prompt,
                                        "system_prompt": command[command.index("--system-prompt")+1]})
     stdout_path, stderr_path = log_run / f"{name}_stream.jsonl", log_run / f"{name}_stderr.log"

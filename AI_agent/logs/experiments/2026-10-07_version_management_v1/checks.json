@@ -1,0 +1,65 @@
+{
+  "model_requests": 0,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "full_suite_run": false,
+  "distinct_tests": 96,
+  "batches": [
+    {
+      "name": "registry-and-contracts",
+      "passed": 52,
+      "failed": 0,
+      "seconds": 44.42,
+      "registry": "temporary v2 registry",
+      "targets": [
+        "tests/test_runtime_agent_registry.py",
+        "tests/test_bim_agent_glm_route.py",
+        "tests/test_runtime_c3r.py::test_explicit_registry_still_rejects_changed_source_and_relative_override",
+        "tests/test_runtime_estimation.py",
+        "tests/test_harness_core_contracts.py"
+      ]
+    },
+    {
+      "name": "integration",
+      "passed": 42,
+      "failed": 1,
+      "seconds": 489.19,
+      "registry": "temporary v2 registry",
+      "targets": [
+        "tests/test_role_end_to_end.py",
+        "tests/test_role_single_parity.py",
+        "tests/test_runtime_frozen_tools.py",
+        "tests/test_runtime_recovery_edges.py",
+        "tests/test_runtime_r3.py"
+      ],
+      "failure": "test_claude_receipt_identifies_registered_agent_without_starting_model intercepted read-only Git subprocess with its model-launch mock; fixed and passed in final batch"
+    },
+    {
+      "name": "final-registry-recheck",
+      "passed": 21,
+      "failed": 0,
+      "seconds": 63.49,
+      "registry": "src/agent_runtime/agent_versions.json",
+      "targets": [
+        "tests/test_runtime_agent_registry.py",
+        "tests/test_bim_agent_glm_route.py",
+        "tests/test_role_single_parity.py",
+        "tests/test_bim_time_budget.py::test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expiry",
+        "tests/test_runtime_r3.py::test_claude_receipt_identifies_registered_agent_without_starting_model"
+      ]
+    }
+  ],
+  "scope_change_after_integration": "Added empty public package initializer to runtime, excluded documentation and test-discovery helpers, and fingerprinted the existing optional Claude worker prompt. Model-facing source and runtime execution behavior unchanged; final registry/receipt/parity tests repeated.",
+  "open_item": "D: external developer-model MCP bridge root receipt is outside the allowed existing domain-file edits; startup verification covers both lines, but root receipt/coordinator-config metadata upgrade remains for Opus to coordinate.",
+  "final_review": {
+    "modified_files": 13,
+    "new_files": 10,
+    "file_ownership_check": true,
+    "all_written_text_LF": true,
+    "git_diff_check_passed": true,
+    "final_registry_verify_passed": true,
+    "git_head": "e030b6b0195eea18d2d54261038f8a8f25640518",
+    "git_commits_made": 0,
+    "other_worktrees_written": false
+  }
+}

@@ -126,6 +126,7 @@ def test_subscription_wait_uses_remaining_deadline_and_never_launches_after_expi
         def communicate(self, prompt, timeout):
             waits.append(timeout)
     monkeypatch.setattr(runner.subprocess, "Popen", ScriptedProcess)
+    monkeypatch.setattr("src.agent_runtime.versions.source_commit", lambda root: "offline-git-fixture")
     runner.subscription(run, "fixture", model="sonnet", name="first", timeout=6000)
     assert waits == [500]
     clock[0] = 7000

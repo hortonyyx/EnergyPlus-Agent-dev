@@ -171,7 +171,8 @@ def test_claude_receipt_identifies_registered_agent_without_starting_model(tmp_p
     run = tmp_path / "expired"
     run.mkdir()
     (run / "inputs.json").write_text(json.dumps({"images": {}, "started_epoch": 1, "deadline_epoch": 2}))
-    with patch.object(runner.subprocess, "Popen", side_effect=AssertionError("model launch forbidden")):
+    with patch("src.agent_runtime.versions.source_commit", return_value="offline-git-fixture"), \
+            patch.object(runner.subprocess, "Popen", side_effect=AssertionError("model launch forbidden")):
         receipt = runner.subscription(run, "offline expired run", model="sonnet", name="agent")
     assert receipt["agent_version"] == load_agent_registry(ROOT)["current_version"]
     assert receipt["timed_out"] and receipt["model_process_started"] is False

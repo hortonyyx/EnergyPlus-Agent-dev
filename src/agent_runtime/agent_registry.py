@@ -1,15 +1,13 @@
-"""Version the model-facing Agent files and exact MCP tool catalogs.
+"""Immutable runtime/domain releases; normal runs verify, never register.
 
-The registry is deliberately independent of the runtime code version.  It lets
-two runners use the same tools, guidance, and task helpers while their harness
-implementations differ.  Registering a version is an explicit local operation;
-normal runs only verify the selected record.
+Domain supplies fingerprints through a JSON subprocess protocol. This module
+does not import building code. Old Agent IDs remain aliases of their original
+snapshots, not retroactive full runtime/domain releases.
 """
-
 from __future__ import annotations
 
 import argparse
-import asyncio
+from datetime import date, datetime
 import hashlib
 import json
 import os
@@ -17,40 +15,44 @@ from pathlib import Path
 import re
 import subprocess
 import sys
-import tempfile
-from typing import Any, Mapping
-
+from typing import Any
 
 REGISTRY_RELATIVE_PATH = Path("src/agent_runtime/agent_versions.json")
-_VERSION_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+_SCHEMA = "agent-version-registry.v2"
 _CATALOG_MODES = ("coordinator", "readonly", "coordinator_mesh", "readonly_mesh")
-_FILE_KINDS = frozenset({"tool", "guidance", "task_description"})
+_SKIP_PARTS = {"__pycache__", ".git", ".pytest_cache", ".mypy_cache", ".ruff_cache",
+               ".venv", "node_modules", "tests", "testdata", "docs", "logs", "archive"}
+_SKIP_SUFFIXES = {".pyc", ".pyo", ".tmp", ".log", ".bak"}
+_SKIP_NAMES = {"readme.md", "license.md", "license", "affected_tests.py", "affected_tests_rules.yaml"}
+DEFAULT_SCOPE = {
+    "runtime": ["src/agent_runtime", "src/harness_contracts", "src/__init__.py",
+                "src/utils/__init__.py", "src/utils/file_lock.py",
+                "pyproject.toml", "uv.lock"],
+    "domain": ["src/agent", "scripts/tool_scripts", "src/configs", "src/mcp",
+               "src/utils", "src/validator", "src/converters", "src/runner",
+               "src/converter_manager.py", "scripts/glm_code.py", "scripts/glm_code.sh"],
+}
 
 
 class AgentVersionMismatch(ValueError):
-    """The checked-out Agent files or live tool catalog differ from a record."""
+    """The checkout differs from the selected immutable release."""
 
 
-def _sha256(path: Path) -> str:
+def _sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _canonical_json_bytes(value: Any) -> bytes:
-    return json.dumps(
-        value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
-    ).encode("utf-8")
+def _canonical_json_bytes(value):
+    return json.dumps(value, ensure_ascii=False, sort_keys=True,
+                      separators=(",", ":"), allow_nan=False).encode("utf-8")
 
 
-def _registry_path(root: Path, registry_path: Path | None) -> Path:
-    root = Path(root).resolve()
-    # Explicit scratch registries let independently owned packages verify their
-    # complete working files without editing the shared release registry. The
-    # same strict file/catalog hash checks apply; nothing is auto-registered.
+def _registry_path(root, registry_path):
     override = os.environ.get("BIM_AGENT_REGISTRY_PATH") if registry_path is None else None
     if override is not None and not Path(override).is_absolute():
         raise ValueError("BIM_AGENT_REGISTRY_PATH must be absolute")
-    path = Path(registry_path) if registry_path is not None else Path(override) if override else root / REGISTRY_RELATIVE_PATH
-    return path.resolve()
+    return (Path(registry_path) if registry_path is not None else
+            Path(override) if override else Path(root) / REGISTRY_RELATIVE_PATH).resolve()
 
 
 def load_agent_registry(root: Path, registry_path: Path | None = None) -> dict[str, Any]:
@@ -58,181 +60,277 @@ def load_agent_registry(root: Path, registry_path: Path | None = None) -> dict[s
     try:
         registry = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as error:
-        raise AgentVersionMismatch(f"Agent version registry does not exist: {path}") from error
-    if registry.get("schema_version") != "agent-version-registry.v1":
-        raise AgentVersionMismatch("unsupported Agent version registry schema")
-    versions = registry.get("versions")
-    current = registry.get("current_version")
-    if not isinstance(versions, dict) or not isinstance(current, str) or current not in versions:
-        raise AgentVersionMismatch("Agent version registry has no valid current version")
+        raise AgentVersionMismatch(f"version registry does not exist: {path}") from error
+    if registry.get("schema_version") == "agent-version-registry.v1":
+        if registry.get("current_version") not in registry.get("versions", {}):
+            raise AgentVersionMismatch("registry has no valid current version")
+        return registry
+    if registry.get("schema_version") != _SCHEMA:
+        raise AgentVersionMismatch("unsupported version registry schema")
+    domains = registry.get("domain_versions", {})
+    if registry.get("current_domain_version") not in domains:
+        raise AgentVersionMismatch("registry has no valid current domain version")
+    runtime_id = registry.get("current_runtime_version")
+    if runtime_id is not None and runtime_id not in registry.get("runtime_versions", {}):
+        raise AgentVersionMismatch("registry has no valid current runtime version")
+    # Read-only compatibility view; only canonical records are serialized.
+    registry["versions"] = dict(domains)
+    for alias, canonical in registry.get("aliases", {}).items():
+        if canonical not in domains or alias in domains:
+            raise AgentVersionMismatch(f"invalid historical alias: {alias}")
+        registry["versions"][alias] = domains[canonical]
+    registry["current_version"] = registry["current_domain_version"]
     return registry
 
 
-def agent_version_record(
-    root: Path,
-    version_id: str | None = None,
-    *,
-    registry_path: Path | None = None,
-    verify: bool = True,
-) -> dict[str, Any]:
-    """Return one registry record, optionally checking every registered file."""
+def _write_registry(path, registry):
+    value = {k: v for k, v in registry.items() if k not in {"versions", "current_version"}}
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+                         encoding="utf-8", newline="\n")
+    temporary.replace(path)
 
+
+def _git(root, *args):
+    return subprocess.check_output(["git", "--no-optional-locks", *args], cwd=root,
+                                   text=True, encoding="utf-8").strip()
+
+
+def source_commit(root):
+    try:
+        return _git(root, "rev-parse", "HEAD")
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def migrate_registry(root, registry, *, legacy_order=None):
+    """Rename history without inventing missing runtime/role fingerprints."""
+    if registry["schema_version"] == _SCHEMA:
+        return registry
+    old = registry["versions"]
+    if legacy_order is None:
+        # v1 sorted dictionary keys: recover registration order from Git.
+        legacy_order = []
+        for commit in _git(root, "log", "--reverse", "--format=%H", "--",
+                           REGISTRY_RELATIVE_PATH.as_posix()).splitlines():
+            historical = json.loads(_git(root, "show", f"{commit}:{REGISTRY_RELATIVE_PATH.as_posix()}"))
+            for key in historical.get("versions", {}):
+                if key in old and key not in legacy_order:
+                    legacy_order.append(key)
+    if len(legacy_order) != len(old) or set(legacy_order) != set(old):
+        raise ValueError("migration needs the complete, unique historical registration order")
+    aliases, domains = {}, {}
+    for number, alias in enumerate(legacy_order, 1):
+        match = re.search(r"(?<!\d)(20\d{6})(?!\d)", alias)
+        stamp = match[1] if match else _git(root, "show", "-s", "--format=%cs", old[alias]["source_commit"]).replace("-", "")
+        canonical = f"domain-v{number}-{stamp}"
+        aliases[alias] = canonical
+        domains[canonical] = {**old[alias], "coverage": "legacy_explicit_files",
+            "legacy_version_id": alias, "mode_fingerprints": None,
+            "fingerprint_status": "not_recorded_by_legacy_registry"}
+    return {"schema_version": _SCHEMA, "scope": DEFAULT_SCOPE,
+            "fingerprint_provider": ["{python}", "-m", "src.agent.version_fingerprints"],
+            "current_runtime_version": None,
+            "current_domain_version": aliases[registry["current_version"]],
+            "runtime_versions": {}, "domain_versions": domains, "aliases": aliases}
+
+
+def _kind(relative, line):
+    if line == "runtime":
+        return "runtime"
+    if "guidance" in relative or Path(relative).suffix in {".md", ".txt"}:
+        return "guidance"
+    if Path(relative).name in {"bim_inputs.py", "bim_agent_inputs.py", "run_bim_agent.py"}:
+        return "task_description"
+    return "tool"
+
+
+def discover_files(root, line, *, scope=None, registry_path=None):
+    """Hash bytes AND membership; refuse links instead of following them."""
     root = Path(root).resolve()
-    registry = load_agent_registry(root, registry_path)
-    selected = version_id or registry["current_version"]
-    record = registry["versions"].get(selected)
-    if not isinstance(record, dict):
-        raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
-    if verify:
-        changed: dict[str, str] = {}
-        files = record.get("files")
-        if not isinstance(files, dict) or not files:
-            raise AgentVersionMismatch(f"Agent version {selected} has no registered files")
-        for relative, metadata in files.items():
+    scope = DEFAULT_SCOPE if scope is None else scope
+    excluded = {root / REGISTRY_RELATIVE_PATH, _registry_path(root, registry_path)}
+    files = {}
+    runtime_paths = [root / relative for relative in scope["runtime"]]
+    for relative in scope[line]:
+        base = root / relative
+        if not base.resolve().is_relative_to(root):
+            raise ValueError(f"version scope escapes checkout: {relative}")
+        if not base.exists():
+            continue
+        if base.is_symlink() or base.is_junction():
+            raise ValueError(f"version scope contains a symlink: {relative}")
+        candidates = [base] if base.is_file() else _walk_files(base)
+        for path in candidates:
+            if (path in excluded or path.suffix in _SKIP_SUFFIXES or path.name.casefold() in _SKIP_NAMES
+                    or any(p in _SKIP_PARTS for p in path.relative_to(root).parts)):
+                continue
+            if path.is_symlink() or not path.resolve().is_relative_to(root):
+                raise ValueError(f"version scope contains a symlink: {path}")
+            if line == "domain" and any(path == p or path.is_relative_to(p) for p in runtime_paths):
+                continue
+            name = path.relative_to(root).as_posix()
+            files[name] = {"kind": _kind(name, line), "sha256": _sha256(path)}
+    return dict(sorted(files.items()))
+
+
+def _walk_files(base):
+    for directory, names, files in os.walk(base, followlinks=False):
+        names[:] = [name for name in names if name not in _SKIP_PARTS]
+        if any((Path(directory) / name).is_symlink() or (Path(directory) / name).is_junction() for name in names):
+            raise ValueError(f"version scope contains a linked directory: {directory}")
+        yield from (Path(directory) / name for name in files)
+
+
+def _verify_files(root, record, *, line, version, registry, registry_path):
+    expected = record.get("files")
+    if not isinstance(expected, dict) or not expected:
+        raise AgentVersionMismatch(f"version {version} has no registered files")
+    if record.get("coverage") == "automatic_directories":
+        actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+    else:
+        actual = {}
+        for relative, metadata in expected.items():
             path = (root / relative).resolve()
             if not path.is_relative_to(root):
-                raise AgentVersionMismatch(f"registered Agent file escapes repository root: {relative}")
-            expected = metadata.get("sha256") if isinstance(metadata, dict) else None
-            actual = _sha256(path) if path.is_file() else "missing"
-            if actual != expected:
-                changed[relative] = actual
-        if changed:
-            raise AgentVersionMismatch(
-                f"Agent version {selected} file mismatch: {json.dumps(changed, sort_keys=True)}"
-            )
-    return {"version_id": selected, **record}
+                raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+            if path.is_file():
+                actual[relative] = {**metadata, "sha256": _sha256(path)}
+    changed = sorted(name for name in expected.keys() | actual.keys()
+                     if expected.get(name) != actual.get(name))
+    if changed:
+        raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
 
 
-async def _probe_tool_catalogs(root: Path) -> dict[str, str]:
-    """Start the local MCP server and hash all four admitted-input catalogs."""
-
-    from src.agent_runtime.mcp_tools import McpToolClient
-
-    server = root / "scripts/tool_scripts/run_bim_agent.py"
-    result: dict[str, str] = {}
-    with tempfile.TemporaryDirectory(prefix=".agent-registry-", dir=root) as temporary:
-        base = Path(temporary)
-        for mode in _CATALOG_MODES:
-            run = base / mode
-            run.mkdir()
-            manifest: dict[str, Any] = {"images": {}, "scope": "Agent catalog registration"}
-            if mode.endswith("_mesh"):
-                manifest["mesh_input"] = {
-                    "sha256": "0" * 64,
-                    "frozen_path": "assets/registration-placeholder.glb",
-                }
-            run.joinpath("inputs.json").write_text(
-                json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8"
-            )
-            arguments = [str(server), "serve", str(run)]
-            if mode.startswith("readonly"):
-                arguments.append("--readonly")
-            async with McpToolClient(
-                command=sys.executable, args=arguments, cwd=root, run_directory=run
-            ) as client:
-                tools = await client.list_tools()
-            result[mode] = hashlib.sha256(_canonical_json_bytes(tools)).hexdigest()
+def release_records(root, *, registry_path=None, verify=True):
+    root = Path(root).resolve()
+    registry = load_agent_registry(root, registry_path)
+    if registry["schema_version"] != _SCHEMA or not registry.get("current_runtime_version"):
+        raise AgentVersionMismatch("runtime/domain registration is required before a new run")
+    result = {}
+    for line in ("runtime", "domain"):
+        version = registry[f"current_{line}_version"]
+        record = registry[f"{line}_versions"][version]
+        if verify:
+            _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+        result[line] = {"version_id": version, **record}
     return result
 
 
-def register_agent_version(
-    root: Path,
-    version_id: str,
-    *,
-    registry_path: Path | None = None,
-    catalog_hashes: Mapping[str, str] | None = None,
-    additional_files: Mapping[str, str] | None = None,
-    make_current: bool = True,
-) -> dict[str, Any]:
-    """Hash the current registered file set and append a new immutable version."""
+def agent_version_record(root: Path, version_id: str | None = None, *,
+                         registry_path: Path | None = None, verify: bool = True) -> dict[str, Any]:
+    root = Path(root).resolve()
+    registry = load_agent_registry(root, registry_path)
+    selected = version_id or registry["current_version"]
+    canonical = registry.get("aliases", {}).get(selected, selected)
+    record = registry["versions"].get(canonical)
+    if not isinstance(record, dict):
+        raise AgentVersionMismatch(f"Agent version is not registered: {selected}")
+    if verify:
+        if registry["schema_version"] == _SCHEMA and canonical == registry["current_domain_version"]:
+            release_records(root, registry_path=registry_path)
+        else:
+            _verify_files(root, record, line="domain", version=canonical, registry=registry, registry_path=registry_path)
+    return {"version_id": canonical, **record}
 
-    if not _VERSION_ID.fullmatch(version_id):
-        raise ValueError("version ID must use 1-128 letters, digits, dots, underscores, or hyphens")
+
+def _fingerprints(root, registry):
+    command = [part.replace("{python}", sys.executable) for part in registry["fingerprint_provider"]]
+    env = {**os.environ, "PYTHONPATH": str(root), "PYTHONDONTWRITEBYTECODE": "1",
+           "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
+    output = subprocess.check_output(command, cwd=root, env=env, text=True,
+                                     encoding="utf-8", timeout=180)
+    result = json.loads(output)
+    if set(result.get("tool_catalog_sha256", {})) != set(_CATALOG_MODES) or not result.get("mode_fingerprints"):
+        raise ValueError("fingerprint provider did not return catalogs and mode fingerprints")
+    return result
+
+
+def register_versions(root, *, registry_path=None, registration_date=None, fingerprints=None,
+                      legacy_order=None, alias=None):
+    """Migrate if needed, then append only changed lines in one atomic write."""
     root = Path(root).resolve()
     path = _registry_path(root, registry_path)
-    registry = load_agent_registry(root, path)
-    if version_id in registry["versions"]:
-        raise ValueError(f"Agent version already exists: {version_id}")
-    base = registry["versions"][registry["current_version"]]
-    files: dict[str, dict[str, str]] = {}
-    for relative, metadata in base["files"].items():
-        target = (root / relative).resolve()
-        if not target.is_relative_to(root) or not target.is_file():
-            raise ValueError(f"cannot register missing or out-of-root Agent file: {relative}")
-        files[relative] = {"kind": metadata["kind"], "sha256": _sha256(target)}
-    for relative, kind in (additional_files or {}).items():
-        if kind not in _FILE_KINDS:
-            raise ValueError(f"unsupported Agent file kind for {relative}: {kind}")
-        target = (root / relative).resolve()
-        if (not target.is_relative_to(root) or not target.is_file()
-                or Path(relative).is_absolute()):
-            raise ValueError(f"cannot register missing or out-of-root Agent file: {relative}")
-        normalized = target.relative_to(root).as_posix()
-        files[normalized] = {"kind": kind, "sha256": _sha256(target)}
-    if catalog_hashes is None:
-        catalog_hashes = asyncio.run(_probe_tool_catalogs(root))
-    catalogs = dict(catalog_hashes)
-    if set(catalogs) != set(_CATALOG_MODES):
-        raise ValueError(f"tool catalog hashes must cover exactly: {', '.join(_CATALOG_MODES)}")
-    if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in catalogs.values()):
-        raise ValueError("tool catalog hashes must be lowercase SHA-256 values")
-    try:
-        source_commit = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=root, text=True
-        ).strip()
-    except (OSError, subprocess.CalledProcessError):
-        source_commit = "unknown"
-    record = {
-        "source_commit": source_commit,
-        "files": files,
-        "tool_catalog_sha256": {mode: catalogs[mode] for mode in _CATALOG_MODES},
-    }
-    registry["versions"][version_id] = record
-    if make_current:
-        registry["current_version"] = version_id
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(
-        json.dumps(registry, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8", newline="\n",
-    )
-    temporary.replace(path)
-    return {"version_id": version_id, **record}
+    loaded = load_agent_registry(root, path)
+    registry = migrate_registry(root, loaded, legacy_order=legacy_order)
+    stamp = registration_date or date.today().strftime("%Y%m%d")
+    if not re.fullmatch(r"\d{8}", stamp):
+        raise ValueError("registration date must be YYYYMMDD")
+    datetime.strptime(stamp, "%Y%m%d")
+    if alias is not None and (not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", alias)
+                              or alias in registry["aliases"] or alias in registry["domain_versions"]):
+        raise ValueError(f"invalid or existing legacy alias: {alias}")
+    snapshots = {line: discover_files(root, line, scope=registry["scope"], registry_path=path)
+                 for line in ("runtime", "domain")}
+    previous = registry["domain_versions"][registry["current_domain_version"]]
+    domain_changed = snapshots["domain"] != previous["files"] or previous.get("coverage") != "automatic_directories"
+    if fingerprints is None:
+        fingerprints = _fingerprints(root, registry) if domain_changed else {
+            "tool_catalog_sha256": previous["tool_catalog_sha256"], "mode_fingerprints": previous["mode_fingerprints"]}
+    changed_modes = sorted(key for key in (previous.get("mode_fingerprints") or {}).keys() | fingerprints["mode_fingerprints"].keys()
+                           if (previous.get("mode_fingerprints") or {}).get(key) != fingerprints["mode_fingerprints"].get(key))
+    for line, before in snapshots.items():
+        if before != discover_files(root, line, scope=registry["scope"], registry_path=path):
+            raise ValueError("checkout changed during registration; retry after edits finish")
+    changed = []
+    for line in ("runtime", "domain"):
+        records = registry[f"{line}_versions"]
+        old = records.get(registry[f"current_{line}_version"], {})
+        if (old.get("files") == snapshots[line] and old.get("coverage") == "automatic_directories"
+                and (line == "runtime" or not changed_modes)):
+            continue
+        number = max((int(re.match(rf"{line}-v(\d+)-", key)[1]) for key in records), default=0) + 1
+        version = f"{line}-v{number}-{stamp}"
+        record = {"source_commit": source_commit(root), "coverage": "automatic_directories", "files": snapshots[line]}
+        if line == "domain":
+            record.update(fingerprints)
+        records[version] = record
+        registry[f"current_{line}_version"] = version
+        changed.append(line)
+    if alias is not None:
+        registry["aliases"][alias] = registry["current_domain_version"]
+    if changed or alias is not None or loaded["schema_version"] != _SCHEMA:
+        _write_registry(path, registry)
+    return {"runtime_version": registry["current_runtime_version"],
+            "domain_version": registry["current_domain_version"], "changed_lines": changed,
+            "changed_modes": changed_modes, "source_commit": source_commit(root),
+            "file_counts": {line: len(files) for line, files in snapshots.items()}}
+
+
+def register_agent_version(root, version_id, *, registry_path=None, catalog_hashes=None,
+                           additional_files=None, make_current=True):
+    """Compatibility name: version_id is now an alias, files are automatic."""
+    if not make_current or additional_files or catalog_hashes is not None:
+        raise ValueError("use automatic registration with complete domain fingerprints")
+    result = register_versions(root, registry_path=registry_path, alias=version_id)
+    return agent_version_record(root, result["domain_version"], registry_path=registry_path)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Register and verify model-facing Agent versions")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-    verify_parser = subparsers.add_parser("verify", help="verify a registered version")
-    verify_parser.add_argument("--version")
-    register_parser = subparsers.add_parser("register", help="register current Agent bytes as a new version")
-    register_parser.add_argument("--version", required=True)
-    register_parser.add_argument(
-        "--add-file", action="append", default=[], metavar="KIND:PATH",
-        help="also register a new tool, guidance, or task_description file",
-    )
-    for command_parser in (verify_parser, register_parser):
-        command_parser.add_argument("--root", type=Path, default=Path.cwd())
-        command_parser.add_argument("--registry", type=Path)
+    parser = argparse.ArgumentParser(description="Register or verify runtime and domain releases")
+    commands = parser.add_subparsers(dest="command", required=True)
+    register = commands.add_parser("register", help="append changed lines; no change means no new number")
+    register.add_argument("--date", help="registration date YYYYMMDD (default: local today)")
+    register.add_argument("--version", help="optional legacy alias")
+    register.add_argument("--legacy-order", type=Path, help="migration JSON; otherwise read Git introductions")
+    verify = commands.add_parser("verify", help="verify both releases or look up a historical alias")
+    verify.add_argument("--version")
+    verify.add_argument("--lookup", action="store_true", help="read metadata without verifying checkout")
+    for command in (register, verify):
+        command.add_argument("--root", type=Path, default=Path.cwd())
+        command.add_argument("--registry", type=Path)
     args = parser.parse_args(argv)
-    if args.command == "verify":
-        record = agent_version_record(
-            args.root, args.version, registry_path=args.registry, verify=True
-        )
+    if args.command == "register":
+        result = register_versions(args.root, registry_path=args.registry, registration_date=args.date,
+            legacy_order=json.loads(args.legacy_order.read_text(encoding="utf-8"))["legacy_order"] if args.legacy_order else None,
+            alias=args.version)
     else:
-        additions: dict[str, str] = {}
-        for item in args.add_file:
-            try:
-                kind, relative = item.split(":", 1)
-            except ValueError as error:
-                raise ValueError("--add-file must be KIND:PATH") from error
-            if not relative or relative in additions:
-                raise ValueError("--add-file paths must be non-empty and unique")
-            additions[relative] = kind
-        record = register_agent_version(
-            args.root, args.version, registry_path=args.registry,
-            additional_files=additions,
-        )
-    print(json.dumps(record, ensure_ascii=False, sort_keys=True))
+        record = agent_version_record(args.root, args.version, registry_path=args.registry, verify=not args.lookup)
+        result = {"version_id": record["version_id"], "domain_version": record["version_id"],
+                  "legacy_version_id": record.get("legacy_version_id"), "source_commit": record["source_commit"]}
+        if not args.lookup and not args.version:
+            result["runtime_version"] = release_records(args.root, registry_path=args.registry)["runtime"]["version_id"]
+    print(json.dumps(result, ensure_ascii=False, sort_keys=True))
     return 0
 
 

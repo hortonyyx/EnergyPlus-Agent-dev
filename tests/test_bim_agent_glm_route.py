@@ -9,6 +9,13 @@ from scripts.tool_scripts import run_bim_agent as runner
 from tests.test_bim_agent_tools import _run_with_one_image
 
 
+@pytest.fixture(autouse=True)
+def offline_git_identity(monkeypatch):
+    # Popen below substitutes only the model client. Keep the independent Git
+    # metadata lookup out of that fake client while exercising real verification.
+    monkeypatch.setattr("src.agent_runtime.versions.source_commit", lambda root: "offline-git-fixture")
+
+
 @pytest.mark.parametrize("readonly", [False, True])
 @pytest.mark.parametrize("actual", ["glm-5.3-flash", "wrong-model"])
 def test_explicit_glm_route_and_receipt(tmp_path, monkeypatch, readonly, actual):
@@ -44,6 +51,10 @@ def test_explicit_glm_route_and_receipt(tmp_path, monkeypatch, readonly, actual)
     assert kwargs["env"]["GLM_SMALL_MODEL"] == "glm-5.3-flash"
     assert receipt["requested_model"] == "glm-5.3-flash"
     assert receipt["provider"] == "glm" and receipt["actual_model"] == actual
+    assert receipt["runtime_version"].startswith("runtime-v")
+    assert receipt["domain_version"].startswith("domain-v")
+    assert receipt["git_commit"] == "offline-git-fixture"
+    assert json.loads(((child if readonly else run) / "agent_versions.json").read_bytes())["role_models"] == receipt["role_models"]
     assert bool(receipt.get("routing_error")) == (actual != "glm-5.3-flash")
     assert len(calls) == 1  # No fallback on routing mismatch.
 
@@ -120,6 +131,8 @@ def test_sonnet55_main_with_haiku_worker(tmp_path, monkeypatch, used):
     if os.name == "nt":  # the CLI's Python tool server must read UTF-8 run files
         assert kwargs["env"]["PYTHONUTF8"] == "1"
     assert receipt["worker_model"] == "claude-haiku-4-5-20251001"
+    assert receipt["role_models"]["worker"]["model"] == "claude-haiku-4-5-20251001"
+    assert receipt["role_models"]["worker"]["output_tokens"] is None
     assert bool(receipt.get("routing_error")) == ("claude-sonnet-5" in used)
     with pytest.raises(ValueError, match="main_model must be"):
         runner.subscription(run, "unused", model="sonnet", name="x", main_model="claude-opus-5-5")

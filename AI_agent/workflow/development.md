@@ -178,13 +178,14 @@ Get-FileHash -Algorithm SHA256 -LiteralPath $taskArchive
   - **改到共用代码（几何内核、底座循环、冻结工具、单模型指引），或两个包并行合并：** 才跑大集合（引用改动模块的文件加 `test_bim_*`、`test_runtime_*`、`test_harness_*`、`test_role_*`）；不能只跑执行方列的几组（10-04 A2 合并后漏了历史 run99 重放检查，主线带着失败直到 A3-R 发现，那次正是两包并行合并）。
   - **新检查要克制**：每个包只加几项检查行为是否正确的，不锁报错原文；设计被替换时旧检查直接删除，不跟着改写（指令层的“替换不追加”同样适用于检查）。检查总数与全量耗时列入定期独立审查，目标是全量不超过约 30 分钟、合并检查不超过约 10 分钟。
 - **全量只在节点跑**：真实整案回归或对照批次开跑前，以及改动波及广泛共用代码时；收工不额外触发。在 Windows 本地磁盘的目标检出上跑 `python -m pytest -n 2 tests`，先激活原生环境，确认 PYTHONPATH 与 basetemp 指向目标检出；机器空闲时约 34 分钟。不与执行助手跑检查的会话同时进行：10-06 两者并行时，全量拖到 1 小时 35 分，还出现 3 项偶发失败（一项挂起、两项 Windows 重命名“拒绝访问”），单独重跑都通过。
-- **派工单逐文件写清归属**：两包并行时，共享文件（如行为记录脚本、运行器里不同函数）写到函数一级；Agent 版本登记表只归一包，另一包改了登记文件时按约不改登记，合并后由 Opus 统一重新登记共同版本（`python -m src.agent_runtime.agent_registry register --version … [--add-file KIND:PATH]`）。
+- **派工单逐文件写清归属**：两包并行时，共享文件（如行为记录脚本、运行器里不同函数）写到函数一级；版本登记表只归一包，另一包改了登记范围内的文件时按约不改登记，合并后由 Opus 统一执行 `python -m src.agent_runtime.agent_registry register`，分别登记有变化的 runtime 与 domain。
 - **工作树操作慢**：仓库工作树约 3 GB，机器忙时建或删一个工作树要 10–25 分钟；放后台执行、时限给足（10-04 一次 30 分钟时限中途被停，留下半截目录）。
 - **整案启动入口**：A2-R 起改为 `python -m src.agent.runtime_configuration check|command|launch <配置> --case <编号>`（原 `runtime_r1_preparation`）；按量计费线路可在配置里写人民币上限（A4-R）。
 **10-07 补充（夜间连续调试的做法）：**
 - **整案从固定提交的独立工作树启动**：`git worktree add --detach D:/EnergyPlus-Agent-worktrees/runs-<名> <提交>`，`.venv` 用 `uv sync --frozen --offline --python 3.12`（缓存已有，离线约 1–2 分钟；在线同步曾遇代理 TLS 中断）。运行中不改该工作树的代码（新起的读图任务会做版本校验），主线可以照常合并；要测新版本时等当前整案退出，再 `git checkout --detach <新提交>` 后启动。运行目录退出后拷回主树 `AI_agent/archive/local_backup/` 再评估、打包，最后收回工作树。
 - **GLM 订阅不同时跑两个整案**：10-07 两个分工整案同时跑（约 8 路并发）出现 429（代码 1302），单个整案的 5–8 路并发未见限流。整案配置的限流重试用 5 次、起始 4 秒（原 2 次、1 秒在限流下几秒就放弃）。可以写一个后台等待脚本，在上一个整案的退出文件出现后再切提交、启动下一个，避免重叠。
-- **登记含新文件的 Agent 版本要用 `--add-file KIND:PATH`**：登记表沿用上一版的文件清单，不会自动加入新模块（10-07 d1h.5／.6 漏登 `assembly.py`，到 b1.1 才补上）。合并别人登记过的分支时，取主线的登记表、合并后统一重新登记。
+- **版本管理 V1（10-07，替换手动 `--add-file`）**：在仓库根激活环境后执行 `python -m src.agent_runtime.agent_registry register`。按登记表 `scope` 自动扫描目录的文件内容和增删，命名 `runtime-vN-YYYYMMDD`、`domain-vN-YYYYMMDD`；只更新有变化的线，无变化不出新号。runtime 覆盖自身目录、公共运行契约、文件锁及依赖锁；domain 覆盖建筑模块、工具脚本及其本地计算依赖，具体范围见[执行报告](../logs/experiments/2026-10-07_version_management_v1/README.md)。检查、项目文档、日志、缓存和登记表自身不参与哈希。新模块放在范围内自动纳入，新增范围外依赖时更新 `scope`。domain 自己提供实际工具、指引与任务模板的模式指纹，命令输出发生变化的模式；首次补录指纹不表示模型所见改变。
+- **运行前核对两条线**：`python -m src.agent_runtime.agent_registry verify`；运行入口也会核对，不一致拒绝启动。自有 runtime 的单模型／分工及 `subscription()` 入口在版本记录与回执写入两版、模式、各角色线路／型号／思考档／输出上限和 Git 提交；旧开发模型外层 MCP 桥的根回执升级仍待协调，见 V1 执行报告 D 项。外部客户端未暴露的上限如实记为空并标明来源。历史旧号用 `python -m src.agent_runtime.agent_registry verify --version t1-20261007-cc1.1 --lookup` 查别名及原记录；旧记录未保存的 runtime／角色指纹不补造。合并别人登记过的分支时，保留主线历史、合并后统一重新登记。
 - **派 Astra 后立即退出、事件里是 “workspace routing discovery failed”**：本机代理到 chatgpt.com 的 TLS 握手失败（同站其他子域、api.openai.com 正常）。后台每分钟用 curl 探测 chatgpt.com，返回 403（Cloudflare 对 curl 的正常反应）即恢复；把失败那次的事件与日志移进派工状态目录的子目录，再用同一个启动脚本重派。
 - **已知不稳定检查**：`test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial` 在机器忙时偶发失败，单独重跑能过（10-07 共 5 次：3 过 2 败）；遇到时单独重跑并如实记录，列入下次审查的清理。
 
