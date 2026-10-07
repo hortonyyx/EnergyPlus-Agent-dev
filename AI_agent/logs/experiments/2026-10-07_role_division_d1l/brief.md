@@ -11,7 +11,7 @@
 **要点：**
 - 开工先在本目录写报告初稿 `README.md`，随进度更新。报告列出改前改后的平面读图员方法步骤原文对照与各角色字数。
 - **0 次模型请求**；Paratera 0，DeepSeek 0。效果由 Opus 合入后在 GLM 上实测。
-- 环境：工作树根目录 `uv sync --frozen --offline --python 3.12`，再 `. .\scripts\activate_windows.ps1`，确认 `src.agent.__file__` 指向本工作树。pytest 显式 `-n 2`，`--basetemp` 放 `AI_agent/archive/local_backup/d1l/pytest`。不跑全量。
+- 环境：工作树根目录 `uv sync --frozen --offline --python 3.12`，再 `. .\scripts\activate_windows.ps1`，确认 `src.agent.__file__` 指向本工作树。pytest 显式 `-n 2 -p no:cacheprovider`，`--basetemp` 放 `AI_agent/archive/local_backup/d1l/pytest`，交付前用 Python 的 `shutil.rmtree` 删掉（沙箱建的目录项目经理账户无权删除，上一批残留了约 5 GB）。不跑全量。
 - 文件归属：本包独占上面列的角色文件；不改 `src/agent/geometry/`、`scripts/tool_scripts/`（单模型与共用工具），不改 `src/agent_runtime/` 与登记表（合并后 Opus 用 `python -m src.agent_runtime.agent_registry register` 统一登记）。
 - 新检查要克制，只验行为，不锁指引原文和报错原文；被替换的旧方法对应的旧检查直接改写或删除，不并存。写文本一律 LF；**沙箱下 `.git` 只读，不提交**，报告给出提交分组；交付前尽量删掉自己建的临时目录。
 - 内部分工与子代理由你定（子代理优先 5.6 系列，报告写明型号与原因）。
