@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="40" time="12.925" timestamp="2026-10-07T22:26:49.248297+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_plan_regularization" name="test_named_seed_or_opening_in_narrow_strip_rejects_merge_with_dimensions[protected1]" time="0.027" /><testcase classname="tests.test_plan_regularization" name="test_direct_compiler_remains_literal_until_regularization_is_explicit" time="0.016" /><testcase classname="tests.test_plan_regularization" name="test_saved_rule_metadata_only_short_circuits_the_exact_saved_plan" time="0.036" /><testcase classname="tests.test_plan_regularization" name="test_touching_offset_wall_ends_align_and_move_hosted_opening_without_resizing" time="0.024" /><testcase classname="tests.test_plan_regularization" name="test_attached_endpoint_does_not_chase_a_second_nearby_perpendicular_line" time="0.001" /><testcase classname="tests.test_plan_regularization" name="test_forged_matching_regularization_digest_cannot_skip_hard_rules" time="0.008" /><testcase classname="tests.test_plan_regularization" name="test_fixed_footprint_absorbs_unprotected_duplicate_and_catches_near_endpoint" time="0.020" /><testcase classname="tests.test_plan_regularization" name="test_parallel_strip_without_seed_or_opening_merges_to_existing_priority_line" time="0.033" /><testcase classname="tests.test_plan_regularization" name="test_named_strip_at_fixed_footprint_is_rejected_without_moving_outline" time="0.015" /><testcase classname="tests.test_plan_regularization" name="test_strict_less_than_0_30_does_not_merge_exact_threshold_but_width_gate_rejects" time="0.016" /><testcase classname="tests.test_plan_regularization" name="test_named_seed_or_opening_in_narrow_strip_rejects_merge_with_dimensions[protected0]" time="0.025" /><testcase classname="tests.test_plan_regularization" name="test_minimum_width_gate_finds_concave_half_metre_neck" time="0.007" /><testcase classname="tests.test_plan_regularization" name="test_reading_alignment_audit_is_persisted_but_never_drives_literal_compile" time="0.021" /><testcase classname="tests.test_plan_regularization" name="test_stack_changes_plan_draft_recompiles_and_aligns_xy_and_z" time="0.069" /><testcase classname="tests.test_plan_partition" name="test_t_partition_keeps_all_spaces_and_resolves_openings_without_resizing" time="0.012" /><testcase classname="tests.test_plan_partition" name="test_folded_partition_preserves_nonrectangular_cells_and_collinear_cleanup" time="0.009" /><testcase classname="tests.test_plan_partition" name="test_dangle_and_outside_partition_are_rejected_with_id_and_pixel_location" time="0.008" /><testcase classname="tests.test_plan_partition" name="test_exact_crossing_is_noded_but_overlap_and_opening_across_t_are_rejected" time="0.025" /><testcase classname="tests.test_plan_regularization" name="test_stack_rejects_upper_trusted_elevation_instead_of_changing_lower_height" time="0.063" /><testcase classname="tests.test_plan_partition" name="test_seed_on_boundary_duplicate_seed_face_and_unknown_fields_are_rejected" time="0.012" /><testcase classname="tests.test_plan_partition" name="test_concave_footprint_recessed_windows_and_connections_export_exactly[False]" time="0.382"><failure message="UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 15596: illegal multibyte sequence">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw0/test_concave_footprint_recesse0')
+reflect_x = False
+
+    @pytest.mark.parametrize("reflect_x", [False, True])
+    def test_concave_footprint_recessed_windows_and_connections_export_exactly(tmp_path, reflect_x):
+        from shapely.geometry import Polygon
+        from shapely.ops import unary_union
+    
+        plan = _plan()
+        plan["footprint_pixels"] = [
+            [10, 10], [90, 10], [90, 50], [60, 50], [60, 90], [10, 90],
+        ]
+        if reflect_x:
+            plan["x_anchors"] = [[0, 9.9], [99, 0.0]]
+        plan["partitions"] = [{"id": "shared", "points": [[40, 10], [40, 90]],
+                               "source_refs": ["synthetic wall"]}]
+        plan["openings"] = [
+            {"id": "recess_vertical", "kind": "window", "p1": [60, 60], "p2": [60, 75],
+             "z": [0.9, 2.4], "source_refs": ["synthetic recessed window"]},
+            {"id": "recess_horizontal", "kind": "window", "p1": [65, 50], "p2": [80, 50],
+             "z": [0.9, 2.4], "source_refs": ["synthetic recessed window"]},
+            {"id": "internal", "kind": "door", "p1": [40, 60], "p2": [40, 70],
+             "z": [0, 2.1], "source_refs": ["synthetic door"]},
+            {"id": "external", "kind": "door", "p1": [60, 78], "p2": [60, 88],
+             "z": [0, 2.1], "source_refs": ["synthetic exterior door"]},
+        ]
+        plan["space_seeds"] = []
+        original = copy.deepcopy(plan)
+        proposal, metadata = compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
+        assert plan == original
+        assert proposal["geometry"]["windows"][0]["facade"] == ("West" if reflect_x else "East")
+        assert proposal["geometry"]["windows"][1]["facade"] == "South"
+        report = export_source_proposal(proposal, tmp_path / "candidate")
+        assert report["source_geometry_ready"], report
+&gt;       source = json.loads((tmp_path / "candidate/source_model.json").read_text())
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_plan_partition.py:248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw0/test_concave_footprint_recesse0/candidate/source_model.json')
+encoding = 'locale', errors = None
+
+    def read_text(self, encoding=None, errors=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        encoding = io.text_encoding(encoding)
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+&gt;           return f.read()
+                   ^^^^^^^^
+E           UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 15596: illegal multibyte sequence
+
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1028: UnicodeDecodeError</failure></testcase><testcase classname="tests.test_plan_regularization" name="test_stack_rejects_sub_0_30m_fixed_footprint_offset_instead_of_moving_outline" time="0.035" /><testcase classname="tests.test_plan_partition" name="test_concave_footprint_rejects_opening_across_recess" time="0.005" /><testcase classname="tests.test_plan_partition" name="test_window_state_and_closed_open_passage_are_rejected_before_source_loss" time="0.019" /><testcase classname="tests.test_plan_partition" name="test_compiled_proposal_exports_as_ready_source_bim" time="0.371"><failure message="UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 27605: illegal multibyte sequence">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw1/test_compiled_proposal_exports0')
+
+    def test_compiled_proposal_exports_as_ready_source_bim(tmp_path):
+        plan = _plan()
+        proposal, metadata = compile_plan_partition(
+            plan, image_size=(100, 100), image_name="synthetic-plan.png",
+        )
+        out = tmp_path / "compiled"
+        report = export_source_proposal(proposal, out, provenance={"partition_metadata": metadata})
+    
+        assert report["source_geometry_ready"] is True
+        assert report["source_geometry_self_consistency"]["status"] == "pass"
+        assert report["counts"]["spaces"] == 3
+&gt;       source = json.loads((out / "source_model.json").read_text())
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_plan_partition.py:303: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw1/test_compiled_proposal_exports0/compiled/source_model.json')
+encoding = 'locale', errors = None
+
+    def read_text(self, encoding=None, errors=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        encoding = io.text_encoding(encoding)
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+&gt;           return f.read()
+                   ^^^^^^^^
+E           UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 27605: illegal multibyte sequence
+
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1028: UnicodeDecodeError</failure></testcase><testcase classname="tests.test_plan_partition" name="test_concave_footprint_recessed_windows_and_connections_export_exactly[True]" time="0.087"><failure message="UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 15626: illegal multibyte sequence">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw0/test_concave_footprint_recesse1')
+reflect_x = True
+
+    @pytest.mark.parametrize("reflect_x", [False, True])
+    def test_concave_footprint_recessed_windows_and_connections_export_exactly(tmp_path, reflect_x):
+        from shapely.geometry import Polygon
+        from shapely.ops import unary_union
+    
+        plan = _plan()
+        plan["footprint_pixels"] = [
+            [10, 10], [90, 10], [90, 50], [60, 50], [60, 90], [10, 90],
+        ]
+        if reflect_x:
+            plan["x_anchors"] = [[0, 9.9], [99, 0.0]]
+        plan["partitions"] = [{"id": "shared", "points": [[40, 10], [40, 90]],
+                               "source_refs": ["synthetic wall"]}]
+        plan["openings"] = [
+            {"id": "recess_vertical", "kind": "window", "p1": [60, 60], "p2": [60, 75],
+             "z": [0.9, 2.4], "source_refs": ["synthetic recessed window"]},
+            {"id": "recess_horizontal", "kind": "window", "p1": [65, 50], "p2": [80, 50],
+             "z": [0.9, 2.4], "source_refs": ["synthetic recessed window"]},
+            {"id": "internal", "kind": "door", "p1": [40, 60], "p2": [40, 70],
+             "z": [0, 2.1], "source_refs": ["synthetic door"]},
+            {"id": "external", "kind": "door", "p1": [60, 78], "p2": [60, 88],
+             "z": [0, 2.1], "source_refs": ["synthetic exterior door"]},
+        ]
+        plan["space_seeds"] = []
+        original = copy.deepcopy(plan)
+        proposal, metadata = compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
+        assert plan == original
+        assert proposal["geometry"]["windows"][0]["facade"] == ("West" if reflect_x else "East")
+        assert proposal["geometry"]["windows"][1]["facade"] == "South"
+        report = export_source_proposal(proposal, tmp_path / "candidate")
+        assert report["source_geometry_ready"], report
+&gt;       source = json.loads((tmp_path / "candidate/source_model.json").read_text())
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_plan_partition.py:248: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw0/test_concave_footprint_recesse1/candidate/source_model.json')
+encoding = 'locale', errors = None
+
+    def read_text(self, encoding=None, errors=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        encoding = io.text_encoding(encoding)
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+&gt;           return f.read()
+                   ^^^^^^^^
+E           UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 15626: illegal multibyte sequence
+
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1028: UnicodeDecodeError</failure></testcase><testcase classname="tests.test_plan_assembly" name="test_two_real_floors_rebase_openings_and_export_with_connections" time="0.121"><failure message="UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 26331: illegal multibyte sequence">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw1/test_two_real_floors_rebase_op0')
+
+    def test_two_real_floors_rebase_openings_and_export_with_connections(tmp_path):
+        items = _items()
+        before = copy.deepcopy(items)
+        assembled = assemble_plan_proposals(items)
+        assert items == before
+    
+        geom = assembled["geometry"]
+        assert len(geom["floors"]) == 2
+        assert [floor["z_floor"] for floor in geom["floors"]] == [0.0, 3.2]
+        assert [floor["ceiling_height"] for floor in geom["floors"]] == [3.2, 3.2]
+        assert [len(floor["cells"]) for floor in geom["floors"]] == [2, 2]
+        assert geom["floors"][0]["footprint"]["vertices"][1][0] == 9.0
+        assert geom["floors"][1]["footprint"]["vertices"][1][0] == 8.0
+        assert len({cell["id"] for floor in geom["floors"] for cell in floor["cells"]}) == 4
+        assert [opening["id"] for opening in geom["openings"]] == ["L1:door", "L2:door"]
+        assert [window["id"] for window in geom["windows"]] == ["L1:window", "L2:window"]
+        assert [opening["z"] for opening in geom["openings"]] == [[0.0, 2.1], [3.2, 5.3]]
+        assert [window["z"] for window in geom["windows"]] == [[0.9, 2.4], [4.1, 5.6]]
+        assert all(opening["other_space_id"] is not None for opening in geom["openings"])
+        assert all(opening["space_id"].split(":", 1)[0] == opening["other_space_id"].split(":", 1)[0]
+                   for opening in geom["openings"])
+        assert [window["floor"] for window in geom["windows"]] == ["L1", "L2"]
+        assert all(window["room"].startswith(window["floor"] + ":") for window in geom["windows"])
+        assert "drawing:first" in geom["notes"] and "drawing:second" in geom["notes"]
+        assert assembled["assumptions"] == items[0]["proposal"]["assumptions"] + items[1]["proposal"]["assumptions"]
+        assert assembled["unresolved"] == items[0]["proposal"]["unresolved"] + items[1]["proposal"]["unresolved"]
+        assert [opening["source_refs"] for opening in geom["openings"]] == [["drawing:door"]] * 2
+    
+        report = export_source_proposal(assembled, tmp_path / "assembled")
+        assert report["source_geometry_ready"], report
+&gt;       source = json.loads((tmp_path / "assembled/source_model.json").read_text())
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_plan_assembly.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw1/test_two_real_floors_rebase_op0/assembled/source_model.json')
+encoding = 'locale', errors = None
+
+    def read_text(self, encoding=None, errors=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        encoding = io.text_encoding(encoding)
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+&gt;           return f.read()
+                   ^^^^^^^^
+E           UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 26331: illegal multibyte sequence
+
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1028: UnicodeDecodeError</failure></testcase><testcase classname="tests.test_plan_assembly" name="test_rejects_unknown_or_cross_floor_opening_and_window_owners" time="0.024" /><testcase classname="tests.test_plan_assembly" name="test_concave_floor_ring_is_preserved_when_another_floor_is_wider" time="0.138"><failure message="UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 28110: illegal multibyte sequence">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw0/test_concave_floor_ring_is_pre0')
+
+    def test_concave_floor_ring_is_preserved_when_another_floor_is_wider(tmp_path):
+        from shapely.geometry import Polygon
+    
+        lower = _compiled()
+        upper = _compiled(concave=True)
+        original_ring = copy.deepcopy(upper["geometry"]["floors"][0]["footprint"]["vertices"])
+        assembled = assemble_plan_proposals([
+            {"proposal": lower, "floor_id": "L1", "z_floor": 0.0},
+            {"proposal": upper, "floor_id": "L2", "z_floor": 3.2},
+        ])
+        assert assembled["geometry"]["floors"][1]["footprint"]["vertices"] == original_ring
+        assert Polygon(original_ring).area &lt; Polygon(original_ring).envelope.area
+        report = export_source_proposal(assembled, tmp_path / "concave")
+        assert report["source_geometry_ready"], report
+&gt;       source = json.loads((tmp_path / "concave/source_model.json").read_text())
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_plan_assembly.py:141: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('D:/EnergyPlus-Agent-worktrees/q1/AI_agent/archive/local_backup/q1/pytest-kernel/popen-gw0/test_concave_floor_ring_is_pre0/concave/source_model.json')
+encoding = 'locale', errors = None
+
+    def read_text(self, encoding=None, errors=None):
+        """
+        Open the file in text mode, read it, and close the file.
+        """
+        encoding = io.text_encoding(encoding)
+        with self.open(mode='r', encoding=encoding, errors=errors) as f:
+&gt;           return f.read()
+                   ^^^^^^^^
+E           UnicodeDecodeError: 'gbk' codec can't decode byte 0x94 in position 28110: illegal multibyte sequence
+
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1028: UnicodeDecodeError</failure></testcase><testcase classname="tests.test_plan_assembly" name="test_rejects_height_mismatch_duplicate_floor_and_nonfinite_values" time="0.043" /><testcase classname="tests.test_building_precision" name="test_offset_and_contact_are_reported_without_edits_or_average_target" time="0.032"><failure message="assert (6.0 == 6 and 0.3 == 0.12)">def test_offset_and_contact_are_reported_without_edits_or_average_target():
+        model = source()
+        before = copy.deepcopy(model)
+        report = precision_report(model, floor_evidence=evidence())
+        assert report['counts'] == {'storey_wall_offset':1, 'thin_horizontal_contact':1}
+        wall = report['items'][0]
+        assert wall['deviation_m'] == pytest.approx(.06)
+&gt;       assert wall['overlap_m'] == 6 and wall['tolerance_m'] == .12
+E       assert (6.0 == 6 and 0.3 == 0.12)
+
+tests\test_building_precision.py:33: AssertionError</failure></testcase><testcase classname="tests.test_plan_assembly" name="test_preserves_extra_compiled_floor_details_without_mutating_source" time="0.008" /><testcase classname="tests.test_building_precision" name="test_aligned_walls_and_real_large_setbacks_are_quiet[0.0]" time="0.032" /><testcase classname="tests.test_building_precision" name="test_aligned_walls_and_real_large_setbacks_are_quiet[0.3]" time="0.029" /><testcase classname="tests.test_building_precision" name="test_floor_slab_gap_does_not_disable_xy_alignment" time="0.027"><failure message="AssertionError: assert {'storey_wall...r_overlap': 1} == {'storey_wall_offset': 1}&#10;  &#10;  Omitting 1 identical items, use -vv to show&#10;  Left contains 1 more item:&#10;  {'vertical_gap_or_overlap': 1}&#10;  Use -v to get more diff">def test_floor_slab_gap_does_not_disable_xy_alignment():
+        report = precision_report(source(gap=.15), floor_evidence=evidence())
+&gt;       assert report['counts'] == {'storey_wall_offset':1}
+E       AssertionError: assert {'storey_wall...r_overlap': 1} == {'storey_wall_offset': 1}
+E         
+E         Omitting 1 identical items, use -vv to show
+E         Left contains 1 more item:
+E         {'vertical_gap_or_overlap': 1}
+E         Use -v to get more diff
+
+tests\test_building_precision.py:48: AssertionError</failure></testcase><testcase classname="tests.test_building_precision" name="test_aligned_walls_and_real_large_setbacks_are_quiet[1.0]" time="0.030" /><testcase classname="tests.test_building_precision" name="test_unknown_scale_is_explicit_and_wall_width_caps_noisy_scan" time="0.032"><failure message="AssertionError: assert [{'align_to_o...idence', ...}] == []&#10;  &#10;  Left contains 2 more items, first extra item: {'align_to_options': [{'axis': 'x', 'boundary_ids': ['space/L0/wall/1', 'space/R0/wall/3'], 'coordinate_m': 3.0, 'floo... plan draft to one higher-priority existing wall line, recompile it, and preserve opening hosts and connections.', ...}&#10;  Use -v to get more diff">def test_unknown_scale_is_explicit_and_wall_width_caps_noisy_scan():
+        report = precision_report(source())
+&gt;       assert report['items'] == []
+E       AssertionError: assert [{'align_to_o...idence', ...}] == []
+E         
+E         Left contains 2 more items, first extra item: {'align_to_options': [{'axis': 'x', 'boundary_ids': ['space/L0/wall/1', 'space/R0/wall/3'], 'coordinate_m': 3.0, 'floo... plan draft to one higher-priority existing wall line, recompile it, and preserve opening hosts and connections.', ...}
+E         Use -v to get more diff
+
+tests\test_building_precision.py:53: AssertionError</failure></testcase><testcase classname="tests.test_building_precision" name="test_micrometre_strips_are_real_facts_but_numerical_roundoff_is_not" time="0.058" /><testcase classname="tests.test_building_precision" name="test_step_gap_and_thin_space_keep_objects_and_existing_lines" time="0.036" /><testcase classname="tests.test_building_precision" name="test_thin_shape_never_suggests_aligning_perpendicular_edges" time="0.034" /></testsuite></testsuites>
