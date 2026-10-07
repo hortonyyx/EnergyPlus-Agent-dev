@@ -310,6 +310,17 @@ def test_run99_archived_snapshot_and_current_input_guard_preserve_delivery_exact
         naming_module=run / "runtime_snapshot/src/agent/geometry/source_naming.py",
         code_scope="archived_naming_and_current_guarded_exporter_unchanged_kernel",
     )
-    assert replay["status"] == "exact"
-    assert replay["source_fields_equal"] and replay["display_fields_equal"]
-    assert replay["source_bytes_equal"] and replay["display_bytes_equal"]
+    # N1 (10-07, bim_names_v3) hyphenates multi-word use tokens through the current room-type
+    # catalogue. Only those names may differ; objects, geometry, hosts and connectivity replay unchanged.
+    assert replay["status"] == "semantic_match"
+    assert set(replay["top_level_differences"]) == {"public_names", "room_type_catalog", "source_model_sha256"}
+    semantic = replay["semantic_comparison"]
+    assert not any(semantic[key][part] for key in ("objects", "geometry", "hosts")
+                   for part in ("added", "removed", "changed"))
+    assert not semantic["connectivity"]["added"] and not semantic["connectivity"]["removed"]
+    names = replay["public_names_comparison"]
+    assert not names["added"] and not names["removed"]
+    assert len(names["changed_examples"]) == len(names["changed"]) > 0
+    for row in names["changed_examples"]:
+        zone, floor, *use, quadrant = row["saved"].split("_")
+        assert row["current"] == "_".join([zone, floor, "-".join(use), quadrant])

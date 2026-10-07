@@ -40,8 +40,13 @@ def canonical(value) -> bytes:
                       separators=(",", ":")).encode()
 
 
-def git_bytes(path: str) -> bytes:
-    return subprocess.check_output(["git", "show", f"{BASELINE}:{path}"], cwd=ROOT)
+# N1 (10-07) moved the delivery-report HTML out of run_bim_agent.py; the shared first
+# request itself stays byte-identical (test_three_single_cases_prepare_identical_shared_first_request_bytes).
+SOURCE_BASELINES = {"scripts/tool_scripts/run_bim_agent.py": "25d9d6b9"}
+
+
+def git_bytes(path: str, commit: str = BASELINE) -> bytes:
+    return subprocess.check_output(["git", "show", f"{commit}:{path}"], cwd=ROOT)
 
 
 def baseline_configuration_module():
@@ -65,7 +70,8 @@ def test_single_configuration_loading_and_argv_match_the_dispatch_baseline():
 
 def test_first_request_sources_are_byte_identical_to_the_dispatch_baseline():
     for relative in FIRST_REQUEST_SOURCES:
-        assert (ROOT / relative).read_bytes() == git_bytes(relative), relative
+        assert (ROOT / relative).read_bytes() == git_bytes(
+            relative, SOURCE_BASELINES.get(relative, BASELINE)), relative
 
 
 def test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes(tmp_path):
