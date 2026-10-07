@@ -88,7 +88,8 @@ def test_revision_mcp_source_feedback_and_bound_preservation(tmp_path):
             assert result["source_geometry_ready"] and result["candidate"] != built["candidate"]
             assert len([b for b in response.content if b.type == "image"]) == 2
             source = json.loads((run / result["candidate"] / "source_model.json").read_text())
-            assert source["generation"]["provenance"]["plan_input"] == result["plan_input"]
+            from scripts.tool_scripts.bim_agent_regularization import compact_plan_input
+            assert compact_plan_input(source["generation"]["provenance"]["plan_input"]) == result["plan_input"]
             revision = result["plan_input"]["revision"]
             assert digest(run / revision["file"]) == revision["sha256"]
             assert result["plan_revision"]["unchanged_ids"]["openings"] == ["W1"]

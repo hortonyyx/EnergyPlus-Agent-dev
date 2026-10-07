@@ -82,6 +82,25 @@ def building_precision(toolkit, candidate, source=None):
                               wall_references=proposal.get('wall_references', []))
     report['wall_placement'] = annotated_wall_placement(toolkit, source,
         proposal.get('wall_references', []), proposal.get('wall_dimensions', []))
+    from scripts.tool_scripts.bim_agent_regularization import collect_candidate_report, source_reports
+    audit_path = path / 'regularization_report.json'
+    first_audit = not audit_path.is_file()
+    regularization = collect_candidate_report(toolkit, candidate, source)
+    if regularization:
+        report['regularization'] = regularization
+        # Later use/height edits keep an inherited audit in a sidecar. Refresh
+        # just the view; source geometry, provenance and source hash stay exact.
+        if first_audit and not source_reports(source):
+            from src.agent.geometry.source_bim import source_view_geometry
+            from src.agent.execution.source_proposal import build_source_viewer_html
+            display = source_view_geometry(source)
+            display['regularization_report'] = regularization
+            saved = json.loads((path / 'report.json').read_text(encoding='utf-8'))
+            viewer = build_source_viewer_html(display,
+                source_geometry_ready=saved.get('source_geometry_ready', False),
+                assumptions=source.get('assumptions', []),
+                unresolved=source.get('generation', {}).get('unresolved', []))
+            (path / 'viewer.html').write_text(viewer, encoding='utf-8', newline='\n')
     if errors:
         report['evidence_errors'] = errors
     previous = source.get('generation', {}).get('provenance', {}).get('parent_candidate')

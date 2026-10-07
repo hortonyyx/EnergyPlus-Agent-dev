@@ -8,6 +8,7 @@ gaps never become rooms. Cells may be arbitrary orthogonal polygons.
 """
 from __future__ import annotations
 
+import copy
 import math
 from collections.abc import Iterable
 from typing import Any
@@ -23,9 +24,11 @@ from src.agent.geometry.input_scale import check_planar_scale
 _PLAN_FIELDS = frozenset({
     "floor_id", "z_floor", "ceiling_height", "x_anchors", "y_anchors",
     "basis", "footprint_pixels", "partitions", "openings", "space_seeds",
-    "assumptions", "unresolved",
+    "assumptions", "unresolved", "regularization_inputs", "regularization",
 })
-_REQUIRED_PLAN_FIELDS = _PLAN_FIELDS - {"space_seeds"}
+_REQUIRED_PLAN_FIELDS = _PLAN_FIELDS - {
+    "space_seeds", "regularization_inputs", "regularization",
+}
 _PARTITION_FIELDS = frozenset({"id", "points", "source_refs"})
 _OPENING_FIELDS = frozenset({
     "id", "kind", "p1", "p2", "z", "source_refs", "state", "assumptions",
@@ -610,4 +613,10 @@ def compile_plan_partition(
     }
     if field_aliases:
         metadata["field_aliases"] = field_aliases
+    # These records are inert here.  They are persisted for audit/replay; the
+    # literal compiler never interprets them as permission to snap geometry.
+    if "regularization_inputs" in plan:
+        metadata["regularization_inputs"] = copy.deepcopy(plan["regularization_inputs"])
+    if "regularization" in plan:
+        metadata["regularization"] = copy.deepcopy(plan["regularization"])
     return proposal, metadata

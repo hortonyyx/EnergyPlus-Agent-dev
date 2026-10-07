@@ -798,10 +798,18 @@ def build_viewer_html(data: dict, *, title: str = "building geometry", roles: di
             memberships[zone] = indices
     geo["floor_memberships"] = memberships
     safe_title = html.escape(title)  # HTML-context (title tag + panel text)
+    from scripts.tool_scripts.bim_agent_delivery_display import render_regularization_html
+    regularization_html = render_regularization_html(source, data.get("regularization_report"))
+    panel = _PANEL_HTML.replace("__TITLE__", safe_title)
+    if regularization_html:
+        audit_panel = ('<details style="margin-top:14px;max-width:100%;overflow-wrap:anywhere">'
+                       '<summary>几何规整清单</summary><div style="overflow-x:auto">'
+                       + regularization_html + '</div></details>')
+        panel = panel.replace('<h2>tools</h2>', audit_panel + '<h2>tools</h2>')
     return (
         _HTML
         .replace("__STYLE__", _STYLE)
-        .replace("__PANEL__", _PANEL_HTML.replace("__TITLE__", safe_title))
+        .replace("__PANEL__", panel)
         .replace("__THREE_JS__", three_js)
         .replace("__ORBIT_JS__", orbit_js)
         .replace("__GEO_JSON__", _js_embed(geo))  # script-safe (no </script> breakout)
@@ -822,7 +830,13 @@ def load_viewer_geometry(path: Path) -> dict:
     if schema in {"source_bim_v2", "source_bim_v3"}:
         from src.agent.geometry.source_bim import source_view_geometry
 
-        return source_view_geometry(data)
+        display = source_view_geometry(data)
+        audit_path = path.with_name("regularization_report.json")
+        if audit_path.is_file():
+            audit = json.loads(audit_path.read_text(encoding="utf-8"))
+            if audit.get("source_model_sha256") == data.get("source_model_sha256"):
+                display["regularization_report"] = audit
+        return display
     if isinstance(schema, str) and schema.startswith("source_bim"):
         raise ValueError(f"unsupported source BIM schema: {schema}")
 

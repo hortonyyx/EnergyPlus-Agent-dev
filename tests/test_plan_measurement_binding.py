@@ -113,9 +113,11 @@ def test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts(tmp_pa
             record = result["plan_input"]
             assert (run / record["submitted_plan_file"]).read_text() == raw
             assert digest(run / record["submitted_plan_file"]) == record["submitted_plan_sha256"]
-            assert json.loads((run / record["plan_file"]).read_text()) == example()
+            compiled_plan = json.loads((run / record["plan_file"]).read_text())
+            assert compiled_plan.pop("regularization")["status"] == "pass"
+            assert compiled_plan == example()
             saved = _json_result(await session.call_tool("inspect_plan_draft", dict(draft_id="draft_001")))
-            assert saved["declaration"] == example()
+            assert saved["declaration"] == json.loads((run / record["plan_file"]).read_text())
             audit = record["measurement_bindings"]
             assert digest(run / audit["file"]) == audit["sha256"] and audit["count"] == 4
             assert {b["resolved_pixel"] for b in json.loads((run / audit["file"]).read_text())["bindings"]} == {6}

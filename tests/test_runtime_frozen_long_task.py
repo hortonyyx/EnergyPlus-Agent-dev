@@ -253,6 +253,11 @@ async def replay_frozen_run99(output):
     manifest = json.loads((HISTORY / "inputs.json").read_bytes())
     run, guide, task = prepare_inputs(output, images=HISTORY / "images", mesh=None,
         building_input=None, scope=manifest["scope"], image_kind="drawings", max_candidates=24)
+    # This is a deterministic historical replay, not a new modelling run.
+    replay_manifest = json.loads((run / "inputs.json").read_bytes())
+    replay_manifest["plan_regularization_rule"] = "legacy"
+    (run / "inputs.json").write_text(json.dumps(replay_manifest, ensure_ascii=False),
+                                    encoding="utf-8", newline="\n")
     # Synthetic usage omits images; R2 charges the unknown-model pixel bound
     # per request. This allowance is only for the offline 75-step state replay.
     limits = RunLimits(model_calls=80, tool_calls=80, seconds=900, tokens=120_000_000,
