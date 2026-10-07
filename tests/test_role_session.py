@@ -11,6 +11,7 @@ from PIL import Image
 
 from src.agent.runtime_roles.artifacts import ArtifactRegistry
 from src.agent.runtime_roles.config import load_roles
+from src.agent.runtime_roles.feedback import reader_batch_reply
 from src.agent.runtime_roles.readers import ELEVATION_READER_TOOL_NAMES
 from src.agent.runtime_roles.session import RoleSession, envelope
 from src.agent_runtime.adapter import ScriptedAdapter
@@ -381,3 +382,69 @@ def test_bare_facade_target_takes_the_plan_floors(environment):
         dispatch("south", target="South"), dispatch("east", target="East/F1")])
     assert [task["target"] for task in tasks] == ["plan F1", "South/F1", "East/F1"]
     assert session._task(tasks[1])["coordinate_contract"]["floors"] == ["F1"]
+
+
+def test_first_dispatch_adds_known_missing_drawings_once_and_keeps_explicit_task(environment):
+    _, make = environment
+    session = make()
+    for name in ("1f_view.png", "2f_view.png", "North_view.png", "South_view.png",
+                 "East_view.png", "mystery.png"):
+        path = session.run_directory / "images" / name
+        Image.new("RGB", (20, 20), "white").save(path)
+        session.manifest["images"][name] = {
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "size": [20, 20]}
+    session.manifest.update(image_kind="drawings",
+                            floor_plan_images=["1f_view.png", "2f_view.png"])
+    (session.run_directory / "inputs.json").write_text(
+        json.dumps(session.manifest), encoding="utf-8", newline="\n")
+    seen = []
+
+    async def offline_reader(task):
+        seen.append(task)
+        return session.registry.save(task, status="failed", reason="offline behavior check")
+
+    session.run_reader = offline_reader
+    explicit = dispatch(origin="Kept explicit origin", instructions="Kept explicit facts.")
+    first = asyncio.run(session.delegate_many([explicit]))
+    kept = next(task for task in seen if task["task_id"] == "north")
+    assert kept["instructions"] == "Kept explicit facts."
+    assert kept["origin"] == "Kept explicit origin"
+    assert {task["origin"] for task in seen} == {"Kept explicit origin"}
+    assert {row["image"] for row in first["auto_added"]} == {
+        "1f_view.png", "2f_view.png", "South_view.png", "East_view.png"}
+    assert "North_view.png" not in {row["image"] for row in first["auto_added"]}
+    assert "mystery.png" not in {row["image"] for row in first["auto_added"]}
+    assert {row["target"] for row in first["auto_added"]} == {
+        "F1", "F2", "South/F1,F2", "East/F1,F2"}
+    assert reader_batch_reply(first, {})["auto_added"] == first["auto_added"]
+
+    seen.clear()
+    second = asyncio.run(session.delegate_many([dispatch(
+        "later", image="South_view.png", target="South/F1,F2", origin="same")]))
+    assert second["auto_added"] == []
+    assert [row["task_id"] for row in seen] == ["later"]
+
+
+def test_first_elevation_only_dispatch_returns_auto_list_without_inventing_floors(environment):
+    _, make = environment
+    session = make()
+    south = session.run_directory / "images" / "South_view.png"
+    Image.new("RGB", (20, 20), "white").save(south)
+    session.manifest["images"]["South_view.png"] = {
+        "sha256": hashlib.sha256(south.read_bytes()).hexdigest(), "size": [20, 20]}
+    session.manifest.update(image_kind="drawings", floor_plan_images=[])
+    (session.run_directory / "inputs.json").write_text(
+        json.dumps(session.manifest), encoding="utf-8", newline="\n")
+    seen = []
+
+    async def offline_reader(task):
+        seen.append(task)
+        return session.registry.save(task, status="failed", reason="offline behavior check")
+
+    session.run_reader = offline_reader
+    first = asyncio.run(session.delegate_many([dispatch(
+        target="North", origin="Shared drawing origin")]))
+    assert first["auto_added"] == [{
+        "task_id": "auto_elevation_South_view", "role_id": "elevation_reader",
+        "image": "South_view.png", "target": "South", "origin": "Shared drawing origin"}]
+    assert {task["origin"] for task in seen} == {"Shared drawing origin"}

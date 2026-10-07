@@ -41,7 +41,7 @@ def role_accounting(store, registry):
                 continue
             path = (store.directory if task_id == store.task_id else registry.child(task_id).task_directory) / "receipt.json"
             if path.is_file():
-                receipts.append(json.loads(path.read_bytes()))
+                receipts.append({**json.loads(path.read_bytes()), "task_id": task_id})
         intervals = [(receipt["started_epoch"], receipt["started_epoch"] + receipt["elapsed_seconds"])
                      for receipt in receipts if receipt.get("started_epoch") is not None and receipt.get("elapsed_seconds") is not None]
         repair_requests = sum(row.phase == "request" for row in repair)
@@ -71,6 +71,10 @@ def role_accounting(store, registry):
                         "delivery_failures": [{"task_id": row["task_id"], "reason": row["reason"]}
                                               for row in deliveries if row["status"] == "failed"]})
         total["by_role"][role] = summary
+        if role == "plan_reader":
+            summary["before_first_trial"] = [
+                {"task_id": receipt["task_id"], **receipt["plan_reader_progress"]}
+                for receipt in receipts if "plan_reader_progress" in receipt]
     total["ledger"] = RuntimeBudget.from_events(store.budget_limit, store.all_events).ledger.model_dump(mode="json")
     total["timing_note"] = ("Request seconds sum settled observed durations, including service failures. "
         "Unknown/late unsettled durations are marked incomplete; task elapsed includes tools and restart downtime. "

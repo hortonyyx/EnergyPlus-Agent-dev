@@ -31,6 +31,56 @@ CORRIDOR_REVIEW_HINT = (
 )
 
 
+_REWORK_TARGET_EXAMPLES = "plan.openings, openings, openings:W1"
+
+
+def normalize_rework_targets(targets):
+    """Accept concise opening scopes while retaining the existing plan scope gate."""
+    from src.agent.geometry.plan_revision import COLLECTIONS, SCALARS
+
+    if not isinstance(targets, list) or not targets:
+        raise ValueError("plan rework needs nonempty rework_targets; examples: "
+                         + _REWORK_TARGET_EXAMPLES)
+    normalized = []
+    for target in targets:
+        if not isinstance(target, str) or not target.strip():
+            raise ValueError("unknown rework target; examples: " + _REWORK_TARGET_EXAMPLES)
+        text = target.strip()
+        if text in {"openings", "plan.openings"}:
+            canonical = "plan.openings"
+        else:
+            body = text.removeprefix("plan.")
+            field, separator, identity = body.partition(":")
+            if separator and field == "openings" and identity.strip():
+                canonical = "plan.openings:" + identity.strip()
+            elif text.startswith("plan.") and (
+                    (not separator and field in SCALARS)
+                    or (separator and field in COLLECTIONS and identity.strip())):
+                canonical = "plan." + field + (":" + identity.strip() if separator else "")
+            else:
+                raise ValueError(f"unknown rework target {text!r}; examples: "
+                                 + _REWORK_TARGET_EXAMPLES)
+        if canonical not in normalized:
+            normalized.append(canonical)
+    return normalized
+
+
+def _expanded_rework_targets(targets, *plans):
+    """Turn the openings collection scope into exact rows for the existing audit."""
+    if targets is None:
+        return None
+    expanded = []
+    for target in targets or []:
+        if target != "plan.openings":
+            expanded.append(target)
+            continue
+        identities = sorted({row.get("id") for plan in plans if isinstance(plan, Mapping)
+                             for row in plan.get("openings", []) if isinstance(row, Mapping)
+                             and isinstance(row.get("id"), str) and row["id"]})
+        expanded.extend("plan.openings:" + identity for identity in identities)
+    return list(dict.fromkeys(expanded))
+
+
 def _plan_bytes(plan: Mapping[str, Any]) -> bytes:
     try:
         return json.dumps(
@@ -558,14 +608,14 @@ class PlanTrial:
     def inherit_reference(self, prior, plan_sha256, allowed_targets):
         from src.agent.geometry.plan_revision import SCALARS, COLLECTIONS
 
-        if not isinstance(allowed_targets, list) or not allowed_targets:
-            raise ValueError("plan rework needs nonempty rework_targets")
+        allowed_targets = normalize_rework_targets(allowed_targets)
         for target in allowed_targets:
             if not isinstance(target, str):
                 raise ValueError("rework_targets must name plan fields or collection:id objects")
             field, separator, identity = target.removeprefix("plan.").partition(":")
             if not target.startswith("plan.") or not (
                 (not separator and field in SCALARS)
+                or target == "plan.openings"
                 or (separator and field in COLLECTIONS and identity.strip())
             ):
                 raise ValueError(f"rework_targets must name an editable plan field or collection:id: {target}")
@@ -600,7 +650,8 @@ class PlanTrial:
             normalized = copy.deepcopy(dict(plan))
         if previous_plan is not None and not errors:
             audit = audit_plan_replacement(previous_plan, normalized,
-                                          allowed_targets=self.allowed_rework_targets)
+                                          allowed_targets=_expanded_rework_targets(
+                                              self.allowed_rework_targets, previous_plan, normalized))
             preservation = {**(preservation or {}), **audit}
         try:
             plan_bytes = _plan_bytes(normalized)
