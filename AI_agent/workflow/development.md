@@ -136,7 +136,7 @@ Windows CLI 的 `workspace-write` 已用真实写入验证：仓库内文件可�
 派工前先把已包含派工单的提交推上主线，再建工作树。新工作树按自己的锁文件建 `.venv`，不能继承主树虚拟环境：
 
 ```powershell
-$taskTree = 'C:\Users\Horton\Desktop\EnergyPlus-Agent-worktrees\<任务名>'
+$taskTree = 'D:\EnergyPlus-Agent-worktrees\<任务名>'
 git worktree add -b <分支> $taskTree main
 Push-Location $taskTree; uv sync --frozen --python 3.12; Pop-Location
 $state = Join-Path $taskTree 'AI_agent\archive\local_backup\<任务名>-dispatch'   # 已忽略：提示、启动脚本、事件、错误输出

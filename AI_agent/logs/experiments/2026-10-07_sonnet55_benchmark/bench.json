@@ -1,0 +1,30 @@
+{
+  "batch_id": "sonnet55-benchmark-20261007",
+  "approval": "User 10-07 evening: '先让Sonnet5.5在domain上做一次（可以让它自由调度haiku来做role方案），有了一个标杆才好往上靠，但是要区分模型本身能力部分和方法论部分'; plan agreed: A1 single model, A2 free to dispatch Haiku 4.5, A0 GLM on Claude Code as control, 1 h protection per run. Claude and GLM subscriptions (authorized in Agent.md).",
+  "agent_version": "t1-20261007-cc1.1",
+  "tree_commit": "4b009ec7",
+  "common_args": [
+    "--images", "case_tests/e2e_tests/sm25-L_anchor/case_data",
+    "--image-kind", "drawings",
+    "--floor-plan-image", "1f_view.png",
+    "--floor-plan-image", "2f_view.png",
+    "--timeout", "3600",
+    "--max-candidates", "64",
+    "--effort", "medium"
+  ],
+  "scope_task": "Reconstruct one inspectable lightweight BIM of the whole building shown in the supplied original plans and elevations. This is an original-image-only run: no saved plans, generated BIM, prior observations, calibration, reference counts, target heights or GT are supplied. Use build_plan_bim for each distinct floor and, if there are several, assemble_plan_bim; do not invent a floor merely to use assembly.\nDelivery requirements, in order: (1) the delivered candidate has every drawn wall, space, door and window of each floor where the drawings put it, checked against the originals, with any remaining difference stated with its reason; (2) exterior opening heights observed on the elevations are saved as located claims confirmed or applied on the delivered candidate, distinct from assumptions; unobserved internal door heights may remain explicit assumptions; (3) the delivered candidate's saved notes match its actual state. Report what was observed, assumed and left unverified.",
+  "cases": {
+    "A1_sonnet55_single": {
+      "args": ["--provider", "claude", "--main-model", "claude-sonnet-5-5"],
+      "organization": "Experiment organization: Work directly with the deterministic and visual tools, without role delegation."
+    },
+    "A2_sonnet55_haiku_workers": {
+      "args": ["--provider", "claude", "--main-model", "claude-sonnet-5-5", "--workers", "haiku"],
+      "organization": "Experiment organization: You may delegate self-contained sub-tasks to the Haiku worker (Agent tool, subagent_type \"worker\"); several calls in one message run in parallel. Workers share this run's tools, inputs and files. You decide the division of work, check what they return against the originals, and deliver with finish_bim yourself."
+    },
+    "A0_glm_single_cc": {
+      "args": ["--provider", "glm"],
+      "organization": "Experiment organization: Work directly with the deterministic and visual tools, without role delegation."
+    }
+  }
+}
