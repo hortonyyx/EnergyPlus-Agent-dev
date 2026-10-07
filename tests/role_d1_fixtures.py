@@ -1,7 +1,8 @@
 """Scripted, real-MCP fixtures for the D1 role-division integration tests.
 
-The responses deliberately replay accepted 10-01 artifacts.  They exercise the
-runtime and tools; they are not evidence of autonomous model reading quality.
+The responses replay accepted 10-01 plans plus independently documented overall
+dimension readings from the same source images.  They exercise the runtime and
+tools; they are not evidence of autonomous model reading quality.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from PIL import Image
+from shapely.geometry import LineString, Polygon
 
 from src.agent.runtime_roles.entry import parser
 from src.agent.runtime_roles.readers import validate_plan_artifact
@@ -29,6 +31,10 @@ CASES = {
     "sm24": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24",
     "sm25": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25",
 }
+DIMENSION_INPUTS = ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/role_fixture_dimension_inputs.json"
+DIMENSION_CHAIN_FIELDS = (
+    "id", "axis", "segments_mm", "total_mm", "tick_pixels", "start_world_m", "source_refs",
+)
 ELEVATION_SUBMISSION_FIELDS = (
     "orientation",
     "view_direction",
@@ -79,10 +85,37 @@ def _plan_targets(plan):
     return sorted(targets)
 
 
-def _plan_artifact(plan_path: Path, image_path: Path):
-    plan = json.loads(plan_path.read_bytes())
+def _dimension_record(case_name: str, floor_id: str):
+    if case_name not in {"sm21", "sm25"}:
+        return None
+    manifest = json.loads(DIMENSION_INPUTS.read_bytes())
+    matches = [row for row in manifest["records"]
+               if row["case"] == case_name and row["floor_id"] == floor_id]
+    if len(matches) != 1:
+        raise AssertionError(f"expected one dimension input for {case_name} {floor_id}")
+    return matches[0]
+
+
+def _plan_artifact(plan_path: Path, image_path: Path, dimension_record=None):
+    plan_bytes = plan_path.read_bytes()
+    plan = json.loads(plan_bytes)
     with Image.open(image_path) as picture:
         width, height = picture.size
+    if dimension_record is not None:
+        if (ROOT / dimension_record["source_plan_path"]).resolve() != plan_path.resolve():
+            raise AssertionError("dimension input points at a different source plan")
+        if (ROOT / dimension_record["image_path"]).resolve() != image_path.resolve():
+            raise AssertionError("dimension input points at a different source image")
+        if hashlib.sha256(plan_bytes).hexdigest() != dimension_record["source_plan_sha256"]:
+            raise AssertionError("dimension input source plan hash does not match")
+        if hashlib.sha256(image_path.read_bytes()).hexdigest() != dimension_record["image_sha256"]:
+            raise AssertionError("dimension input source image hash does not match")
+        if [width, height] != dimension_record["image_size"]:
+            raise AssertionError("dimension input source image size does not match")
+        plan["dimension_chains"] = [
+            {key: json.loads(json.dumps(chain[key])) for key in DIMENSION_CHAIN_FIELDS if key in chain}
+            for chain in dimension_record["chains"]
+        ]
     artifact = {
         "plan": plan,
         "evidence": [
@@ -198,6 +231,48 @@ def assembly_review(output: Path) -> dict[str, Any] | None:
     return json.loads(path.read_bytes())
 
 
+def checked_assembly_decisions(output: Path, expected_floors) -> dict[str, Any]:
+    """Script the coordinator's explicit review of Q1 geometry-only changes.
+
+    This is test input, not a production waiver: missing floors, changed opening
+    identities/connections, missing Q1 audit or excessive movement fail here.
+    """
+    review = assembly_review(output)
+    assert review and not review["blockers"]
+    assert review["require_all"]
+    assert set(review["checked_floors"]) == set(expected_floors)
+    candidate = output / "bim" / review["candidate"]
+    source = json.loads((candidate / "source_model.json").read_bytes())
+    audit = json.loads((candidate / "regularization_report.json").read_bytes())
+    assert audit["source_model_sha256"] == source["source_model_sha256"]
+    assert audit["reports"] and all(row["status"] == "pass" for row in audit["reports"])
+    decisions = []
+    for change in review["changes"]:
+        before, after = change["before"], change["after"]
+        assert before is not None and after is not None
+        if change["item"].startswith("rooms:"):
+            first, second = Polygon(before), Polygon(after)
+            assert first.is_valid and second.is_valid and not second.is_empty
+            assert len(first.interiors) == len(second.interiors)
+        else:
+            assert change["item"].startswith("openings:")
+            for field in ("kind", "exterior", "space_ids"):
+                assert before[field] == after[field]
+            first, second = LineString(before["xy"]), LineString(after["xy"])
+            assert abs(first.length - second.length) <= 0.000002
+        movement = first.hausdorff_distance(second)
+        assert movement < 0.30
+        decisions.append({
+            "change_id": change["change_id"],
+            "reason": (
+                f"Offline Q1 fixture review: {change['floor_id']} {change['item']} "
+                f"retains its identity and connections; geometric displacement "
+                f"is {movement:.6f} m and the candidate's recorded regularization passed."
+            ),
+        })
+    return {"review_id": review["review_id"], "decisions": decisions}
+
+
 class CoordinatorAdapter:
     def __init__(self, *, store, stages: list[Callable[[], dict[str, Any]]]):
         self.store = store
@@ -289,6 +364,21 @@ class D1Fixture:
             ),
             lambda: response(("assemble-readers", "assemble_from_readers", {})),
         ]
+        if len(self.plan_artifacts) > 1:
+            # Cross-floor Q1 alignment legitimately changes accepted floor
+            # coordinates. Exercise the existing review gate before the height
+            # batch, then review the final candidate after the height write.
+            sequence.extend([
+                lambda: response((
+                    "review-aligned-floors", "review_role_assembly",
+                    checked_assembly_decisions(self.output, self.plan_artifacts),
+                )),
+                lambda: response(("resume-assembly", "assemble_from_readers", {})),
+                lambda: response((
+                    "review-final-assembly", "review_role_assembly",
+                    checked_assembly_decisions(self.output, self.plan_artifacts),
+                )),
+            ])
         sequence.extend(
             [
                 lambda: response(
@@ -331,7 +421,8 @@ def make_fixture(case_name: str, base: Path) -> D1Fixture:
         plan = json.loads(path.read_bytes())
         image_name = "1f_view.png" if plan["floor_id"] == "F1" else "2f_view.png"
         plan_artifacts[plan["floor_id"]] = _plan_artifact(
-            path, case_root / "images" / image_name
+            path, case_root / "images" / image_name,
+            _dimension_record(case_name, plan["floor_id"]),
         )
     elevation_artifacts = _elevation_artifacts(case_name, case_root)
     tasks = _reader_tasks(case_name, plan_artifacts, elevation_artifacts)

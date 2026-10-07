@@ -134,7 +134,8 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert tools["trial_plan_bim"] == len(plan_records)
     assert tools["submit_plan_reading"] == len(plan_records)
     assert tools["submit_elevation_reading"] == 4
-    assert tools["assemble_from_readers"] == 1
+    assert tools["assemble_from_readers"] == (2 if two_floors else 1)
+    assert tools["review_role_assembly"] == (2 if two_floors else 0)
     assert not any(tools[name] for name in (
         "read_role_artifact", "build_from_artifact", "match_elevation",
         "apply_elevation_heights", "assemble_plan_bim", "inspect_plan_draft"))

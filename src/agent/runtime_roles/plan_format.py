@@ -79,14 +79,31 @@ OPENING = _object({"id": TEXT, "kind": {"enum": ["window", "door", "open"]},
                    "p1": POINT, "p2": POINT, "z": _array(LENGTH, 2, 2), "source_refs": REFS,
                    "state": {"enum": [None, "unknown", "open", "closed"]}, "assumptions": STRINGS},
                   {"id", "kind", "p1", "p2", "z", "source_refs"})
+POSITIVE_NUMBER = {"type": "number", "exclusiveMinimum": 0}
+DIMENSION_CHAIN = _object({
+    "id": TEXT,
+    "axis": {"enum": ["x", "y"]},
+    "segments_mm": _array(POSITIVE_NUMBER, 1),
+    "total_mm": POSITIVE_NUMBER,
+    "tick_pixels": _array(NUMBER, 2),
+    "start_world_m": NUMBER,
+    "source_refs": REFS,
+}, {"id", "axis", "segments_mm", "total_mm", "tick_pixels", "source_refs"})
 PLAN_FORMAT = _object({
     "floor_id": TEXT, "z_floor": LENGTH, "ceiling_height": LENGTH, "basis": TEXT,
     "x_anchors": _array(ANCHOR, 2, 2), "y_anchors": _array(ANCHOR, 2, 2),
     "footprint_pixels": _array(POINT, 4), "partitions": _array(PARTITION),
     "space_seeds": _array(SEED), "openings": _array(OPENING),
     "assumptions": STRINGS, "unresolved": STRINGS,
+    # dimension_chains is a reader-trial input.  It is checked and consumed
+    # before strict compilation; it never becomes an extra modeling language.
+    "dimension_chains": _array(DIMENSION_CHAIN),
+    # Q1 kernel owns the strict nested validation.  The reader format admits
+    # these inert audit/priority records so an aligned draft can be replayed.
+    "regularization_inputs": {"type": "object"},
+    "regularization": {"type": "object"},
 }, _REQUIRED_PLAN_FIELDS)
-assert set(PLAN_FORMAT["properties"]) == _PLAN_FIELDS
+assert set(PLAN_FORMAT["properties"]) == set(_PLAN_FIELDS) | {"dimension_chains"}
 assert set(OPENING["properties"]) == _OPENING_FIELDS
 assert set(SEED["properties"]) == _SEED_FIELDS
 
@@ -116,6 +133,17 @@ def plan_format_errors(plan):
                         row[field] = row.pop("pixels")
     for error in _Validator(PLAN_FORMAT).iter_errors(value):
         errors.append({"path": _path(error.absolute_path), "message": error.message})
+    if isinstance(value, Mapping):
+        for index, chain in enumerate(value.get("dimension_chains", [])
+                                      if isinstance(value.get("dimension_chains", []), list) else []):
+            if isinstance(chain, Mapping):
+                segments = chain.get("segments_mm")
+                ticks = chain.get("tick_pixels")
+                if isinstance(segments, list) and isinstance(ticks, list) and len(ticks) != len(segments) + 1:
+                    errors.append({
+                        "path": f"plan.dimension_chains[{index}].tick_pixels",
+                        "message": "must contain one tick more than segments_mm",
+                    })
     if isinstance(value, Mapping):
         for collection in ("partitions", "openings", "space_seeds"):
             seen = set()

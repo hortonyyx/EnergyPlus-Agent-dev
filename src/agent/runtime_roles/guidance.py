@@ -44,10 +44,18 @@ space_seeds[].point and each anchor's first value, read from grid labels or crop
 original_pixels_per_returned_pixel, never world metres or display pixels. Metres appear
 only as each anchor's second value, z_floor, ceiling_height and opening z."""
 
-_PLAN_CALIBRATION = (_SECTIONS[3]
-    .replace("Use one origin for all floors", "Use the coordinator's assigned floor origin")
-    .replace("geometry_feedback.axis_orientation reports a mirrored calibration.",
-             "axis_orientation reports the effective directions."))
+_PLAN_CALIBRATION = """3. CALIBRATE FROM DIMENSIONS. For each overall chain add a dimension_chains row:
+id, axis=x/y, printed segments_mm, total_mm, approximate tick_pixels in chain order
+(one per extension line), and source_refs. Its end ticks must reach both outer faces.
+When task.coordinate_contract gives the first tick's world coordinate, also give
+start_world_m and cite both the visible annotation and that origin contract in source_refs.
+Never guess zero. The chain then sets exact scale and origin while old anchors are audited.
+Without start_world_m, legacy anchors still supply the origin and the report says so.
+If another overall chain on the same axis exposes additional perimeter or divider ticks,
+include it too; code uses those ticks only after its scale and origin agree with the first chain.
+Failed or internal chains do not set the axis. Use perimeter outer faces and partition
+midlines. Keep x east and y north; tick order may run opposite pixel direction. Bare world
+lengths and start_world_m are metres."""
 
 _PLAN_DRAFT = """4. DRAFT THIS FLOOR EARLY. Once the overall dimension chains and divider lines are read,
 call trial_plan_bim with a complete plan; its overlay and drawing_differences show where
@@ -59,12 +67,14 @@ Replace the synthetic values with drawing observations. Use partitions[].points,
 openings[].p1/p2 and space_seeds[].point, not walls, room polygons or opening room/space_id/
 facade fields. Seeds lie inside rooms and name them; they never create walls. A seed role
 is optional: omit it or use a room_types code ({room_types}...).
-Do not repeat the exterior footprint as partitions; a divider meeting an exterior wall ends
-ON the footprint line (same pixel line), not at that wall's inner face. Exterior
-doors/windows lie ON the footprint line; interior doors/open passages lie ON their partition. Partitions continue
-through door apertures; junction coordinates coincide. No automatic snapping or trimming.
+Do not repeat the exterior footprint as partitions. Approximate pixels suffice: trial code
+searches a scale-derived 0.30 m radius for perimeter outer-face ink, divider midlines and jamb
+edges. Openings and junctions follow their wall. Missing ink is recorded without a move;
+dimensions override ink.
+Exterior doors/windows lie on the footprint; interior doors/open passages lie on their partition. Partitions continue
+through door apertures and junction coordinates coincide after alignment.
 Only exterior windows are supported. Door state=unknown/open/closed; omit window state.
-Pixels can use selected profile references (syntax in plan_partition). Label assumed heights.
+Use a profile only for a mark still unclear after trial; do not measure every wall. Label assumed heights.
 
 For local corrections, send operations to avoid retyping unchanged rows. The tool uses
 the last verified baseline if present; failed drafts remain editable before it. Each operation
@@ -81,9 +91,11 @@ target; they cannot authorize geometry or room-use changes.""".format(
     example=json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")),
     room_types=", ".join(COMMON_ROOM_TYPES))
 
-_PLAN_DIFFERENCES = """5. RESOLVE THE DIFFERENCES. trial_plan_bim returns drawing_differences and
-building_precision: review clues, not drawing-fidelity verdicts. Recheck look_box or the
-named source object, then revise by operations or explain retention. Align to an existing
+_PLAN_DIFFERENCES = """5. RESOLVE THE DIFFERENCES. trial_plan_bim returns drawing_differences,
+building_precision and a compact reading_alignment summary; the full list stays with the plan.
+Geometry under the 0.30 m alignment / 0.60 m minimum room-width rules must pass before
+saving; drawing differences still need original-image review. Recheck look_box or the
+named source object, then revise rejected objects by operations. Align to an existing
 line, never an average; preserve real rooms, openings and connections.
 Before turning an inkless gap into a door/open, decide whether its ends belong to the
 same physical wall. If not, remove the artificial separator and opening in the SAME

@@ -35,7 +35,7 @@ def test_automatic_boxes_use_resolved_pixels_keep_inferences_and_allow_wall_over
     assert {row["source"] for row in evidence.values()} == {"plan.png"}
     assert "[inferred] use from furniture" in evidence["plan.space_seeds:left"]["basis"]
     assert "plan.openings:W1: verify height" in saved["artifact"]["unresolved"]
-    assert saved["artifact"]["plan"] == trial.plan
+    assert saved["artifact"]["plan"] == numeric
     refs = saved["validation"]["wall_reference"]
     assert refs["perimeter"]["convention"] == "outer_face"
     assert refs["partitions"]["dimension_basis"] == "inner_face"

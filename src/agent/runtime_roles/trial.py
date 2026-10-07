@@ -12,8 +12,12 @@ import shutil
 import sys
 from typing import Any
 
+from PIL import Image, UnidentifiedImageError
+
 from src.agent.geometry.plan_feedback import resolve_plan_lengths
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
+from src.agent.geometry.plan_dimension_alignment import align_plan_to_dimensions
+from src.agent.geometry.plan_ink_alignment import align_plan_to_ink
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import audit_plan_replacement, format_failure, plan_format_errors
 from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
@@ -88,6 +92,21 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
             audit_refs[field] = _audit_reference(receipt, field, value)
     if audit_refs:
         visible["audit_refs"] = audit_refs
+    alignment = visible.get("reading_alignment")
+    if isinstance(alignment, Mapping):
+        compact = {}
+        for key in ("ink", "dimensions"):
+            row = alignment.get(key)
+            if isinstance(row, Mapping):
+                compact[key] = {
+                    field: copy.deepcopy(row[field])
+                    for field in ("status", "summary", "search", "tolerances") if field in row
+                }
+        compact["full_list"] = (
+            "The complete reading_alignment record is saved in this trial receipt and "
+            "regularization_inputs.reading_alignment of the compiled plan."
+        )
+        visible["reading_alignment"] = compact
     if visible.get("status") != "passed":
         visible["message"] = (
             "trial_plan_bim failed; use the reported problems, located findings and repair hints below."
@@ -133,6 +152,13 @@ def _verified_report(workspace: Path | None, summary: object) -> object:
     if not path.is_file() or _file_sha256(path) != expected:
         raise ValueError(f"trial report changed or is missing: {relative}")
     return json.loads(path.read_bytes())
+
+
+def _requires_saved_toolkit_plan(plan_input: Mapping[str, Any]) -> bool:
+    """Current A-C regularization always returns a saved effective plan."""
+
+    return (isinstance(plan_input.get("regularization"), Mapping)
+            or isinstance(plan_input.get("submitted_plan_file"), str))
 
 
 def _corridor_review(workspace: Path | None, result: Mapping[str, Any],
@@ -262,6 +288,15 @@ class PlanTrial:
                     raise ValueError(f"trial numeric plan changed: {numeric_path}")
                 # Besides the byte hash, require the saved product to remain JSON.
                 json.loads(numeric_path.read_bytes())
+            aligned_file = receipt.get("aligned_numeric_input_file")
+            aligned_sha = receipt.get("aligned_numeric_input_sha256")
+            if aligned_file is not None or aligned_sha is not None:
+                if not isinstance(aligned_file, str) or not isinstance(aligned_sha, str):
+                    raise ValueError("trial aligned numeric input receipt is incomplete")
+                aligned_path = _inside(self.workspace or self.receipt_directory, aligned_file)
+                if not aligned_path.is_file() or _file_sha256(aligned_path) != aligned_sha:
+                    raise ValueError(f"trial aligned numeric input changed: {aligned_path}")
+                json.loads(aligned_path.read_bytes())
             for profile in receipt.get("measurement_profiles", []):
                 if not isinstance(profile, Mapping):
                     raise ValueError("trial measurement profile receipt is malformed")
@@ -294,7 +329,7 @@ class PlanTrial:
 
     def _numeric_plan(self, plan: Mapping[str, Any], number: int) -> tuple[
         dict[str, Any], list[str], list[dict[str, Any]], list[dict[str, Any]],
-        list[dict[str, Any]], Path | None, str,
+        list[dict[str, Any]], Path | None, str, dict[str, Any],
     ]:
         """Resolve only explicit aliases, quantities and selected profile candidates."""
 
@@ -303,6 +338,7 @@ class PlanTrial:
         used_profiles: dict[str, tuple[bytes, str]] = {}
 
         image_sha256 = "numeric-plan-has-no-profile-reference"
+        image_path = None
         if self.workspace is not None:
             image_path = self.workspace / "images" / self.image_name
             if not image_path.is_file():
@@ -334,13 +370,34 @@ class PlanTrial:
             image_sha256=image_sha256,
             load_profile=load_profile,
         )
+        alignment: dict[str, Any] = {}
+        # Reader-only alignment happens after profile/quantity resolution, when
+        # every plan coordinate is a numeric original-image pixel.  The shared
+        # compiler remains literal and sees the aligned, fully audited draft.
+        if image_path is not None:
+            try:
+                with Image.open(image_path) as original:
+                    numeric, ink_report = align_plan_to_ink(original, numeric)
+                alignment["ink"] = ink_report
+            except (UnidentifiedImageError, OSError) as error:
+                # Some isolated unit harnesses use hash-stable placeholder
+                # bytes instead of a decodable drawing.  Keep their historical
+                # literal behavior and make the skipped alignment explicit.
+                alignment["ink"] = {
+                    "status": "unavailable",
+                    "summary": {"moved_or_aligned": 0, "not_moved": 0, "rejected": 0},
+                    "reason": f"original image could not be decoded for ink alignment: {error}",
+                }
+        if "dimension_chains" in numeric:
+            numeric, dimension_report = align_plan_to_dimensions(numeric)
+            alignment["dimensions"] = dimension_report
         numeric_bytes = _canonical_plan_bytes(numeric)
         numeric_sha256 = hashlib.sha256(numeric_bytes).hexdigest()
         numeric_path = None
         profile_records = []
         if self.receipt_directory is not None:
             self.receipt_directory.mkdir(parents=True, exist_ok=True)
-            numeric_path = self.receipt_directory / f"trial_{number:03d}_numeric_plan.json"
+            numeric_path = self.receipt_directory / f"trial_{number:03d}_aligned_input.json"
             numeric_path.write_bytes(numeric_bytes)
             profile_folder = self.receipt_directory / f"trial_{number:03d}_profiles"
             for profile_id, (raw, digest) in sorted(used_profiles.items()):
@@ -365,7 +422,57 @@ class PlanTrial:
             profile_records,
             numeric_path,
             numeric_sha256,
+            alignment,
         )
+
+    def _compiled_numeric_product(
+        self,
+        *,
+        plan_input: Mapping[str, Any],
+        aligned_plan: Mapping[str, Any],
+        number: int,
+    ) -> tuple[dict[str, Any], Path | None, str]:
+        """Persist the effective plan which the trusted Toolkit actually compiled.
+
+        Current Toolkit runs rewrite their saved ``plan_file`` after A-C
+        regularization.  Legacy adapters and small mocks do not, so they retain
+        the historical exact-input behavior.
+        """
+
+        strict_saved_plan = _requires_saved_toolkit_plan(plan_input)
+        if strict_saved_plan:
+            if self.workspace is None:
+                raise ValueError("regularized Toolkit result cannot be verified without its workspace")
+            relative = plan_input.get("plan_file")
+            expected = plan_input.get("plan_sha256")
+            if not isinstance(relative, str) or not isinstance(expected, str):
+                raise ValueError("regularized Toolkit result omitted plan_file or plan_sha256")
+            source = _inside(self.workspace, relative)
+            if not source.is_file() or _file_sha256(source) != expected:
+                raise ValueError(f"Toolkit effective plan changed or is missing: {relative}")
+            if plan_input.get("image") not in {None, self.image_name}:
+                raise ValueError("Toolkit effective plan belongs to a different image")
+            declared_image_sha = plan_input.get("image_sha256")
+            if declared_image_sha is not None:
+                image_path = self.workspace / "images" / self.image_name
+                if (not isinstance(declared_image_sha, str) or not image_path.is_file()
+                        or _file_sha256(image_path) != declared_image_sha):
+                    raise ValueError("Toolkit effective plan image hash does not match this workspace")
+            raw = source.read_bytes()
+            decoded = json.loads(raw)
+            if not isinstance(decoded, dict):
+                raise ValueError("Toolkit effective plan is not a JSON object")
+        else:
+            decoded = copy.deepcopy(dict(aligned_plan))
+            raw = _canonical_plan_bytes(decoded)
+
+        digest = hashlib.sha256(raw).hexdigest()
+        path = None
+        if self.receipt_directory is not None:
+            self.receipt_directory.mkdir(parents=True, exist_ok=True)
+            path = self.receipt_directory / f"trial_{number:03d}_numeric_plan.json"
+            path.write_bytes(raw)
+        return decoded, path, digest
 
     def _save_returned_images(self, raw: object, number: int, plan_hash: str) -> list[dict[str, Any]]:
         if not isinstance(raw, Mapping) or not isinstance(raw.get("content"), list):
@@ -524,6 +631,7 @@ class PlanTrial:
                 measurement_profiles,
                 numeric_plan_path,
                 numeric_plan_sha256,
+                reading_alignment,
             ) = self._numeric_plan(plan, number)
         except (ValueError, TypeError, KeyError) as error:
             receipt = {
@@ -538,12 +646,18 @@ class PlanTrial:
                 "compiled_plan_sha256": None,
                 "input_plan_file": (self._relative_to_workspace(input_plan_file)
                                     if input_plan_file is not None else None),
+                "aligned_numeric_input_file": None,
+                "aligned_numeric_input_sha256": None,
                 "compiled_numeric_plan_file": None,
                 "compiled_numeric_plan_sha256": None,
                 "field_aliases": [],
                 "length_bindings": [],
                 "measurement_bindings": [],
                 "measurement_profiles": [],
+                "reading_alignment": {
+                    "status": "unavailable",
+                    "reason": "numeric plan resolution failed before reader alignment",
+                },
                 "drawing_differences": {
                     "status": "unavailable",
                     "reason": "numeric plan resolution failed before compilation",
@@ -577,7 +691,6 @@ class PlanTrial:
                 )
             self.receipts.append(receipt)
             return receipt
-        self._memory_numeric[plan_hash] = numeric_plan
         raw = await self.tools.call_tool(
             "build_plan_bim",
             {"image": self.image_name, "plan_json": _canonical_plan_bytes(numeric_plan).decode("utf-8")},
@@ -588,6 +701,18 @@ class PlanTrial:
             result = {"source_geometry_ready": False, "error": str(error)}
         ready = result.get("source_geometry_ready") is True
         plan_input = result.get("plan_input") if isinstance(result.get("plan_input"), Mapping) else {}
+        compiled_numeric_plan = None
+        compiled_numeric_path = None
+        compiled_numeric_sha256 = None
+        compiled_product_error = None
+        try:
+            (compiled_numeric_plan, compiled_numeric_path,
+             compiled_numeric_sha256) = self._compiled_numeric_product(
+                plan_input=plan_input, aligned_plan=numeric_plan, number=number,
+            )
+        except (ValueError, TypeError, KeyError, json.JSONDecodeError) as error:
+            compiled_product_error = str(error)
+        self._memory_numeric[plan_hash] = copy.deepcopy(compiled_numeric_plan or numeric_plan)
         differences = _verified_report(self.workspace, result.get("drawing_differences", {
             "status": "unavailable", "reason": "build result omitted drawing_differences"
         }))
@@ -612,15 +737,21 @@ class PlanTrial:
             "compiled_plan_sha256": plan_input.get("plan_sha256"),
             "input_plan_file": (self._relative_to_workspace(input_plan_file)
                                 if input_plan_file is not None else None),
-            "compiled_numeric_plan_file": (
+            "aligned_numeric_input_file": (
                 self._relative_to_workspace(numeric_plan_path)
                 if numeric_plan_path is not None else None
             ),
-            "compiled_numeric_plan_sha256": numeric_plan_sha256,
+            "aligned_numeric_input_sha256": numeric_plan_sha256,
+            "compiled_numeric_plan_file": (
+                self._relative_to_workspace(compiled_numeric_path)
+                if compiled_numeric_path is not None else None
+            ),
+            "compiled_numeric_plan_sha256": compiled_numeric_sha256,
             "field_aliases": field_aliases,
             "length_bindings": length_bindings,
             "measurement_bindings": measurement_bindings,
             "measurement_profiles": measurement_profiles,
+            "reading_alignment": reading_alignment,
             "drawing_differences": differences,
             "building_precision": precision,
             "overlay": result.get("source_plan_views") or plan_input.get("draft_view"),
@@ -631,13 +762,20 @@ class PlanTrial:
             "operations": copy.deepcopy(operations),
         }
         receipt["returned_images"] = self._save_returned_images(raw, number, plan_hash)
-        if ready and receipt["compiled_plan_sha256"] != numeric_plan_sha256:
+        if compiled_product_error is not None:
             ready = False
             receipt.update(
                 status="failed",
                 source_geometry_ready=False,
-                reason=("trial compiler did not compile the exact saved numeric plan: "
-                        f"expected {numeric_plan_sha256}, got {receipt['compiled_plan_sha256']}"),
+                reason=f"trial could not verify Toolkit effective plan: {compiled_product_error}",
+            )
+        elif ready and receipt["compiled_plan_sha256"] != compiled_numeric_sha256:
+            ready = False
+            receipt.update(
+                status="failed",
+                source_geometry_ready=False,
+                reason=("trial compiler did not compile the verified effective numeric plan: "
+                        f"expected {compiled_numeric_sha256}, got {receipt['compiled_plan_sha256']}"),
             )
         if ready and self.workspace is not None and isinstance(result.get("candidate"), str):
             source = _inside(self.workspace, f"{result['candidate']}/source_model.json")
@@ -654,7 +792,7 @@ class PlanTrial:
                 receipt["repair_hint"] = result["repair_hint"]
             if "host" in receipt["reason"]:
                 try:
-                    unhosted = unhosted_openings(numeric_plan)
+                    unhosted = unhosted_openings(compiled_numeric_plan or numeric_plan)
                 except (ValueError, KeyError, TypeError, IndexError):
                     unhosted = []
                 if unhosted:
@@ -664,7 +802,7 @@ class PlanTrial:
                         "Put each on its wall line: exterior ones on the footprint line, interior ones on their partition.")
             if "dangle" in receipt["reason"]:
                 try:
-                    loose = loose_partition_ends(numeric_plan)
+                    loose = loose_partition_ends(compiled_numeric_plan or numeric_plan)
                 except (ValueError, KeyError, TypeError, IndexError):
                     loose = []
                 if loose:
@@ -687,8 +825,9 @@ class PlanTrial:
                             for row in findings[:5])
         receipt["phase"] = "operations" if ready or previous_plan is not None else "draft"
         from .coordinates import plan_orientation
+        effective_plan = compiled_numeric_plan or numeric_plan
         try:
-            receipt["axis_orientation"] = plan_orientation(numeric_plan)
+            receipt["axis_orientation"] = plan_orientation(effective_plan)
         except ValueError:
             pass  # Preserve the compiler's invalid-anchor failure receipt.
         if "check" in receipt.get("axis_orientation", {}):
@@ -697,7 +836,7 @@ class PlanTrial:
                 "world_north_toward and world_east_toward matching these anchors. "
                 "Follow the drawing north arrow, not conflicting coordinator instructions.")
         flagged_dividers = {row.get("divider") for row in topology_issues([receipt])}
-        receipt["topology_dividers"] = {row["id"]: row["points"] for row in numeric_plan.get("partitions", [])
+        receipt["topology_dividers"] = {row["id"]: row["points"] for row in effective_plan.get("partitions", [])
                                        if isinstance(row, Mapping) and row.get("id") and row.get("id") in flagged_dividers}
         receipt["topology_issues"] = [*self.inherited_topology_issues, *topology_issues([*self.receipts, receipt])]
         if self.receipt_directory is not None:
@@ -791,6 +930,7 @@ class PlanTrial:
                 "candidate": receipt.get("candidate"),
                 "candidate_source_sha256": receipt.get("candidate_source_sha256"),
                 "compiled_plan_sha256": receipt.get("compiled_plan_sha256"),
+                "aligned_numeric_input_sha256": receipt.get("aligned_numeric_input_sha256"),
                 "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
                 "measurement_profile_sha256": [
                     profile.get("sha256") for profile in receipt.get("measurement_profiles", [])
@@ -821,7 +961,8 @@ class PlanTrial:
             if fixed.is_file():
                 paths.append(fixed)
         for receipt in self.receipts:
-            for key in ("receipt_file", "input_plan_file", "compiled_numeric_plan_file"):
+            for key in ("receipt_file", "input_plan_file", "aligned_numeric_input_file",
+                        "compiled_numeric_plan_file"):
                 if isinstance(receipt.get(key), str):
                     path = _inside(self.workspace, receipt[key])
                     if path.is_file():
