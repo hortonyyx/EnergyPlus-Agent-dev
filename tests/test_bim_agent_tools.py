@@ -859,7 +859,7 @@ def test_room_use_stdio_updates_function_and_retains_physical_source(tmp_path):
             assert revised["room_use_review"]["summary"]["inferred_count"] == 1
             assert "left" not in revised["room_use_review"]["unrecorded_space_ids"]
             assert "next_action" not in revised["room_use_review"]
-            assert "Conference_Meeting_Multipurpose" in updated["public_names"]["spaces"]["left"]
+            assert "Conference-Meeting-Multipurpose" in updated["public_names"]["spaces"]["left"]
             for key in ("floors", "boundaries", "openings", "connections", "opening_hosts"):
                 assert updated[key] == original[key]
             assert original == json.loads((run / built["candidate"] / "source_model.json").read_text())

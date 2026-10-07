@@ -15,6 +15,7 @@ from pathlib import Path
 from src.agent.correction.parse import ensure_corrected_geometry
 from src.agent.geometry.source_bim import build_source_bim, source_view_geometry
 from src.agent.geometry.source_model import _digest
+from src.agent.geometry.source_naming import public_names_for_display, public_reference_map, public_reference_text
 
 
 _PROPOSAL_FIELDS = {"geometry", "assumptions", "unresolved", "enclosure_declaration",
@@ -76,10 +77,33 @@ def _validate_proposal(proposal: dict) -> tuple[dict, list[str], list[str], dict
     return geometry, list(proposal["assumptions"]), list(proposal["unresolved"]), enclosure
 
 
-def _html_list(rows: list[str]) -> str:
+def _html_list(rows: list[str], references: dict) -> str:
     if not rows:
         return "<li>无</li>"
-    return "".join(f"<li>{html.escape(row, quote=True)}</li>" for row in rows)
+    return "".join(f"<li>{html.escape(public_reference_text(row, references), quote=True)}</li>" for row in rows)
+
+
+def build_source_viewer_html(display: dict, *, source_geometry_ready: bool,
+                             assumptions: list[str], unresolved: list[str]) -> str:
+    """Display a saved source and its original caveats without rebuilding it."""
+    from scripts.tool_scripts.render_geometry_viewer import build_viewer_html
+
+    title = "源 BIM 候选：几何检查通过，原图保真待评价"
+    if not source_geometry_ready:
+        title = "源 BIM 候选：几何检查有严重问题，仍保留查看结果"
+    viewer = build_viewer_html(display, title=title)
+    references = public_reference_map(display["source_model"], public_names_for_display(display["source_model"]))
+    banner = (
+        '<aside style="position:fixed;bottom:12px;left:12px;z-index:30;background:white;padding:10px;'
+        'max-width:55vw;max-height:45vh;overflow:auto">'
+        f"<strong>{html.escape(title)}</strong><br>"
+        "模型提交的几何方案；原图保真尚未核对，未经人工确认。"
+        "<details open><summary>假设</summary><ul>" + _html_list(assumptions, references) + "</ul></details>"
+        "<details open><summary>未解决项</summary><ul>" + _html_list(unresolved, references) + "</ul></details>"
+        '<a href="report.json">质量与来源记录</a> · <a href="proposal.json">原始方案</a> · '
+        '<a href="source_model.json">源模型</a></aside>'
+    )
+    return viewer.replace("</body>", banner + "</body>")
 
 
 def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | None = None) -> dict:
@@ -89,8 +113,6 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
     assumptions and unresolved items.  The output is always a new directory;
     this function neither reads nor creates correction acceptance/run records.
     """
-    from scripts.tool_scripts.render_geometry_viewer import build_viewer_html
-
     out_dir = Path(out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=False)
     report: dict = {
@@ -191,21 +213,10 @@ def export_source_proposal(proposal: dict, out_dir: Path, *, provenance: dict | 
         display = source_view_geometry(source)
         (out_dir / "display_geometry.json").write_bytes(_json_bytes(display, indent=2))
 
-        title = "源 BIM 候选：几何检查通过，原图保真待评价"
-        if not report["source_geometry_ready"]:
-            title = "源 BIM 候选：几何检查有严重问题，仍保留查看结果"
-        viewer = build_viewer_html(display, title=title)
-        banner = (
-            '<aside style="position:fixed;bottom:12px;left:12px;z-index:30;background:white;padding:10px;'
-            'max-width:55vw;max-height:45vh;overflow:auto">'
-            f"<strong>{html.escape(title)}</strong><br>"
-            "模型提交的几何方案；原图保真尚未核对，未经人工确认。"
-            "<details open><summary>假设</summary><ul>" + _html_list(assumptions) + "</ul></details>"
-            "<details open><summary>未解决项</summary><ul>" + _html_list(unresolved) + "</ul></details>"
-            '<a href="report.json">质量与来源记录</a> · <a href="proposal.json">原始方案</a> · '
-            '<a href="source_model.json">源模型</a></aside>'
-        )
-        (out_dir / "viewer.html").write_text(viewer.replace("</body>", banner + "</body>"), encoding="utf-8")
+        viewer = build_source_viewer_html(
+            display, source_geometry_ready=report["source_geometry_ready"],
+            assumptions=assumptions, unresolved=unresolved)
+        (out_dir / "viewer.html").write_text(viewer, encoding="utf-8", newline="\n")
     except Exception as exc:
         report.update(status="error", source_geometry_ready=False, error=f"{type(exc).__name__}: {exc}")
     (out_dir / "report.json").write_bytes(_json_bytes(report, indent=2))
