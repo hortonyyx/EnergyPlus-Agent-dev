@@ -1,0 +1,39 @@
+{
+  "source_events_sha256": "0ab819d3a253d2a68bc51b913adeb62ef80dd96a24ba884528794ebfd04f0e42",
+  "scope": "Original parameters replayed at the changed admission/normalization boundary; no child reader or model invoked. Collection preservation is covered separately by offline trial tests.",
+  "results": [
+    {
+      "event_id": "event-000035",
+      "parameters_sha256": "46a4c8f2f29d35c543af3d1055cacb6499a2048dc2423237dfdbd13f195048b8",
+      "task_ids": [
+        "plan_f1",
+        "plan_f2"
+      ],
+      "status": "rejected",
+      "reason": "reader task plan_f1 instructions exceed 400 characters by 25; instructions are optional and should contain only drawing facts or a specific rework problem"
+    },
+    {
+      "event_id": "event-001284",
+      "parameters_sha256": "c6a1e1d033923186b8d95dab188d860882b2b831a49c4a442987cba223759875",
+      "task_ids": [
+        "plan_f1_r2"
+      ],
+      "status": "accepted_instructions",
+      "normalized_rework_targets": [
+        [
+          "plan.openings"
+        ]
+      ]
+    },
+    {
+      "event_id": "event-001309",
+      "parameters_sha256": "2c61a3c96d229b1c074745c7b4e77c2228f74ab2352a0c63ad3726dfe1a48090",
+      "task_ids": [
+        "plan_f1_r3"
+      ],
+      "status": "rejected",
+      "reason": "reader task plan_f1_r3 instructions exceed 400 characters by 3; instructions are optional and should contain only drawing facts or a specific rework problem"
+    }
+  ],
+  "model_requests": 0
+}

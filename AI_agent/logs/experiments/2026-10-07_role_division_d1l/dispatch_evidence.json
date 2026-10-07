@@ -1,0 +1,34 @@
+{
+  "source_run": "archive/local_backup/merged/sm25_role_n1",
+  "model_requests": 0,
+  "historical_parameters": [
+    {
+      "event_sequence": 35,
+      "task_id": "plan_f1",
+      "instructions_characters": 425,
+      "excess_characters": 25,
+      "new_result": "rejected_with_task_and_excess"
+    },
+    {
+      "event_sequence": 1284,
+      "task_id": "plan_f1_r2",
+      "rework_targets": ["plan.openings"],
+      "old_result": "child_failed_scope_validation",
+      "new_result": "normalized_to_openings_collection"
+    },
+    {
+      "event_sequence": 1309,
+      "task_id": "plan_f1_r3",
+      "instructions_characters": 403,
+      "excess_characters": 3,
+      "new_result": "rejected_with_task_and_excess"
+    }
+  ],
+  "known_drawings": {
+    "plans": ["1f_view.png", "2f_view.png"],
+    "cardinal_elevations": ["North_view.png", "South_view.png", "East_view.png", "West_view.png"],
+    "unknown_images_are_auto_dispatched": false
+  },
+  "offline_checks": ["ast_parse", "lf_only", "normalization_probe", "auto_completion_probe"],
+  "pytest_run": false
+}
