@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from .readers import ReaderTools
+from .submission import ReaderSubmission, _bytes
 
 
 SCHEMA_VERSION = "elevation_reader_v1"
@@ -40,12 +41,12 @@ _EVIDENCE_TYPES = {
 }
 
 ELEVATION_COORDINATES = (
-    "x_px, calibration pixel_start/pixel_end and bboxes are original-image pixels. "
+    "opening_bbox and calibration pixel_start/pixel_end use original-image pixels. "
     "Give distance_start_m/distance_end_m measured from the building's LEFT edge in "
     "this image, increasing left to right, and facade_length_m from the overall "
     "dimension chain. The two pixels locate those distances. The task fixes the facade; "
     "the domain tool derives exterior viewing direction and world axis. "
-    "width_m and absolute value_m/sill_m/head_m use metres."
+    "z_calibration maps image top/bottom to absolute Z metres. Preserve annotated numeric readings; only pixels evidence permits unique-ink corrections."
 )
 
 
@@ -56,15 +57,32 @@ def elevation_submission_tool():
     for name in ("orientation", "view_direction"):
         schema["properties"].pop(name)
         schema["required"].remove(name)
+    numbers = {name: {"type": "number"} for name in (
+        "pixel_start", "pixel_end", "distance_start_m", "distance_end_m",
+        "facade_length_m")}
     schema["properties"]["x_calibration"] = {
+        "type": "object", "additionalProperties": False, "properties": numbers,
+        "required": ["pixel_start", "pixel_end", "distance_start_m",
+                     "distance_end_m", "facade_length_m"],
+    }
+    schema["properties"]["z_calibration"] = {
         "type": "object", "additionalProperties": False,
         "properties": {name: {"type": "number"} for name in
-                       ("pixel_start", "pixel_end", "distance_start_m", "distance_end_m", "facade_length_m")},
-        "required": ["pixel_start", "pixel_end", "distance_start_m", "distance_end_m", "facade_length_m"],
+                       ("pixel_start", "pixel_end", "world_start_m", "world_end_m")},
+        "required": ["pixel_start", "pixel_end", "world_start_m", "world_end_m"],
     }
+    opening = schema["properties"]["openings"]["items"]
+    opening["properties"]["opening_bbox"] = {
+        "type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4}
+    opening["required"] = ["id", "floor_id", "kind", "evidence_type"]
+    opening["anyOf"] = [
+        {"required": ["opening_bbox"]},
+        {"required": ["x_px", "width_m", "sill_m", "head_m", "bbox"]},
+    ]
     return {"name": "submit_elevation_reading", "description":
-        "Submit the assigned facade: two dimension-chain pixels, distances from the image-left building edge, and total facade length; "
-        "direction/axis come from task.target. Openings and boxes stay in image order; heights are absolute Z. "
+        "Submit the assigned facade: horizontal and vertical calibration plus a rough opening_bbox for each opening; "
+        "Only pixels evidence allows unique-ink corrections; other evidence needs explicit x_px/width_m/sill_m/head_m, which are retained and checked. "
+        "Direction/axis come from task.target. "
         "Counts, locations and the immutable submission are checked.", "inputSchema": schema}
 
 
@@ -75,8 +93,16 @@ def expand_elevation_submission(arguments, target):
         raise ValueError("an assigned facade target is required")
     row = copy.deepcopy(_mapping(arguments, "arguments"))
     calibration = _mapping(row.get("x_calibration"), "x_calibration")
+    view = {"North": "South", "South": "North", "East": "West", "West": "East"}[orientation]
     if "world_start_m" in calibration:
-        # Retain the exact interpretation of old recorded tool calls/artifacts.
+        # Historical recorded calls contain the expanded internal contract,
+        # which is intentionally absent from the current model-facing schema.
+        if row.get("orientation", orientation) != orientation:
+            raise ValueError("historical elevation orientation conflicts with task.target")
+        if row.get("view_direction", view) != view:
+            raise ValueError("historical elevation view_direction conflicts with task.target")
+        calibration.setdefault("world_axis", _world_axis(orientation))
+        row.update(orientation=orientation, view_direction=view, x_calibration=calibration)
         return row
     import jsonschema
     jsonschema.validate(row, elevation_submission_tool()["inputSchema"])
@@ -85,7 +111,6 @@ def expand_elevation_submission(arguments, target):
     length = _number(calibration["facade_length_m"], "facade_length_m", minimum=0)
     if not low < high <= length:
         raise ValueError("calibration needs 0 <= distance_start_m < distance_end_m <= facade_length_m")
-    view = {"North": "South", "South": "North", "East": "West", "West": "East"}[orientation]
     start, end = (low, high) if _expected_world_sign(orientation, view) > 0 else (length - low, length - high)
     row.update(orientation=orientation, view_direction=view,
                x_calibration={"pixel_start": calibration["pixel_start"], "pixel_end": calibration["pixel_end"],
@@ -94,8 +119,125 @@ def expand_elevation_submission(arguments, target):
     return row
 
 
+class ElevationReaderSubmission(ReaderSubmission):
+    """Role-local durable submission that binds deterministic ink alignment."""
+
+    def __init__(self, *args, admitted_image_sha256=None, **kwargs):
+        self.admitted_image_sha256 = admitted_image_sha256
+        super().__init__(*args, **kwargs)
+
+    def _verified_image(self):
+        path = self.directory / "images" / self.image_name if self.directory else None
+        if path is None or not path.is_file():
+            raise ValueError("admitted elevation image is missing")
+        if self.admitted_image_sha256 is None:
+            raise ValueError("elevation image is not admitted by the input manifest")
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        if digest != self.admitted_image_sha256:
+            raise ValueError("elevation image changed since reader admission")
+        return path, digest
+
+    def read(self):
+        value = super().read()
+        if value is None or "ink_alignment" not in value.get("artifact", {}):
+            return value
+        alignment = value["artifact"]["ink_alignment"]
+        validation = value.get("validation", {})
+        if _canonical_hash(alignment) != validation.get("ink_alignment_sha256"):
+            raise ValueError("saved elevation ink alignment hash mismatch")
+        path, digest = self._verified_image()
+        if path is None or digest != validation.get("image_sha256"):
+            raise ValueError("saved elevation ink alignment image changed")
+        return value
+
+    def _submit(self, arguments):
+        from .height_evidence import derive_z_calibration
+        from .elevation_ink import align_elevation_artifact
+        from .plan_review import box
+
+        artifact = validate_elevation_artifact(arguments, image_name=self.image_name)
+        if self.target_identity is not None and artifact["orientation"] != self.target_identity:
+            raise ValueError(f"orientation must match task.target {self.target_identity}")
+        floors = {row["floor_id"] for key in ("openings", "elevations", "counts")
+                  for row in artifact[key] if row.get("floor_id") is not None}
+        if self.target_floors and (not floors <= self.target_floors or
+                {row["floor_id"] for row in artifact["counts"]} != self.target_floors):
+            raise ValueError(
+                f"floor_id/counts must cover exactly task.target floors {sorted(self.target_floors)}"
+            )
+        for evidence_box in [row["bbox"] for row in artifact["elevations"] + artifact["openings"]]:
+            box(evidence_box, self.image_size)
+        for opening in artifact["openings"]:
+            if opening.get("opening_bbox") is not None:
+                box(opening["opening_bbox"], self.image_size)
+
+        z_evidence = derive_z_calibration(artifact["elevations"])
+        if artifact.get("z_calibration") is None and z_evidence.get("calibration") is not None:
+            artifact = copy.deepcopy(artifact)
+            artifact.pop("artifact_sha256", None)
+            artifact["z_calibration"] = z_evidence["calibration"]
+            artifact = validate_elevation_artifact(artifact, image_name=self.image_name)
+
+        image_path, image_sha256 = self._verified_image()
+        validation = {
+            "validation_passed": True,
+            "image_sha256": image_sha256,
+            "z_calibration_evidence": z_evidence,
+        }
+        alignment = align_elevation_artifact(image_path, artifact)
+        artifact = copy.deepcopy(artifact)
+        artifact.pop("artifact_sha256", None)
+        by_id = {row["id"]: row for row in alignment["openings"]}
+        for opening in artifact["openings"]:
+            aligned = by_id[opening["id"]]["aligned_values"]
+            for field in ("x_px", "width_m", "sill_m", "head_m"):
+                if aligned.get(field) is not None:
+                    opening[field] = copy.deepcopy(aligned[field])
+        artifact["ink_alignment"] = alignment
+        artifact = validate_elevation_artifact(artifact, image_name=self.image_name)
+        validation["ink_alignment_sha256"] = _canonical_hash(alignment)
+
+        value = {
+            "role_id": self.role_id,
+            "image": self.image_name,
+            "target": self.target,
+            "artifact": artifact,
+            "artifact_sha256": hashlib.sha256(_bytes(artifact)).hexdigest(),
+            "validation": validation,
+        }
+        previous = self.read()
+        if previous is not None and previous != value:
+            raise ValueError("this task already has an accepted submission; rework uses a new task_id")
+        if previous is None and self.path:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = self.path.with_suffix(".tmp")
+            temporary.write_bytes(_bytes(value))
+            temporary.replace(self.path)
+        self.value = value
+        return {
+            "status": "accepted",
+            "artifact_sha256": value["artifact_sha256"],
+            "plan_sha256": None,
+            "unresolved": artifact["unresolved"],
+            "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact.",
+        }
+
+
 class ElevationReaderTools(ReaderTools):
     """Expose a smaller facade contract, then use the existing durable validator."""
+
+    def __init__(self, frozen, *, role_id, image_name, trial=None, target=None):
+        super().__init__(
+            frozen, role_id=role_id, image_name=image_name, trial=trial, target=target
+        )
+        self.submission = ElevationReaderSubmission(
+            role_id=role_id,
+            image_name=image_name,
+            directory=self._scope_directory,
+            trial=trial,
+            target=target,
+            admitted_image_sha256=self._image_sha256,
+        )
 
     async def list_tools(self):
         tools = await super().list_tools()
@@ -261,6 +403,29 @@ def _normalize_calibration(
     }
 
 
+def _normalize_z_calibration(value: Any) -> dict[str, float]:
+    row = _mapping(value, "z_calibration")
+    allowed = {"pixel_start", "pixel_end", "world_start_m", "world_end_m"}
+    _allowed(row, allowed, "z_calibration")
+    _required(row, allowed, "z_calibration")
+    pixel_start = _number(row["pixel_start"], "z_calibration.pixel_start", minimum=0.0)
+    pixel_end = _number(row["pixel_end"], "z_calibration.pixel_end", minimum=0.0)
+    world_start = _number(row["world_start_m"], "z_calibration.world_start_m")
+    world_end = _number(row["world_end_m"], "z_calibration.world_end_m")
+    if pixel_start >= pixel_end:
+        raise ValueError("z_calibration pixel_start must be less than pixel_end")
+    if world_start <= world_end:
+        raise ValueError(
+            "z_calibration must map image top toward higher absolute building Z"
+        )
+    return {
+        "pixel_start": pixel_start,
+        "pixel_end": pixel_end,
+        "world_start_m": world_start,
+        "world_end_m": world_end,
+    }
+
+
 def _normalize_elevation(value: Any, index: int) -> dict[str, Any]:
     path = f"elevations[{index}]"
     row = _mapping(value, path)
@@ -291,7 +456,14 @@ def _normalize_elevation(value: Any, index: int) -> dict[str, Any]:
     return result
 
 
-def _normalize_opening(value: Any, index: int) -> dict[str, Any]:
+def _normalize_opening(
+    value: Any,
+    index: int,
+    *,
+    x_calibration: Mapping[str, Any],
+    z_calibration: Mapping[str, Any] | None,
+    preserve_aligned: bool,
+) -> dict[str, Any]:
     path = f"openings[{index}]"
     row = _mapping(value, path)
     allowed = {
@@ -304,8 +476,9 @@ def _normalize_opening(value: Any, index: int) -> dict[str, Any]:
         "head_m",
         "evidence_type",
         "bbox",
+        "opening_bbox",
     }
-    required = allowed
+    required = {"id", "floor_id", "kind", "evidence_type"}
     _allowed(row, allowed, path)
     _required(row, required, path)
     kind = _string(row["kind"], f"{path}.kind")
@@ -316,23 +489,46 @@ def _normalize_opening(value: Any, index: int) -> dict[str, Any]:
         raise ValueError(
             f"{path}.evidence_type must be one of {sorted(_EVIDENCE_TYPES)}"
         )
+    opening_bbox = (
+        _bbox(row["opening_bbox"], f"{path}.opening_bbox")
+        if row.get("opening_bbox") is not None else None
+    )
+    fields = {"x_px", "width_m", "sill_m", "head_m"}
+    if opening_bbox is not None and not fields <= set(row):
+        if evidence_type != "pixels":
+            raise ValueError(f"{path}: non-pixel evidence requires explicit x_px/width_m/sill_m/head_m; a rough box is not an annotation")
+        if z_calibration is None:
+            raise ValueError(
+                f"{path}.opening_bbox requires z_calibration so sill/head are not invented"
+            )
+        row.setdefault("x_px", [opening_bbox[0], opening_bbox[2]])
+        row.setdefault("width_m", abs(_pixel_to_world(x_calibration, row["x_px"][1])
+                                      - _pixel_to_world(x_calibration, row["x_px"][0])))
+        row.setdefault("head_m", _pixel_to_world(z_calibration, opening_bbox[1]))
+        row.setdefault("sill_m", _pixel_to_world(z_calibration, opening_bbox[3]))
+    _required(row, fields, path)
+    x_px = _pair(row["x_px"], f"{path}.x_px", positive_span=True)
+    width = _number(row["width_m"], f"{path}.width_m", minimum=1e-12)
     sill = _number(row["sill_m"], f"{path}.sill_m")
     head = _number(row["head_m"], f"{path}.head_m")
     if head <= sill:
         raise ValueError(
             f"{path}.head_m must exceed sill_m; both are absolute building Z"
         )
-    return {
+    result = {
         "id": _string(row["id"], f"{path}.id"),
         "floor_id": _string(row["floor_id"], f"{path}.floor_id"),
         "kind": kind,
-        "x_px": _pair(row["x_px"], f"{path}.x_px", positive_span=True),
-        "width_m": _number(row["width_m"], f"{path}.width_m", minimum=1e-12),
+        "x_px": x_px,
+        "width_m": width,
         "sill_m": sill,
         "head_m": head,
         "evidence_type": evidence_type,
-        "bbox": _bbox(row["bbox"], f"{path}.bbox"),
+        "bbox": _bbox(row.get("bbox", opening_bbox), f"{path}.bbox"),
     }
+    if opening_bbox is not None:
+        result["opening_bbox"] = opening_bbox
+    return result
 
 
 def _normalize_count(value: Any, index: int) -> dict[str, Any]:
@@ -368,11 +564,13 @@ def validate_elevation_artifact(
         "orientation",
         "view_direction",
         "x_calibration",
+        "z_calibration",
         "elevations",
         "openings",
         "counts",
         "unresolved",
         "artifact_sha256",
+        "ink_alignment",
     }
     required = {
         "orientation",
@@ -402,6 +600,10 @@ def validate_elevation_artifact(
         orientation=orientation,
         view_direction=view_direction,
     )
+    z_calibration = (
+        _normalize_z_calibration(row["z_calibration"])
+        if row.get("z_calibration") is not None else None
+    )
     elevations = [
         _normalize_elevation(item, index)
         for index, item in enumerate(_sequence(row["elevations"], "elevations"))
@@ -409,7 +611,13 @@ def validate_elevation_artifact(
     if not elevations:
         raise ValueError("elevations must contain at least one located level")
     openings = [
-        _normalize_opening(item, index)
+        _normalize_opening(
+            item,
+            index,
+            x_calibration=calibration,
+            z_calibration=z_calibration,
+            preserve_aligned=row.get("ink_alignment") is not None,
+        )
         for index, item in enumerate(_sequence(row["openings"], "openings"))
     ]
     counts = [
@@ -471,6 +679,16 @@ def validate_elevation_artifact(
         "counts": counts,
         "unresolved": unresolved,
     }
+    if z_calibration is not None:
+        normalized["z_calibration"] = z_calibration
+    if row.get("ink_alignment") is not None:
+        alignment = _mapping(row["ink_alignment"], "ink_alignment")
+        if alignment.get("schema_version") not in {"elevation_ink_alignment_v1", "elevation_ink_alignment_v2"}:
+            raise ValueError("ink_alignment has an unsupported schema_version")
+        aligned_rows = _sequence(alignment.get("openings"), "ink_alignment.openings")
+        if [item.get("id") for item in aligned_rows if isinstance(item, Mapping)] != opening_ids:
+            raise ValueError("ink_alignment openings do not match artifact openings")
+        normalized["ink_alignment"] = copy.deepcopy(alignment)
     normalized["artifact_sha256"] = _canonical_hash(normalized)
     if row.get("artifact_sha256") not in (None, normalized["artifact_sha256"]):
         raise ValueError("artifact_sha256 does not match normalized artifact content")
@@ -578,6 +796,7 @@ def _source_rows(source_bim: Mapping[str, Any], orientation: str) -> tuple[list[
                 "floor_id": str(floor_ids[0]),
                 "kind": kind,
                 "world_coordinate_m": coordinate,
+                "world_span_m": sorted(point[axis_index] for point in unique_planar),
                 "width_m": width,
                 "absolute_z_m": [min(point[2] for point in points), max(point[2] for point in points)],
                 "host_boundary_id": host_id,
@@ -698,6 +917,38 @@ def _horizontal_fit(elevation, source, *, position_tolerance_m, width_tolerance_
             "method": "complete_ordered_group_least_squares"}
 
 
+def compare_opening_positions(plan_span, elevation_span, *, tolerance_m=0.10):
+    """Compare independent world endpoints, never fitted coordinates or an average."""
+    plan = _pair(plan_span, "plan_span", positive_span=True)
+    elevation = _pair(elevation_span, "elevation_span", positive_span=True)
+    differences = {"left": elevation[0] - plan[0], "right": elevation[1] - plan[1],
+                   "width": (elevation[1] - elevation[0]) - (plan[1] - plan[0])}
+    maximum = max(abs(value) for value in differences.values())
+    return {"plan_span_m": plan, "elevation_span_m": elevation,
+            "plan_width_m": plan[1] - plan[0], "elevation_width_m": elevation[1] - elevation[0],
+            "differences_m": differences, "max_difference_m": maximum,
+            "status": "keep_plan" if maximum <= tolerance_m + 1e-9 else "pending",
+            "bucket": "le_10cm" if maximum <= tolerance_m + 1e-9 else (
+                "10_30cm" if maximum <= 0.30 + 1e-9 else "gt_30cm"),
+            "requires_both_views": maximum > 0.30 + 1e-9}
+
+
+def attach_ink_review(comparison, inconsistencies):
+    """Keep the independent numeric comparison; add unresolved image evidence."""
+    comparison["ink_inconsistencies"] = copy.deepcopy(inconsistencies)
+    maximum = max((row["difference_m"] for row in inconsistencies), default=0.0)
+    comparison["ink_max_difference_m"] = maximum
+    width_conflict = comparison.get("width_span_conflict")
+    if width_conflict:
+        maximum = max(maximum, width_conflict["difference_m"])
+    comparison["evidence_max_difference_m"] = maximum
+    if inconsistencies or width_conflict:
+        if comparison["status"] == "keep_plan":
+            comparison["status"] = "pending"
+        comparison["requires_both_views"] |= maximum > 0.30 + 1e-9
+    return comparison
+
+
 def match_elevation(
     source_bim: Mapping[str, Any],
     artifact: Mapping[str, Any],
@@ -754,6 +1005,7 @@ def match_elevation(
     elevation_only: list[dict[str, Any]] = []
     source_only: list[dict[str, Any]] = []
     horizontal_fits = []
+    position_comparisons = []
     all_groups = sorted(set(by_group_elevation) | set(by_group_source))
     for floor_id, kind in all_groups:
         left = by_group_elevation[(floor_id, kind)]
@@ -821,6 +1073,35 @@ def match_elevation(
                 match["status"] = "conflict"
                 match["type"] = "position_or_width_conflict"
                 conflicts.append(match)
+            if not ambiguous:
+                independent = compare_opening_positions(actual["world_span_m"], sorted(
+                    _pixel_to_world(calibration, x) for x in observed["x_px"]))
+                alignment = next((r for r in normalized.get("ink_alignment", {}).get("openings", [])
+                                  if r["id"] == observed["id"]), None)
+                span_width = independent["elevation_width_m"]
+                width_tolerance = max(0.05, 2 * abs((calibration["world_end_m"] - calibration["world_start_m"])
+                                                   / (calibration["pixel_end"] - calibration["pixel_start"])))
+                independent.update(reader_width_m=observed["width_m"], width_span_conflict=None)
+                if observed["evidence_type"] != "pixels" and abs(observed["width_m"] - span_width) > width_tolerance + 1e-9:
+                    independent["width_span_conflict"] = {"reader_width_m": observed["width_m"],
+                        "pixel_span_width_m": span_width, "difference_m": abs(observed["width_m"] - span_width),
+                        "tolerance_m": width_tolerance,
+                        "reason": "retained_numeric_width_disagrees_with_pixel_interval; reread_before_using_elevation"}
+                attach_ink_review(independent, (alignment or {}).get("inconsistencies", []))
+                evidence_box = list(observed["bbox"])
+                for box in (() if not alignment else (alignment["aligned_bbox_px"], alignment.get("candidate_bbox_px", []))):
+                    if len(box) == 4 and all(isinstance(v, (int, float)) for v in box):
+                        evidence_box = [min(evidence_box[0], box[0]), min(evidence_box[1], box[1]),
+                                        max(evidence_box[2], box[2]), max(evidence_box[3], box[3])]
+                position_comparisons.append({**independent,
+                    "source_opening_id": actual["source_id"], "artifact_opening_id": observed["id"],
+                    "floor_id": floor_id, "kind": kind, "identity_matched": safe,
+                    "orientation": normalized["orientation"], "world_axis": calibration["world_axis"],
+                    "elevation_evidence": {"image": normalized["image"], "bbox": evidence_box,
+                        "evidence_type": observed["evidence_type"], "x_px": observed["x_px"],
+                        "reader_values": {key: observed[key] for key in ("width_m", "sill_m", "head_m")},
+                        "x_calibration": calibration, "ink_alignment": alignment},
+                    "identity_fit": fit})
         for index in only_left:
             item = left[index]
             elevation_only.append(
@@ -877,6 +1158,7 @@ def match_elevation(
         "conflicts": conflicts,
         "counts": count_comparison,
         "horizontal_fits": horizontal_fits,
+        "position_comparisons": position_comparisons,
         "can_apply": bool(matches),
         "stale": False,
     }

@@ -87,14 +87,18 @@ HEIGHT_SCHEMA = schema({"match_id": {"oneOf": [{"type": "string"},
 
 EXTRA_TOOLS = [
     {"name": "edit_bim", "description":
-     "Correct a saved candidate with flat edits and a reason each: height(id,sill_m,head_m,image,bbox), "
-     "use(id,role,image,basis optional: inferred default or observed), "
-     "position(id,along_start_m,along_end_m,image), note(text). Heights are absolute Z; position is "
-     "an interval on the existing wall axis. Height edits form a separate batch and save located evidence. "
-     "Uses carry evidence; notes append without deleting older notes. Reader errors should go back to that reader.",
+     "Edit with reasons: height(id,sill_m,head_m,image,bbox) in its own batch; use(id,role,image); "
+     "position(id,along_start_m,along_end_m,image) on the existing host; note(text). "
+     "For reader disagreements send a separate position_decision batch: decision_id, choice="
+     "keep_plan/use_elevation/reread_plan/reread_elevation, reason, view_ids. Above 30cm, "
+     "choosing either side requires saved view_image IDs covering both evidence boxes. "
+     "Re-read choices remain pending until corrected reader deliveries are assembled.",
      "inputSchema": schema({"candidate": {"type": "string"}, "edits": {"type": "array", "minItems": 1,
          "maxItems": 100, "items": schema({
-             "action": {"enum": ["height", "use", "position", "note"]}, "id": {"type": "string"},
+             "action": {"enum": ["height", "use", "position", "note", "position_decision"]}, "id": {"type": "string"},
+             "decision_id": {"type": "string"},
+             "choice": {"enum": ["keep_plan", "use_elevation", "reread_plan", "reread_elevation"]},
+             "view_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
              "reason": {"type": "string", "minLength": 1}, "image": {"type": "string"},
              "bbox": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
              "sill_m": {"type": "number"}, "head_m": {"type": "number"}, "role": {"type": "string"},
@@ -114,7 +118,7 @@ EXTRA_TOOLS = [
      "inputSchema": schema({"task_id": {"type": "string"}, "candidate": {"type": "string"}}, ("task_id", "candidate"))},
     {"name": "apply_elevation_heights", "description": "Give match_id as one ID or a list: all safe facade heights save at most one candidate. Calls serialize on the latest usable draft; changed opening XY/hosts require a new match. Equal values only record evidence, with no new candidate. Unmatched/conflicting openings stay unresolved.",
      "inputSchema": HEIGHT_SCHEMA},
-    {"name": "role_state", "description": "Read all reader task/target/status/artifact references and per-role/root usage. These references also survive context compaction.", "inputSchema": schema({})},
+    {"name": "role_state", "description": "Read reader progress, usage and position decisions. Set position_details=true for full independent readings and both original-image evidence boxes; state survives compaction.", "inputSchema": schema({"position_details": {"type": "boolean"}})},
     {"name": "review_role_assembly", "description": "Acknowledge each assembly change with a specific reason. A missing_required_floor decision explicitly accepts partial delivery of the listed floors; stale or unverified plan lineage cannot be waived. Source and reader hashes must still match.",
      "inputSchema": schema({"review_id": {"type": "string"}, "decisions": {"type": "array", "items": schema({
          "change_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}, ("change_id", "reason"))}}, ("review_id", "decisions"))},
@@ -126,7 +130,7 @@ INTERNAL_TOOLS = [t for t in EXTRA_TOOLS if t["name"] in {
     "build_from_artifact", "match_elevation", "apply_elevation_heights"}]
 EXTRA_TOOLS = [t for t in EXTRA_TOOLS if t not in INTERNAL_TOOLS]
 EXTRA_TOOLS.insert(2, {"name": "assemble_from_readers",
-    "description": "Build/assemble accepted floors with room-use evidence and one safe height batch. Omit task_ids for latest deliveries. Returns cited levels, matches, horizontal fits and located decisions; conflicting levels retain plan assumptions. Re-call after rework or edits; unchanged inputs reuse receipts. level_overrides cite absolute floor Z and ceiling_height=top Z-floor Z. Changed reader geometry requires review_role_assembly before further writes.",
+    "description": "Assemble accepted floors, uses and safe heights. Omit task_ids for latest deliveries; explicit selections persist. Compare independent opening endpoints/width after identity matching: >10cm needs position decisions, details via role_state. Re-call after decisions or reader rework before delivery; unchanged inputs reuse receipts. level_overrides cite absolute Z; ceiling_height=top Z-floor Z. Geometry changes require review_role_assembly.",
     "inputSchema": schema({"task_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": True},
         "level_overrides": {"type": "array", "items": schema({
             "floor_id": {"type": "string"}, "z_floor": {"type": "number"},
@@ -152,8 +156,9 @@ class RoleSession:
         self.manifest = json.loads((self.run_directory / "inputs.json").read_bytes())
         self.schemas = {tool["name"]: tool["inputSchema"] for tool in [*EXTRA_TOOLS, *INTERNAL_TOOLS]}
         self.ordinary_schemas = {}
-        from .assembly_review import AssemblyReview
+        from .assembly_review import AssemblyReview, PositionReview
         self.assembly = AssemblyReview(self)
+        self.positions = PositionReview(self)
 
     async def list_tools(self):
         ordinary = await self.frozen.list_tools()
@@ -172,7 +177,8 @@ class RoleSession:
         value = self.frozen.snapshot_state()
         return {"bim": value, "reader_artifacts": {key: row.get("artifact") for key, row in self.registry.records.items()
                                                  if row.get("artifact")}, "assembly_review": self.assembly.current(),
-                "reader_floor_sources": self.assembly._load("role_floor_sources.json", {})}
+                "reader_floor_sources": self.assembly._load("role_floor_sources.json", {}),
+                "position_review": self.positions.summary()}
 
     def artifacts(self):
         return self.frozen.artifacts()
@@ -197,14 +203,17 @@ class RoleSession:
                     raise ValueError(f"{name} is not available in the coordinator catalog")
                 arguments = normalize_stringified_parameters(arguments, self.ordinary_schemas[name])
                 jsonschema.validate(arguments, self.ordinary_schemas[name])
-                if self.frozen.repeatability(name) != "read_only":
+                if self.frozen.repeatability(name) != "read_only" and name != "finish_bim":
                     self.assembly.guard()
                 if name == "finish_bim":
                     candidate = arguments.get("candidate")
                     if candidate:
                         self.assembly.check(candidate, require_all=True)
                         self.assembly.guard()
+                        self.positions.guard(candidate)
                 result = await self.frozen.call_tool(name, arguments)
+                if name == "finish_bim" and not result.get("isError"):
+                    self.positions.write_delivery(arguments["candidate"])
                 from scripts.tool_scripts.bim_agent_saved_result import result_metadata
                 meta = {**result_metadata(result), **(result.get("structuredContent") or {})}
                 candidate = meta.get("candidate")
@@ -253,13 +262,14 @@ class RoleSession:
                 return await self.apply_heights(arguments["match_id"])
             if name == "review_role_assembly":
                 return envelope(self.assembly.acknowledge(**arguments))
-            return envelope(self.state())
+            return envelope(self.state(position_details=arguments.get("position_details", False)))
         except (ValueError, KeyError, jsonschema.ValidationError) as error:
             if name == "edit_bim":
                 detail = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
                 return envelope({"status": "rejected", "reason": " ".join(detail.split()) +
                     "; edits: height(id,sill_m,head_m,image,bbox), use(id,role,image), "
-                    "position(id,along_start_m,along_end_m,image), note(text); each needs reason."}, error=True)
+                    "position(id,along_start_m,along_end_m,image), note(text), "
+                    "position_decision(decision_id,choice,view_ids); each needs reason."}, error=True)
             return envelope({"status": "rejected", "reason": str(error)}, error=True)
 
     async def edit_candidate(self, candidate, edits):
@@ -268,6 +278,10 @@ class RoleSession:
         from src.agent.roles import require_role
         from scripts.tool_scripts.bim_agent_role_heights import build_role_height_batch_entry
         guard_replaced_plans(self, candidate)
+        if any(row["action"] == "position_decision" for row in edits):
+            if any(row["action"] != "position_decision" for row in edits):
+                raise ValueError("send position_decision in a separate batch")
+            return await self.positions.decide(candidate, edits)
         source = self._source(candidate)
         proposal = json.loads((self.run_directory / candidate / "proposal.json").read_bytes())
         spaces = {row["id"]: row for row in source["spaces"]}
@@ -346,6 +360,10 @@ class RoleSession:
                 if len(points) != 2 or (points[0][0] != points[1][0] and points[0][1] != points[1][1]):
                     raise ValueError("position requires an existing straight axis-aligned opening")
                 axis = 0 if points[0][0] != points[1][0] else 1
+                host = next(item for item in source["boundaries"] if item["id"] == opening["host_boundary_id"])
+                low, high = min(p[axis] for p in host["vertices"]), max(p[axis] for p in host["vertices"])
+                if start < low - 1e-8 or end > high + 1e-8:
+                    raise ValueError("position must fit the existing host wall; it cannot move onto another host")
                 if op == "update_window":
                     changes = {"span": [start, end]}
                 else:
@@ -390,9 +408,10 @@ class RoleSession:
                          "edited": len(edits), "assembly_review": review,
                          "receipt": meta.get("role_application")})
 
-    def state(self):
+    def state(self, *, position_details=False):
         return {"readers": self.registry.state(), "max_concurrent_readers": self.max_concurrent_readers,
-                "usage": role_accounting(self.store, self.registry), "assembly_review": self.assembly.current()}
+                "usage": role_accounting(self.store, self.registry), "assembly_review": self.assembly.current(),
+                "position_review": self.positions.current() if position_details else self.positions.summary()}
 
     @staticmethod
     def _with_assembly_review(result, report):
@@ -674,6 +693,8 @@ class RoleSession:
         source = self._source(candidate)
         guard_replaced_plans(self, candidate)
         result = match_elevation(source, artifact, candidate=candidate)
+        self.positions.record(task_id, candidate, result)
+        self.positions.resolve_match(task_id, result)
         if height_bounds:
             # Horizontal matching alone does not prove a proposed Z fits the host.
             hosts = {row["id"]: row for row in source["boundaries"]}
@@ -769,3 +790,8 @@ def update_role_context(engine, event, raw):
     engine.context.set_state(StateEntry(key="reader-artifacts", category="artifact_version", value=value,
         epistemic_status="computed", revision=1 if previous is None else previous.revision + 1,
         source_refs=(engine.store.source("reader-artifact-registry", value),)))
+    positions = engine.tools.positions.summary()
+    previous = next((row for row in engine.context.state if row.key == "position-decisions"), None)
+    engine.context.set_state(StateEntry(key="position-decisions", category="artifact_version", value=positions,
+        epistemic_status="computed", revision=1 if previous is None else previous.revision + 1,
+        source_refs=(engine.store.source("position-review", positions),)))

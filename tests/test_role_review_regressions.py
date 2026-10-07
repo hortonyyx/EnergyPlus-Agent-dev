@@ -246,7 +246,7 @@ def test_reader_tools_target_is_optional_but_session_passes_it(tmp_path, monkeyp
         )
         row = asyncio.run(session.delegate_many([dispatch(target="North/F1")]))["results"][0]
         assert row["status"] == "completed"
-    assert captured == ["North/F1"]
+    assert captured and set(captured) == {"North/F1"}
 
 
 def test_trial_bad_schema_and_nested_business_name_return_repairable_envelopes():

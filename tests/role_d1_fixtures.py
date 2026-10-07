@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import math
 import runpy
 from dataclasses import dataclass
 from pathlib import Path
@@ -282,12 +283,50 @@ class D1Fixture:
 
     def _coordinator_stages(self):
         run = self.output / "bim"
+
+        def position_items():
+            path = self.output / "role_position_review.json"
+            return [row for row in json.loads(path.read_bytes())["items"].values()
+                    if row["status"] == "pending"] if path.is_file() else []
+
+        def view_position_evidence():
+            boxes = set()
+            for row in position_items():
+                if row["requires_both_views"]:
+                    for side in ("plan_evidence", "elevation_evidence"):
+                        evidence = row[side]
+                        box = evidence["bbox"]
+                        boxes.add((evidence["image"], (math.floor(box[0]), math.floor(box[1]),
+                                                      math.ceil(box[2]), math.ceil(box[3]))))
+            calls = [(f"position-view-{i}", "view_image", {"name": image, "box": list(box)})
+                     for i, (image, box) in enumerate(sorted(boxes))]
+            return response(*calls) if calls else response(("position-state", "role_state", {}))
+
+        def decide_positions():
+            rows = position_items()
+            if not rows:
+                return response(("position-state-after", "role_state", {}))
+            views = [p.stem for p in sorted((run / "image_views").glob("view_*.json"))]
+            edits = [{"action": "position_decision", "decision_id": row["decision_id"],
+                      "choice": "keep_plan", "view_ids": views,
+                      "reason": "Offline replay retains the accepted plan interval after reading both saved observations; this scripted choice is not model-quality evidence."}
+                     for row in rows]
+            return response(("decide-positions", "edit_bim", {"candidate": _latest_candidate(run), "edits": edits}))
+
+        def reassemble_decided():
+            path = self.output / "role_position_review.json"
+            decided = path.is_file() and any(row.get("decision") for row in json.loads(path.read_bytes())["items"].values())
+            return response(("reassemble-decided", "assemble_from_readers", {})) if decided else response(("final-position-state", "role_state", {}))
+
         sequence: list[Callable[[], dict[str, Any]]] = [
             lambda: response(("coordinator-inputs", "inputs", {})),
             lambda: response(
                 ("coordinator-delegate", "delegate_readers", {"tasks": self.tasks})
             ),
             lambda: response(("assemble-readers", "assemble_from_readers", {})),
+            view_position_evidence,
+            decide_positions,
+            reassemble_decided,
         ]
         sequence.extend(
             [

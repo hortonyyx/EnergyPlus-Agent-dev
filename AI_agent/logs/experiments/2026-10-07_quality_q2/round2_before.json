@@ -1,0 +1,109 @@
+{
+  "round": 2,
+  "baseline_sha256": {
+    "src/agent/runtime_roles/assembly.py": "e575d043da052c993e4e3c20c5d8ce69c84cf84d252a5eef1f08dd02678075bb",
+    "src/agent/runtime_roles/assembly_review.py": "fe1b7e3c10f45a2489edf5a2193683c0f8bfb436d2ca79d7930192607a7fa7d3",
+    "src/agent/runtime_roles/elevation.py": "86c8795f24e86eb2c3b7bf89b8f28da94462e48c4e3e6f752eae8bb75faf975e",
+    "src/agent/runtime_roles/elevation_ink.py": "704ca80fabf00557c3327191741c9898c093b2754546bb0454ef2f569d4750e3",
+    "src/agent/runtime_roles/guidance.py": "4dcf39c649610d8bd147c35caafa6ddba544021d5489c98df955c4593b57409b",
+    "src/agent/runtime_roles/height_evidence.py": "771005c3123440eb775f0984e03f6639582aa0b4f2c3190885518d98d7c6996d",
+    "src/agent/runtime_roles/session.py": "351260ca4e68490458608cd9c7c796acbb1abb3e2ba5b59ae9c4a480f6cbcd8b",
+    "tests/role_d1_fixtures.py": "02c767942969fa9aa1ad3b0ee1e5fe50f5334d72bc2bfd3c9d2f3ce0b57d54cb",
+    "tests/test_role_d1j.py": "9d056cc1e9e2b77ceaaa1c1dd92fc7dd3f27be44ef9619889194ad6dcae21803",
+    "tests/test_role_elevation_ink.py": "7525ea33c388577a82390439fd562fa4b84071b1e92f1bea002487ce81a62a25",
+    "tests/test_role_end_to_end.py": "6a748829ce0bed1df32c3568b64705daca9b77933e165cf62e334c7a9146c97e",
+    "tests/test_role_guidance.py": "18975cc5e394910ed2a3dd9790c178f76d29c0a25df38f8eebe8c3aebe7e26ff",
+    "tests/test_role_position_review.py": "1be1b35a94ceaa2f27d5f9a7c1416b6df7694feb0e0d47020b47db86d1daa123",
+    "tests/test_role_review_regressions.py": "686a621f60e4f89a4b13d8b67225e25c8ada9f5cc11f15c03c373ca99b44ab15",
+    "tests/test_role_session.py": "850c7496f42615f68e2ce4869049a88b386ec2e89a4bb6ca5eee90efd13bf5bc"
+  },
+  "first_round_guidance": {
+    "guidance": {
+      "single_model": {
+        "character_count": 9670,
+        "sha256": "5ac8e4c4c67c4cb9556ab5bba382602f564dd1954290f147e701ea758e116b42",
+        "unchanged_source": "scripts/tool_scripts/bim_agent_guidance.py:build_guide"
+      },
+      "roles": {
+        "coordinator": {
+          "character_count": 2329,
+          "sha256": "ee6a687d74103b324e553c0238294386f66447f6d6d950ec31f00e072af9a995",
+          "tools": [
+            "delegate_readers",
+            "read_role_artifact",
+            "assemble_from_readers",
+            "role_state",
+            "review_role_assembly",
+            "edit_bim"
+          ]
+        },
+        "plan_reader": {
+          "character_count": 9045,
+          "sha256": "af7c7b7b2b239dafb94957adacd17c7317717af77f7c8015a426c2d29abdd0e2",
+          "tools": [
+            "inputs",
+            "view_image",
+            "pixel_profile",
+            "view_pixel_profile",
+            "view_pixel_region_overview",
+            "view_pixel_region",
+            "map_pixels",
+            "map_dimension_chain",
+            "get_bim_reference",
+            "trial_plan_bim",
+            "submit_plan_reading"
+          ]
+        },
+        "elevation_reader": {
+          "character_count": 4991,
+          "sha256": "4746c6b641c7dc21dc959a94c4968452162b68df225f8a90b6fee5889a69e8df",
+          "tools": [
+            "inputs",
+            "view_image",
+            "pixel_profile",
+            "view_pixel_profile",
+            "view_pixel_region_overview",
+            "view_pixel_region",
+            "map_pixels",
+            "map_dimension_chain",
+            "get_bim_reference",
+            "submit_elevation_reading"
+          ]
+        }
+      }
+    },
+    "descriptions": {
+      "edit_bim": 502,
+      "delegate_readers": 386,
+      "assemble_from_readers": 440,
+      "read_role_artifact": 121,
+      "role_state": 174,
+      "review_role_assembly": 242,
+      "submit_elevation_reading": 297
+    },
+    "comparison": {
+      "guide_characters": {
+        "coordinator": {
+          "before": 1874,
+          "after": 2329
+        },
+        "plan_reader": {
+          "before": 9045,
+          "after": 9045
+        },
+        "elevation_reader": {
+          "before": 5672,
+          "after": 4991
+        }
+      },
+      "single_model_bytes_unchanged": true,
+      "plan_reader_bytes_unchanged": true
+    }
+  },
+  "first_round_evidence_sha256": {
+    "evidence_inventory.json": "b8ba9c36390d06c4cd53e8a1dfe3f935c886bdfa0ea76b2093920cde583c00a1",
+    "evidence_replay.json": "6db9fef17768bd5c1b1cc91041e8e6dd8f3fb6c0386acc7bc62befd6135b3288",
+    "replay_report.md": "544c4cf5fd47fc5646eef44ae366959e8997df3f88894f9680e42157a280e747",
+    "verification.json": "5ca929dda13582819cb3a25bd77d3f55051f39417154250a662e8d6fefe38491"
+  }
+}

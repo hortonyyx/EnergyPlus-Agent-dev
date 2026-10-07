@@ -174,7 +174,8 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
     def finish(candidate, *, review=None, matches=(), write=None, status=None):
         from .session import envelope
         pending = [*issues, *_review_issues(review)]
-        response = {"status": status or ("needs_decisions" if pending else "completed"),
+        positions = session.positions.summary()
+        response = {"status": status or ("needs_decisions" if pending or positions["pending"] else "completed"),
             "candidate": candidate, "source_geometry_ready": candidate is not None,
             "assembly_id": identity, "deliveries": references, "levels": resolutions,
             "level_tolerance_m": LEVEL_TOLERANCE_M,
@@ -185,12 +186,15 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
             "height_write": write, "assembly_review": None if not review else {
                 key: review[key] for key in ("review_id", "status", "checked_floors", "changes", "blockers", "delivery_scope")
                 if key in review},
-            "decisions": pending, "reader_notes": notes,
+            "decisions": pending, "position_review": positions, "reader_notes": notes,
             "saved_candidates": len(list(session.run_directory.glob("candidate_*/report.json")))}
         state["response"] = response
         state["complete"] = status != "assembly_review_required" and candidate is not None
         state["candidate"] = candidate
         if candidate:
+            state["position_revision"] = session.positions.revision()
+            session.positions.bind(candidate, references, assembly_id=identity,
+                position_revision=state["position_revision"] if state["complete"] else None)
             state["source_sha256"] = hashlib.sha256(
                 (session.run_directory / candidate / "source_model.json").read_bytes()).hexdigest()
         save()
@@ -201,10 +205,19 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
         session._source(candidate)
         if hashlib.sha256((session.run_directory / candidate / "source_model.json").read_bytes()).hexdigest() != state["source_sha256"]:
             raise ValueError("completed assembly source changed; saved candidates are immutable")
+        session.positions.bind(candidate, references, assembly_id=identity,
+            position_revision=state.get("position_revision"))
         latest = latest_candidate(session, candidate)
         if latest == candidate or not _descends(session, latest, candidate):
             from .session import envelope
-            return envelope(assembly_reply(state["response"], saved_path, receipt_file=path))
+            session.positions.refresh(candidate)
+            if state.get("position_revision") == session.positions.revision():
+                state["response"]["position_review"] = session.positions.summary()
+                state["response"]["status"] = ("needs_decisions" if state["response"]["decisions"]
+                    or state["response"]["position_review"]["pending"] else "completed")
+                save()
+                return envelope(assembly_reply(state["response"], saved_path, receipt_file=path))
+            latest = candidate
         # A deliberate candidate-only revision is the new base. Never rebuild
         # unchanged reader plans over the coordinator's local correction.
         state.update(candidate=latest, complete=False, local_revision=True)
@@ -255,6 +268,7 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
         return finish(candidate, review=review, status=("assembly_delivery_blocked"
             if review["status"] == "blocked" else "assembly_review_required"))
     candidate = await carry_room_uses(session, candidate, plans)
+    session.positions.bind(candidate, references, assembly_id=identity)
     state["candidate"] = candidate
     save()
     matches = [session.match(task_id, candidate, height_bounds=True) for task_id in sorted(elevations)]

@@ -2,9 +2,11 @@
 
 import asyncio
 import copy
+import hashlib
 import json
 
 import pytest
+from PIL import Image
 
 from src.agent.runtime_roles.elevation import ElevationReaderTools, match_elevation, validate_elevation_artifact
 from src.agent.runtime_roles.guidance import COMPACT_ELEVATION_EXAMPLE
@@ -21,6 +23,15 @@ from tests.test_role_readers import Frozen
 ])
 def test_reader_task_supplies_direction_and_partial_chain_origin(tmp_path, facade, view, axis, world):
     async def scenario():
+        image_dir = tmp_path / "images"
+        image_dir.mkdir()
+        image_path = image_dir / "North.png"
+        Image.new("L", (900, 800), 255).save(image_path)
+        digest = hashlib.sha256(image_path.read_bytes()).hexdigest()
+        (tmp_path / "inputs.json").write_text(
+            json.dumps({"images": {"North.png": {"sha256": digest}}}),
+            encoding="utf-8",
+        )
         tools = ElevationReaderTools(Frozen(tmp_path), role_id="elevation_reader", image_name="North.png", target=facade + "/F1")
         args = copy.deepcopy(COMPACT_ELEVATION_EXAMPLE)
         args["x_calibration"].update(distance_start_m=.54, distance_end_m=5.34, facade_length_m=10)
