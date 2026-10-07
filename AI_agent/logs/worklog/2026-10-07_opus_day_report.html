@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>10-07 三例对照与提速诊断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~68ch) for a project report; tables and the two time charts may run wider inside their own scroll boxes. */
+:root {
+  --paper: #f5f7f9;
+  --ink: #1a212c;
+  --muted: #5b6576;
+  --rule: #d9dee6;
+  --panel: #ffffff;
+  --accent: #0e7383;      /* drawing-line cyan, the one accent */
+  --accent-soft: #d8eef1;
+  --ok: #2d7a47;
+  --warn: #9a6200;
+  --bad: #b3261e;
+  --bar-model: #0e7383;
+  --bar-tool: #c08a2e;
+  --bar-runtime: #8a93a3;
+  --bar-fail: #b3261e;
+  --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-body: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", "Consolas", "SFMono-Regular", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121720; --ink: #e3e8ef; --muted: #9aa5b5; --rule: #2a323e; --panel: #19202b;
+    --accent: #43b8c8; --accent-soft: #163a41; --ok: #6cc58b; --warn: #e0a43a; --bad: #f08a80;
+    --bar-model: #43b8c8; --bar-tool: #d9a54a; --bar-runtime: #6f7a8c; --bar-fail: #f08a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121720; --ink: #e3e8ef; --muted: #9aa5b5; --rule: #2a323e; --panel: #19202b;
+  --accent: #43b8c8; --accent-soft: #163a41; --ok: #6cc58b; --warn: #e0a43a; --bad: #f08a80;
+  --bar-model: #43b8c8; --bar-tool: #d9a54a; --bar-runtime: #6f7a8c; --bar-fail: #f08a80;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.75 var(--font-body); }
+.page { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 72px; display: grid; gap: 40px; }
+.prose { max-width: 68ch; }
+header { display: grid; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+.eyebrow { font: 500 12.5px/1.4 var(--font-data); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+h1 { font: 700 30px/1.3 var(--font-display); margin: 0; text-wrap: balance; }
+h2 { font: 700 21px/1.4 var(--font-display); margin: 0 0 12px; text-wrap: balance; }
+h3 { font: 700 16px/1.5 var(--font-body); margin: 18px 0 6px; }
+p { margin: 0 0 10px; }
+ul { margin: 0 0 10px; padding-left: 1.2em; display: grid; gap: 6px; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lede { font-size: 17px; line-height: 1.8; }
+.meta { color: var(--muted); font-size: 13.5px; }
+code, .num { font-family: var(--font-data); font-size: .92em; }
+.num { font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; font: 500 12px/1.6 var(--font-data); padding: 0 7px; border-radius: 3px; border: 1px solid var(--rule); color: var(--muted); white-space: nowrap; }
+.tag.rt { border-color: var(--accent); color: var(--accent); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--rule); }
+th { font: 500 12.5px/1.5 var(--font-body); color: var(--muted); }
+td.n { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+thead th, tbody td:first-child { white-space: nowrap; }
+td.ok, td.bad { min-width: 16em; }
+tr.case td { background: var(--accent-soft); font-weight: 700; padding-block: 6px; }
+.ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+.win { font-weight: 700; }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 18px 20px; }
+.chart text { fill: var(--muted); font: 11.5px var(--font-data); }
+.chart .lbl { fill: var(--ink); font: 12.5px var(--font-body); }
+.chart .axis { stroke: var(--rule); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.options { display: grid; gap: 14px; }
+.option { display: grid; grid-template-columns: 110px 1fr; gap: 6px 18px; padding: 14px 0; border-top: 1px solid var(--rule); }
+.option:first-child { border-top: 0; }
+.option .when { font: 500 13px/1.6 var(--font-data); color: var(--accent); }
+.option > div { min-width: 0; }
+.ask { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; }
+@media (max-width: 560px) {
+  h1 { font-size: 24px; }
+  .option { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<main class="page">
+
+<header>
+  <div class="eyebrow">BIM Agent · 本轮报告 · 2026-10-07 白天</div>
+  <h1>三例对照与提速诊断</h1>
+  <p class="meta">项目经理 Opus 5.5 · 执行 Astra · work model 为 GLM 订阅 glm-5.3-flash（medium） · Agent 版本对照时 <code>t1-20261007-d1i.1</code>，现主线 <code>t1-20261007-n1.1</code></p>
+</header>
+
+<section class="prose">
+  <h2>一句话</h2>
+  <p class="lede">三例对照六次跑完：单层、小两层两个案例，两种模式都没有实质错误，分工在 sm24 快 36%、在 sm21 慢 13%；最大的 sm25 两种模式都要两个多小时，而且都有房间划分错误。慢的原因已经查清：服务端吐字速度正常，主要是模型写得太多、平面读图员动手前看图太久，外加服务端并发上限把一个读图员挤掉了。四个包已合入主线。</p>
+</section>
+
+<section class="prose">
+  <h2>本轮做成了什么</h2>
+  <ul>
+    <li><strong>三例对照</strong>（你批准的 6 次，GLM 订阅，依次跑）全部正常交付，已逐次评分；平面图、回叠图、BIM 查看页都能从<a href="../experiments/2026-10-07_three_case_comparison/index.html">对照汇总页</a>直接点开，<a href="../experiments/2026-10-07_three_case_comparison/README.md">对照记录</a>写了条件和结论。</li>
+    <li><strong>四个包审过合入主线</strong>，登记新版本 <code>t1-20261007-n1.1</code>：
+      <ul>
+        <li><span class="tag">domain · 只分工</span> D1j：立面门窗对位不怕图纸比例漂移，立面朝向由任务推出，房间用途依据随一步建楼写入，调度员改用小修入口 <code>edit_bim</code>。</li>
+        <li><span class="tag">domain · 只分工</span> D1k：平面读图员交付时少写字，提交从约 6,600–13,900 字降到约 700–1,600 字，依据框自动生成。</li>
+        <li><span class="tag rt">runtime · 两种模式</span> RT1：同一线路的请求排队派发（起始 5 路，被拒降一档，稳定后升回），被拒的请求排队重发、不再把读图员停掉；回执拆出模型、等子任务、工具、排队各花多少时间。</li>
+        <li><span class="tag">domain · 两种模式</span> N1：BIM 里所有可点击对象统一公开名（用途段改短横、同方位重复加编号，如 <code>Z25_F2_Office-Enclosed_SW1</code>），平面图、查看页、报告一致，回叠图不加名字。</li>
+      </ul>
+    </li>
+    <li><strong>你定下的规则写进了文档</strong>：产品结构代号（BIM Agent = work model + harness，harness = runtime + domain）、汇报写明迭代范围、版本按 runtime 与 domain 分开登记并带日期、名词规范、精度三档 5／10／30 厘米、命名统一；傍晚又定了提速放第一位、思考档由我按实测定、工作树迁 D 盘。</li>
+    <li><strong>查清了慢在哪</strong>（下一节），据此写好了提速包 D1l 和版本管理 V1 的派工单、思考档实测配置，按你“这轮做完就收工”的安排<strong>都没有派出</strong>。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>三例对照结果</h2>
+  <p class="meta prose">精度按三档：≤5 cm 好，5–10 cm 可以，10–30 cm 不作为主要提升点，&gt;30 cm 需专门处理；“门窗位置”一列四个数依次是这四档的扇数。“实质错误”指房间多、少、拆、并，门窗多、少，或门窗挂错墙、连错房间。</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>模式</th><th>用时（分）</th><th>请求</th><th>token</th><th>实质错误</th><th>门窗位置</th><th>外墙门窗高度</th></tr></thead>
+    <tbody>
+      <tr class="case"><td colspan="7">sm24 · 一层 · 8 间 · 21 个门窗</td></tr>
+      <tr><td>单模型</td><td class="n">35.7</td><td class="n">31</td><td class="n">231 万</td><td class="ok">无</td><td class="n">19 / 1 / 1 / 0</td><td class="n">14/14</td></tr>
+      <tr><td>分工</td><td class="n win">23.0</td><td class="n">59</td><td class="n">225 万</td><td class="ok">无</td><td class="n">14 / 3 / 4 / 0</td><td class="n">14/14</td></tr>
+      <tr class="case"><td colspan="7">sm21 · 两层 · 14 间 · 29 个门窗</td></tr>
+      <tr><td>单模型</td><td class="n win">41.9</td><td class="n">53</td><td class="n">406 万</td><td class="ok">无</td><td class="n">24 / 4 / 1 / 0</td><td class="n">17/17</td></tr>
+      <tr><td>分工</td><td class="n">47.5</td><td class="n">113</td><td class="n">476 万</td><td class="ok">无</td><td class="n win">29 / 0 / 0 / 0</td><td class="n">17/17</td></tr>
+      <tr class="case"><td colspan="7">sm25 · 两层 · 29 间 · 61 个门窗</td></tr>
+      <tr><td>单模型</td><td class="n">130.5</td><td class="n">86</td><td class="n">708 万</td><td class="bad">二层东段约 10 m 走廊漏建，连带 3 扇门成外门、庭院长窗拆成 6 扇</td><td class="n">49 / 7 / 1 / 4</td><td class="n">31/34 在 5 cm 内</td></tr>
+      <tr><td>分工</td><td class="n">122.6</td><td class="n">128</td><td class="n">581 万</td><td class="bad">一层一间会议室并进走廊、走廊西段多隔出一个空间；二层一条约 12 cm 的墙缝成了房间；连带 7 处门窗挂错墙</td><td class="n">48 / 9 / 4 / 0</td><td class="n win">34/34 在 5 cm 内</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose" style="margin-top:14px">
+    <ul>
+      <li>sm24、sm21：两种模式质量相当，&gt;30 cm 档都空。分工门窗更准，房间边界偏差多落在 10–30 cm 档。</li>
+      <li>sm25：两种模式错在不同的地方，都是房间划分。分工的门窗位置和外墙高度更好、token 少 18%；但一层平面读图员开头被 GLM 连拒 6 次停掉（旧版本），第 52 分钟才重派，白丢约 50 分钟。</li>
+      <li>结论：分工还没做到“质量不降、明显更快”。好消息是瓶颈很集中，下一节说清楚。</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2>慢在哪</h2>
+  <div class="prose">
+    <h3>服务端：吐字速度正常，并发上限是真问题</h3>
+    <p>13 次整案逐次请求量下来，GLM 每秒约 50 个 token，夜里白天一样，每次请求另有 4–9 秒固定等待；同一模型在 Paratera 上也是每秒 48–63 个。所以这是模型本身的速度，不是订阅限速。对比：09-26 的 Sonnet 5 每秒 83–104 个，Qwen3.8-Flash（Paratera）90–100 个。服务端真正卡我们的是白天同时只接约 5 路请求，多的直接拒；RT1 已改成排队，但 5 路的上限还在。</p>
+    <h3>大头：模型写得太多</h3>
+    <p>sm25 单模型共写了 30.8 万 token（含思考），09-26 Sonnet 5 做同一案只写了 4.3 万：步数多 2.5 倍（86 对 34 次请求），每步多想 2.8 倍。Sonnet 第一眼就读对（看 7 次图、第 4.3 分钟首次建模），GLM 看了 56 次图、放大查线 49 次，第 38 分钟才首次建模。</p>
+  </div>
+
+  <div class="panel" style="margin-top:14px">
+    <svg class="chart" viewBox="0 0 900 150" width="100%" role="img" aria-label="sm25 单模型 130.5 分钟拆分，与 09-26 Sonnet 同一案 7.7 分钟对比">
+      <!-- scale: 5 px per minute, origin x=170 -->
+      <line class="axis" x1="170" y1="118" x2="170" y2="20"/>
+      <text class="lbl" x="0" y="44">GLM · sm25 单模型</text>
+      <rect x="170" y="30" width="485.5" height="22" fill="var(--bar-model)"/>
+      <rect x="655.5" y="30" width="108.5" height="22" fill="var(--bar-tool)"/>
+      <rect x="764" y="30" width="58.5" height="22" fill="var(--bar-runtime)"/>
+      <text x="176" y="68">模型 97.1 分</text>
+      <text x="660" y="68">工具 21.7 · 其他 11.7</text>
+      <text class="lbl" x="0" y="100">Sonnet 5 · 09-26 run53</text>
+      <rect x="170" y="86" width="35" height="22" fill="var(--bar-model)"/>
+      <rect x="205" y="86" width="3.5" height="22" fill="var(--bar-runtime)"/>
+      <text x="216" y="102">共 7.7 分（模型 7.0）</text>
+      <line class="axis" x1="170" y1="126" x2="840" y2="126"/>
+      <text x="170" y="142">0</text><text x="420" y="142" text-anchor="middle">50</text><text x="670" y="142" text-anchor="middle">100</text><text x="822" y="142" text-anchor="middle">130 分</text>
+    </svg>
+    <div class="legend"><span><i style="background:var(--bar-model)"></i>等模型生成</span><span><i style="background:var(--bar-tool)"></i>我们的工具</span><span><i style="background:var(--bar-runtime)"></i>runtime 处理及其他</span></div>
+    <p class="meta" style="margin:8px 0 0">工具时间里 14 分钟是逐扇窗写高度时反复存稿（15 次，平均 55 秒）。</p>
+  </div>
+
+  <div class="prose" style="margin-top:18px">
+    <h3>分工模式：关键路径是平面读图员动手前的长时间查看</h3>
+    <p>平面读图员约九成时间花在第一次试建之前：用像素剖面把每条墙线量到像素级，每次请求想 30–120 秒；一旦开始试建，2–3 次就交付。立面读图员 2–6 分钟，不在关键路径。下图是 sm25 分工的实际时间线。</p>
+  </div>
+  <div class="panel scroll" style="margin-top:6px">
+    <svg class="chart" viewBox="0 0 900 236" width="100%" style="min-width:640px" role="img" aria-label="sm25 分工各角色时间线">
+      <!-- scale: 5.6 px per minute, origin x=160, 0..125 min -->
+      <text class="lbl" x="0" y="30">调度员</text>
+      <rect x="160" y="18" width="686" height="16" fill="var(--rule)"/>
+      <text x="170" y="30" style="fill:var(--ink)">等读图员为主，自己只用 5.8 分</text>
+      <text class="lbl" x="0" y="60">平面 一层（首派）</text>
+      <rect x="168.4" y="48" width="13.4" height="16" fill="var(--bar-fail)"/>
+      <text x="190" y="60">第 3.9 分被拒 6 次停掉</text>
+      <text class="lbl" x="0" y="90">平面 二层</text>
+      <rect x="168.4" y="78" width="279.4" height="16" fill="var(--bar-model)"/>
+      <text x="454" y="90">1.5–51.4 分 · 30 次请求</text>
+      <text class="lbl" x="0" y="120">平面 一层（重派）</text>
+      <rect x="454.6" y="108" width="284.5" height="16" fill="var(--bar-model)"/>
+      <text x="460" y="138">52.6–103.4 分 · 30 次请求</text>
+      <text class="lbl" x="0" y="166">四个立面</text>
+      <rect x="167.3" y="154" width="57.1" height="16" fill="var(--bar-tool)"/>
+      <text x="232" y="166">1.3–11.5 分</text>
+      <text class="lbl" x="0" y="196">北立面返工</text>
+      <rect x="780.5" y="184" width="37" height="16" fill="var(--bar-tool)"/>
+      <text x="776" y="196" text-anchor="end">110.8–117.4 分</text>
+      <line class="axis" x1="160" y1="212" x2="860" y2="212"/>
+      <text x="160" y="228">0</text><text x="440" y="228" text-anchor="middle">50</text><text x="720" y="228" text-anchor="middle">100</text><text x="860" y="228" text-anchor="end">125 分</text>
+    </svg>
+    <div class="legend"><span><i style="background:var(--bar-model)"></i>平面读图员</span><span><i style="background:var(--bar-tool)"></i>立面读图员</span><span><i style="background:var(--bar-fail)"></i>被服务端拒绝后停掉</span><span><i style="background:var(--rule)"></i>调度员</span></div>
+    <p class="meta" style="margin:8px 0 0">如果一层读图员没被挤掉、与二层并行，全程约 70 分钟；平面读图员每个约 40–45 分钟模型时间，这是下一步要砍的。</p>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>没解决的问题</h2>
+  <ul>
+    <li><strong>sm25 房间划分</strong>：两种模式都错，错处不同（漏走廊、漏一道墙、多一道墙、墙缝成房间）。试建返回的差异提示能标出漏建的隔墙，但现在只是提示，读图员可以不理。</li>
+    <li><strong>平面读图员太慢</strong>：sm25 上每个要 40–45 分钟模型时间。</li>
+    <li><strong>GLM 并发上限</strong>：白天约 5 路。RT1 让请求排队不再失败，但 6 个读图员同时开工时仍要排队。</li>
+    <li><strong>单模型逐扇窗存稿</strong>：sm25 单模型约 14 分钟花在这上面。单模型按约定冻结作参照，暂不改。</li>
+    <li><strong>新版本还没跑过整案</strong>：D1j、D1k、RT1、N1 的真实效果要等下一轮在 GLM 上复跑。合并后的全量检查 5,766 项通过、2 项失败，两项都是检查口径随 N1 的有意改动（交付页代码挪位、用途段改短横）需要更新，已改为只放行这两处、其余照旧严格，复跑全过。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>下一阶段：方向与计划（供讨论）</h2>
+  <div class="prose">
+    <p><strong>目标</strong>：分工模式 sm24 ≤ 10 分钟、sm21 ≤ 15 分钟、sm25 ≤ 30 分钟，质量不低于现在（无实质错误，&gt;30 cm 档为空）。之后再往“明显快于单模型”和换 4 档小模型走。</p>
+  </div>
+  <div class="panel options">
+    <div class="option">
+      <div class="when">第一步 · 当天</div>
+      <div><strong>思考档实测（运行设置，不开发）</strong>。sm24 分工全部 low、单模型 low 各跑一次，和今天的 medium 比质量和用时。10-03 同一请求实测 low 13–44 秒、medium 74 秒。质量不掉就逐角色换成 low。配置已备好，约 1 小时，GLM 订阅。</div>
+    </div>
+    <div class="option">
+      <div class="when">第二步 · 1 天</div>
+      <div><strong>提速包 D1l</strong> <span class="tag">domain · 只分工</span>：平面读图员先按整图和尺寸链出稿、再按试建差异细查；查看多次仍未试建时给一句提醒；调度员只为实质错误和 &gt;30 cm 返工；用途从完整功能表里选。<br>我建议再加一条质量项：试建报出的“漏建隔墙”必须表态（建上或说明为什么不建），对准 sm25 的房间划分错误。<br>同时并行 <strong>版本管理 V1</strong> <span class="tag rt">runtime</span>，让后面密集的提速实验每次都记清 runtime、domain、模式和各角色配置。两个派工单都已写好。</div>
+    </div>
+    <div class="option">
+      <div class="when">第三步 · 1–2 天</div>
+      <div><strong>逐角色换更快的模型，并解决并发</strong>。立面读图员换 27B（10-07 凌晨已四面全部按参照通过）；平面读图员在 D1l 之后试 Qwen3.8-Flash（速度约 GLM 两倍，10-02 立面小测两面全对）；调度员留 GLM。Paratera 按量计费、并发不受订阅限制，先用剩余约 58 元做一次 sm24 分工混合配置的整案测试，量出一案多少钱再定。</div>
+    </div>
+    <div class="option">
+      <div class="when">参照 · 可选</div>
+      <div><strong>Sonnet 5.5 在 Claude Code 上用现在的 domain 跑一次 sm25 单模型</strong>。又快又好，它的做法就是给小模型写指引的范本；也慢，就说明现在的 domain 比 09-26 重了，要先瘦身。占 Claude 订阅额度（09-26 一次约 5–11%）。</div>
+    </div>
+    <div class="option">
+      <div class="when">中期 · 待议</div>
+      <div><strong>从图上自动提取墙线和尺寸链</strong>（几何内核）：让读图员从“自己量”变成“核对机器量的结果”，这是 4 档小模型能不能当平面读图员的关键，需要先一起定方案。另有三条研发线的架构讨论等你发起。</div>
+    </div>
+  </div>
+  <div class="ask prose" style="margin-top:18px">
+    <p><strong>需要你定：</strong></p>
+    <ul>
+      <li>按上面的顺序推进吗？第一、二步我可以直接开始。</li>
+      <li>D1l 要不要加“漏建隔墙必须表态”这条质量项？</li>
+      <li>第三步在 Paratera 上的整案测试，额度先用剩余的 58 元，够不够、要不要另批，等量出单价再报？</li>
+      <li>Sonnet 5.5 参照跑不跑？</li>
+    </ul>
+  </div>
+</section>
+
+<section class="prose">
+  <h2>用量与收尾</h2>
+  <ul>
+    <li><strong>GLM 订阅</strong>：三例对照 6 次共 470 次请求、约 2,628 万 token。</li>
+    <li><strong>ChatGPT 订阅（Astra）</strong>：D1j、D1k、RT1、N1 四个包，输入合计约 5,000 万 token（约 96% 命中缓存），输出约 28 万。</li>
+    <li><strong>Paratera</strong> 0（余约 58 元），<strong>DeepSeek</strong> 0，Claude 主会话用量未取得。</li>
+    <li><strong>磁盘</strong>：16:48 C 盘写满，全量检查被打断；删除检查临时目录、收回已合并的四棵工作树后腾出约 23 GB，全量重跑。以后新工作树建在 <code>D:\EnergyPlus-Agent-worktrees\</code>。桌面 <code>EnergyPlus-Agent-worktrees</code> 下 <code>b1</code>、<code>c4</code>、<code>d1i</code>（各约 3.7 GB）和 <code>d1j</code>、<code>d1k</code>、<code>rt1</code>、<code>n1</code> 的残留需要你用管理员权限删除。</li>
+    <li><strong>证据</strong>：六个运行目录打包放证据分支 <code>evidence/three-case-comparison-2026-10-07</code>，主线留哈希清单。详细经过见<a href="2026-10-07_opus_day_comparison_speed.md">交接记录</a>。</li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>
