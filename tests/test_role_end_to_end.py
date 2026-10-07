@@ -180,6 +180,10 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert accounting["by_role"]["coordinator"]["requests"] > 0
     assert accounting["by_role"]["plan_reader"]["requests"] == len(plan_records) * 3
     assert accounting["by_role"]["elevation_reader"]["requests"] == 8
+    progress = accounting["by_role"]["plan_reader"]["before_first_trial"]
+    assert {row["task_id"] for row in progress} == {row["task_id"] for row in plan_records}
+    assert all(row["observation_calls_before_first_trial"] == 0
+               and row["first_trial_elapsed_seconds"] >= 0 for row in progress)
     review = assembly_review(fixture.output)
     assert review and review["status"] in {"unchanged", "reviewed"}
     if review["status"] == "reviewed":

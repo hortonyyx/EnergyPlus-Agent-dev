@@ -1,11 +1,44 @@
 """A rework task retains the accepted review, including later failed-trial warnings."""
 
 import asyncio
+import copy
 from contextlib import asynccontextmanager
 
+import pytest
+
+from src.agent.runtime_roles.plan_format import audit_plan_replacement
 from src.agent.runtime_roles.trial import PlanTrial
+from src.agent.runtime_roles.trial import _expanded_rework_targets, normalize_rework_targets
 from tests.test_role_session import dispatch, environment  # noqa: F401
 from tests.test_role_trial import Tools, example
+
+
+@pytest.mark.parametrize(("raw", "expected"), [
+    (["plan.openings"], ["plan.openings"]),
+    (["openings"], ["plan.openings"]),
+    (["openings:W1"], ["plan.openings:W1"]),
+])
+def test_rework_target_opening_spellings_are_normalized_without_broadening(raw, expected):
+    assert normalize_rework_targets(raw) == expected
+
+
+def test_openings_collection_scope_preserves_every_other_plan_object():
+    before = example()
+    after = copy.deepcopy(before)
+    after["openings"].append({**copy.deepcopy(after["openings"][0]), "id": "W_NEW"})
+    allowed = _expanded_rework_targets(["plan.openings"], before, after)
+    audit_plan_replacement(before, after, allowed_targets=allowed)
+    after["partitions"][0]["points"][0][0] += 1
+    with pytest.raises(ValueError, match="outside.*plan.partitions"):
+        audit_plan_replacement(before, after, allowed_targets=allowed)
+
+
+def test_unknown_rework_target_lists_three_supported_examples():
+    with pytest.raises(ValueError) as raised:
+        normalize_rework_targets(["doors:W1"])
+    message = str(raised.value)
+    for example_target in ("plan.openings", "openings", "openings:W1"):
+        assert example_target in message
 
 
 def test_rework_session_keeps_full_submission_review_before_any_adapter_request(environment, monkeypatch):

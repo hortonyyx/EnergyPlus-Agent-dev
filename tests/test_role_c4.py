@@ -20,6 +20,9 @@ def test_public_dispatch_needs_origin_caps_instructions_and_accepts_structured_s
     long = asyncio.run(session.call_tool("delegate_readers", {"tasks": [dispatch(
         origin="Southwest corner", instructions="x" * 401)]}))
     assert missing["isError"] and long["isError"]
+    reason = long["structuredContent"]["reason"]
+    assert "reader task north" in reason and "by 1" in reason
+    assert "instructions are optional" in reason and "specific rework problem" in reason
     assert not session.registry.records
 
     task = dispatch(origin="Southwest corner")

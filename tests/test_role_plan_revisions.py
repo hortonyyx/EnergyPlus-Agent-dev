@@ -182,8 +182,8 @@ def test_cross_task_operations_only_touch_named_targets_and_continue_from_new_ba
         assert two["base_plan_sha256"] == one["plan_sha256"]
         assert current.load_plan(two)["partitions"] == plan()["partitions"]
         assert current.load_plan(two)["space_seeds"] == plan()["space_seeds"]
-        with pytest.raises(ValueError, match="rework_targets"):
-            current.inherit_reference(prior, good["plan_sha256"], ["plan.openings"])
+        current.inherit_reference(prior, good["plan_sha256"], ["plan.openings"])
+        assert current.allowed_rework_targets == ["plan.openings"]
         failed = PlanTrial(Tools(False), image_name="plan.png")
         failed_receipt = await failed.run(plan())
         with pytest.raises(ValueError, match="successful isolated trial"):

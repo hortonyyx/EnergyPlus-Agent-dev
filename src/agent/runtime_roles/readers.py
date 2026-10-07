@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import time
 from typing import Any
 
 from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
@@ -18,6 +19,7 @@ from .parameters import normalize_stringified_parameters
 PLAN_READER_TOOL_NAMES = (
     "inputs",
     "view_image",
+    "view_plan_blocks",
     "pixel_profile",
     "view_pixel_profile",
     "view_pixel_region_overview",
@@ -29,7 +31,7 @@ PLAN_READER_TOOL_NAMES = (
     "submit_plan_reading",
 )
 ELEVATION_READER_TOOL_NAMES = tuple(
-    name for name in PLAN_READER_TOOL_NAMES if name not in {"trial_plan_bim", "submit_plan_reading"}
+    name for name in PLAN_READER_TOOL_NAMES if name not in {"view_plan_blocks", "trial_plan_bim", "submit_plan_reading"}
 ) + ("submit_elevation_reading",)
 READER_TOOL_NAMES = {
     "plan_reader": PLAN_READER_TOOL_NAMES,
@@ -38,6 +40,13 @@ READER_TOOL_NAMES = {
 
 _IMAGE_KEYS = {"image", "name", "plan_image", "floor_plan_image", "elevation_image"}
 _REFERENCE_KEYS = {"view_id", "profile", "profile_id", "overview_id", "region_id"}
+
+# sm24/sm21 traces had 20/32/35 looks before any trial. Six allows the whole
+# image, the block batch and a few targeted looks, without forbidding further reads.
+PRETRIAL_REMINDER_THRESHOLD = 6
+PLAN_OBSERVATION_TOOLS = frozenset(PLAN_READER_TOOL_NAMES) - {
+    "inputs", "get_bim_reference", "trial_plan_bim", "submit_plan_reading",
+}
 
 
 def _minimum(path: str, example: object, problem: str) -> ValueError:
@@ -357,6 +366,8 @@ class ReaderTools:
         self.trial = trial
         self._catalog: dict[str, dict[str, Any]] | None = None
         self._issued_references: set[str] = set()
+        self._progress = {"observation_calls_before_first_trial": 0, "by_tool": {},
+                          "first_trial_epoch": None}
         run_directory = getattr(frozen, "run_directory", None)
         self._scope_directory = Path(run_directory).resolve() if run_directory is not None else None
         self._reference_file = (self._scope_directory / "reader_issued_references.json"
@@ -396,6 +407,19 @@ class ReaderTools:
         if references != sorted(set(references)):
             raise ValueError("saved reader references must be unique and sorted")
         self._issued_references.update(references)
+        progress = value.get("plan_reader_progress")
+        if self.role_id == "plan_reader" and progress is not None:
+            if (not isinstance(progress, dict)
+                    or type(progress.get("observation_calls_before_first_trial")) is not int
+                    or progress["observation_calls_before_first_trial"] < 0
+                    or not isinstance(progress.get("by_tool"), dict)
+                    or any(key not in PLAN_OBSERVATION_TOOLS or type(count) is not int or count < 0
+                           for key, count in progress["by_tool"].items())
+                    or sum(progress["by_tool"].values()) != progress["observation_calls_before_first_trial"]
+                    or (progress.get("first_trial_epoch") is not None
+                        and not _finite_number(progress["first_trial_epoch"]))):
+                raise ValueError("saved plan reader progress is malformed")
+            self._progress = copy.deepcopy(progress)
 
     def _save_references(self) -> None:
         if self._reference_file is None:
@@ -407,6 +431,8 @@ class ReaderTools:
             "image_sha256": self._image_sha256,
             "references": sorted(self._issued_references),
         }
+        if self.role_id == "plan_reader":
+            value["plan_reader_progress"] = self._progress
         raw = json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
         temporary = self._reference_file.with_suffix(".tmp")
         temporary.write_text(raw, encoding="utf-8", newline="\n")
@@ -431,12 +457,14 @@ class ReaderTools:
                 schema["properties"].pop("include_image", None)
             by_name["pixel_profile"] = alias
         from .submission import SUBMISSION_TOOLS, OPERATION_SCHEMA
-        local = {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
+        local = {"view_plan_blocks", "trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
         missing = [name for name in wanted if name not in local and name not in by_name]
         if missing:
             raise ValueError(f"frozen reader catalog missing tools: {missing}")
         tools = [copy.deepcopy(by_name[name]) for name in wanted if name not in local]
         if self.role_id == "plan_reader":
+            from .plan_views import PLAN_VIEWS_TOOL
+            tools.append(copy.deepcopy(PLAN_VIEWS_TOOL))
             tools.append({
                 "name": "trial_plan_bim",
                 "description": "Align, compile, check and overlay one isolated plan. A full plan may include dimension_chains: id, axis, printed segments_mm, total_mm, approximate tick_pixels and source_refs. Nearby ink alignment uses this plan's scale; verified dimensions override ink, failures never move geometry, and the return summarizes every move/rejection. Operations use the remembered draft and preserve unpointed objects. Only passed trials can be submitted.",
@@ -454,6 +482,8 @@ class ReaderTools:
         return tools
 
     def repeatability(self, name: str):
+        if name == "view_plan_blocks" and self.role_id == "plan_reader":
+            return "read_only"
         if name == "trial_plan_bim":
             return "non_idempotent_write"
         if name in {"submit_plan_reading", "submit_elevation_reading"} and name in READER_TOOL_NAMES[self.role_id]:
@@ -506,6 +536,8 @@ class ReaderTools:
                 raise _minimum("trial_plan_bim", {"plan": {}},
                                "requires one complete plan or operations against a remembered plan; never both")
             self._enforce_single_image(arguments, plan_object=name == "trial_plan_bim")
+            if name == "view_plan_blocks" and arguments:
+                raise ValueError("view_plan_blocks takes no arguments; it uses this task's admitted image")
         except ValueError as error:
             if name not in {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}:
                 raise
@@ -530,6 +562,9 @@ class ReaderTools:
                 return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
                         "structuredContent": result, "isError": True}
         if name == "trial_plan_bim":
+            if self._progress["first_trial_epoch"] is None:
+                self._progress["first_trial_epoch"] = time.time()
+                self._save_references()
             try:
                 if "plan" in arguments:
                     plan = dict(arguments["plan"])
@@ -545,15 +580,38 @@ class ReaderTools:
                 return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
                         "structuredContent": value, "isError": True}
         else:
+            if self.role_id == "plan_reader" and name in PLAN_OBSERVATION_TOOLS and self._progress["first_trial_epoch"] is None:
+                self._progress["observation_calls_before_first_trial"] += 1
+                counts = self._progress["by_tool"]
+                counts[name] = counts.get(name, 0) + 1
+                self._save_references()
             delegated_name = name
             delegated_arguments = dict(arguments)
             if name == "pixel_profile":
                 delegated_name = "view_pixel_profile"
                 delegated_arguments["include_image"] = False
-            result = await self.frozen.call_tool(delegated_name, delegated_arguments)
+            if name == "view_plan_blocks":
+                from .plan_views import view_plan_blocks
+                result = await view_plan_blocks(self.frozen, self.image_name)
+            else:
+                result = await self.frozen.call_tool(delegated_name, delegated_arguments)
         if name != "trial_plan_bim" and not (isinstance(result, Mapping) and result.get("isError") is True):
             self._remember_references(result)
+        count = self._progress["observation_calls_before_first_trial"]
+        if (self.role_id == "plan_reader" and name in PLAN_OBSERVATION_TOOLS
+                and self._progress["first_trial_epoch"] is None and count >= PRETRIAL_REMINDER_THRESHOLD):
+            result = dict(result)
+            result["content"] = [*result.get("content", []), {"type": "text", "text":
+                f"You have made {count} observation calls without a trial; try the whole floor now, then use trial differences and its overlay for details."}]
         return result
+
+    def progress(self, *, started_epoch=None):
+        value = copy.deepcopy(self._progress)
+        first = value["first_trial_epoch"]
+        value.update(reminder_threshold=PRETRIAL_REMINDER_THRESHOLD,
+                     first_trial_elapsed_seconds=(max(0, first - started_epoch)
+                         if first is not None and started_epoch is not None else None))
+        return value
 
     def snapshot_state(self):
         frozen = self.frozen.snapshot_state()

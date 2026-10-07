@@ -29,8 +29,11 @@ def reader_batch_reply(value, first_submissions):
         if record.get("reused_saved_result"):
             row["reused_saved_result"] = True
         results.append(row)
-    return {"status": value["status"], "results": results,
-            "details": "read_role_artifact(task_id) returns the complete verified record and artifact."}
+    reply = {"status": value["status"], "results": results,
+             "details": "read_role_artifact(task_id) returns the complete verified record and artifact."}
+    if value.get("auto_added"):
+        reply["auto_added"] = copy.deepcopy(value["auto_added"])
+    return reply
 
 
 def assembly_reply(value, receipt_path, *, receipt_file=None):

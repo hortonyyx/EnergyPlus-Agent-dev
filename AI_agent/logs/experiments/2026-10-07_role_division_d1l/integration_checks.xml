@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="11" skipped="0" tests="99" time="62.716" timestamp="2026-10-08T04:00:01.918332+08:00" hostname="DESKTOP-Horton"><testcase classname="tests.test_role_session" name="test_completed_delivery_is_hashed_reusable_and_cannot_be_replaced" time="2.280" /><testcase classname="tests.test_role_session" name="test_unknown_write_intent_is_not_repeated" time="0.098" /><testcase classname="tests.test_role_session" name="test_completed_metadata_tampering_is_rejected[validation-value0]" time="2.051" /><testcase classname="tests.test_role_session" name="test_completed_metadata_tampering_is_rejected[role_id-plan_reader]" time="1.207" /><testcase classname="tests.test_role_session" name="test_artifact_file_tampering_is_rejected_on_reopen" time="1.237" /><testcase classname="tests.test_role_session" name="test_completed_metadata_tampering_is_rejected[target-another floor]" time="1.291" /><testcase classname="tests.test_role_session" name="test_submit_tool_then_ack_is_audited_in_same_role_and_root_budget" time="1.302" /><testcase classname="tests.test_role_session" name="test_admitted_instructions_are_bound_to_the_delivery" time="1.265" /><testcase classname="tests.test_role_session" name="test_answer_text_without_submit_stops_after_one_bounded_repair" time="1.023" /><testcase classname="tests.test_role_session" name="test_rejected_submit_tool_can_be_fixed_and_resubmitted_without_answer_repair" time="1.724" /><testcase classname="tests.test_role_session" name="test_missing_candidate_and_match_are_correctable_tool_errors" time="1.252" /><testcase classname="tests.test_role_session" name="test_profile_plan_expands_verified_numeric_trial_without_retranscription" time="0.229" /><testcase classname="tests.test_role_session" name="test_bare_facade_target_takes_the_plan_floors" time="0.055" /><testcase classname="tests.test_role_session" name="test_first_dispatch_adds_known_missing_drawings_once_and_keeps_explicit_task" time="0.384" /><testcase classname="tests.test_role_session" name="test_submit_on_last_model_request_is_still_a_completed_delivery[1]" time="0.950" /><testcase classname="tests.test_role_session" name="test_first_elevation_only_dispatch_returns_auto_list_without_inventing_floors" time="0.157" /><testcase classname="tests.test_role_rework_handoff" name="test_rework_target_opening_spellings_are_normalized_without_broadening[raw0-expected0]" time="0.006" /><testcase classname="tests.test_role_rework_handoff" name="test_rework_target_opening_spellings_are_normalized_without_broadening[raw1-expected1]" time="0.003" /><testcase classname="tests.test_role_rework_handoff" name="test_rework_target_opening_spellings_are_normalized_without_broadening[raw2-expected2]" time="0.001" /><testcase classname="tests.test_role_rework_handoff" name="test_openings_collection_scope_preserves_every_other_plan_object" time="0.002" /><testcase classname="tests.test_role_rework_handoff" name="test_unknown_rework_target_lists_three_supported_examples" time="0.001" /><testcase classname="tests.test_role_rework_handoff" name="test_rework_session_keeps_full_submission_review_before_any_adapter_request" time="0.457" /><testcase classname="tests.test_role_c4" name="test_public_dispatch_needs_origin_caps_instructions_and_accepts_structured_strings[None]" time="1.364" /><testcase classname="tests.test_role_session" name="test_single_image_is_validated_for_entire_batch_before_any_model_call" time="0.080" /><testcase classname="tests.test_role_session" name="test_rework_has_new_identity_and_cannot_switch_original" time="2.259" /><testcase classname="tests.test_role_c4" name="test_public_dispatch_needs_origin_caps_instructions_and_accepts_structured_strings[]" time="1.729" /><testcase classname="tests.test_role_session" name="test_shared_request_limit_counts_all_concurrent_tasks[2]" time="3.646" /><testcase classname="tests.test_role_c4" name="test_failed_dispatch_record_remains_readable" time="0.334" /><testcase classname="tests.test_role_c4" name="test_coordinator_catalog_and_ordinary_string_parameters" time="0.166" /><testcase classname="tests.test_role_c4" name="test_assembly_projection_keeps_decisions_recoverable_and_notes_in_receipt" time="0.041" /><testcase classname="tests.test_role_c4" name="test_coordinate_contract_has_role_specific_units" time="0.002" /><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]" time="5.303"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru0/sm21-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru0')
+case_name = 'sm21', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+&gt;       result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+
+tests\test_role_end_to_end.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru0/sm21-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_session" name="test_readers_are_bounded_by_configured_concurrency" time="3.911" /><testcase classname="tests.test_role_session" name="test_build_reference_expands_original_plan_once_and_retains_audit" time="0.381" /><testcase classname="tests.test_role_session" name="test_failed_trial_is_readable_but_cannot_build" time="0.238" /><testcase classname="tests.test_role_end_to_end" name="test_fixture_submissions_match_explicit_tool_contracts[sm24]" time="0.865" /><testcase classname="tests.test_role_end_to_end" name="test_fixture_submissions_match_explicit_tool_contracts[sm25]" time="2.456" /><testcase classname="tests.test_role_end_to_end" name="test_resume_reader_after_trial_checkpoint_does_not_repeat_trial" time="1.981"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_reader_after_trial0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_reader_after_trial0')
+
+    def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+        crash = CrashOnce(
+            "after_checkpoint",
+            lambda engine: engine.role.role_id == "plan_reader"
+            and engine.counts["tool_calls"] == 1,
+        )
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    reader_fault_hook=crash,
+                )
+            )
+
+tests\test_role_end_to_end.py:234: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_reader_after_trial0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]" time="1.869"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru1')
+case_name = 'sm24', two_floors = False
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+&gt;       result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+
+tests\test_role_end_to_end.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]" time="2.315"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru2/sm25-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru2')
+case_name = 'sm25', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+&gt;       result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+
+tests\test_role_end_to_end.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_scripted_role_pipeline_ru2/sm25-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_fixture_submissions_match_explicit_tool_contracts[sm21]" time="2.216" /><testcase classname="tests.test_role_end_to_end" name="test_resume_after_all_readers_preserves_reader_records" time="1.678"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_all_readers_0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_all_readers_0')
+
+    def test_resume_after_all_readers_preserves_reader_records(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+    
+        def all_readers_before_build(engine):
+            return (
+                len(_reader_record_hashes(fixture)) == len(fixture.tasks)
+                and _tool_count(fixture.output, "assemble_from_readers") == 0
+            )
+    
+        crash = CrashOnce("after_checkpoint", all_readers_before_build)
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    fault_hook=crash,
+                )
+            )
+
+tests\test_role_end_to_end.py:267: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_all_readers_0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_single_parity" name="test_three_single_cases_prepare_identical_shared_first_request_bytes" time="1.606"><failure message="src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_three_single_cases_prepar0')
+
+    def test_three_single_cases_prepare_identical_shared_first_request_bytes(tmp_path):
+        rows = []
+        for name in ("sm21", "sm24", "sm25"):
+            folder = tmp_path / name
+            folder.mkdir()
+&gt;           rows.append(asyncio.run(prepared_case(name, folder)))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_role_single_parity.py:213: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_role_single_parity.py:145: in prepared_case
+    T1.runner.run_experiment(old_args)
+scripts\tool_scripts\run_bim_agent.py:3027: in run_experiment
+    record = subscription(run, prompt,
+scripts\tool_scripts\run_bim_agent.py:348: in subscription
+    version_identity = external_run_identity(ROOT, mode="single_model", role_models=role_models)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\versions.py:103: in external_run_identity
+    releases = release_records(root)
+               ^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]" time="1.591"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_inner_receip0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_inner_receip0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000025E3D3EE570&gt;
+boundary_tool = 'build_plan_bim'
+
+    @pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+    def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+        from src.agent.runtime_roles.session import RoleSession
+    
+        fixture = make_fixture("sm24", tmp_path)
+        original = RoleSession._once
+        crashed = False
+    
+        async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+            nonlocal crashed
+            result = await original(session, operation_id, name, arguments, reference=reference)
+            if name == boundary_tool and not crashed:
+                crashed = True
+                raise SimulatedProcessDeath("inner build receipt saved")
+            return result
+    
+        monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(execute(fixture.args, adapter_factory=fixture.adapter_factory))
+
+tests\test_role_end_to_end.py:302: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_inner_receip0/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_plan_views" name="test_layout_chooses_four_six_or_eight_blocks_and_covers_the_original[size0-4-grid0]" time="0.002" /><testcase classname="tests.test_role_plan_views" name="test_layout_chooses_four_six_or_eight_blocks_and_covers_the_original[size1-6-grid1]" time="0.002" /><testcase classname="tests.test_role_plan_views" name="test_layout_chooses_four_six_or_eight_blocks_and_covers_the_original[size2-8-grid2]" time="0.002" /><testcase classname="tests.test_role_plan_views" name="test_layout_chooses_four_six_or_eight_blocks_and_covers_the_original[size3-8-grid3]" time="0.002" /><testcase classname="tests.test_role_plan_views" name="test_extreme_strip_and_tiny_image_boundaries_are_explicit" time="0.002" /><testcase classname="tests.test_role_plan_views" name="test_batch_calls_the_original_view_tool_and_preserves_all_view_provenance" time="0.044" /><testcase classname="tests.test_role_plan_views" name="test_tool_contract_has_no_model_selected_image_or_box" time="0.001" /><testcase classname="tests.test_role_plan_views" name="test_batch_through_real_frozen_mcp_returns_original_pixel_metadata" time="7.080"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">tools = [{'description': 'Read a generic format, editing, evidence or modelling reference.\n        Choose a topic from the sc...integer'}, ...}, 'required': ['name', 'background_rgb'], 'type': 'object'}, 'name': 'view_pixel_region_overview'}, ...]
+
+    def validate_frozen_catalog(
+        tools: list[dict[str, Any]], *, readonly: bool, mesh: bool | None = None
+    ) -&gt; str:
+        """Require the exact definitions exposed by the frozen server mode."""
+    
+        names = [tool.get("name") for tool in tools]
+        if any(not isinstance(name, str) or not name for name in names):
+            raise ToolCatalogMismatch("MCP catalog contains a missing or invalid tool name")
+        if len(names) != len(set(names)):
+            raise ToolCatalogMismatch("MCP catalog contains duplicate tool names")
+        actual = set(names)
+        if mesh is None:
+            variants = [candidate for candidate in (False, True)
+                        if actual == set(_catalog_names(readonly=readonly, mesh=candidate))]
+            if len(variants) != 1:
+                base = set(_catalog_names(readonly=readonly, mesh=False))
+                mesh_names = set(_catalog_names(readonly=readonly, mesh=True))
+                raise ToolCatalogMismatch(
+                    "frozen MCP catalog name set matches neither admitted-input variant; "
+                    f"base_missing={sorted(base - actual)}, base_extra={sorted(actual - base)}, "
+                    f"mesh_missing={sorted(mesh_names - actual)}, mesh_extra={sorted(actual - mesh_names)}"
+                )
+            mesh = variants[0]
+        expected = set(_catalog_names(readonly=readonly, mesh=mesh))
+        if actual != expected:
+            raise ToolCatalogMismatch(
+                f"frozen MCP catalog mismatch; missing={sorted(expected - actual)}, extra={sorted(actual - expected)}"
+            )
+        mode = _catalog_mode(readonly=readonly, mesh=mesh)
+        root = Path(__file__).resolve().parents[2]
+        try:
+&gt;           record = agent_version_record(root, verify=True)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src\agent\runtime_tools.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw1/test_batch_through_real_frozen0')
+
+    def test_batch_through_real_frozen_mcp_returns_original_pixel_metadata(tmp_path):
+        import sys
+        from pathlib import Path
+        from src.agent_runtime.mcp_tools import McpToolClient
+    
+        async def scenario():
+            source = _run(tmp_path)
+            root = Path(__file__).resolve().parents[1]
+            async with McpToolClient(command=sys.executable,
+                    args=[str(root / "scripts/tool_scripts/run_bim_agent.py"), "serve", str(tmp_path), "--readonly"],
+                    cwd=root, run_directory=tmp_path) as client:
+                frozen = FrozenBimTools(client, local_observer_role(BudgetAmounts(calls=10)), run_directory=tmp_path)
+                result = await view_plan_blocks(frozen, source.name)
+                assert not result["isError"]
+                views = result["structuredContent"]["evidence_previews"]
+                assert len(views) == 4
+                assert all(row["original_pixels_per_returned_pixel"] == [1 / 3, 1 / 3] for row in views)
+                assert all(row["coordinate_grid"] for row in views)
+                assert len(frozen.image_origins(result)) == 4
+&gt;       asyncio.run(scenario())
+
+tests\test_role_plan_views.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_role_plan_views.py:179: in scenario
+    result = await view_plan_blocks(frozen, source.name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\plan_views.py:89: in view_plan_blocks
+    result = await frozen.call_tool("view_image", arguments)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_tools.py:312: in call_tool
+    await self.list_tools()
+src\agent\runtime_tools.py:301: in list_tools
+    validate_frozen_catalog(tools, readonly=self.role.read_only, mesh=self.mesh)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tools = [{'description': 'Read a generic format, editing, evidence or modelling reference.\n        Choose a topic from the sc...integer'}, ...}, 'required': ['name', 'background_rgb'], 'type': 'object'}, 'name': 'view_pixel_region_overview'}, ...]
+
+    def validate_frozen_catalog(
+        tools: list[dict[str, Any]], *, readonly: bool, mesh: bool | None = None
+    ) -&gt; str:
+        """Require the exact definitions exposed by the frozen server mode."""
+    
+        names = [tool.get("name") for tool in tools]
+        if any(not isinstance(name, str) or not name for name in names):
+            raise ToolCatalogMismatch("MCP catalog contains a missing or invalid tool name")
+        if len(names) != len(set(names)):
+            raise ToolCatalogMismatch("MCP catalog contains duplicate tool names")
+        actual = set(names)
+        if mesh is None:
+            variants = [candidate for candidate in (False, True)
+                        if actual == set(_catalog_names(readonly=readonly, mesh=candidate))]
+            if len(variants) != 1:
+                base = set(_catalog_names(readonly=readonly, mesh=False))
+                mesh_names = set(_catalog_names(readonly=readonly, mesh=True))
+                raise ToolCatalogMismatch(
+                    "frozen MCP catalog name set matches neither admitted-input variant; "
+                    f"base_missing={sorted(base - actual)}, base_extra={sorted(actual - base)}, "
+                    f"mesh_missing={sorted(mesh_names - actual)}, mesh_extra={sorted(actual - mesh_names)}"
+                )
+            mesh = variants[0]
+        expected = set(_catalog_names(readonly=readonly, mesh=mesh))
+        if actual != expected:
+            raise ToolCatalogMismatch(
+                f"frozen MCP catalog mismatch; missing={sorted(expected - actual)}, extra={sorted(actual - expected)}"
+            )
+        mode = _catalog_mode(readonly=readonly, mesh=mesh)
+        root = Path(__file__).resolve().parents[2]
+        try:
+            record = agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:191: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_end_to_end" name="test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]" time="1.804"><failure message="src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: [&quot;src/agent/runtime_roles/accounting.py&quot;, &quot;src/agent/runtime_roles/feedback.py&quot;, &quot;src/agent/runtime_roles/guidance.py&quot;, &quot;src/agent/runtime_roles/opening_checks.py&quot;, &quot;src/agent/runtime_roles/plan_format.py&quot;, &quot;src/agent/runtime_roles/plan_views.py&quot;, &quot;src/agent/runtime_roles/readers.py&quot;, &quot;src/agent/runtime_roles/session.py&quot;, &quot;src/agent/runtime_roles/trial.py&quot;]">run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_inner_receip1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+&gt;           agent_version_record(root, verify=True)
+
+src\agent\runtime_tools.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\agent_runtime\agent_registry.py:231: in agent_version_record
+    release_records(root, registry_path=registry_path)
+src\agent_runtime\agent_registry.py:215: in release_records
+    _verify_files(root, record, line=line, version=version, registry=registry, registry_path=registry_path)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+record = {'coverage': 'automatic_directories', 'files': {'scripts/glm_code.py': {'kind': 'tool', 'sha256': '2f316e7fcc42b3d3b29...dadc8352223c29715e87216762493f506b24170da51c'}, ...}, 'source_commit': '42f0f63b786f9a2c5237ecaf058f916c339693dd', ...}
+
+    def _verify_files(root, record, *, line, version, registry, registry_path):
+        expected = record.get("files")
+        if not isinstance(expected, dict) or not expected:
+            raise AgentVersionMismatch(f"version {version} has no registered files")
+        if record.get("coverage") == "automatic_directories":
+            actual = discover_files(root, line, scope=registry["scope"], registry_path=registry_path)
+        else:
+            actual = {}
+            for relative, metadata in expected.items():
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root):
+                    raise AgentVersionMismatch(f"registered file escapes repository: {relative}")
+                if path.is_file():
+                    actual[relative] = {**metadata, "sha256": _sha256(path)}
+        changed = sorted(name for name in expected.keys() | actual.keys()
+                         if expected.get(name) != actual.get(name))
+        if changed:
+&gt;           raise AgentVersionMismatch(f"{line} version {version} file mismatch: {json.dumps(changed)}")
+E           src.agent_runtime.agent_registry.AgentVersionMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent_runtime\agent_registry.py:202: AgentVersionMismatch
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_inner_receip1')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x0000025E3F3002C0&gt;
+boundary_tool = 'claim_transaction'
+
+    @pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+    def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+        from src.agent.runtime_roles.session import RoleSession
+    
+        fixture = make_fixture("sm24", tmp_path)
+        original = RoleSession._once
+        crashed = False
+    
+        async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+            nonlocal crashed
+            result = await original(session, operation_id, name, arguments, reference=reference)
+            if name == boundary_tool and not crashed:
+                crashed = True
+                raise SimulatedProcessDeath("inner build receipt saved")
+            return result
+    
+        monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
+        with pytest.raises(SimulatedProcessDeath):
+&gt;           asyncio.run(execute(fixture.args, adapter_factory=fixture.adapter_factory))
+
+tests\test_role_end_to_end.py:302: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+src\agent\runtime_roles\entry.py:99: in execute
+    client = await stack.enter_async_context(frozen_bim_client(run_directory=run, repository_root=ROOT))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+run_directory = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l/AI_agent/archive/local_backup/d1l/pytest/popen-gw0/test_resume_after_inner_receip1/sm24-role-run/bim')
+readonly = False
+repository_root = WindowsPath('D:/EnergyPlus-Agent-worktrees/d1l')
+
+    def frozen_bim_client(
+        run_directory: Path,
+        readonly: bool = False,
+        repository_root: Path | None = None,
+        *, enabled_only: bool = False,
+    ) -&gt; McpToolClient:
+        """Create the stage-1 building server transport from generic MCP pieces."""
+    
+        root = (Path(repository_root) if repository_root is not None
+                else Path(__file__).resolve().parents[2]).resolve()
+        try:
+            agent_version_record(root, verify=True)
+        except AgentVersionMismatch as error:
+&gt;           raise ToolCatalogMismatch(str(error)) from error
+E           src.agent.runtime_tools.ToolCatalogMismatch: domain version domain-v48-20261008 file mismatch: ["src/agent/runtime_roles/accounting.py", "src/agent/runtime_roles/feedback.py", "src/agent/runtime_roles/guidance.py", "src/agent/runtime_roles/opening_checks.py", "src/agent/runtime_roles/plan_format.py", "src/agent/runtime_roles/plan_views.py", "src/agent/runtime_roles/readers.py", "src/agent/runtime_roles/session.py", "src/agent/runtime_roles/trial.py"]
+
+src\agent\runtime_tools.py:123: ToolCatalogMismatch</failure></testcase><testcase classname="tests.test_role_single_parity" name="test_single_configuration_loading_and_argv_match_the_dispatch_baseline" time="1.047" /><testcase classname="tests.test_role_single_parity" name="test_first_request_sources_are_byte_identical_to_the_dispatch_baseline" time="0.547" /><testcase classname="tests.test_role_single_parity" name="test_only_authorized_tool_descriptions_change_since_q1_dispatch" time="0.347" /><testcase classname="tests.test_role_single_parity" name="test_single_runtime_keeps_unbounded_per_request_timeout_and_request_bytes" time="0.491" /><testcase classname="tests.test_role_plan_revisions" name="test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_last_success" time="0.022"><failure message="ValueError: Rework changed items outside the coordinator's pointed issues: plan.openings:W1">def test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_last_success():
+        async def scenario():
+            tools = Tools(ready=False)
+            trial = PlanTrial(tools, image_name="plan.png")
+            first = await trial.run(plan())
+            assert first["source_geometry_ready"] is False
+            assert trial.baseline() == (plan(), first["plan_sha256"])
+            with pytest.raises(ValueError):
+                trial.verified_plan(first["plan_sha256"])
+            second_plan = plan()
+            second_plan["basis"] += " revised calibration"
+            second = await trial.run(second_plan)
+            assert second["base_plan_sha256"] == first["plan_sha256"]
+            fixed_draft = await trial.run(operations=[operation(p2=[10, 41])])
+            assert fixed_draft["base_plan_sha256"] == second["plan_sha256"]
+            assert fixed_draft["status"] == "failed"
+            assert trial.baseline()[1] == fixed_draft["plan_sha256"]
+            tools.ready = True
+            third_plan = plan()
+            third_plan["basis"] += " final calibration"
+            good = await trial.run(third_plan)
+            tools.ready = False
+            bad = await trial.run(operations=[operation(p2=[10, 42])])
+            assert bad["status"] == "failed" and bad["phase"] == "operations"
+            assert trial.baseline() == (third_plan, good["plan_sha256"])
+            tools.ready = True
+            repaired = await trial.run(operations=[operation(p2=[10, 41])])
+            assert repaired["base_plan_sha256"] == good["plan_sha256"]
+            assert repaired["changes"][0]["before"]["p2"] == [10, 40]
+            assert repaired["plan_revision"]["unchanged_ids"]["partitions"] == ["P1"]
+&gt;       asyncio.run(scenario())
+
+tests\test_role_plan_revisions.py:134: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_role_plan_revisions.py:117: in scenario
+    fixed_draft = await trial.run(operations=[operation(p2=[10, 41])])
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_roles\trial.py:650: in run
+    audit = audit_plan_replacement(previous_plan, normalized,
+src\agent\runtime_roles\plan_format.py:253: in audit_plan_replacement
+    compare(field, identity, old.get(identity), new.get(identity))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+field = 'openings', identity = 'W1'
+old = {'id': 'W1', 'kind': 'window', 'p1': [10, 30], 'p2': [10, 40], ...}
+new = {'id': 'W1', 'kind': 'window', 'p1': [10, 30], 'p2': [10, 41], ...}
+
+    def compare(field, identity, old, new):
+        if old == new:
+            return
+        item = "plan." + field + (":" + identity if identity is not None else "")
+        row = {"item": item, "field": field, "id": identity,
+               "before": copy.deepcopy(old), "after": copy.deepcopy(new)}
+        note_only = field in PLAN_NOTE_FIELDS
+        if identity is not None and isinstance(old, dict) and isinstance(new, dict):
+            note_only = ({key: value for key, value in old.items() if key not in ROW_NOTE_FIELDS}
+                         == {key: value for key, value in new.items() if key not in ROW_NOTE_FIELDS})
+        if note_only:
+            notes.append(row)
+        else:
+            if allowed_targets is not None and item not in allowed_targets:
+&gt;               raise ValueError("Rework changed items outside the coordinator's pointed issues: " + item)
+E               ValueError: Rework changed items outside the coordinator's pointed issues: plan.openings:W1
+
+src\agent\runtime_roles\plan_format.py:242: ValueError</failure></testcase><testcase classname="tests.test_role_plan_revisions" name="test_all_shared_operation_kinds_and_failed_batch_leave_input_unchanged" time="0.002" /><testcase classname="tests.test_role_plan_revisions" name="test_role_tool_catalog_removes_manual_bookkeeping_and_accepts_only_one_mode" time="0.151" /><testcase classname="tests.test_role_plan_revisions" name="test_cross_task_operations_only_touch_named_targets_and_continue_from_new_baseline" time="0.022"><failure message="Failed: DID NOT RAISE &lt;class 'ValueError'&gt;">def test_cross_task_operations_only_touch_named_targets_and_continue_from_new_baseline():
+        async def scenario():
+            prior = PlanTrial(Tools(), image_name="plan.png")
+            good = await prior.run(plan())
+            current = PlanTrial(Tools(), image_name="plan.png")
+            current.inherit_reference(prior, good["plan_sha256"], ["plan.openings:W1"])
+            with pytest.raises(ValueError, match="outside the coordinator"):
+                await current.run(operations=[{**operation(), "collection": "partitions", "id": "P1",
+                                              "changes": {"points": [[61, 10], [61, 110]]}}])
+            one = await current.run(operations=[operation(p2=[10, 41])])
+            two = await current.run(operations=[operation(p2=[10, 42])])
+            assert one["base_plan_sha256"] == good["plan_sha256"]
+            assert two["base_plan_sha256"] == one["plan_sha256"]
+            assert current.load_plan(two)["partitions"] == plan()["partitions"]
+            assert current.load_plan(two)["space_seeds"] == plan()["space_seeds"]
+            with pytest.raises(ValueError, match="rework_targets"):
+                current.inherit_reference(prior, good["plan_sha256"], ["plan.openings"])
+            failed = PlanTrial(Tools(False), image_name="plan.png")
+            failed_receipt = await failed.run(plan())
+            with pytest.raises(ValueError, match="successful isolated trial"):
+                current.inherit_reference(failed, failed_receipt["plan_sha256"], ["plan.openings:W1"])
+&gt;       asyncio.run(scenario())
+
+tests\test_role_plan_revisions.py:191: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Horton\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def scenario():
+        prior = PlanTrial(Tools(), image_name="plan.png")
+        good = await prior.run(plan())
+        current = PlanTrial(Tools(), image_name="plan.png")
+        current.inherit_reference(prior, good["plan_sha256"], ["plan.openings:W1"])
+        with pytest.raises(ValueError, match="outside the coordinator"):
+            await current.run(operations=[{**operation(), "collection": "partitions", "id": "P1",
+                                          "changes": {"points": [[61, 10], [61, 110]]}}])
+        one = await current.run(operations=[operation(p2=[10, 41])])
+        two = await current.run(operations=[operation(p2=[10, 42])])
+        assert one["base_plan_sha256"] == good["plan_sha256"]
+        assert two["base_plan_sha256"] == one["plan_sha256"]
+        assert current.load_plan(two)["partitions"] == plan()["partitions"]
+        assert current.load_plan(two)["space_seeds"] == plan()["space_seeds"]
+&gt;       with pytest.raises(ValueError, match="rework_targets"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE &lt;class 'ValueError'&gt;
+
+tests\test_role_plan_revisions.py:185: Failed</failure></testcase><testcase classname="tests.test_role_plan_revisions" name="test_failed_noop_revision_does_not_invalidate_prior_success_with_same_hash" time="0.013" /><testcase classname="tests.test_role_plan_revisions" name="test_invalid_operation_type_is_a_correctable_prewrite_rejection" time="0.008" /><testcase classname="tests.test_role_plan_revisions" name="test_topology_warnings_from_a_trial_without_geometry_do_not_bind" time="0.001" /><testcase classname="tests.test_role_plan_revisions" name="test_host_failure_lists_every_unhosted_opening_with_its_nearest_line" time="0.014" /><testcase classname="tests.test_role_plan_revisions" name="test_failed_trial_names_loose_divider_ends_and_source_self_check_findings" time="0.710" /><testcase classname="tests.test_role_plan_revisions" name="test_wall_reference_allows_distinct_lines_but_rejects_contradiction_per_category" time="0.002" /><testcase classname="tests.test_role_submission" name="test_plan_submission_preserves_exact_trial_with_additional_outer_unresolved" time="0.146" /><testcase classname="tests.test_role_submission" name="test_failed_or_rewritten_trial_cannot_submit" time="0.099" /><testcase classname="tests.test_role_submission" name="test_elevation_rejects_bad_count_with_example_then_accepts_and_reloads" time="0.104" /><testcase classname="tests.test_role_submission" name="test_each_topology_warning_needs_located_consistent_decision[unsupported_open_separator]" time="0.004" /><testcase classname="tests.test_role_submission" name="test_each_topology_warning_needs_located_consistent_decision[opening_offset_from_gap]" time="0.004" /><testcase classname="tests.test_role_submission" name="test_opening_endpoints_and_dimension_reference_cannot_be_silently_snapped" time="0.005" /><testcase classname="tests.test_role_submission" name="test_local_operations_preserve_untouched_rows_and_reject_unpointed_edits" time="0.002" /><testcase classname="tests.test_role_position_review" name="test_independent_endpoints_width_thresholds_and_fit_does_not_hide_drift" time="0.002" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_is_durable_without_writes_and_pending_blocks_delivery" time="0.830" /><testcase classname="tests.test_role_plan_revisions" name="test_reference_example_is_complete_compilable_and_present_in_reader_guidance" time="0.010" /><testcase classname="tests.test_role_plan_revisions" name="test_reader_example_is_the_reference_plan_at_image_scale" time="0.017" /><testcase classname="tests.test_role_plan_revisions" name="test_world_metre_points_and_invented_room_uses_are_named_before_compiling" time="0.007" /><testcase classname="tests.test_role_plan_revisions" name="test_all_rows_and_nested_formats_reported_in_one_response_without_compiler_call" time="0.024" /><testcase classname="tests.test_role_plan_revisions" name="test_all_alias_conflicts_and_bad_quantities_are_listed_together" time="0.004" /><testcase classname="tests.test_role_position_review" name="test_decision_resume_after_inner_write_does_not_duplicate_candidate" time="1.439" /><testcase classname="tests.test_role_position_review" name="test_use_elevation_edits_only_xy_on_host_replays_and_rejects_overflow" time="1.242" /><testcase classname="tests.test_role_position_review" name="test_over_30cm_requires_two_located_views_and_reread_stays_pending" time="1.113" /><testcase classname="tests.test_role_position_review" name="test_opening_added_after_plan_trial_requires_reread_instead_of_false_agreement" time="1.117" /><testcase classname="tests.test_role_position_review" name="test_keep_plan_resolves_only_position_conflict_and_never_waives_height_bounds" time="1.254" /><testcase classname="tests.test_role_position_review" name="test_explicit_scope_survives_newer_facade_and_reactivation_requires_finished_assembly" time="1.558" /><testcase classname="tests.test_role_position_review" name="test_ink_inconsistency_is_recorded_without_blocking_agreeing_readings" time="0.946" /><testcase classname="tests.test_role_position_review" name="test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance[0.02]" time="1.157" /><testcase classname="tests.test_role_position_review" name="test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance[0.4]" time="0.957" /><testcase classname="tests.test_role_assembly_review" name="test_compare_floor_ignores_height_only_but_catches_plan_facts" time="0.076" /><testcase classname="tests.test_role_assembly_review" name="test_candidate_hash_change_invalidates_old_review_even_when_only_height_changed" time="0.167" /><testcase classname="tests.test_role_assembly_review" name="test_require_all_reports_each_unbound_actual_floor" time="0.135" /><testcase classname="tests.test_role_assembly_review" name="test_changed_assembly_requires_one_nonempty_reason_per_change" time="0.071" /><testcase classname="tests.test_role_assembly_review" name="test_missing_latest_floor_requires_persisted_partial_delivery_reason" time="0.214" /><testcase classname="tests.test_role_assembly_review" name="test_old_plan_delivery_is_blocked_by_latest_same_target[False]" time="0.118" /><testcase classname="tests.test_role_assembly_review" name="test_timeout_fallback_runs_the_same_delivery_guard" time="0.012" /><testcase classname="tests.test_role_assembly_review" name="test_recovered_build_receipt_still_binds_and_checks_reader_floor" time="0.187" /><testcase classname="tests.test_role_assembly_review" name="test_old_plan_delivery_is_blocked_by_latest_same_target[True]" time="0.097" /></testsuite></testsuites>

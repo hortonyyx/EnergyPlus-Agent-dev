@@ -8,6 +8,7 @@ import copy
 import hashlib
 import io
 import json
+import re
 import time
 from contextlib import AsyncExitStack
 from pathlib import Path
@@ -54,7 +55,7 @@ def schema(properties, required=()):
 TASK_SCHEMA = schema({
     "task_id": {"type": "string"}, "role_id": {"enum": ["plan_reader", "elevation_reader"]},
     "image": {"type": "string"}, "target": {"type": "string", "minLength": 1},
-    "instructions": {"type": "string"},
+    "instructions": {"type": "string", "maxLength": 400},
     "origin": {"type": "string", "minLength": 1},
     "previous_task_id": {"type": "string"},
     "issues": {"type": "array", "items": {"type": "string"}},
@@ -76,7 +77,6 @@ ROLE_TASK_BUDGET = {
 }
 COORDINATOR_TASK_SCHEMA = schema({key: value for key, value in TASK_SCHEMA["properties"].items() if key != "budget"},
                                  (*TASK_SCHEMA["required"], "origin"))
-COORDINATOR_TASK_SCHEMA["properties"]["instructions"] = {"type": "string", "maxLength": 400}
 # Internal task admission still reads older saved tasks without an origin. The
 # model-facing schema requires one for every new dispatch.
 COORDINATOR_ORDINARY_TOOLS = frozenset({"inputs", "view_image", "inspect_candidate", "check_openings",
@@ -106,7 +106,7 @@ EXTRA_TOOLS = [
              "basis": {"enum": ["observed", "inferred"]}, "along_start_m": {"type": "number"},
              "along_end_m": {"type": "number"}, "text": {"type": "string", "minLength": 1}},
              ("action", "reason"))}}, ("candidate", "edits"))},
-    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently, plans first. Give floor/facade target and common origin. Optional instructions (400 characters) contain only building facts or specific rework questions; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
+    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently and wait until every task in this call ends. On the first call, admitted plan and cardinal-elevation drawings omitted from tasks are added with default targets and origin; the result lists them. Give floor/facade target and common origin. Optional instructions (at most 400 characters) contain only drawing facts or a specific rework problem; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
@@ -138,6 +138,48 @@ EXTRA_TOOLS.insert(2, {"name": "assemble_from_readers",
             "z_floor_evidence": LEVEL_REFERENCE_SCHEMA,
             "ceiling_height": {"type": "number", "exclusiveMinimum": 0},
             "ceiling_height_evidence": LEVEL_REFERENCE_SCHEMA}, ("floor_id",))}})})
+
+
+_DEFAULT_READER_ORIGIN = (
+    "Default common origin: southwest outer building corner at (0,0,0); "
+    "+x East, +y North, +z Up."
+)
+_CARDINAL_DRAWINGS = {f"{name.casefold()}_view.png": name
+                      for name in ("North", "South", "East", "West")}
+
+
+def _validate_task_instructions(tasks):
+    if not isinstance(tasks, list):
+        return
+    for index, task in enumerate(tasks):
+        if not isinstance(task, dict) or not isinstance(task.get("instructions"), str):
+            continue
+        excess = len(task["instructions"]) - 400
+        if excess > 0:
+            identity = task.get("task_id") or f"tasks[{index}]"
+            raise ValueError(f"reader task {identity} instructions exceed 400 characters by {excess}; "
+                             "instructions are optional and should contain only drawing facts or a "
+                             "specific rework problem")
+
+
+def _default_floor_target(image, index):
+    stem = Path(image).stem
+    match = re.fullmatch(r"(?i)(?:f(\d+)|(\d+)f)(?:_view)?", stem)
+    number = next((part for part in match.groups() if part is not None), None) if match else None
+    return "F" + number if number is not None else f"F{index + 1}"
+
+
+def _auto_task_id(role_id, image, used):
+    stem = re.sub(r"[^A-Za-z0-9_-]+", "_", Path(image).stem).strip("_") or "drawing"
+    prefix = "auto_plan" if role_id == "plan_reader" else "auto_elevation"
+    base = (prefix + "_" + stem)[:60]
+    candidate, number = base, 2
+    while candidate in used:
+        suffix = f"_{number}"
+        candidate = base[:64 - len(suffix)] + suffix
+        number += 1
+    used.add(candidate)
+    return candidate
 
 
 class RoleSession:
@@ -212,7 +254,11 @@ class RoleSession:
                         self.assembly.check(candidate, require_all=True)
                         self.assembly.guard()
                         self.positions.guard(candidate)
-                result = await self.frozen.call_tool(name, arguments)
+                if name == "check_openings":
+                    from .opening_checks import check_openings
+                    result = await check_openings(self, arguments)
+                else:
+                    result = await self.frozen.call_tool(name, arguments)
                 if name == "finish_bim" and not result.get("isError"):
                     self.positions.write_delivery(arguments["candidate"])
                 from scripts.tool_scripts.bim_agent_saved_result import result_metadata
@@ -229,6 +275,8 @@ class RoleSession:
                 # debug run2), so tolerate and drop it rather than block heights.
                 arguments = {key: value for key, value in arguments.items() if key != "confirm"}
             arguments = normalize_stringified_parameters(arguments, self.schemas[name])
+            if name == "delegate_readers":
+                _validate_task_instructions(arguments.get("tasks"))
             jsonschema.validate(arguments, self.schemas[name])
             if name == "edit_bim":
                 async with self.write_lock:
@@ -424,7 +472,12 @@ class RoleSession:
 
     def _task(self, arguments):
         from .submission import canonical_target, parse_target
+        from .trial import normalize_rework_targets
         arguments = normalize_stringified_parameters(arguments, TASK_SCHEMA)
+        _validate_task_instructions([arguments])
+        if "rework_targets" in arguments:
+            arguments = {**arguments,
+                         "rework_targets": normalize_rework_targets(arguments["rework_targets"])}
         jsonschema.validate(arguments, TASK_SCHEMA)
         arguments = {**arguments, "target": canonical_target(arguments["role_id"], arguments["target"])}
         valid_task_id(arguments["task_id"])
@@ -452,15 +505,56 @@ class RoleSession:
             task["coordinate_contract"]["units"] = ELEVATION_COORDINATES
         return task
 
-    def _with_plan_floors(self, tasks):
+    def _with_plan_floors(self, tasks, *, add_missing=False):
         """A facade target without floors names the plan floors (10-07 run4: a bare
         "South" reader invented floor "GF", which no plan floor matched)."""
         from .submission import canonical_target
+        tasks = [dict(task) if isinstance(task, dict) else task for task in tasks]
+        auto_added = []
+        if add_missing and self.manifest.get("image_kind") == "drawings":
+            explicit_origins = [task["origin"] for task in tasks if isinstance(task, dict)
+                                and isinstance(task.get("origin"), str) and task["origin"]]
+            default_origin = explicit_origins[0] if explicit_origins else _DEFAULT_READER_ORIGIN
+            explicit_images = {(task.get("role_id"), task.get("image")) for task in tasks
+                               if isinstance(task, dict)}
+            explicit_targets = set()
+            for task in tasks:
+                if not isinstance(task, dict) or task.get("role_id") not in {
+                        "plan_reader", "elevation_reader"} or not isinstance(task.get("target"), str):
+                    continue
+                target = canonical_target(task["role_id"], task["target"])
+                explicit_targets.add((task["role_id"], target.split("/", 1)[0]))
+            used_ids = {task.get("task_id") for task in tasks if isinstance(task, dict)}
+            plan_images = [image for image in self.manifest.get("floor_plan_images", [])
+                           if isinstance(image, str) and image in self.manifest.get("images", {})]
+            for index, image in enumerate(plan_images):
+                target = _default_floor_target(image, index)
+                if (("plan_reader", image) in explicit_images
+                        or ("plan_reader", target) in explicit_targets):
+                    continue
+                task = {"task_id": _auto_task_id("plan_reader", image, used_ids),
+                        "role_id": "plan_reader", "image": image, "target": target,
+                        "origin": default_origin}
+                tasks.append(task)
+                auto_added.append(task)
+            for image in self.manifest.get("images", {}):
+                facade = _CARDINAL_DRAWINGS.get(image.casefold()) if isinstance(image, str) else None
+                if facade is None or (("elevation_reader", image) in explicit_images
+                                      or ("elevation_reader", facade) in explicit_targets):
+                    continue
+                task = {"task_id": _auto_task_id("elevation_reader", image, used_ids),
+                        "role_id": "elevation_reader", "image": image, "target": facade,
+                        "origin": default_origin}
+                tasks.append(task)
+                auto_added.append(task)
         floors = {canonical_target("plan_reader", task["target"]) for task in tasks
                   if isinstance(task, dict) and task.get("role_id") == "plan_reader" and isinstance(task.get("target"), str)}
         floors |= {row["target"] for row in self.registry.records.values()
                    if row.get("role_id") == "plan_reader" and row.get("target")}
         if not floors:
+            if add_missing:
+                return tasks, [{key: task[key] for key in ("task_id", "role_id", "image", "target", "origin")}
+                               for task in auto_added]
             return tasks
         result = []
         for task in tasks:
@@ -469,14 +563,22 @@ class RoleSession:
                 if "/" not in target:
                     task = {**task, "target": target + "/" + ",".join(sorted(floors))}
             result.append(task)
+        if add_missing:
+            by_id = {task["task_id"]: task for task in result if isinstance(task, dict) and "task_id" in task}
+            return result, [{key: by_id[task["task_id"]][key]
+                             for key in ("task_id", "role_id", "image", "target", "origin")}
+                            for task in auto_added]
         return result
 
     async def delegate_many(self, tasks):
+        first_dispatch = not self.registry.records
+        prepared = self._with_plan_floors(tasks, add_missing=first_dispatch)
+        tasks, auto_added = prepared if first_dispatch else (prepared, [])
         identities = [task["task_id"] for task in tasks]
         if len(identities) != len(set(identities)):
             raise ValueError("reader task IDs must be unique within a batch")
         # Validate every dispatch before starting any model request.
-        admitted = [self._task(task) for task in self._with_plan_floors(tasks)]
+        admitted = [self._task(task) for task in tasks]
         for task in admitted:
             self.registry.admit(task)
 
@@ -491,7 +593,8 @@ class RoleSession:
         ordered = sorted(admitted, key=lambda task: task["role_id"] != "plan_reader")
         results = await asyncio.gather(*(one(task) for task in ordered))
         by_id = {row["task_id"]: row for row in results}
-        return {"status": "completed", "results": [by_id[identity] for identity in identities]}
+        return {"status": "completed", "results": [by_id[identity] for identity in identities],
+                "auto_added": auto_added}
 
     async def run_reader(self, task):
         from .readers import ReaderTools
@@ -607,6 +710,9 @@ class RoleSession:
             original_ref = child.put_bytes(raw_image, "image/png")
             runtime = await engine.run([{"role": "system", "content": guide}, {"role": "user", "content": content}],
                 image_originals={original_ref.sha256: original_ref}, resume=bool(child.events))
+            if task["role_id"] == "plan_reader":
+                runtime["plan_reader_progress"] = tools.progress(started_epoch=runtime.get("started_epoch"))
+                child.write_json("receipt.json", runtime)
             submitted = tools.submission.read()
             artifact = submitted["artifact"] if submitted is not None else None
             status = "completed" if artifact is not None else "failed"

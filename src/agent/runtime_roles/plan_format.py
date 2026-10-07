@@ -45,9 +45,6 @@ def _reader_example(example):
 
 
 READER_PLAN_EXAMPLE = _reader_example(PLAN_EXAMPLE)
-COMMON_ROOM_TYPES = ("office", "conference/meeting/multipurpose", "corridor", "lobby",
-                     "storage", "restroom", "stairwell")
-assert set(COMMON_ROOM_TYPES) <= set(ROOM_TYPES)
 
 
 def _object(properties, required):
@@ -163,8 +160,8 @@ def plan_format_errors(plan):
                 role = row.get("role") if collection == "space_seeds" else None
                 if isinstance(role, str) and (normalize(role) or "unknown") not in ROOM_TYPES:
                     errors.append({"path": f"plan.space_seeds[{index}].role",
-                                   "message": f"{role!r} is not a room_types code; omit role or use one such as "
-                                              + ", ".join(COMMON_ROOM_TYPES) + " (full list: get_bim_reference('room_types'))"})
+                                   "message": f"{role!r} is not a room_types code; choose from the full shared table "
+                                              "in the reader guide or get_bim_reference('room_types')"})
         errors.extend(_points_outside_footprint(value))
     return errors
 
