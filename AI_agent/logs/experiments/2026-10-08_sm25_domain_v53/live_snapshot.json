@@ -1,0 +1,147 @@
+{
+  "observed_utc": "2026-10-08T17:22:31.160150+00:00",
+  "elapsed_min": 104.63,
+  "last_event_id": "event-001380",
+  "event_age_seconds": 6.3,
+  "delivery_file": false,
+  "updates": [
+    {
+      "event": "event-001374",
+      "min": 104.35,
+      "task": "plan_f2b",
+      "tool": null,
+      "outcome": null,
+      "result": "{'event_type': 'run_lifecycle', 'action': 'stop', 'reason': 'root_time_budget_exhausted', 'retry_of_event_id': None, 'attempt': None, 'state_inspection_event_id': None, 'checkpoint': None, 'failure_stage': None, 'model_failure': None, 'partial_artifacts': [{'kind': 'sha256', 'uri': 'blobs/c9395560ecf765b259e6c31871898790efc95788a1597c94e92111d8e05956ba', 'media_type': 'application/octet-stream', 'sha256': 'c9395560ecf765b259e6c31871898790efc95788"
+    },
+    {
+      "event": "event-001379",
+      "min": 104.51,
+      "task": "coordinator",
+      "tool": null,
+      "outcome": null,
+      "result": "{'event_type': 'run_lifecycle', 'action': 'stop', 'reason': 'time_budget_exhausted', 'retry_of_event_id': None, 'attempt': None, 'state_inspection_event_id': None, 'checkpoint': None, 'failure_stage': None, 'model_failure': None, 'partial_artifacts': [{'kind': 'sha256', 'uri': 'blobs/b70684b5134f14181505524247891752e80938a61a973b9393272a96669a0fd5', 'media_type': 'application/octet-stream', 'sha256': 'b70684b5134f14181505524247891752e80938a61a973"
+    }
+  ],
+  "tasks": [
+    {
+      "task": "coordinator",
+      "end_min": 104.5,
+      "requests": 4,
+      "output_tokens": 1716,
+      "refused": 0,
+      "tools": {
+        "view_image": 2,
+        "delegate_readers": 2,
+        "inputs": 1
+      }
+    },
+    {
+      "task": "elev_east",
+      "end_min": 7.0,
+      "requests": 10,
+      "output_tokens": 12829,
+      "refused": 0,
+      "tools": {
+        "view_pixel_profile": 5,
+        "view_image": 4,
+        "inputs": 1,
+        "submit_elevation_reading": 1
+      }
+    },
+    {
+      "task": "elev_south",
+      "end_min": 3.9,
+      "requests": 6,
+      "output_tokens": 6598,
+      "refused": 1,
+      "tools": {
+        "view_pixel_profile": 3,
+        "view_image": 2,
+        "inputs": 1,
+        "submit_elevation_reading": 1
+      }
+    },
+    {
+      "task": "elev_north",
+      "end_min": 5.7,
+      "requests": 8,
+      "output_tokens": 10957,
+      "refused": 0,
+      "tools": {
+        "view_image": 3,
+        "view_pixel_region_overview": 2,
+        "submit_elevation_reading": 2,
+        "inputs": 1
+      }
+    },
+    {
+      "task": "elev_west",
+      "end_min": 5.9,
+      "requests": 5,
+      "output_tokens": 10049,
+      "refused": 2,
+      "tools": {
+        "view_image": 3,
+        "pixel_profile": 2,
+        "inputs": 1,
+        "submit_elevation_reading": 1
+      }
+    },
+    {
+      "task": "plan_f2",
+      "end_min": 47.5,
+      "requests": 9,
+      "output_tokens": 122829,
+      "refused": 1,
+      "tools": {
+        "view_pixel_profile": 7,
+        "view_image": 3,
+        "inputs": 1,
+        "view_plan_blocks": 1
+      }
+    },
+    {
+      "task": "plan_f1",
+      "end_min": 26.5,
+      "requests": 12,
+      "output_tokens": 75151,
+      "refused": 0,
+      "tools": {
+        "view_image": 8,
+        "pixel_profile": 3,
+        "trial_plan_bim": 3,
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "get_bim_reference": 1
+      }
+    },
+    {
+      "task": "plan_f2b",
+      "end_min": 104.4,
+      "requests": 28,
+      "output_tokens": 143437,
+      "refused": 1,
+      "tools": {
+        "trial_plan_bim": 15,
+        "view_image": 9,
+        "pixel_profile": 8,
+        "inputs": 1,
+        "view_plan_blocks": 1
+      }
+    },
+    {
+      "task": "plan_f1b",
+      "end_min": 93.7,
+      "requests": 18,
+      "output_tokens": 117461,
+      "refused": 0,
+      "tools": {
+        "view_image": 17,
+        "pixel_profile": 13,
+        "trial_plan_bim": 4,
+        "inputs": 1,
+        "view_plan_blocks": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+normalize_plan_fields=ok aliases=0
+resolve_plan_lengths=ok bindings=0
+resolve_plan_pixels=ok bindings=0
+failure_chain=chain_x_top
+failure_edge_index=6
+loop_ring_length=11
+current_ring_length=11
+current_segment_indices=[0, 1, 2, 3, 4, 5, 7, 8, 9, 10]
+current_footprint=[[281.0,300],[975.8,300],[975.8,963],[1439,963],[1439,1231],[512.6,1231],[512.6,1053],[513,973],[513.0,973],[513.0,588.0],[281.0,588.0]]
+target_pixels=[281.0,512.6,741.4208,793.2992,975.8,1439.0]
+exception=builtins.StopIteration: 
+Traceback (most recent call last):
+  File "C:\Users\Horton\Desktop\EnergyPlus-Agent-dev\AI_agent\logs\experiments\2026-10-08_sm25_domain_v53\unknown_write_diagnostic\replay_probe.py", line 66, in main
+    _reading_align(numeric, image_path=HERE / "1f_view.png", image_name="1f_view.png")
+  File "D:\EnergyPlus-Agent-worktrees\run-sm25-v53-20261008\src\agent\runtime_roles\trial.py", line 149, in _reading_align
+    result, dimension_report = align_plan_to_dimensions(result)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\EnergyPlus-Agent-worktrees\run-sm25-v53-20261008\src\agent\geometry\plan_dimension_alignment.py", line 387, in align_plan_to_dimensions
+    edge_changes, edge_rejections = _snap_footprint(
+                                    ^^^^^^^^^^^^^^^^
+  File "D:\EnergyPlus-Agent-worktrees\run-sm25-v53-20261008\src\agent\geometry\plan_dimension_alignment.py", line 210, in _snap_footprint
+    segment = next(row for row in _segments(plan["footprint_pixels"], closed=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+StopIteration

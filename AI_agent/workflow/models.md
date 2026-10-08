@@ -1,5 +1,7 @@
 # 开发与产品运行的模型使用约定
 
+**10-09 sm25 domain v53 实测用量：** 唯一获准整案由 GLM 订阅 `glm-5.3-flash` 担任全部角色，思考档请求 medium，runtime v1 / domain v53，分工模式。104.68 分钟未产生平面稿或交付稿；105 次请求、100 次响应，失败为 429×3、HTTP500×1、TimeoutError×1。已知响应报告 input 2,637,143、cache_read 1,753,920、output 501,027，合计 4,892,090 token（input 不含独立 cache 列）；失败请求无 usage，不作完整账单。图片估算与预算占用另列原始回执。Claude／Paratera／DeepSeek work model 调用均为 0，无付费回退。Codex 主助手与 3 位 GPT 侧 dev model 做全流程观察、纯函数重放与只读独立复核，开发 token 回执未取得，不估算；未启动额外 work model 验证。见[实测报告](../logs/experiments/2026-10-08_sm25_domain_v53/README.md)。
+
 **10-08 当前开发分配：** Codex（当前主助手）负责项目管理、技术取舍、派工、验收、集成、文档与收尾；不把其底层型号写成长期负责人身份。GPT 子代理按任务范围承担实现、分析或独立复核。Claude 账号当前不可用，Opus／Claude 不构成推进或验收的必需条件；恢复后由 Codex 按需安排。此管理接管不改变 work model 目标档、既有预算、DeepSeek 专项许可或节点整案审批边界，也不自动批准新的冷启动或付费批次。
 
 **10-08 接手收尾用量：** Codex 主助手与 3 位 `gpt-5.6-sol`／high 开发子代理完成核查、修复、证据核对和文档调整；该开发会话的完整 token 回执未取得，不估算。离线测试及历史产物重放不调用产品模型，本轮 Claude／GLM／Paratera／DeepSeek 产品请求均为 0。G1 原执行的开发用量保留在原派工事件文件，不计成本轮新增调用。见[接手记录](../logs/worklog/2026-10-08_codex_takeover_close.md)。
