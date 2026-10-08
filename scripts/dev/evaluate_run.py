@@ -122,14 +122,17 @@ def main():
     parser.add_argument("run", type=Path)
     parser.add_argument("--case", choices=sorted(CASES), required=True)
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--candidate", help="score this candidate when the run delivered nothing (stated in the summary)")
     args = parser.parse_args()
     root = args.run.resolve()
     bim = root / "bim" if (root / "bim/inputs.json").is_file() else root
     out = (args.out or root / "dev_evaluation").resolve()
     out.mkdir(parents=True, exist_ok=False)
     case = CASES[args.case]
-    candidate = load(bim / "delivery.json")["candidate"]
-    guarded = [bim / "inputs.json", bim / "delivery.json", ROOT / "case_tests/test_baseline/gt" / case / "gt.json",
+    delivered = (bim / "delivery.json").is_file()
+    candidate = args.candidate or load(bim / "delivery.json")["candidate"]
+    guarded = [bim / "inputs.json", *([bim / "delivery.json"] if delivered else []),
+               ROOT / "case_tests/test_baseline/gt" / case / "gt.json",
                *sorted(bim.glob("candidate_*/source_model.json"))]
     before = {str(p): digest(p) for p in guarded}
     evaluate(root, case, modelling_task="reconstruction", out=out / "evaluation",
@@ -146,6 +149,7 @@ def main():
     height_rows = quality["exterior_heights"].get("comparisons") or []
     summary = {
         "run": str(root), "case": case, "candidate": candidate,
+        "candidate_origin": "delivered" if delivered and not args.candidate else "chosen by the evaluator (run did not deliver)",
         "candidates_saved": len(list(bim.glob("candidate_*"))),
         "spaces_reference_candidate_matched": [comparison.get("reference_count"), comparison.get("candidate_count"),
                                                comparison.get("matched_count")],
@@ -167,7 +171,8 @@ def main():
                                 if r.get("overlay")],
                    "missing_overlays": [r.get("floor_id") or r.get("facade") for r in shown["plans"] + shown["elevations"]
                                         if not r.get("overlay")],
-                   "viewer": str(out / "display" / "viewer.html"), "run_delivery_page": str(bim / "delivery.html"),
+                   "viewer": str(out / "display" / "viewer.html"),
+                   "run_delivery_page": str(bim / "delivery.html") if delivered else None,
                    "evaluation_report": str(out / "evaluation" / "index.html")},
         "model_requests": 0}
     write(out / "summary.json", summary)
