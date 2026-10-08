@@ -72,3 +72,5 @@
 完整运行已拷回主树 `AI_agent/archive/local_backup/sm25_v53/sm25_role_v53/`，源与副本各两轮逐文件校验一致，共 **7,134 个文件、75,197,368 字节**。压缩包 **36,418,807 字节**，全部成员回读 SHA-256 一致，归档 SHA-256 为 `ef9b0f63417d350594743a242f8924cff35e722645c22c5998f58b83ed748c3c`。配置中的凭据值与私钥标记检查未命中。
 
 独立证据分支与远端核对见 [run_evidence_backup.json](run_evidence_backup.json)；逐文件清单见 [sm25_v53_run_manifest.json](sm25_v53_run_manifest.json)，复制与归档结果见 [run_copy_summary.json](run_copy_summary.json)和[归档摘要](sm25_v53_run_summary.json)。本次工作树收尾状态与下一次入口见[交接](../../worklog/2026-10-09_sm25_v53_observation_close.md)。
+
+**清理遗留：** Git 已收回本次工作树登记，但实体删除遇到长路径错误；随后针对本次已备份目录的 PowerShell 删除被自动审批以 `blocked by policy` 拒绝，未换途径重试。仍有 33,837 个可读文件、3,265,853,673 字节（约 3.27 GB）保留在原 D 盘目录，详情见[收尾回执](closure_receipt.json)。此前已被拒绝的旧残留没有重试。

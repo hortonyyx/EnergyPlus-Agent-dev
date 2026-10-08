@@ -42,4 +42,6 @@ work model 为 `glm-5.3-flash`，调度员、平面读图员、立面读图员�
 3. 针对首份建模声明格式、单线墙拓扑和具体返工反馈，收窄 domain/tools、roles、guidance 的改进；“printed segments_mm”可能诱发混写仅是假设，需有界验证，不能直接当根因。
 4. 提交可审阅的修复与最小验证结果后，再准备针对性的 work model 实测方案。本次单次授权已执行完，不自动追加整案。
 
-本次临时工作树与磁盘状态见[收尾回执](../experiments/2026-10-08_sm25_domain_v53/closure_receipt.json)。前次 v1/q1/q2 的权限受限目录、G1 约 3.27 GB 和旧 pytest 约 1.64 GB 残留继续按[前次交接](2026-10-08_codex_takeover_close.md)记录；本轮没有重试被策略拒绝的删除。
+本次报告提交 `d2639537` 已推送，完整证据分支已回读一致。Git 已收回本次工作树登记，`git worktree list` 仅剩主树；实体目录删除遇到 `Filename too long`。随后仅针对本次已核实并备份的 `D:/EnergyPlus-Agent-worktrees/run-sm25-v53-20261008` 使用 PowerShell 删除，被自动审批以 `blocked by policy` 拒绝，没有改用其他工具或路径重试。
+
+本次目录仍有 33,837 个可读文件、3,265,853,673 字节（约 3.27 GB），扫描没有权限错误。C / D 盘可用分别为 37,189,455,872 / 197,078,540,288 字节，约 34.64 / 183.54 GiB。详细状态见[收尾回执](../experiments/2026-10-08_sm25_domain_v53/closure_receipt.json)。这处是本轮新增残留；前次 v1/q1/q2 的权限受限目录、G1 约 3.27 GB 和旧 pytest 约 1.64 GB 残留继续按[前次交接](2026-10-08_codex_takeover_close.md)记录，本轮没有重试这些旧删除。不声称磁盘已全部清理。
