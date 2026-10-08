@@ -9,6 +9,7 @@ from src.agent.runtime_roles.guidance import (
     get_role_guide,
     get_role_tool_names,
 )
+from src.agent.runtime_roles.session import EXTRA_TOOLS
 
 
 def test_reader_guides_are_single_image_and_keep_corresponding_existing_method():
@@ -39,7 +40,12 @@ def test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft():
     guide = get_role_guide("coordinator")
     for name in get_role_tool_names("coordinator"):
         assert name in guide
-    assert "does not independently draft plan walls" in guide
+    assert "Do not draft walls or reread heights" in guide
+    assert "Every >30cm difference must be explicitly\ndecided before finish_bim" in guide
+    assert "Unchosen >30cm differences retain plan" not in guide
+    tool_text = " ".join(tool["description"] for tool in EXTRA_TOOLS)
+    assert ">30cm differences require an explicit decision before delivery" in tool_text
+    assert "unchosen items retain plan" not in tool_text
 
 
 def test_catalog_reports_exact_character_counts_and_unchanged_single_model():

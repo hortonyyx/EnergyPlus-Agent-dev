@@ -9,14 +9,12 @@ from __future__ import annotations
 
 import json
 import hashlib
-import math
 import runpy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
 from PIL import Image
-from shapely.geometry import LineString, Polygon
 
 from src.agent.runtime_roles.entry import parser
 from src.agent.runtime_roles.readers import validate_plan_artifact
@@ -232,48 +230,6 @@ def assembly_review(output: Path) -> dict[str, Any] | None:
     return json.loads(path.read_bytes())
 
 
-def checked_assembly_decisions(output: Path, expected_floors) -> dict[str, Any]:
-    """Script the coordinator's explicit review of Q1 geometry-only changes.
-
-    This is test input, not a production waiver: missing floors, changed opening
-    identities/connections, missing Q1 audit or excessive movement fail here.
-    """
-    review = assembly_review(output)
-    assert review and not review["blockers"]
-    assert review["require_all"]
-    assert set(review["checked_floors"]) == set(expected_floors)
-    candidate = output / "bim" / review["candidate"]
-    source = json.loads((candidate / "source_model.json").read_bytes())
-    audit = json.loads((candidate / "regularization_report.json").read_bytes())
-    assert audit["source_model_sha256"] == source["source_model_sha256"]
-    assert audit["reports"] and all(row["status"] == "pass" for row in audit["reports"])
-    decisions = []
-    for change in review["changes"]:
-        before, after = change["before"], change["after"]
-        assert before is not None and after is not None
-        if change["item"].startswith("rooms:"):
-            first, second = Polygon(before), Polygon(after)
-            assert first.is_valid and second.is_valid and not second.is_empty
-            assert len(first.interiors) == len(second.interiors)
-        else:
-            assert change["item"].startswith("openings:")
-            for field in ("kind", "exterior", "space_ids"):
-                assert before[field] == after[field]
-            first, second = LineString(before["xy"]), LineString(after["xy"])
-            assert abs(first.length - second.length) <= 0.000002
-        movement = first.hausdorff_distance(second)
-        assert movement < 0.30
-        decisions.append({
-            "change_id": change["change_id"],
-            "reason": (
-                f"Offline Q1 fixture review: {change['floor_id']} {change['item']} "
-                f"retains its identity and connections; geometric displacement "
-                f"is {movement:.6f} m and the candidate's recorded regularization passed."
-            ),
-        })
-    return {"review_id": review["review_id"], "decisions": decisions}
-
-
 class CoordinatorAdapter:
     def __init__(self, *, store, stages: list[Callable[[], dict[str, Any]]]):
         self.store = store
@@ -359,64 +315,65 @@ class D1Fixture:
     def _coordinator_stages(self):
         run = self.output / "bim"
 
-        def position_items():
+        def pending_positions():
             path = self.output / "role_position_review.json"
-            return [row for row in json.loads(path.read_bytes())["items"].values()
-                    if row["status"] == "pending"] if path.is_file() else []
+            if not path.is_file():
+                return []
+            return sorted(
+                (row for row in json.loads(path.read_bytes())["items"].values()
+                 if row["status"] == "pending"),
+                key=lambda row: row["decision_id"],
+            )
 
-        def view_position_evidence():
-            boxes = set()
-            for row in position_items():
-                if row["requires_both_views"]:
-                    for side in ("plan_evidence", "elevation_evidence"):
-                        evidence = row[side]
-                        box = evidence["bbox"]
-                        boxes.add((evidence["image"], (math.floor(box[0]), math.floor(box[1]),
-                                                      math.ceil(box[2]), math.ceil(box[3]))))
-            calls = [(f"position-view-{i}", "view_image", {"name": image, "box": list(box)})
-                     for i, (image, box) in enumerate(sorted(boxes))]
-            return response(*calls) if calls else response(("position-state", "role_state", {}))
+        def view_position_evidence(index):
+            rows = pending_positions()
+            assert len(rows) == 3
+            return response((
+                f"position-evidence-{index}",
+                "role_state",
+                {"position_decision_id": rows[index]["decision_id"]},
+            ))
 
         def decide_positions():
-            rows = position_items()
-            if not rows:
-                return response(("position-state-after", "role_state", {}))
-            views = [p.stem for p in sorted((run / "image_views").glob("view_*.json"))]
-            edits = [{"action": "position_decision", "decision_id": row["decision_id"],
-                      "choice": "keep_plan", "view_ids": views,
-                      "reason": "Offline replay retains the accepted plan interval after reading both saved observations; this scripted choice is not model-quality evidence."}
-                     for row in rows]
-            return response(("decide-positions", "edit_bim", {"candidate": _latest_candidate(run), "edits": edits}))
+            rows = pending_positions()
+            assert len(rows) == 3
+            views = [path.stem for path in sorted((run / "image_views").glob("view_*.json"))]
+            assert len(views) == 2 * len(rows)
+            edits = [{
+                "action": "position_decision",
+                "decision_id": row["decision_id"],
+                "choice": "keep_plan",
+                "view_ids": views[index * 2:index * 2 + 2],
+                "reason": (
+                    "Offline sm24 fixture: both saved original crops were viewed; "
+                    "retain the accepted plan interval because this replay fixture "
+                    "uses its accepted plan trial as the geometry basis. This is an "
+                    "explicit scripted choice, not model-quality evidence."
+                ),
+            } for index, row in enumerate(rows)]
+            return response((
+                "decide-positions", "edit_bim",
+                {"candidate": _latest_candidate(run), "edits": edits},
+            ))
 
-        def reassemble_decided():
-            path = self.output / "role_position_review.json"
-            decided = path.is_file() and any(row.get("decision") for row in json.loads(path.read_bytes())["items"].values())
-            return response(("reassemble-decided", "assemble_from_readers", {})) if decided else response(("final-position-state", "role_state", {}))
-
+        # Deterministic regularization needs no assembly acknowledgement. sm24
+        # retains three real >30 cm conflicts, so the scripted coordinator must
+        # view both saved reader crops and decide them before delivery.
         sequence: list[Callable[[], dict[str, Any]]] = [
             lambda: response(("coordinator-inputs", "inputs", {})),
             lambda: response(
                 ("coordinator-delegate", "delegate_readers", {"tasks": self.tasks})
             ),
             lambda: response(("assemble-readers", "assemble_from_readers", {})),
-            view_position_evidence,
-            decide_positions,
-            reassemble_decided,
         ]
-        if len(self.plan_artifacts) > 1:
-            # Cross-floor Q1 alignment legitimately changes accepted floor
-            # coordinates. Exercise the existing review gate before the height
-            # batch, then review the final candidate after the height write.
+        if self.case_name == "sm24":
             sequence.extend([
-                lambda: response((
-                    "review-aligned-floors", "review_role_assembly",
-                    checked_assembly_decisions(self.output, self.plan_artifacts),
-                )),
-                lambda: response(("resume-assembly", "assemble_from_readers", {})),
-                lambda: response((
-                    "review-final-assembly", "review_role_assembly",
-                    checked_assembly_decisions(self.output, self.plan_artifacts),
-                )),
+                lambda index=index: view_position_evidence(index)
+                for index in range(3)
+            ])
+            sequence.extend([
+                decide_positions,
+                lambda: response(("reassemble-decided", "assemble_from_readers", {})),
             ])
         sequence.extend(
             [

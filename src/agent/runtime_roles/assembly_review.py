@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 
 from src.agent_runtime.store import json_bytes
 
@@ -53,6 +54,323 @@ def compare_floor(expected, actual, floor):
     for row in changes:
         row["change_id"] = hashlib.sha256(json_bytes(row)).hexdigest()[:20]
     return changes
+
+
+_REGULARIZATION_COORDINATE_TOLERANCE_M = 2e-6
+_VIEW_COVERAGE_MARGIN_PX = 2
+
+
+def _review_identity(facts):
+    """Bind decisions only to inputs and findings that can change safety."""
+    material = {key: facts[key] for key in ("bindings", "changes", "blockers")}
+    return hashlib.sha256(json_bytes(material)).hexdigest()
+
+
+def _regularization_opening_adjustments(row):
+    """Validate explicit crossing-opening movements from the hashed audit."""
+    crossing_values = row.get("adjusted_crossing_opening_ids", [])
+    raw = row.get("opening_adjustments", [])
+    if (not isinstance(crossing_values, list) or not isinstance(raw, list)
+            or any(not isinstance(identity, str) for identity in crossing_values)
+            or len(set(crossing_values)) != len(crossing_values)):
+        return None
+    crossing = set(crossing_values)
+    adjustments = {}
+    for value in raw:
+        if not isinstance(value, dict) or not isinstance(value.get("opening_id"), str):
+            return None
+        identity, mode = value["opening_id"], value.get("mode")
+        if identity in adjustments or identity not in crossing or mode not in {
+                "translate_preserve_width", "open_passage_boundary_follow"}:
+            return None
+        ends = {}
+        for stage in ("before", "after"):
+            item = value.get(stage)
+            if (not isinstance(item, dict)
+                    or set(item) != {"p1", "p2", "world_p1", "world_p2", "width_m"}):
+                return None
+            if (isinstance(item["width_m"], bool)
+                    or not isinstance(item["width_m"], (int, float))
+                    or not math.isfinite(float(item["width_m"])) or item["width_m"] < 0):
+                return None
+            for key in ("p1", "p2", "world_p1", "world_p2"):
+                point = item[key]
+                if (not isinstance(point, (list, tuple)) or len(point) < 2
+                        or any(isinstance(number, bool) or not isinstance(number, (int, float))
+                               or not math.isfinite(float(number)) for number in point[:2])):
+                    return None
+            ends[stage] = item
+        deltas = value.get("jamb_deltas_m")
+        width_change = value.get("width_change_m")
+        if (not isinstance(deltas, dict) or set(deltas) != {"p1", "p2"}
+                or any(isinstance(number, bool) or not isinstance(number, (int, float))
+                       or not math.isfinite(float(number)) for number in deltas.values())
+                or isinstance(width_change, bool) or not isinstance(width_change, (int, float))
+                or not math.isfinite(float(width_change))
+                or not math.isclose(float(ends["after"]["width_m"])
+                                    - float(ends["before"]["width_m"]), float(width_change),
+                                    abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)):
+            return None
+        axis_index = 0 if row.get("axis") == "x" else 1
+        for key in ("p1", "p2"):
+            before_world = ends["before"]["world_" + key]
+            after_world = ends["after"]["world_" + key]
+            if (not math.isclose(float(after_world[axis_index]) - float(before_world[axis_index]),
+                                 float(deltas[key]),
+                                 abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                    or not math.isclose(float(after_world[1 - axis_index]),
+                                        float(before_world[1 - axis_index]),
+                                        abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)):
+                return None
+        for stage in ("before", "after"):
+            world_width = math.dist(ends[stage]["world_p1"][:2], ends[stage]["world_p2"][:2])
+            if not math.isclose(world_width, float(ends[stage]["width_m"]),
+                                abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M):
+                return None
+        if mode == "translate_preserve_width":
+            if (value.get("inference") != {"basis": "entity_opening_width_preserved"}
+                    or not math.isclose(float(deltas["p1"]), float(deltas["p2"]),
+                                        abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                    or float(width_change) != 0.0
+                    or not math.isclose(float(ends["before"]["width_m"]),
+                                        float(ends["after"]["width_m"]),
+                                        abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)):
+                return None
+        else:
+            inference = value.get("inference")
+            boundary_ids = value.get("boundary_ids")
+            before_offsets = value.get("boundary_offsets_before_m")
+            after_offsets = value.get("boundary_offsets_after_m")
+            if (inference != {
+                    "basis": "structured_complete_open_passage_compatibility",
+                    "state": "open", "structured_gap_support": True,
+                    "complete_between_terminal_boundaries": True,
+                    "hard_width_reference": False,
+                    } or not isinstance(boundary_ids, dict) or set(boundary_ids) != {"p1", "p2"}
+                    or any(not isinstance(item, str) for item in boundary_ids.values())
+                    or not isinstance(before_offsets, dict) or set(before_offsets) != {"p1", "p2"}
+                    or not isinstance(after_offsets, dict) or set(after_offsets) != {"p1", "p2"}
+                    or any(isinstance(number, bool) or not isinstance(number, (int, float))
+                           or not math.isfinite(float(number))
+                           for number in [*before_offsets.values(), *after_offsets.values()])
+                    or any(not math.isclose(float(before_offsets[key]), float(after_offsets[key]),
+                                            abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                           for key in ("p1", "p2"))):
+                return None
+        adjustments[identity] = {
+            "mode": mode,
+            "before_world": sorted(tuple(float(number) for number in ends["before"][key][:2])
+                                   for key in ("world_p1", "world_p2")),
+            "after_world": sorted(tuple(float(number) for number in ends["after"][key][:2])
+                                  for key in ("world_p1", "world_p2")),
+        }
+    return adjustments if set(adjustments) == crossing else None
+
+
+def _regularization_moves(report, floor):
+    """Return audited coordinate substitutions for one floor, or no exemptions.
+
+    Only the deterministic plan-stack rule is eligible. Unknown change types,
+    malformed distances, collapses, or an observed topology change make the
+    whole report ineligible instead of weakening the reader-fact gate.
+    """
+    if (not isinstance(report, dict)
+            or report.get("schema") not in {"plan_regularization_report_v1",
+                                             "plan_stack_regularization_report_v1"}
+            or report.get("rule_version") != "plan_regularization_v1"
+            or report.get("status") != "pass"):
+        return []
+    coordinate_types = {"move_wall_line", "move_footprint_edge",
+                        "merge_duplicate_wall_into_fixed_footprint",
+                        "retain_openings_on_merged_wall"}
+    moves = []
+    for row in report.get("changes", []):
+        if not isinstance(row, dict) or row.get("type") not in coordinate_types:
+            return []
+        axis, before, after = row.get("axis"), row.get("from_m"), row.get("to_m")
+        distance = row.get("movement_m")
+        span = row.get("span_m")
+        if (axis not in {"x", "y"} or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(float(value)) for value in (before, after, distance))
+                or not isinstance(span, (list, tuple)) or len(span) != 2
+                or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                       or not math.isfinite(float(value)) for value in span)
+                or not math.isclose(abs(float(after) - float(before)), abs(float(distance)),
+                                    abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                or row.get("blocked_collapses")
+                or ("before_relationships" in row and row.get("before_relationships") != row.get("after_relationships"))):
+            return []
+        if (row["type"] == "retain_openings_on_merged_wall"
+                and (float(before) != float(after) or float(distance) != 0.0)):
+            return []
+        adjustments = _regularization_opening_adjustments(row)
+        if adjustments is None:
+            return []
+        if row.get("floor_id") == floor:
+            object_ids = row.get("object_ids") if isinstance(row.get("object_ids"), dict) else {}
+            openings = {*row.get("opening_ids", []), *row.get("moved_opening_ids", []),
+                        *object_ids.get("openings", [])}
+            moves.append({"axis": axis, "from_m": float(before), "to_m": float(after),
+                          "span_m": sorted(float(value) for value in span),
+                          "opening_ids": openings,
+                          "crossing_opening_ids": set(row.get("adjusted_crossing_opening_ids", [])),
+                          "opening_adjustments": adjustments,
+                          "collapse_backtrack": row["type"] == "merge_duplicate_wall_into_fixed_footprint",
+                          "type": row["type"]})
+    return moves
+
+
+def _regularized_points(points, moves):
+    result = []
+    for point in points:
+        moved = list(point)
+        for row in moves:
+            index = 0 if row["axis"] == "x" else 1
+            along = moved[1 - index]
+            if (math.isclose(moved[index], row["from_m"],
+                             abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                    and row["span_m"][0] - _REGULARIZATION_COORDINATE_TOLERANCE_M <= along
+                    <= row["span_m"][1] + _REGULARIZATION_COORDINATE_TOLERANCE_M):
+                moved[index] = row["to_m"]
+        result.append(tuple(moved))
+    return result
+
+
+def _points_close(left, right):
+    return len(left) == len(right) and all(
+        len(a) == len(b) and all(math.isclose(x, y, abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                                 for x, y in zip(a, b, strict=True))
+        for a, b in zip(left, right, strict=True))
+
+
+def _audited_zero_width_backtrack(left, middle, right, moves):
+    """Recognize only the exact zero-width excursion created by a strip merge."""
+    for row in moves:
+        if not row.get("collapse_backtrack"):
+            continue
+        index = 0 if row["axis"] == "x" else 1
+        if not all(math.isclose(point[index], row["to_m"],
+                                abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                   for point in (left, middle, right)):
+            continue
+        along = [point[1 - index] for point in (left, middle, right)]
+        lo, hi = row["span_m"]
+        if ((math.isclose(along[1], lo, abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+             and any(math.isclose(value, hi, abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                     for value in (along[0], along[2])))
+                or (math.isclose(along[1], hi, abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                    and any(math.isclose(value, lo, abs_tol=_REGULARIZATION_COORDINATE_TOLERANCE_M)
+                            for value in (along[0], along[2])))):
+            return True
+    return False
+
+
+def _simplified_ring(points, *, backtrack_moves=()):
+    """Canonicalize a ring while ignoring duplicate/collinear tessellation points."""
+    rows = [tuple(float(value) for value in point[:2]) for point in points]
+    compact = []
+    for point in rows:
+        if not compact or not _points_close([compact[-1]], [point]):
+            compact.append(point)
+    if len(compact) > 1 and _points_close([compact[0]], [compact[-1]]):
+        compact.pop()
+    changed = True
+    while changed and len(compact) > 3:
+        changed = False
+        for index, middle in enumerate(compact):
+            left, right = compact[index - 1], compact[(index + 1) % len(compact)]
+            cross = ((middle[0] - left[0]) * (right[1] - left[1])
+                     - (middle[1] - left[1]) * (right[0] - left[0]))
+            baseline = math.hypot(right[0] - left[0], right[1] - left[1])
+            between = all(min(a, c) - _REGULARIZATION_COORDINATE_TOLERANCE_M <= b
+                          <= max(a, c) + _REGULARIZATION_COORDINATE_TOLERANCE_M
+                          for a, b, c in zip(left, middle, right, strict=True))
+            audited_backtrack = (not between and _audited_zero_width_backtrack(
+                left, middle, right, backtrack_moves
+            ))
+            if (abs(cross) <= _REGULARIZATION_COORDINATE_TOLERANCE_M * baseline
+                    and (between or audited_backtrack)):
+                compact.pop(index)
+                changed = True
+                break
+    return _ring(compact)
+
+
+def _regularized_ring(points, moves):
+    """Apply audits in order, collapsing a merge excursion before later moves."""
+    result = [tuple(point) for point in points]
+    applied = []
+    for row in moves:
+        result = _regularized_points(result, [row])
+        applied.append(row)
+        compact = []
+        for point in result:
+            if not compact or not _points_close([compact[-1]], [point]):
+                compact.append(point)
+        if len(compact) > 1 and _points_close([compact[0]], [compact[-1]]):
+            compact.pop()
+        changed = True
+        while changed and len(compact) > 3:
+            changed = False
+            for index, middle in enumerate(compact):
+                left, right = compact[index - 1], compact[(index + 1) % len(compact)]
+                cross = ((middle[0] - left[0]) * (right[1] - left[1])
+                         - (middle[1] - left[1]) * (right[0] - left[0]))
+                baseline = math.hypot(right[0] - left[0], right[1] - left[1])
+                if (abs(cross) <= _REGULARIZATION_COORDINATE_TOLERANCE_M * baseline
+                        and _audited_zero_width_backtrack(left, middle, right, applied)):
+                    compact.pop(index)
+                    changed = True
+                    break
+        result = compact
+    return _simplified_ring(result)
+
+
+def _regularized_opening_options(points, moves, identity):
+    """Replay only explicit audited opening movements, preserving their order."""
+    options = [list(tuple(point) for point in points)]
+    for row in moves:
+        adjustment = row["opening_adjustments"].get(identity)
+        if adjustment is None:
+            moved = [_regularized_points(option, [row]) for option in options]
+        else:
+            moved = []
+            for option in options:
+                if _points_close(sorted(option), adjustment["before_world"]):
+                    moved.append(adjustment["after_world"])
+        unique = {}
+        for option in moved:
+            unique[tuple(sorted(option))] = option
+        options = list(unique.values())
+    return [sorted(option) for option in options]
+
+
+def accepted_regularization_changes(changes, report, floor):
+    """Separate exact, audited deterministic movement from reader geometry edits."""
+    moves = _regularization_moves(report, floor)
+    if not moves:
+        return [], changes
+    accepted, remaining = [], []
+    moved_openings = set().union(*(row["opening_ids"] for row in moves))
+    for change in changes:
+        before, after = change.get("before"), change.get("after")
+        item = change.get("item", "")
+        allowed = False
+        if item.startswith("rooms:") and before is not None and after is not None:
+            transformed = _regularized_ring(before, moves)
+            allowed = _points_close(transformed, _simplified_ring(after))
+        elif item.startswith("openings:") and before is not None and after is not None:
+            identity = item.split(":", 1)[1]
+            unchanged = {key: before.get(key) for key in ("kind", "space_ids", "exterior")} == {
+                key: after.get(key) for key in ("kind", "space_ids", "exterior")}
+            transformed = _regularized_opening_options(before.get("xy", []), moves, identity)
+            allowed = (identity in moved_openings and unchanged
+                       and any(_points_close(option, after.get("xy", [])) for option in transformed))
+        if allowed:
+            accepted.append({**change, "classification": "deterministic_regularization"})
+        else:
+            remaining.append(change)
+    return accepted, remaining
 
 
 class AssemblyReview:
@@ -126,13 +444,83 @@ class AssemblyReview:
         scope = [current[target] for target in sorted(current)]
         return scope, sorted(used), changes, blockers
 
+    def _regularization_report(self, candidate):
+        """Find the hashed assembly receipt inherited by this candidate."""
+        seen = set()
+        while candidate and candidate not in seen:
+            seen.add(candidate)
+            source = self.session._source(candidate)
+            provenance = source.get("generation", {}).get("provenance", {})
+            assembly = provenance.get("plan_assembly")
+            plan_input = provenance.get("plan_input")
+            reference = assembly if isinstance(assembly, dict) else None
+            direct_report = False
+            if reference is None and isinstance(plan_input, dict):
+                reference = plan_input.get("regularization_report")
+                direct_report = True
+            if isinstance(reference, dict) and isinstance(reference.get("file"), str):
+                path = (self.session.run_directory / reference["file"]).resolve()
+                if (not path.is_relative_to(self.session.run_directory.resolve()) or not path.is_file()
+                        or hashlib.sha256(path.read_bytes()).hexdigest() != reference.get("sha256")):
+                    raise ValueError("regularization receipt is missing, outside the run, or changed")
+                receipt = json.loads(path.read_bytes())
+                return receipt if direct_report else self._assembly_regularization(receipt)
+            candidate = provenance.get("parent_candidate")
+        return None
+
+    def _assembly_regularization(self, receipt):
+        """Merge hash-bound single-floor audits before the stack audit."""
+        stack = receipt.get("regularization") if isinstance(receipt, dict) else None
+        floors = receipt.get("floors") if isinstance(receipt, dict) else None
+        if floors is None:
+            return stack
+        if not isinstance(floors, list) or not isinstance(stack, dict):
+            raise ValueError("plan assembly regularization receipt is malformed")
+        draft_root = (self.session.run_directory / "plan_drafts").resolve()
+        reports = []
+        for row in floors:
+            if not isinstance(row, dict) or not all(
+                    isinstance(row.get(key), str)
+                    for key in ("draft_id", "expected_plan_sha256", "floor_id")):
+                raise ValueError("plan assembly floor receipt is malformed")
+            plan_path = (draft_root / row["draft_id"] / "plan.json").resolve()
+            if not plan_path.is_relative_to(draft_root) or not plan_path.is_file():
+                raise ValueError("plan assembly floor plan is missing or outside the run")
+            raw = plan_path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != row["expected_plan_sha256"]:
+                raise ValueError("plan assembly floor plan changed")
+            plan = json.loads(raw)
+            if plan.get("floor_id") != row["floor_id"]:
+                raise ValueError("plan assembly floor identity changed")
+            if isinstance(plan.get("regularization"), dict):
+                reports.append(plan["regularization"])
+        floor_reports = stack.get("floor_reports", {})
+        if floor_reports is not None and not isinstance(floor_reports, dict):
+            raise ValueError("plan assembly floor reports are malformed")
+        for row in floors:
+            report = (floor_reports or {}).get(row["floor_id"])
+            if isinstance(report, dict):
+                reports.append(report)
+        reports.append(stack)
+        if any(report.get("schema") not in {"plan_regularization_report_v1",
+                                               "plan_stack_regularization_report_v1"}
+               or report.get("rule_version") != "plan_regularization_v1"
+               or report.get("status") != "pass"
+               or not isinstance(report.get("changes", []), list)
+               for report in reports):
+            return None
+        return {"schema": "plan_stack_regularization_report_v1",
+                "rule_version": "plan_regularization_v1", "status": "pass",
+                "changes": [change for report in reports for change in report.get("changes", [])]}
+
     def check(self, candidate, *, require_all=False):
         bindings = self._load("role_floor_sources.json", {})
         if not bindings and not require_all:
             return None
         source = self.session._source(candidate)
         actual_floors = {row["floor_id"] for row in source["spaces"]}
-        changes, checked, blockers = [], [], []
+        changes, regularization_changes, checked, blockers = [], [], [], []
+        regularization = self._regularization_report(candidate)
         for floor, binding in bindings.items():
             if floor not in actual_floors and not require_all:
                 continue
@@ -146,7 +534,10 @@ class AssemblyReview:
             raw = path.read_bytes()
             if hashlib.sha256(raw).hexdigest() != binding["source_sha256"]:
                 raise ValueError("accepted trial source hash changed")
-            changes.extend(compare_floor(json.loads(raw), source, floor))
+            floor_changes = compare_floor(json.loads(raw), source, floor)
+            accepted, floor_changes = accepted_regularization_changes(floor_changes, regularization, floor)
+            regularization_changes.extend(accepted)
+            changes.extend(floor_changes)
             checked.append(floor)
         if require_all:
             for floor in sorted(actual_floors - set(bindings)):
@@ -162,9 +553,13 @@ class AssemblyReview:
         facts = {"candidate": candidate, "require_all": require_all, "source_sha256": hashlib.sha256(
             (self.session.run_directory / candidate / "source_model.json").read_bytes()).hexdigest(),
             "bindings": bindings, "checked_floors": checked, "changes": changes,
+            "regularization_changes": regularization_changes,
             "delivery_scope": delivery_scope, "used_plan_tasks": used_plan_tasks,
             "blockers": blockers}
-        identity = hashlib.sha256(json_bytes(facts)).hexdigest()
+        # Candidate hashes, checked floors, accepted regularization, and caller
+        # scope are diagnostic. Missing floors and lineage remain material
+        # because they are represented by changes/blockers.
+        identity = _review_identity(facts)
         old = self._load("role_assembly_reviews/" + identity + ".json", {})
         status = "blocked" if blockers else ("needs_review" if changes else "unchanged")
         report = {**facts, "review_id": identity, "status": status}
@@ -331,6 +726,16 @@ class PositionReview:
                 row["status"] = previous["status"]
                 row["host_boundary_id"] = previous["host_boundary_id"]
                 row["space_ids"] = previous["space_ids"]
+            elif row["bucket"] == "10_30cm":
+                row["decision"] = {
+                    "choice": "keep_plan",
+                    "reason": "10-30 cm plan/elevation difference: retain the accepted plan position by policy.",
+                    "views": [],
+                    "plan_evidence": row["plan_evidence"],
+                    "elevation_evidence": row["elevation_evidence"],
+                    "automatic": True,
+                }
+                row["status"] = "decided"
             for key, old in list(state["items"].items()):
                 if (old["orientation"], old["source_opening_id"]) == (row["orientation"], row["source_opening_id"]):
                     del state["items"][key]
@@ -382,15 +787,18 @@ class PositionReview:
         rows = sorted(self.current()["items"].values(), key=lambda row: (
             -max(row["max_difference_m"] if row["max_difference_m"] is not None else float("inf"),
                  row.get("evidence_max_difference_m", 0)), row["decision_id"]))
-        return {"pending": [{"decision_id": row["decision_id"], "opening": row["source_opening_id"],
+        pending = [{"decision_id": row["decision_id"], "opening": row["source_opening_id"],
             "facade": row["orientation"], "difference_cm": (
                 round(row["max_difference_m"] * 100, 1) if row["max_difference_m"] is not None else None),
             "ink_difference_cm": round(row.get("ink_max_difference_m", 0) * 100, 1),
             "ink_issue_count": len(row.get("ink_inconsistencies", [])),
             "numeric_width_conflict": bool(row.get("width_span_conflict")),
             "both_views_required": row["requires_both_views"], "status": row["status"]}
-            for row in rows if row["status"] in {"pending", "reread"}],
-            "receipt_file": "role_position_review.json"}
+            for row in rows if row["status"] in {"pending", "reread"}]
+        return {"pending": pending,
+                "delivery_blocking": list(pending),
+                "delivery_defaults": [],
+                "receipt_file": "role_position_review.json"}
 
     def guard(self, candidate):
         state = self.refresh(candidate)
@@ -430,8 +838,11 @@ class PositionReview:
                 if hashlib.sha256((self.session.run_directory / "images" / image).read_bytes()).hexdigest() != manifest["sha256"]:
                     raise ValueError("position evidence image changed")
                 if not any(v.get("name") == image and v.get("image_sha256") == manifest["sha256"]
-                           and (b := v.get("box_original_pixels")) and b[0] <= box[0] and b[1] <= box[1]
-                           and b[2] >= box[2] and b[3] >= box[3] for v in views):
+                           and (b := v.get("box_original_pixels"))
+                           and b[0] <= box[0] + _VIEW_COVERAGE_MARGIN_PX
+                           and b[1] <= box[1] + _VIEW_COVERAGE_MARGIN_PX
+                           and b[2] >= box[2] - _VIEW_COVERAGE_MARGIN_PX
+                           and b[3] >= box[3] - _VIEW_COVERAGE_MARGIN_PX for v in views):
                     raise ValueError("over 30 cm: view_image must cover both reader evidence boxes; supply their view_ids")
         return views
 
@@ -458,7 +869,7 @@ class PositionReview:
             choice, reason = edit.get("choice"), edit["reason"].strip()
             if not reason or choice not in {"keep_plan", "use_elevation", "reread_plan", "reread_elevation"}:
                 raise ValueError("position decision requires a choice and a concrete reason")
-            if row.get("decision") and not prior:
+            if row.get("decision") and not row["decision"].get("automatic") and not prior:
                 raise ValueError("position decision is already recorded; reassemble changed reader evidence")
             if row["plan_span_m"] is None and not choice.startswith("reread_"):
                 raise ValueError("independent plan reading is unavailable; request a reader re-read with the missing opening")
@@ -503,7 +914,7 @@ class PositionReview:
         """Role-only report attachment, also after fallback regenerates delivery."""
         import html
         self.guard(candidate)
-        state = self.current()
+        state = json.loads(json_bytes(self.current()))
         root = self.session.run_directory
         state["assembly_scope"] = self._scope_record(candidate)
         path = root / "delivery.json"

@@ -12,10 +12,276 @@ import hashlib
 import json
 import math
 from itertools import combinations
+from pathlib import Path
 
 from src.agent_runtime.store import json_bytes
 
 IMAGE_EVIDENCE = {"annotation", "annotation_and_pixels", "pixels", "visual_estimate"}
+
+
+def _review_id(record):
+    return hashlib.sha256(json_bytes(record)).hexdigest()
+
+
+def _reader_image(session, artifact, task_id):
+    name = artifact["image"]
+    info = session.manifest["images"][name]
+    task = session.registry.task(task_id)
+    raw = (session.run_directory / "images" / name).read_bytes()
+    if (hashlib.sha256(raw).hexdigest() != info["sha256"]
+            or task["input_sha256"] != info["sha256"]):
+        raise ValueError("height evidence original changed since reader admission")
+    return name, info
+
+
+def _persist_reader_evidence(session, *, task_id, artifact, bindings, location=None):
+    """Save a hash-addressed receipt for reader rows already verified by registry."""
+    record_ref = session.registry.records[task_id]["artifact"]
+    name, info = _reader_image(session, artifact, task_id)
+    record = {
+        "schema_version": "role_height_artifact_evidence_v2",
+        "image": name,
+        "image_sha256": info["sha256"],
+        "facade": artifact["orientation"],
+        "reader_task_id": task_id,
+        "reader_artifact_sha256": record_ref["sha256"],
+        "normalized_artifact_sha256": artifact["artifact_sha256"],
+        "bindings": sorted(bindings, key=lambda row: (
+            row["source_opening_id"], row["artifact_opening_id"])),
+        "basis": (
+            "Immutable delivered elevation-reader artifact row, exact original-image bbox, "
+            "and a one-to-one current source-opening match."
+        ),
+    }
+    if location is not None:
+        record["role_height_evidence"] = location
+        if location.get("status") == "prepared":
+            record["transform"] = location["transform"]
+    identity = _review_id(record)
+    folder = session.run_directory / "elevation_reviews"
+    folder.mkdir(exist_ok=True)
+    existing = [json.loads(path.read_bytes()) for path in sorted(folder.glob("review_*.json"))]
+    prior = next((row for row in existing if row.get("role_evidence_id") == identity), None)
+    if prior is not None:
+        if {key: value for key, value in prior.items() if key != "role_evidence_id"} != record:
+            raise ValueError("saved role height evidence changed")
+    else:
+        index = len(existing) + 1
+        while True:
+            try:
+                with (folder / f"review_{index:04d}.json").open(
+                    "x", encoding="utf-8", newline="\n"
+                ) as stream:
+                    stream.write(json.dumps(
+                        {**record, "role_evidence_id": identity},
+                        ensure_ascii=False, indent=2,
+                    ) + "\n")
+                break
+            except FileExistsError:
+                index += 1
+    return identity
+
+
+def _binding(artifact, matched):
+    by_id = {row["id"]: row for row in artifact["openings"]}
+    row = by_id[matched["artifact_opening_id"]]
+    return {
+        "artifact_opening_id": row["id"],
+        "source_opening_id": matched["source_opening_id"],
+        "kind": "window" if row["kind"] == "window" else "opening",
+        "floor_id": row["floor_id"],
+        "image": artifact["image"],
+        "original_bbox": row["bbox"],
+        "height_m": [row["sill_m"], row["head_m"]],
+        "evidence_type": row["evidence_type"],
+    }
+
+
+def _entry_target(entry):
+    objects = entry.get("claim", {}).get("objects", [])
+    if len(objects) != 1:
+        raise ValueError("reader height entry must target exactly one opening")
+    return objects[0]
+
+
+def _attach_reference(entry, *, evidence_id, task_id, artifact_sha256, binding):
+    source = entry["claim"]["sources"][0]
+    source.update(image=binding["image"], box=list(binding["original_bbox"]))
+    entry["reader_evidence"] = {
+        "evidence_id": evidence_id,
+        "task_id": task_id,
+        "artifact_sha256": artifact_sha256,
+        "artifact_opening_id": binding["artifact_opening_id"],
+    }
+
+
+def resolve_manual_height_evidence(
+    session, candidate, opening_id, sill, head, reader_evidence,
+):
+    """Resolve an explicit manual edit to one immutable delivered reader row.
+
+    ``reader_evidence`` is exactly ``{task_id, sha256, opening_id}``.  The row,
+    height, current BIM object and one-to-one elevation match must all agree.
+    The caller can then use the returned source and ``reader_evidence`` member in
+    the ordinary atomic role-height entry.
+    """
+    required = {"task_id", "sha256", "opening_id"}
+    if not isinstance(reader_evidence, dict) or set(reader_evidence) != required:
+        raise ValueError(f"reader_evidence must contain exactly {sorted(required)}")
+    if any(not isinstance(reader_evidence[key], str) or not reader_evidence[key]
+           for key in required):
+        raise ValueError("reader_evidence values must be nonempty strings")
+    task_id = reader_evidence["task_id"]
+    artifact_ref = reader_evidence["sha256"]
+    artifact = session.registry.read(task_id, sha256=artifact_ref, role_id="elevation_reader")
+    from .elevation import match_elevation, validate_elevation_artifact
+    artifact = validate_elevation_artifact(artifact)
+    rows = [row for row in artifact["openings"] if row["id"] == reader_evidence["opening_id"]]
+    if len(rows) != 1:
+        raise ValueError("reader_evidence.opening_id must name exactly one delivered opening")
+    row = rows[0]
+    if row["evidence_type"] not in IMAGE_EVIDENCE:
+        raise ValueError("reader opening has no original-image height evidence")
+    if [float(sill), float(head)] != [row["sill_m"], row["head_m"]]:
+        raise ValueError("manual height must equal the cited reader opening height")
+    result = match_elevation(session._source(candidate), artifact, candidate=candidate)
+    identity_pairs = [*result["matches"], *[
+        row for row in result["conflicts"]
+        if row.get("type") == "position_or_width_conflict" and not row.get("ambiguous")
+    ]]
+    matches = [matched for matched in identity_pairs
+               if matched["artifact_opening_id"] == row["id"]
+               and matched["source_opening_id"] == opening_id]
+    if len(matches) != 1:
+        raise ValueError("reader opening is not uniquely matched to the manual height target")
+    binding = _binding(artifact, matches[0])
+    evidence_id = _persist_reader_evidence(
+        session, task_id=task_id, artifact=artifact, bindings=[binding]
+    )
+    return {
+        "image": binding["image"],
+        "bbox": list(binding["original_bbox"]),
+        "reader_evidence": {
+            "evidence_id": evidence_id,
+            "task_id": task_id,
+            "artifact_sha256": artifact_ref,
+            "artifact_opening_id": binding["artifact_opening_id"],
+        },
+    }
+
+
+def reader_height_reviews(run):
+    """Return only internally consistent receipts created by the role runtime."""
+    result = {}
+    folder = Path(run) / "elevation_reviews"
+    for path in sorted(folder.glob("review_*.json")):
+        try:
+            row = json.loads(path.read_bytes())
+            identity = row.pop("role_evidence_id")
+            if row.get("schema_version") != "role_height_artifact_evidence_v2":
+                continue
+            if identity != _review_id(row):
+                continue
+            if not isinstance(row.get("bindings"), list):
+                continue
+            result[identity] = {**row, "role_evidence_id": identity}
+        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+            continue
+    return result
+
+
+def verified_reader_height_reference(run, reference, *, target, value, source):
+    """Resolve one persisted reference only when every saved identity agrees."""
+    if not isinstance(reference, dict):
+        return None
+    reviews = reader_height_reviews(run)
+    review = reviews.get(reference.get("evidence_id"))
+    if review is None:
+        return None
+    if (reference.get("task_id") != review.get("reader_task_id")
+            or reference.get("artifact_sha256") != review.get("reader_artifact_sha256")):
+        return None
+    matches = [row for row in review["bindings"]
+               if row.get("artifact_opening_id") == reference.get("artifact_opening_id")
+               and row.get("source_opening_id") == target.get("id")
+               and row.get("kind") == target.get("kind")
+               and row.get("height_m") == value
+               and row.get("image") == source.get("image")
+               and row.get("original_bbox") == source.get("box")
+               and row.get("evidence_type") in IMAGE_EVIDENCE]
+    if len(matches) != 1:
+        return None
+    return {
+        **reference,
+        "image": matches[0]["image"],
+        "box": matches[0]["original_bbox"],
+        "height_m": matches[0]["height_m"],
+        "verification": "persisted_delivered_reader_binding",
+    }
+
+
+def delivered_reader_height_index(run, source, candidate):
+    """Reconstruct legacy exact bindings from real adjacent reader deliveries.
+
+    This is deliberately strict: the original image, artifact bytes, exact row
+    bbox/value and a fresh one-to-one match to the current source must agree.
+    Duplicate exact rows are omitted instead of guessed.
+    """
+    run = Path(run).resolve()
+    root = run.parent
+    tasks = root / "tasks"
+    if not tasks.is_dir():
+        return {}
+    from .elevation import match_elevation, validate_elevation_artifact
+
+    found = {}
+    for record_path in sorted(tasks.glob("*/reader_record.json")):
+        try:
+            record = json.loads(record_path.read_bytes())
+            ref = record["artifact"]
+            if (record.get("role_id") != "elevation_reader"
+                    or record.get("status") != "completed" or not isinstance(ref, dict)):
+                continue
+            artifact_path = (root / ref["path"]).resolve()
+            if (not artifact_path.is_relative_to(tasks.resolve())
+                    or artifact_path.parent != record_path.parent.resolve()):
+                continue
+            raw = artifact_path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != ref["sha256"]:
+                continue
+            artifact = validate_elevation_artifact(json.loads(raw))
+            image_path = run / "images" / artifact["image"]
+            if (not image_path.is_file()
+                    or hashlib.sha256(image_path.read_bytes()).hexdigest() != record["input_sha256"]):
+                continue
+            report = match_elevation(source, artifact, candidate=candidate)
+            by_id = {row["id"]: row for row in artifact["openings"]}
+            identity_pairs = [*report["matches"], *[
+                row for row in report["conflicts"]
+                if row.get("type") == "position_or_width_conflict" and not row.get("ambiguous")
+            ]]
+            for matched in identity_pairs:
+                row = by_id[matched["artifact_opening_id"]]
+                if row["evidence_type"] not in IMAGE_EVIDENCE:
+                    continue
+                kind = "window" if row["kind"] == "window" else "opening"
+                key = (
+                    kind, matched["source_opening_id"],
+                    tuple([row["sill_m"], row["head_m"]]),
+                    artifact["image"], tuple(row["bbox"]),
+                )
+                found.setdefault(key, []).append({
+                    "task_id": record["task_id"],
+                    "artifact_sha256": ref["sha256"],
+                    "artifact_opening_id": row["id"],
+                    "image": artifact["image"],
+                    "box": row["bbox"],
+                    "height_m": [row["sill_m"], row["head_m"]],
+                    "verification": "adjacent_delivered_artifact_exact_match",
+                })
+        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+            continue
+    return {key: rows[0] for key, rows in found.items() if len(rows) == 1}
 
 
 def derive_z_calibration(
@@ -243,48 +509,44 @@ def height_locations(artifact, match, size):
 
 
 def carry_height_evidence(session, saved_match, artifact, entries):
-    """Persist an idempotent calibration before the single atomic height write."""
-    name = artifact["image"]
-    info = session.manifest["images"][name]
-    task = session.registry.task(saved_match["task_id"])
-    raw = (session.run_directory / "images" / name).read_bytes()
-    if hashlib.sha256(raw).hexdigest() != info["sha256"] or task["input_sha256"] != info["sha256"]:
-        raise ValueError("height evidence original changed since reader admission")
+    """Persist artifact/object bindings before the single atomic height write.
+
+    A usable original opening bbox does not depend on a separate view or a full
+    image-to-Z calibration.  Calibration is still retained when available for
+    compatibility and visual projection, but the delivered reader row and the
+    one-to-one match are the authoritative location binding.
+    """
+    from .elevation import validate_elevation_artifact
+
+    artifact = validate_elevation_artifact(artifact)
+    name, info = _reader_image(session, artifact, saved_match["task_id"])
     location = height_locations(artifact, saved_match["result"], info["size"])
-    if location["status"] != "prepared":
-        return location
-    record = {"schema_version": "role_height_calibration_v1", "image": name,
-        "image_sha256": info["sha256"], "facade": artifact["orientation"],
-        "transform": location["transform"], "role_height_evidence": location,
-        "reader_task_id": saved_match["task_id"],
-        "reader_artifact_sha256": session.registry.records[saved_match["task_id"]]["artifact"]["sha256"],
-        "basis": "Reader coordinate transfer; level-band uncertainty and existing horizontal matching tolerance. "
-                 "Original regions retained; no source-geometry fit and no new visual observation."}
-    identity = hashlib.sha256(json_bytes(record)).hexdigest()
-    folder = session.run_directory / "elevation_reviews"
-    folder.mkdir(exist_ok=True)
-    existing = [json.loads(path.read_bytes()) for path in sorted(folder.glob("review_*.json"))]
-    prior = next((row for row in existing if row.get("role_evidence_id") == identity), None)
-    if prior is not None:
-        if {k: v for k, v in prior.items() if k != "role_evidence_id"} != record:
-            raise ValueError("saved role height calibration changed")
-    else:
-        # Share the existing chronological namespace so a later explicit overlay
-        # can supersede this calibration normally. A retry reuses this record.
-        index = len(existing) + 1
-        while True:
-            try:
-                with (folder / f"review_{index:04d}.json").open("x", encoding="utf-8", newline="\n") as stream:
-                    stream.write(json.dumps({**record, "role_evidence_id": identity}, ensure_ascii=False, indent=2) + "\n")
-                break
-            except FileExistsError:
-                index += 1
-    for entry, matched in zip(entries, saved_match["result"]["matches"], strict=True):
-        item = location["openings"][matched["artifact_opening_id"]]
-        if item["status"] != "prepared":
+    matched_by_source = {
+        matched["source_opening_id"]: matched
+        for matched in saved_match["result"]["matches"]
+    }
+    bindings = []
+    entry_bindings = []
+    for entry in entries:
+        target = _entry_target(entry)
+        matched = matched_by_source.get(target["id"])
+        if matched is None:
+            raise ValueError("height entry has no one-to-one saved reader match")
+        binding = _binding(artifact, matched)
+        if binding["kind"] != target["kind"]:
+            raise ValueError("height entry kind disagrees with its reader match")
+        bindings.append(binding)
+        entry_bindings.append((entry, binding))
+    identity = _persist_reader_evidence(
+        session, task_id=saved_match["task_id"], artifact=artifact,
+        bindings=bindings, location=location,
+    )
+    artifact_ref = session.registry.records[saved_match["task_id"]]["artifact"]["sha256"]
+    for entry, binding in entry_bindings:
+        if binding["evidence_type"] not in IMAGE_EVIDENCE:
             continue
-        entry["claim"]["sources"][0]["box"] = item["source_box"]
-        reason = entry["reason"] + " Located reader context: " + json.dumps({
-            "calibration_id": identity, **item}, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        entry["reason"] = entry["claim"]["reason"] = entry["operations"][0]["reason"] = reason
-    return {**location, "calibration_id": identity}
+        _attach_reference(
+            entry, evidence_id=identity, task_id=saved_match["task_id"],
+            artifact_sha256=artifact_ref, binding=binding,
+        )
+    return {**location, "calibration_id": identity, "artifact_binding_count": len(bindings)}

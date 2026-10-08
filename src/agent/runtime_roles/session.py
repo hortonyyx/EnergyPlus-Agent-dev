@@ -8,6 +8,7 @@ import copy
 import hashlib
 import io
 import json
+import math
 import re
 import time
 from contextlib import AsyncExitStack
@@ -88,12 +89,11 @@ HEIGHT_SCHEMA = schema({"match_id": {"oneOf": [{"type": "string"},
 
 EXTRA_TOOLS = [
     {"name": "edit_bim", "description":
-     "Edit with reasons: height(id,sill_m,head_m,image,bbox) in its own batch; use(id,role,image); "
-     "position(id,along_start_m,along_end_m,image) on the existing host; note(text). "
-     "For reader disagreements send a separate position_decision batch: decision_id, choice="
-     "keep_plan/use_elevation/reread_plan/reread_elevation, reason, view_ids. Above 30cm, "
-     "choosing either side requires saved view_image IDs covering both evidence boxes. "
-     "Re-read choices remain pending until corrected reader deliveries are assembled.",
+     "Edits need reasons. Separate height batch: id,sill_m,head_m,reader_evidence={task_id,sha256,opening_id} "
+     "or image,bbox; reader evidence needs no new views. use(id,role,image), note(text) retain review; "
+     "position(id,along_start_m,along_end_m,image) stays on its host, needs review. Optional separate "
+     "position_decision: decision_id,choice=keep_plan/use_elevation/reread_plan/reread_elevation,reason,view_ids. "
+     "Above 30cm inspect both original crops via role_state and decide before delivery; reread remains blocking.",
      "inputSchema": schema({"candidate": {"type": "string"}, "edits": {"type": "array", "minItems": 1,
          "maxItems": 100, "items": schema({
              "action": {"enum": ["height", "use", "position", "note", "position_decision"]}, "id": {"type": "string"},
@@ -102,6 +102,8 @@ EXTRA_TOOLS = [
              "view_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": True},
              "reason": {"type": "string", "minLength": 1}, "image": {"type": "string"},
              "bbox": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+             "reader_evidence": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"},
+                 "opening_id": {"type": "string"}}, ("task_id", "sha256", "opening_id")),
              "sill_m": {"type": "number"}, "head_m": {"type": "number"}, "role": {"type": "string"},
              "basis": {"enum": ["observed", "inferred"]}, "along_start_m": {"type": "number"},
              "along_end_m": {"type": "number"}, "text": {"type": "string", "minLength": 1}},
@@ -119,8 +121,8 @@ EXTRA_TOOLS = [
      "inputSchema": schema({"task_id": {"type": "string"}, "candidate": {"type": "string"}}, ("task_id", "candidate"))},
     {"name": "apply_elevation_heights", "description": "Give match_id as one ID or a list: all safe facade heights save at most one candidate. Calls serialize on the latest usable draft; changed opening XY/hosts require a new match. Equal values only record evidence, with no new candidate. Unmatched/conflicting openings stay unresolved.",
      "inputSchema": HEIGHT_SCHEMA},
-    {"name": "role_state", "description": "Read reader progress, usage and position decisions. Set position_details=true for full independent readings and both original-image evidence boxes; state survives compaction.", "inputSchema": schema({"position_details": {"type": "boolean"}})},
-    {"name": "review_role_assembly", "description": "Acknowledge each assembly change with a specific reason. A missing_required_floor decision explicitly accepts partial delivery of the listed floors; stale or unverified plan lineage cannot be waived. Source and reader hashes must still match.",
+    {"name": "role_state", "description": "Read progress. position_details=true includes position readings/boxes; position_decision_id returns both original crops and saved view_ids. Pending >30cm differences block delivery until explicitly decided.", "inputSchema": schema({"position_details": {"type": "boolean"}, "position_decision_id": {"type": "string"}})},
+    {"name": "review_role_assembly", "description": "Confirm actual geometry changes with reasons; audited regularization needs none. Height/use/note edits retain confirmation. Missing-floor decisions accept partial delivery; stale/unverified lineage needs repair.",
      "inputSchema": schema({"review_id": {"type": "string"}, "decisions": {"type": "array", "items": schema({
          "change_id": {"type": "string"}, "reason": {"type": "string", "minLength": 1}}, ("change_id", "reason"))}}, ("review_id", "decisions"))},
 ]
@@ -131,7 +133,7 @@ INTERNAL_TOOLS = [t for t in EXTRA_TOOLS if t["name"] in {
     "build_from_artifact", "match_elevation", "apply_elevation_heights"}]
 EXTRA_TOOLS = [t for t in EXTRA_TOOLS if t not in INTERNAL_TOOLS]
 EXTRA_TOOLS.insert(2, {"name": "assemble_from_readers",
-    "description": "Assemble accepted floors, uses and safe heights. Omit task_ids for latest deliveries; explicit selections persist. Compare independent opening endpoints/width after identity matching: >10cm needs position decisions, details via role_state. Re-call after decisions or reader rework before delivery; unchanged inputs reuse receipts. level_overrides cite absolute Z; ceiling_height=top Z-floor Z. Geometry changes require review_role_assembly.",
+    "description": "Assemble floors, uses and located safe heights. Omit task_ids for latest deliveries; explicit selections persist. Audited regularization needs no review; 10-30cm differences keep plan, while >30cm differences require an explicit decision before delivery. Reassemble after reader rework; unchanged inputs reuse receipts. level_overrides cite absolute Z; ceiling_height=top Z-floor Z.",
     "inputSchema": schema({"task_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": True},
         "level_overrides": {"type": "array", "items": schema({
             "floor_id": {"type": "string"}, "z_floor": {"type": "number"},
@@ -311,12 +313,14 @@ class RoleSession:
                 return await self.apply_heights(arguments["match_id"])
             if name == "review_role_assembly":
                 return envelope(self.assembly.acknowledge(**arguments))
+            if arguments.get("position_decision_id"):
+                return await self.position_evidence(arguments["position_decision_id"])
             return envelope(self.state(position_details=arguments.get("position_details", False)))
         except (ValueError, KeyError, jsonschema.ValidationError) as error:
             if name == "edit_bim":
                 detail = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
                 return envelope({"status": "rejected", "reason": " ".join(detail.split()) +
-                    "; edits: height(id,sill_m,head_m,image,bbox), use(id,role,image), "
+                    "; edits: height(id,sill_m,head_m,reader_evidence or image+bbox), use(id,role,image), "
                     "position(id,along_start_m,along_end_m,image), note(text), "
                     "position_decision(decision_id,choice,view_ids); each needs reason."}, error=True)
             return envelope({"status": "rejected", "reason": str(error)}, error=True)
@@ -341,7 +345,7 @@ class RoleSession:
             raise ValueError("send height edits in a separate batch")
         for row in edits:
             action, reason = row["action"], _string(row["reason"], "reason")
-            fields = {"height": {"id", "sill_m", "head_m", "image", "bbox", "basis"},
+            fields = {"height": {"id", "sill_m", "head_m", "image", "bbox", "basis", "reader_evidence"},
                       "use": {"id", "role", "image", "bbox", "basis"},
                       "position": {"id", "along_start_m", "along_end_m", "image", "bbox"},
                       "note": {"text"}}[action]
@@ -356,6 +360,15 @@ class RoleSession:
             if (action, identity) in seen:
                 raise ValueError(f"duplicate {action} target {identity}")
             seen.add((action, identity))
+            delivered_evidence = None
+            if action == "height" and "reader_evidence" in row:
+                from .height_evidence import resolve_manual_height_evidence
+                delivered_evidence = resolve_manual_height_evidence(
+                    self, candidate, identity, row.get("sill_m"), row.get("head_m"), row["reader_evidence"])
+                for field in ("image", "bbox"):
+                    if field in row and row[field] != delivered_evidence[field]:
+                        raise ValueError(f"{field} disagrees with delivered reader evidence")
+                row = {**row, "image": delivered_evidence["image"], "bbox": delivered_evidence["bbox"]}
             image = _string(row.get("image"), "image")
             if image not in self.manifest["images"]:
                 raise ValueError("image must name an admitted original")
@@ -399,6 +412,8 @@ class RoleSession:
                     "action": "apply", "reason": reason,
                     "operations": [{"op": op, "id": identity,
                         "changes": {"z": {"claim": "$claim", "value": "height"}}, "reason": reason}]})
+                if delivered_evidence:
+                    entries[-1]["reader_evidence"] = delivered_evidence["reader_evidence"]
                 types.append("assumption" if inferred else "pixels")
             else:
                 start = _number(row.get("along_start_m"), "along_start_m")
@@ -461,6 +476,35 @@ class RoleSession:
         return {"readers": self.registry.state(), "max_concurrent_readers": self.max_concurrent_readers,
                 "usage": role_accounting(self.store, self.registry), "assembly_review": self.assembly.current(),
                 "position_review": self.positions.current() if position_details else self.positions.summary()}
+
+    async def position_evidence(self, decision_id):
+        """Show the two original crops through the existing view tool in one call."""
+        from .lineage import metadata
+        row = self.positions.current()["items"].get(decision_id)
+        if row is None:
+            raise ValueError("position_decision_id must name a current position difference")
+        requests = []
+        for side in ("plan_evidence", "elevation_evidence"):
+            evidence = row[side]
+            name, box = evidence.get("image"), evidence.get("bbox")
+            if name not in self.manifest["images"] or not box:
+                raise ValueError("both readers need located original evidence before paired viewing")
+            width, height = self.manifest["images"][name]["size"]
+            crop = [max(0, math.floor(box[0])), max(0, math.floor(box[1])),
+                    min(width, math.ceil(box[2])), min(height, math.ceil(box[3]))]
+            requests.append((side, {"name": name, "box": crop, "display_scale": 3.0}))
+        previews, images = [], []
+        for side, args in requests:
+            result = await self.frozen.call_tool("view_image", args)
+            if result.get("isError"):
+                return result
+            preview = metadata(result)
+            previews.append({**preview, "side": side})
+            images.extend(block for block in result.get("content", []) if block.get("type") == "image")
+        result = envelope({"decision_id": decision_id, "evidence_previews": previews,
+                           "view_ids": [p["view_id"] for p in previews]})
+        result["content"].extend(images)
+        return result
 
     @staticmethod
     def _with_assembly_review(result, report):
