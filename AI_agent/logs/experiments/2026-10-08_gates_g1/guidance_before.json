@@ -1,0 +1,64 @@
+{
+  "single_model": {
+    "character_count": 9937,
+    "sha256": "08baa19f505515de26c8ac73e463b6c6d00ec0306b6273f0856bb8d7f7edf47d",
+    "unchanged_source": "scripts/tool_scripts/bim_agent_guidance.py:build_guide"
+  },
+  "roles": {
+    "coordinator": {
+      "character_count": 2342,
+      "sha256": "1f318fa0ed6710ee24407635565759f1804506399e5eb82dd4872989bc87390a",
+      "tools": [
+        "delegate_readers",
+        "read_role_artifact",
+        "assemble_from_readers",
+        "role_state",
+        "review_role_assembly",
+        "edit_bim"
+      ]
+    },
+    "plan_reader": {
+      "character_count": 9237,
+      "sha256": "a49ec367eb24ed4e9a88d186ef2833c5763bcab4d4820bdb0525f6df2671cbef",
+      "tools": [
+        "inputs",
+        "view_image",
+        "view_plan_blocks",
+        "pixel_profile",
+        "view_pixel_profile",
+        "view_pixel_region_overview",
+        "view_pixel_region",
+        "map_pixels",
+        "map_dimension_chain",
+        "get_bim_reference",
+        "trial_plan_bim",
+        "submit_plan_reading"
+      ]
+    },
+    "elevation_reader": {
+      "character_count": 5187,
+      "sha256": "a192a62c9ae15906989a9c0537a7ce3c8b3620ee4d93d91e31ab1784c75be381",
+      "tools": [
+        "inputs",
+        "view_image",
+        "pixel_profile",
+        "view_pixel_profile",
+        "view_pixel_region_overview",
+        "view_pixel_region",
+        "map_pixels",
+        "map_dimension_chain",
+        "get_bim_reference",
+        "submit_elevation_reading"
+      ]
+    }
+  },
+  "coordinator_tool_descriptions": {
+    "edit_bim": 502,
+    "delegate_readers": 574,
+    "assemble_from_readers": 440,
+    "read_role_artifact": 121,
+    "role_state": 174,
+    "review_role_assembly": 242
+  },
+  "coordinator_tool_description_total": 2053
+}
