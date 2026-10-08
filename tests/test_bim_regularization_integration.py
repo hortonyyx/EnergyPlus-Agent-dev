@@ -5,7 +5,11 @@ import json
 import pytest
 
 from scripts.tool_scripts.run_bim_agent import Toolkit
-from scripts.tool_scripts.bim_agent_regularization import summary
+from scripts.tool_scripts.bim_agent_regularization import (
+    apply_cross_storey_skip_policy,
+    selected_cross_storey_failure_policy,
+    summary,
+)
 from scripts.tool_scripts.bim_agent_delivery_display import render_regularization_html
 from src.agent.geometry.plan_partition import compile_plan_partition
 from tests.test_bim_agent_tools import _run_with_one_image, _two_room_proposal
@@ -61,6 +65,137 @@ def test_legacy_policy_is_owned_by_the_run_manifest(tmp_path):
     toolkit.manifest.pop('plan_regularization_rule')
     plan['regularization'] = {'rule_version': 'legacy', 'status': 'pass'}
     assert toolkit.build_plan('plan.png', json.dumps(plan))['source_geometry_ready'] is False
+
+
+def test_cross_storey_failure_policy_is_owned_by_the_run_manifest():
+    assert selected_cross_storey_failure_policy({}) == 'reject_assembly'
+    assert selected_cross_storey_failure_policy({
+        'cross_storey_alignment_failure_policy': 'skip_failed_pair',
+    }) == 'skip_failed_pair'
+    with pytest.raises(ValueError, match='unknown cross_storey_alignment_failure_policy'):
+        selected_cross_storey_failure_policy({
+            'cross_storey_alignment_failure_policy': 'silently_ignore',
+        })
+    lines = [
+        {'floor_id': 'L1', 'axis': 'x', 'coordinate_m': 1.0,
+         'span_m': [0.0, 4.0]},
+        {'floor_id': 'L2', 'axis': 'x', 'coordinate_m': 1.2,
+         'span_m': [0.0, 4.0]},
+    ]
+    filtered = apply_cross_storey_skip_policy(
+        {'status': 'rejected', 'total': 2,
+         'counts': {'storey_wall_offset': 1, 'source_only_violation': 1},
+         'items': [
+             {'type': 'storey_wall_offset', 'lines': lines},
+             {'type': 'source_only_violation', 'objects': ['unrelated']},
+         ]},
+        {'cross_storey_failure_policy': 'skip_failed_pair',
+         'skipped_alignments': [{
+             'type': 'cross_storey_alignment_skipped',
+             'source': lines[0], 'target': lines[1],
+         }]},
+    )
+    assert filtered['status'] == 'rejected'
+    assert [row['type'] for row in filtered['items']] == ['source_only_violation']
+    assert [row['type'] for row in filtered['skipped_items']] == [
+        'storey_wall_offset']
+    changed_lines = copy.deepcopy(lines)
+    changed_lines[0]['coordinate_m'] += 1e-6
+    no_longer_matching = apply_cross_storey_skip_policy(
+        {'status': 'rejected', 'total': 1,
+         'counts': {'storey_wall_offset': 1},
+         'items': [{'type': 'storey_wall_offset', 'lines': changed_lines}]},
+        {'cross_storey_failure_policy': 'skip_failed_pair',
+         'skipped_alignments': [{
+             'type': 'cross_storey_alignment_skipped',
+             'source': lines[0], 'target': lines[1],
+         }]},
+    )
+    assert no_longer_matching['status'] == 'rejected'
+    assert no_longer_matching['items'][0]['type'] == 'storey_wall_offset'
+    assert 'skipped_items' not in no_longer_matching
+
+
+def test_toolkit_assembly_and_delivery_honor_cross_storey_failure_policy(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    toolkit = Toolkit(run)
+    rows = []
+    for index, coordinates in enumerate(((6.4,), (6.0, 7.2))):
+        plan = example()
+        plan['partitions'] = [{
+            'id': f'wall-{wall_index}',
+            'points': [[coordinate, 1], [coordinate, 7]],
+            'source_refs': [f'plan.png: wall {wall_index}'],
+        } for wall_index, coordinate in enumerate(coordinates, start=1)]
+        plan['openings'][0]['p1'][0] = coordinates[0]
+        plan['openings'][0]['p2'][0] = coordinates[0]
+        built = toolkit.build_plan('plan.png', json.dumps(plan))
+        assert built['source_geometry_ready'], built
+        record = built['plan_input']
+        rows.append({
+            'draft_id': record['plan_file'].split('/')[1],
+            'expected_plan_sha256': record['plan_sha256'],
+            'floor_id': f'L{index + 1}',
+            'z_floor': index * 3.0,
+            'evidence': 'synthetic cross-storey policy fixture',
+        })
+
+    rejected = toolkit.assemble_plans(json.dumps(rows))
+    assert rejected['source_geometry_ready'] is False
+    assert rejected['saved_candidate'] is None
+    assert rejected['regularization']['status'] == 'rejected'
+    assert len(list(run.glob('candidate_*'))) == 2
+
+    toolkit.manifest['cross_storey_alignment_failure_policy'] = 'skip_failed_pair'
+    assembled = toolkit.assemble_plans(json.dumps(rows))
+    assert assembled['source_geometry_ready'], assembled
+    assert assembled['candidate'] == 'candidate_03'
+    assert assembled['regularization']['status'] == 'pass'
+    assert assembled['regularization']['skipped_alignment_count'] == 1
+    assert len(list(run.glob('candidate_*'))) == 3
+
+    parent_proposal = run / assembled['candidate'] / 'proposal.json'
+    parent_source = run / assembled['candidate'] / 'source_model.json'
+    protected = {
+        parent_proposal: hashlib.sha256(parent_proposal.read_bytes()).hexdigest(),
+        parent_source: hashlib.sha256(parent_source.read_bytes()).hexdigest(),
+    }
+    source = json.loads(parent_source.read_text(encoding='utf-8'))
+    space_id = source['spaces'][0]['id']
+    revised = toolkit.revise(assembled['candidate'], json.dumps([{
+        'op': 'set_space_role',
+        'space_id': space_id,
+        'role': 'conference/meeting/multipurpose',
+        'basis': 'inferred',
+        'assumptions': ['Synthetic use-only inheritance check'],
+        'source_refs': ['synthetic test'],
+        'reason': 'Verify that a non-geometric revision inherits the audited skip',
+    }]))
+    assert revised['source_geometry_ready'], revised
+    assert revised['candidate'] == 'candidate_04'
+    revised_source = json.loads(
+        (run / revised['candidate'] / 'source_model.json').read_text(encoding='utf-8'))
+    provenance = revised_source['generation']['provenance']
+    assert provenance['parent_candidate'] == assembled['candidate']
+    assert provenance['parent_proposal_sha256'] == protected[parent_proposal]
+    assert all(hashlib.sha256(path.read_bytes()).hexdigest() == digest
+               for path, digest in protected.items())
+
+    delivered = toolkit.delivery(
+        revised['candidate'], selection_origin='offline_test')
+    assert delivered['building_precision']['status'] == 'pass'
+    assert {row['type'] for row in delivered['building_precision']['skipped_items']} == {
+        'storey_wall_offset', 'thin_horizontal_contact'}
+    reports = delivered['building_precision']['regularization']['reports']
+    skipped = reports[0]['skipped_alignments']
+    assert len(skipped) == 1
+    assert skipped[0]['type'] == 'cross_storey_alignment_skipped'
+    assert skipped[0]['disposition'] == 'original_pair_preserved_and_reported'
+    delivery_html = (run / 'delivery.html').read_text(encoding='utf-8')
+    assert '未对齐并保留原值' in delivery_html
+    assert '自动对齐未安全完成，保留原值并随交付说明' in delivery_html
+    assert 'cross_storey_alignment_skipped' in delivery_html
+    assert 'wall-1' in delivery_html
 
 
 @pytest.mark.parametrize('perimeter_offset', [0., .2])
@@ -159,6 +294,21 @@ def test_compact_audit_counts_delivered_merges_but_not_rejected_floor_attempts()
     assert refused['moved_count'] == 0
     assert refused['removed_strip_seed_count'] == refused['merged_opening_count'] == 0
     assert refused['attempted_change_count'] == len(changes)
+    skipped = summary({
+        'status': 'pass',
+        'cross_storey_failure_policy': 'skip_failed_pair',
+        'skipped_alignments': [{
+            'type': 'cross_storey_alignment_skipped',
+            'source': {'floor_id': 'F1', 'partition_id': 'A'},
+            'target': {'floor_id': 'F2', 'partition_id': 'B'},
+            'distance_m': .2,
+            'attempted_changes': [{'type': 'move_wall_line'}],
+        }],
+    })
+    assert skipped['status'] == 'pass'
+    assert skipped['skipped_alignment_count'] == 1
+    assert skipped['cross_storey_failure_policy'] == 'skip_failed_pair'
+    assert 'attempted_changes' not in skipped['skipped_alignments'][0]
 
 
 def test_source_refusal_stays_primary_when_plan_and_stack_prechecks_pass(tmp_path, monkeypatch):

@@ -60,7 +60,7 @@ def render_regularization_html(source: dict, audit: dict | None = None) -> str:
             return floor_name + " · 楼面标高"
         return floor_name + " · " + ({"x": "南北向墙线", "y": "东西向墙线"}.get(axis, "平面对象"))
 
-    rows, rejected, unmatched, reading_rows = [], [], [], []
+    rows, rejected, skipped, unmatched, reading_rows = [], [], [], [], []
     for report in (section for top in reports for section in report_sections(top)):
         for row in report.get("changes", []):
             distance = row.get("movement_m")
@@ -76,6 +76,7 @@ def render_regularization_html(source: dict, audit: dict | None = None) -> str:
                 number(abs(distance) * 100) if isinstance(distance, (int, float)) else "—",
                 row.get("reason") or row.get("basis", "规整规则"))) + "</tr>")
         rejected.extend(report.get("rejections", []))
+        skipped.extend(report.get("skipped_alignments", []))
         alignment = report.get("reading_alignment", {})
         for kind, stage in alignment.items() if isinstance(alignment, dict) else []:
             if isinstance(stage, dict):
@@ -97,6 +98,24 @@ def render_regularization_html(source: dict, audit: dict | None = None) -> str:
                         number(item.get("movement_m") * 100) if isinstance(item.get("movement_m"), (int, float)) else "见完整记录",
                         item.get("convention", action or "核对"))) + "</tr>")
                 rejected.extend(stage.get("rejections", []))
+    skipped_notes = []
+    for row in skipped:
+        endpoints = []
+        for endpoint in (row.get("source"), row.get("target")):
+            if not isinstance(endpoint, dict):
+                continue
+            floor = names.get("floors", {}).get(endpoint.get("floor_id"), "楼层")
+            axis = {"x": "南北向墙线", "y": "东西向墙线"}.get(
+                endpoint.get("axis"), "平面对象")
+            endpoints.append(
+                f'{floor} · {axis} {number(endpoint.get("coordinate_m"))} 米')
+        distance = row.get("distance_m")
+        skipped_notes.append(
+            " ↔ ".join(endpoints)
+            + (f'；偏差 {number(abs(distance) * 100)} 厘米'
+               if isinstance(distance, (int, float)) else "")
+            + "；自动对齐未安全完成，保留原值并随交付说明。"
+        )
     return (
         '<section class="regularization-audit"><h2>几何规整清单</h2>'
         '<p>以下记录工具对原读数的调整；读图是否准确仍需对照原图。</p>'
@@ -105,6 +124,9 @@ def render_regularization_html(source: dict, audit: dict | None = None) -> str:
         + ('<h3>读图坐标调整</h3><table><tr><th>对象</th><th>依据</th><th>移动（厘米）</th><th>采用方式</th></tr>'
            + ''.join(reading_rows) + '</table>' if reading_rows else '')
         + ('<p>未采用或需返工：' + escaped(rejected) + '</p>' if rejected else '')
+        + ('<h3>未对齐并保留原值</h3><ul>'
+           + ''.join(f'<li>{escaped(note)}</li>' for note in skipped_notes)
+           + '</ul>' if skipped_notes else '')
         + ('<p>未采用的读数调整，保持原值：' + escaped(unmatched) + '</p>' if unmatched else '')
         + '<details><summary>完整规整记录与内部编号</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere">'
         + html.escape(json.dumps(reports, ensure_ascii=False, indent=2)) + '</pre></details></section>'
