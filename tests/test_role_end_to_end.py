@@ -164,7 +164,15 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     assert all(row["result"]["matches"] for row in matches)
     # Independent position differences remain visible and are never converted
     # into an automatic/default delivery resolution.
-    positions = json.loads((fixture.output / "role_position_review.json").read_bytes())["items"]
+    all_positions = json.loads(
+        (fixture.output / "role_position_review.json").read_bytes()
+    )["items"]
+    positions = {
+        decision_id: row
+        for decision_id, row in all_positions.items()
+        if row["bucket"] == "gt_30cm"
+    }
+    assert all(row["status"] != "pending" for row in all_positions.values())
     assert len(positions) == (3 if has_position_conflicts else 0)
     assert all(row["status"] == "decided" for row in positions.values())
     assert all(row["decision"]["choice"] == "keep_plan"
@@ -189,7 +197,7 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
             assert opening_z[row["source_opening_id"]] == [row["sill_m"], row["head_m"]]
     delivery = json.loads((fixture.output / "bim/delivery.json").read_bytes())
     delivered_positions = delivery["position_review"]["items"]
-    assert delivered_positions == positions
+    assert delivered_positions == all_positions
     assert all("delivery_resolution" not in row for row in delivered_positions.values())
     accounting = result["role_accounting"]
     assert accounting["requests"] > 0

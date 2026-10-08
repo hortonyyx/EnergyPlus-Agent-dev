@@ -1,6 +1,6 @@
 # G1 执行报告
 
-> **10-08 晚 Codex 接手修订（验证进行中）：** 原实现与证据已保全。通道终止墙存在多种几何解释时改为保宽，不按距离或编号替用户选择；用户明确要求 **>30 cm 的位置分歧先确认再交付**，原第 4 节的默认放行已撤销。双原图查看、2 px 余量、10–30 cm 自动保留平面与复核继承继续有效。下文保留上午执行方原始记录；其中 D1l“4 次即交付”和原指引统计仅适用于当时的宽松规则，不能用于声称当前版本通过。最新验证及归档见 [Codex 接手记录](../../worklog/2026-10-08_codex_takeover_close.md) 与 `takeover_historical_replay.json`。
+> **10-08 晚 Codex 接手修订（已合入并通过离线验证）：** 原实现与证据已保全。通道终止墙存在多种几何解释时改为保宽，不按距离或编号替用户选择；用户明确要求 **>30 cm 的位置分歧先确认再交付**，原第 4 节的默认放行已撤销。双原图查看、2 px 余量、10–30 cm 自动保留平面与复核继承继续有效。当前 `domain-v53` 的 1,222 个有效检查为 **1,221 通过、1 live 跳过、0 失败**，三例贯通与 run99 恢复通过。新 D1l 重放按要求被 11 项未裁决分歧阻止交付，N1 仍交付。下文保留上午历史证据，D1l“4 次即交付”和旧字数统计不作为当前结果。详见 [接手记录](../../worklog/2026-10-08_codex_takeover_close.md)、[验证清单](takeover_validation.json) 和 [严格历史重放](takeover_historical_replay.json)。
 
 基准：`9eb61857`，工作树 `D:\EnergyPlus-Agent-worktrees\g1`，分支 `dev/astra-g1-20261008`。执行依据为本目录 [brief.md](brief.md)。已完整阅读开工规定文档及路线所指的最新收工记录，并核对工作树干净。
 
@@ -11,7 +11,7 @@
 - `.git` 及主树和 `runs-d` 的已结束运行只读；不提交、不跑全量、不调用 work model，Paratera／DeepSeek 请求均为 0。
 - 对齐失败策略做开关，默认保留拒绝装配；不替用户决定默认策略。
 
-共用对齐影响单模型与分工；其余关口及指引修改针对分工。未改全局目标、路线或交接。两份历史产物均已离线交付，最终代码的定向验证完成；唯一未通过项是本机进程终止权限限制，详见验证段。
+共用对齐影响单模型与分工；其余关口及指引修改针对分工。执行方未改全局目标、路线或交接。以下上午执行结果已按原始证据核对；当前严格规则的合并验证另见页首接手记录，不能沿用原“两份均交付”的结论。
 
 ## 1. 跨层对齐与失败策略
 
@@ -72,9 +72,9 @@ N1 唯一确认是 WLONG：旧重叠墙带删除后，空间归属从 S-e4 变�
 
 这只是既有读图产物重放，**不是新冷启动，也不证明工作模型提速或质量**。完整本地输出位于 `AI_agent/archive/local_backup/g1/historical_replay_final_verified/`。证据：[historical_replay.json](historical_replay.json)、[replay.py](replay.py)。
 
-三例 sm21／sm24／sm25 曾在旧规则冻结代码下均交付：一次 assemble 后 check／inspect／finish；连输入与委派计入，每例共 6 次调用，无装配复核和人工位置裁决。sm24 记录了 3 个默认位置决定，按现规则应阻断，旧交付结论不能复用；sm21、sm25 没有默认位置项，预期不受本次语义变化影响，但仍由 Codex 重放确认。精简旧证据见 [scripted_cases.json](scripted_cases.json)。
+三例 sm21／sm24／sm25 曾在旧规则冻结代码下均交付：一次 assemble 后 check／inspect／finish；连输入与委派计入，每例共 6 次调用，无装配复核和人工位置裁决。sm24 当时有 3 个默认位置决定，旧交付结论不能复用。**本轮三例已在严格规则下全部通过**：sm21、sm25 仍只装配一次；sm24 对三项分歧各取回双方真实原图、保存六个 view、明确选择后重新装配并交付，没有默认 `delivery_resolution`。精简旧证据仍见 [scripted_cases.json](scripted_cases.json)，当前验证及完整产物索引见页首。
 
-当前语义会使两类旧断言失效，重放时须由 Codex 更新：
+当前语义使两类旧断言失效。原始证据与原重放脚本保留，新规则使用 [replay_takeover.py](replay_takeover.py)：
 
 1. [replay.py](replay.py) 末尾“D1l、N1 均已交付”的断言不再成立；D1l 应先证明 11 项待裁决会阻断，或在脚本中逐项完成双图查看和明确裁决后再期待交付。
 2. [historical_replay.json](historical_replay.json) 中 D1l 的 11 项 `delivery_defaults`／交付成功，以及 [scripted_cases.json](scripted_cases.json) 中 sm24 的 `delivery_defaults: 3`／无裁决成功交付，都是旧规则证据；新的期望不得再生成 pending 项的 `delivery_resolution`。
@@ -102,14 +102,34 @@ pytest 均显式 `-n 2 -p no:cacheprovider`，临时目录位于本工作树 `AI
 
 MCP 验证使用 ignored 目录内临时代码哈希快照，仅供测试，不是正式发布登记。正式 `src/agent_runtime/agent_versions.json` SHA-256 保持 `c400fbef87db14d9893425e790b6a7af435fc501c31bc7718927cf07797541e2`。见 [prepare_test_registry.py](prepare_test_registry.py)、[test_registry_evidence.json](test_registry_evidence.json)。
 
-建议 Codex 分三组提交：
+Codex 已按三组提交：
 
 1. **domain · BIM rules／kernel／共用 tools**：跨层容差、墙／开口／端点随动、失败策略和交付审计继承，及对应几何／工具检查；影响单模型和分工。
 2. **domain · roles／tools／guidance**：装配确认继承、超过 30 cm 先裁决／双图查看、高度产物引用，以及角色检查和三例夹具；影响分工。
 3. **G1 执行证据**：本目录报告、原输入哈希、历史／高度重放脚本、指引对照与验证汇总。
 
-执行方未提交，Codex 集成后统一登记版本。失败策略默认值仍待用户选择，本包未切换。合并复核重点之一是历史通道的窄识别条件及已记录净宽变化。
+执行方交接时未提交。Codex 已按上述三组提交并合入 `0f827485`，正式登记 `domain-v53-20261008`，runtime 仍为 `runtime-v1-20261007`。跨层对齐失败策略默认拒绝装配，是否改为跳过仍待用户选择。合并复核额外修复了终止边界有多解时不能任意选墙的问题，相关文件 73 项通过。
 
 开发分工采用三位 `gpt-5.6-sol`／high 子代理，分别负责 kernel、装配与位置关口、高度证据；遵循派工单优先 5.6 的安排，将边界明确的实现与证据核对分开，父代理负责集成和历史贯通。这里的子代理是 dev model；work model／外部模型 API／Paratera／DeepSeek 请求均为 0。
 
-环境说明：`uv sync --frozen --offline --python 3.12` 因 C 盘 UV 缓存 `.git` 无读取权限失败，未绕过；现有工作树 `.venv` 的 Python 3.12.10／pytest 9.0.3 与本树 `src.agent.__file__` 已确认。测试使用 ignored 目录中的临时代码哈希快照，正式登记表保持原字节，版本仍由 Opus 合并后统一登记。
+原执行环境说明：`uv sync --frozen --offline --python 3.12` 因 C 盘 UV 缓存 `.git` 无读取权限失败，未绕过；当时使用现有工作树的 Python 3.12.10／pytest 9.0.3 及 ignored 临时版本快照。接手后的合并检查使用 Windows 原生主树环境和正式版本登记，具体结果见接手记录。
+
+## 接手证据备份与恢复
+
+远端独立分支 `evidence/g1-takeover-2026-10-08` 保存压缩包、逐文件 SHA-256 清单与包摘要；主线的 [evidence_backup.json](evidence_backup.json) 记录最终提交、各段与整包哈希。[cleanup_summary.json](cleanup_summary.json) 单独记录实际残留，不能把 Git 工作树登记清空等同于磁盘目录已删。
+
+恢复时先将该证据提交导出到一个新的恢复目录（`git archive --format=tar --output=g1-evidence.tar <evidence_backup.json 中的 commit>`，再用 `tar -xf` 解包）。在恢复目录内按段名顺序拼接；下面以原始证据为例，最终证据若分段也按相同办法处理：
+
+```powershell
+$taskParts = Get-ChildItem -LiteralPath . -Filter 'original.tar.gz.part-*' | Sort-Object Name
+$taskOutput = [IO.File]::Create((Join-Path $PWD 'original.tar.gz'))
+try {
+    foreach ($taskPart in $taskParts) {
+        $taskInput = [IO.File]::OpenRead($taskPart.FullName)
+        try { $taskInput.CopyTo($taskOutput) } finally { $taskInput.Dispose() }
+    }
+} finally { $taskOutput.Dispose() }
+Get-FileHash -Algorithm SHA256 -LiteralPath './original.tar.gz'
+```
+
+先将各段及整包哈希与 `evidence_backup.json` 核对相同，再 `tar -xzf original.tar.gz`；解出的 `AI_agent/` 对应项目内原路径。不要直接覆盖正在使用的主树。`original_manifest.json` 中每个文件的哈希都已由打包器回读压缩包验证，`final_manifest.json` 使用相同验证。

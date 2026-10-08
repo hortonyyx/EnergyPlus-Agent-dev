@@ -1,0 +1,96 @@
+{
+  "branch": "evidence/g1-takeover-2026-10-08",
+  "archives": {
+    "original": {
+      "commit": "ea9bd2ba198145b9d8ae814e0b4a767a08a8543c",
+      "mode": "original",
+      "file_count": 6901,
+      "source_bytes": 400549978,
+      "archive_bytes": 110041224,
+      "archive_sha256": "d7b892d9e76e62131d832efec1c65445a53805d140d5229fd9c5fe59922124e1",
+      "all_archived_file_hashes_verified": true,
+      "files": [
+        {
+          "path": "original_manifest.json",
+          "bytes": 2108120,
+          "sha256": "f9ab5fbffa743cdf894233142dcde99806d8e3ae4cdaf423047fb62b093dfae2"
+        },
+        {
+          "path": "original_summary.json",
+          "bytes": 247,
+          "sha256": "93c11cbc364749317defe79f81eab6cfae09b3cfd40d09d5b2e2d8e42cdf1125"
+        },
+        {
+          "path": "original.tar.gz.part-000",
+          "bytes": 94371840,
+          "sha256": "da5c12cfc960113e952c7946aafb34b5de777fdee2fd0ce980b265f5a7959cd1"
+        },
+        {
+          "path": "original.tar.gz.part-001",
+          "bytes": 15669384,
+          "sha256": "3614688eeaebbcd0932cde29393b7bdf2fe965f68b51ad20b86fa7d6d95a29bb"
+        }
+      ]
+    },
+    "final": {
+      "commit": "b421deffae8323ae2777196dfc7ef28a2c0ede48",
+      "mode": "final",
+      "file_count": 15870,
+      "source_bytes": 592171345,
+      "archive_bytes": 151141077,
+      "archive_sha256": "1521303a4d8d4a77ff9014b073174c334b1307f114994b421d7b69cee2f5a38b",
+      "all_archived_file_hashes_verified": true,
+      "files": [
+        {
+          "path": "final_manifest.json",
+          "bytes": 5344560,
+          "sha256": "17810b9dee7c9944e0511809c2dad43f70a816363a927df94a3d75ae593c6168"
+        },
+        {
+          "path": "final_summary.json",
+          "bytes": 245,
+          "sha256": "1cbb33dc2c1a7f383f93562b4736ebc7744589cf55850216c78c1e6d30fa9d8e"
+        },
+        {
+          "path": "final.tar.gz.part-000",
+          "bytes": 94371840,
+          "sha256": "7b7592bbb3b056143f37938e1cea7dfcc13ae99e0f9cd423535769fdc2ae2777"
+        },
+        {
+          "path": "final.tar.gz.part-001",
+          "bytes": 56769237,
+          "sha256": "d85152d6ef320c1c98d6f7d0e0a0739e83afebf21a62b88be557bd2c7c63d2da"
+        }
+      ]
+    },
+    "resource_failure": {
+      "commit": "c47704f2e4475e9557b8f6996a0d793ce251b7f7",
+      "mode": "resource_failure",
+      "file_count": 380,
+      "source_bytes": 3519990,
+      "archive_bytes": 2151740,
+      "archive_sha256": "be8639a51800bfc5f72aa6a0d24cca84b17d87137fbf14fe8db55efb5958bd72",
+      "all_archived_file_hashes_verified": true,
+      "files": [
+        {
+          "path": "resource_failure_manifest.json",
+          "bytes": 126178,
+          "sha256": "7378cacf5916d4d3e887ec997eb277c0fdf0c99a12321e29f60f32befa097c04"
+        },
+        {
+          "path": "resource_failure_summary.json",
+          "bytes": 250,
+          "sha256": "6756662d381533df435c20dc6f614601e937525352a045a813b95449669256be"
+        },
+        {
+          "path": "resource_failure.tar.gz",
+          "bytes": 2151740,
+          "sha256": "be8639a51800bfc5f72aa6a0d24cca84b17d87137fbf14fe8db55efb5958bd72"
+        }
+      ]
+    }
+  },
+  "restore": "Read each *_manifest.json. Join .part-* in lexical order, verify whole archive SHA256, then tar -xzf into a separate recovery directory.",
+  "commit": "c47704f2e4475e9557b8f6996a0d793ce251b7f7",
+  "remote_verified": true
+}

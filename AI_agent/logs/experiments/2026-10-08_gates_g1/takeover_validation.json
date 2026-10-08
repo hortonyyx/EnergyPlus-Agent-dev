@@ -1,0 +1,443 @@
+{
+  "schema_version": "g1-takeover-validation.v3",
+  "validation": {
+    "status": "passed",
+    "passed": true,
+    "coverage_complete": true,
+    "zero_failures_or_errors": true,
+    "latest_authoritative_exit_code": 0
+  },
+  "scope": {
+    "source": "AI_agent/archive/local_backup/takeover_20261008/final_role_checks/scope.json",
+    "source_sha256": "de4acd2c18331de6cb0ad6d31e2b4666dd410dbabdc463bcdaccc44e9b7783d6",
+    "files": 124,
+    "nodes": 1222,
+    "rerun_nodes": 207,
+    "phase_journal_reused_nodes": 15,
+    "resource_recovered_expected_nodes": 192,
+    "merge_rule": "classname/name mapped pytest node; completed all-passed setup/call/teardown phase-journal nodes replace initial JUnit; resource-recovered JUnit replaces the remaining rerun nodes; optional isolated-failure JUnit replaces resource-recovered failures"
+  },
+  "runs": {
+    "initial_integration": {
+      "testcases": 1024,
+      "outcomes": {
+        "passed": 1018,
+        "failure": 6,
+        "error": 0,
+        "skipped": 0
+      },
+      "reported_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "6",
+          "skipped": "0",
+          "tests": "1024",
+          "time": "897.535",
+          "timestamp": "2026-10-08T21:20:41.629648+08:00",
+          "hostname": "DESKTOP-Horton"
+        }
+      ],
+      "unexpected_cases": [],
+      "command_metadata": {
+        "cwd": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev",
+        "argv_items": 136,
+        "test_arguments": 124
+      },
+      "exit": {
+        "exit_code": 2,
+        "elapsed_seconds": 899.2612664699554,
+        "selected_test_files": 124
+      },
+      "artifact_hashes": {
+        "junit.xml": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/merge_checks/junit.xml",
+          "sha256": "1f8f1ac0dce2d9c77a9ccb596c041ea0ff5dc51470855c4e93c67ab0470ec314",
+          "bytes": 184710
+        },
+        "command.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/merge_checks/command.json",
+          "sha256": "7dfe8f1b7597aceba6e73dbb47dadb42803e6b78c8876ef16c88cd16b4666d38",
+          "bytes": 5796
+        },
+        "exit.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/merge_checks/exit.json",
+          "sha256": "82d23a7f6c2f978850c02a3a454d3b01a9c7fba0c4ab9c5100c2354d3664a599",
+          "bytes": 96
+        }
+      }
+    },
+    "resumed_phase_journal": {
+      "status": "resource_interrupted",
+      "rows": 52,
+      "observed_nodes": 19,
+      "reusable_complete_nodes": 15,
+      "reusable_outcomes": {
+        "passed": 15,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "excluded_nodes": [
+        {
+          "node": "tests/test_no_billed_provider_calls.py::test_live_marker_lifts_the_gate",
+          "phases": {
+            "setup": "skipped",
+            "teardown": "passed"
+          },
+          "reason": "[gw0] win32 -- Python 3.12.10 C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.venv\\Scripts\\python.exe\n('C:\\\\Users\\\\Horton\\\\Desktop\\\\EnergyPlus-Agent-dev\\\\tests\\\\test_no_billed_provider_calls.py', 118, 'Skipped: live provider test; select with -m live')"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial",
+          "phases": {
+            "call": "failed",
+            "setup": "passed",
+            "teardown": "passed"
+          },
+          "reason": "[gw0] win32 -- Python 3.12.10 C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\.venv\\Scripts\\python.exe\ntests\\test_role_end_to_end.py:257: in test_resume_reader_after_trial_checkpoint_does_not_repeat_trial\n    with pytest.raises(SimulatedProcessDeath):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   Failed: DID NOT RAISE <class 'test_role_end_to_end.SimulatedProcessDeath'>"
+        },
+        {
+          "node": "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]",
+          "phases": {
+            "setup": "passed"
+          },
+          "reason": "incomplete or non-passing phase journal"
+        },
+        {
+          "node": "tests/test_runtime_long_task.py::test_long_run_unknown_write_stops_after_state_check_without_retry",
+          "phases": {
+            "setup": "passed"
+          },
+          "reason": "incomplete or non-passing phase journal"
+        }
+      ],
+      "unexpected_rows": [],
+      "artifact_hashes": {
+        "reports.jsonl": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/reports.jsonl",
+          "sha256": "1f0cc650367acfb2308ab3db3da75af568a7f20ffe65e1e394bd9d65b5ab1946",
+          "bytes": 9967
+        },
+        "stop_receipt.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/stop_receipt.json",
+          "sha256": "814baa8ed21a61d3951947211ccde58c91b2ace6be656805a571ccc6bfce3f72",
+          "bytes": 1109
+        },
+        "completed_nodes.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/completed_nodes.json",
+          "sha256": "39be947f2ae3cab62aef2d4f802bebeff471181499e62b933ff55c4ad630eaa9",
+          "bytes": 3057
+        },
+        "command.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/command.json",
+          "sha256": "e13a5590f9d99d2d781afa7cae0e987f5a86a8067b31cf4f8a7700fc23ca53b7",
+          "bytes": 23704
+        },
+        "pytest.log": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/pytest.log",
+          "sha256": "9d6ceaa63ca485d3a87d38d85e75b643c1323ffdcc6b6d89a4d19b905df06ed5",
+          "bytes": 344
+        }
+      },
+      "used_for_effective_results": "only setup/call/teardown all-passed nodes",
+      "whole_run_validation": false
+    },
+    "resource_recovered": {
+      "testcases": 192,
+      "outcomes": {
+        "passed": 191,
+        "failure": 0,
+        "error": 0,
+        "skipped": 1
+      },
+      "reported_suites": [
+        {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "1",
+          "tests": "192",
+          "time": "747.318",
+          "timestamp": "2026-10-08T22:23:21.131121+08:00",
+          "hostname": "DESKTOP-Horton"
+        }
+      ],
+      "unexpected_cases": [],
+      "command_metadata": {
+        "cwd": "C:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev",
+        "argv_items": 210,
+        "test_arguments": 192
+      },
+      "exit": {
+        "exit_code": 0,
+        "elapsed_seconds": 748.886198759079,
+        "total_integration_scope": 1222,
+        "rerun_nodes": 192,
+        "reused_complete_passes": 15
+      },
+      "artifact_hashes": {
+        "junit.xml": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resource_recovered_checks/junit.xml",
+          "sha256": "813eba543e1aec443419a48c0cfc9dacb08bb2aca74731de93bb1af78d342abe",
+          "bytes": 28205
+        },
+        "command.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resource_recovered_checks/command.json",
+          "sha256": "bd75ec316dda7cbb8f7192ddf4b3930651a076c94cd63d3c8df6760d541dc5c1",
+          "bytes": 22243
+        },
+        "exit.json": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resource_recovered_checks/exit.json",
+          "sha256": "7fe00d234021045de7efb76fb5bdf09e792dfd78d672997e2b555070b90ced41",
+          "bytes": 156
+        },
+        "reports.jsonl": {
+          "path": "AI_agent/archive/local_backup/takeover_20261008/resource_recovered_checks/reports.jsonl",
+          "sha256": "14f32a9954f0be041dcd9dfe943987766137d1c612d0ca93a39ed3a73d715f47",
+          "bytes": 110937
+        }
+      }
+    }
+  },
+  "interrupted_run": {
+    "status": "interrupted_by_user_restart",
+    "directory": "AI_agent/archive/local_backup/takeover_20261008/final_role_checks",
+    "exit": {
+      "exit_code": 1073807364,
+      "elapsed_seconds": 1180.654865026474,
+      "total_integration_scope": 1222,
+      "rerun_nodes": 207
+    },
+    "artifact_hashes": {
+      "command.json": {
+        "path": "AI_agent/archive/local_backup/takeover_20261008/final_role_checks/command.json",
+        "sha256": "5b05d53665354cf0a8311e8893175ba78ef53881bff954a6bfaa6b22cf335854",
+        "bytes": 23598
+      },
+      "exit.json": {
+        "path": "AI_agent/archive/local_backup/takeover_20261008/final_role_checks/exit.json",
+        "sha256": "1cffa328446e088743c0449971ca63df6f5d9a118bd4d463740bfb4c915baacc",
+        "bytes": 133
+      },
+      "pytest.log": {
+        "path": "AI_agent/archive/local_backup/takeover_20261008/final_role_checks/pytest.log",
+        "sha256": "47000ad8ce323461ad96724f0507a3d458fe615f8fa307d50915beed5a1f18ea",
+        "bytes": 534
+      }
+    },
+    "used_for_effective_results": false,
+    "progress_inference_used": false,
+    "note": "No complete JUnit exists for this run. Its console progress and partial observations are not treated as passed test nodes."
+  },
+  "rerun_scope_check": {
+    "original_expected_nodes": 207,
+    "phase_journal_reused_nodes": 15,
+    "resource_recovered_expected_nodes": 192,
+    "resource_recovered_reported_nodes": 192,
+    "resource_recovered_missing": [],
+    "resource_recovered_extra": [],
+    "phase_journal_unexpected_rows": [],
+    "unexpected_junit_cases": {
+      "initial_integration": [],
+      "resource_recovered": []
+    },
+    "isolated_results_outside_resource_recovered_failures": []
+  },
+  "resumed_resource_interruption": {
+    "failed_node": "tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial",
+    "pytest_failure": "expected SimulatedProcessDeath was not raised",
+    "runtime_failure": {
+      "sequence": 22,
+      "payload": {
+        "event_type": "run_lifecycle",
+        "action": "failure",
+        "reason": "failed; error_type=MemoryError",
+        "retry_of_event_id": null,
+        "attempt": null,
+        "state_inspection_event_id": null,
+        "checkpoint": null,
+        "failure_stage": "tool:delegate_readers",
+        "model_failure": null,
+        "partial_artifacts": []
+      }
+    },
+    "runtime_result": {
+      "status": "failed",
+      "finalization": {
+        "delivery": null,
+        "status": "no_saved_candidate"
+      }
+    },
+    "cause": "delegate_readers raised MemoryError before the plan reader reached its first-tool checkpoint. Runtime converted that Exception into a failed result, so the BaseException test hook never fired.",
+    "effective_result_source": "later resource_recovered JUnit",
+    "artifact_hashes": {
+      "events.jsonl": {
+        "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/pytest/popen-gw0/test_resume_reader_after_trial0/sm24-role-run/events.jsonl",
+        "sha256": "a47aeb89d975af465cd1a1ab7de90216d0fed5ce8b8f7661288407f926b52c74",
+        "bytes": 147383
+      },
+      "receipt.json": {
+        "path": "AI_agent/archive/local_backup/takeover_20261008/resumed_checks/pytest/popen-gw0/test_resume_reader_after_trial0/sm24-role-run/receipt.json",
+        "sha256": "ba7aa50d5ebc04da52562a727195fe02f37f496d220ed827469b45980e37cbf7",
+        "bytes": 21474
+      }
+    }
+  },
+  "initial_failure_attribution": {
+    "count": 6,
+    "classification": "test_assertion_only",
+    "same_assertion": true,
+    "location": "tests/test_role_end_to_end.py:168 in the initial loaded test module",
+    "assertion": "len(full role_position_review items) == actionable >30 cm count",
+    "observed_count_mismatches": {
+      "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]": {
+        "full_registry_count": 17,
+        "expected_gt_30cm_count": 0
+      },
+      "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]": {
+        "full_registry_count": 14,
+        "expected_gt_30cm_count": 3
+      },
+      "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]": {
+        "full_registry_count": 34,
+        "expected_gt_30cm_count": 0
+      },
+      "tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial": {
+        "full_registry_count": 14,
+        "expected_gt_30cm_count": 3
+      },
+      "tests/test_role_end_to_end.py::test_resume_after_all_readers_preserves_reader_records": {
+        "full_registry_count": 14,
+        "expected_gt_30cm_count": 3
+      },
+      "tests/test_role_end_to_end.py::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]": {
+        "full_registry_count": 14,
+        "expected_gt_30cm_count": 3
+      }
+    },
+    "cause": "The test assertion treated the complete position-review registry as only the gt_30cm actionable subset. The corrected assertion filters gt_30cm while retaining full-registry delivery equality.",
+    "nodes": [
+      "tests/test_role_end_to_end.py::test_resume_after_all_readers_preserves_reader_records",
+      "tests/test_role_end_to_end.py::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]",
+      "tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial",
+      "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]",
+      "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]",
+      "tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]"
+    ]
+  },
+  "effective": {
+    "nodes": 1222,
+    "outcomes": {
+      "passed": 1221,
+      "failure": 0,
+      "error": 0,
+      "skipped": 1
+    },
+    "uncovered": [],
+    "outside_scope": [],
+    "failures_and_errors": [],
+    "skips": [
+      {
+        "node": "tests/test_no_billed_provider_calls.py::test_live_marker_lifts_the_gate",
+        "status": "skipped",
+        "reason": "live provider test; select with -m live\nC:\\Users\\Horton\\Desktop\\EnergyPlus-Agent-dev\\tests\\test_no_billed_provider_calls.py:118: live provider test; select with -m live"
+      }
+    ]
+  },
+  "current_major_python_sha256": {
+    "scripts/tool_scripts/bim_agent_delivery_display.py": "950579b030700f68745729352800d80deba5c305d6bf05ff603ecbeb6c4074f2",
+    "scripts/tool_scripts/bim_agent_facade_checks.py": "0f7fc53eb365a03a7e953f443387c18079ff716619068889a092b9baa990d2b7",
+    "scripts/tool_scripts/bim_agent_precision.py": "c78e0aa4368bca25d15991db8fa11ead1dd6845a27b27459cdc2b51c05abe069",
+    "scripts/tool_scripts/bim_agent_regularization.py": "3c70a388af665c65dd7c3a89c72733db27392071afb8580887549b24dedce2d7",
+    "scripts/tool_scripts/bim_agent_role_heights.py": "b7d69e46265b650fe86c142907926b8b8917454d447a01f02653c1abf4120055",
+    "scripts/tool_scripts/run_bim_agent.py": "deafb2cfa0956d2352e82724d500f8f1f2925cf638470189ecf8fd1b39c5d6ba",
+    "src/agent/execution/bim_height_coverage.py": "e06ee61d08ce70cd74986769ccbdb61f8095372d9901a92a274b03c5f3634f4a",
+    "src/agent/geometry/plan_regularization.py": "422190a184e840f356ec7e273236b51ebcd42112d89cd0b6d4c8abdedc1455ea",
+    "src/agent/runtime_roles/assembly.py": "64f5a915b5bab59a9c42d4d55e2f6ecc8953c2e0526a8a1a3bd5a845f9208188",
+    "src/agent/runtime_roles/assembly_review.py": "20e5a5a9497322be90a52d667ea88101994fe6463ed63e8f69c2358feece03b9",
+    "src/agent/runtime_roles/guidance.py": "0c78056f464fb2cd6ea8156079e4471567265b75b3752361bf70d33e5cbf821f",
+    "src/agent/runtime_roles/height_evidence.py": "61c3d07652dc7857b238f76ea96d222b873fe3f8f4e2a77da1d3a36db9758d78",
+    "src/agent/runtime_roles/session.py": "84c1b8c025e422d81abedac8242d1efbc895267b396d9c04379867b8657aabe1",
+    "tests/role_d1_fixtures.py": "e17cc6aca234c0f3d4efbe8bd3e3fc4b02f5ec3b5f430b758c666a8e694be22c",
+    "tests/test_bim_regularization_integration.py": "f58234debc02747f0036b377b5948f1e1e07b405a851ff318987121bf5cbc492",
+    "tests/test_plan_regularization.py": "fe44da2f6494fe1ad20d8c441bfeedd7607d5cabfe3030e7e4209e18b2ca35cc",
+    "tests/test_role_assembly_review.py": "ae1393c2893c820452abc670eceb1ff4c69914ad95bd9951989c2e4050c1c164",
+    "tests/test_role_end_to_end.py": "e39a6ce8ef44c03f0e9289245f6e621a1fb558eb2e60bea9bbf16162d85aacf6",
+    "tests/test_role_g1_session.py": "9f83e929f0da107aaec5d12ccf3cb581508c7897c945351f30a74cd572dcc2cc",
+    "tests/test_role_guidance.py": "f9f5356faaea538e85de562b00f3f4cd0331142ca7323ff8e08843480569958c",
+    "tests/test_role_height_evidence.py": "0febf0dae895a4f3ae63428773c5311d2fe120cc18f3944be647c5d1d7bcf57d",
+    "tests/test_role_position_review.py": "11b7cbf04daa524843997a56986d2a79bed5257e052acc30850dcdf69ff156f4"
+  },
+  "post_merge_test_adjustment": {
+    "path": "tests/test_role_end_to_end.py",
+    "sha256": "e39a6ce8ef44c03f0e9289245f6e621a1fb558eb2e60bea9bbf16162d85aacf6",
+    "product_python_changed_after_merge": false
+  },
+  "formal_registry": {
+    "path": "src/agent_runtime/agent_versions.json",
+    "sha256": "d4e9144755520f55ea5551bf350d216d58f6e372907ec5d04fcb2e71cfd975ce",
+    "schema_version": "agent-version-registry.v2",
+    "runtime": {
+      "version": "runtime-v1-20261007",
+      "source_commit": "e030b6b0195eea18d2d54261038f8a8f25640518",
+      "coverage": "automatic_directories",
+      "files": 35
+    },
+    "domain": {
+      "version": "domain-v53-20261008",
+      "source_commit": "0f8274853be122d154540dd24aec8c08df0f3024",
+      "coverage": "automatic_directories",
+      "files": 404,
+      "mode_fingerprints": {
+        "role_division/coordinator": {
+          "guidance_sha256": "b5bebce306ff0cb6e6d7afdf64df44b4075a0701109d0803826cd0ba7cb75ea3",
+          "sha256": "d22d45af011a394f3f3c5cf6aec0d5d8be11457f38bd7c5e7cb5639064c87718",
+          "task_template_sha256": "03296f10f0bc495615d30464bf19feeca95377c6c5ee379ff29d708366682ae0",
+          "tools_sha256": "1c7520a46ab454298df2cebb34d97876485cba334ae62f0626cfb82573f19528"
+        },
+        "role_division/elevation_reader": {
+          "guidance_sha256": "8d9f6cde74839bb8ff9ceeaeec0a8226dc91cc3c3f3b6659b6aa87448ef27933",
+          "sha256": "f09c14d4e9fdcb8dfcc46a2cda4d0f5d3fa3331ef7edc82d0ba168d5baa5aa2b",
+          "task_template_sha256": "57b8d1257ac8205b560314d1dbd6fa35cc80caa409aa2a9ac57bc54c45854814",
+          "tools_sha256": "68964ed8b83f3273c22d0a85a5ac91da1740ce801b1a6b738c514baf854c2b76"
+        },
+        "role_division/plan_reader": {
+          "guidance_sha256": "f3379fc29b3c3a8bdb7b54b5fa470a32abd0ced8d39d94f59503428d8cd8b8d1",
+          "sha256": "29bd236f1f382ce6c0c70ec94d4453a9fccd18398cd3c1b3be01d51b5e54f9cf",
+          "task_template_sha256": "01f78582386cfb3e7e59f5027f4f815d357085ceaba3ada115bbc8ea4e1391cb",
+          "tools_sha256": "f4f1be5510476694c74eed4eea74b5c633c9e64b16b62091f5c4586f6d7245ad"
+        },
+        "single_model/coordinator": {
+          "guidance_sha256": "253a4c83d3d641b3a36d6159de11a0db1d57b81124c1fd639701b018ccdfe6c3",
+          "sha256": "b7daa85de2bcd1983e0ccd60818120ea2f6a665d89635753e7ba23e0fd3f1c5e",
+          "task_template_sha256": "3bbe1967c9e1623033170e082618c71e2ba89170540e2b0f7e1e623259b62972",
+          "tools_sha256": "c4abbf6c6a95d8686614dadc8352223c29715e87216762493f506b24170da51c"
+        },
+        "single_model/coordinator_mesh": {
+          "guidance_sha256": "48d57df40a593cfa37fd24b7c3b07df2a0eec59c624c43242404d866c7cf510c",
+          "sha256": "7d7ea18ca51483e90059b786948f0788b4d1284d9f737b0723774ea5b948a3d1",
+          "task_template_sha256": "3bbe1967c9e1623033170e082618c71e2ba89170540e2b0f7e1e623259b62972",
+          "tools_sha256": "dac35df530b98b8a928184c8567022a5d451b03aee1c39a2ed1d8d1f60d4fe74"
+        },
+        "single_model/readonly": {
+          "guidance_sha256": "6f03558b320290f19fbe2ead890ac51ce313fd19be24086a96a7e0a808ba0a9c",
+          "sha256": "72b74ba086e164220b1f282148539c4d9155a9a16c6071b10b05b5006f0795db",
+          "task_template_sha256": "3bbe1967c9e1623033170e082618c71e2ba89170540e2b0f7e1e623259b62972",
+          "tools_sha256": "32023a5900808e293d13de99e59f701796efca2909ab657c734b3651c6b0a7c9"
+        },
+        "single_model/readonly_mesh": {
+          "guidance_sha256": "2eb42e9c1ad1d4c196eb4e8714f566d179663f16419d8cc36ad4b55001601cf8",
+          "sha256": "27599319731e1bc4439f863ada5babe55a5305d464dca63f21caea124036cfa0",
+          "task_template_sha256": "3bbe1967c9e1623033170e082618c71e2ba89170540e2b0f7e1e623259b62972",
+          "tools_sha256": "7a1e7c753adff48f0eab1784fd8b5ba52013d46d19e4e63592ab5e0581402a76"
+        }
+      },
+      "tool_catalog_sha256": {
+        "coordinator": "2dcd32f8cf8fcdfadbbe0273929630029cad1a0f4174abb0d884befc3b210c50",
+        "coordinator_mesh": "ee7cc8c9f638cc3d4e9e4da0177fcb279c4030214278bd6f204da403b09fbb3b",
+        "readonly": "574e5934c7a8b504b8ca6e1d6ff113aa87a733b2a23d89e03122b1ebeceb59e3",
+        "readonly_mesh": "36c1d34be765e450c7db2e76ee05c9e60c6d3a3dc18cc4eba1be4311d4a7410b"
+      }
+    }
+  }
+}
