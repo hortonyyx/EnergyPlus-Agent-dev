@@ -23,12 +23,14 @@ RULE_VERSION = "plan_regularization_v1"
 ALIGNMENT_THRESHOLD_M = 0.30
 MIN_SPACE_WIDTH_M = 0.60
 PIXEL_DECIMALS = 9
+NUMERIC_EQUALITY_TOLERANCE_M = 1e-7
+CROSS_STOREY_FAILURE_POLICIES = {"reject_assembly", "skip_failed_pair"}
 _EPS = 1e-8
 
 
 def _strictly_under(value: float, threshold: float) -> bool:
     """Numerically stable implementation of the product's strict '<' rule."""
-    return value > _EPS and value < threshold - _EPS
+    return value > NUMERIC_EQUALITY_TOLERANCE_M and value < threshold - _EPS
 
 
 class PlanRegularizationError(ValueError):
@@ -280,6 +282,192 @@ def _opening_on_segment(opening: dict, segment: dict, calibration: dict) -> bool
                 and _overlap(line, segment) > _EPS)
 
 
+def _opening_width_m(opening: dict, calibration: dict) -> float:
+    return math.dist(_world(calibration, opening["p1"]),
+                     _world(calibration, opening["p2"]))
+
+
+def _structured_gap_support(plan: dict, opening_id: str) -> bool:
+    audit = plan.get("regularization_inputs", {}).get("reading_alignment", {})
+    ink = audit.get("ink", {}) if isinstance(audit, dict) else {}
+    return any(
+        isinstance(row, dict)
+        and row.get("object") == f"opening:{opening_id}"
+        and isinstance(row.get("gap_evidence"), dict)
+        and row["gap_evidence"].get("status") == "supported"
+        for row in ink.get("items", []) if isinstance(row, dict)
+    )
+
+
+def _has_hard_opening_width(plan: dict, opening_id: str) -> bool:
+    audit = plan.get("regularization_inputs", {}).get("reading_alignment", {})
+    dimensions = audit.get("dimensions", {}) if isinstance(audit, dict) else {}
+    return any(
+        isinstance(row, dict)
+        and (row.get("object") == f"opening:{opening_id}"
+             or row.get("opening_id") == opening_id)
+        for row in dimensions.get("items", []) if isinstance(row, dict)
+    )
+
+
+def _complete_open_passage_boundaries(plan: dict, opening: dict, host: dict,
+                                      moving: dict, calibration: dict) -> dict | None:
+    """Identify the two terminal walls of one evidence-backed open passage.
+
+    This is a narrow compatibility path for saved drafts that encoded a
+    complete passage as ``door/state=open``.  It deliberately does not inspect
+    IDs or source-ref prose, and ordinary open doors do not qualify merely from
+    their state.
+    """
+    identity = opening.get("id")
+    if (opening.get("kind") not in {"door", "open"}
+            or opening.get("state") != "open"
+            or not isinstance(identity, str)
+            or not _structured_gap_support(plan, identity)
+            or _has_hard_opening_width(plan, identity)):
+        return None
+    normal_index = 0 if moving["axis"] == "x" else 1
+    host_coordinate = host["coordinate_m"]
+    endpoints = {
+        key: _world(calibration, opening[key])[normal_index]
+        for key in ("p1", "p2")
+    }
+    candidates = []
+    for boundary in _segments(plan, calibration):
+        if (boundary["axis"] != moving["axis"]
+                or boundary["partition_id"] == host["partition_id"]
+                or min(abs(value - host_coordinate)
+                       for value in boundary["span_m"])
+                > NUMERIC_EQUALITY_TOLERANCE_M):
+            continue
+        candidates.append(boundary)
+    def terminal_direction(boundary):
+        other = max(boundary["span_m"]) if math.isclose(
+            min(boundary["span_m"]), host_coordinate,
+            abs_tol=NUMERIC_EQUALITY_TOLERANCE_M) else min(
+                boundary["span_m"])
+        return 1 if other > host_coordinate else -1
+    assignments = []
+    for first in candidates:
+        for second in candidates:
+            if ((first["partition_id"], first["segment_index"])
+                    == (second["partition_id"], second["segment_index"])):
+                continue
+            if (abs(first["coordinate_m"] - endpoints["p1"])
+                    >= ALIGNMENT_THRESHOLD_M
+                    or abs(second["coordinate_m"] - endpoints["p2"])
+                    >= ALIGNMENT_THRESHOLD_M):
+                continue
+            opening_lo, opening_hi = sorted(endpoints.values())
+            boundary_lo, boundary_hi = sorted(
+                (first["coordinate_m"], second["coordinate_m"]))
+            if (boundary_lo > opening_lo + NUMERIC_EQUALITY_TOLERANCE_M
+                    or boundary_hi < opening_hi - NUMERIC_EQUALITY_TOLERANCE_M):
+                continue
+            moving_key = (moving["partition_id"], moving["segment_index"])
+            if moving_key not in {
+                    (first["partition_id"], first["segment_index"]),
+                    (second["partition_id"], second["segment_index"])}:
+                continue
+            if terminal_direction(first) != terminal_direction(second):
+                continue
+            assignments.append((
+                abs(first["coordinate_m"] - endpoints["p1"])
+                + abs(second["coordinate_m"] - endpoints["p2"]),
+                first, second,
+            ))
+    if not assignments:
+        return None
+
+    # Multiple partition IDs may describe the same collinear terminal wall.
+    # Treat those as one geometric interpretation, but do not let proximity or
+    # an ID tie-break choose between genuinely different terminal coordinates.
+    # A non-unique interpretation falls back to the width-preserving path.
+    moving_key = (moving["partition_id"], moving["segment_index"])
+    interpretations = []
+    for assignment in assignments:
+        _, first, second = assignment
+        moving_edge = "p1" if (
+            first["partition_id"], first["segment_index"]) == moving_key else "p2"
+        match = next((group for group in interpretations
+                      if group["moving_edge"] == moving_edge
+                      and terminal_direction(group["first"]) == terminal_direction(first)
+                      and terminal_direction(group["second"]) == terminal_direction(second)
+                      and math.isclose(group["first"]["coordinate_m"], first["coordinate_m"],
+                                       rel_tol=0.0,
+                                       abs_tol=NUMERIC_EQUALITY_TOLERANCE_M)
+                      and math.isclose(group["second"]["coordinate_m"], second["coordinate_m"],
+                                       rel_tol=0.0,
+                                       abs_tol=NUMERIC_EQUALITY_TOLERANCE_M)), None)
+        if match is None:
+            interpretations.append({
+                "moving_edge": moving_edge,
+                "first": first,
+                "second": second,
+                "assignments": [assignment],
+            })
+        else:
+            match["assignments"].append(assignment)
+    if len(interpretations) != 1:
+        return None
+    _, first, second = min(interpretations[0]["assignments"], key=lambda row: (
+        row[0], row[1]["partition_id"], row[2]["partition_id"]))
+    return {
+        "p1": first,
+        "p2": second,
+        "inference": {
+            "basis": "structured_complete_open_passage_compatibility",
+            "state": "open",
+            "structured_gap_support": True,
+            "complete_between_terminal_boundaries": True,
+            "hard_width_reference": False,
+        },
+    }
+
+
+def _opening_adjustment(opening: dict, before: dict, calibration: dict, *,
+                        mode: str, jamb_deltas_m: dict, inference: dict,
+                        boundary_ids: dict | None = None,
+                        boundary_offsets_before_m: dict | None = None,
+                        boundary_offsets_after_m: dict | None = None) -> dict:
+    return {
+        "opening_id": opening.get("id"),
+        "mode": mode,
+        "before": {
+            "p1": copy.deepcopy(before["p1"]),
+            "p2": copy.deepcopy(before["p2"]),
+            "world_p1": [round(value, 9) for value in _world(
+                calibration, before["p1"])],
+            "world_p2": [round(value, 9) for value in _world(
+                calibration, before["p2"])],
+            "width_m": round(_opening_width_m(before, calibration), 9),
+        },
+        "after": {
+            "p1": copy.deepcopy(opening["p1"]),
+            "p2": copy.deepcopy(opening["p2"]),
+            "world_p1": [round(value, 9) for value in _world(
+                calibration, opening["p1"])],
+            "world_p2": [round(value, 9) for value in _world(
+                calibration, opening["p2"])],
+            "width_m": round(_opening_width_m(opening, calibration), 9),
+        },
+        "jamb_deltas_m": {
+            key: round(value, 9) for key, value in jamb_deltas_m.items()
+        },
+        "width_change_m": round(
+            _opening_width_m(opening, calibration)
+            - _opening_width_m(before, calibration), 9),
+        "inference": inference,
+        **({"boundary_ids": boundary_ids} if boundary_ids else {}),
+        **({"boundary_offsets_before_m": {
+            key: round(value, 9) for key, value in boundary_offsets_before_m.items()
+        }} if boundary_offsets_before_m else {}),
+        **({"boundary_offsets_after_m": {
+            key: round(value, 9) for key, value in boundary_offsets_after_m.items()
+        }} if boundary_offsets_after_m else {}),
+    }
+
+
 def _move_segment(plan: dict, segment: dict, target_coordinate_m: float, calibration: dict,
                   *, reason: str, changes: list[dict], basis: str = "existing_line") -> None:
     axis = segment["axis"]
@@ -308,6 +496,102 @@ def _move_segment(plan: dict, segment: dict, target_coordinate_m: float, calibra
     along_index = 1 - normal_index
     old_coordinate_pixel = old_segment["points_pixel"][0][normal_index]
     lo_px, hi_px = sorted(p[along_index] for p in old_segment["points_pixel"])
+    # A T-junction may move into an opening carried by the perpendicular host
+    # wall even though that host is one long segment with no endpoint at the
+    # junction.  Move the opening edge facing that junction with it.  This
+    # keeps the opening on the same host and on the same side of the junction;
+    # the transactional compile/relationship check below still rejects any
+    # case where that cannot be preserved.
+    crossing_openings = []
+    opening_adjustments = []
+    target_coordinate_pixel = target_pixel
+    sweep_lo, sweep_hi = sorted((old_coordinate_pixel, target_coordinate_pixel))
+    for host in _segments(plan, calibration):
+        if (host["partition_id"] == old_segment["partition_id"]
+                or host["axis"] == axis
+                or not (host["span_m"][0] - NUMERIC_EQUALITY_TOLERANCE_M
+                        <= old_segment["coordinate_m"]
+                        <= host["span_m"][1] + NUMERIC_EQUALITY_TOLERANCE_M)
+                or not (old_segment["span_m"][0] - NUMERIC_EQUALITY_TOLERANCE_M
+                        <= host["coordinate_m"]
+                        <= old_segment["span_m"][1] + NUMERIC_EQUALITY_TOLERANCE_M)):
+            continue
+        for opening in plan.get("openings", []):
+            identity = opening.get("id")
+            if identity in moved_opening_ids or not _opening_on_segment(
+                    opening, host, calibration):
+                continue
+            opening_lo, opening_hi = sorted(
+                (opening["p1"][normal_index], opening["p2"][normal_index]))
+            old_inside = (
+                opening_lo - _EPS <= old_coordinate_pixel <= opening_hi + _EPS)
+            swept = (
+                sweep_lo < opening_hi - _EPS
+                and opening_lo + _EPS < sweep_hi)
+            if old_inside or not swept:
+                continue
+            if old_coordinate_pixel < opening_lo:
+                edge = (
+                    "p1" if opening["p1"][normal_index]
+                    <= opening["p2"][normal_index] else "p2")
+            else:
+                edge = (
+                    "p1" if opening["p1"][normal_index]
+                    >= opening["p2"][normal_index] else "p2")
+            before_opening = copy.deepcopy(opening)
+            passage = _complete_open_passage_boundaries(
+                plan, opening, host, old_segment, calibration)
+            if passage is not None:
+                moving_key = (old_segment["partition_id"], old_segment["segment_index"])
+                moving_edge = next(key for key in ("p1", "p2") if (
+                    passage[key]["partition_id"], passage[key]["segment_index"])
+                    == moving_key)
+                pixel_delta = target_coordinate_pixel - old_coordinate_pixel
+                opening[moving_edge][normal_index] += pixel_delta
+                jamb_deltas = {
+                    "p1": target_coordinate_m - old_segment["coordinate_m"]
+                    if moving_edge == "p1" else 0.0,
+                    "p2": target_coordinate_m - old_segment["coordinate_m"]
+                    if moving_edge == "p2" else 0.0,
+                }
+                before_offsets = {
+                    key: _world(calibration, before_opening[key])[normal_index]
+                    - passage[key]["coordinate_m"]
+                    for key in ("p1", "p2")
+                }
+                after_offsets = {
+                    key: _world(calibration, opening[key])[normal_index]
+                    - (target_coordinate_m if key == moving_edge
+                       else passage[key]["coordinate_m"])
+                    for key in ("p1", "p2")
+                }
+                opening_adjustments.append(_opening_adjustment(
+                    opening, before_opening, calibration,
+                    mode="open_passage_boundary_follow",
+                    jamb_deltas_m=jamb_deltas,
+                    inference=passage["inference"],
+                    boundary_ids={
+                        key: passage[key]["partition_id"] for key in ("p1", "p2")
+                    },
+                    boundary_offsets_before_m=before_offsets,
+                    boundary_offsets_after_m=after_offsets,
+                ))
+            else:
+                pixel_delta = target_coordinate_pixel - opening[edge][normal_index]
+                opening["p1"][normal_index] += pixel_delta
+                opening["p2"][normal_index] += pixel_delta
+                delta_m = (_world(calibration, opening["p1"])[normal_index]
+                           - _world(calibration, before_opening["p1"])[normal_index])
+                opening_adjustments.append(_opening_adjustment(
+                    opening, before_opening, calibration,
+                    mode="translate_preserve_width",
+                    jamb_deltas_m={"p1": delta_m, "p2": delta_m},
+                    inference={"basis": "entity_opening_width_preserved"},
+                    boundary_ids={"swept_boundary": old_segment["partition_id"]},
+                ))
+            moved_openings.append(identity)
+            moved_opening_ids.add(identity)
+            crossing_openings.append(identity)
     for other in list(plan.get("partitions", [])):
         if other is partition or not other.get("points"):
             continue
@@ -410,6 +694,8 @@ def _move_segment(plan: dict, segment: dict, target_coordinate_m: float, calibra
         "basis": basis, "reason": reason,
         "opening_ids": moved_openings,
         "moved_opening_ids": moved_openings,
+        "adjusted_crossing_opening_ids": crossing_openings,
+        "opening_adjustments": opening_adjustments,
         "adjusted_endpoint_ids": moved_endpoints,
         "blocked_collapses": blocked_collapses,
     })
@@ -2349,7 +2635,9 @@ def validate_regularized_plan_stack(items: list[dict], *, rule_version: str = RU
     return {"schema": "plan_stack_hard_constraints_v1", "rule_version": rule_version,
             "status": "pass" if not violations else "rejected",
             "thresholds": {"alignment_strictly_less_than_m": ALIGNMENT_THRESHOLD_M,
-                           "minimum_space_width_m": MIN_SPACE_WIDTH_M},
+                           "minimum_space_width_m": MIN_SPACE_WIDTH_M,
+                           "numeric_equality_tolerance_m":
+                               NUMERIC_EQUALITY_TOLERANCE_M},
             "violations": violations, "per_floor": per_floor,
             "coverage": {"floors": [item["floor_id"] for item in ordered], "adjacent_pairs": pairs}}
 
@@ -2365,8 +2653,15 @@ def enforce_regularized_plan_stack(items: list[dict], *, rule_version: str = RUL
     return report
 
 
-def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION) -> tuple[list[dict], dict]:
+def regularize_plan_stack(
+        items: list[dict], *, rule_version: str = RULE_VERSION,
+        cross_storey_failure_policy: str = "reject_assembly",
+) -> tuple[list[dict], dict]:
     """Regularise floor drafts, align adjacent storeys, and recompile each draft."""
+    if cross_storey_failure_policy not in CROSS_STOREY_FAILURE_POLICIES:
+        raise ValueError(
+            "cross_storey_failure_policy must be reject_assembly or "
+            "skip_failed_pair")
     _validate_stack_items(items)
     result = copy.deepcopy(items)
     original_separations = _stack_separations(result)
@@ -2375,6 +2670,7 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
     stack_changes = []
     rejected_attempts = []
     rejections = []
+    skipped_alignments = []
     for item in result:
         try:
             item["plan"], floor_reports[item["floor_id"]] = regularize_plan(
@@ -2450,7 +2746,7 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
                 if floor_hard["violations"] else
                 "room_opening_host_or_connection_changed"
             )
-            rejections.append({
+            failure = {
                 "type": "cross_storey_footprint_alignment_rejected",
                 "contradiction_category": contradiction,
                 "floor_id": affected["floor_id"],
@@ -2472,7 +2768,16 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
                     "plan did not strictly preserve rooms, openings, hosts, connections and "
                     "same-floor hard constraints."
                 ),
-            })
+            }
+            if cross_storey_failure_policy == "skip_failed_pair":
+                failure.update({
+                    "type": "cross_storey_footprint_alignment_skipped",
+                    "failure_policy": cross_storey_failure_policy,
+                    "disposition": "original_pair_preserved_and_reported",
+                })
+                skipped_alignments.append(failure)
+            else:
+                rejections.append(failure)
             return False
         stack_changes[-1]["before_relationships"] = before_sig
         stack_changes[-1]["after_relationships"] = after_sig
@@ -2816,7 +3121,15 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
                         "strictly recompile with unchanged rooms, openings, hosts and connections."
                     ),
                 }
-                rejections.append(rejection)
+                if cross_storey_failure_policy == "skip_failed_pair":
+                    rejection.update({
+                        "type": "cross_storey_alignment_skipped",
+                        "failure_policy": cross_storey_failure_policy,
+                        "disposition": "original_pair_preserved_and_reported",
+                    })
+                    skipped_alignments.append(rejection)
+                else:
+                    rejections.append(rejection)
                 blocked.add(pair_key)
                 continue
             # A source segment moves at most once in this adjacent-storey pass,
@@ -2851,6 +3164,53 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
         item["proposal"] = proposal
     hard = validate_regularized_plan_stack(result, rule_version=rule_version)
     hard_rejections = copy.deepcopy(hard["violations"])
+    if cross_storey_failure_policy == "skip_failed_pair":
+        remaining_hard_rejections = []
+        for row in hard_rejections:
+            if row.get("type") not in {
+                    "storey_wall_offset_under_0_30m",
+                    "fixed_footprint_storey_offset_under_0_30m"}:
+                remaining_hard_rejections.append(row)
+                continue
+            objects = row.get("objects", [])
+            object_key = {
+                (obj.get("floor_id"), obj.get("partition_id"), obj.get("axis"))
+                for obj in objects
+            }
+            existing = next((
+                skipped for skipped in skipped_alignments
+                if object_key == {
+                    (obj.get("floor_id"), obj.get("partition_id"), obj.get("axis"))
+                    for obj in (skipped.get("source"), skipped.get("target"))
+                    if isinstance(obj, dict)
+                }
+            ), None)
+            if existing is None:
+                skipped_alignments.append({
+                    "type": "cross_storey_alignment_skipped",
+                    "failure_policy": cross_storey_failure_policy,
+                    "disposition": "original_pair_preserved_and_reported",
+                    "contradiction_category": "unresolved_cross_storey_offset",
+                    "source": copy.deepcopy(objects[0]) if objects else None,
+                    "target": copy.deepcopy(objects[1]) if len(objects) > 1 else None,
+                    "distance_m": row.get("distance_m"),
+                    "overlap_m": row.get("overlap_m"),
+                    "hard_violation": copy.deepcopy(row),
+                    "message": (
+                        "Cross-storey alignment could not be applied safely; "
+                        "the original pair is preserved and listed for delivery."
+                    ),
+                })
+            else:
+                existing["hard_violation"] = copy.deepcopy(row)
+        hard_rejections = remaining_hard_rejections
+        hard = copy.deepcopy(hard)
+        hard["violations"] = copy.deepcopy(hard_rejections)
+        hard["skipped_violations"] = [
+            copy.deepcopy(row.get("hard_violation"))
+            for row in skipped_alignments if row.get("hard_violation")
+        ]
+        hard["status"] = "pass" if not hard_rejections else "rejected"
     for row in hard_rejections:
         row.setdefault("contradiction_category", "post_regularization_hard_constraint")
     rejections.extend(hard_rejections)
@@ -2870,16 +3230,24 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
             })
     status = "pass" if not rejections else "rejected"
     applied_stack_changes = stack_changes if status == "pass" else []
-    attempted_stack_changes = [] if status == "pass" else [
-        *stack_changes, *rejected_attempts,
-    ]
+    attempted_stack_changes = (
+        rejected_attempts if status == "pass" else
+        [*stack_changes, *rejected_attempts]
+    )
     report = {
         "schema": "plan_stack_regularization_report_v1", "rule_version": rule_version,
         "status": status,
         "floor_reports": floor_reports, "changes": applied_stack_changes,
         "attempted_changes": attempted_stack_changes, "rejections": rejections,
+        "skipped_alignments": skipped_alignments,
         "preserved_separations": preserved_separations,
         "hard_constraints": hard,
+        "thresholds": {
+            "alignment_strictly_less_than_m": ALIGNMENT_THRESHOLD_M,
+            "minimum_space_width_m": MIN_SPACE_WIDTH_M,
+            "numeric_equality_tolerance_m": NUMERIC_EQUALITY_TOLERANCE_M,
+        },
+        "cross_storey_failure_policy": cross_storey_failure_policy,
         "elevation_references": {
             item["floor_id"]: {
                 "declared_trusted": bool(item.get("elevation_reference", False)),
@@ -2892,6 +3260,7 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
                     "attempted_changes": len(attempted_stack_changes),
                     "maximum_movement_m": max((row.get("movement_m", 0.0) for row in applied_stack_changes), default=0.0),
                     "rejected": len(rejections),
+                    "skipped_alignments": len(skipped_alignments),
                     "change_counts": dict(Counter(row["type"] for row in applied_stack_changes)),
                     "attempted_change_counts": dict(Counter(row["type"] for row in attempted_stack_changes)),
                     "rejection_counts": dict(Counter(row["type"] for row in rejections))},
@@ -2906,6 +3275,15 @@ def regularize_plan_stack(items: list[dict], *, rule_version: str = RULE_VERSION
             "rule_version": rule_version,
             "changes": [row for row in stack_changes if row.get("floor_id") in {None, item["floor_id"]}
                         or row.get("object", {}).get("floor_id") == item["floor_id"]],
+            "skipped_alignments": [
+                row for row in skipped_alignments
+                if item["floor_id"] in {
+                    row.get("floor_id"), row.get("source_floor_id"),
+                    row.get("target_floor_id"),
+                    (row.get("source") or {}).get("floor_id"),
+                    (row.get("target") or {}).get("floor_id"),
+                }
+            ],
             "status": "pass",
         }
         item["plan"]["regularization"]["plan_sha256"] = _plan_digest(item["plan"])

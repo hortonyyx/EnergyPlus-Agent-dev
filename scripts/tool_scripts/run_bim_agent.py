@@ -1211,7 +1211,7 @@ class Toolkit:
         from src.agent.geometry.plan_assembly import assemble_plan_proposals
         from src.agent.geometry.plan_partition import compile_plan_partition
         from scripts.tool_scripts.bim_agent_regularization import (
-            LEGACY_RULE, save_report, selected_rule, summary,
+            LEGACY_RULE, save_report, selected_rule, selected_cross_storey_failure_policy, summary,
         )
         if self.readonly:
             raise ValueError("floor assembly is available only to the coordinator")
@@ -1250,7 +1250,8 @@ class Toolkit:
             audit_folder.mkdir(exist_ok=False)
             dump(audit_folder / "submitted_plans.json", declared)
             try:
-                declared, regularization = regularize_plan_stack(declared)
+                declared, regularization = regularize_plan_stack(declared,
+                    cross_storey_failure_policy=selected_cross_storey_failure_policy(self.manifest))
             except (ValueError, TypeError, KeyError) as error:
                 rejected = getattr(error, "report", None)
                 result = {"status": "error", "error": str(error), "error_stage": "regularization",
@@ -1319,7 +1320,8 @@ class Toolkit:
         from src.agent.execution.source_proposal import export_source_proposal
         from scripts.tool_scripts.bim_agent_saved_result import saved_result, saved_source_result
         from scripts.tool_scripts.bim_agent_regularization import reject_source_proposal
-        rejection = reject_source_proposal(self, proposal)
+        rejection = reject_source_proposal(
+            self, proposal, plan_assembly=plan_assembly, parent=parent)
         if rejection is not None:
             saved_result(rejection, audit_written=True)
             self.log(action, rejection)

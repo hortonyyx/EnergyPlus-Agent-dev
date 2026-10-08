@@ -49,20 +49,20 @@ def test_independent_endpoints_width_thresholds_and_fit_does_not_hide_drift():
     assert before == [1, 2]
 
 
-def test_keep_plan_is_durable_without_writes_and_pending_blocks_delivery(tmp_path):
+def test_10_30cm_auto_keep_plan_is_durable_without_writes_or_delivery_block(tmp_path):
     with height_session(tmp_path) as session:
         row = shifted(session, .2)
         original = (session.run_directory / "candidate_01/source_model.json").read_bytes()
-        with pytest.raises(ValueError):
-            session.positions.guard("candidate_01")
-        args = {"candidate": "candidate_01", "edits": [decision(row)]}
-        result = asyncio.run(session.call_tool("edit_bim", args))
-        assert not result["isError"], result
+        saved_row = session.positions.current()["items"][row["decision_id"]]
+        assert saved_row["status"] == "decided"
+        assert saved_row["decision"]["choice"] == "keep_plan"
+        assert saved_row["decision"]["automatic"] is True
+        assert not session.positions.summary()["pending"]
         assert session.frozen.calls == []
         assert (session.run_directory / "candidate_01/source_model.json").read_bytes() == original
+        session.positions.guard("candidate_01")
         session.positions = PositionReview(session)
         session.positions.guard("candidate_01")
-        assert asyncio.run(session.call_tool("edit_bim", args))["structuredContent"] == result["structuredContent"]
         session.positions.write_delivery("candidate_01")
         saved = json.loads((session.run_directory / "position_review.json").read_bytes())
         assert saved["items"][row["decision_id"]]["decision"]["choice"] == "keep_plan"
@@ -111,17 +111,35 @@ def test_over_30cm_requires_two_located_views_and_reread_stays_pending(tmp_path)
         toolkit.view("plan.png", [0, 0, 3, 3])
         args["edits"][0]["view_ids"] = ["view_0001"]
         assert asyncio.run(session.call_tool("edit_bim", args))["isError"]
-        toolkit.view("plan.png", [6, 3, 12, 8])
+        # One pixel short on every side is accepted as image crop rounding.
+        toolkit.view("plan.png", [8, 5, 10, 6])
         args["edits"][0]["view_ids"] = ["view_0001", "view_0002"]
         result = asyncio.run(session.call_tool("edit_bim", args))
         assert not result["isError"], result
         assert len(session.positions.current()["items"][row["decision_id"]]["decision"]["views"]) == 2
+        session.positions.guard("candidate_01")
         row = shifted(session, .5, task_id="NorthReread")
         result = asyncio.run(session.call_tool("edit_bim", {"candidate": "candidate_01", "edits": [decision(row, "reread_elevation")]}))
         assert not result["isError"], result
         assert result["structuredContent"]["decisions"][0]["rework"]["previous_task_id"] == "NorthReread"
         with pytest.raises(ValueError):
             session.positions.guard("candidate_01")
+
+
+def test_unresolved_over_30cm_blocks_delivery_without_fabricating_a_default(tmp_path):
+    with height_session(tmp_path) as session:
+        row = shifted(session, .4)
+        summary = session.positions.summary()
+        assert summary["pending"][0]["decision_id"] == row["decision_id"]
+        assert summary["delivery_blocking"] == summary["pending"]
+        assert summary["delivery_defaults"] == []
+        with pytest.raises(ValueError, match="position decision required before delivery"):
+            session.positions.guard("candidate_01")
+        unresolved = session.match("NorthShift", "candidate_01", height_bounds=True)["result"]
+        assert unresolved["conflicts"][0]["type"] == "position_or_width_conflict"
+        with pytest.raises(ValueError, match="position decision required before delivery"):
+            session.positions.write_delivery("candidate_01")
+        assert not (session.run_directory / "position_review.json").exists()
 
 
 def test_decision_resume_after_inner_write_does_not_duplicate_candidate(tmp_path):

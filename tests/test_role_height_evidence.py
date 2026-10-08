@@ -87,3 +87,42 @@ def test_single_level_scale_needs_independent_image_corroboration(tmp_path):
         assert height_locations(artifact, match, [12, 8])["status"] == "prepared"
         other["head_m"] = 10
         assert height_locations(artifact, match, [12, 8])["status"] == "uncorroborated_vertical_scale"
+
+
+def test_manual_height_uses_exact_delivered_artifact_without_new_view(tmp_path):
+    with height_session(tmp_path) as session, asyncio.Runner() as runner:
+        reference = session.registry.records["West"]["artifact"]
+        edit = {
+            "action": "height",
+            "id": "West",
+            "sill_m": 0.9,
+            "head_m": 2.3,
+            "reason": "Use the delivered West elevation opening row.",
+            "reader_evidence": {
+                "task_id": "West",
+                "sha256": reference["sha256"],
+                "opening_id": "observed-West",
+            },
+        }
+        result = runner.run(session.call_tool("edit_bim", {
+            "candidate": "candidate_01", "edits": [edit],
+        }))
+        assert result["structuredContent"]["status"] == "completed"
+        candidate = result["structuredContent"]["candidate"]
+        report = session.frozen.toolkit.delivery(candidate, selection_origin="offline_test")
+        west = next(row for row in report["height_coverage"]["openings"]
+                    if row["opening_id"] == "West")
+        assert west["status"] == "located_applied"
+        view = west["evidence"][0]["views"][0]
+        assert view["reader_task_id"] == "West"
+        assert view["artifact_opening_id"] == "observed-West"
+        assert view["box"] == [0.0, 0.0, 2.0, 2.0]
+        assert not (session.run_directory / "image_views").exists()
+
+        bad = copy.deepcopy(edit)
+        bad["reader_evidence"]["sha256"] = "0" * 64
+        rejected = runner.run(session.call_tool("edit_bim", {
+            "candidate": candidate, "edits": [bad],
+        }))
+        assert rejected["isError"] is True
+        assert "hash" in rejected["structuredContent"]["reason"]

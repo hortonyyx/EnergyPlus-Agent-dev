@@ -10,7 +10,9 @@ from src.agent.geometry.plan_regularization import (
     PlanRegularizationError,
     _attach_suspended_endpoints,
     _calibration,
+    _complete_open_passage_boundaries,
     _plan_digest,
+    _segments,
     enforce_regularized_plan,
     prepare_plan_junctions,
     regularize_plan,
@@ -55,6 +57,24 @@ def _stack_items(lower, upper):
         {"plan": upper, "image_size": IMAGE_SIZE, "image_name": "upper.png",
          "floor_id": "L2", "z_floor": 3.0, "source_ref": "drawing:upper"},
     ]
+
+
+def _opening_alignment_evidence(opening_id, *, gap=True, hard_width=False):
+    ink_item = {
+        "object": f"opening:{opening_id}", "kind": "opening",
+        "gap_evidence": {"status": "supported"} if gap else None,
+    }
+    dimensions = ([{"object": f"opening:{opening_id}", "kind": "opening_width",
+                    "value_m": 1.8, "basis": "dimension"}]
+                  if hard_width else [])
+    section = lambda items: {
+        "summary": {}, "items": items, "rejections": [],
+        "search_or_tolerance": {},
+    }
+    return {
+        "schema_version": "synthetic_reading_alignment_v1",
+        "ink": section([ink_item]), "dimensions": section(dimensions),
+    }
 
 
 def test_direct_compiler_remains_literal_until_regularization_is_explicit():
@@ -999,6 +1019,221 @@ def test_cross_storey_target_lock_moves_connected_collinear_chain_without_cycle(
                for row in chain_moves)
 
 
+def test_cross_storey_move_translates_entity_opening_swept_by_connected_t_junction():
+    lower = _plan([
+        ("target", [[42, 0], [42, 50]]),
+        ("lower-host", [[0, 50], [100, 50]]),
+    ])
+    upper = _plan(
+        [("moving", [[40, 0], [40, 50]]),
+         ("opening-host", [[0, 50], [100, 50]])],
+        openings=[{
+            "id": "passage", "kind": "open",
+            "p1": [41, 50], "p2": [60, 50], "z": [0.0, 2.1],
+            "source_refs": ["drawing:passage"],
+        }],
+    )
+
+    regularized, report = regularize_plan_stack(_stack_items(lower, upper))
+
+    result = regularized[1]["plan"]
+    assert next(row for row in result["partitions"] if row["id"] == "moving")[
+        "points"] == [[42.0, 0], [42.0, 50]]
+    passage = result["openings"][0]
+    assert passage["p1"] == [42.0, 50]
+    assert passage["p2"] == [61.0, 50]
+    move = next(row for row in report["changes"]
+                if row.get("partition_id") == "moving")
+    assert move["adjusted_crossing_opening_ids"] == ["passage"]
+    adjustment = move["opening_adjustments"][0]
+    assert adjustment["opening_id"] == "passage"
+    assert adjustment["mode"] == "translate_preserve_width"
+    assert adjustment["jamb_deltas_m"] == {"p1": .1, "p2": .1}
+    assert adjustment["before"]["width_m"] == adjustment["after"]["width_m"]
+    assert adjustment["width_change_m"] == 0
+    assert report["hard_constraints"]["status"] == "pass"
+
+
+def test_evidence_backed_complete_open_passage_follows_terminal_boundaries():
+    lower = _plan([
+        ("target", [[42, 0], [42, 50]]),
+        ("right", [[60, 0], [60, 50]]),
+        ("lower-host", [[0, 50], [100, 50]]),
+    ])
+    upper = _plan(
+        [("moving", [[40, 0], [40, 50]]),
+         ("right", [[60, 0], [60, 50]]),
+         ("opening-host", [[0, 50], [100, 50]])],
+        openings=[{
+            "id": "passage", "kind": "door", "state": "open",
+            "p1": [41, 50], "p2": [59, 50], "z": [0.0, 2.1],
+            "source_refs": ["drawing:structured-passage-evidence"],
+        }],
+    )
+    upper["regularization_inputs"] = {
+        "line_references": [], "coordinate_references": [],
+        "reading_alignment": _opening_alignment_evidence("passage"),
+    }
+
+    regularized, report = regularize_plan_stack(_stack_items(lower, upper))
+
+    result = regularized[1]["plan"]
+    passage = result["openings"][0]
+    assert passage["p1"] == [43.0, 50]
+    assert passage["p2"] == [59, 50]
+    move = next(row for row in report["changes"]
+                if row.get("partition_id") == "moving")
+    adjustment = move["opening_adjustments"][0]
+    assert adjustment["mode"] == "open_passage_boundary_follow"
+    assert adjustment["boundary_ids"] == {"p1": "moving", "p2": "right"}
+    assert adjustment["jamb_deltas_m"] == {"p1": .2, "p2": 0.0}
+    assert adjustment["boundary_offsets_before_m"] == {"p1": .1, "p2": -.1}
+    assert adjustment["boundary_offsets_after_m"] == {"p1": .1, "p2": -.1}
+    assert adjustment["before"]["width_m"] == 1.8
+    assert adjustment["after"]["width_m"] == 1.6
+    assert adjustment["width_change_m"] == -.2
+    assert adjustment["inference"] == {
+        "basis": "structured_complete_open_passage_compatibility",
+        "state": "open", "structured_gap_support": True,
+        "complete_between_terminal_boundaries": True,
+        "hard_width_reference": False,
+    }
+    assert report["hard_constraints"]["status"] == "pass"
+
+
+def test_complete_open_passage_rejects_distinct_terminal_boundary_ambiguity():
+    plan = _plan(
+        [("moving", [[40, 0], [40, 50]]),
+         ("right-near", [[60, 0], [60, 50]]),
+         ("right-far", [[61, 0], [61, 50]]),
+         ("opening-host", [[0, 50], [100, 50]])],
+        openings=[{
+            "id": "passage", "kind": "door", "state": "open",
+            "p1": [41, 50], "p2": [59, 50], "z": [0.0, 2.1],
+            "source_refs": ["drawing:structured-passage-evidence"],
+        }],
+    )
+    plan["regularization_inputs"] = {
+        "line_references": [], "coordinate_references": [],
+        "reading_alignment": _opening_alignment_evidence("passage"),
+    }
+    calibration = _calibration(plan, IMAGE_SIZE)
+    segments = _segments(plan, calibration)
+    moving = next(row for row in segments if row["partition_id"] == "moving")
+    host = next(row for row in segments if row["partition_id"] == "opening-host")
+
+    assert _complete_open_passage_boundaries(
+        plan, plan["openings"][0], host, moving, calibration) is None
+
+
+def test_complete_open_passage_deduplicates_collinear_terminal_segments():
+    plan = _plan(
+        [("moving", [[40, 0], [40, 50]]),
+         ("right-a", [[60, 0], [60, 50]]),
+         ("right-b", [[60, 0], [60, 50]]),
+         ("opening-host", [[0, 50], [100, 50]])],
+        openings=[{
+            "id": "passage", "kind": "door", "state": "open",
+            "p1": [41, 50], "p2": [59, 50], "z": [0.0, 2.1],
+            "source_refs": ["drawing:structured-passage-evidence"],
+        }],
+    )
+    plan["regularization_inputs"] = {
+        "line_references": [], "coordinate_references": [],
+        "reading_alignment": _opening_alignment_evidence("passage"),
+    }
+    calibration = _calibration(plan, IMAGE_SIZE)
+    segments = _segments(plan, calibration)
+    moving = next(row for row in segments if row["partition_id"] == "moving")
+    host = next(row for row in segments if row["partition_id"] == "opening-host")
+
+    result = _complete_open_passage_boundaries(
+        plan, plan["openings"][0], host, moving, calibration)
+
+    assert result is not None
+    assert result["p1"]["partition_id"] == "moving"
+    assert result["p2"]["coordinate_m"] == pytest.approx(6.0)
+
+
+@pytest.mark.parametrize(("kind", "opposite_side"), [
+    ("window", False), ("door", True),
+])
+def test_passage_compatibility_excludes_windows_and_opposite_terminal_walls(
+        kind, opposite_side):
+    plan = _plan(
+        [("moving", [[40, 0], [40, 50]]),
+         ("right", [[60, 100 if opposite_side else 0], [60, 50]]),
+         ("opening-host", [[0, 50], [100, 50]])],
+        openings=[{
+            "id": "candidate", "kind": kind, "state": "open",
+            "p1": [41, 50], "p2": [59, 50], "z": [0.0, 2.1],
+            "source_refs": ["drawing:structured-evidence"],
+        }],
+    )
+    plan["regularization_inputs"] = {
+        "line_references": [], "coordinate_references": [],
+        "reading_alignment": _opening_alignment_evidence("candidate"),
+    }
+    calibration = _calibration(plan, IMAGE_SIZE)
+    segments = _segments(plan, calibration)
+    moving = next(row for row in segments if row["partition_id"] == "moving")
+    host = next(row for row in segments if row["partition_id"] == "opening-host")
+
+    assert _complete_open_passage_boundaries(
+        plan, plan["openings"][0], host, moving, calibration) is None
+
+
+@pytest.mark.parametrize(
+    ("gap", "complete", "hard_width"),
+    [(False, True, False), (True, False, False), (True, True, True)],
+    ids=["ordinary-state-open-door", "incomplete-span", "hard-width"],
+)
+def test_open_state_without_all_passage_evidence_preserves_entity_width(
+        gap, complete, hard_width):
+    lower_parts = [("target", [[42, 0], [42, 50]]),
+                   ("lower-host", [[0, 50], [100, 50]])]
+    upper_parts = [("moving", [[40, 0], [40, 50]]),
+                   ("opening-host", [[0, 50], [100, 50]])]
+    if complete:
+        lower_parts.append(("right", [[60, 0], [60, 50]]))
+        upper_parts.append(("right", [[60, 0], [60, 50]]))
+    lower = _plan(lower_parts)
+    upper = _plan(upper_parts, openings=[{
+        "id": "open-door", "kind": "door", "state": "open",
+        "p1": [41, 50], "p2": [59, 50], "z": [0.0, 2.1],
+        "source_refs": ["drawing:ordinary-door"],
+    }])
+    upper["regularization_inputs"] = {
+        "line_references": [], "coordinate_references": [],
+        "reading_alignment": _opening_alignment_evidence(
+            "open-door", gap=gap, hard_width=hard_width),
+    }
+
+    regularized, report = regularize_plan_stack(_stack_items(lower, upper))
+
+    passage = regularized[1]["plan"]["openings"][0]
+    assert passage["p1"] == [42.0, 50]
+    assert passage["p2"] == [60.0, 50]
+    move = next(row for row in report["changes"]
+                if row.get("partition_id") == "moving")
+    adjustment = move["opening_adjustments"][0]
+    assert adjustment["mode"] == "translate_preserve_width"
+    assert adjustment["before"]["width_m"] == adjustment["after"]["width_m"] == 1.8
+
+
+def test_cross_storey_difference_within_numeric_tolerance_is_not_an_offset():
+    lower = _plan([("lower", [[40, 0], [40, 100]])])
+    upper = _plan([("upper", [[40.00000087, 0], [40.00000087, 100]])])
+
+    regularized, report = regularize_plan_stack(_stack_items(lower, upper))
+
+    assert regularized[1]["plan"]["partitions"][0]["points"] == [
+        [40.00000087, 0], [40.00000087, 100]]
+    assert not any(row["type"] == "move_wall_line" for row in report["changes"])
+    assert report["thresholds"]["numeric_equality_tolerance_m"] == 1e-7
+    assert report["hard_constraints"]["status"] == "pass"
+
+
 def test_cross_storey_coordinate_shared_by_more_floors_wins_before_lower_tie_break():
     items = [
         {"plan": _plan([("lower-only", [[40, 0], [40, 100]])]),
@@ -1069,6 +1304,31 @@ def test_cross_storey_move_that_creates_sub_0_30m_same_floor_pair_is_not_saved()
     assert any(row["type"] in {
         "parallel_wall_lines_under_0_30m", "space_width_under_0_60m"}
         for row in rejection["hard_violations"])
+
+
+def test_cross_storey_skip_policy_preserves_unresolved_pair_with_audit():
+    lower = _plan([("target", [[44, 0], [44, 100]])])
+    upper = _plan([
+        ("moving", [[42, 0], [42, 100]]),
+        ("stable", [[49, 0], [49, 100]]),
+    ])
+
+    regularized, report = regularize_plan_stack(
+        _stack_items(lower, upper),
+        cross_storey_failure_policy="skip_failed_pair",
+    )
+
+    assert regularized[1]["plan"]["partitions"][0]["points"] == [
+        [42, 0], [42, 100]]
+    assert report["status"] == "pass"
+    assert report["rejections"] == []
+    assert report["summary"]["skipped_alignments"] == 1
+    skipped = report["skipped_alignments"][0]
+    assert skipped["type"] == "cross_storey_alignment_skipped"
+    assert skipped["disposition"] == "original_pair_preserved_and_reported"
+    assert skipped["hard_violation"]["type"] == "storey_wall_offset_under_0_30m"
+    assert report["hard_constraints"]["status"] == "pass"
+    assert report["hard_constraints"]["skipped_violations"]
 
 
 def test_stack_rejects_upper_trusted_elevation_instead_of_changing_lower_height():

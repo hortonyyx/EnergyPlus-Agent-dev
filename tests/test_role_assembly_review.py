@@ -14,6 +14,8 @@ import pytest
 from src.agent.execution.source_proposal import export_source_proposal
 from src.agent.runtime_roles.assembly_review import (
     AssemblyReview,
+    _review_identity,
+    accepted_regularization_changes,
     compare_floor,
     finalize_role_building,
 )
@@ -57,6 +59,274 @@ def test_compare_floor_ignores_height_only_but_catches_plan_facts(tmp_path):
         if row["item"] == "openings:window"
         for side in ("before", "after")
     )
+
+
+def test_exact_audited_regularization_is_classified_but_real_geometry_still_requires_review(tmp_path):
+    expected = _source(tmp_path)
+    actual = copy.deepcopy(expected)
+    window = next(row for row in actual["openings"] if row["id"] == "window")
+    before = window["vertices"][0][0]
+    for vertex in window["vertices"]:
+        vertex[0] += 0.2
+    changes = compare_floor(expected, actual, "F1")
+    report = {
+        "schema": "plan_stack_regularization_report_v1",
+        "rule_version": "plan_regularization_v1",
+        "status": "pass",
+        "changes": [{
+            "type": "move_wall_line",
+            "floor_id": "F1",
+            "axis": "x",
+            "from_m": before,
+            "to_m": before + 0.2,
+            "movement_m": 0.2,
+            "span_m": [min(vertex[1] for vertex in window["vertices"]),
+                       max(vertex[1] for vertex in window["vertices"])],
+            "opening_ids": ["window"],
+            "blocked_collapses": [],
+        }],
+    }
+
+    accepted, remaining = accepted_regularization_changes(changes, report, "F1")
+
+    assert [row["item"] for row in accepted] == ["openings:window"]
+    assert not remaining
+    actual["boundary_relations"] = []
+    accepted, remaining = accepted_regularization_changes(
+        compare_floor(expected, actual, "F1"), report, "F1"
+    )
+    assert [row["item"] for row in accepted] == ["openings:window"]
+    assert [row["item"] for row in remaining] == ["adjacency"]
+
+
+def test_crossing_opening_requires_explicit_width_preserving_world_adjustment():
+    change = {
+        "floor_id": "F1", "item": "openings:window", "change_id": "crossing-window",
+        "before": {"kind": "window", "space_ids": ["room"], "exterior": True,
+                   "xy": [(1.1, 2.0), (2.1, 2.0)]},
+        "after": {"kind": "window", "space_ids": ["room"], "exterior": True,
+                  "xy": [(1.2, 2.0), (2.2, 2.0)]},
+    }
+    report = {
+        "schema": "plan_stack_regularization_report_v1",
+        "rule_version": "plan_regularization_v1",
+        "status": "pass",
+        "changes": [{
+            "type": "move_wall_line", "floor_id": "F1", "axis": "x",
+            "from_m": 1.0, "to_m": 1.2, "movement_m": 0.2, "span_m": [0.0, 4.0],
+            "opening_ids": ["window"], "adjusted_crossing_opening_ids": ["window"],
+            "opening_adjustments": [{
+                "opening_id": "window", "mode": "translate_preserve_width",
+                "before": {"p1": [11, 20], "p2": [21, 20],
+                           "world_p1": [1.1, 2.0], "world_p2": [2.1, 2.0], "width_m": 1.0},
+                "after": {"p1": [12, 20], "p2": [22, 20],
+                          "world_p1": [1.2, 2.0], "world_p2": [2.2, 2.0], "width_m": 1.0},
+                "jamb_deltas_m": {"p1": 0.1, "p2": 0.1}, "width_change_m": 0.0,
+                "inference": {"basis": "entity_opening_width_preserved"},
+                "boundary_ids": {"swept_boundary": "wall"},
+            }],
+            "blocked_collapses": [],
+        }],
+    }
+
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+    assert [row["item"] for row in accepted] == ["openings:window"]
+    assert not remaining
+
+    del report["changes"][0]["opening_adjustments"]
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+    assert not accepted and [row["item"] for row in remaining] == ["openings:window"]
+
+
+def test_crossing_open_passage_requires_complete_structured_audit():
+    change = {
+        "floor_id": "F1", "item": "openings:passage", "change_id": "crossing-passage",
+        "before": {"kind": "door", "space_ids": ["left", "right"], "exterior": False,
+                   "xy": [(1.1, 2.0), (2.1, 2.0)]},
+        "after": {"kind": "door", "space_ids": ["left", "right"], "exterior": False,
+                  "xy": [(1.2, 2.0), (2.1, 2.0)]},
+    }
+    report = {
+        "schema": "plan_stack_regularization_report_v1",
+        "rule_version": "plan_regularization_v1", "status": "pass", "changes": [{
+            "type": "move_wall_line", "floor_id": "F1", "axis": "x",
+            "from_m": 1.0, "to_m": 1.2, "movement_m": 0.2, "span_m": [0.0, 4.0],
+            "opening_ids": ["passage"], "adjusted_crossing_opening_ids": ["passage"],
+            "opening_adjustments": [{
+                "opening_id": "passage", "mode": "open_passage_boundary_follow",
+                "before": {"p1": [11, 20], "p2": [21, 20],
+                           "world_p1": [1.1, 2.0], "world_p2": [2.1, 2.0], "width_m": 1.0},
+                "after": {"p1": [12, 20], "p2": [21, 20],
+                          "world_p1": [1.2, 2.0], "world_p2": [2.1, 2.0], "width_m": 0.9},
+                "jamb_deltas_m": {"p1": 0.1, "p2": 0.0}, "width_change_m": -0.1,
+                "inference": {
+                    "basis": "structured_complete_open_passage_compatibility",
+                    "state": "open", "structured_gap_support": True,
+                    "complete_between_terminal_boundaries": True,
+                    "hard_width_reference": False,
+                },
+                "boundary_ids": {"p1": "moving", "p2": "terminal"},
+                "boundary_offsets_before_m": {"p1": 0.1, "p2": -0.1},
+                "boundary_offsets_after_m": {"p1": 0.1, "p2": -0.1},
+            }],
+            "blocked_collapses": [],
+        }],
+    }
+
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+    assert [row["item"] for row in accepted] == ["openings:passage"] and not remaining
+
+    report["changes"][0]["opening_adjustments"][0]["inference"]["structured_gap_support"] = False
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+    assert not accepted and remaining == [change]
+
+
+def test_audited_wall_move_treats_removed_collinear_ring_vertices_as_same_geometry():
+    change = {
+        "floor_id": "F1",
+        "item": "rooms:room",
+        "before": [(0, 0), (20, 0), (20, 1), (15, 1), (15, 0.9), (11, 0.9),
+                   (11, 10), (0, 10)],
+        "after": [(0, 0), (20, 0), (20, 1.000001), (15, 1), (11, 1),
+                  (11, 10), (0, 10)],
+        "change_id": "room-change",
+    }
+    report = {
+        "schema": "plan_regularization_report_v1",
+        "rule_version": "plan_regularization_v1",
+        "status": "pass",
+        "changes": [{
+            "type": "move_wall_line", "floor_id": "F1", "axis": "y",
+            "from_m": 0.9, "to_m": 1.0, "movement_m": 0.1,
+            "span_m": [11, 15],
+            "opening_ids": [], "blocked_collapses": [],
+        }],
+    }
+
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+
+    assert [row["item"] for row in accepted] == ["rooms:room"]
+    assert not remaining
+    changed_shape = copy.deepcopy(change)
+    changed_shape["after"] = [(0, 0), (20, 0), (20, 1.1), (11, 1),
+                              (11, 10), (0, 10)]
+    accepted, remaining = accepted_regularization_changes([changed_shape], report, "F1")
+    assert not accepted and [row["item"] for row in remaining] == ["rooms:room"]
+
+
+def test_audited_wall_move_is_limited_to_reported_span():
+    before = [(0, 0), (20, 0), (20, 1), (15, 1), (15, 0.9), (11, 0.9),
+              (11, 10), (0, 10), (0, 0.9), (8, 0.9), (8, 2), (0, 2)]
+    after = [(0, 0), (20, 0), (20, 1), (11, 1), (11, 10), (0, 10),
+             (0, 0.9), (8, 0.9), (8, 2), (0, 2)]
+    change = {"floor_id": "F1", "item": "rooms:room", "before": before,
+              "after": after, "change_id": "local-span-change"}
+    report = {
+        "schema": "plan_regularization_report_v1",
+        "rule_version": "plan_regularization_v1",
+        "status": "pass",
+        "changes": [{
+            "type": "move_wall_line", "floor_id": "F1", "axis": "y",
+            "from_m": 0.9, "to_m": 1.0, "movement_m": 0.1,
+            "span_m": [11, 15], "opening_ids": [], "blocked_collapses": [],
+        }],
+    }
+
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+    assert [row["item"] for row in accepted] == ["rooms:room"] and not remaining
+
+    over_moved = copy.deepcopy(change)
+    over_moved["after"] = [
+        (x, 1.0 if y == 0.9 else y) for x, y in after
+    ]
+    accepted, remaining = accepted_regularization_changes([over_moved], report, "F1")
+    assert not accepted and [row["item"] for row in remaining] == ["rooms:room"]
+
+
+def test_audited_strip_merge_removes_only_its_zero_width_backtrack():
+    moved_room = {
+        "floor_id": "F2", "item": "rooms:S-corr",
+        "before": [(4.995637, 5.888768), (8.944154, 5.888768),
+                   (8.944154, 13.980371), (4.995637, 13.980371)],
+        "after": [(4.995637, 5.997819), (8.944154, 5.997819),
+                  (8.944154, 13.980371), (4.995637, 13.980371)],
+        "change_id": "moved-room",
+    }
+    collapsed_room = {
+        "floor_id": "F2", "item": "rooms:S-e4",
+        "before": [(11.125654, 5.888768), (25.0, 5.888768),
+                   (25.0, 5.997819), (14.986911, 5.997819),
+                   (14.986911, 7.82988), (11.125654, 7.82988)],
+        "after": [(11.125654, 5.997819), (14.986911, 5.997819),
+                  (14.986911, 7.82988), (11.125654, 7.82988)],
+        "change_id": "collapsed-room",
+    }
+    door = {
+        "floor_id": "F2", "item": "openings:D14",
+        "before": {"kind": "door", "space_ids": ["S-corr", "S-corr-s"],
+                   "exterior": False, "xy": [(9.009599, 5.888768), (10.972949, 5.888768)]},
+        "after": {"kind": "door", "space_ids": ["S-corr", "S-corr-s"],
+                  "exterior": False, "xy": [(9.009599, 5.997819), (10.972949, 5.997819)]},
+        "change_id": "moved-door",
+    }
+    reassigned_window = {
+        "floor_id": "F2", "item": "openings:WLONG",
+        "before": {"kind": "window", "space_ids": ["S-e4"], "exterior": True,
+                   "xy": [(15.292321, 5.997819), (23.298429, 5.997819)]},
+        "after": {"kind": "window", "space_ids": ["S-corr-s"], "exterior": True,
+                  "xy": [(15.292321, 5.997819), (23.298429, 5.997819)]},
+        "change_id": "reassigned-window",
+    }
+    report = {
+        "schema": "plan_regularization_report_v1", "rule_version": "plan_regularization_v1",
+        "status": "pass", "changes": [
+            {"type": "retain_openings_on_merged_wall", "floor_id": "F2", "axis": "y",
+             "from_m": 5.997818975, "to_m": 5.997818975, "movement_m": 0.0,
+             "span_m": [14.986910995, 25.0], "opening_ids": ["WLONG"]},
+            {"type": "merge_duplicate_wall_into_fixed_footprint", "floor_id": "F2",
+             "axis": "y", "from_m": 5.888767721, "to_m": 5.997818975,
+             "movement_m": 0.109051254, "span_m": [14.986910995, 25.0],
+             "opening_ids": ["WLONG"]},
+            {"type": "move_wall_line", "floor_id": "F2", "axis": "y",
+             "from_m": 5.888767721, "to_m": 5.997818975, "movement_m": 0.109051254,
+             "span_m": [4.995636998, 14.986910995], "opening_ids": ["D14"],
+             "blocked_collapses": []},
+        ],
+    }
+    changes = [moved_room, collapsed_room, door, reassigned_window]
+
+    accepted, remaining = accepted_regularization_changes(changes, report, "F2")
+    assert [row["item"] for row in accepted] == ["rooms:S-corr", "rooms:S-e4", "openings:D14"]
+    assert [row["item"] for row in remaining] == ["openings:WLONG"]
+
+    after_stack_move = copy.deepcopy(collapsed_room)
+    after_stack_move["after"] = [
+        (x, 5.980498 if y == 5.997819 else y) for x, y in collapsed_room["after"]
+    ]
+    stacked = copy.deepcopy(report)
+    stacked["schema"] = "plan_stack_regularization_report_v1"
+    stacked["changes"].extend([
+        {"type": "move_wall_line", "floor_id": "F2", "axis": "y",
+         "from_m": 5.997818975, "to_m": 5.980498375, "movement_m": 0.0173206,
+         "span_m": [4.995636998, 14.986910995], "opening_ids": [],
+         "blocked_collapses": []},
+        {"type": "move_footprint_edge", "floor_id": "F2", "axis": "y",
+         "from_m": 5.997818975, "to_m": 5.980498375, "movement_m": 0.0173206,
+         "span_m": [14.986910995, 25.0], "opening_ids": [],
+         "blocked_collapses": []},
+    ])
+    accepted, remaining = accepted_regularization_changes([after_stack_move], stacked, "F2")
+    assert [row["item"] for row in accepted] == ["rooms:S-e4"] and not remaining
+
+    outside_span = copy.deepcopy(report)
+    outside_span["changes"][1]["span_m"] = [15.1, 25.0]
+    accepted, remaining = accepted_regularization_changes(changes, outside_span, "F2")
+    assert "rooms:S-e4" in {row["item"] for row in remaining}
+
+    moving_retained_opening = copy.deepcopy(report)
+    moving_retained_opening["changes"][0].update(to_m=6.0, movement_m=0.002181025)
+    accepted, remaining = accepted_regularization_changes(changes, moving_retained_opening, "F2")
+    assert not accepted and remaining == changes
 
 
 def test_changed_assembly_requires_one_nonempty_reason_per_change(tmp_path):
@@ -112,6 +382,27 @@ def test_changed_assembly_requires_one_nonempty_reason_per_change(tmp_path):
         }
 
 
+def test_review_identity_ignores_diagnostics_but_not_safety_findings():
+    facts = {
+        "bindings": {"F1": {"task_id": "plan-f1"}, "F2": {"task_id": "plan-f2"}},
+        "changes": [{"change_id": "relationship-change", "item": "openings:WLONG"}],
+        "blockers": [],
+        "candidate": "candidate_02", "source_sha256": "a" * 64,
+        "require_all": False, "checked_floors": ["F2"],
+        "regularization_changes": [{"item": "rooms:S-e4"}],
+        "delivery_scope": [], "used_plan_tasks": [],
+    }
+    final = {**facts, "candidate": "candidate_03", "source_sha256": "b" * 64,
+             "require_all": True, "checked_floors": ["F1", "F2"],
+             "regularization_changes": [{"item": "rooms:S-e4"}, {"item": "openings:D14"}],
+             "delivery_scope": [{"floor_id": "F1"}], "used_plan_tasks": ["plan-f1", "plan-f2"]}
+
+    assert _review_identity(final) == _review_identity(facts)
+    changed = copy.deepcopy(final)
+    changed["changes"].append({"change_id": "new-change", "item": "rooms:other"})
+    assert _review_identity(changed) != _review_identity(facts)
+
+
 class _Registry:
     def __init__(self, task_directory, source_sha256):
         self.task_directory = task_directory
@@ -163,7 +454,7 @@ def _bound_review_environment(tmp_path):
     return run, task, raw, limits
 
 
-def test_candidate_hash_change_invalidates_old_review_even_when_only_height_changed(tmp_path):
+def test_review_survives_height_only_descendant_but_not_a_new_horizontal_edit(tmp_path):
     run, task, raw, limits = _bound_review_environment(tmp_path)
     with EventStore(
         tmp_path / "journal",
@@ -174,18 +465,154 @@ def test_candidate_hash_change_invalidates_old_review_even_when_only_height_chan
         registry = _Registry(task, hashlib.sha256(raw).hexdigest())
         review = AssemblyReview(_AssemblySession(store, run, registry))
         review.bind("plan-f1")
-        first = review.check("candidate_01", require_all=True)
-        assert first["status"] == "unchanged" and first["changes"] == []
-
         changed = json.loads(raw)
         for vertex in changed["openings"][0]["vertices"]:
-            vertex[2] += 0.2
+            vertex[1] += 0.2
         (run / "candidate_01/source_model.json").write_text(
             json.dumps(changed, ensure_ascii=False), encoding="utf-8", newline="\n"
         )
-        with pytest.raises(ValueError, match="source or reader references changed"):
-            review.acknowledge(first["review_id"], [])
-        assert review.current()["review_id"] != first["review_id"]
+        first = review.check("candidate_01", require_all=True)
+        assert first["status"] == "needs_review" and first["changes"]
+        decisions = [{"change_id": row["change_id"], "reason": "bounded coordinator correction"}
+                     for row in first["changes"]]
+        assert review.acknowledge(first["review_id"], decisions)["status"] == "reviewed"
+
+        for vertex in changed["openings"][0]["vertices"]:
+            vertex[2] += 0.2
+        changed["spaces"][0]["role"] = "meeting"
+        changed["spaces"][0].setdefault("assumptions", []).append("Coordinator use note")
+        changed["spaces"][0].setdefault("source_refs", []).append("delivery:use-note")
+        (run / "candidate_01/source_model.json").write_text(
+            json.dumps(changed, ensure_ascii=False), encoding="utf-8", newline="\n"
+        )
+        inherited = review.check("candidate_01", require_all=False)
+        assert inherited["review_id"] == first["review_id"]
+        assert inherited["status"] == "reviewed" and inherited["decisions"] == decisions
+        finish_check = review.check("candidate_01", require_all=True)
+        assert finish_check["review_id"] == first["review_id"]
+        assert finish_check["status"] == "reviewed" and finish_check["decisions"] == decisions
+
+        for vertex in changed["openings"][0]["vertices"]:
+            vertex[1] += 0.1
+        (run / "candidate_01/source_model.json").write_text(
+            json.dumps(changed, ensure_ascii=False), encoding="utf-8", newline="\n"
+        )
+        revised = review.check("candidate_01", require_all=True)
+        assert revised["review_id"] != first["review_id"]
+        assert revised["status"] == "needs_review"
+
+
+@pytest.mark.parametrize("receipt_kind", ["plan_assembly", "plan_input"])
+def test_hashed_regularization_receipt_does_not_open_reader_review(tmp_path, receipt_kind):
+    run, task, raw, limits = _bound_review_environment(tmp_path)
+    actual = json.loads(raw)
+    window = next(row for row in actual["openings"] if row["id"] == "window")
+    before = window["vertices"][0][0]
+    for vertex in window["vertices"]:
+        vertex[0] += 0.2
+    regularization = {
+        "schema": ("plan_stack_regularization_report_v1" if receipt_kind == "plan_assembly"
+                   else "plan_regularization_report_v1"),
+        "rule_version": "plan_regularization_v1",
+        "status": "pass",
+        "changes": [{
+            "type": "move_wall_line", "floor_id": "F1", "axis": "x",
+            "from_m": before, "to_m": before + 0.2, "movement_m": 0.2,
+            "span_m": [min(vertex[1] for vertex in window["vertices"]),
+                       max(vertex[1] for vertex in window["vertices"])],
+            "opening_ids": ["window"], "blocked_collapses": [],
+        }],
+    }
+    receipt_value = {"regularization": regularization} if receipt_kind == "plan_assembly" else regularization
+    receipt = json.dumps(receipt_value, sort_keys=True).encode()
+    receipt_path = run / ("plan_assemblies/assembly.json" if receipt_kind == "plan_assembly"
+                          else "plan_drafts/draft_001/regularization.json")
+    receipt_path.parent.mkdir(parents=True)
+    receipt_path.write_bytes(receipt)
+    reference = {"file": receipt_path.relative_to(run).as_posix(),
+                 "sha256": hashlib.sha256(receipt).hexdigest()}
+    provenance = ({"plan_assembly": reference} if receipt_kind == "plan_assembly" else {
+        "plan_input": {"regularization_report": reference}
+    })
+    actual.setdefault("generation", {})["provenance"] = provenance
+    (run / "candidate_01/source_model.json").write_text(
+        json.dumps(actual, ensure_ascii=False), encoding="utf-8", newline="\n"
+    )
+
+    with EventStore(
+        tmp_path / "journal-regularization",
+        run_id="assembly-regularization",
+        task_id="coordinator",
+        budget_limit=limits.ledger_limit(),
+    ) as store:
+        review = AssemblyReview(_AssemblySession(
+            store, run, _Registry(task, hashlib.sha256(raw).hexdigest())
+        ))
+        review.bind("plan-f1")
+        report = review.check("candidate_01")
+
+    assert report["status"] == "unchanged" and not report["changes"]
+    assert [row["item"] for row in report["regularization_changes"]] == ["openings:window"]
+
+
+def test_stack_receipt_inherits_hash_bound_single_floor_regularization(tmp_path):
+    run, task, raw, limits = _bound_review_environment(tmp_path)
+    actual = json.loads(raw)
+    window = next(row for row in actual["openings"] if row["id"] == "window")
+    before = window["vertices"][0][0]
+    for vertex in window["vertices"]:
+        vertex[0] += 0.2
+    single = {
+        "schema": "plan_regularization_report_v1", "rule_version": "plan_regularization_v1",
+        "status": "pass", "floor_id": "F1", "changes": [{
+            "type": "move_wall_line", "floor_id": "F1", "axis": "x",
+            "from_m": before, "to_m": before + 0.2, "movement_m": 0.2,
+            "span_m": [min(vertex[1] for vertex in window["vertices"]),
+                       max(vertex[1] for vertex in window["vertices"])],
+            "opening_ids": ["window"], "blocked_collapses": [],
+        }],
+    }
+    plan = json.dumps({"floor_id": "F1", "regularization": single}, sort_keys=True).encode()
+    plan_path = run / "plan_drafts/draft_001/plan.json"
+    plan_path.parent.mkdir(parents=True)
+    plan_path.write_bytes(plan)
+    empty_floor = {"schema": "plan_regularization_report_v1",
+                   "rule_version": "plan_regularization_v1", "status": "pass", "changes": []}
+    stack = {"schema": "plan_stack_regularization_report_v1",
+             "rule_version": "plan_regularization_v1", "status": "pass",
+             "floor_reports": {"F1": empty_floor}, "changes": []}
+    receipt_value = {
+        "floors": [{"draft_id": "draft_001", "floor_id": "F1",
+                    "expected_plan_sha256": hashlib.sha256(plan).hexdigest()}],
+        "regularization": stack,
+    }
+    receipt = json.dumps(receipt_value, sort_keys=True).encode()
+    receipt_path = run / "plan_assemblies/assembly.json"
+    receipt_path.parent.mkdir(parents=True)
+    receipt_path.write_bytes(receipt)
+    actual.setdefault("generation", {})["provenance"] = {"plan_assembly": {
+        "file": receipt_path.relative_to(run).as_posix(),
+        "sha256": hashlib.sha256(receipt).hexdigest(),
+    }}
+    (run / "candidate_01/source_model.json").write_text(
+        json.dumps(actual, ensure_ascii=False), encoding="utf-8", newline="\n"
+    )
+
+    with EventStore(
+        tmp_path / "journal-stack-regularization", run_id="assembly-stack-regularization",
+        task_id="coordinator", budget_limit=limits.ledger_limit(),
+    ) as store:
+        review = AssemblyReview(_AssemblySession(
+            store, run, _Registry(task, hashlib.sha256(raw).hexdigest())
+        ))
+        review.bind("plan-f1")
+        report = review.check("candidate_01")
+        assert report["status"] == "unchanged" and not report["changes"]
+        assert [row["item"] for row in report["regularization_changes"]] == ["openings:window"]
+
+        plan_path.write_bytes(plan + b" ")
+        with pytest.raises(ValueError, match="floor plan changed"):
+            review.check("candidate_01")
 
 
 def test_require_all_reports_each_unbound_actual_floor(tmp_path):
@@ -325,6 +752,11 @@ def test_missing_latest_floor_requires_persisted_partial_delivery_reason(tmp_pat
             "reason": "F2 is explicitly omitted from this partial delivery.",
         }])
         assert accepted["status"] == "reviewed"
+        # An edit-time partial check may omit delivery coverage, but it must not
+        # erase or silently waive the persisted complete-delivery decision.
+        partial = review.check("candidate_01", require_all=False)
+        assert partial["status"] == "unchanged"
+        assert not any(row["item"] == "missing_required_floor" for row in partial["changes"])
         persisted = review.check("candidate_01", require_all=True)
         assert persisted["status"] == "reviewed"
         assert "explicitly omitted" in persisted["decisions"][0]["reason"]

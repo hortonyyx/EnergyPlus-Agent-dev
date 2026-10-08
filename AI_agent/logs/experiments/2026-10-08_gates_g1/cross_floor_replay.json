@@ -1,0 +1,253 @@
+{
+  "scope": "domain BIM rules/kernel cross-storey alignment",
+  "model_requests": 0,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "numeric_equality_tolerance_m": 1e-07,
+  "failure_policy": {
+    "manifest_key": "cross_storey_alignment_failure_policy",
+    "default": "reject_assembly",
+    "alternative": "skip_failed_pair",
+    "alternative_disposition": "original_pair_preserved_and_reported"
+  },
+  "speed2_sm25_role_d1l": {
+    "source": "C:/Users/Horton/Desktop/EnergyPlus-Agent-dev/AI_agent/archive/local_backup/speed2/sm25_role_d1l/bim/plan_assemblies",
+    "assembly_001": {
+      "submitted_plans_sha256": "c57ceaffe08cb7612d8579d81cd48c4cf2cb1ef53b03ff139dcc1a2094c7a7ba",
+      "historical_regularization_sha256": "6fef5d8eecac18b1ea01070a63b9362b2063e4607de9dd81cbc65b680e336fb8",
+      "historical_status": "rejected",
+      "new_status": "pass",
+      "kernel_calls": 1,
+      "hard_constraints": "pass",
+      "relationships_unchanged": true,
+      "change_count": 15,
+      "target_pairs": [
+        {
+          "partition_id": "wall-mrooms-east",
+          "from_m": 8.940166087,
+          "to_m": 9.09,
+          "movement_m": 0.149833913,
+          "hosted_openings_moved": [
+            "D-M1",
+            "D-M2"
+          ],
+          "connected_partition_endpoints_adjusted": [
+            "wall-corr-south-m1north",
+            "wall-m1m2"
+          ],
+          "crossing_opening_adjustment": {
+            "opening_id": "D-ns-passage",
+            "mode": "open_passage_boundary_follow",
+            "before": {
+              "p1": [
+                698.0,
+                963.05
+              ],
+              "p2": [
+                790.0,
+                963.05
+              ],
+              "world_p1": [
+                9.010371651,
+                5.88
+              ],
+              "world_p2": [
+                10.998271392,
+                5.88
+              ],
+              "width_m": 1.987899741
+            },
+            "after": {
+              "p1": [
+                704.934313475,
+                963.05
+              ],
+              "p2": [
+                790.0,
+                963.05
+              ],
+              "world_p1": [
+                9.160205563,
+                5.88
+              ],
+              "world_p2": [
+                10.998271392,
+                5.88
+              ],
+              "width_m": 1.838065828
+            },
+            "jamb_deltas_m": {
+              "p1": 0.149833913,
+              "p2": 0.0
+            },
+            "width_change_m": -0.149833913,
+            "inference": {
+              "basis": "structured_complete_open_passage_compatibility",
+              "state": "open",
+              "structured_gap_support": true,
+              "complete_between_terminal_boundaries": true,
+              "hard_width_reference": false
+            },
+            "boundary_ids": {
+              "p1": "wall-mrooms-east",
+              "p2": "wall-strip-west"
+            },
+            "boundary_offsets_before_m": {
+              "p1": 0.070205563,
+              "p2": -0.061728608
+            },
+            "boundary_offsets_after_m": {
+              "p1": 0.070205563,
+              "p2": -0.061728608
+            }
+          }
+        },
+        {
+          "partition_id": "pw-off-w",
+          "from_m": 11.342799642,
+          "to_m": 11.06,
+          "movement_m": 0.282799642,
+          "hosted_openings_moved": [
+            "D4",
+            "D5",
+            "D6",
+            "D7",
+            "D8"
+          ],
+          "connected_partition_endpoints_adjusted": [
+            "pw-oAB",
+            "pw-oBC",
+            "pw-oCD",
+            "pw-oDE",
+            "pw-cs-offE"
+          ],
+          "crossing_opening_adjustment": {
+            "opening_id": "D3",
+            "mode": "translate_preserve_width",
+            "before": {
+              "p1": [
+                707,
+                516.028
+              ],
+              "p2": [
+                739,
+                516.028
+              ],
+              "world_p1": [
+                10.42039356,
+                16.06
+              ],
+              "world_p2": [
+                11.135957066,
+                16.06
+              ],
+              "width_m": 0.715563506
+            },
+            "after": {
+              "p1": [
+                703.6032,
+                516.028
+              ],
+              "p2": [
+                735.6032,
+                516.028
+              ],
+              "world_p1": [
+                10.344436494,
+                16.06
+              ],
+              "world_p2": [
+                11.06,
+                16.06
+              ],
+              "width_m": 0.715563506
+            },
+            "jamb_deltas_m": {
+              "p1": -0.075957066,
+              "p2": -0.075957066
+            },
+            "width_change_m": 0.0,
+            "inference": {
+              "basis": "entity_opening_width_preserved"
+            },
+            "boundary_ids": {
+              "swept_boundary": "pw-off-w"
+            }
+          }
+        }
+      ]
+    },
+    "assembly_003": {
+      "submitted_plans_sha256": "234e517a7bdbb10a465f1f6b2c4298cc1d160d0d215b2f40ab798aed9969dd2a",
+      "historical_regularization_sha256": "c331bb0858551d8c3ffc62cb9a1d128c3d9f72163589042f810b40cc3d84900a",
+      "historical_status": "rejected",
+      "historical_residual_offset_m": 8.7e-08,
+      "new_status": "pass",
+      "hard_constraints": "pass",
+      "relationships_unchanged": true
+    }
+  },
+  "toolkit_policy_integration": {
+    "path": "Toolkit.assemble_plans -> source hard gate -> Toolkit.revise(use) -> Toolkit.delivery",
+    "default_reject_assembly": {
+      "assembly_status": "rejected",
+      "saved_candidate": null,
+      "candidate_count_unchanged": true
+    },
+    "skip_failed_pair": {
+      "assembly_status": "pass",
+      "source_hard_gate_status": "pass",
+      "source_diagnostics_retained_as_skipped_items": [
+        "storey_wall_offset",
+        "thin_horizontal_contact"
+      ],
+      "delivery_completed": true,
+      "delivery_json_retains_skipped_alignment": true,
+      "delivery_html_retains_skipped_alignment": true,
+      "assembled_candidate": "candidate_03",
+      "revised_candidate": "candidate_04",
+      "non_geometric_revision_saved": true,
+      "inherited_source_hard_gate_status": "pass",
+      "parent_proposal_sha256_verified": true,
+      "parent_proposal_and_source_unchanged": true
+    },
+    "unrelated_source_hard_item_still_rejects": true,
+    "skip_inheritance_requires_current_pair_match_within_m": 1e-07
+  },
+  "targeted_tests": {
+    "command_scope": [
+      "tests/test_plan_regularization.py",
+      "tests/test_bim_regularization_integration.py",
+      "tests/test_building_precision.py",
+      "tests/test_bim_delivery.py",
+      "tests/test_bim_delivery_reply.py"
+    ],
+    "result": "100 passed",
+    "workers": 2,
+    "cacheprovider": false
+  },
+  "opening_adjustment_policy": {
+    "entity_openings": "translate_both_jambs_by_equal_delta_and_preserve_width",
+    "complete_open_passage_compatibility": {
+      "all_required": [
+        "state=open",
+        "saved structured gap support",
+        "complete span between two same-side terminal boundaries",
+        "no hard opening-width reference"
+      ],
+      "does_not_use": [
+        "opening id matching",
+        "source_refs text matching"
+      ],
+      "jamb_rule": "each jamb follows its associated terminal boundary delta and preserves its original boundary offset"
+    },
+    "negative_checks": [
+      "ordinary state=open entity door",
+      "incomplete terminal-boundary span",
+      "hard opening width",
+      "window",
+      "terminal walls on opposite sides of host"
+    ],
+    "reverse_alignment_search_added": false
+  }
+}

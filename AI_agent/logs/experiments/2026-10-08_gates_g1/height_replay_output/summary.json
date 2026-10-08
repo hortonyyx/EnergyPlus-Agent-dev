@@ -1,0 +1,44 @@
+{
+  "schema_version": "g1_height_evidence_replay_v1",
+  "source_run": "C:/Users/Horton/Desktop/EnergyPlus-Agent-dev/AI_agent/archive/local_backup/speed2/sm25_role_d1l",
+  "source_run_access": "read_only",
+  "model_calls": 0,
+  "legacy_inputs": {
+    "candidate": "candidate_11",
+    "exterior_count": 33,
+    "located_count": 26,
+    "missing_count": 7,
+    "interpretation": "Current code could uniquely recover 26 exact original artifact bbox/value/object bindings. The later hand-entered claim_0002 boxes were not exact reader artifact boxes, so the old parameters were not promoted to 33 located."
+  },
+  "latest_historical_candidate": {
+    "candidate": "candidate_15",
+    "located_count": 0,
+    "interpretation": "The rebuild has no retained current height claim bindings."
+  },
+  "explicit_immutable_artifact_replay": {
+    "base_geometry": "candidate_11 proposal exported into an isolated temporary run",
+    "result_candidate": "candidate_02",
+    "artifact_reference_count": 33,
+    "review_receipt_count": 33,
+    "new_view_count": 0,
+    "exterior_count": 33,
+    "located_count": 33,
+    "status_counts": {
+      "located_applied": 33
+    },
+    "input_policy": "Each write used the immutable delivered artifact task ID, artifact byte SHA-256, artifact opening ID, original bbox and original height. A fresh non-ambiguous artifact-to-BIM object match was required."
+  },
+  "old_value_adjustments": [
+    {
+      "opening_id": "F1:D-east-double",
+      "old_height_m": [0.19, 2.3],
+      "artifact_height_m": [0.19018867924528315, 2.2958490566037737],
+      "max_abs_difference_m": 0.0041509433962261255
+    }
+  ],
+  "other_value_difference_max_m": 0.0,
+  "notes": [
+    "All 33 old claim_0002 source boxes differed from the immutable reader artifact original boxes; old image/bbox parameters were not treated as explicit artifact references.",
+    "The isolated replay workspace was deleted after the report; only this summary and the replay script remain."
+  ]
+}

@@ -112,6 +112,19 @@ def located_height_report(toolkit, candidate, current_state=None):
                 entry["basis"] = record["claim"]["basis"]
                 continue
             binding_widths[(link["claim_id"], link["value"], facade, tuple(item["floor_ids"]))].append((identity, width))
+            verified_reader = link.get("verified_reader_evidence")
+            if verified_reader is not None:
+                entry["views"].append({
+                    "image": verified_reader["image"],
+                    "box": verified_reader["box"],
+                    "reader_task_id": verified_reader["task_id"],
+                    "reader_artifact_sha256": verified_reader["artifact_sha256"],
+                    "artifact_opening_id": verified_reader["artifact_opening_id"],
+                    "verification": verified_reader["verification"],
+                    "location": "located",
+                })
+                located_kinds.add(link["binding_kind"])
+                continue
             for index, ref in enumerate(record["sources"]):
                 view = dict(image=ref["image"], source_index=index)
                 if "view_id" in ref:

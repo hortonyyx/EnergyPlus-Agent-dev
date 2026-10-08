@@ -175,7 +175,7 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
         from .session import envelope
         pending = [*issues, *_review_issues(review)]
         positions = session.positions.summary()
-        response = {"status": status or ("needs_decisions" if pending or positions["pending"] else "completed"),
+        response = {"status": status or ("needs_decisions" if pending or positions["delivery_blocking"] else "completed"),
             "candidate": candidate, "source_geometry_ready": candidate is not None,
             "assembly_id": identity, "deliveries": references, "levels": resolutions,
             "level_tolerance_m": LEVEL_TOLERANCE_M,
@@ -214,7 +214,7 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
             if state.get("position_revision") == session.positions.revision():
                 state["response"]["position_review"] = session.positions.summary()
                 state["response"]["status"] = ("needs_decisions" if state["response"]["decisions"]
-                    or state["response"]["position_review"]["pending"] else "completed")
+                    or state["response"]["position_review"]["delivery_blocking"] else "completed")
                 save()
                 return envelope(assembly_reply(state["response"], saved_path, receipt_file=path))
             latest = candidate
@@ -241,9 +241,6 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
                     task_id=task_id, floor_id=floor, detail=meta))
                 return finish(None, status="build_failed")
             builds.append((floor, meta))
-            review = session.assembly.current()
-            if review and review["status"] == "needs_review":
-                return finish(meta["candidate"], review=review, status="assembly_review_required")
         candidate = builds[0][1]["candidate"]
         if len(builds) > 1:
             floors = []

@@ -175,36 +175,39 @@ ELEVATION_READER_GUIDANCE = "\n\n".join((
 ))
 
 
-COORDINATOR_GUIDANCE = """Inventory inputs, then delegate_readers for plans AND elevations together with a common
-origin. Targets: plan floor ID; elevation North/South/East/West[/F1,F2]. First dispatch
-fills missing readers and waits for ALL tasks. Optional instructions: facts/questions
-only. Use role_state and read_role_artifact for results.
+COORDINATOR_GUIDANCE = """Inventory inputs; delegate_readers for plans AND elevations together with a common
+origin. Targets: floor ID or North/South/East/West[/F1,F2]. First dispatch fills missing
+readers and waits for all. Instructions contain drawing facts/questions only.
+Read results with role_state and read_role_artifact.
 
-assemble_from_readers selects deliveries, resolves levels, carries uses and safe heights.
-Target <10cm; retain plan, never average. Rework/edit ONLY substantive missing/extra/split/
-merged rooms, missing/extra openings, wrong hosts/connectivity or >30cm deviations.
-Accept 10-30cm: record notes, no geometry adjustment or precision re-reading; pending Q2
-decisions still require keep_plan with reason. Fits identify openings, but position checks
-use UNFITTED independent endpoints/width. role_state(position_details=true) gives readings
-and boxes. edit_bim action=position_decision needs decision_id, choice, reason; choices=
-keep_plan/use_elevation/reread_plan/reread_elevation. Above 30cm view BOTH cited boxes and
-pass view_ids. use_elevation stays on the host; conflicting retained numeric width needs
-keep_plan or rereading, never replacement by pixel width. Re-read choices need rework and
-reassembly. One-sided openings remain conflicts.
-level_overrides: floor_id,z_floor/ceiling_height,*_evidence={task_id,elevation_id}; height=
-top Z-floor Z. Reassemble after edits/rework; unchanged inputs reuse receipts.
+assemble_from_readers builds accepted floors, resolves levels, carries uses and located
+safe heights. Audited regularization needs no confirmation. Check openings/result, then
+finish_bim. Reassemble new reader deliveries; unchanged inputs reuse receipts.
+level_overrides cite {task_id,elevation_id}: absolute z_floor or ceiling_height=top Z-floor Z.
 
-Re-dispatch failures with new task_id,previous_task_id,issues. Plan rework_targets name
-plan.partitions:<id>,plan.space_seeds:<id>,plan.openings:<id>,plan.openings or a plan field;
-preserve the rest. Inspect local continuous-space/wall-hole conflicts. Assembly compares
-rooms, adjacency and opening XY to trials; inspect changes and review_role_assembly with
-review_id and reason per change before writes; fix accidents. Missing-floor decisions
-permit partial delivery; stale plans require reassembly. Eligible edit_bim corrections:
-height,use,position,note with reason. Use defaults to inferred; heights need located
-evidence in a separate batch. The coordinator does not independently draft plan walls or
-read heights when a reader can. check_openings reuses unchanged candidate/arguments/
-evidence with a pointer to its prior conclusion. Preserve unresolved evidence and finish
-through delivery checks."""
+Target <10cm. Compare independent opening endpoints/width after identity matching.
+10-30cm automatically retain plan with a note. Every >30cm difference must be explicitly
+decided before finish_bim. role_state(position_details=true) lists readings;
+role_state(position_decision_id=...) returns both original crops and view_ids.
+Optional edit_bim position_decision: decision_id, choice=keep_plan/use_elevation/
+reread_plan/reread_elevation, reason, view_ids. Above 30cm inspect both original crops;
+choosing a side requires both saved views, while reread remains delivery-blocking until a
+new reader delivery is assembled and decided. use_elevation stays on its host; conflicting numeric width needs keep_plan or
+rereading, never pixel-width replacement. Never average positions. One-sided or unsafe
+height matches stay unresolved.
+
+Rework substantive room/opening/host/connectivity errors. Re-dispatch with new task_id,
+previous_task_id,issues. Plan rework_targets: plan.partitions:<id>,plan.space_seeds:<id>,
+plan.openings:<id>,plan.openings or a plan field; preserve the rest. Actual reader-geometry
+changes need review_role_assembly with reasons; height/use/note edits retain confirmation.
+Missing-floor decisions accept partial delivery; stale/unverified reader lineage needs repair.
+
+edit_bim heights go separately: id,sill_m,head_m,reader_evidence={task_id,sha256,opening_id}
+reuse the immutable reader's original box without new views. Independent evidence uses
+image,bbox. use(id,role,image) defaults to inferred; position(id,along_start_m,along_end_m,
+image) needs geometry review; note(text) needs none. Do not draft walls or reread heights
+when a reader can. Preserve unresolved evidence; check_openings reuses unchanged checks."""
+
 
 ROLE_GUIDANCE = {
     "coordinator": COORDINATOR_GUIDANCE,

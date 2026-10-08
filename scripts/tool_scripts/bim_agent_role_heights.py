@@ -98,7 +98,10 @@ def build_role_height_batch_entry(
     for index, (raw_entry, evidence_type) in enumerate(zip(rows, kinds, strict=True)):
         path = f"entries[{index}]"
         entry = _mapping(raw_entry, path)
-        if set(entry) != {"claim", "action", "reason", "operations"}:
+        if set(entry) not in (
+            {"claim", "action", "reason", "operations"},
+            {"claim", "action", "reason", "operations", "reader_evidence"},
+        ):
             raise ValueError(f"{path} must be one complete per-opening apply entry")
         if entry["action"] != "apply":
             raise ValueError(f"{path}.action must be 'apply'")
@@ -163,18 +166,27 @@ def build_role_height_batch_entry(
                 "changes": {"z": {"claim": "$claim", "value": value_name}},
             }
         )
-        trace.append(
-            {
-                "value": value_name,
-                "object": copy.deepcopy(object_ref),
-                "source_index": source_index,
-                "source": copy.deepcopy(source),
-                "evidence_type": evidence_type,
-                "basis": basis,
-                "observation_mode": mode,
-                "reason": reason,
-            }
-        )
+        trace_row = {
+            "value": value_name,
+            "object": copy.deepcopy(object_ref),
+            "source_index": source_index,
+            "source": copy.deepcopy(source),
+            "evidence_type": evidence_type,
+            "basis": basis,
+            "observation_mode": mode,
+            "reason": reason,
+        }
+        if "reader_evidence" in entry:
+            reference = _mapping(entry["reader_evidence"], f"{path}.reader_evidence")
+            required = {"evidence_id", "task_id", "artifact_sha256", "artifact_opening_id"}
+            if set(reference) != required:
+                raise ValueError(
+                    f"{path}.reader_evidence must contain exactly {sorted(required)}"
+                )
+            for key in required:
+                _nonempty_string(reference[key], f"{path}.reader_evidence.{key}")
+            trace_row["reader_evidence"] = copy.deepcopy(reference)
+        trace.append(trace_row)
         for item in _sequence(claim.get("unresolved", []), f"{path}.claim.unresolved"):
             unresolved.append(f"{identity[0]}:{identity[1]}: {_nonempty_string(item, f'{path}.claim.unresolved')}")
         bases.append(basis)

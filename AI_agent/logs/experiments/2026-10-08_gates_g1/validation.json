@@ -1,0 +1,118 @@
+{
+  "scope": "Requested test_bim_*, test_plan_*, test_role_* plus affected focused checks; not full suite",
+  "external_model_requests": 0,
+  "paratera_requests": 0,
+  "deepseek_requests": 0,
+  "runs": [
+    {
+      "file": "AI_agent\\archive\\local_backup\\g1\\scoped.xml",
+      "sha256": "175b2b34b6a49b190a44751edd47f50924b340ee3c7571bf95070a070f5e4f3d",
+      "cases": 762,
+      "outcomes": {
+        "passed": 755,
+        "failed": 7
+      },
+      "wall_seconds": 556.692
+    },
+    {
+      "file": "AI_agent\\archive\\local_backup\\g1\\final.xml",
+      "sha256": "40426a315386c2c231420237efeff2d6a65315d3717c0a3c14a629e325bd8eae",
+      "cases": 48,
+      "outcomes": {
+        "passed": 48
+      },
+      "wall_seconds": 294.852
+    },
+    {
+      "file": "AI_agent\\archive\\local_backup\\g1\\kernel_final.xml",
+      "sha256": "341d97e7b869e081e61eb2b6fdc24fb43f61d24de0f57838af22b69ef66e667c",
+      "cases": 100,
+      "outcomes": {
+        "passed": 100
+      },
+      "wall_seconds": 30.323
+    },
+    {
+      "file": "AI_agent\\archive\\local_backup\\g1\\final2.xml",
+      "sha256": "f52356e9ca8293ffff2f4b30d6b1f7e32059388b0d03bddb54a0c36ec1e3279e",
+      "cases": 52,
+      "outcomes": {
+        "passed": 52
+      },
+      "wall_seconds": 583.058
+    }
+  ],
+  "latest_per_test": {
+    "unique_cases": 782,
+    "outcomes": {
+      "passed": 781,
+      "failed": 1
+    },
+    "failed_tests": [
+      "tests.test_bim_agent_tools::test_terminate_subscription_stops_parent_and_nested_session_child"
+    ]
+  },
+  "environment_limited": {
+    "test": "tests.test_bim_agent_tools::test_terminate_subscription_stops_parent_and_nested_session_child",
+    "evidence": "platform_check.json",
+    "reason": "Unchanged Windows taskkill /T /F returned ERROR: Access denied; not counted as passed"
+  },
+  "aggregation": "Each later full-file focused result replaces earlier results for that module, including removal of superseded tests. Repeated and retired successes are not added.",
+  "modified_python_sha256": {
+    "scripts/tool_scripts/bim_agent_delivery_display.py": "950579b030700f68745729352800d80deba5c305d6bf05ff603ecbeb6c4074f2",
+    "scripts/tool_scripts/bim_agent_facade_checks.py": "0f7fc53eb365a03a7e953f443387c18079ff716619068889a092b9baa990d2b7",
+    "scripts/tool_scripts/bim_agent_precision.py": "c78e0aa4368bca25d15991db8fa11ead1dd6845a27b27459cdc2b51c05abe069",
+    "scripts/tool_scripts/bim_agent_regularization.py": "3c70a388af665c65dd7c3a89c72733db27392071afb8580887549b24dedce2d7",
+    "scripts/tool_scripts/bim_agent_role_heights.py": "b7d69e46265b650fe86c142907926b8b8917454d447a01f02653c1abf4120055",
+    "scripts/tool_scripts/run_bim_agent.py": "deafb2cfa0956d2352e82724d500f8f1f2925cf638470189ecf8fd1b39c5d6ba",
+    "src/agent/execution/bim_height_coverage.py": "e06ee61d08ce70cd74986769ccbdb61f8095372d9901a92a274b03c5f3634f4a",
+    "src/agent/geometry/plan_regularization.py": "e3dd1e0b8732d916ddd0f5505d3de9675e8574fef6880a90abc93a2749a217c7",
+    "src/agent/runtime_roles/assembly.py": "64f5a915b5bab59a9c42d4d55e2f6ecc8953c2e0526a8a1a3bd5a845f9208188",
+    "src/agent/runtime_roles/assembly_review.py": "0693bfa48db98f919244ba78fcc741455423fdc674e2ae62aa5760ebcf3f9fac",
+    "src/agent/runtime_roles/guidance.py": "60b95c636b776a5eac3230c5d3fbbcb9666101512752ea41a8104d8e86855115",
+    "src/agent/runtime_roles/height_evidence.py": "61c3d07652dc7857b238f76ea96d222b873fe3f8f4e2a77da1d3a36db9758d78",
+    "src/agent/runtime_roles/session.py": "b6729b1ea51a66adb1e9483a615882dc3b3159266c95d3450ed336aed4b8ec87",
+    "tests/role_d1_fixtures.py": "827e50d22fe9d66f0b8187c51c0301db6fa1362f9f06b0146563c3252ec5aa63",
+    "tests/test_bim_regularization_integration.py": "f58234debc02747f0036b377b5948f1e1e07b405a851ff318987121bf5cbc492",
+    "tests/test_plan_regularization.py": "b71d83ee42d19e408f01fcd45baaa3bf8c5fa0d63fc014a4fef610fa3f64cc82",
+    "tests/test_role_assembly_review.py": "ae1393c2893c820452abc670eceb1ff4c69914ad95bd9951989c2e4050c1c164",
+    "tests/test_role_end_to_end.py": "766eef9d473e2319fbe5d781505eca2c9d353d56f8a1e8691958dca3ee272885",
+    "tests/test_role_guidance.py": "bcf60916511ea52fa7f3ca61daf6f1a4c21decc096a1b827c22f20ab129c9624",
+    "tests/test_role_height_evidence.py": "0febf0dae895a4f3ae63428773c5311d2fe120cc18f3944be647c5d1d7bcf57d",
+    "tests/test_role_position_review.py": "ea0104caef8f6b3c71a221f83d3446d2c0819c302588ee36ceed3c6e27a29820",
+    "AI_agent/logs/experiments/2026-10-08_gates_g1/prepare_test_registry.py": "4465cab5a0611663e31f9b2f9c0072fb6b8143b9f18e9ed122a59a8c0a05328b",
+    "AI_agent/logs/experiments/2026-10-08_gates_g1/replay.py": "00b9ebd9771a053d3309b4d655fff1dad984f6dd7421ef50560d44a8e83cd9b0",
+    "AI_agent/logs/experiments/2026-10-08_gates_g1/replay_height_evidence.py": "0b6d2fc09f47fd142d1150320e8e4897048ce7ecdfaa772a9403af0d585d1669",
+    "tests/test_role_g1_session.py": "9f83e929f0da107aaec5d12ccf3cb581508c7897c945351f30a74cd572dcc2cc"
+  },
+  "formal_registry_sha256": "c400fbef87db14d9893425e790b6a7af435fc501c31bc7718927cf07797541e2",
+  "pytest_cleanup": {
+    "status": "completed",
+    "method": "Python shutil.rmtree after resolved targets checked inside this worktree",
+    "removed": [
+      "AI_agent\\archive\\local_backup\\g1\\pytest",
+      "AI_agent\\archive\\local_backup\\g1\\pytest-e2e",
+      "AI_agent\\archive\\local_backup\\g1\\pytest-final",
+      "AI_agent\\archive\\local_backup\\g1\\pytest-final2",
+      "AI_agent\\archive\\local_backup\\g1\\pytest-kernel",
+      "AI_agent\\archive\\local_backup\\g1\\pytest-paired"
+    ],
+    "remaining_pytest_directories": [],
+    "historical_runs_not_removed": true
+  },
+  "retired_test_ids": [
+    "tests.test_plan_regularization::test_cross_storey_move_adjusts_opening_edge_swept_by_connected_t_junction",
+    "tests.test_role_assembly_review::test_audited_crossing_opening_may_clip_one_jamb_to_moved_wall"
+  ],
+  "final_checks": {
+    "git_diff_check": "passed",
+    "modified_python_ast_parse": "passed",
+    "modified_python_sha256_match": "passed",
+    "lf_files_checked": 35,
+    "formal_registry_unchanged": true,
+    "src_agent_runtime_diff": "empty",
+    "head": "9eb6185748562eb15cc3b45ddc1c153f30a39398",
+    "commits_made": 0,
+    "production_registration_made": false
+  }
+}
