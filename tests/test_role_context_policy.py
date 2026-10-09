@@ -9,6 +9,7 @@ import types
 from pathlib import Path
 
 from PIL import Image
+import pytest
 
 from src.agent.runtime_roles.context_policy import role_context_policy
 from src.agent_runtime.anthropic import convert_messages
@@ -76,7 +77,8 @@ def test_single_model_projection_and_policy_bytes_match_pre_b1_including_compact
         sys.modules.pop(name, None)
 
 
-def test_role_compaction_preserves_full_records_references_images_and_checkpoint(tmp_path):
+@pytest.mark.parametrize("role", ["coordinator", "plan_reader", "elevation_reader"])
+def test_role_compaction_preserves_full_records_references_images_and_checkpoint(tmp_path, role):
     with _store(tmp_path) as store:
         source = _event_source(store, "artifact evidence")
         artifact = store.put_json({"plan": {"openings": ["door-1"]}, "evidence": "original pixels"})
@@ -84,7 +86,8 @@ def test_role_compaction_preserves_full_records_references_images_and_checkpoint
                  "artifact": artifact.model_dump(mode="json"), "runtime": {"history": "large ledger " * 1000},
                  "validation": {"unresolved": ["height uncertain"]}},
                 {"task_id": "elev_N", "status": "failed", "reason": "image missing"}]
-        manager = ContextManager(store, policy=role_context_policy("coordinator", compact_at_tokens=1500))
+        manager = ContextManager(store, policy=role_context_policy(role, compact_at_tokens=1500,
+            state_item_fields={"reader-artifacts": ("task_id", "role_id", "target", "status", "artifact", "reason")}))
         manager.append({"role": "system", "content": "guide"}, source)
         manager.append({"role": "user", "content": "Read artifacts using read_role_artifact; complete status via role_state."}, source)
         manager.set_state(StateEntry(key="reader-artifacts", category="artifact_version", value=full,
@@ -116,7 +119,7 @@ def test_role_compaction_preserves_full_records_references_images_and_checkpoint
 
 def test_reader_policies_keep_existing_projection_and_explicit_overrides():
     for role in ("plan_reader", "elevation_reader"):
-        assert role_context_policy(role) == ContextPolicy(compact_at_tokens=100_000)
+        assert role_context_policy(role) == ContextPolicy(compact_at_tokens=100_000, compact_to_ratio=0.3)
     policy = role_context_policy("coordinator", compact_at_tokens=75_000, max_images=3)
     assert policy.compact_at_tokens == 75_000 and policy.max_images == 3
     assert policy.compact_to_ratio == 0.3

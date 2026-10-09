@@ -1,0 +1,3417 @@
+{
+ "run": "sm25_role_v53",
+ "format": "events",
+ "schema_version": 2,
+ "total_min": 104.5,
+ "partial_tail": false,
+ "last_event_id": "event-001380",
+ "tasks": [
+  {
+   "task": "coordinator",
+   "parent": null,
+   "start_min": 0.0,
+   "first_request_min": 0.0,
+   "end_min": 104.5,
+   "requests": 4,
+   "responses": 4,
+   "requests_missing_usage": 0,
+   "model_min": 0.8,
+   "median_request_s": 9.6,
+   "output_tokens": 1716,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 5
+   },
+   "compactions": 0,
+   "input_tokens": 43401,
+   "cache_read_tokens": 3584,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.07627966372246461,
+   "tools": {
+    "view_image": 2,
+    "delegate_readers": 2,
+    "inputs": 1
+   }
+  },
+  {
+   "task": "elev_east",
+   "parent": "coordinator",
+   "start_min": 0.9,
+   "first_request_min": 0.9,
+   "submitted_attempt_min": 6.7,
+   "submitted_min": 6.8,
+   "end_min": 7.0,
+   "requests": 10,
+   "responses": 10,
+   "requests_missing_usage": 0,
+   "model_min": 5.1,
+   "median_request_s": 22.8,
+   "output_tokens": 12829,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 11
+   },
+   "compactions": 0,
+   "input_tokens": 100522,
+   "cache_read_tokens": 96576,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.48998975129123584,
+   "tools": {
+    "view_pixel_profile": 5,
+    "view_image": 4,
+    "inputs": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "elev_south",
+   "parent": "coordinator",
+   "start_min": 0.9,
+   "first_request_min": 0.9,
+   "submitted_attempt_min": 3.7,
+   "submitted_min": 3.7,
+   "end_min": 3.9,
+   "requests": 7,
+   "responses": 6,
+   "requests_missing_usage": 1,
+   "model_min": 2.6,
+   "median_request_s": 12.6,
+   "output_tokens": 6598,
+   "refused": 1,
+   "tool_errors": 1,
+   "tool_outcomes": {
+    "succeeded": 6,
+    "failed": 1
+   },
+   "compactions": 0,
+   "input_tokens": 48309,
+   "cache_read_tokens": 40064,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.4533511366593869,
+   "tools": {
+    "view_pixel_profile": 3,
+    "view_image": 2,
+    "inputs": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "elev_north",
+   "parent": "coordinator",
+   "start_min": 0.9,
+   "first_request_min": 0.9,
+   "submitted_attempt_min": 5.2,
+   "submitted_min": 5.5,
+   "end_min": 5.7,
+   "requests": 8,
+   "responses": 8,
+   "requests_missing_usage": 0,
+   "model_min": 3.9,
+   "median_request_s": 15.5,
+   "output_tokens": 10957,
+   "refused": 0,
+   "tool_errors": 1,
+   "tool_outcomes": {
+    "succeeded": 7,
+    "failed": 1
+   },
+   "compactions": 0,
+   "input_tokens": 95074,
+   "cache_read_tokens": 56064,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.3709457581812648,
+   "tools": {
+    "view_image": 3,
+    "view_pixel_region_overview": 2,
+    "submit_elevation_reading": 2,
+    "inputs": 1
+   }
+  },
+  {
+   "task": "elev_west",
+   "parent": "coordinator",
+   "start_min": 0.9,
+   "first_request_min": 0.9,
+   "submitted_attempt_min": 5.7,
+   "submitted_min": 5.7,
+   "end_min": 5.9,
+   "requests": 7,
+   "responses": 5,
+   "requests_missing_usage": 2,
+   "model_min": 4.4,
+   "median_request_s": 33.8,
+   "output_tokens": 10049,
+   "refused": 2,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 7
+   },
+   "compactions": 0,
+   "input_tokens": 75926,
+   "cache_read_tokens": 19328,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.20291011401096018,
+   "tools": {
+    "view_image": 3,
+    "pixel_profile": 2,
+    "inputs": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "plan_f2",
+   "parent": "coordinator",
+   "start_min": 1.0,
+   "first_request_min": 1.0,
+   "end_min": 47.5,
+   "requests": 10,
+   "responses": 9,
+   "requests_missing_usage": 1,
+   "model_min": 46.1,
+   "median_request_s": 125.3,
+   "output_tokens": 122829,
+   "refused": 1,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 12
+   },
+   "compactions": 0,
+   "input_tokens": 375074,
+   "cache_read_tokens": 239040,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.38924369091080807,
+   "tools": {
+    "view_pixel_profile": 7,
+    "view_image": 3,
+    "inputs": 1,
+    "view_plan_blocks": 1
+   }
+  },
+  {
+   "task": "plan_f1",
+   "parent": "coordinator",
+   "start_min": 1.0,
+   "first_request_min": 1.1,
+   "first_trial_attempt_min": 24.5,
+   "first_trial_min": 24.5,
+   "end_min": 26.5,
+   "requests": 12,
+   "responses": 12,
+   "requests_missing_usage": 0,
+   "model_min": 24.6,
+   "median_request_s": 57.4,
+   "output_tokens": 75151,
+   "refused": 0,
+   "tool_errors": 3,
+   "tool_outcomes": {
+    "succeeded": 13,
+    "failed": 3,
+    "unknown": 1
+   },
+   "compactions": 2,
+   "input_tokens": 359233,
+   "cache_read_tokens": 299456,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.454624261221912,
+   "tools": {
+    "view_image": 8,
+    "pixel_profile": 3,
+    "trial_plan_bim": 3,
+    "inputs": 1,
+    "view_plan_blocks": 1,
+    "get_bim_reference": 1
+   }
+  },
+  {
+   "task": "plan_f2b",
+   "parent": "coordinator",
+   "start_min": 48.1,
+   "first_request_min": 48.1,
+   "first_trial_attempt_min": 73.3,
+   "first_trial_min": 73.3,
+   "end_min": 104.4,
+   "requests": 29,
+   "responses": 28,
+   "requests_missing_usage": 1,
+   "model_min": 51.4,
+   "median_request_s": 75.4,
+   "output_tokens": 143437,
+   "refused": 1,
+   "tool_errors": 16,
+   "tool_outcomes": {
+    "succeeded": 18,
+    "failed": 16
+   },
+   "compactions": 5,
+   "input_tokens": 901879,
+   "cache_read_tokens": 597568,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.3985255897674276,
+   "tools": {
+    "trial_plan_bim": 15,
+    "view_image": 9,
+    "pixel_profile": 8,
+    "inputs": 1,
+    "view_plan_blocks": 1
+   }
+  },
+  {
+   "task": "plan_f1b",
+   "parent": "coordinator",
+   "start_min": 48.1,
+   "first_request_min": 48.2,
+   "first_trial_attempt_min": 82.0,
+   "first_trial_min": 82.0,
+   "end_min": 93.7,
+   "requests": 18,
+   "responses": 18,
+   "requests_missing_usage": 0,
+   "model_min": 41.6,
+   "median_request_s": 88.9,
+   "output_tokens": 117461,
+   "refused": 0,
+   "tool_errors": 5,
+   "tool_outcomes": {
+    "succeeded": 31,
+    "failed": 5
+   },
+   "compactions": 3,
+   "input_tokens": 637725,
+   "cache_read_tokens": 402240,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": 0.3867822474794825,
+   "tools": {
+    "view_image": 17,
+    "pixel_profile": 13,
+    "trial_plan_bim": 4,
+    "inputs": 1,
+    "view_plan_blocks": 1
+   }
+  }
+ ],
+ "requests": [
+  {
+   "event": "event-000004",
+   "task": "coordinator",
+   "start_min": 0.0,
+   "status": "responded",
+   "response_event": "event-000005",
+   "usage": {
+    "input_tokens": 3618,
+    "output_tokens": 12,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 5.415
+  },
+  {
+   "event": "event-000014",
+   "task": "coordinator",
+   "start_min": 0.1,
+   "status": "responded",
+   "response_event": "event-000015",
+   "usage": {
+    "input_tokens": 4841,
+    "output_tokens": 110,
+    "cache_read_input_tokens": 3584,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 6.145
+  },
+  {
+   "event": "event-000028",
+   "task": "coordinator",
+   "start_min": 0.2,
+   "status": "responded",
+   "response_event": "event-000029",
+   "usage": {
+    "input_tokens": 15975,
+    "output_tokens": 1157,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 26.242
+  },
+  {
+   "event": "event-000039",
+   "task": "elev_east",
+   "start_min": 0.9,
+   "status": "responded",
+   "response_event": "event-000142",
+   "usage": {
+    "input_tokens": 7911,
+    "output_tokens": 1128,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 41.177
+  },
+  {
+   "event": "event-000044",
+   "task": "elev_south",
+   "start_min": 0.9,
+   "status": "responded",
+   "response_event": "event-000080",
+   "usage": {
+    "input_tokens": 8697,
+    "output_tokens": 38,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 12.622
+  },
+  {
+   "event": "event-000049",
+   "task": "elev_north",
+   "start_min": 0.9,
+   "status": "responded",
+   "response_event": "event-000152",
+   "usage": {
+    "input_tokens": 9107,
+    "output_tokens": 1861,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 48.87
+  },
+  {
+   "event": "event-000054",
+   "task": "elev_west",
+   "start_min": 0.9,
+   "status": "responded",
+   "response_event": "event-000213",
+   "usage": {
+    "input_tokens": 8652,
+    "output_tokens": 3606,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 80.634
+  },
+  {
+   "event": "event-000059",
+   "task": "plan_f2",
+   "start_min": 1.0,
+   "status": "responded",
+   "response_event": "event-000063",
+   "usage": {
+    "input_tokens": 10125,
+    "output_tokens": 29,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 6.016
+  },
+  {
+   "event": "event-000068",
+   "task": "plan_f1",
+   "start_min": 1.1,
+   "status": "responded",
+   "response_event": "event-000093",
+   "usage": {
+    "input_tokens": 10182,
+    "output_tokens": 21,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 4.73
+  },
+  {
+   "event": "event-000077",
+   "task": "plan_f2",
+   "start_min": 1.1,
+   "status": "failed",
+   "failure_event": "event-000078",
+   "reason": "temporary_rate_limit",
+   "elapsed_s": 0.319
+  },
+  {
+   "event": "event-000092",
+   "task": "plan_f2",
+   "start_min": 1.2,
+   "status": "responded",
+   "response_event": "event-000130",
+   "usage": {
+    "input_tokens": 4373,
+    "output_tokens": 737,
+    "cache_read_input_tokens": 10112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 25.71
+  },
+  {
+   "event": "event-000098",
+   "task": "elev_south",
+   "start_min": 1.2,
+   "status": "responded",
+   "response_event": "event-000106",
+   "usage": {
+    "input_tokens": 9284,
+    "output_tokens": 14,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 6.583
+  },
+  {
+   "event": "event-000113",
+   "task": "plan_f1",
+   "start_min": 1.3,
+   "status": "responded",
+   "response_event": "event-000118",
+   "usage": {
+    "input_tokens": 10764,
+    "output_tokens": 15,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 5.285
+  },
+  {
+   "event": "event-000125",
+   "task": "elev_south",
+   "start_min": 1.4,
+   "status": "responded",
+   "response_event": "event-000184",
+   "usage": {
+    "input_tokens": 3161,
+    "output_tokens": 2314,
+    "cache_read_input_tokens": 8640,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 45.172
+  },
+  {
+   "event": "event-000141",
+   "task": "plan_f1",
+   "start_min": 1.6,
+   "status": "responded",
+   "response_event": "event-000202",
+   "usage": {
+    "input_tokens": 12349,
+    "output_tokens": 1872,
+    "cache_read_input_tokens": 1984,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 40.476
+  },
+  {
+   "event": "event-000147",
+   "task": "plan_f2",
+   "start_min": 1.6,
+   "status": "responded",
+   "response_event": "event-000484",
+   "usage": {
+    "input_tokens": 53683,
+    "output_tokens": 14859,
+    "cache_read_input_tokens": 1984,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 296.888
+  },
+  {
+   "event": "event-000157",
+   "task": "elev_east",
+   "start_min": 1.8,
+   "status": "responded",
+   "response_event": "event-000162",
+   "usage": {
+    "input_tokens": 9529,
+    "output_tokens": 54,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 5.732
+  },
+  {
+   "event": "event-000168",
+   "task": "elev_north",
+   "start_min": 1.9,
+   "status": "responded",
+   "response_event": "event-000173",
+   "usage": {
+    "input_tokens": 2379,
+    "output_tokens": 60,
+    "cache_read_input_tokens": 9088,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 4.898
+  },
+  {
+   "event": "event-000179",
+   "task": "elev_east",
+   "start_min": 1.9,
+   "status": "responded",
+   "response_event": "event-000240",
+   "usage": {
+    "input_tokens": 4478,
+    "output_tokens": 1309,
+    "cache_read_input_tokens": 7872,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 39.01
+  },
+  {
+   "event": "event-000190",
+   "task": "elev_north",
+   "start_min": 2.2,
+   "status": "responded",
+   "response_event": "event-000226",
+   "usage": {
+    "input_tokens": 13226,
+    "output_tokens": 310,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 12.591
+  },
+  {
+   "event": "event-000199",
+   "task": "elev_south",
+   "start_min": 2.2,
+   "status": "failed",
+   "failure_event": "event-000200",
+   "reason": "temporary_rate_limit",
+   "elapsed_s": 0.595
+  },
+  {
+   "event": "event-000212",
+   "task": "elev_south",
+   "start_min": 2.3,
+   "status": "responded",
+   "response_event": "event-000258",
+   "usage": {
+    "input_tokens": 16639,
+    "output_tokens": 1432,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 39.465
+  },
+  {
+   "event": "event-000218",
+   "task": "plan_f1",
+   "start_min": 2.3,
+   "status": "responded",
+   "response_event": "event-000396",
+   "usage": {
+    "input_tokens": 43869,
+    "output_tokens": 7696,
+    "cache_read_input_tokens": 14272,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 163.673
+  },
+  {
+   "event": "event-000232",
+   "task": "elev_west",
+   "start_min": 2.4,
+   "status": "failed",
+   "failure_event": "event-000254",
+   "reason": "service_unavailable",
+   "elapsed_s": 16.808
+  },
+  {
+   "event": "event-000246",
+   "task": "elev_north",
+   "start_min": 2.6,
+   "status": "responded",
+   "response_event": "event-000316",
+   "usage": {
+    "input_tokens": 14109,
+    "output_tokens": 3438,
+    "cache_read_input_tokens": 1984,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 70.029
+  },
+  {
+   "event": "event-000257",
+   "task": "elev_east",
+   "start_min": 2.7,
+   "status": "responded",
+   "response_event": "event-000271",
+   "usage": {
+    "input_tokens": 11651,
+    "output_tokens": 724,
+    "cache_read_input_tokens": 4096,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 18.252
+  },
+  {
+   "event": "event-000266",
+   "task": "elev_west",
+   "start_min": 2.9,
+   "status": "responded",
+   "response_event": "event-000286",
+   "usage": {
+    "input_tokens": 11176,
+    "output_tokens": 1300,
+    "cache_read_input_tokens": 4096,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 33.829
+  },
+  {
+   "event": "event-000278",
+   "task": "elev_south",
+   "start_min": 3.0,
+   "status": "responded",
+   "response_event": "event-000305",
+   "usage": {
+    "input_tokens": 7884,
+    "output_tokens": 2481,
+    "cache_read_input_tokens": 11776,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 40.971
+  },
+  {
+   "event": "event-000293",
+   "task": "elev_east",
+   "start_min": 3.5,
+   "status": "responded",
+   "response_event": "event-000347",
+   "usage": {
+    "input_tokens": 3267,
+    "output_tokens": 1905,
+    "cache_read_input_tokens": 15744,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 42.572
+  },
+  {
+   "event": "event-000302",
+   "task": "elev_west",
+   "start_min": 3.5,
+   "status": "failed",
+   "failure_event": "event-000303",
+   "reason": "temporary_rate_limit",
+   "elapsed_s": 0.613
+  },
+  {
+   "event": "event-000315",
+   "task": "elev_west",
+   "start_min": 3.7,
+   "status": "responded",
+   "response_event": "event-000370",
+   "usage": {
+    "input_tokens": 19988,
+    "output_tokens": 1817,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 55.715
+  },
+  {
+   "event": "event-000323",
+   "task": "elev_south",
+   "start_min": 3.8,
+   "status": "responded",
+   "response_event": "event-000328",
+   "usage": {
+    "input_tokens": 2644,
+    "output_tokens": 319,
+    "cache_read_input_tokens": 19648,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 8.245
+  },
+  {
+   "event": "event-000335",
+   "task": "elev_north",
+   "start_min": 3.9,
+   "status": "responded",
+   "response_event": "event-000336",
+   "usage": {
+    "input_tokens": 16980,
+    "output_tokens": 158,
+    "cache_read_input_tokens": 4096,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 8.542
+  },
+  {
+   "event": "event-000346",
+   "task": "elev_north",
+   "start_min": 4.2,
+   "status": "responded",
+   "response_event": "event-000422",
+   "usage": {
+    "input_tokens": 19583,
+    "output_tokens": 3646,
+    "cache_read_input_tokens": 4096,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 60.001
+  },
+  {
+   "event": "event-000358",
+   "task": "elev_east",
+   "start_min": 4.2,
+   "status": "responded",
+   "response_event": "event-000359",
+   "usage": {
+    "input_tokens": 3379,
+    "output_tokens": 393,
+    "cache_read_input_tokens": 19008,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 11.614
+  },
+  {
+   "event": "event-000369",
+   "task": "elev_east",
+   "start_min": 4.5,
+   "status": "responded",
+   "response_event": "event-000385",
+   "usage": {
+    "input_tokens": 23870,
+    "output_tokens": 320,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 11.462
+  },
+  {
+   "event": "event-000384",
+   "task": "elev_west",
+   "start_min": 4.6,
+   "status": "responded",
+   "response_event": "event-000450",
+   "usage": {
+    "input_tokens": 8921,
+    "output_tokens": 2940,
+    "cache_read_input_tokens": 15232,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 64.512
+  },
+  {
+   "event": "event-000395",
+   "task": "elev_east",
+   "start_min": 4.7,
+   "status": "responded",
+   "response_event": "event-000411",
+   "usage": {
+    "input_tokens": 3074,
+    "output_tokens": 1169,
+    "cache_read_input_tokens": 22336,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 27.304
+  },
+  {
+   "event": "event-000410",
+   "task": "plan_f1",
+   "start_min": 5.0,
+   "status": "responded",
+   "response_event": "event-000468",
+   "usage": {
+    "input_tokens": 68791,
+    "output_tokens": 2075,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 63.52
+  },
+  {
+   "event": "event-000421",
+   "task": "elev_east",
+   "start_min": 5.1,
+   "status": "responded",
+   "response_event": "event-000499",
+   "usage": {
+    "input_tokens": 27559,
+    "output_tokens": 5489,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 96.136
+  },
+  {
+   "event": "event-000432",
+   "task": "elev_north",
+   "start_min": 5.2,
+   "status": "responded",
+   "response_event": "event-000433",
+   "usage": {
+    "input_tokens": 14388,
+    "output_tokens": 1170,
+    "cache_read_input_tokens": 13184,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 18.411
+  },
+  {
+   "event": "event-000443",
+   "task": "elev_north",
+   "start_min": 5.5,
+   "status": "responded",
+   "response_event": "event-000444",
+   "usage": {
+    "input_tokens": 5302,
+    "output_tokens": 314,
+    "cache_read_input_tokens": 23616,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 9.185
+  },
+  {
+   "event": "event-000461",
+   "task": "elev_west",
+   "start_min": 5.7,
+   "status": "responded",
+   "response_event": "event-000462",
+   "usage": {
+    "input_tokens": 27189,
+    "output_tokens": 386,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 12.58
+  },
+  {
+   "event": "event-000483",
+   "task": "plan_f1",
+   "start_min": 6.1,
+   "status": "responded",
+   "response_event": "event-000516",
+   "usage": {
+    "input_tokens": 5116,
+    "output_tokens": 2862,
+    "cache_read_input_tokens": 68736,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 77.99
+  },
+  {
+   "event": "event-000498",
+   "task": "plan_f2",
+   "start_min": 6.6,
+   "status": "responded",
+   "response_event": "event-000532",
+   "usage": {
+    "input_tokens": 60650,
+    "output_tokens": 2585,
+    "cache_read_input_tokens": 14464,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 72.605
+  },
+  {
+   "event": "event-000509",
+   "task": "elev_east",
+   "start_min": 6.8,
+   "status": "responded",
+   "response_event": "event-000510",
+   "usage": {
+    "input_tokens": 5804,
+    "output_tokens": 338,
+    "cache_read_input_tokens": 27520,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 12.044
+  },
+  {
+   "event": "event-000531",
+   "task": "plan_f1",
+   "start_min": 7.5,
+   "status": "responded",
+   "response_event": "event-000584",
+   "usage": {
+    "input_tokens": 80585,
+    "output_tokens": 16624,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 373.078
+  },
+  {
+   "event": "event-000550",
+   "task": "plan_f2",
+   "start_min": 7.8,
+   "status": "responded",
+   "response_event": "event-000551",
+   "usage": {
+    "input_tokens": 81806,
+    "output_tokens": 3642,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 118.835
+  },
+  {
+   "event": "event-000567",
+   "task": "plan_f2",
+   "start_min": 9.9,
+   "status": "responded",
+   "response_event": "event-000568",
+   "usage": {
+    "input_tokens": 13428,
+    "output_tokens": 4977,
+    "cache_read_input_tokens": 75072,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 131.706
+  },
+  {
+   "event": "event-000583",
+   "task": "plan_f2",
+   "start_min": 12.1,
+   "status": "responded",
+   "response_event": "event-000644",
+   "usage": {
+    "input_tokens": 14310,
+    "output_tokens": 32000,
+    "cache_read_input_tokens": 81792,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 779.709
+  },
+  {
+   "event": "event-000609",
+   "task": "plan_f1",
+   "start_min": 13.8,
+   "status": "responded",
+   "response_event": "event-000610",
+   "usage": {
+    "input_tokens": 53101,
+    "output_tokens": 16790,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 339.431
+  },
+  {
+   "event": "event-000621",
+   "task": "plan_f1",
+   "start_min": 19.4,
+   "status": "responded",
+   "response_event": "event-000622",
+   "usage": {
+    "input_tokens": 18246,
+    "output_tokens": 17455,
+    "cache_read_input_tokens": 53056,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 301.05
+  },
+  {
+   "event": "event-000632",
+   "task": "plan_f1",
+   "start_min": 24.5,
+   "status": "responded",
+   "response_event": "event-000633",
+   "usage": {
+    "input_tokens": 18847,
+    "output_tokens": 92,
+    "cache_read_input_tokens": 71296,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 7.092
+  },
+  {
+   "event": "event-000643",
+   "task": "plan_f1",
+   "start_min": 24.6,
+   "status": "responded",
+   "response_event": "event-000653",
+   "usage": {
+    "input_tokens": 1316,
+    "output_tokens": 4755,
+    "cache_read_input_tokens": 90112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 51.349
+  },
+  {
+   "event": "event-000652",
+   "task": "plan_f2",
+   "start_min": 25.1,
+   "status": "responded",
+   "response_event": "event-000680",
+   "usage": {
+    "input_tokens": 40523,
+    "output_tokens": 32000,
+    "cache_read_input_tokens": 55616,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 579.053
+  },
+  {
+   "event": "event-000670",
+   "task": "plan_f1",
+   "start_min": 25.6,
+   "status": "responded",
+   "response_event": "event-000671",
+   "usage": {
+    "input_tokens": 36067,
+    "output_tokens": 4894,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 50.736
+  },
+  {
+   "event": "event-000686",
+   "task": "plan_f2",
+   "start_min": 34.8,
+   "status": "responded",
+   "response_event": "event-000687",
+   "usage": {
+    "input_tokens": 96176,
+    "output_tokens": 32000,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 754.826
+  },
+  {
+   "event": "event-000698",
+   "task": "coordinator",
+   "start_min": 47.5,
+   "status": "responded",
+   "response_event": "event-000699",
+   "usage": {
+    "input_tokens": 18967,
+    "output_tokens": 437,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 12.968
+  },
+  {
+   "event": "event-000708",
+   "task": "plan_f2b",
+   "start_min": 48.1,
+   "status": "responded",
+   "response_event": "event-000718",
+   "usage": {
+    "input_tokens": 10160,
+    "output_tokens": 20,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 9.637
+  },
+  {
+   "event": "event-000713",
+   "task": "plan_f1b",
+   "start_min": 48.2,
+   "status": "responded",
+   "response_event": "event-000714",
+   "usage": {
+    "input_tokens": 10215,
+    "output_tokens": 22,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 5.134
+  },
+  {
+   "event": "event-000733",
+   "task": "plan_f1b",
+   "start_min": 48.4,
+   "status": "responded",
+   "response_event": "event-000746",
+   "usage": {
+    "input_tokens": 10796,
+    "output_tokens": 15,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 9.88
+  },
+  {
+   "event": "event-000739",
+   "task": "plan_f2b",
+   "start_min": 48.4,
+   "status": "responded",
+   "response_event": "event-000740",
+   "usage": {
+    "input_tokens": 617,
+    "output_tokens": 15,
+    "cache_read_input_tokens": 10112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 4.779
+  },
+  {
+   "event": "event-000757",
+   "task": "plan_f2b",
+   "start_min": 48.6,
+   "status": "responded",
+   "response_event": "event-000764",
+   "usage": {
+    "input_tokens": 14588,
+    "output_tokens": 58,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 9.153
+  },
+  {
+   "event": "event-000763",
+   "task": "plan_f1b",
+   "start_min": 48.7,
+   "status": "responded",
+   "response_event": "event-000775",
+   "usage": {
+    "input_tokens": 14374,
+    "output_tokens": 201,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 11.908
+  },
+  {
+   "event": "event-000774",
+   "task": "plan_f2b",
+   "start_min": 48.9,
+   "status": "responded",
+   "response_event": "event-000786",
+   "usage": {
+    "input_tokens": 44435,
+    "output_tokens": 7277,
+    "cache_read_input_tokens": 10688,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 166.606
+  },
+  {
+   "event": "event-000785",
+   "task": "plan_f1b",
+   "start_min": 49.0,
+   "status": "responded",
+   "response_event": "event-000801",
+   "usage": {
+    "input_tokens": 45759,
+    "output_tokens": 6097,
+    "cache_read_input_tokens": 10752,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 170.327
+  },
+  {
+   "event": "event-000800",
+   "task": "plan_f2b",
+   "start_min": 51.7,
+   "status": "responded",
+   "response_event": "event-000822",
+   "usage": {
+    "input_tokens": 9931,
+    "output_tokens": 1512,
+    "cache_read_input_tokens": 55104,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 33.567
+  },
+  {
+   "event": "event-000821",
+   "task": "plan_f1b",
+   "start_min": 51.9,
+   "status": "responded",
+   "response_event": "event-000854",
+   "usage": {
+    "input_tokens": 58382,
+    "output_tokens": 9814,
+    "cache_read_input_tokens": 10176,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 231.108
+  },
+  {
+   "event": "event-000837",
+   "task": "plan_f2b",
+   "start_min": 52.3,
+   "status": "responded",
+   "response_event": "event-000838",
+   "usage": {
+    "input_tokens": 4283,
+    "output_tokens": 6135,
+    "cache_read_input_tokens": 65024,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 133.158
+  },
+  {
+   "event": "event-000853",
+   "task": "plan_f2b",
+   "start_min": 54.6,
+   "status": "responded",
+   "response_event": "event-000888",
+   "usage": {
+    "input_tokens": 66186,
+    "output_tokens": 13906,
+    "cache_read_input_tokens": 14528,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 356.203
+  },
+  {
+   "event": "event-000871",
+   "task": "plan_f1b",
+   "start_min": 55.9,
+   "status": "responded",
+   "response_event": "event-000872",
+   "usage": {
+    "input_tokens": 25078,
+    "output_tokens": 7470,
+    "cache_read_input_tokens": 56448,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 200.994
+  },
+  {
+   "event": "event-000887",
+   "task": "plan_f1b",
+   "start_min": 59.4,
+   "status": "responded",
+   "response_event": "event-000942",
+   "usage": {
+    "input_tokens": 23669,
+    "output_tokens": 11261,
+    "cache_read_input_tokens": 68544,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 257.438
+  },
+  {
+   "event": "event-000903",
+   "task": "plan_f2b",
+   "start_min": 60.7,
+   "status": "responded",
+   "response_event": "event-000904",
+   "usage": {
+    "input_tokens": 97095,
+    "output_tokens": 2872,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 85.059
+  },
+  {
+   "event": "event-000929",
+   "task": "plan_f2b",
+   "start_min": 62.3,
+   "status": "responded",
+   "response_event": "event-000930",
+   "usage": {
+    "input_tokens": 46853,
+    "output_tokens": 1602,
+    "cache_read_input_tokens": 10112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 39.575
+  },
+  {
+   "event": "event-000941",
+   "task": "plan_f2b",
+   "start_min": 63.1,
+   "status": "responded",
+   "response_event": "event-001025",
+   "usage": {
+    "input_tokens": 59617,
+    "output_tokens": 25755,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 611.228
+  },
+  {
+   "event": "event-000973",
+   "task": "plan_f1b",
+   "start_min": 64.2,
+   "status": "responded",
+   "response_event": "event-000974",
+   "usage": {
+    "input_tokens": 52340,
+    "output_tokens": 4454,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 95.509
+  },
+  {
+   "event": "event-000993",
+   "task": "plan_f1b",
+   "start_min": 66.0,
+   "status": "responded",
+   "response_event": "event-000994",
+   "usage": {
+    "input_tokens": 59696,
+    "output_tokens": 8088,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 211.988
+  },
+  {
+   "event": "event-001009",
+   "task": "plan_f1b",
+   "start_min": 69.7,
+   "status": "responded",
+   "response_event": "event-001010",
+   "usage": {
+    "input_tokens": 17131,
+    "output_tokens": 3167,
+    "cache_read_input_tokens": 52288,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 71.292
+  },
+  {
+   "event": "event-001024",
+   "task": "plan_f1b",
+   "start_min": 71.0,
+   "status": "responded",
+   "response_event": "event-001036",
+   "usage": {
+    "input_tokens": 5207,
+    "output_tokens": 8047,
+    "cache_read_input_tokens": 69376,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 173.129
+  },
+  {
+   "event": "event-001035",
+   "task": "plan_f2b",
+   "start_min": 73.4,
+   "status": "responded",
+   "response_event": "event-001057",
+   "usage": {
+    "input_tokens": 86623,
+    "output_tokens": 5162,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 68.146
+  },
+  {
+   "event": "event-001056",
+   "task": "plan_f1b",
+   "start_min": 74.1,
+   "status": "responded",
+   "response_event": "event-001083",
+   "usage": {
+    "input_tokens": 12458,
+    "output_tokens": 3776,
+    "cache_read_input_tokens": 74560,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 82.234
+  },
+  {
+   "event": "event-001071",
+   "task": "plan_f2b",
+   "start_min": 74.7,
+   "status": "responded",
+   "response_event": "event-001072",
+   "usage": {
+    "input_tokens": 43388,
+    "output_tokens": 188,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 9.385
+  },
+  {
+   "event": "event-001082",
+   "task": "plan_f2b",
+   "start_min": 75.0,
+   "status": "responded",
+   "response_event": "event-001103",
+   "usage": {
+    "input_tokens": 33501,
+    "output_tokens": 5152,
+    "cache_read_input_tokens": 10112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 55.57
+  },
+  {
+   "event": "event-001102",
+   "task": "plan_f1b",
+   "start_min": 75.8,
+   "status": "responded",
+   "response_event": "event-001136",
+   "usage": {
+    "input_tokens": 93650,
+    "output_tokens": 19321,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 367.544
+  },
+  {
+   "event": "event-001113",
+   "task": "plan_f2b",
+   "start_min": 76.1,
+   "status": "responded",
+   "response_event": "event-001114",
+   "usage": {
+    "input_tokens": 12702,
+    "output_tokens": 3355,
+    "cache_read_input_tokens": 43584,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 75.441
+  },
+  {
+   "event": "event-001124",
+   "task": "plan_f2b",
+   "start_min": 77.5,
+   "status": "responded",
+   "response_event": "event-001125",
+   "usage": {
+    "input_tokens": 4388,
+    "output_tokens": 11771,
+    "cache_read_input_tokens": 56256,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 213.256
+  },
+  {
+   "event": "event-001135",
+   "task": "plan_f2b",
+   "start_min": 81.2,
+   "status": "responded",
+   "response_event": "event-001160",
+   "usage": {
+    "input_tokens": 72444,
+    "output_tokens": 3139,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 57.389
+  },
+  {
+   "event": "event-001159",
+   "task": "plan_f1b",
+   "start_min": 82.2,
+   "status": "responded",
+   "response_event": "event-001173",
+   "usage": {
+    "input_tokens": 49948,
+    "output_tokens": 5498,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 68.997
+  },
+  {
+   "event": "event-001172",
+   "task": "plan_f2b",
+   "start_min": 82.4,
+   "status": "responded",
+   "response_event": "event-001184",
+   "usage": {
+    "input_tokens": 36637,
+    "output_tokens": 3175,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 90.193
+  },
+  {
+   "event": "event-001183",
+   "task": "plan_f1b",
+   "start_min": 83.5,
+   "status": "responded",
+   "response_event": "event-001221",
+   "usage": {
+    "input_tokens": 27314,
+    "output_tokens": 20586,
+    "cache_read_input_tokens": 49920,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 359.1
+  },
+  {
+   "event": "event-001194",
+   "task": "plan_f2b",
+   "start_min": 84.1,
+   "status": "responded",
+   "response_event": "event-001195",
+   "usage": {
+    "input_tokens": 44612,
+    "output_tokens": 5146,
+    "cache_read_input_tokens": 10112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 105.187
+  },
+  {
+   "event": "event-001205",
+   "task": "plan_f2b",
+   "start_min": 86.0,
+   "status": "responded",
+   "response_event": "event-001206",
+   "usage": {
+    "input_tokens": 23826,
+    "output_tokens": 8776,
+    "cache_read_input_tokens": 54720,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 156.467
+  },
+  {
+   "event": "event-001220",
+   "task": "plan_f2b",
+   "start_min": 88.9,
+   "status": "responded",
+   "response_event": "event-001237",
+   "usage": {
+    "input_tokens": 32509,
+    "output_tokens": 4167,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 94.955
+  },
+  {
+   "event": "event-001236",
+   "task": "plan_f1b",
+   "start_min": 89.7,
+   "status": "responded",
+   "response_event": "event-001248",
+   "usage": {
+    "input_tokens": 31895,
+    "output_tokens": 5919,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 82.052
+  },
+  {
+   "event": "event-001247",
+   "task": "plan_f2b",
+   "start_min": 90.6,
+   "status": "responded",
+   "response_event": "event-001259",
+   "usage": {
+    "input_tokens": 37404,
+    "output_tokens": 1256,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 48.08
+  },
+  {
+   "event": "event-001258",
+   "task": "plan_f1b",
+   "start_min": 91.4,
+   "status": "responded",
+   "response_event": "event-001270",
+   "usage": {
+    "input_tokens": 43124,
+    "output_tokens": 2083,
+    "cache_read_input_tokens": 10176,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 54.565
+  },
+  {
+   "event": "event-001269",
+   "task": "plan_f2b",
+   "start_min": 91.7,
+   "status": "responded",
+   "response_event": "event-001286",
+   "usage": {
+    "input_tokens": 29701,
+    "output_tokens": 5330,
+    "cache_read_input_tokens": 10112,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 101.844
+  },
+  {
+   "event": "event-001280",
+   "task": "plan_f1b",
+   "start_min": 92.5,
+   "status": "responded",
+   "response_event": "event-001281",
+   "usage": {
+    "input_tokens": 56689,
+    "output_tokens": 1642,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 44.863
+  },
+  {
+   "event": "event-001296",
+   "task": "plan_f2b",
+   "start_min": 93.6,
+   "status": "responded",
+   "response_event": "event-001302",
+   "usage": {
+    "input_tokens": 5366,
+    "output_tokens": 1359,
+    "cache_read_input_tokens": 39808,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 33.979
+  },
+  {
+   "event": "event-001312",
+   "task": "plan_f2b",
+   "start_min": 94.3,
+   "status": "responded",
+   "response_event": "event-001313",
+   "usage": {
+    "input_tokens": 8443,
+    "output_tokens": 3984,
+    "cache_read_input_tokens": 45120,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 81.519
+  },
+  {
+   "event": "event-001323",
+   "task": "plan_f2b",
+   "start_min": 95.9,
+   "status": "responded",
+   "response_event": "event-001324",
+   "usage": {
+    "input_tokens": 10833,
+    "output_tokens": 7655,
+    "cache_read_input_tokens": 53504,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 126.621
+  },
+  {
+   "event": "event-001334",
+   "task": "plan_f2b",
+   "start_min": 98.2,
+   "status": "responded",
+   "response_event": "event-001335",
+   "usage": {
+    "input_tokens": 7702,
+    "output_tokens": 3070,
+    "cache_read_input_tokens": 64320,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 35.997
+  },
+  {
+   "event": "event-001349",
+   "task": "plan_f2b",
+   "start_min": 99.1,
+   "status": "responded",
+   "response_event": "event-001350",
+   "usage": {
+    "input_tokens": 44394,
+    "output_tokens": 3413,
+    "cache_read_input_tokens": 0,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 67.849
+  },
+  {
+   "event": "event-001360",
+   "task": "plan_f2b",
+   "start_min": 100.5,
+   "status": "responded",
+   "response_event": "event-001361",
+   "usage": {
+    "input_tokens": 13641,
+    "output_tokens": 8187,
+    "cache_read_input_tokens": 44352,
+    "server_tool_use": {
+     "web_search_requests": 0
+    },
+    "service_tier": "standard"
+   },
+   "elapsed_s": 201.943
+  },
+  {
+   "event": "event-001371",
+   "task": "plan_f2b",
+   "start_min": 104.1,
+   "status": "failed",
+   "failure_event": "event-001372",
+   "reason": "timeout",
+   "elapsed_s": 8.554
+  }
+ ],
+ "timeline": [
+  {
+   "event": "event-000009",
+   "task": "coordinator",
+   "min": 0.1,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000008",
+   "result": {}
+  },
+  {
+   "event": "event-000020",
+   "task": "coordinator",
+   "min": 0.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000019",
+   "result": {}
+  },
+  {
+   "event": "event-000023",
+   "task": "coordinator",
+   "min": 0.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000022",
+   "result": {}
+  },
+  {
+   "event": "event-000069",
+   "task": "plan_f2",
+   "min": 1.1,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000066",
+   "result": {}
+  },
+  {
+   "event": "event-000072",
+   "task": "plan_f2",
+   "min": 1.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000071",
+   "result": {}
+  },
+  {
+   "event": "event-000084",
+   "task": "elev_south",
+   "min": 1.1,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000083",
+   "result": {}
+  },
+  {
+   "event": "event-000087",
+   "task": "elev_south",
+   "min": 1.1,
+   "tool": "view_image",
+   "outcome": "failed",
+   "invocation_event": "event-000086",
+   "result": {}
+  },
+  {
+   "event": "event-000099",
+   "task": "plan_f1",
+   "min": 1.2,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000096",
+   "result": {}
+  },
+  {
+   "event": "event-000102",
+   "task": "plan_f1",
+   "min": 1.2,
+   "tool": "view_image",
+   "outcome": "failed",
+   "invocation_event": "event-000101",
+   "result": {}
+  },
+  {
+   "event": "event-000114",
+   "task": "elev_south",
+   "min": 1.3,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000111",
+   "result": {}
+  },
+  {
+   "event": "event-000126",
+   "task": "plan_f1",
+   "min": 1.4,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000123",
+   "result": {}
+  },
+  {
+   "event": "event-000136",
+   "task": "plan_f2",
+   "min": 1.6,
+   "tool": "view_plan_blocks",
+   "outcome": "succeeded",
+   "invocation_event": "event-000135",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000148",
+   "task": "elev_east",
+   "min": 1.6,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000145",
+   "result": {}
+  },
+  {
+   "event": "event-000158",
+   "task": "elev_north",
+   "min": 1.8,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000155",
+   "result": {}
+  },
+  {
+   "event": "event-000169",
+   "task": "elev_east",
+   "min": 1.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000166",
+   "result": {}
+  },
+  {
+   "event": "event-000180",
+   "task": "elev_north",
+   "min": 1.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000177",
+   "result": {}
+  },
+  {
+   "event": "event-000191",
+   "task": "elev_south",
+   "min": 2.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000188",
+   "result": {}
+  },
+  {
+   "event": "event-000194",
+   "task": "elev_south",
+   "min": 2.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000193",
+   "result": {}
+  },
+  {
+   "event": "event-000207",
+   "task": "plan_f1",
+   "min": 2.3,
+   "tool": "view_plan_blocks",
+   "outcome": "succeeded",
+   "invocation_event": "event-000206",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000219",
+   "task": "elev_west",
+   "min": 2.3,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000216",
+   "result": {}
+  },
+  {
+   "event": "event-000222",
+   "task": "elev_west",
+   "min": 2.3,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000221",
+   "result": {}
+  },
+  {
+   "event": "event-000233",
+   "task": "elev_north",
+   "min": 2.4,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000230",
+   "result": {}
+  },
+  {
+   "event": "event-000236",
+   "task": "elev_north",
+   "min": 2.4,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000235",
+   "result": {}
+  },
+  {
+   "event": "event-000247",
+   "task": "elev_east",
+   "min": 2.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000244",
+   "result": {}
+  },
+  {
+   "event": "event-000250",
+   "task": "elev_east",
+   "min": 2.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000249",
+   "result": {}
+  },
+  {
+   "event": "event-000267",
+   "task": "elev_south",
+   "min": 3.0,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000263",
+   "result": {}
+  },
+  {
+   "event": "event-000279",
+   "task": "elev_east",
+   "min": 3.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000276",
+   "result": {}
+  },
+  {
+   "event": "event-000282",
+   "task": "elev_east",
+   "min": 3.0,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000281",
+   "result": {}
+  },
+  {
+   "event": "event-000294",
+   "task": "elev_west",
+   "min": 3.5,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000291",
+   "result": {}
+  },
+  {
+   "event": "event-000297",
+   "task": "elev_west",
+   "min": 3.5,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000296",
+   "result": {}
+  },
+  {
+   "event": "event-000310",
+   "task": "elev_south",
+   "min": 3.7,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000309",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "bcc08a5623c2b53e96e016aebeacae73796769bae1308652e47d7c4d2dae139b",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000324",
+   "task": "elev_north",
+   "min": 3.8,
+   "tool": "view_pixel_region_overview",
+   "outcome": "succeeded",
+   "invocation_event": "event-000321",
+   "result": {}
+  },
+  {
+   "event": "event-000341",
+   "task": "elev_north",
+   "min": 4.1,
+   "tool": "view_pixel_region_overview",
+   "outcome": "succeeded",
+   "invocation_event": "event-000340",
+   "result": {}
+  },
+  {
+   "event": "event-000353",
+   "task": "elev_east",
+   "min": 4.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000352",
+   "result": {}
+  },
+  {
+   "event": "event-000364",
+   "task": "elev_east",
+   "min": 4.4,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000363",
+   "result": {}
+  },
+  {
+   "event": "event-000376",
+   "task": "elev_west",
+   "min": 4.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000375",
+   "result": {}
+  },
+  {
+   "event": "event-000379",
+   "task": "elev_west",
+   "min": 4.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000378",
+   "result": {}
+  },
+  {
+   "event": "event-000390",
+   "task": "elev_east",
+   "min": 4.7,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000389",
+   "result": {}
+  },
+  {
+   "event": "event-000402",
+   "task": "plan_f1",
+   "min": 5.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000401",
+   "result": {}
+  },
+  {
+   "event": "event-000405",
+   "task": "plan_f1",
+   "min": 5.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000404",
+   "result": {}
+  },
+  {
+   "event": "event-000416",
+   "task": "elev_east",
+   "min": 5.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000415",
+   "result": {}
+  },
+  {
+   "event": "event-000427",
+   "task": "elev_north",
+   "min": 5.2,
+   "tool": "submit_elevation_reading",
+   "outcome": "failed",
+   "invocation_event": "event-000426",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_elevation_reading: z_calibration pixel_start must be less than pixel_end"
+   }
+  },
+  {
+   "event": "event-000438",
+   "task": "elev_north",
+   "min": 5.5,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000437",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "90de03e245cc35b1e9cdc1015d08c2244591f25ecd9808c5156be373dcd81682",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000456",
+   "task": "elev_west",
+   "min": 5.7,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000455",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "1c911e71fa59008c4bed0de99ec8da36e75c072086d293e3b5f98f71f3308c6a",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000475",
+   "task": "plan_f1",
+   "min": 6.1,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000474",
+   "result": {}
+  },
+  {
+   "event": "event-000478",
+   "task": "plan_f1",
+   "min": 6.1,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000477",
+   "result": {}
+  },
+  {
+   "event": "event-000490",
+   "task": "plan_f2",
+   "min": 6.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000489",
+   "result": {}
+  },
+  {
+   "event": "event-000493",
+   "task": "plan_f2",
+   "min": 6.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000492",
+   "result": {}
+  },
+  {
+   "event": "event-000504",
+   "task": "elev_east",
+   "min": 6.8,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000503",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "29fe16e2ef449c460c30977a2ed2fda726a00d144ee040a80bf40e9461f344e6",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000523",
+   "task": "plan_f1",
+   "min": 7.5,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000522",
+   "result": {}
+  },
+  {
+   "event": "event-000526",
+   "task": "plan_f1",
+   "min": 7.5,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000525",
+   "result": {}
+  },
+  {
+   "event": "event-000539",
+   "task": "plan_f2",
+   "min": 7.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000538",
+   "result": {}
+  },
+  {
+   "event": "event-000542",
+   "task": "plan_f2",
+   "min": 7.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000541",
+   "result": {}
+  },
+  {
+   "event": "event-000545",
+   "task": "plan_f2",
+   "min": 7.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000544",
+   "result": {}
+  },
+  {
+   "event": "event-000559",
+   "task": "plan_f2",
+   "min": 9.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000558",
+   "result": {}
+  },
+  {
+   "event": "event-000562",
+   "task": "plan_f2",
+   "min": 9.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000561",
+   "result": {}
+  },
+  {
+   "event": "event-000575",
+   "task": "plan_f2",
+   "min": 12.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000574",
+   "result": {}
+  },
+  {
+   "event": "event-000578",
+   "task": "plan_f2",
+   "min": 12.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000577",
+   "result": {}
+  },
+  {
+   "event": "event-000591",
+   "task": "plan_f1",
+   "min": 13.7,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000590",
+   "result": {}
+  },
+  {
+   "event": "event-000594",
+   "task": "plan_f1",
+   "min": 13.7,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000593",
+   "result": {}
+  },
+  {
+   "event": "event-000616",
+   "task": "plan_f1",
+   "min": 19.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000615",
+   "result": {}
+  },
+  {
+   "event": "event-000627",
+   "task": "plan_f1",
+   "min": 24.5,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-000626",
+   "result": {
+    "status": "failed",
+    "reason": "15 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-000638",
+   "task": "plan_f1",
+   "min": 24.6,
+   "tool": "get_bim_reference",
+   "outcome": "succeeded",
+   "invocation_event": "event-000637",
+   "result": {}
+  },
+  {
+   "event": "event-000658",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-000657",
+   "result": {
+    "status": "failed",
+    "reason": "1 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-000676",
+   "task": "plan_f1",
+   "min": 26.5,
+   "tool": "trial_plan_bim",
+   "outcome": "unknown",
+   "invocation_event": "event-000675",
+   "result": {}
+  },
+  {
+   "event": "event-000693",
+   "task": "coordinator",
+   "min": 47.5,
+   "tool": "delegate_readers",
+   "outcome": "succeeded",
+   "invocation_event": "event-000034",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000722",
+   "task": "plan_f1b",
+   "min": 48.3,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000717",
+   "result": {}
+  },
+  {
+   "event": "event-000725",
+   "task": "plan_f2b",
+   "min": 48.3,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000721",
+   "result": {}
+  },
+  {
+   "event": "event-000728",
+   "task": "plan_f1b",
+   "min": 48.3,
+   "tool": "view_image",
+   "outcome": "failed",
+   "invocation_event": "event-000724",
+   "result": {}
+  },
+  {
+   "event": "event-000734",
+   "task": "plan_f2b",
+   "min": 48.4,
+   "tool": "view_image",
+   "outcome": "failed",
+   "invocation_event": "event-000727",
+   "result": {}
+  },
+  {
+   "event": "event-000752",
+   "task": "plan_f2b",
+   "min": 48.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000745",
+   "result": {}
+  },
+  {
+   "event": "event-000758",
+   "task": "plan_f1b",
+   "min": 48.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000751",
+   "result": {}
+  },
+  {
+   "event": "event-000769",
+   "task": "plan_f2b",
+   "min": 48.8,
+   "tool": "view_plan_blocks",
+   "outcome": "succeeded",
+   "invocation_event": "event-000768",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000780",
+   "task": "plan_f1b",
+   "min": 48.9,
+   "tool": "view_plan_blocks",
+   "outcome": "succeeded",
+   "invocation_event": "event-000779",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000792",
+   "task": "plan_f2b",
+   "min": 51.7,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000791",
+   "result": {}
+  },
+  {
+   "event": "event-000795",
+   "task": "plan_f2b",
+   "min": 51.7,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000794",
+   "result": {}
+  },
+  {
+   "event": "event-000807",
+   "task": "plan_f1b",
+   "min": 51.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000806",
+   "result": {}
+  },
+  {
+   "event": "event-000810",
+   "task": "plan_f1b",
+   "min": 51.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000809",
+   "result": {}
+  },
+  {
+   "event": "event-000813",
+   "task": "plan_f1b",
+   "min": 51.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000812",
+   "result": {}
+  },
+  {
+   "event": "event-000816",
+   "task": "plan_f1b",
+   "min": 51.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000815",
+   "result": {}
+  },
+  {
+   "event": "event-000829",
+   "task": "plan_f2b",
+   "min": 52.3,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000828",
+   "result": {}
+  },
+  {
+   "event": "event-000832",
+   "task": "plan_f2b",
+   "min": 52.3,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000831",
+   "result": {}
+  },
+  {
+   "event": "event-000845",
+   "task": "plan_f2b",
+   "min": 54.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000844",
+   "result": {}
+  },
+  {
+   "event": "event-000848",
+   "task": "plan_f2b",
+   "min": 54.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000847",
+   "result": {}
+  },
+  {
+   "event": "event-000863",
+   "task": "plan_f1b",
+   "min": 55.8,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000862",
+   "result": {}
+  },
+  {
+   "event": "event-000866",
+   "task": "plan_f1b",
+   "min": 55.8,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000865",
+   "result": {}
+  },
+  {
+   "event": "event-000879",
+   "task": "plan_f1b",
+   "min": 59.3,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000878",
+   "result": {}
+  },
+  {
+   "event": "event-000882",
+   "task": "plan_f1b",
+   "min": 59.3,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000881",
+   "result": {}
+  },
+  {
+   "event": "event-000895",
+   "task": "plan_f2b",
+   "min": 60.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000894",
+   "result": {}
+  },
+  {
+   "event": "event-000898",
+   "task": "plan_f2b",
+   "min": 60.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000897",
+   "result": {}
+  },
+  {
+   "event": "event-000911",
+   "task": "plan_f2b",
+   "min": 62.2,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000910",
+   "result": {}
+  },
+  {
+   "event": "event-000914",
+   "task": "plan_f2b",
+   "min": 62.2,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000913",
+   "result": {}
+  },
+  {
+   "event": "event-000936",
+   "task": "plan_f2b",
+   "min": 63.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000935",
+   "result": {}
+  },
+  {
+   "event": "event-000949",
+   "task": "plan_f1b",
+   "min": 63.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000948",
+   "result": {}
+  },
+  {
+   "event": "event-000952",
+   "task": "plan_f1b",
+   "min": 63.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000951",
+   "result": {}
+  },
+  {
+   "event": "event-000955",
+   "task": "plan_f1b",
+   "min": 64.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000954",
+   "result": {}
+  },
+  {
+   "event": "event-000958",
+   "task": "plan_f1b",
+   "min": 64.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000957",
+   "result": {}
+  },
+  {
+   "event": "event-000982",
+   "task": "plan_f1b",
+   "min": 65.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000981",
+   "result": {}
+  },
+  {
+   "event": "event-000985",
+   "task": "plan_f1b",
+   "min": 65.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000984",
+   "result": {}
+  },
+  {
+   "event": "event-000988",
+   "task": "plan_f1b",
+   "min": 65.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000987",
+   "result": {}
+  },
+  {
+   "event": "event-001001",
+   "task": "plan_f1b",
+   "min": 69.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001000",
+   "result": {}
+  },
+  {
+   "event": "event-001004",
+   "task": "plan_f1b",
+   "min": 69.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001003",
+   "result": {}
+  },
+  {
+   "event": "event-001016",
+   "task": "plan_f1b",
+   "min": 70.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001015",
+   "result": {}
+  },
+  {
+   "event": "event-001019",
+   "task": "plan_f1b",
+   "min": 71.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001018",
+   "result": {}
+  },
+  {
+   "event": "event-001030",
+   "task": "plan_f2b",
+   "min": 73.4,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001029",
+   "result": {
+    "status": "failed",
+    "reason": "13 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-001042",
+   "task": "plan_f1b",
+   "min": 74.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001041",
+   "result": {}
+  },
+  {
+   "event": "event-001045",
+   "task": "plan_f1b",
+   "min": 74.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001044",
+   "result": {}
+  },
+  {
+   "event": "event-001048",
+   "task": "plan_f1b",
+   "min": 74.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001047",
+   "result": {}
+  },
+  {
+   "event": "event-001051",
+   "task": "plan_f1b",
+   "min": 74.1,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001050",
+   "result": {}
+  },
+  {
+   "event": "event-001062",
+   "task": "plan_f2b",
+   "min": 74.6,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001061",
+   "result": {
+    "status": "failed",
+    "reason": "3 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-001077",
+   "task": "plan_f2b",
+   "min": 74.9,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001076",
+   "result": {
+    "status": "rejected",
+    "reason": "No editable plan yet; submit a complete plan with valid fields and pixel references"
+   }
+  },
+  {
+   "event": "event-001091",
+   "task": "plan_f1b",
+   "min": 75.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001090",
+   "result": {}
+  },
+  {
+   "event": "event-001094",
+   "task": "plan_f1b",
+   "min": 75.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001093",
+   "result": {}
+  },
+  {
+   "event": "event-001097",
+   "task": "plan_f1b",
+   "min": 75.7,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001096",
+   "result": {}
+  },
+  {
+   "event": "event-001108",
+   "task": "plan_f2b",
+   "min": 76.0,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001107",
+   "result": {
+    "status": "failed",
+    "reason": "partition P-corr-north: line is outside footprint at LINESTRING (241 521.6096, 470.2 521.6096)",
+    "candidate": null,
+    "draft": "plan_drafts/draft_001/plan.json"
+   }
+  },
+  {
+   "event": "event-001119",
+   "task": "plan_f2b",
+   "min": 77.4,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001118",
+   "result": {}
+  },
+  {
+   "event": "event-001130",
+   "task": "plan_f2b",
+   "min": 81.1,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001129",
+   "result": {
+    "status": "rejected",
+    "reason": "operation 13 fields: missing collection"
+   }
+  },
+  {
+   "event": "event-001143",
+   "task": "plan_f1b",
+   "min": 82.0,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001142",
+   "result": {
+    "status": "failed",
+    "reason": "14 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-001165",
+   "task": "plan_f2b",
+   "min": 82.3,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001164",
+   "result": {
+    "status": "failed",
+    "reason": "2 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-001178",
+   "task": "plan_f1b",
+   "min": 83.4,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001177",
+   "result": {
+    "status": "failed",
+    "reason": "polygonize produced dangles: [{'partition_ids': ['p_mr2_e'], 'pixel_points': [[1250.1032, 1052.775], [1250.1032, 1229.9]]}, {'partition_ids': ['p_mr_n'], 'pixel_points': [[882.64, 1052.775], [1250.1032, 1052.775]]}, {'partition_ids': ['p_wing_n_ofc'], 'pixel_points': [[785.452, 963.05], [970.25, 963.05]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 872.4], [785.452, 963.05]]}, {'partition_ids': ['p_ofc_6'], 'pixel_points': [[785.452, 872.4], [970.25, 872.4]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 772.5], [785.452, 872.4]]}, {'partition_ids': ['p_ofc_5'], 'pixel_points': [[785.452, 772.5], [970.25, 772.5]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 672.6], [785.452, 772.5]]}, {'partition_ids': ['p_ofc_4'], 'pixel_points': [[785.452, 672.6], [970.25, 672.6]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 587.5], [785.452, 672.6]]}, {'partition_ids': ['p_ofc_3'], 'pixel_points': [[785.452, 587.5], [970.25, 587.5]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 492.225], [785.452, 587.5]]}, {'partition_ids': ['p_ofc_2'], 'pixel_points': [[785.452, 492.225], [970.25, 492.225]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 402.75], [785.452, 492.225]]}, {'partition_ids': ['p_ofc_1'], 'pixel_points': [[785.452, 402.75], [970.25, 402.75]]}, {'partition_ids': ['p_ofc_w'], 'pixel_points': [[785.452, 315.0], [785.452, 402.75]]}, {'partition_ids': ['p_mr_div'], 'pixel_points': [[882.64, 1052.775], [882.64, 1229.9]]}, {'partition_ids': ['p_mr_n'], 'pixel_points': [[517.75, 1052.775], [882.64, 1052.775]]}, {'partition_ids': ['p_strip_w'], 'pixel_points': [[741.249206, 315.0], [741.249206, 962.2]]}, {'partition_ids': ['p_rooms_e'], 'pixel_points': [[694.750874, 582.6], [694.750874, 587.5]]}, {'partition_ids': ['p_wing_n_w'], 'pixel_points': [[517.75, 963.05], [694.750874, 963.05]]}, {'partition_ids': ['p_rooms_e'], 'pixel_points': [[694.750874, 772.5], [694.750874, 963.05]]}, {'partition_ids': ['p_divCD'], 'pixel_points': [[517.75, 772.5], [694.750874, 772.5]]}, {'partition_ids': ['p_rooms_e'], 'pixel_points': [[694.750874, 587.5], [694.750874, 772.5]]}, {'partition_ids': ['p_cor_s'], 'pixel_points': [[512.4, 587.5], [694.750874, 587.5]]}, {'partition_ids': ['p_divAB'], 'pixel_points': [[512.4, 315.0], [512.4, 487.0]]}]; nearest disconnected endpoints: [{'partition_id': 'p_divAB', 'endpoint_pixel': [512.4, 315.0], 'nearest_line': 'footprint[0]', 'distance_pixels': 4.999999999999999, 'nearest_point_pixel': [512.4, 310.0]}, {'partition_id': 'p_divAB', 'endpoint_pixel': [512.4, 487.0], 'nearest_line': 'footprint[5]', 'distance_pixels': 100.5, 'nearest_point_pixel': [512.4, 587.5]}, {'partition_id': 'p_rooms_e', 'endpoint_pixel': [694.750874126, 582.6], 'nearest_line': 'p_cor_s', 'distance_pixels': 4.899999999999977, 'nearest_point_pixel': [694.750874126, 587.5]}, {'partition_id': 'p_divCD', 'endpoint_pixel': [517.75, 772.5], 'nearest_line': 'footprint[5]', 'distance_pixels': 5.350000000000023, 'nearest_point_pixel': [512.4, 772.5]}, {'partition_id': 'p_strip_w', 'endpoint_pixel': [741.249206349, 315.0], 'nearest_line': 'footprint[0]', 'distance_pixels': 4.999999999999999, 'nearest_point_pixel': [741.2492063489999, 310.0]}, {'partition_id': 'p_strip_w', 'endpoint_pixel': [741.249206349, 962.2], 'nearest_line': 'p_ofc_w', 'distance_pixels': 44.20279365099998, 'nearest_point_pixel': [785.452, 962.2]}, {'partition_id': 'p_ofc_w', 'endpoint_pixel': [785.452, 315.0], 'nearest_line': 'footprint[0]', 'distance_pixels': 4.999999999999999, 'nearest_point_pixel': [785.452, 310.0]}, {'partition_id': 'p_ofc_1', 'endpoint_pixel': [970.25, 402.75], 'nearest_line': 'footprint[1]', 'distance_pixels': 4.950000000000046, 'nearest_point_pixel': [975.2, 402.75]}, {'partition_id': 'p_ofc_2', 'endpoint_pixel': [970.25, 492.225], 'nearest_line': 'footprint[1]', 'distance_pixels': 4.950000000000046, 'nearest_point_pixel': [975.2, 492.225]}, {'partition_id': 'p_ofc_3', 'endpoint_pixel': [970.25, 587.5], 'nearest_line': 'footprint[1]', 'distance_pixels': 4.950000000000046, 'nearest_point_pixel': [975.2, 587.5]}, {'partition_id': 'p_ofc_4', 'endpoint_pixel': [970.25, 672.6], 'nearest_line': 'footprint[1]', 'distance_pixels': 4.950000000000046, 'nearest_point_pixel': [975.2, 672.6]}, {'partition_id': 'p_ofc_5', 'endpoint_pixel': [970.25, 772.5], 'nearest_line': 'footprint[1]', 'distance_pixels': 4.950000000000046, 'nearest_point_pixel': [975.2, 772.5]}, {'partition_id': 'p_ofc_6', 'endpoint_pixel': [970.25, 872.4], 'nearest_line': 'footprint[1]', 'distance_pixels': 4.950000000000046, 'nearest_point_pixel': [975.2, 872.4]}, {'partition_id': 'p_wing_n_w', 'endpoint_pixel': [517.75, 963.05], 'nearest_line': 'footprint[5]', 'distance_pixels': 5.350000000000023, 'nearest_point_pixel': [512.4, 963.05]}, {'partition_id': 'p_wing_n_ofc', 'endpoint_pixel': [970.25, 963.05], 'nearest_line': 'footprint[1]', 'distance_pixels': 7.816968721953536, 'nearest_point_pixel': [975.2, 957.0]}, {'partition_id': 'p_mr_n', 'endpoint_pixel': [517.75, 1052.775], 'nearest_line': 'footprint[5]', 'distance_pixels': 5.350000000000023, 'nearest_point_pixel': [512.4, 1052.775]}, {'partition_id': 'p_mr_div', 'endpoint_pixel': [882.64, 1229.9], 'nearest_line': 'footprint[4]', 'distance_pixels': 5.09999999999991, 'nearest_point_pixel': [882.64, 1235.0]}, {'partition_id': 'p_mr2_e', 'endpoint_pixel': [1250.1032, 1229.9], 'nearest_line': 'footprint[4]', 'distance_pixels': 5.09999999999991, 'nearest_point_pixel': [1250.1032, 1235.0]}]; coordinates unchanged; no automatic snapping",
+    "candidate": null,
+    "draft": "plan_drafts/draft_001/plan.json"
+   }
+  },
+  {
+   "event": "event-001189",
+   "task": "plan_f2b",
+   "min": 84.0,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001188",
+   "result": {
+    "status": "failed",
+    "reason": "plan.footprint_pixels segment 2 is degenerate at pixel [928.6, 521.7]",
+    "candidate": null,
+    "draft": "plan_drafts/draft_002/plan.json"
+   }
+  },
+  {
+   "event": "event-001200",
+   "task": "plan_f2b",
+   "min": 85.9,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001199",
+   "result": {
+    "status": "failed",
+    "reason": "polygonize produced dangles: [{'partition_ids': ['P-south-4'], 'pixel_points': [[1201.0, 1080.0], [1201.0, 1252.3]]}, {'partition_ids': ['P-south-3'], 'pixel_points': [[1016.25, 1080.0], [1016.25, 1252.3]]}, {'partition_ids': ['P-hall-south'], 'pixel_points': [[837.0, 1080.0], [942.4, 1080.0]]}, {'partition_ids': ['P-strip-5'], 'pixel_points': [[740.656, 982.9], [923.0, 982.9]]}, {'partition_ids': ['P-strip-west'], 'pixel_points': [[740.656, 891.2], [740.656, 982.9]]}, {'partition_ids': ['P-strip-4'], 'pixel_points': [[740.656, 891.2], [923.0, 891.2]]}, {'partition_ids': ['P-strip-west'], 'pixel_points': [[740.656, 799.5], [740.656, 891.2]]}, {'partition_ids': ['P-strip-3'], 'pixel_points': [[740.656, 799.5], [923.0, 799.5]]}, {'partition_ids': ['P-strip-west'], 'pixel_points': [[740.656, 707.8], [740.656, 799.5]]}, {'partition_ids': ['P-strip-2'], 'pixel_points': [[740.656, 707.8], [923.0, 707.8]]}, {'partition_ids': ['P-strip-west'], 'pixel_points': [[740.656, 616.1], [740.656, 707.8]]}, {'partition_ids': ['P-strip-1'], 'pixel_points': [[740.656, 616.1], [923.0, 616.1]]}, {'partition_ids': ['P-strip-west'], 'pixel_points': [[740.656, 521.649], [740.656, 616.1]]}, {'partition_ids': ['P-corr-north'], 'pixel_points': [[740.656, 521.649], [923.0, 521.649]]}, {'partition_ids': ['P-corr-north'], 'pixel_points': [[696.6496, 521.649], [740.656, 521.649]]}, {'partition_ids': ['P-south-2'], 'pixel_points': [[837.0, 1080.0], [837.0, 1252.3]]}, {'partition_ids': ['P-hall-south'], 'pixel_points': [[657.75, 1080.0], [837.0, 1080.0]]}, {'partition_ids': ['P-south-1'], 'pixel_points': [[657.75, 1080.0], [657.75, 1252.3]]}, {'partition_ids': ['P-hall-south'], 'pixel_points': [[470.2, 1080.0], [657.75, 1080.0]]}, {'partition_ids': ['P-corr-south'], 'pixel_points': [[650.749559, 616.1], [657.2, 616.1]]}]; nearest disconnected endpoints: [{'partition_id': 'P-corr-north', 'endpoint_pixel': [923.0, 521.649], 'nearest_line': 'footprint[2]', 'distance_pixels': 5.600000000000023, 'nearest_point_pixel': [928.6, 521.649]}, {'partition_id': 'P-corr-south', 'endpoint_pixel': [657.2, 616.1], 'nearest_line': 'P-conf-east', 'distance_pixels': 6.450440917000037, 'nearest_point_pixel': [650.749559083, 616.1]}, {'partition_id': 'P-strip-1', 'endpoint_pixel': [923.0, 616.1], 'nearest_line': 'footprint[3]', 'distance_pixels': 5.600000000000024, 'nearest_point_pixel': [928.6, 616.1]}, {'partition_id': 'P-strip-2', 'endpoint_pixel': [923.0, 707.8], 'nearest_line': 'footprint[3]', 'distance_pixels': 5.600000000000024, 'nearest_point_pixel': [928.6, 707.8]}, {'partition_id': 'P-strip-3', 'endpoint_pixel': [923.0, 799.5], 'nearest_line': 'footprint[3]', 'distance_pixels': 5.600000000000024, 'nearest_point_pixel': [928.6, 799.5]}, {'partition_id': 'P-strip-4', 'endpoint_pixel': [923.0, 891.2], 'nearest_line': 'footprint[3]', 'distance_pixels': 5.600000000000024, 'nearest_point_pixel': [928.6, 891.2]}, {'partition_id': 'P-strip-5', 'endpoint_pixel': [923.0, 982.9], 'nearest_line': 'footprint[3]', 'distance_pixels': 5.600000000000023, 'nearest_point_pixel': [928.6, 982.9]}, {'partition_id': 'P-south-1', 'endpoint_pixel': [657.75, 1252.3], 'nearest_line': 'footprint[8]', 'distance_pixels': 5.7000000000000455, 'nearest_point_pixel': [657.7499999999999, 1258.0]}, {'partition_id': 'P-south-2', 'endpoint_pixel': [837.0, 1252.3], 'nearest_line': 'footprint[8]', 'distance_pixels': 5.7000000000000455, 'nearest_point_pixel': [836.9999999999999, 1258.0]}, {'partition_id': 'P-south-3', 'endpoint_pixel': [1016.25, 1080.0], 'nearest_line': 'footprint[6]', 'distance_pixels': 4.999999999999999, 'nearest_point_pixel': [1016.25, 1075.0]}, {'partition_id': 'P-south-3', 'endpoint_pixel': [1016.25, 1252.3], 'nearest_line': 'footprint[8]', 'distance_pixels': 5.7000000000000455, 'nearest_point_pixel': [1016.25, 1258.0]}, {'partition_id': 'P-south-4', 'endpoint_pixel': [1201.0, 1080.0], 'nearest_line': 'footprint[6]', 'distance_pixels': 4.999999999999999, 'nearest_point_pixel': [1201.0, 1075.0]}, {'partition_id': 'P-south-4', 'endpoint_pixel': [1201.0, 1252.3], 'nearest_line': 'footprint[8]', 'distance_pixels': 5.7000000000000455, 'nearest_point_pixel': [1201.0, 1258.0]}, {'partition_id': 'P-hall-south', 'endpoint_pixel': [942.4, 1080.0], 'nearest_line': 'footprint[5]', 'distance_pixels': 5.015974481593779, 'nearest_point_pixel': [942.8, 1075.0]}]; coordinates unchanged; no automatic snapping",
+    "candidate": null,
+    "draft": "plan_drafts/draft_003/plan.json"
+   }
+  },
+  {
+   "event": "event-001211",
+   "task": "plan_f2b",
+   "min": 88.7,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001210",
+   "result": {
+    "status": "failed",
+    "reason": "polygonize produced dangles: [{'partition_ids': ['P-hall-south'], 'pixel_points': [[837.0, 1077.75], [935.5, 1077.75]]}, {'partition_ids': ['P-hall-south'], 'pixel_points': [[475.7, 1077.75], [657.749235, 1077.75]]}, {'partition_ids': ['P-conf-south'], 'pixel_points': [[475.7, 982.9], [650.749559, 982.9]]}, {'partition_ids': ['P-conf-east'], 'pixel_points': [[650.749559, 616.1], [650.749559, 982.9]]}, {'partition_ids': ['P-corr-south'], 'pixel_points': [[475.7, 616.1], [650.749559, 616.1]]}]; nearest disconnected endpoints: [{'partition_id': 'P-corr-south', 'endpoint_pixel': [475.7, 616.1], 'nearest_line': 'P-conf-west', 'distance_pixels': 5.5, 'nearest_point_pixel': [470.2, 616.1]}, {'partition_id': 'P-conf-south', 'endpoint_pixel': [475.7, 982.9], 'nearest_line': 'footprint[7]', 'distance_pixels': 5.499999999999999, 'nearest_point_pixel': [470.2, 982.9]}, {'partition_id': 'P-hall-south', 'endpoint_pixel': [475.7, 1077.75], 'nearest_line': 'footprint[7]', 'distance_pixels': 5.499999999999999, 'nearest_point_pixel': [470.2, 1077.75]}, {'partition_id': 'P-hall-south', 'endpoint_pixel': [935.5, 1077.75], 'nearest_line': 'footprint[3]', 'distance_pixels': 7.800801240898228, 'nearest_point_pixel': [942.8, 1075.0]}]; coordinates unchanged; no automatic snapping",
+    "candidate": null,
+    "draft": "plan_drafts/draft_004/plan.json"
+   }
+  },
+  {
+   "event": "event-001226",
+   "task": "plan_f1b",
+   "min": 89.6,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001225",
+   "result": {
+    "status": "failed",
+    "reason": "2 plan format problems; correct all listed fields",
+    "error_type": "plan_format",
+    "candidate": null,
+    "draft": null
+   }
+  },
+  {
+   "event": "event-001242",
+   "task": "plan_f2b",
+   "min": 90.5,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001241",
+   "result": {}
+  },
+  {
+   "event": "event-001253",
+   "task": "plan_f1b",
+   "min": 91.3,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001252",
+   "result": {
+    "status": "failed",
+    "reason": "polygonize produced dangles: [{'partition_ids': ['p_strip_w'], 'pixel_points': [[741.249231, 492.225], [741.249231, 963.05]]}]; nearest disconnected endpoints: [{'partition_id': 'p_strip_w', 'endpoint_pixel': [741.249230769, 963.05], 'nearest_line': 'p_ofc_w', 'distance_pixels': 44.20276923100005, 'nearest_point_pixel': [785.452, 963.05]}]; coordinates unchanged; no automatic snapping",
+    "candidate": null,
+    "draft": "plan_drafts/draft_002/plan.json"
+   }
+  },
+  {
+   "event": "event-001264",
+   "task": "plan_f2b",
+   "min": 91.5,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001263",
+   "result": {}
+  },
+  {
+   "event": "event-001275",
+   "task": "plan_f1b",
+   "min": 92.4,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001274",
+   "result": {}
+  },
+  {
+   "event": "event-001291",
+   "task": "plan_f2b",
+   "min": 93.5,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001290",
+   "result": {
+    "status": "rejected",
+    "reason": "openings/D-hall-east does not exist"
+   }
+  },
+  {
+   "event": "event-001297",
+   "task": "plan_f1b",
+   "min": 93.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001285",
+   "result": {}
+  },
+  {
+   "event": "event-001307",
+   "task": "plan_f2b",
+   "min": 94.2,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001306",
+   "result": {
+    "status": "failed",
+    "reason": "space seeds corridor and hall occupy the same space",
+    "candidate": null,
+    "draft": "plan_drafts/draft_005/plan.json"
+   }
+  },
+  {
+   "event": "event-001318",
+   "task": "plan_f2b",
+   "min": 95.8,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001317",
+   "result": {
+    "status": "failed",
+    "reason": "opening W-top-1.z [1.0, 2.4] is outside floor vertical bounds [4.0, 7.6]",
+    "candidate": null,
+    "draft": "plan_drafts/draft_006/plan.json"
+   }
+  },
+  {
+   "event": "event-001329",
+   "task": "plan_f2b",
+   "min": 98.1,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001328",
+   "result": {
+    "status": "rejected",
+    "reason": "openings/D-off1 does not exist"
+   }
+  },
+  {
+   "event": "event-001340",
+   "task": "plan_f2b",
+   "min": 99.0,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001339",
+   "result": {
+    "status": "failed",
+    "reason": "opening W-conf-glazing at pixels [475.7, 700.4] -> [475.7, 798.4] requires one exterior or two interior full-boundary hosts; found []",
+    "candidate": null,
+    "draft": "plan_drafts/draft_007/plan.json"
+   }
+  },
+  {
+   "event": "event-001355",
+   "task": "plan_f2b",
+   "min": 100.4,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001354",
+   "result": {
+    "status": "failed",
+    "reason": "opening D-exec at pixels [700.3, 521.649] -> [740.7, 521.649] has only one full space host but is not wholly on the footprint boundary; a T-junction or partial host cannot be treated as outdoors",
+    "candidate": null,
+    "draft": "plan_drafts/draft_008/plan.json"
+   }
+  },
+  {
+   "event": "event-001366",
+   "task": "plan_f2b",
+   "min": 104.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001365",
+   "result": {}
+  },
+  {
+   "event": "event-001376",
+   "task": "coordinator",
+   "min": 104.4,
+   "tool": "delegate_readers",
+   "outcome": "succeeded",
+   "invocation_event": "event-000703",
+   "result": {
+    "status": "completed"
+   }
+  }
+ ],
+ "capture_errors": [
+  {
+   "event": "event-000676",
+   "reason": "result not captured"
+  }
+ ]
+}
