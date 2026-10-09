@@ -273,11 +273,19 @@ class RoleSession:
         """Select a failed draft only from the latest durable trial event."""
         child = self.registry.child(task_id)
         latest = next((event for event in reversed(child.events)
-                       if event.payload.event_type == "tool_execution"
+                       if event.payload.event_type in {"tool_invocation", "tool_execution"}
                        and event.payload.tool_name == "trial_plan_bim"), None)
         if latest is None:
             return None
         payload = latest.payload
+        if payload.event_type == "tool_invocation":
+            return {
+                "status": "unavailable", "event_id": latest.event_id,
+                "reason": (
+                    "The latest trial_plan_bim invocation has no durable execution outcome. Earlier failed drafts "
+                    "and workspace-only receipts are diagnostic evidence only and are not imported as a baseline."
+                ),
+            }
         if payload.outcome == "unknown":
             return {
                 "status": "unavailable", "event_id": latest.event_id,
@@ -288,10 +296,10 @@ class RoleSession:
             }
         if payload.outcome != "failed":
             return None
-        if payload.raw_result.kind not in {"blob", "json_references", "image_references"}:
+        if payload.raw_result.kind == "missing":
             return {
                 "status": "unavailable", "event_id": latest.event_id,
-                "reason": "The known-failed trial result has no hash-verified raw-result capture.",
+                "reason": "The known-failed trial event has no durable raw-result capture.",
             }
         try:
             raw = child.resolve(payload.raw_result)

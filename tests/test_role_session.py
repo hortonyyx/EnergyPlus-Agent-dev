@@ -17,7 +17,7 @@ from src.agent.runtime_roles.session import RoleSession, envelope
 from src.agent_runtime.adapter import ScriptedAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
-from src.harness_contracts import MissingCapture, ToolExecutionPayload
+from src.harness_contracts import MissingCapture, ToolExecutionPayload, ToolInvocationPayload
 
 from test_agent_runtime import response, versions
 
@@ -317,24 +317,38 @@ def test_unknown_latest_trial_does_not_import_orphan_receipt_or_older_failure(en
         receipt_directory=workspace / "trial_receipts",
     )
     first = asyncio.run(trial.call(example()))
+    compact_first = envelope({key: first["structuredContent"][key] for key in (
+        "status", "receipt_file", "plan_sha256", "compiled_numeric_plan_sha256",
+    )}, error=True)
+    inline = child.capture(compact_first)
+    assert inline.kind == "inline"
     known = child.append(ToolExecutionPayload(
         call_id="trial-known", tool_name="trial_plan_bim", full_arguments={"plan": {}},
-        raw_result=child.capture(first, force_blob=True), shown_result=child.capture(first, force_blob=True),
+        raw_result=inline, shown_result=inline,
         repeatability="non_idempotent_write", operation_key="trial-known", outcome="failed",
     ))
     session.registry.save(previous, status="running")
     known_handoff = session._failure_handoff("plan-orphan")
     assert known_handoff["editable_draft"]["event_id"] == known.event_id
     assert known_handoff["editable_draft"]["plan_sha256"] == first["structuredContent"]["plan_sha256"]
+    invocation = child.append(ToolInvocationPayload(
+        call_id="trial-unknown", tool_name="trial_plan_bim", full_arguments={"plan": {}},
+        repeatability="non_idempotent_write", operation_key="trial-unknown",
+    ))
     second_plan = example()
     second_plan["openings"][0]["z"] = [0, 2.2]
     second = asyncio.run(trial.call(second_plan))
     assert second["structuredContent"]["receipt_file"] == "trial_receipts/trial_002.json"
+    interrupted_handoff = session._failure_handoff("plan-orphan")
+    assert "editable_draft" not in interrupted_handoff
+    assert interrupted_handoff["draft_recovery"]["event_id"] == invocation.event_id
+    assert "no durable execution outcome" in interrupted_handoff["draft_recovery"]["reason"]
     unknown = child.append(ToolExecutionPayload(
         call_id="trial-unknown", tool_name="trial_plan_bim", full_arguments={"plan": {}},
         raw_result=MissingCapture(reason="interrupted after the receipt write"),
         shown_result=MissingCapture(reason="no result was presented"),
         repeatability="non_idempotent_write", operation_key="trial-unknown", outcome="unknown",
+        invocation_event_id=invocation.event_id,
     ))
     assert known.event_id != unknown.event_id
     assert (workspace / "trial_receipts/trial_002.json").is_file()
