@@ -1,0 +1,33 @@
+{
+  "tasks": [
+    {
+      "task_id": "plan_f1_rework",
+      "role_id": "plan_reader",
+      "image": "1f_view.png",
+      "target": "F1",
+      "origin": "Common building origin (0,0,0): intersection of the westernmost building extent and southernmost building extent in plan, at first-floor floor level. World x East, y North, z Up. The bounding-box origin need not lie inside a physical space.",
+      "previous_task_id": "plan_f1",
+      "rework_targets": [
+        "plan.openings"
+      ],
+      "issues": [
+        "Your submitted draft overlay has no modeled opening over the original single swing door on the recessed west wall immediately above the southwest meeting rooms. Inspect that original local crop, restore the observed door and its host/connection, and preserve the remaining accepted plan. This issue is visible in your own draft_003/draft_view.png; no target coordinates are supplied."
+      ],
+      "instructions": "Perform this bounded correction against your delivered plan, use trial feedback, and submit the corrected reading. Preserve the two observed outdoor recesses and other accepted geometry."
+    },
+    {
+      "task_id": "elevation_east_rework",
+      "role_id": "elevation_reader",
+      "image": "East_view.png",
+      "target": "East/F1,F2",
+      "origin": "Common building origin (0,0,0): intersection of the westernmost building extent and southernmost building extent in plan, at first-floor floor level. World x East, y North, z Up. The bounding-box origin need not lie inside a physical space.",
+      "previous_task_id": "elevation_east",
+      "rework_targets": [
+        "openings:D1"
+      ],
+      "issues": [
+        "Your submitted artifact explicitly reports D1 ink bottom about 0.19 m above the common baseline, but replaces that observed position with sill 0 and head 2.1 based on a floor-contact assumption. The original drawing also shows that gap. Recheck D1 against its original crop and retain the observed vertical interval unless a drawing annotation supports changing the datum. Preserve the other accepted readings."
+      ]
+    }
+  ]
+}

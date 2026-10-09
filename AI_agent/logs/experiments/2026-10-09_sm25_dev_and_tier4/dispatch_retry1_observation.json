@@ -1,0 +1,4141 @@
+{
+ "run": "manual_dispatch_sm25_retry1",
+ "format": "events",
+ "schema_version": 2,
+ "total_min": 45.1,
+ "partial_tail": false,
+ "last_event_id": "event-001473",
+ "tasks": [
+  {
+   "task": "elevation_south",
+   "parent": "coordinator",
+   "start_min": 0.0,
+   "first_request_min": 0.0,
+   "submitted_attempt_min": 4.0,
+   "submitted_min": 4.0,
+   "end_min": 4.2,
+   "requests": 9,
+   "responses": 9,
+   "requests_missing_usage": 0,
+   "model_min": 4.0,
+   "median_request_s": 17.9,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 14
+   },
+   "compactions": 0,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "view_pixel_profile": 6,
+    "view_image": 4,
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "view_pixel_region_overview": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "elevation_west",
+   "parent": "coordinator",
+   "start_min": 0.0,
+   "first_request_min": 0.0,
+   "submitted_attempt_min": 9.0,
+   "submitted_min": 9.0,
+   "end_min": 9.2,
+   "requests": 14,
+   "responses": 14,
+   "requests_missing_usage": 0,
+   "model_min": 8.8,
+   "median_request_s": 29.4,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 21
+   },
+   "compactions": 0,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "view_pixel_profile": 10,
+    "view_image": 5,
+    "pixel_profile": 2,
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "view_pixel_region_overview": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "elevation_north",
+   "parent": "coordinator",
+   "start_min": 0.0,
+   "first_request_min": 0.0,
+   "submitted_attempt_min": 7.4,
+   "submitted_min": 7.4,
+   "end_min": 7.6,
+   "requests": 12,
+   "responses": 12,
+   "requests_missing_usage": 0,
+   "model_min": 7.3,
+   "median_request_s": 35.3,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 22
+   },
+   "compactions": 0,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "view_pixel_profile": 16,
+    "view_image": 3,
+    "inputs": 1,
+    "view_pixel_region_overview": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "elevation_east",
+   "parent": "coordinator",
+   "start_min": 0.0,
+   "first_request_min": 0.0,
+   "submitted_attempt_min": 7.5,
+   "submitted_min": 7.5,
+   "end_min": 7.8,
+   "requests": 14,
+   "responses": 14,
+   "requests_missing_usage": 0,
+   "model_min": 7.4,
+   "median_request_s": 31.8,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 23
+   },
+   "compactions": 0,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "pixel_profile": 13,
+    "view_image": 6,
+    "inputs": 1,
+    "get_bim_reference": 1,
+    "map_pixels": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "plan_f2",
+   "parent": "coordinator",
+   "start_min": 0.1,
+   "first_request_min": 0.1,
+   "first_trial_attempt_min": 23.5,
+   "first_trial_min": 23.5,
+   "first_successful_trial_min": 24.7,
+   "submitted_attempt_min": 25.0,
+   "submitted_min": 25.8,
+   "end_min": 25.9,
+   "requests": 15,
+   "responses": 15,
+   "requests_missing_usage": 0,
+   "model_min": 25.0,
+   "median_request_s": 36.2,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 5,
+   "tool_outcomes": {
+    "succeeded": 14,
+    "failed": 5
+   },
+   "compactions": 1,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "pixel_profile": 6,
+    "submit_plan_reading": 5,
+    "view_image": 4,
+    "trial_plan_bim": 2,
+    "inputs": 1,
+    "view_plan_blocks": 1
+   }
+  },
+  {
+   "task": "plan_f1",
+   "parent": "coordinator",
+   "start_min": 0.1,
+   "first_request_min": 0.1,
+   "first_trial_attempt_min": 28.6,
+   "first_trial_min": 28.6,
+   "first_successful_trial_min": 30.5,
+   "submitted_attempt_min": 31.0,
+   "submitted_min": 31.6,
+   "end_min": 31.8,
+   "requests": 15,
+   "responses": 15,
+   "requests_missing_usage": 0,
+   "model_min": 30.0,
+   "median_request_s": 51.0,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 4,
+   "tool_outcomes": {
+    "succeeded": 54,
+    "failed": 4
+   },
+   "compactions": 2,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "pixel_profile": 48,
+    "trial_plan_bim": 3,
+    "submit_plan_reading": 3,
+    "view_pixel_profile": 2,
+    "view_image": 1,
+    "view_plan_blocks": 1
+   }
+  },
+  {
+   "task": "elevation_east_rework",
+   "parent": "coordinator",
+   "start_min": 33.3,
+   "first_request_min": 33.4,
+   "submitted_attempt_min": 39.5,
+   "submitted_min": 39.5,
+   "end_min": 39.8,
+   "requests": 8,
+   "responses": 8,
+   "requests_missing_usage": 0,
+   "model_min": 5.4,
+   "median_request_s": 37.0,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {
+    "succeeded": 12
+   },
+   "compactions": 0,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "pixel_profile": 8,
+    "view_image": 2,
+    "inputs": 1,
+    "submit_elevation_reading": 1
+   }
+  },
+  {
+   "task": "plan_f1_rework",
+   "parent": "coordinator",
+   "start_min": 33.4,
+   "first_request_min": 33.5,
+   "first_trial_attempt_min": 37.3,
+   "first_trial_min": 37.3,
+   "first_successful_trial_min": 40.0,
+   "submitted_attempt_min": 40.6,
+   "submitted_min": 41.1,
+   "end_min": 41.3,
+   "requests": 11,
+   "responses": 11,
+   "requests_missing_usage": 0,
+   "model_min": 6.5,
+   "median_request_s": 22.8,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 3,
+   "tool_outcomes": {
+    "succeeded": 9,
+    "failed": 3
+   },
+   "compactions": 2,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {
+    "view_pixel_profile": 5,
+    "submit_plan_reading": 3,
+    "view_image": 2,
+    "trial_plan_bim": 2
+   }
+  },
+  {
+   "task": "coordinator",
+   "parent": null,
+   "start_min": 45.1,
+   "first_request_min": null,
+   "end_min": 45.1,
+   "requests": 0,
+   "responses": 0,
+   "requests_missing_usage": 0,
+   "model_min": 0.0,
+   "median_request_s": null,
+   "output_tokens": 0,
+   "refused": 0,
+   "tool_errors": 0,
+   "tool_outcomes": {},
+   "compactions": 0,
+   "budget_wait_count": 0,
+   "budget_wait_seconds": 0,
+   "budget_wait_outcomes": {},
+   "input_tokens": 0,
+   "cache_read_tokens": 0,
+   "cache_creation_tokens": 0,
+   "cache_read_ratio": null,
+   "tools": {}
+  }
+ ],
+ "requests": [
+  {
+   "event": "event-000004",
+   "task": "elevation_south",
+   "start_min": 0.0,
+   "status": "responded",
+   "response_event": "event-000030",
+   "usage": {
+    "completion_tokens": 25,
+    "prompt_tokens": 7481,
+    "total_tokens": 7506,
+    "completion_tokens_details": {
+     "reasoning_tokens": 9
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 4959,
+     "image_tokens": 2522
+    }
+   },
+   "elapsed_s": 9.549
+  },
+  {
+   "event": "event-000009",
+   "task": "elevation_west",
+   "start_min": 0.0,
+   "status": "responded",
+   "response_event": "event-000188",
+   "usage": {
+    "completion_tokens": 5730,
+    "prompt_tokens": 7479,
+    "total_tokens": 13209,
+    "completion_tokens_details": {
+     "reasoning_tokens": 5682
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 4352,
+     "text_tokens": 4961,
+     "image_tokens": 2518
+    }
+   },
+   "elapsed_s": 111.803
+  },
+  {
+   "event": "event-000014",
+   "task": "elevation_north",
+   "start_min": 0.0,
+   "status": "responded",
+   "response_event": "event-000092",
+   "usage": {
+    "completion_tokens": 2168,
+    "prompt_tokens": 7447,
+    "total_tokens": 9615,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2111
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 4352,
+     "text_tokens": 4963,
+     "image_tokens": 2484
+    }
+   },
+   "elapsed_s": 51.447
+  },
+  {
+   "event": "event-000019",
+   "task": "elevation_east",
+   "start_min": 0.0,
+   "status": "responded",
+   "response_event": "event-000067",
+   "usage": {
+    "completion_tokens": 1187,
+    "prompt_tokens": 7392,
+    "total_tokens": 8579,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1142
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 4352,
+     "text_tokens": 4958,
+     "image_tokens": 2434
+    }
+   },
+   "elapsed_s": 34.596
+  },
+  {
+   "event": "event-000024",
+   "task": "plan_f2",
+   "start_min": 0.1,
+   "status": "responded",
+   "response_event": "event-000054",
+   "usage": {
+    "completion_tokens": 111,
+    "prompt_tokens": 9755,
+    "total_tokens": 9866,
+    "completion_tokens_details": {
+     "reasoning_tokens": 66
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 7205,
+     "image_tokens": 2550
+    }
+   },
+   "elapsed_s": 7.8
+  },
+  {
+   "event": "event-000029",
+   "task": "plan_f1",
+   "start_min": 0.1,
+   "status": "responded",
+   "response_event": "event-000161",
+   "usage": {
+    "completion_tokens": 5396,
+    "prompt_tokens": 9697,
+    "total_tokens": 15093,
+    "completion_tokens_details": {
+     "reasoning_tokens": 5350
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 7211,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 97.546
+  },
+  {
+   "event": "event-000039",
+   "task": "elevation_south",
+   "start_min": 0.2,
+   "status": "responded",
+   "response_event": "event-000040",
+   "usage": {
+    "completion_tokens": 120,
+    "prompt_tokens": 8107,
+    "total_tokens": 8227,
+    "completion_tokens_details": {
+     "reasoning_tokens": 45
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 7424,
+     "text_tokens": 5585,
+     "image_tokens": 2522
+    }
+   },
+   "elapsed_s": 3.647
+  },
+  {
+   "event": "event-000053",
+   "task": "elevation_south",
+   "start_min": 0.2,
+   "status": "responded",
+   "response_event": "event-000149",
+   "usage": {
+    "completion_tokens": 3404,
+    "prompt_tokens": 11470,
+    "total_tokens": 14874,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3304
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 7936,
+     "text_tokens": 7646,
+     "image_tokens": 3824
+    }
+   },
+   "elapsed_s": 71.53
+  },
+  {
+   "event": "event-000066",
+   "task": "plan_f2",
+   "start_min": 0.2,
+   "status": "responded",
+   "response_event": "event-000378",
+   "usage": {
+    "completion_tokens": 10495,
+    "prompt_tokens": 13675,
+    "total_tokens": 24170,
+    "completion_tokens_details": {
+     "reasoning_tokens": 10477
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 8320,
+     "text_tokens": 8773,
+     "image_tokens": 4902
+    }
+   },
+   "elapsed_s": 177.606
+  },
+  {
+   "event": "event-000079",
+   "task": "elevation_east",
+   "start_min": 0.6,
+   "status": "responded",
+   "response_event": "event-000080",
+   "usage": {
+    "completion_tokens": 137,
+    "prompt_tokens": 10222,
+    "total_tokens": 10359,
+    "completion_tokens_details": {
+     "reasoning_tokens": 65
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 7168,
+     "text_tokens": 7788,
+     "image_tokens": 2434
+    }
+   },
+   "elapsed_s": 5.347
+  },
+  {
+   "event": "event-000091",
+   "task": "elevation_east",
+   "start_min": 0.7,
+   "status": "responded",
+   "response_event": "event-000105",
+   "usage": {
+    "completion_tokens": 533,
+    "prompt_tokens": 12756,
+    "total_tokens": 13289,
+    "completion_tokens_details": {
+     "reasoning_tokens": 277
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 9984,
+     "text_tokens": 8820,
+     "image_tokens": 3936
+    }
+   },
+   "elapsed_s": 12.411
+  },
+  {
+   "event": "event-000104",
+   "task": "elevation_north",
+   "start_min": 0.9,
+   "status": "responded",
+   "response_event": "event-000119",
+   "usage": {
+    "completion_tokens": 535,
+    "prompt_tokens": 12362,
+    "total_tokens": 12897,
+    "completion_tokens_details": {
+     "reasoning_tokens": 252
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 7424,
+     "text_tokens": 8676,
+     "image_tokens": 3686
+    }
+   },
+   "elapsed_s": 13.769
+  },
+  {
+   "event": "event-000118",
+   "task": "elevation_east",
+   "start_min": 0.9,
+   "status": "responded",
+   "response_event": "event-000134",
+   "usage": {
+    "completion_tokens": 1397,
+    "prompt_tokens": 16071,
+    "total_tokens": 17468,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1143
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 12544,
+     "text_tokens": 12135,
+     "image_tokens": 3936
+    }
+   },
+   "elapsed_s": 28.875
+  },
+  {
+   "event": "event-000133",
+   "task": "elevation_north",
+   "start_min": 1.1,
+   "status": "responded",
+   "response_event": "event-000201",
+   "usage": {
+    "completion_tokens": 2405,
+    "prompt_tokens": 16054,
+    "total_tokens": 18459,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2129
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 12288,
+     "text_tokens": 12368,
+     "image_tokens": 3686
+    }
+   },
+   "elapsed_s": 45.936
+  },
+  {
+   "event": "event-000148",
+   "task": "elevation_east",
+   "start_min": 1.4,
+   "status": "responded",
+   "response_event": "event-000228",
+   "usage": {
+    "completion_tokens": 2505,
+    "prompt_tokens": 21435,
+    "total_tokens": 23940,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2292
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 15872,
+     "text_tokens": 17499,
+     "image_tokens": 3936
+    }
+   },
+   "elapsed_s": 40.007
+  },
+  {
+   "event": "event-000160",
+   "task": "elevation_south",
+   "start_min": 1.5,
+   "status": "responded",
+   "response_event": "event-000174",
+   "usage": {
+    "completion_tokens": 752,
+    "prompt_tokens": 16643,
+    "total_tokens": 17395,
+    "completion_tokens_details": {
+     "reasoning_tokens": 469
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 11264,
+     "text_tokens": 12167,
+     "image_tokens": 4476
+    }
+   },
+   "elapsed_s": 17.927
+  },
+  {
+   "event": "event-000173",
+   "task": "plan_f1",
+   "start_min": 1.8,
+   "status": "responded",
+   "response_event": "event-000767",
+   "usage": {
+    "completion_tokens": 22413,
+    "prompt_tokens": 47976,
+    "total_tokens": 70389,
+    "completion_tokens_details": {
+     "reasoning_tokens": 21552
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 23382,
+     "image_tokens": 24594
+    }
+   },
+   "elapsed_s": 665.464
+  },
+  {
+   "event": "event-000187",
+   "task": "elevation_south",
+   "start_min": 1.8,
+   "status": "responded",
+   "response_event": "event-000272",
+   "usage": {
+    "completion_tokens": 1857,
+    "prompt_tokens": 20491,
+    "total_tokens": 22348,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1298
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 16640,
+     "text_tokens": 15261,
+     "image_tokens": 5230
+    }
+   },
+   "elapsed_s": 30.596
+  },
+  {
+   "event": "event-000200",
+   "task": "elevation_west",
+   "start_min": 1.9,
+   "status": "responded",
+   "response_event": "event-000216",
+   "usage": {
+    "completion_tokens": 111,
+    "prompt_tokens": 14829,
+    "total_tokens": 14940,
+    "completion_tokens_details": {
+     "reasoning_tokens": 68
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 7424,
+     "text_tokens": 12311,
+     "image_tokens": 2518
+    }
+   },
+   "elapsed_s": 8.659
+  },
+  {
+   "event": "event-000215",
+   "task": "elevation_north",
+   "start_min": 1.9,
+   "status": "responded",
+   "response_event": "event-000257",
+   "usage": {
+    "completion_tokens": 1132,
+    "prompt_tokens": 22942,
+    "total_tokens": 24074,
+    "completion_tokens_details": {
+     "reasoning_tokens": 855
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 15872,
+     "text_tokens": 19256,
+     "image_tokens": 3686
+    }
+   },
+   "elapsed_s": 20.536
+  },
+  {
+   "event": "event-000227",
+   "task": "elevation_west",
+   "start_min": 2.0,
+   "status": "responded",
+   "response_event": "event-000243",
+   "usage": {
+    "completion_tokens": 743,
+    "prompt_tokens": 17253,
+    "total_tokens": 17996,
+    "completion_tokens_details": {
+     "reasoning_tokens": 486
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 14592,
+     "text_tokens": 13333,
+     "image_tokens": 3920
+    }
+   },
+   "elapsed_s": 10.919
+  },
+  {
+   "event": "event-000242",
+   "task": "elevation_east",
+   "start_min": 2.1,
+   "status": "responded",
+   "response_event": "event-000305",
+   "usage": {
+    "completion_tokens": 2227,
+    "prompt_tokens": 28300,
+    "total_tokens": 30527,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1972
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 21248,
+     "text_tokens": 23282,
+     "image_tokens": 5018
+    }
+   },
+   "elapsed_s": 31.116
+  },
+  {
+   "event": "event-000256",
+   "task": "elevation_west",
+   "start_min": 2.2,
+   "status": "responded",
+   "response_event": "event-000293",
+   "usage": {
+    "completion_tokens": 1030,
+    "prompt_tokens": 21171,
+    "total_tokens": 22201,
+    "completion_tokens_details": {
+     "reasoning_tokens": 943
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 17152,
+     "text_tokens": 17251,
+     "image_tokens": 3920
+    }
+   },
+   "elapsed_s": 20.248
+  },
+  {
+   "event": "event-000271",
+   "task": "elevation_north",
+   "start_min": 2.3,
+   "status": "responded",
+   "response_event": "event-000320",
+   "usage": {
+    "completion_tokens": 2567,
+    "prompt_tokens": 27610,
+    "total_tokens": 30177,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2381
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 22784,
+     "text_tokens": 23924,
+     "image_tokens": 3686
+    }
+   },
+   "elapsed_s": 38.936
+  },
+  {
+   "event": "event-000292",
+   "task": "elevation_south",
+   "start_min": 2.3,
+   "status": "responded",
+   "response_event": "event-000335",
+   "usage": {
+    "completion_tokens": 3167,
+    "prompt_tokens": 30479,
+    "total_tokens": 33646,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3018
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 20480,
+     "text_tokens": 25249,
+     "image_tokens": 5230
+    }
+   },
+   "elapsed_s": 46.138
+  },
+  {
+   "event": "event-000304",
+   "task": "elevation_west",
+   "start_min": 2.6,
+   "status": "responded",
+   "response_event": "event-000364",
+   "usage": {
+    "completion_tokens": 819,
+    "prompt_tokens": 23513,
+    "total_tokens": 24332,
+    "completion_tokens_details": {
+     "reasoning_tokens": 532
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 20992,
+     "text_tokens": 19041,
+     "image_tokens": 4472
+    }
+   },
+   "elapsed_s": 34.021
+  },
+  {
+   "event": "event-000319",
+   "task": "elevation_east",
+   "start_min": 2.6,
+   "status": "responded",
+   "response_event": "event-000352",
+   "usage": {
+    "completion_tokens": 1357,
+    "prompt_tokens": 34659,
+    "total_tokens": 36016,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1269
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 28160,
+     "text_tokens": 29641,
+     "image_tokens": 5018
+    }
+   },
+   "elapsed_s": 28.196
+  },
+  {
+   "event": "event-000334",
+   "task": "elevation_north",
+   "start_min": 2.9,
+   "status": "responded",
+   "response_event": "event-000402",
+   "usage": {
+    "completion_tokens": 1470,
+    "prompt_tokens": 32517,
+    "total_tokens": 33987,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1192
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 27392,
+     "text_tokens": 28062,
+     "image_tokens": 4455
+    }
+   },
+   "elapsed_s": 25.369
+  },
+  {
+   "event": "event-000351",
+   "task": "elevation_south",
+   "start_min": 3.1,
+   "status": "responded",
+   "response_event": "event-000390",
+   "usage": {
+    "completion_tokens": 520,
+    "prompt_tokens": 38678,
+    "total_tokens": 39198,
+    "completion_tokens_details": {
+     "reasoning_tokens": 445
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 30464,
+     "text_tokens": 29940,
+     "image_tokens": 8738
+    }
+   },
+   "elapsed_s": 11.43
+  },
+  {
+   "event": "event-000363",
+   "task": "elevation_east",
+   "start_min": 3.1,
+   "status": "responded",
+   "response_event": "event-000417",
+   "usage": {
+    "completion_tokens": 1945,
+    "prompt_tokens": 37158,
+    "total_tokens": 39103,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1567
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 34560,
+     "text_tokens": 31665,
+     "image_tokens": 5493
+    }
+   },
+   "elapsed_s": 30.123
+  },
+  {
+   "event": "event-000377",
+   "task": "elevation_west",
+   "start_min": 3.2,
+   "status": "responded",
+   "response_event": "event-000434",
+   "usage": {
+    "completion_tokens": 1491,
+    "prompt_tokens": 27089,
+    "total_tokens": 28580,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1390
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 23296,
+     "text_tokens": 22617,
+     "image_tokens": 4472
+    }
+   },
+   "elapsed_s": 28.835
+  },
+  {
+   "event": "event-000389",
+   "task": "plan_f2",
+   "start_min": 3.2,
+   "status": "responded",
+   "response_event": "event-000489",
+   "usage": {
+    "completion_tokens": 3189,
+    "prompt_tokens": 52528,
+    "total_tokens": 55717,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2928
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 1664,
+     "text_tokens": 27610,
+     "image_tokens": 24918
+    }
+   },
+   "elapsed_s": 61.036
+  },
+  {
+   "event": "event-000401",
+   "task": "elevation_south",
+   "start_min": 3.3,
+   "status": "responded",
+   "response_event": "event-000461",
+   "usage": {
+    "completion_tokens": 3615,
+    "prompt_tokens": 41115,
+    "total_tokens": 44730,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2057
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 38656,
+     "text_tokens": 31143,
+     "image_tokens": 9972
+    }
+   },
+   "elapsed_s": 43.223
+  },
+  {
+   "event": "event-000416",
+   "task": "elevation_north",
+   "start_min": 3.4,
+   "status": "responded",
+   "response_event": "event-000446",
+   "usage": {
+    "completion_tokens": 2346,
+    "prompt_tokens": 37257,
+    "total_tokens": 39603,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2120
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 32512,
+     "text_tokens": 32802,
+     "image_tokens": 4455
+    }
+   },
+   "elapsed_s": 31.759
+  },
+  {
+   "event": "event-000433",
+   "task": "elevation_east",
+   "start_min": 3.6,
+   "status": "responded",
+   "response_event": "event-000503",
+   "usage": {
+    "completion_tokens": 3318,
+    "prompt_tokens": 44543,
+    "total_tokens": 47861,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3229
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 37120,
+     "text_tokens": 39050,
+     "image_tokens": 5493
+    }
+   },
+   "elapsed_s": 48.376
+  },
+  {
+   "event": "event-000445",
+   "task": "elevation_west",
+   "start_min": 3.7,
+   "status": "responded",
+   "response_event": "event-000478",
+   "usage": {
+    "completion_tokens": 1821,
+    "prompt_tokens": 30394,
+    "total_tokens": 32215,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1732
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 26880,
+     "text_tokens": 25220,
+     "image_tokens": 5174
+    }
+   },
+   "elapsed_s": 29.518
+  },
+  {
+   "event": "event-000460",
+   "task": "elevation_north",
+   "start_min": 3.9,
+   "status": "responded",
+   "response_event": "event-000533",
+   "usage": {
+    "completion_tokens": 5037,
+    "prompt_tokens": 42659,
+    "total_tokens": 47696,
+    "completion_tokens_details": {
+     "reasoning_tokens": 4616
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 37120,
+     "text_tokens": 37614,
+     "image_tokens": 5045
+    }
+   },
+   "elapsed_s": 65.984
+  },
+  {
+   "event": "event-000471",
+   "task": "elevation_south",
+   "start_min": 4.0,
+   "status": "responded",
+   "response_event": "event-000472",
+   "usage": {
+    "completion_tokens": 182,
+    "prompt_tokens": 45044,
+    "total_tokens": 45226,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 40960,
+     "text_tokens": 35072,
+     "image_tokens": 9972
+    }
+   },
+   "elapsed_s": 6.832
+  },
+  {
+   "event": "event-000488",
+   "task": "elevation_west",
+   "start_min": 4.2,
+   "status": "responded",
+   "response_event": "event-000551",
+   "usage": {
+    "completion_tokens": 4162,
+    "prompt_tokens": 33517,
+    "total_tokens": 37679,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3988
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 30208,
+     "text_tokens": 27681,
+     "image_tokens": 5836
+    }
+   },
+   "elapsed_s": 61.306
+  },
+  {
+   "event": "event-000502",
+   "task": "plan_f2",
+   "start_min": 4.3,
+   "status": "responded",
+   "response_event": "event-000593",
+   "usage": {
+    "completion_tokens": 633,
+    "prompt_tokens": 58899,
+    "total_tokens": 59532,
+    "completion_tokens_details": {
+     "reasoning_tokens": 368
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 51584,
+     "text_tokens": 33981,
+     "image_tokens": 24918
+    }
+   },
+   "elapsed_s": 92.857
+  },
+  {
+   "event": "event-000515",
+   "task": "elevation_east",
+   "start_min": 4.5,
+   "status": "responded",
+   "response_event": "event-000516",
+   "usage": {
+    "completion_tokens": 2332,
+    "prompt_tokens": 48686,
+    "total_tokens": 51018,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1954
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 44288,
+     "text_tokens": 42999,
+     "image_tokens": 5687
+    }
+   },
+   "elapsed_s": 32.423
+  },
+  {
+   "event": "event-000532",
+   "task": "elevation_east",
+   "start_min": 5.0,
+   "status": "responded",
+   "response_event": "event-000608",
+   "usage": {
+    "completion_tokens": 4236,
+    "prompt_tokens": 56678,
+    "total_tokens": 60914,
+    "completion_tokens_details": {
+     "reasoning_tokens": 4062
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 48640,
+     "text_tokens": 50991,
+     "image_tokens": 5687
+    }
+   },
+   "elapsed_s": 61.178
+  },
+  {
+   "event": "event-000550",
+   "task": "elevation_north",
+   "start_min": 5.1,
+   "status": "responded",
+   "response_event": "event-000565",
+   "usage": {
+    "completion_tokens": 862,
+    "prompt_tokens": 51726,
+    "total_tokens": 52588,
+    "completion_tokens_details": {
+     "reasoning_tokens": 580
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 42496,
+     "text_tokens": 46681,
+     "image_tokens": 5045
+    }
+   },
+   "elapsed_s": 16.65
+  },
+  {
+   "event": "event-000564",
+   "task": "elevation_west",
+   "start_min": 5.3,
+   "status": "responded",
+   "response_event": "event-000581",
+   "usage": {
+    "completion_tokens": 1362,
+    "prompt_tokens": 39853,
+    "total_tokens": 41215,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1221
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 33280,
+     "text_tokens": 33122,
+     "image_tokens": 6731
+    }
+   },
+   "elapsed_s": 24.545
+  },
+  {
+   "event": "event-000580",
+   "task": "elevation_north",
+   "start_min": 5.4,
+   "status": "responded",
+   "response_event": "event-000624",
+   "usage": {
+    "completion_tokens": 4183,
+    "prompt_tokens": 56271,
+    "total_tokens": 60454,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3900
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 51712,
+     "text_tokens": 51226,
+     "image_tokens": 5045
+    }
+   },
+   "elapsed_s": 62.274
+  },
+  {
+   "event": "event-000592",
+   "task": "elevation_west",
+   "start_min": 5.7,
+   "status": "responded",
+   "response_event": "event-000639",
+   "usage": {
+    "completion_tokens": 3541,
+    "prompt_tokens": 42968,
+    "total_tokens": 46509,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3259
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 39680,
+     "text_tokens": 36237,
+     "image_tokens": 6731
+    }
+   },
+   "elapsed_s": 46.538
+  },
+  {
+   "event": "event-000607",
+   "task": "plan_f2",
+   "start_min": 5.9,
+   "status": "responded",
+   "response_event": "event-000752",
+   "usage": {
+    "completion_tokens": 15472,
+    "prompt_tokens": 71452,
+    "total_tokens": 86924,
+    "completion_tokens_details": {
+     "reasoning_tokens": 15322
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 57344,
+     "text_tokens": 46534,
+     "image_tokens": 24918
+    }
+   },
+   "elapsed_s": 361.736
+  },
+  {
+   "event": "event-000623",
+   "task": "elevation_east",
+   "start_min": 6.1,
+   "status": "responded",
+   "response_event": "event-000653",
+   "usage": {
+    "completion_tokens": 2154,
+    "prompt_tokens": 63248,
+    "total_tokens": 65402,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1810
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 56576,
+     "text_tokens": 56540,
+     "image_tokens": 6708
+    }
+   },
+   "elapsed_s": 35.623
+  },
+  {
+   "event": "event-000638",
+   "task": "elevation_north",
+   "start_min": 6.5,
+   "status": "responded",
+   "response_event": "event-000683",
+   "usage": {
+    "completion_tokens": 4073,
+    "prompt_tokens": 63117,
+    "total_tokens": 67190,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2301
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 56064,
+     "text_tokens": 58072,
+     "image_tokens": 5045
+    }
+   },
+   "elapsed_s": 53.376
+  },
+  {
+   "event": "event-000652",
+   "task": "elevation_west",
+   "start_min": 6.5,
+   "status": "responded",
+   "response_event": "event-000665",
+   "usage": {
+    "completion_tokens": 2050,
+    "prompt_tokens": 49915,
+    "total_tokens": 51965,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1631
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 42752,
+     "text_tokens": 43184,
+     "image_tokens": 6731
+    }
+   },
+   "elapsed_s": 29.325
+  },
+  {
+   "event": "event-000664",
+   "task": "elevation_east",
+   "start_min": 6.7,
+   "status": "responded",
+   "response_event": "event-000695",
+   "usage": {
+    "completion_tokens": 3932,
+    "prompt_tokens": 66191,
+    "total_tokens": 70123,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1653
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 63232,
+     "text_tokens": 59483,
+     "image_tokens": 6708
+    }
+   },
+   "elapsed_s": 46.329
+  },
+  {
+   "event": "event-000682",
+   "task": "elevation_west",
+   "start_min": 7.0,
+   "status": "responded",
+   "response_event": "event-000712",
+   "usage": {
+    "completion_tokens": 2850,
+    "prompt_tokens": 56503,
+    "total_tokens": 59353,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2567
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 49664,
+     "text_tokens": 49772,
+     "image_tokens": 6731
+    }
+   },
+   "elapsed_s": 39.615
+  },
+  {
+   "event": "event-000694",
+   "task": "elevation_north",
+   "start_min": 7.4,
+   "status": "responded",
+   "response_event": "event-000706",
+   "usage": {
+    "completion_tokens": 243,
+    "prompt_tokens": 67556,
+    "total_tokens": 67799,
+    "completion_tokens_details": {
+     "reasoning_tokens": 9
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 62976,
+     "text_tokens": 62511,
+     "image_tokens": 5045
+    }
+   },
+   "elapsed_s": 9.123
+  },
+  {
+   "event": "event-000705",
+   "task": "elevation_east",
+   "start_min": 7.5,
+   "status": "responded",
+   "response_event": "event-000719",
+   "usage": {
+    "completion_tokens": 252,
+    "prompt_tokens": 70468,
+    "total_tokens": 70720,
+    "completion_tokens_details": {
+     "reasoning_tokens": 18
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 66048,
+     "text_tokens": 63760,
+     "image_tokens": 6708
+    }
+   },
+   "elapsed_s": 11.767
+  },
+  {
+   "event": "event-000733",
+   "task": "elevation_west",
+   "start_min": 7.8,
+   "status": "responded",
+   "response_event": "event-000734",
+   "usage": {
+    "completion_tokens": 5011,
+    "prompt_tokens": 65352,
+    "total_tokens": 70363,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3057
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 56320,
+     "text_tokens": 58621,
+     "image_tokens": 6731
+    }
+   },
+   "elapsed_s": 70.359
+  },
+  {
+   "event": "event-000745",
+   "task": "elevation_west",
+   "start_min": 9.0,
+   "status": "responded",
+   "response_event": "event-000746",
+   "usage": {
+    "completion_tokens": 136,
+    "prompt_tokens": 70879,
+    "total_tokens": 71015,
+    "completion_tokens_details": {
+     "reasoning_tokens": 11
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 65280,
+     "text_tokens": 64148,
+     "image_tokens": 6731
+    }
+   },
+   "elapsed_s": 9.48
+  },
+  {
+   "event": "event-000766",
+   "task": "plan_f2",
+   "start_min": 11.9,
+   "status": "responded",
+   "response_event": "event-000825",
+   "usage": {
+    "completion_tokens": 15542,
+    "prompt_tokens": 88582,
+    "total_tokens": 104124,
+    "completion_tokens_details": {
+     "reasoning_tokens": 15281
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 63379,
+     "image_tokens": 25203
+    }
+   },
+   "elapsed_s": 429.484
+  },
+  {
+   "event": "event-000793",
+   "task": "plan_f1",
+   "start_min": 12.9,
+   "status": "responded",
+   "response_event": "event-000794",
+   "usage": {
+    "completion_tokens": 13105,
+    "prompt_tokens": 83646,
+    "total_tokens": 96751,
+    "completion_tokens_details": {
+     "reasoning_tokens": 12233
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 2432,
+     "text_tokens": 59052,
+     "image_tokens": 24594
+    }
+   },
+   "elapsed_s": 337.33
+  },
+  {
+   "event": "event-000824",
+   "task": "plan_f1",
+   "start_min": 18.7,
+   "status": "responded",
+   "response_event": "event-000852",
+   "usage": {
+    "completion_tokens": 16521,
+    "prompt_tokens": 106030,
+    "total_tokens": 122551,
+    "completion_tokens_details": {
+     "reasoning_tokens": 15722
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 82304,
+     "text_tokens": 81436,
+     "image_tokens": 24594
+    }
+   },
+   "elapsed_s": 188.231
+  },
+  {
+   "event": "event-000839",
+   "task": "plan_f2",
+   "start_min": 19.2,
+   "status": "responded",
+   "response_event": "event-000840",
+   "usage": {
+    "completion_tokens": 1892,
+    "prompt_tokens": 110606,
+    "total_tokens": 112498,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1817
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 85403,
+     "image_tokens": 25203
+    }
+   },
+   "elapsed_s": 36.244
+  },
+  {
+   "event": "event-000851",
+   "task": "plan_f2",
+   "start_min": 19.8,
+   "status": "responded",
+   "response_event": "event-000924",
+   "usage": {
+    "completion_tokens": 24911,
+    "prompt_tokens": 113184,
+    "total_tokens": 138095,
+    "completion_tokens_details": {
+     "reasoning_tokens": 20039
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 108928,
+     "text_tokens": 87907,
+     "image_tokens": 25277
+    }
+   },
+   "elapsed_s": 221.66
+  },
+  {
+   "event": "event-000892",
+   "task": "plan_f1",
+   "start_min": 21.9,
+   "status": "responded",
+   "response_event": "event-000893",
+   "usage": {
+    "completion_tokens": 5029,
+    "prompt_tokens": 34985,
+    "total_tokens": 40014,
+    "completion_tokens_details": {
+     "reasoning_tokens": 4235
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 32499,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 46.406
+  },
+  {
+   "event": "event-000923",
+   "task": "plan_f1",
+   "start_min": 22.8,
+   "status": "responded",
+   "response_event": "event-000949",
+   "usage": {
+    "completion_tokens": 6364,
+    "prompt_tokens": 48242,
+    "total_tokens": 54606,
+    "completion_tokens_details": {
+     "reasoning_tokens": 4769
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 34048,
+     "text_tokens": 45756,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 53.116
+  },
+  {
+   "event": "event-000948",
+   "task": "plan_f2",
+   "start_min": 23.6,
+   "status": "responded",
+   "response_event": "event-000998",
+   "usage": {
+    "completion_tokens": 4903,
+    "prompt_tokens": 39678,
+    "total_tokens": 44581,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1575
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 7424,
+     "text_tokens": 34627,
+     "image_tokens": 5051
+    }
+   },
+   "elapsed_s": 59.052
+  },
+  {
+   "event": "event-000997",
+   "task": "plan_f1",
+   "start_min": 23.9,
+   "status": "responded",
+   "response_event": "event-001031",
+   "usage": {
+    "completion_tokens": 9613,
+    "prompt_tokens": 70349,
+    "total_tokens": 79962,
+    "completion_tokens_details": {
+     "reasoning_tokens": 8046
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 46592,
+     "text_tokens": 67863,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 81.616
+  },
+  {
+   "event": "event-001008",
+   "task": "plan_f2",
+   "start_min": 24.7,
+   "status": "responded",
+   "response_event": "event-001009",
+   "usage": {
+    "completion_tokens": 1053,
+    "prompt_tokens": 75588,
+    "total_tokens": 76641,
+    "completion_tokens_details": {
+     "reasoning_tokens": 590
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 38272,
+     "text_tokens": 67333,
+     "image_tokens": 8255
+    }
+   },
+   "elapsed_s": 17.106
+  },
+  {
+   "event": "event-001019",
+   "task": "plan_f2",
+   "start_min": 25.0,
+   "status": "responded",
+   "response_event": "event-001020",
+   "usage": {
+    "completion_tokens": 557,
+    "prompt_tokens": 76764,
+    "total_tokens": 77321,
+    "completion_tokens_details": {
+     "reasoning_tokens": 51
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 73984,
+     "text_tokens": 68509,
+     "image_tokens": 8255
+    }
+   },
+   "elapsed_s": 11.145
+  },
+  {
+   "event": "event-001030",
+   "task": "plan_f2",
+   "start_min": 25.3,
+   "status": "responded",
+   "response_event": "event-001063",
+   "usage": {
+    "completion_tokens": 723,
+    "prompt_tokens": 77442,
+    "total_tokens": 78165,
+    "completion_tokens_details": {
+     "reasoning_tokens": 484
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 75648,
+     "text_tokens": 69187,
+     "image_tokens": 8255
+    }
+   },
+   "elapsed_s": 8.305
+  },
+  {
+   "event": "event-001073",
+   "task": "plan_f2",
+   "start_min": 25.5,
+   "status": "responded",
+   "response_event": "event-001098",
+   "usage": {
+    "completion_tokens": 297,
+    "prompt_tokens": 78262,
+    "total_tokens": 78559,
+    "completion_tokens_details": {
+     "reasoning_tokens": 73
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 76544,
+     "text_tokens": 70007,
+     "image_tokens": 8255
+    }
+   },
+   "elapsed_s": 7.847
+  },
+  {
+   "event": "event-001097",
+   "task": "plan_f1",
+   "start_min": 25.6,
+   "status": "responded",
+   "response_event": "event-001126",
+   "usage": {
+    "completion_tokens": 21851,
+    "prompt_tokens": 98182,
+    "total_tokens": 120033,
+    "completion_tokens_details": {
+     "reasoning_tokens": 16763
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 68992,
+     "text_tokens": 95696,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 174.149
+  },
+  {
+   "event": "event-001108",
+   "task": "plan_f2",
+   "start_min": 25.7,
+   "status": "responded",
+   "response_event": "event-001109",
+   "usage": {
+    "completion_tokens": 347,
+    "prompt_tokens": 78658,
+    "total_tokens": 79005,
+    "completion_tokens_details": {
+     "reasoning_tokens": 286
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 77312,
+     "text_tokens": 70403,
+     "image_tokens": 8255
+    }
+   },
+   "elapsed_s": 7.655
+  },
+  {
+   "event": "event-001119",
+   "task": "plan_f2",
+   "start_min": 25.8,
+   "status": "responded",
+   "response_event": "event-001120",
+   "usage": {
+    "completion_tokens": 164,
+    "prompt_tokens": 79190,
+    "total_tokens": 79354,
+    "completion_tokens_details": {
+     "reasoning_tokens": 9
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 77312,
+     "text_tokens": 70935,
+     "image_tokens": 8255
+    }
+   },
+   "elapsed_s": 3.109
+  },
+  {
+   "event": "event-001149",
+   "task": "plan_f1",
+   "start_min": 28.6,
+   "status": "responded",
+   "response_event": "event-001150",
+   "usage": {
+    "completion_tokens": 1887,
+    "prompt_tokens": 38537,
+    "total_tokens": 40424,
+    "completion_tokens_details": {
+     "reasoning_tokens": 738
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 33511,
+     "image_tokens": 5026
+    }
+   },
+   "elapsed_s": 19.906
+  },
+  {
+   "event": "event-001160",
+   "task": "plan_f1",
+   "start_min": 29.0,
+   "status": "responded",
+   "response_event": "event-001161",
+   "usage": {
+    "completion_tokens": 3474,
+    "prompt_tokens": 46895,
+    "total_tokens": 50369,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3147
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 37376,
+     "text_tokens": 39329,
+     "image_tokens": 7566
+    }
+   },
+   "elapsed_s": 28.703
+  },
+  {
+   "event": "event-001174",
+   "task": "plan_f1",
+   "start_min": 29.6,
+   "status": "responded",
+   "response_event": "event-001175",
+   "usage": {
+    "completion_tokens": 3002,
+    "prompt_tokens": 52891,
+    "total_tokens": 55893,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2654
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 45696,
+     "text_tokens": 45159,
+     "image_tokens": 7732
+    }
+   },
+   "elapsed_s": 51.037
+  },
+  {
+   "event": "event-001186",
+   "task": "plan_f1",
+   "start_min": 30.6,
+   "status": "responded",
+   "response_event": "event-001187",
+   "usage": {
+    "completion_tokens": 1973,
+    "prompt_tokens": 93467,
+    "total_tokens": 95440,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1467
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 51584,
+     "text_tokens": 82731,
+     "image_tokens": 10736
+    }
+   },
+   "elapsed_s": 26.084
+  },
+  {
+   "event": "event-001197",
+   "task": "plan_f1",
+   "start_min": 31.1,
+   "status": "responded",
+   "response_event": "event-001198",
+   "usage": {
+    "completion_tokens": 1019,
+    "prompt_tokens": 95557,
+    "total_tokens": 96576,
+    "completion_tokens_details": {
+     "reasoning_tokens": 678
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 92288,
+     "text_tokens": 84821,
+     "image_tokens": 10736
+    }
+   },
+   "elapsed_s": 15.991
+  },
+  {
+   "event": "event-001208",
+   "task": "plan_f1",
+   "start_min": 31.4,
+   "status": "responded",
+   "response_event": "event-001209",
+   "usage": {
+    "completion_tokens": 561,
+    "prompt_tokens": 96674,
+    "total_tokens": 97235,
+    "completion_tokens_details": {
+     "reasoning_tokens": 496
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 93952,
+     "text_tokens": 85938,
+     "image_tokens": 10736
+    }
+   },
+   "elapsed_s": 8.969
+  },
+  {
+   "event": "event-001219",
+   "task": "plan_f1",
+   "start_min": 31.6,
+   "status": "responded",
+   "response_event": "event-001220",
+   "usage": {
+    "completion_tokens": 402,
+    "prompt_tokens": 97411,
+    "total_tokens": 97813,
+    "completion_tokens_details": {
+     "reasoning_tokens": 14
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 95616,
+     "text_tokens": 86675,
+     "image_tokens": 10736
+    }
+   },
+   "elapsed_s": 7.435
+  },
+  {
+   "event": "event-001230",
+   "task": "elevation_east_rework",
+   "start_min": 33.4,
+   "status": "responded",
+   "response_event": "event-001246",
+   "usage": {
+    "completion_tokens": 1329,
+    "prompt_tokens": 26891,
+    "total_tokens": 28220,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1241
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 24457,
+     "image_tokens": 2434
+    }
+   },
+   "elapsed_s": 34.799
+  },
+  {
+   "event": "event-001235",
+   "task": "plan_f1_rework",
+   "start_min": 33.5,
+   "status": "responded",
+   "response_event": "event-001236",
+   "usage": {
+    "completion_tokens": 1490,
+    "prompt_tokens": 68079,
+    "total_tokens": 69569,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1401
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 0,
+     "text_tokens": 65593,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 22.833
+  },
+  {
+   "event": "event-001245",
+   "task": "plan_f1_rework",
+   "start_min": 33.9,
+   "status": "responded",
+   "response_event": "event-001268",
+   "usage": {
+    "completion_tokens": 4737,
+    "prompt_tokens": 70571,
+    "total_tokens": 75308,
+    "completion_tokens_details": {
+     "reasoning_tokens": 4483
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 66560,
+     "text_tokens": 67665,
+     "image_tokens": 2906
+    }
+   },
+   "elapsed_s": 48.812
+  },
+  {
+   "event": "event-001258",
+   "task": "elevation_east_rework",
+   "start_min": 34.1,
+   "status": "responded",
+   "response_event": "event-001259",
+   "usage": {
+    "completion_tokens": 1691,
+    "prompt_tokens": 30136,
+    "total_tokens": 31827,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1437
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 26880,
+     "text_tokens": 27028,
+     "image_tokens": 3108
+    }
+   },
+   "elapsed_s": 37.665
+  },
+  {
+   "event": "event-001278",
+   "task": "elevation_east_rework",
+   "start_min": 34.8,
+   "status": "responded",
+   "response_event": "event-001300",
+   "usage": {
+    "completion_tokens": 1390,
+    "prompt_tokens": 35440,
+    "total_tokens": 36830,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1135
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 29952,
+     "text_tokens": 32332,
+     "image_tokens": 3108
+    }
+   },
+   "elapsed_s": 35.414
+  },
+  {
+   "event": "event-001287",
+   "task": "plan_f1_rework",
+   "start_min": 34.9,
+   "status": "responded",
+   "response_event": "event-001288",
+   "usage": {
+    "completion_tokens": 850,
+    "prompt_tokens": 77781,
+    "total_tokens": 78631,
+    "completion_tokens_details": {
+     "reasoning_tokens": 693
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 68992,
+     "text_tokens": 74725,
+     "image_tokens": 3056
+    }
+   },
+   "elapsed_s": 21.018
+  },
+  {
+   "event": "event-001299",
+   "task": "plan_f1_rework",
+   "start_min": 35.4,
+   "status": "responded",
+   "response_event": "event-001315",
+   "usage": {
+    "completion_tokens": 986,
+    "prompt_tokens": 79880,
+    "total_tokens": 80866,
+    "completion_tokens_details": {
+     "reasoning_tokens": 881
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 76544,
+     "text_tokens": 76744,
+     "image_tokens": 3136
+    }
+   },
+   "elapsed_s": 12.26
+  },
+  {
+   "event": "event-001314",
+   "task": "elevation_east_rework",
+   "start_min": 35.6,
+   "status": "responded",
+   "response_event": "event-001331",
+   "usage": {
+    "completion_tokens": 2277,
+    "prompt_tokens": 39456,
+    "total_tokens": 41733,
+    "completion_tokens_details": {
+     "reasoning_tokens": 2020
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 35328,
+     "text_tokens": 36348,
+     "image_tokens": 3108
+    }
+   },
+   "elapsed_s": 61.469
+  },
+  {
+   "event": "event-001325",
+   "task": "plan_f1_rework",
+   "start_min": 35.7,
+   "status": "responded",
+   "response_event": "event-001326",
+   "usage": {
+    "completion_tokens": 5152,
+    "prompt_tokens": 81661,
+    "total_tokens": 86813,
+    "completion_tokens_details": {
+     "reasoning_tokens": 4885
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 78976,
+     "text_tokens": 78271,
+     "image_tokens": 3390
+    }
+   },
+   "elapsed_s": 52.231
+  },
+  {
+   "event": "event-001348",
+   "task": "plan_f1_rework",
+   "start_min": 36.7,
+   "status": "responded",
+   "response_event": "event-001355",
+   "usage": {
+    "completion_tokens": 2401,
+    "prompt_tokens": 88943,
+    "total_tokens": 91344,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1838
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 80640,
+     "text_tokens": 85407,
+     "image_tokens": 3536
+    }
+   },
+   "elapsed_s": 33.519
+  },
+  {
+   "event": "event-001354",
+   "task": "elevation_east_rework",
+   "start_min": 36.8,
+   "status": "responded",
+   "response_event": "event-001367",
+   "usage": {
+    "completion_tokens": 1805,
+    "prompt_tokens": 44215,
+    "total_tokens": 46020,
+    "completion_tokens_details": {
+     "reasoning_tokens": 1550
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 39424,
+     "text_tokens": 41107,
+     "image_tokens": 3108
+    }
+   },
+   "elapsed_s": 36.245
+  },
+  {
+   "event": "event-001366",
+   "task": "plan_f1_rework",
+   "start_min": 37.4,
+   "status": "responded",
+   "response_event": "event-001411",
+   "usage": {
+    "completion_tokens": 416,
+    "prompt_tokens": 91412,
+    "total_tokens": 91828,
+    "completion_tokens_details": {
+     "reasoning_tokens": 60
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 87296,
+     "text_tokens": 87876,
+     "image_tokens": 3536
+    }
+   },
+   "elapsed_s": 149.922
+  },
+  {
+   "event": "event-001381",
+   "task": "elevation_east_rework",
+   "start_min": 37.5,
+   "status": "responded",
+   "response_event": "event-001382",
+   "usage": {
+    "completion_tokens": 3212,
+    "prompt_tokens": 49103,
+    "total_tokens": 52315,
+    "completion_tokens_details": {
+     "reasoning_tokens": 3126
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 44032,
+     "text_tokens": 45995,
+     "image_tokens": 3108
+    }
+   },
+   "elapsed_s": 68.193
+  },
+  {
+   "event": "event-001393",
+   "task": "elevation_east_rework",
+   "start_min": 38.7,
+   "status": "responded",
+   "response_event": "event-001394",
+   "usage": {
+    "completion_tokens": 2724,
+    "prompt_tokens": 53068,
+    "total_tokens": 55792,
+    "completion_tokens_details": {
+     "reasoning_tokens": 218
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 48896,
+     "text_tokens": 49769,
+     "image_tokens": 3299
+    }
+   },
+   "elapsed_s": 42.674
+  },
+  {
+   "event": "event-001404",
+   "task": "elevation_east_rework",
+   "start_min": 39.5,
+   "status": "responded",
+   "response_event": "event-001405",
+   "usage": {
+    "completion_tokens": 320,
+    "prompt_tokens": 56187,
+    "total_tokens": 56507,
+    "completion_tokens_details": {
+     "reasoning_tokens": 13
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 52992,
+     "text_tokens": 52888,
+     "image_tokens": 3299
+    }
+   },
+   "elapsed_s": 8.573
+  },
+  {
+   "event": "event-001429",
+   "task": "plan_f1_rework",
+   "start_min": 40.1,
+   "status": "responded",
+   "response_event": "event-001430",
+   "usage": {
+    "completion_tokens": 1362,
+    "prompt_tokens": 110103,
+    "total_tokens": 111465,
+    "completion_tokens_details": {
+     "reasoning_tokens": 938
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 66560,
+     "text_tokens": 104613,
+     "image_tokens": 5490
+    }
+   },
+   "elapsed_s": 25.881
+  },
+  {
+   "event": "event-001443",
+   "task": "plan_f1_rework",
+   "start_min": 40.6,
+   "status": "responded",
+   "response_event": "event-001444",
+   "usage": {
+    "completion_tokens": 335,
+    "prompt_tokens": 69647,
+    "total_tokens": 69982,
+    "completion_tokens_details": {
+     "reasoning_tokens": 102
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 66560,
+     "text_tokens": 67161,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 5.924
+  },
+  {
+   "event": "event-001454",
+   "task": "plan_f1_rework",
+   "start_min": 40.8,
+   "status": "responded",
+   "response_event": "event-001455",
+   "usage": {
+    "completion_tokens": 546,
+    "prompt_tokens": 70080,
+    "total_tokens": 70626,
+    "completion_tokens_details": {
+     "reasoning_tokens": 361
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 68224,
+     "text_tokens": 67594,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 10.356
+  },
+  {
+   "event": "event-001465",
+   "task": "plan_f1_rework",
+   "start_min": 41.1,
+   "status": "responded",
+   "response_event": "event-001466",
+   "usage": {
+    "completion_tokens": 236,
+    "prompt_tokens": 70808,
+    "total_tokens": 71044,
+    "completion_tokens_details": {
+     "reasoning_tokens": 36
+    },
+    "prompt_tokens_details": {
+     "cached_tokens": 68992,
+     "text_tokens": 68322,
+     "image_tokens": 2486
+    }
+   },
+   "elapsed_s": 6.435
+  }
+ ],
+ "timeline": [
+  {
+   "event": "event-000034",
+   "task": "elevation_south",
+   "min": 0.2,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000033",
+   "result": {}
+  },
+  {
+   "event": "event-000045",
+   "task": "elevation_south",
+   "min": 0.2,
+   "tool": "get_bim_reference",
+   "outcome": "succeeded",
+   "invocation_event": "event-000044",
+   "result": {}
+  },
+  {
+   "event": "event-000048",
+   "task": "elevation_south",
+   "min": 0.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000047",
+   "result": {}
+  },
+  {
+   "event": "event-000058",
+   "task": "plan_f2",
+   "min": 0.2,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000057",
+   "result": {}
+  },
+  {
+   "event": "event-000061",
+   "task": "plan_f2",
+   "min": 0.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000060",
+   "result": {}
+  },
+  {
+   "event": "event-000071",
+   "task": "elevation_east",
+   "min": 0.6,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000070",
+   "result": {}
+  },
+  {
+   "event": "event-000074",
+   "task": "elevation_east",
+   "min": 0.6,
+   "tool": "get_bim_reference",
+   "outcome": "succeeded",
+   "invocation_event": "event-000073",
+   "result": {}
+  },
+  {
+   "event": "event-000086",
+   "task": "elevation_east",
+   "min": 0.7,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000085",
+   "result": {}
+  },
+  {
+   "event": "event-000096",
+   "task": "elevation_north",
+   "min": 0.9,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000095",
+   "result": {}
+  },
+  {
+   "event": "event-000099",
+   "task": "elevation_north",
+   "min": 0.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000098",
+   "result": {}
+  },
+  {
+   "event": "event-000110",
+   "task": "elevation_east",
+   "min": 0.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000109",
+   "result": {}
+  },
+  {
+   "event": "event-000113",
+   "task": "elevation_east",
+   "min": 0.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000112",
+   "result": {}
+  },
+  {
+   "event": "event-000125",
+   "task": "elevation_north",
+   "min": 1.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000124",
+   "result": {}
+  },
+  {
+   "event": "event-000128",
+   "task": "elevation_north",
+   "min": 1.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000127",
+   "result": {}
+  },
+  {
+   "event": "event-000140",
+   "task": "elevation_east",
+   "min": 1.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000139",
+   "result": {}
+  },
+  {
+   "event": "event-000143",
+   "task": "elevation_east",
+   "min": 1.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000142",
+   "result": {}
+  },
+  {
+   "event": "event-000155",
+   "task": "elevation_south",
+   "min": 1.5,
+   "tool": "view_pixel_region_overview",
+   "outcome": "succeeded",
+   "invocation_event": "event-000154",
+   "result": {}
+  },
+  {
+   "event": "event-000165",
+   "task": "plan_f1",
+   "min": 1.7,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000164",
+   "result": {}
+  },
+  {
+   "event": "event-000168",
+   "task": "plan_f1",
+   "min": 1.7,
+   "tool": "view_plan_blocks",
+   "outcome": "succeeded",
+   "invocation_event": "event-000167",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000179",
+   "task": "elevation_south",
+   "min": 1.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000178",
+   "result": {}
+  },
+  {
+   "event": "event-000182",
+   "task": "elevation_south",
+   "min": 1.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000181",
+   "result": {}
+  },
+  {
+   "event": "event-000192",
+   "task": "elevation_west",
+   "min": 1.9,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-000191",
+   "result": {}
+  },
+  {
+   "event": "event-000195",
+   "task": "elevation_west",
+   "min": 1.9,
+   "tool": "get_bim_reference",
+   "outcome": "succeeded",
+   "invocation_event": "event-000194",
+   "result": {}
+  },
+  {
+   "event": "event-000207",
+   "task": "elevation_north",
+   "min": 1.9,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000206",
+   "result": {}
+  },
+  {
+   "event": "event-000210",
+   "task": "elevation_north",
+   "min": 1.9,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000209",
+   "result": {}
+  },
+  {
+   "event": "event-000222",
+   "task": "elevation_west",
+   "min": 2.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000221",
+   "result": {}
+  },
+  {
+   "event": "event-000234",
+   "task": "elevation_east",
+   "min": 2.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000233",
+   "result": {}
+  },
+  {
+   "event": "event-000237",
+   "task": "elevation_east",
+   "min": 2.1,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000236",
+   "result": {}
+  },
+  {
+   "event": "event-000248",
+   "task": "elevation_west",
+   "min": 2.2,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000247",
+   "result": {}
+  },
+  {
+   "event": "event-000251",
+   "task": "elevation_west",
+   "min": 2.2,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000250",
+   "result": {}
+  },
+  {
+   "event": "event-000263",
+   "task": "elevation_north",
+   "min": 2.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000262",
+   "result": {}
+  },
+  {
+   "event": "event-000266",
+   "task": "elevation_north",
+   "min": 2.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000265",
+   "result": {}
+  },
+  {
+   "event": "event-000278",
+   "task": "elevation_south",
+   "min": 2.3,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000277",
+   "result": {}
+  },
+  {
+   "event": "event-000281",
+   "task": "elevation_south",
+   "min": 2.3,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000280",
+   "result": {}
+  },
+  {
+   "event": "event-000284",
+   "task": "elevation_south",
+   "min": 2.3,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000283",
+   "result": {}
+  },
+  {
+   "event": "event-000287",
+   "task": "elevation_south",
+   "min": 2.3,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000286",
+   "result": {}
+  },
+  {
+   "event": "event-000299",
+   "task": "elevation_west",
+   "min": 2.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000298",
+   "result": {}
+  },
+  {
+   "event": "event-000311",
+   "task": "elevation_east",
+   "min": 2.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000310",
+   "result": {}
+  },
+  {
+   "event": "event-000314",
+   "task": "elevation_east",
+   "min": 2.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000313",
+   "result": {}
+  },
+  {
+   "event": "event-000326",
+   "task": "elevation_north",
+   "min": 2.9,
+   "tool": "view_pixel_region_overview",
+   "outcome": "succeeded",
+   "invocation_event": "event-000325",
+   "result": {}
+  },
+  {
+   "event": "event-000329",
+   "task": "elevation_north",
+   "min": 2.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000328",
+   "result": {}
+  },
+  {
+   "event": "event-000343",
+   "task": "elevation_south",
+   "min": 3.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000342",
+   "result": {}
+  },
+  {
+   "event": "event-000346",
+   "task": "elevation_south",
+   "min": 3.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000345",
+   "result": {}
+  },
+  {
+   "event": "event-000358",
+   "task": "elevation_east",
+   "min": 3.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000357",
+   "result": {}
+  },
+  {
+   "event": "event-000369",
+   "task": "elevation_west",
+   "min": 3.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000368",
+   "result": {}
+  },
+  {
+   "event": "event-000372",
+   "task": "elevation_west",
+   "min": 3.2,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000371",
+   "result": {}
+  },
+  {
+   "event": "event-000384",
+   "task": "plan_f2",
+   "min": 3.2,
+   "tool": "view_plan_blocks",
+   "outcome": "succeeded",
+   "invocation_event": "event-000383",
+   "result": {
+    "status": "completed"
+   }
+  },
+  {
+   "event": "event-000396",
+   "task": "elevation_south",
+   "min": 3.3,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000395",
+   "result": {}
+  },
+  {
+   "event": "event-000408",
+   "task": "elevation_north",
+   "min": 3.4,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000407",
+   "result": {}
+  },
+  {
+   "event": "event-000411",
+   "task": "elevation_north",
+   "min": 3.4,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000410",
+   "result": {}
+  },
+  {
+   "event": "event-000422",
+   "task": "elevation_east",
+   "min": 3.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000421",
+   "result": {}
+  },
+  {
+   "event": "event-000425",
+   "task": "elevation_east",
+   "min": 3.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000424",
+   "result": {}
+  },
+  {
+   "event": "event-000428",
+   "task": "elevation_east",
+   "min": 3.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000427",
+   "result": {}
+  },
+  {
+   "event": "event-000440",
+   "task": "elevation_west",
+   "min": 3.7,
+   "tool": "view_pixel_region_overview",
+   "outcome": "succeeded",
+   "invocation_event": "event-000439",
+   "result": {}
+  },
+  {
+   "event": "event-000452",
+   "task": "elevation_north",
+   "min": 3.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000451",
+   "result": {}
+  },
+  {
+   "event": "event-000455",
+   "task": "elevation_north",
+   "min": 3.9,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000454",
+   "result": {}
+  },
+  {
+   "event": "event-000466",
+   "task": "elevation_south",
+   "min": 4.0,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000465",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "24afbd7c8b08f9430635159f95f0d6275bf751688267698d42b04cd6424caa1f",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000483",
+   "task": "elevation_west",
+   "min": 4.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000482",
+   "result": {}
+  },
+  {
+   "event": "event-000494",
+   "task": "plan_f2",
+   "min": 4.3,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000493",
+   "result": {}
+  },
+  {
+   "event": "event-000497",
+   "task": "plan_f2",
+   "min": 4.3,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000496",
+   "result": {}
+  },
+  {
+   "event": "event-000510",
+   "task": "elevation_east",
+   "min": 4.4,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000509",
+   "result": {}
+  },
+  {
+   "event": "event-000521",
+   "task": "elevation_east",
+   "min": 5.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000520",
+   "result": {}
+  },
+  {
+   "event": "event-000524",
+   "task": "elevation_east",
+   "min": 5.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000523",
+   "result": {}
+  },
+  {
+   "event": "event-000527",
+   "task": "elevation_east",
+   "min": 5.0,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000526",
+   "result": {}
+  },
+  {
+   "event": "event-000539",
+   "task": "elevation_north",
+   "min": 5.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000538",
+   "result": {}
+  },
+  {
+   "event": "event-000542",
+   "task": "elevation_north",
+   "min": 5.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000541",
+   "result": {}
+  },
+  {
+   "event": "event-000545",
+   "task": "elevation_north",
+   "min": 5.1,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000544",
+   "result": {}
+  },
+  {
+   "event": "event-000556",
+   "task": "elevation_west",
+   "min": 5.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000555",
+   "result": {}
+  },
+  {
+   "event": "event-000559",
+   "task": "elevation_west",
+   "min": 5.2,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000558",
+   "result": {}
+  },
+  {
+   "event": "event-000572",
+   "task": "elevation_north",
+   "min": 5.4,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000571",
+   "result": {}
+  },
+  {
+   "event": "event-000575",
+   "task": "elevation_north",
+   "min": 5.4,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000574",
+   "result": {}
+  },
+  {
+   "event": "event-000587",
+   "task": "elevation_west",
+   "min": 5.7,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000586",
+   "result": {}
+  },
+  {
+   "event": "event-000599",
+   "task": "plan_f2",
+   "min": 5.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000598",
+   "result": {}
+  },
+  {
+   "event": "event-000602",
+   "task": "plan_f2",
+   "min": 5.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000601",
+   "result": {}
+  },
+  {
+   "event": "event-000615",
+   "task": "elevation_east",
+   "min": 6.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000614",
+   "result": {}
+  },
+  {
+   "event": "event-000618",
+   "task": "elevation_east",
+   "min": 6.1,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000617",
+   "result": {}
+  },
+  {
+   "event": "event-000630",
+   "task": "elevation_north",
+   "min": 6.4,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000629",
+   "result": {}
+  },
+  {
+   "event": "event-000633",
+   "task": "elevation_north",
+   "min": 6.5,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000632",
+   "result": {}
+  },
+  {
+   "event": "event-000644",
+   "task": "elevation_west",
+   "min": 6.5,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000643",
+   "result": {}
+  },
+  {
+   "event": "event-000647",
+   "task": "elevation_west",
+   "min": 6.5,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000646",
+   "result": {}
+  },
+  {
+   "event": "event-000659",
+   "task": "elevation_east",
+   "min": 6.7,
+   "tool": "map_pixels",
+   "outcome": "succeeded",
+   "invocation_event": "event-000658",
+   "result": {}
+  },
+  {
+   "event": "event-000671",
+   "task": "elevation_west",
+   "min": 7.0,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000670",
+   "result": {}
+  },
+  {
+   "event": "event-000674",
+   "task": "elevation_west",
+   "min": 7.0,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000673",
+   "result": {}
+  },
+  {
+   "event": "event-000677",
+   "task": "elevation_west",
+   "min": 7.0,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000676",
+   "result": {}
+  },
+  {
+   "event": "event-000689",
+   "task": "elevation_north",
+   "min": 7.4,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000688",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "37e9012cad713c33c77a6282d13d494fd85b91c830c201e40aa75ef0d34dcc8c",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000700",
+   "task": "elevation_east",
+   "min": 7.5,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000699",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "1843115643fc91b3d0f0c5d1cb9a50d94ce93729314f2e031fde51a780a2e32c",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000725",
+   "task": "elevation_west",
+   "min": 7.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000718",
+   "result": {}
+  },
+  {
+   "event": "event-000728",
+   "task": "elevation_west",
+   "min": 7.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000727",
+   "result": {}
+  },
+  {
+   "event": "event-000740",
+   "task": "elevation_west",
+   "min": 9.0,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-000739",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "345d81534a0ab619ea5649298da64ef8bb9783b90475046bd8175c872619d16a",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-000758",
+   "task": "plan_f2",
+   "min": 11.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000757",
+   "result": {}
+  },
+  {
+   "event": "event-000761",
+   "task": "plan_f2",
+   "min": 11.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000760",
+   "result": {}
+  },
+  {
+   "event": "event-000773",
+   "task": "plan_f1",
+   "min": 12.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000772",
+   "result": {}
+  },
+  {
+   "event": "event-000776",
+   "task": "plan_f1",
+   "min": 12.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000775",
+   "result": {}
+  },
+  {
+   "event": "event-000779",
+   "task": "plan_f1",
+   "min": 12.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000778",
+   "result": {}
+  },
+  {
+   "event": "event-000782",
+   "task": "plan_f1",
+   "min": 12.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000781",
+   "result": {}
+  },
+  {
+   "event": "event-000785",
+   "task": "plan_f1",
+   "min": 12.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000784",
+   "result": {}
+  },
+  {
+   "event": "event-000788",
+   "task": "plan_f1",
+   "min": 12.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000787",
+   "result": {}
+  },
+  {
+   "event": "event-000804",
+   "task": "plan_f1",
+   "min": 18.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000803",
+   "result": {}
+  },
+  {
+   "event": "event-000807",
+   "task": "plan_f1",
+   "min": 18.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000806",
+   "result": {}
+  },
+  {
+   "event": "event-000810",
+   "task": "plan_f1",
+   "min": 18.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000809",
+   "result": {}
+  },
+  {
+   "event": "event-000813",
+   "task": "plan_f1",
+   "min": 18.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000812",
+   "result": {}
+  },
+  {
+   "event": "event-000816",
+   "task": "plan_f1",
+   "min": 18.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000815",
+   "result": {}
+  },
+  {
+   "event": "event-000819",
+   "task": "plan_f1",
+   "min": 18.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000818",
+   "result": {}
+  },
+  {
+   "event": "event-000831",
+   "task": "plan_f2",
+   "min": 19.1,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000830",
+   "result": {}
+  },
+  {
+   "event": "event-000834",
+   "task": "plan_f2",
+   "min": 19.1,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000833",
+   "result": {}
+  },
+  {
+   "event": "event-000846",
+   "task": "plan_f2",
+   "min": 19.8,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-000845",
+   "result": {}
+  },
+  {
+   "event": "event-000862",
+   "task": "plan_f1",
+   "min": 21.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000861",
+   "result": {}
+  },
+  {
+   "event": "event-000865",
+   "task": "plan_f1",
+   "min": 21.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000864",
+   "result": {}
+  },
+  {
+   "event": "event-000868",
+   "task": "plan_f1",
+   "min": 21.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000867",
+   "result": {}
+  },
+  {
+   "event": "event-000871",
+   "task": "plan_f1",
+   "min": 21.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000870",
+   "result": {}
+  },
+  {
+   "event": "event-000874",
+   "task": "plan_f1",
+   "min": 21.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000873",
+   "result": {}
+  },
+  {
+   "event": "event-000877",
+   "task": "plan_f1",
+   "min": 21.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000876",
+   "result": {}
+  },
+  {
+   "event": "event-000903",
+   "task": "plan_f1",
+   "min": 22.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000902",
+   "result": {}
+  },
+  {
+   "event": "event-000906",
+   "task": "plan_f1",
+   "min": 22.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000905",
+   "result": {}
+  },
+  {
+   "event": "event-000909",
+   "task": "plan_f1",
+   "min": 22.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000908",
+   "result": {}
+  },
+  {
+   "event": "event-000912",
+   "task": "plan_f1",
+   "min": 22.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000911",
+   "result": {}
+  },
+  {
+   "event": "event-000915",
+   "task": "plan_f1",
+   "min": 22.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000914",
+   "result": {}
+  },
+  {
+   "event": "event-000918",
+   "task": "plan_f1",
+   "min": 22.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000917",
+   "result": {}
+  },
+  {
+   "event": "event-000930",
+   "task": "plan_f2",
+   "min": 23.6,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-000929",
+   "result": {
+    "status": "failed",
+    "reason": "opening D-A.z [0.0, 2.1] is outside floor vertical bounds [3.0, 6.0]",
+    "candidate": null,
+    "draft": "plan_drafts/draft_001/plan.json",
+    "next_action": {
+     "instruction": "Edit the named objects/fields using repair_hint and the original drawing, then retry the complete plan or operations against an editable draft. Preserve all other observed walls, openings and room topology.",
+     "objects": [
+      "plan.openings[0].z"
+     ]
+    }
+   }
+  },
+  {
+   "event": "event-000959",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000958",
+   "result": {}
+  },
+  {
+   "event": "event-000962",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000961",
+   "result": {}
+  },
+  {
+   "event": "event-000965",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000964",
+   "result": {}
+  },
+  {
+   "event": "event-000968",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000967",
+   "result": {}
+  },
+  {
+   "event": "event-000971",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000970",
+   "result": {}
+  },
+  {
+   "event": "event-000974",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000973",
+   "result": {}
+  },
+  {
+   "event": "event-000977",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000976",
+   "result": {}
+  },
+  {
+   "event": "event-000980",
+   "task": "plan_f1",
+   "min": 23.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000979",
+   "result": {}
+  },
+  {
+   "event": "event-000983",
+   "task": "plan_f1",
+   "min": 23.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000982",
+   "result": {}
+  },
+  {
+   "event": "event-000986",
+   "task": "plan_f1",
+   "min": 23.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000985",
+   "result": {}
+  },
+  {
+   "event": "event-000989",
+   "task": "plan_f1",
+   "min": 23.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000988",
+   "result": {}
+  },
+  {
+   "event": "event-000992",
+   "task": "plan_f1",
+   "min": 23.9,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-000991",
+   "result": {}
+  },
+  {
+   "event": "event-001003",
+   "task": "plan_f2",
+   "min": 24.7,
+   "tool": "trial_plan_bim",
+   "outcome": "succeeded",
+   "invocation_event": "event-001002",
+   "result": {
+    "status": "passed",
+    "candidate": "candidate_01",
+    "draft": "plan_drafts/draft_002/plan.json"
+   }
+  },
+  {
+   "event": "event-001014",
+   "task": "plan_f2",
+   "min": 25.0,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001013",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: F2 floor level z=3.0 m and 3.0 m ceiling height assumed; drawing contains no storey/level data. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001025",
+   "task": "plan_f2",
+   "min": 25.2,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001024",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: z_floor=3 and ceiling_height=3 for floor F2: level and ceiling heights assumed, no storey data in drawing. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001048",
+   "task": "plan_f1",
+   "min": 25.3,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001047",
+   "result": {}
+  },
+  {
+   "event": "event-001051",
+   "task": "plan_f1",
+   "min": 25.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001050",
+   "result": {}
+  },
+  {
+   "event": "event-001054",
+   "task": "plan_f1",
+   "min": 25.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001053",
+   "result": {}
+  },
+  {
+   "event": "event-001057",
+   "task": "plan_f1",
+   "min": 25.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001056",
+   "result": {}
+  },
+  {
+   "event": "event-001060",
+   "task": "plan_f1",
+   "min": 25.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001059",
+   "result": {}
+  },
+  {
+   "event": "event-001068",
+   "task": "plan_f2",
+   "min": 25.4,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001067",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: F2. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001074",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001062",
+   "result": {}
+  },
+  {
+   "event": "event-001077",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001076",
+   "result": {}
+  },
+  {
+   "event": "event-001080",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001079",
+   "result": {}
+  },
+  {
+   "event": "event-001083",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001082",
+   "result": {}
+  },
+  {
+   "event": "event-001086",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001085",
+   "result": {}
+  },
+  {
+   "event": "event-001089",
+   "task": "plan_f1",
+   "min": 25.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001088",
+   "result": {}
+  },
+  {
+   "event": "event-001092",
+   "task": "plan_f1",
+   "min": 25.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001091",
+   "result": {}
+  },
+  {
+   "event": "event-001103",
+   "task": "plan_f2",
+   "min": 25.6,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001102",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: S-CORR. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001114",
+   "task": "plan_f2",
+   "min": 25.8,
+   "tool": "submit_plan_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-001113",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "b6b07ee8504e82177177685012dea69747bb90f99852d66f6c4d071ca1e76177",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-001143",
+   "task": "plan_f1",
+   "min": 28.6,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001142",
+   "result": {
+    "status": "failed",
+    "reason": "Compilation reported many located geometry failures; use repair_hint and the located findings below. The complete compiler reason is preserved by audit_refs.reason.",
+    "candidate": null,
+    "draft": "plan_drafts/draft_001/plan.json",
+    "next_action": {
+     "instruction": "Edit the named objects/fields using repair_hint and the original drawing, then retry the complete plan or operations against an editable draft. Preserve all other observed walls, openings and room topology.",
+     "objects": [
+      "plan.partitions[8].points[1]"
+     ]
+    }
+   }
+  },
+  {
+   "event": "event-001155",
+   "task": "plan_f1",
+   "min": 29.0,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001154",
+   "result": {
+    "status": "failed",
+    "reason": "space seeds S-ENTRY and S-CORR occupy the same space",
+    "candidate": null,
+    "draft": "plan_drafts/draft_002/plan.json",
+    "next_action": {
+     "instruction": "Edit the named objects/fields using repair_hint and the original drawing, then retry the complete plan or operations against an editable draft. Preserve all other observed walls, openings and room topology.",
+     "objects": [
+      "plan.space_seeds[13] and plan.space_seeds[14]"
+     ]
+    }
+   }
+  },
+  {
+   "event": "event-001166",
+   "task": "plan_f1",
+   "min": 29.5,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001165",
+   "result": {}
+  },
+  {
+   "event": "event-001169",
+   "task": "plan_f1",
+   "min": 29.6,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001168",
+   "result": {}
+  },
+  {
+   "event": "event-001181",
+   "task": "plan_f1",
+   "min": 30.5,
+   "tool": "trial_plan_bim",
+   "outcome": "succeeded",
+   "invocation_event": "event-001180",
+   "result": {
+    "status": "passed",
+    "candidate": "candidate_01",
+    "draft": "plan_drafts/draft_003/plan.json"
+   }
+  },
+  {
+   "event": "event-001192",
+   "task": "plan_f1",
+   "min": 31.0,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001191",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: No north arrow found in the drawing; standard orientation assumed (world North = image top, East = image right). Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001203",
+   "task": "plan_f1",
+   "min": 31.4,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001202",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: S-ENTRY. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001214",
+   "task": "plan_f1",
+   "min": 31.6,
+   "tool": "submit_plan_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-001213",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "c9a64ac428449afad7eada43929cc7205c0f1549eafaf958ebd0d06ea13b1934",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-001240",
+   "task": "plan_f1_rework",
+   "min": 33.9,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001239",
+   "result": {}
+  },
+  {
+   "event": "event-001250",
+   "task": "elevation_east_rework",
+   "min": 34.0,
+   "tool": "inputs",
+   "outcome": "succeeded",
+   "invocation_event": "event-001249",
+   "result": {}
+  },
+  {
+   "event": "event-001253",
+   "task": "elevation_east_rework",
+   "min": 34.0,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001252",
+   "result": {}
+  },
+  {
+   "event": "event-001265",
+   "task": "elevation_east_rework",
+   "min": 34.7,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001264",
+   "result": {}
+  },
+  {
+   "event": "event-001273",
+   "task": "elevation_east_rework",
+   "min": 34.8,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001267",
+   "result": {}
+  },
+  {
+   "event": "event-001279",
+   "task": "plan_f1_rework",
+   "min": 34.8,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001272",
+   "result": {}
+  },
+  {
+   "event": "event-001282",
+   "task": "plan_f1_rework",
+   "min": 34.9,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001281",
+   "result": {}
+  },
+  {
+   "event": "event-001294",
+   "task": "plan_f1_rework",
+   "min": 35.3,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001293",
+   "result": {}
+  },
+  {
+   "event": "event-001306",
+   "task": "elevation_east_rework",
+   "min": 35.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001305",
+   "result": {}
+  },
+  {
+   "event": "event-001309",
+   "task": "elevation_east_rework",
+   "min": 35.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001308",
+   "result": {}
+  },
+  {
+   "event": "event-001320",
+   "task": "plan_f1_rework",
+   "min": 35.6,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001319",
+   "result": {}
+  },
+  {
+   "event": "event-001337",
+   "task": "plan_f1_rework",
+   "min": 36.6,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001330",
+   "result": {}
+  },
+  {
+   "event": "event-001340",
+   "task": "elevation_east_rework",
+   "min": 36.6,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001336",
+   "result": {}
+  },
+  {
+   "event": "event-001343",
+   "task": "plan_f1_rework",
+   "min": 36.7,
+   "tool": "view_pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001339",
+   "result": {}
+  },
+  {
+   "event": "event-001349",
+   "task": "elevation_east_rework",
+   "min": 36.7,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001342",
+   "result": {}
+  },
+  {
+   "event": "event-001361",
+   "task": "plan_f1_rework",
+   "min": 37.3,
+   "tool": "trial_plan_bim",
+   "outcome": "failed",
+   "invocation_event": "event-001360",
+   "result": {
+    "status": "rejected",
+    "reason": "operation 0 fields: unknown changes, id",
+    "next_action": "Correct the cited object or field in a complete plan, then retry; no trial was accepted."
+   }
+  },
+  {
+   "event": "event-001373",
+   "task": "elevation_east_rework",
+   "min": 37.4,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001372",
+   "result": {}
+  },
+  {
+   "event": "event-001376",
+   "task": "elevation_east_rework",
+   "min": 37.5,
+   "tool": "pixel_profile",
+   "outcome": "succeeded",
+   "invocation_event": "event-001375",
+   "result": {}
+  },
+  {
+   "event": "event-001388",
+   "task": "elevation_east_rework",
+   "min": 38.7,
+   "tool": "view_image",
+   "outcome": "succeeded",
+   "invocation_event": "event-001387",
+   "result": {}
+  },
+  {
+   "event": "event-001399",
+   "task": "elevation_east_rework",
+   "min": 39.5,
+   "tool": "submit_elevation_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-001398",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "4fae30744fd9e6a75b0895a64379d0dfe8d3113d3b92a8b08f5484bc46c03d62",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  },
+  {
+   "event": "event-001416",
+   "task": "plan_f1_rework",
+   "min": 40.0,
+   "tool": "trial_plan_bim",
+   "outcome": "succeeded",
+   "invocation_event": "event-001415",
+   "result": {
+    "status": "passed",
+    "candidate": "candidate_01",
+    "draft": "plan_drafts/draft_001/plan.json"
+   }
+  },
+  {
+   "event": "event-001435",
+   "task": "plan_f1_rework",
+   "min": 40.6,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001434",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: D15 restored: single swing door on recessed west wall (x=513, y=1000-1036) immediately above the southwest conference room, observed in original (gap with inward swing leaf); missing from prior draft. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001449",
+   "task": "plan_f1_rework",
+   "min": 40.8,
+   "tool": "submit_plan_reading",
+   "outcome": "failed",
+   "invocation_event": "event-001448",
+   "result": {
+    "status": "rejected",
+    "reason": "submit_plan_reading: notes.item is not a declared plan object: D15. Minimum correct example: {\"trial_id\":\"latest\"} Include a decision for each reported topology issue; mirrored axes need north_arrow.",
+    "next_action": "Fix this item and call the submission tool again within the same task budget."
+   }
+  },
+  {
+   "event": "event-001460",
+   "task": "plan_f1_rework",
+   "min": 41.1,
+   "tool": "submit_plan_reading",
+   "outcome": "succeeded",
+   "invocation_event": "event-001459",
+   "result": {
+    "status": "accepted",
+    "artifact_sha256": "2b30dbde27915afe2cb0aa71a91a35bd40192dc8f6cbf8679c60edf405689d96",
+    "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."
+   }
+  }
+ ],
+ "budget_waits": [],
+ "capture_errors": []
+}

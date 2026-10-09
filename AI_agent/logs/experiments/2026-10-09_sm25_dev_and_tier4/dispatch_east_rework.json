@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {
+      "task_id": "elevation_east_rework",
+      "role_id": "elevation_reader",
+      "image": "East_view.png",
+      "target": "East/F1,F2",
+      "origin": "Common building origin (0,0,0): intersection of the westernmost building extent and southernmost building extent in plan, at first-floor floor level. World x East, y North, z Up. The bounding-box origin need not lie inside a physical space.",
+      "previous_task_id": "elevation_east",
+      "rework_targets": ["D1"],
+      "issues": [
+        "Your submitted artifact explicitly reports D1 ink bottom about 0.19 m above the common baseline, but replaces that observed position with sill 0 and head 2.1 based on a floor-contact assumption. The original drawing also shows that gap. Recheck D1 against its original crop and retain the observed vertical interval unless a drawing annotation supports changing the datum. Preserve the other accepted readings."
+      ]
+    }
+  ]
+}

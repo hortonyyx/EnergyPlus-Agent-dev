@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "batch_id": "2026-10-09-sm25-manual-dispatch-tier3-tier4-retry1",
+  "status": "prepared_not_started",
+  "sequence_gate": "The GPT-6 Sol cold-start sm25 run must be complete before this run is initialized.",
+  "approval_required_before_init": false,
+  "approval": "User approved a second sm25 run in which the root dev model manually acts as coordinator and dispatches tier-3/tier-4 work models through the project runtime. This file does not authorize an independent tier-4 whole-case agent or any DeepSeek call.",
+  "mode": "manual_coordinator_role_division",
+  "credentials_file": ".env",
+  "input_kind": "images",
+  "input": "case_tests/e2e_tests/sm25-L_anchor/case_data",
+  "image_kind": "drawings",
+  "floor_plan_images": [
+    "1f_view.png",
+    "2f_view.png"
+  ],
+  "output": "AI_agent/archive/local_backup/2026-10-09_sm25_dev_and_tier4/manual_dispatch_sm25_retry1",
+  "scope": "Reconstruct one inspectable lightweight BIM of sm25 from the admitted original drawings only. The reader models start without prior plans, generated BIM, observations, calibrations, counts, target heights, reference answers, GT, or geometry from any earlier run. The root dev model is the coordinator and decides reader tasks, assembly, checks, rework, and delivery; its prior knowledge and any assistance are recorded separately. Work models are readers only. Preserve every drawn space, wall, door, window, floor assignment, and connection; distinguish observations, assumptions, and unresolved items.",
+  "max_candidates": 64,
+  "max_concurrent_readers": 6,
+  "limits": {
+    "model_calls": 180,
+    "tool_calls": 700,
+    "tokens": null,
+    "money_cny": "20",
+    "seconds": 10800,
+    "model_retries": 2,
+    "retry_backoff_seconds": 2.0
+  },
+  "roles": {
+    "coordinator": {
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "enable_thinking": true
+    },
+    "plan_reader": {
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "enable_thinking": true
+    },
+    "elevation_reader": {
+      "provider": "paratera",
+      "model": "Qwen3.8-Flash",
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "enable_thinking": true
+    }
+  },
+  "execution_constraints": {
+    "coordinator_model_requests_allowed": 0,
+    "automatic_provider_fallback": false,
+    "deepseek_allowed": false,
+    "claude_allowed": false,
+    "first_dispatch_must_explicitly_cover_all_declared_plan_and_cardinal_elevation_images": true,
+    "tasks_are_written_by_the_root_dev_model_after_the_first_run": true,
+    "same_route_retries_only": true
+  },
+  "catalog_check": {
+    "checked_at_local_date": "2026-10-09",
+    "endpoint_host": "llmapi.paratera.com",
+    "catalog_count": 86,
+    "Qwen3.8-27B": true,
+    "Qwen3.8-Flash": true
+  },
+  "budget_basis": {
+    "project_ledger_remaining_cny": "about 58, subject to provider bill",
+    "provider_realtime_balance_verified": false,
+    "hard_cap_cny": "20",
+    "price_basis_cny_per_million_tokens": {
+      "Qwen3.8-27B": {
+        "text_input": "3",
+        "image_input_additional": "3",
+        "cache_input": "0.6",
+        "output": "12"
+      },
+      "Qwen3.8-Flash": {
+        "text_input": "1",
+        "image_input_additional": "1",
+        "cache_input": "0.1",
+        "output": "3"
+      }
+    },
+    "note": "Historical bill-derived prices. Provider-reported Qwen input already includes image tokens and the bill charged image tokens again; runtime accounting preserves this extra image charge."
+  },
+  "restart_of": "manual_dispatch_sm25: experimental wrapper stopped before HTTP; zero inference requests"
+}

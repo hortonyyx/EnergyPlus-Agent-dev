@@ -37,7 +37,9 @@
 
 ## 权限与执行
 
-- **当前执行轮（10-09 用户“好的，开干吧”，开发与小测已结束，收尾部分受阻）：** runtime + domain 分工模式修复已登记为 runtime v2 / domain v56，离线检查完成。一次 GLMFlash medium 的 sm25 一层平面读图员小测耗时 58.08 分钟、40 次请求，完成提交但独立质量验收失败；错误外轮廓、虚构空间和门窗漏项仍在，因此未继续整案或重复抽样。下一轮先处理 domain 的整体读图方法和提交接口；runtime 的轻量及优于 Claude Code 的目标仍未证实。范围、证据与下一步见[本轮报告](logs/experiments/2026-10-09_role_runtime_repair/README.md)和[当前交接](logs/worklog/2026-10-09_runtime_domain_repair_close.md)。下一次 work model 验证另定有界方案，不自动重复调用。
+- **当前节点（10-09 sm25 模型能力诊断已完成，先讨论迭代）：** 用户最新授权顺序为冷启 GPT-6 Sol 独立整案，再由项目经理人工调度 3/4 档模型完整做一次。第一轮经外部 MCP bridge 使用 domain v56，未走自有 runtime 模型循环；第二轮经 runtime v2，以 Paratera Qwen3.8-27B/thinking 读平面、Qwen3.8-Flash/thinking 读立面。两轮已冻结及独立评价，无生产代码迭代；第二轮经两项人工指出的局部返工后完成，不能称完全自主。结果与对照边界见[完整报告](logs/experiments/2026-10-09_sm25_dev_and_tier4/README.md)和[当前交接](logs/worklog/2026-10-09_sm25_model_diagnosis.md)。下一轮先讨论能力拆分与具体改动，不自动继续付费调用或重复抽样。此前假楼板有两处，约 140 m² 仅对应东北一处。
+
+- **前一执行轮（10-09 用户“好的，开干吧”，开发与小测已结束，收尾部分受阻）：** runtime + domain 分工模式修复已登记为 runtime v2 / domain v56，离线检查完成。一次 GLMFlash medium 的 sm25 一层平面读图员小测耗时 58.08 分钟、40 次请求，完成提交但独立质量验收失败；错误外轮廓、虚构空间和门窗漏项仍在，因此未继续整案或重复抽样。下一轮先处理 domain 的整体读图方法和提交接口；runtime 的轻量及优于 Claude Code 的目标仍未证实。范围、证据与下一步见[本轮报告](logs/experiments/2026-10-09_role_runtime_repair/README.md)和[当前交接](logs/worklog/2026-10-09_runtime_domain_repair_close.md)。下一次 work model 验证另定有界方案，不自动重复调用。
 
 - **当前分工（10-08 用户“现在你来主导了”）：** Codex（当前主助手）任项目经理，统一决定推进顺序、拆分和派工、验收质量、集成、项目文档、正常 commit/push 与每轮收尾；GPT 子代理按任务需要承担有界实现、分析或复核。Claude 账号当前不可用，Opus 或双旗舰参与不构成开工、验收、合入或收工的必需门槛；账号恢复后是否安排 Claude，由 Codex 根据任务需要决定，项目领导权仍归 Codex。保持一条 main，并行使用项目经理安排的短期工作树。
 - **上一实测授权（10-08 批准，10-09 已执行结束）：** GLMFlash 使用 runtime v1、domain v53，以分工模式做一次 sm25 整案实测；104.68 分钟未生成平面稿或交付稿，全流程行为已观察归档，见[本次实验](logs/experiments/2026-10-08_sm25_domain_v53/README.md)。用户要求以后每次测试均观察记录全流程行为，已写入[工作方式](workflow/development.md#用实际行为解释质量09-28续谈)。上述一次授权已用，不自动追加整案；下一步先用已保存证据做离线定位和修复。原有预算、DeepSeek 专项许可与产品取舍边界继续有效。
