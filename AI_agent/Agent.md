@@ -37,6 +37,8 @@
 
 ## 权限与执行
 
+- **10-09 本轮收工补充：** 用户确认尺寸链标注及派生数据优先，几何网格精细度可配置，当前按 10 cm 对齐；下一轮先详细讨论并设计迭代。本轮仅同步文档与 Git，不改 runtime/domain 实现，不修改两份冻结 BIM，不追加实测。现有结果的尺寸规整未完成，拓扑/库存通过不能称整体数据已干净。具体原则见[产品目标](project/goal.md)，证据与下一入口见当前交接。
+
 - **当前节点（10-09 sm25 模型能力诊断已完成，先讨论迭代）：** 用户最新授权顺序为冷启 GPT-6 Sol 独立整案，再由项目经理人工调度 3/4 档模型完整做一次。第一轮经外部 MCP bridge 使用 domain v56，未走自有 runtime 模型循环；第二轮经 runtime v2，以 Paratera Qwen3.8-27B/thinking 读平面、Qwen3.8-Flash/thinking 读立面。两轮已冻结及独立评价，无生产代码迭代；第二轮经两项人工指出的局部返工后完成，不能称完全自主。结果与对照边界见[完整报告](logs/experiments/2026-10-09_sm25_dev_and_tier4/README.md)和[当前交接](logs/worklog/2026-10-09_sm25_model_diagnosis.md)。下一轮先讨论能力拆分与具体改动，不自动继续付费调用或重复抽样。此前假楼板有两处，约 140 m² 仅对应东北一处。
 
 - **前一执行轮（10-09 用户“好的，开干吧”，开发与小测已结束，收尾部分受阻）：** runtime + domain 分工模式修复已登记为 runtime v2 / domain v56，离线检查完成。一次 GLMFlash medium 的 sm25 一层平面读图员小测耗时 58.08 分钟、40 次请求，完成提交但独立质量验收失败；错误外轮廓、虚构空间和门窗漏项仍在，因此未继续整案或重复抽样。下一轮先处理 domain 的整体读图方法和提交接口；runtime 的轻量及优于 Claude Code 的目标仍未证实。范围、证据与下一步见[本轮报告](logs/experiments/2026-10-09_role_runtime_repair/README.md)和[当前交接](logs/worklog/2026-10-09_runtime_domain_repair_close.md)。下一次 work model 验证另定有界方案，不自动重复调用。
