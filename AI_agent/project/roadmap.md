@@ -1,6 +1,6 @@
 # 路线与当前任务
 
-**当前开发（10-09 用户“好的，开干吧”）：以 runtime + domain 的分工模式为主要研发方向。** domain/kernel 几何修复、runtime 预算/异常、分工模式首稿与返工、读图员压缩策略和行为观察改进已集成，登记为 **runtime v2 / domain v55**；正在统一离线检查。通过后做一次 GLMFlash medium 的 sm25 一层平面读图员小测，全流程观察记录；单模型模式保留参照，整案与 Claude Code 优势仍待验证。范围、分工和验收见[本轮执行记录](../logs/experiments/2026-10-09_role_runtime_repair/README.md)。
+**当前开发（10-09 用户“好的，开干吧”）：以 runtime + domain 的分工模式为主要研发方向。** domain/kernel 几何修复、runtime 预算/异常、分工模式首稿与返工、读图员压缩策略和行为观察改进已集成，登记为 **runtime v2 / domain v56**。125 文件集成检查首轮 1,265 通过、2 项同因失败；纯内存成功返工的兼容性已修复，六个受影响文件复验 62 项全部通过；原集合去重后 1,267 项最终全部通过。现在准备一次 GLMFlash medium 的 sm25 一层平面读图员小测，全流程观察记录；单模型模式保留参照，整案与 Claude Code 优势仍待验证。范围、分工和验收见[本轮执行记录](../logs/experiments/2026-10-09_role_runtime_repair/README.md)。
 
 **上一实测节点（10-09，本段为修复前状态）：GLMFlash + runtime v1 + domain v53、sm25 分工模式实测已结束，104.68 分钟未生成平面稿、整案候选或交付稿。** 已观察并归档完整行为：105 次请求、100 次响应，22 次平面试建均未成功；四个立面成功提交。见[实测报告](../logs/experiments/2026-10-08_sm25_domain_v53/README.md)。
 
