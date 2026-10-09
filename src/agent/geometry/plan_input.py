@@ -251,9 +251,6 @@ def plan_error_hint(plan, message):
     same_space = _same_space_hint(plan, message)
     if same_space is not None:
         return same_space
-    if any(word in message for word in ('polygonize', 'overlap', 'outside footprint',
-            'full-boundary hosts', 'full space host', 'occupy the same space', 'outside floor vertical bounds')):
-        return dict(note='The item shape parsed; inspect the reported geometry in the original. No snapping, host trimming or unit conversion was applied.')
     match = re.search(r'plan\.(partitions|space_seeds|openings)\[(\d+)\]', message)
     collection, index = (match[1], int(match[2])) if match else (None, None)
     if collection is None:
@@ -267,14 +264,36 @@ def plan_error_hint(plan, message):
                             break
     if collection:
         example = examples[collection].copy()
+        row = None
         if isinstance(plan, dict) and isinstance(plan.get(collection), list) and index < len(plan[collection]):
             row = plan[collection][index]
             if isinstance(row, dict) and isinstance(row.get('id'), str):
                 example['id'] = row['id']
                 if collection == 'openings' and row.get('kind') in {'window', 'door', 'open', 'passage'}:
                     example['kind'] = row['kind']
+        if collection == 'openings' and isinstance(row, dict) and message.startswith(f"opening {row.get('id')}.z "):
+            z_floor = plan.get('z_floor')
+            height = plan.get('ceiling_height')
+            bounds = ([z_floor, z_floor + height]
+                      if all(isinstance(value, (int, float)) and not isinstance(value, bool)
+                             and math.isfinite(value) for value in (z_floor, height)) else None)
+            return dict(path=f'plan.openings[{index}].z', current=copy.deepcopy(row.get('z')),
+                        allowed_floor_bounds_m=bounds,
+                        note=('Set both absolute opening heights within the floor bounds while preserving the '
+                              'observed or stated sill/head relationship; record any assumed height.'))
+        if any(text in message for text in ('outside footprint', 'full-boundary hosts', 'full space host',
+                                             'only one full space host')):
+            note = ('Inspect this declared object and its reported host/footprint relation in the original. '
+                    'Keep the opening or wall if it is observed; correct its points rather than deleting it or '
+                    'adding an unsupported wall to satisfy compilation.')
+        else:
+            note = ('Minimum item format only; replace example coordinates and evidence with observations. '
+                    'No geometry was adjusted.')
         return dict(path=f'plan.{collection}[{index}]', example=example,
-                    note='Minimum item format only; replace example coordinates and evidence with observations. No geometry was adjusted.')
+                    note=note)
+    if any(word in message for word in ('polygonize', 'overlap', 'outside footprint',
+            'full-boundary hosts', 'full space host', 'occupy the same space', 'outside floor vertical bounds')):
+        return dict(note='The item shape parsed; inspect the reported geometry in the original. No snapping, host trimming or unit conversion was applied.')
     fields = {
         'x_anchors': [[10, 0.0], [110, 10.0]], 'y_anchors': [[10, 10.0], [110, 0.0]],
         'footprint_pixels': [[10, 10], [110, 10], [110, 110], [10, 110]],

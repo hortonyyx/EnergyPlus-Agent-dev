@@ -112,6 +112,38 @@ def test_failed_trial_is_one_json_after_adapter_and_loses_no_error_location(tmp_
     assert visible["drawing_differences"] == complete["drawing_differences"]
     assert visible["building_precision"] == complete["building_precision"]
     assert visible["message"].startswith("trial_plan_bim failed")
+    assert visible["next_action"]["objects"] == ["plan.openings[0]"]
+    assert "Preserve all other observed walls, openings and room topology" in visible["next_action"]["instruction"]
     assert hashlib.sha256(base64.b64decode(envelope["content"][0]["data"])).hexdigest() == image_sha
     assert len(pictures) == 2 and len(image_refs) == 1
     assert json.loads(receipt_path.read_text(encoding="utf-8")) == complete
+
+
+def test_large_failed_trial_keeps_located_actions_and_references_repeated_audit_detail(tmp_path):
+    complete, image, receipt_path, _ = _receipt(tmp_path, passed=False)
+    complete["reason"] = "many dangles; " + ("repeated compiler detail " * 200)
+    complete["repair_hint"] = {
+        "path": "plan.partitions[0].points[1]",
+        "note": "Move only the named endpoint using the original drawing.",
+        "junction_repairs": [{"path": f"plan.partitions[{i}].points[1]"} for i in range(20)],
+    }
+    complete["changes"] = [{"path": f"plan.partitions:{i}"} for i in range(30)]
+    complete["alignment"] = {
+        "schema_version": "reader_alignment.v1", "status": "rejected",
+        "fallback": {"status": "not_applied", "aligned_compile_error": "x" * 5000,
+                     "original_compile_error": "y" * 5000},
+        "junction_preparation": {"status": "rolled_back", "compile_error": "z" * 5000,
+                                 "changes": list(range(20)), "attempted_changes": list(range(20))},
+    }
+    receipt_path.write_text(json.dumps(complete), encoding="utf-8", newline="\n")
+    visible = asyncio.run(InjectedTrial(complete, [image]).call({}))["structuredContent"]
+
+    assert visible["next_action"]["objects"] == ["plan.partitions[0].points[1]"]
+    assert len(visible["repair_hint"]["junction_repairs"]) == 8
+    assert visible["repair_hint"]["junction_repairs_remaining"] == 12
+    assert len(visible["changes"]) == 12 and visible["changes_remaining"] == 18
+    assert visible["alignment"]["junction_preparation"]["has_compile_error"] is True
+    assert "compile_error" not in visible["alignment"]["junction_preparation"]
+    assert {"reason", "repair_hint", "changes"} <= set(visible["audit_refs"])
+    assert len(json.dumps(visible)) < 6000
+    assert json.loads(receipt_path.read_text(encoding="utf-8"))["reason"] == complete["reason"]

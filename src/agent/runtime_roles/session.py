@@ -11,6 +11,7 @@ import json
 import math
 import re
 import time
+from collections.abc import Mapping
 from contextlib import AsyncExitStack
 from pathlib import Path
 
@@ -108,7 +109,7 @@ EXTRA_TOOLS = [
              "basis": {"enum": ["observed", "inferred"]}, "along_start_m": {"type": "number"},
              "along_end_m": {"type": "number"}, "text": {"type": "string", "minLength": 1}},
              ("action", "reason"))}}, ("candidate", "edits"))},
-    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently and wait until every task in this call ends. On the first call, admitted plan and cardinal-elevation drawings omitted from tasks are added with default targets and origin; the result lists them. Give floor/facade target and common origin. Optional instructions (at most 400 characters) contain only drawing facts or a specific rework problem; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and issues. Completed IDs reuse deliveries; allowances come from the role.",
+    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently and wait until every task in this call ends. On the first call, admitted plan and cardinal-elevation drawings omitted from tasks are added with default targets and origin; the result lists them. Give floor/facade target and common origin. Optional instructions (at most 400 characters) contain only drawing facts or a specific rework problem; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id and previous_task_id; the runtime attaches the prior task's located failure handoff and issues may add drawing facts. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
@@ -162,6 +163,39 @@ def _validate_task_instructions(tasks):
             raise ValueError(f"reader task {identity} instructions exceed 400 characters by {excess}; "
                              "instructions are optional and should contain only drawing facts or a "
                              "specific rework problem")
+
+
+def _compact_failure_result(value):
+    """Project a saved tool result into a short, located rework handoff."""
+    if not isinstance(value, Mapping):
+        return None
+    structured = value.get("structuredContent")
+    if not isinstance(structured, Mapping):
+        structured = value
+    result = {key: copy.deepcopy(structured[key]) for key in
+              ("status", "error_type", "reason", "message", "receipt_file") if key in structured}
+    errors = structured.get("format_errors")
+    if isinstance(errors, list):
+        result["format_errors"] = [copy.deepcopy(row) for row in errors[:24] if isinstance(row, Mapping)]
+        if len(errors) > len(result["format_errors"]):
+            result["additional_format_error_count"] = len(errors) - len(result["format_errors"])
+    hint = structured.get("repair_hint")
+    if isinstance(hint, Mapping):
+        kept = {key: copy.deepcopy(hint[key]) for key in (
+            "path", "note", "junction_repairs", "space_seeds", "missing_wall_check",
+        ) if key in hint}
+        if kept:
+            result["repair_hint"] = kept
+    action = structured.get("next_action")
+    if isinstance(action, (str, Mapping)):
+        result["next_action"] = copy.deepcopy(action)
+    for key in ("unhosted_openings", "source_findings", "topology_issues"):
+        rows = structured.get(key)
+        if isinstance(rows, list) and rows:
+            result[key] = copy.deepcopy(rows[:12])
+            if len(rows) > 12:
+                result[key + "_remaining"] = len(rows) - 12
+    return result or None
 
 
 def _default_floor_target(image, index):
@@ -231,6 +265,59 @@ class RoleSession:
     def image_origins(self, raw):
         return self.frozen.image_origins(raw)
 
+    def _failure_handoff(self, task_id):
+        """Reference prior evidence and carry its last actionable failures forward."""
+        record = self.registry.records[task_id]
+        handoff = {
+            "previous_task_id": task_id,
+            "status": record["status"],
+            "runtime_status": record.get("runtime_status"),
+            "reason": record.get("reason"),
+            "complete_record": copy.deepcopy(record.get("record_blob")),
+            "tool_failures": [],
+        }
+        if record["status"] == "completed":
+            handoff["instruction"] = (
+                "Start from previous_artifact. Change only the declared rework_targets for the supplied drawing facts; "
+                "the prior delivery's earlier corrected failures are not current rework evidence."
+            )
+            return handoff
+        child = self.registry.child(task_id)
+        known_failure = False
+        for event in reversed(child.events):
+            payload = event.payload
+            if (payload.event_type != "tool_execution"
+                    or payload.tool_name not in {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
+                    or payload.outcome == "succeeded"):
+                continue
+            row = {
+                "tool": payload.tool_name,
+                "outcome": payload.outcome,
+                "evidence": {
+                    "event_id": event.event_id,
+                    "raw_result": payload.raw_result.model_dump(mode="json"),
+                },
+            }
+            if payload.outcome != "unknown":
+                try:
+                    compact = _compact_failure_result(child.resolve(payload.raw_result))
+                except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+                    compact = None
+                if compact:
+                    row["feedback"] = compact
+                    receipt_file = compact.get("receipt_file")
+                    if isinstance(receipt_file, str):
+                        row["evidence"]["receipt_file"] = receipt_file
+                    known_failure = True
+            handoff["tool_failures"].append(row)
+            if len(handoff["tool_failures"]) >= 2 or (known_failure and payload.outcome != "unknown"):
+                break
+        handoff["instruction"] = (
+            "Continue from this saved evidence. Correct the located failure while preserving all other observed "
+            "walls, openings, rooms and connections; inspect the original wherever the handoff does not prove a change."
+        )
+        return handoff
+
     async def call_tool(self, name, arguments):
         if name not in self.schemas and name not in COORDINATOR_ORDINARY_TOOLS:
             return envelope({"status": "rejected", "reason": f"{name} is not a coordinator tool"}, error=True)
@@ -291,7 +378,13 @@ class RoleSession:
                     if payload.event_type == "tool_execution" and payload.tool_name in {
                             "submit_plan_reading", "submit_elevation_reading"}:
                         first.setdefault(event.task_id, payload.outcome == "succeeded")
-                return envelope(reader_batch_reply(value, first))
+                reply = reader_batch_reply(value, first)
+                by_id = {row["task_id"]: row for row in value["results"]}
+                for row in reply["results"]:
+                    handoff = by_id[row["task_id"]].get("failure_handoff")
+                    if handoff:
+                        row["failure_handoff"] = copy.deepcopy(handoff)
+                return envelope(reply)
             if name == "read_role_artifact":
                 record = self.registry.records[arguments["task_id"]]
                 self.registry._verify_record(record)
@@ -537,11 +630,10 @@ class RoleSession:
             previous = self.registry.records[arguments["previous_task_id"]]
             if previous["image"] != image or previous["role_id"] != arguments["role_id"] or canonical_target(previous["role_id"], previous["target"]) != arguments["target"]:
                 raise ValueError("rework must keep the same role, original image and target")
-            if not arguments.get("issues"):
-                raise ValueError("rework needs specific issues")
             if arguments["role_id"] == "plan_reader" and previous.get("artifact") and not arguments.get("rework_targets"):
                 raise ValueError("plan rework needs explicit rework_targets such as plan.openings:D1; all other objects stay fixed")
             task["previous_artifact"] = previous.get("artifact")
+            task["previous_task_handoff"] = self._failure_handoff(arguments["previous_task_id"])
         parse_target(arguments["role_id"], arguments["target"])
         task["coordinate_contract"] = task_coordinates(arguments)
         if task["role_id"] == "elevation_reader":
@@ -636,6 +728,8 @@ class RoleSession:
                     return self.registry.save(task, status="failed", reason=str(error))
         ordered = sorted(admitted, key=lambda task: task["role_id"] != "plan_reader")
         results = await asyncio.gather(*(one(task) for task in ordered))
+        results = [({**row, "failure_handoff": self._failure_handoff(row["task_id"])}
+                    if row.get("status") == "failed" else row) for row in results]
         by_id = {row["task_id"]: row for row in results}
         return {"status": "completed", "results": [by_id[identity] for identity in identities],
                 "auto_added": auto_added}

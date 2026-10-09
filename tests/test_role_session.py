@@ -17,6 +17,7 @@ from src.agent.runtime_roles.session import RoleSession, envelope
 from src.agent_runtime.adapter import ScriptedAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
+from src.harness_contracts import ToolExecutionPayload
 
 from test_agent_runtime import response, versions
 
@@ -220,9 +221,56 @@ def test_rework_has_new_identity_and_cannot_switch_original(environment):
     assert result["status"] == "completed"
     previous = session.registry.task("north-r2")["previous_artifact"]
     assert previous == session.registry.records["north"]["artifact"]
+    handoff = session.registry.task("north-r2")["previous_task_handoff"]
+    assert handoff["status"] == "completed" and handoff["tool_failures"] == []
+    assert "earlier corrected failures are not current rework evidence" in handoff["instruction"]
     with pytest.raises(ValueError):
         asyncio.run(session.delegate_many([dispatch("north-r3", previous_task_id="north", target="wrong",
                                                       issues=["wrong facade"])]))
+
+
+def test_failed_rework_automatically_carries_located_tool_evidence_without_issues(environment):
+    store, make = environment
+    session = make()
+    previous = session._task({
+        "task_id": "plan-old", "role_id": "plan_reader", "image": "north.png",
+        "target": "F1", "origin": "Shared origin",
+    })
+    child = session.registry.admit(previous)
+    raw = envelope({
+        "status": "failed",
+        "reason": "opening W1 has no full host",
+        "repair_hint": {"path": "plan.openings[0]", "note": "Move W1 onto its observed wall."},
+        "next_action": {"objects": ["plan.openings[0]"], "instruction": "Correct W1 and retry."},
+        "receipt_file": "trial_receipts/trial_003.json",
+    }, error=True)
+    child.append(ToolExecutionPayload(
+        call_id="trial-3", tool_name="trial_plan_bim", full_arguments={"plan": {}},
+        raw_result=child.capture(raw, force_blob=True), shown_result=child.capture(raw, force_blob=True),
+        repeatability="non_idempotent_write", operation_key="trial-3", outcome="failed",
+    ))
+    session.registry.save(previous, status="failed", reason="incomplete_response",
+                          runtime={"status": "incomplete_response"})
+    seen = []
+
+    async def offline_reader(task):
+        seen.append(task)
+        return session.registry.save(task, status="failed", reason="offline behavior check")
+
+    session.run_reader = offline_reader
+    asyncio.run(session.delegate_many([{
+        "task_id": "plan-rework", "role_id": "plan_reader", "image": "north.png",
+        "target": "F1", "origin": "Shared origin", "previous_task_id": "plan-old",
+    }]))
+    handoff = seen[0]["previous_task_handoff"]
+    assert handoff["previous_task_id"] == "plan-old"
+    assert handoff["reason"] == "incomplete_response"
+    failure = handoff["tool_failures"][0]
+    assert failure["feedback"]["repair_hint"]["path"] == "plan.openings[0]"
+    assert failure["feedback"]["next_action"]["objects"] == ["plan.openings[0]"]
+    assert failure["evidence"]["event_id"]
+    assert failure["evidence"]["receipt_file"] == "trial_receipts/trial_003.json"
+    assert handoff["complete_record"]["sha256"]
 
 
 @pytest.mark.parametrize("environment", [2], indirect=True)

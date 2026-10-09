@@ -24,6 +24,10 @@ def test_reader_guides_are_single_image_and_keep_corresponding_existing_method()
         assert unavailable not in plan
     assert "trial_plan_bim" not in elevation
     assert "apply_elevation_heights" not in elevation
+    assert "segments_mm (the printed segment values)" in plan
+    assert "printed_segments_mm" not in plan
+    assert "structurally complete" in plan
+    assert "merge/split\nactual rooms merely to make a trial pass" in plan
 
 
 def test_elevation_guide_exposes_a_complete_valid_minimum_example():
@@ -46,6 +50,8 @@ def test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft():
     tool_text = " ".join(tool["description"] for tool in EXTRA_TOOLS)
     assert ">30cm differences require an explicit decision before delivery" in tool_text
     assert "unchosen items retain plan" not in tool_text
+    assert "runtime carries the prior task's located failure handoff automatically" in guide
+    assert "runtime attaches the prior task's located failure handoff" in tool_text
 
 
 def test_catalog_reports_exact_character_counts_and_unchanged_single_model():

@@ -46,16 +46,19 @@ and overall dimensions. 2. Call view_plan_blocks once: it returns 4-8 enlarged b
 about 3x with ORIGINAL pixel grids, boxes and view IDs. Read the floor's walls, openings,
 room seeds and dimension annotations together. Do not profile each line before a draft."""
 
-_PLAN_CALIBRATION = """3. Calibrate from overall exterior dimensions; send internal chains in the first trial.
-dimension_chains rows: id, axis=x/y, printed segments_mm, total_mm, approximate tick_pixels
-(one per extension line, ordered), source_refs. Only chains reaching both outer faces set
+_PLAN_CALIBRATION = """3. Calibrate from overall exterior dimensions; send useful internal chains in the first trial.
+dimension_chains rows use exactly: id, axis=x/y, segments_mm (the printed segment values),
+total_mm, tick_pixels (one approximate original-pixel tick per extension line, ordered),
+source_refs. Only chains reaching both outer faces set
 scale. start_world_m needs the first tick's contract origin AND visible annotation, cited
 together; never guess zero. Otherwise anchors supply origin. Further chains need matching
 scale/origin; failed/internal chains never set an axis. Use outer perimeter faces and
 partition midlines; start_world_m is metres, axes keep East/North even with reversed ticks."""
 
-_PLAN_DRAFT = """4. Submit ALL floor walls, openings and room seeds together to trial_plan_bim, using
-approximate original pixels. Nearby ink is aligned; endpoints within the reported
+_PLAN_DRAFT = """4. After understanding the whole plan and its blocks, submit one structurally complete
+declaration of ALL actual floor walls, openings and room seeds to trial_plan_bim, using
+approximate original pixels. Once that structure is ready, trial it instead of adding more
+general narration or profiling every line. Nearby ink is aligned; endpoints within the reported
 tolerance (at most 0.30m) connect automatically. If a junction still fails, set the
 named endpoint to the error's exact original-pixel target. Openings follow their wall.
 Dimensions override ink; missing ink is recorded without moving it. Complete plan example:
@@ -66,7 +69,8 @@ Seeds label room interiors, never create walls; choose role from the full table 
 Do not duplicate footprint as partitions. Exterior doors/windows lie on footprint;
 interior doors/open passages lie on partitions continuing through apertures. Junctions
 coincide. Only exterior windows are supported. Door state=unknown/open/closed; omit
-window state. Label assumed heights.
+window state. Label assumed heights. Never remove an observed wall/opening or merge/split
+actual rooms merely to make a trial pass; repair the named declaration while preserving topology.
 For corrections use operations against the latest passed plan (or last resolved draft
 before any passes). Each needs reason, source_refs, original-pixel bbox and:
 update: collection,id,changes (no id); add: collection,value (complete row);
@@ -196,9 +200,10 @@ new reader delivery is assembled and decided. use_elevation stays on its host; c
 rereading, never pixel-width replacement. Never average positions. One-sided or unsafe
 height matches stay unresolved.
 
-Rework substantive room/opening/host/connectivity errors. Re-dispatch with new task_id,
-previous_task_id,issues. Plan rework_targets: plan.partitions:<id>,plan.space_seeds:<id>,
-plan.openings:<id>,plan.openings or a plan field; preserve the rest. Actual reader-geometry
+Rework substantive room/opening/host/connectivity errors. Re-dispatch with new task_id and
+previous_task_id; the runtime carries the prior task's located failure handoff automatically,
+and issues may add drawing-specific facts. Plan rework_targets: plan.partitions:<id>,
+plan.space_seeds:<id>, plan.openings:<id>,plan.openings or a plan field; preserve the rest. Actual reader-geometry
 changes need review_role_assembly with reasons; height/use/note edits retain confirmation.
 Missing-floor decisions accept partial delivery; stale/unverified reader lineage needs repair.
 

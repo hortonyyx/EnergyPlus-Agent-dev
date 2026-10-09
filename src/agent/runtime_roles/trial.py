@@ -242,6 +242,29 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
             audit_refs[field] = _audit_reference(receipt, field, value)
     if audit_refs:
         visible["audit_refs"] = audit_refs
+    reason = visible.get("reason")
+    if isinstance(reason, str) and len(reason) > 1200:
+        visible.setdefault("audit_refs", {})["reason"] = _audit_reference(receipt, "reason", reason)
+        visible["reason"] = (
+            "Compilation reported many located geometry failures; use repair_hint and the located findings below. "
+            "The complete compiler reason is preserved by audit_refs.reason."
+        )
+    changes = visible.get("changes")
+    if isinstance(changes, list) and len(changes) > 12:
+        visible.setdefault("audit_refs", {})["changes"] = _audit_reference(receipt, "changes", changes)
+        visible["changes"] = copy.deepcopy(changes[:12])
+        visible["changes_remaining"] = len(changes) - 12
+    hint = visible.get("repair_hint")
+    if isinstance(hint, Mapping):
+        hint = copy.deepcopy(dict(hint))
+        repairs = hint.get("junction_repairs")
+        if isinstance(repairs, list) and len(repairs) > 8:
+            visible.setdefault("audit_refs", {})["repair_hint"] = _audit_reference(
+                receipt, "repair_hint", receipt["repair_hint"]
+            )
+            hint["junction_repairs"] = copy.deepcopy(repairs[:8])
+            hint["junction_repairs_remaining"] = len(repairs) - 8
+        visible["repair_hint"] = hint
     alignment = visible.get("reading_alignment")
     if isinstance(alignment, Mapping):
         compact = {}
@@ -261,8 +284,15 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
     if isinstance(preflight, Mapping):
         compact_preflight = {
             field: copy.deepcopy(preflight[field])
-            for field in ("schema_version", "status", "fallback") if field in preflight
+            for field in ("schema_version", "status") if field in preflight
         }
+        fallback = preflight.get("fallback")
+        if isinstance(fallback, Mapping):
+            compact_preflight["fallback"] = {
+                "status": fallback.get("status"),
+                "has_aligned_compile_error": bool(fallback.get("aligned_compile_error")),
+                "has_original_compile_error": bool(fallback.get("original_compile_error")),
+            }
         for field in ("junction_preparation", "post_alignment_preparation"):
             row = preflight.get(field)
             if isinstance(row, Mapping):
@@ -271,17 +301,34 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
                     "preflight_only": row.get("preflight_only"),
                     "changes_applied_to_returned_plan": row.get("changes_applied_to_returned_plan"),
                     "application": row.get("application"),
-                    "compile_error_before": row.get("compile_error_before"),
-                    "compile_error": row.get("compile_error"),
-                    "rejection": row.get("rejection"),
+                    "has_compile_error_before": bool(row.get("compile_error_before")),
+                    "has_compile_error": bool(row.get("compile_error")),
+                    "has_rejection": bool(row.get("rejection")),
                     "changes": len(row.get("changes", [])),
                     "attempted_changes": len(row.get("attempted_changes", [])),
                 }
         compact_preflight["full_record"] = _audit_reference(receipt, "alignment", preflight)
         visible["alignment"] = compact_preflight
     if visible.get("status") != "passed":
+        paths = []
+        hint = visible.get("repair_hint")
+        if isinstance(hint, Mapping) and isinstance(hint.get("path"), str):
+            paths.append(hint["path"])
+        for row in visible.get("format_errors", []):
+            if isinstance(row, Mapping) and isinstance(row.get("path"), str) and row["path"] not in paths:
+                paths.append(row["path"])
+        next_action = {
+            "objects": paths[:16],
+            "instruction": (
+                "Edit the named objects/fields using repair_hint and the original drawing, then retry the complete plan "
+                "or operations against an editable draft. Preserve all other observed walls, openings and room topology."
+            ),
+        }
+        if len(paths) > 16:
+            next_action["additional_object_count"] = len(paths) - 16
+        visible["next_action"] = next_action
         visible["message"] = (
-            "trial_plan_bim failed; use the reported problems, located findings and repair hints below."
+            "trial_plan_bim failed; revise the located objects below and keep the complete receipt as evidence."
         )
     return visible
 

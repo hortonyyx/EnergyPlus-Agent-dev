@@ -120,6 +120,29 @@ def test_same_space_seed_hint_points_to_the_original_region_without_inventing_a_
     assert 'does not create a wall' in hint['note']
 
 
+def test_opening_host_and_height_failures_name_the_declared_object_without_deleting_topology():
+    plan = _plan()
+    opening = plan['openings'][0]
+    host = plan_error_hint(
+        plan,
+        f"opening {opening['id']} at pixels {opening['p1']} -> {opening['p2']} "
+        "requires one exterior or two interior full-boundary hosts; found []",
+    )
+    assert host['path'] == 'plan.openings[0]'
+    assert 'correct its points rather than deleting it' in host['note']
+
+    plan['z_floor'] = 4.0
+    plan['ceiling_height'] = 3.6
+    opening['z'] = [1.0, 2.4]
+    height = plan_error_hint(plan, f"opening {opening['id']}.z [1.0, 2.4] is outside floor vertical bounds [4.0, 7.6]")
+    assert height == {
+        'path': 'plan.openings[0].z', 'current': [1.0, 2.4],
+        'allowed_floor_bounds_m': [4.0, 7.6],
+        'note': ('Set both absolute opening heights within the floor bounds while preserving the '
+                 'observed or stated sill/head relationship; record any assumed height.'),
+    }
+
+
 def test_compact_reply_keeps_usable_ids_geometry_images_and_complete_readback(tmp_path):
     async def scenario():
         run = _run_with_one_image(tmp_path)

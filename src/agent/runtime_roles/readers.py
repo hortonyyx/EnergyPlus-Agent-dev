@@ -467,7 +467,16 @@ class ReaderTools:
             tools.append(copy.deepcopy(PLAN_VIEWS_TOOL))
             tools.append({
                 "name": "trial_plan_bim",
-                "description": "Align, compile, check and overlay one isolated plan. A full plan may include dimension_chains: id, axis, printed segments_mm, total_mm, approximate tick_pixels and source_refs. Nearby ink alignment uses this plan's scale; verified dimensions override ink, failures never move geometry, and the return summarizes every move/rejection. Operations use the remembered draft and preserve unpointed objects. Only passed trials can be submitted.",
+                "description": (
+                    "Align, compile, check and overlay one isolated plan after the whole drawing is understood. "
+                    "Send one complete plan with floor_id, z_floor, ceiling_height, x_anchors, y_anchors, basis, "
+                    "footprint_pixels, partitions, openings, space_seeds, assumptions and unresolved. Optional "
+                    "dimension_chains rows use exactly id, axis, segments_mm, total_mm, tick_pixels and source_refs; "
+                    "tick_pixels has one more item than segments_mm. Do not invent field aliases. Nearby ink alignment "
+                    "uses this plan's scale; verified dimensions override ink. Failed returns name fields/objects and "
+                    "repair actions. Operations use the remembered draft and preserve unpointed objects. Never omit an "
+                    "observed wall/opening or change room topology to pass. Only passed trials can be submitted."
+                ),
                 "inputSchema": {
                     "type": "object",
                     "properties": {"plan": {"type": "object"},
@@ -576,7 +585,8 @@ class ReaderTools:
                 else:
                     result = await self.trial.call(operations=arguments["operations"])
             except ValueError as error:
-                value = {"status": "rejected", "reason": str(error)}
+                value = {"status": "rejected", "reason": str(error),
+                         "next_action": "Correct the cited object or field in a complete plan, then retry; no trial was accepted."}
                 return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
                         "structuredContent": value, "isError": True}
         else:
