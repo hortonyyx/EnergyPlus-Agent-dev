@@ -1,6 +1,6 @@
 # 分工模式可靠性与 runtime 效率修复
 
-状态：2026-10-09 本轮已结束。修复已集成为 **runtime v2 / domain v56**，离线检查完成；固定提交 `30085cce` 上批准的一次 GLMFlash medium 单层小测已完成提交，**独立质量验收失败**，没有追加整案或重复抽样。用户在确认本轮方案后说“好的，开干吧”。
+状态：2026-10-09 本轮开发与小测已结束，**归档同步和部分缓存清理受阻**。修复已集成为 **runtime v2 / domain v56**，离线检查完成；固定提交 `30085cce` 上批准的一次 GLMFlash medium 单层小测已完成提交，**独立质量验收失败**，没有追加整案或重复抽样。用户在确认本轮方案后说“好的，开干吧”。
 
 当前最需要解决的是 domain 对整体外形与空间关系的误读，以及提交接口导致的格式返工。小测耗时 58.08 分钟，生成了约 140 m² 的虚构室内区域；能通过试建和提交不代表还原正确。快速查看：[最终平面稿](review/plan_F1.png)、[原图叠加复核](review/original_overlay_F1.png)、[完整行为观察](live_behavior_notes.md)、[结构化结果](probe_summary.json)。
 
@@ -85,9 +85,13 @@ Codex 主助手负责统筹、runtime 缓存调查与改进、行为记录、集
 
 ## 证据与收尾
 
-完整运行 3,492 文件、62,281,350 字节，源与副本各两轮逐文件哈希一致；补充归档 20 文件，含原始检查日志、JUnit、进程记录及 F1 评价，两个归档全部成员读回核验。归档总约 27.8 MiB，不用保存整个开发工作树来恢复证据。见 [归档核验](archive_summary.json)、[发布与远端验证](evidence_publication.json)、[凭据检查](evidence_secret_scan.json)。
+完整运行 3,492 文件、62,281,350 字节，源与副本各两轮逐文件哈希一致；补充归档 20 文件，含原始检查日志、JUnit、进程记录及 F1 评价，两个归档全部成员读回核验。本地保留原始 gzip 归档；运行归档另做无损 XZ 压缩，从 28,382,250 降到 10,691,424 字节，解压后的 tar 完全相同，供远端分片恢复。见 [本地归档核验](archive_summary.json)、[发布与远端验证](evidence_publication.json)、[凭据检查](evidence_secret_scan.json)。
 
-独立证据分支：`evidence/role-runtime-repair-sm25-f1-parts-2026-10-09`。完整原始产物在该分支归档，主线保存报告与可直接查看的平面/叠加图。整包上传遇到连接重置和 HTTP 408，改用 4 MiB 分片逐批提交，重组后的归档 SHA256 保持不变。收尾、工作树和磁盘记录见[本轮交接](../../worklog/2026-10-09_runtime_domain_repair_close.md)。
+独立证据分支：`evidence/role-runtime-repair-sm25-f1-parts-2026-10-09`。主线保存报告与可直接查看的平面/叠加图。整包及 4 MiB 分片上传遇到连接重置和 HTTP 408，最终使用不超过 1 MiB 的 XZ 分片逐批提交；按最新 `archive_parts.json` 恢复。XZ 归档 SHA256 为 `f210e647cbdf576343b0a84b530908a42358ee6d8a4ea96cb8b4d85ba97dde65`；解压后 tar SHA256 为 `1b9eb1fad1485e996094c24784c34507e131eee6b895aead6ae40cd09cc3f36e`，与原 gzip 解压结果一致。旧 gzip 分片仅部分进入 Git 历史，不作为恢复入口；原 gzip 整包没有完成远端上传。收尾、工作树和磁盘记录见[本轮交接](../../worklog/2026-10-09_runtime_domain_repair_close.md)。
+
+**远端尚不完整。** 最新远端 `7c7a498b` 只有 XZ `part-000..004` 和 `part-010`，共 6/11；缺 `part-005..009`（5 MiB）及补充归档 757,850 字节。同一待传提交连续两次 HTTP 408 后停止重试。完整原始运行、gzip、XZ 和全部分片均在本地保全；远端现状不能独立恢复整个运行。见[已发布文件的 Git blob 哈希清单](published_remote_files_manifest.json)。冻结测试工作树和分片工作树保留，待续传核验后再收回；不为续传重新调用 work model。
+
+**缓存清理受限。** 本轮两个已核验的测试缓存目录共 901,040,452 字节（约 0.84 GiB），原始日志/JUnit 已另存。删除命令被自动审批以 `blocked by policy` 拒绝，未执行、未换途径重试；路径和审计见[收尾记录](cleanup.json)、[缓存清查](test_cache_audit.json)。旧受限残留继续保留。
 
 ## 执行记录
 
