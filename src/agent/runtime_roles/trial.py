@@ -899,8 +899,10 @@ class PlanTrial:
         self.reference_validation_passed = True
         self.reference_receipt = {
             "status": "passed", "validation_passed": True,
-            "plan_sha256": receipt["plan_sha256"], "receipt_file": receipt["receipt_file"],
+            "plan_sha256": receipt["plan_sha256"],
         }
+        if isinstance(receipt.get("receipt_file"), str):
+            self.reference_receipt["receipt_file"] = receipt["receipt_file"]
         self.allowed_rework_targets = list(allowed_targets)
         self.inherited_topology_issues = copy.deepcopy(receipt.get("topology_issues", []))
         self._inherit_profiles(prior, receipt)
