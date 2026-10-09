@@ -71,12 +71,12 @@ def observe_events(run: Path) -> dict:
     lines = (run / "events.jsonl").read_bytes().splitlines(keepends=True)
     events, partial_tail = [], False
     for index, line in enumerate(lines):
+        if index == len(lines) - 1 and not line.endswith(b"\n"):
+            partial_tail = True
+            break
         try:
             events.append(json.loads(line))
         except (ValueError, UnicodeDecodeError):
-            if index == len(lines) - 1 and not line.endswith(b"\n"):
-                partial_tail = True
-                break
             raise
     if not events:
         return {"run": run.name, "format": "events", "schema_version": 2,
@@ -85,7 +85,7 @@ def observe_events(run: Path) -> dict:
     store = _ReadOnlyStore(run)
     tasks: dict[str, dict] = {}
     sent: dict[str, float] = {}
-    requests, timeline, capture_errors = {}, [], []
+    requests, timeline, capture_errors, budget_waits = {}, [], [], {}
     for event in events:
         when, payload = _stamp(event), event.get("payload") or {}
         kind = payload.get("event_type")
@@ -94,7 +94,8 @@ def observe_events(run: Path) -> dict:
             "first_request": None, "requests": 0, "responses": 0, "request_seconds": [], "output_tokens": 0,
             "input_tokens": 0, "cache_read_tokens": 0, "cache_creation_tokens": 0, "usage_responses": 0,
             "refused": 0, "tools": collections.Counter(), "tool_outcomes": collections.Counter(),
-            "tool_errors": 0, "milestones": {}, "compactions": 0})
+            "tool_errors": 0, "milestones": {}, "compactions": 0,
+            "budget_wait_count": 0, "budget_wait_seconds": 0, "budget_wait_outcomes": collections.Counter()})
         if when:
             task["start"] = min(task["start"] or when, when)
             task["end"] = max(task["end"] or when, when)
@@ -165,10 +166,27 @@ def observe_events(run: Path) -> dict:
             timeline.append({"event": event["event_id"], "task": event.get("task_id"),
                 "min": _minutes(when, origin), "tool": name, "outcome": outcome,
                 "invocation_event": payload.get("invocation_event_id"),
+                **({"failure": payload["failure"]} if payload.get("failure") else {}),
                 "result": {k: body[k] for k in ("status", "reason", "error_type", "candidate", "draft",
                     "draft_id", "artifact_sha256", "next_action") if k in body}})
         elif kind == "context" and payload.get("action") == "compact":
             task["compactions"] += 1
+        elif kind == "budget_wait":
+            key = (event.get("task_id"), payload["wait_id"])
+            if payload["phase"] == "begin":
+                task["budget_wait_count"] += 1
+                budget_waits[key] = {"task": event.get("task_id"), "wait_id": payload["wait_id"],
+                    "begin_event": event["event_id"], "begin_min": _minutes(when, origin),
+                    "reason": payload["reason"], "active_hold_ids": payload.get("active_hold_ids", []),
+                    "outcome": "unfinished"}
+            else:
+                duration = float(payload["elapsed_seconds"])
+                task["budget_wait_seconds"] += duration
+                task["budget_wait_outcomes"][payload["outcome"]] += 1
+                budget_waits.setdefault(key, {"task": event.get("task_id"), "wait_id": payload["wait_id"],
+                                             "begin_event": None}).update(
+                    end_event=event["event_id"], end_min=_minutes(when, origin),
+                    elapsed_seconds=duration, outcome=payload["outcome"])
     rows = []
     for name, task in sorted(tasks.items(), key=lambda item: item[1]["start"] or 0):
         seconds = task["request_seconds"]
@@ -182,6 +200,9 @@ def observe_events(run: Path) -> dict:
             "model_min": round(sum(seconds) / 60, 1), "median_request_s": round(statistics.median(seconds), 1) if seconds else None,
             "output_tokens": task["output_tokens"], "refused": task["refused"], "tool_errors": task["tool_errors"],
             "tool_outcomes": dict(task["tool_outcomes"]), "compactions": task["compactions"],
+            "budget_wait_count": task["budget_wait_count"],
+            "budget_wait_seconds": round(task["budget_wait_seconds"], 3),
+            "budget_wait_outcomes": dict(task["budget_wait_outcomes"]),
             "input_tokens": task["input_tokens"], "cache_read_tokens": task["cache_read_tokens"],
             "cache_creation_tokens": task["cache_creation_tokens"],
             "cache_read_ratio": task["cache_read_tokens"] / total_input if total_input else None,
@@ -190,6 +211,7 @@ def observe_events(run: Path) -> dict:
             "total_min": _minutes(max(t["end"] or 0 for t in tasks.values()), origin),
             "partial_tail": partial_tail, "last_event_id": events[-1]["event_id"],
             "tasks": rows, "requests": list(requests.values()), "timeline": timeline,
+            "budget_waits": list(budget_waits.values()),
             "capture_errors": capture_errors}
 
 

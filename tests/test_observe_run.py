@@ -57,3 +57,25 @@ def test_live_partial_tail_is_reported_but_corrupt_completed_line_is_rejected(tm
         handle.write(b"\n")
     with pytest.raises(ValueError):
         observe_events(tmp_path)
+
+
+def test_complete_json_without_commit_newline_is_not_observed(tmp_path):
+    _write_events(tmp_path, [{"event_type": "adapter_request"}])
+    path = tmp_path / "events.jsonl"
+    path.write_bytes(path.read_bytes().rstrip(b"\n"))
+    report = observe_events(tmp_path)
+    assert report["partial_tail"] and report["tasks"] == []
+
+
+def test_budget_wait_pairs_keep_unfinished_distinct_from_completed(tmp_path):
+    _write_events(tmp_path, [
+        {"event_type": "budget_wait", "phase": "begin", "wait_id": "wait1", "reason": "root_time_reservation",
+         "active_hold_ids": ["sibling-reservation"]},
+        {"event_type": "budget_wait", "phase": "end", "wait_id": "wait1", "reason": "root_time_reservation",
+         "elapsed_seconds": "1.0", "outcome": "capacity_changed"},
+        {"event_type": "budget_wait", "phase": "begin", "wait_id": "wait2", "reason": "root_time_reservation"},
+    ])
+    report = observe_events(tmp_path)
+    assert report["tasks"][0]["budget_wait_count"] == 2
+    assert report["tasks"][0]["budget_wait_seconds"] == 1
+    assert [row["outcome"] for row in report["budget_waits"]] == ["capacity_changed", "unfinished"]
