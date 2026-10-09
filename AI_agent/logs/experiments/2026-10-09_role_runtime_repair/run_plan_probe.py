@@ -12,6 +12,7 @@ import json
 import subprocess
 import sys
 import time
+import jsonschema
 from contextlib import AsyncExitStack
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from src.agent.runtime_entry import prepare_inputs
 from src.agent.runtime_roles.accounting import role_accounting
 from src.agent.runtime_roles.config import load_roles
 from src.agent.runtime_roles.guidance import guidance_catalog
-from src.agent.runtime_roles.session import ROLE_TASK_BUDGET, RoleSession
+from src.agent.runtime_roles.session import ROLE_TASK_BUDGET, TASK_SCHEMA, RoleSession
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client
 from src.agent_runtime.agent_registry import release_records
 from src.agent_runtime.anthropic import HttpAnthropicAdapter
@@ -35,11 +36,9 @@ ROUTES = {role: {"provider": GLM_SUBSCRIPTION_ANTHROPIC, "model": "glm-5.3-flash
           for role in ("coordinator", "plan_reader", "elevation_reader")}
 TASK = {"task_id": "plan_f1", "role_id": "plan_reader", "image": "1f_view.png", "target": "F1",
         "origin": "southwest outer corner of the building; metres; +X east/right, +Y north/up; F1 finished floor Z=0",
-        "instructions": "Read this original ground-floor plan as F1. Determine scale from the printed dimensions. "
-            "Preserve the drawn physical walls, rooms, doors, windows and their connections. "
-            "Use original-image evidence and the isolated trial tools, then submit_plan_reading. "
+        "instructions": "Read the supplied original ground-floor plan as F1. "
             "No elevation is supplied; mark necessary unobserved heights as assumptions. "
-            "Report unresolved items honestly. Do not repeat the full plan in the final text."}
+            "Preserve the drawn walls, rooms, doors, windows and connections. Report unresolved items honestly."}
 
 
 def write(path, value):
@@ -64,6 +63,7 @@ async def run(output, credentials, *, check_only=False):
         "reference_policy": "one original image only; no GT, saved plan, manual calibration or previous task",
         "comparison_limit": "isolated F1; neutral task text and SW origin; not identical coordinator-generated task or full-case timing"}
     load_roles(ROUTES)
+    jsonschema.validate(TASK, TASK_SCHEMA)
     if check_only:
         print(json.dumps({k: config[k] for k in ("task", "limits", "reader_limits", "original_sha256", "git_commit")}, ensure_ascii=False))
         return

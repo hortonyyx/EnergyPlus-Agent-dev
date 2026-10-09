@@ -74,10 +74,7 @@ def observe_events(run: Path) -> dict:
         if index == len(lines) - 1 and not line.endswith(b"\n"):
             partial_tail = True
             break
-        try:
-            events.append(json.loads(line))
-        except (ValueError, UnicodeDecodeError):
-            raise
+        events.append(json.loads(line))
     if not events:
         return {"run": run.name, "format": "events", "schema_version": 2,
                 "tasks": [], "timeline": [], "partial_tail": partial_tail}
