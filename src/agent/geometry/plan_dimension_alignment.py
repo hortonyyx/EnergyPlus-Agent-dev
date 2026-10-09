@@ -11,7 +11,9 @@ from src.agent.geometry.plan_ink_alignment import (
     _append_line_reference,
     _axis_scale,
     _finite,
+    _footprint_edge_directions,
     _footprint_preserves_declarations,
+    _junction_tolerance_pixels,
     _orthogonal_ids,
     _segments,
     _set_reading_alignment,
@@ -176,6 +178,7 @@ def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[flo
         attached = move_straight_wall(
             plan, collection="partitions", identity=str(partition["id"]),
             along_axis=along_axis, old_cross=old_cross, new_cross=target, span=span,
+            endpoint_tolerance_px=_junction_tolerance_pixels(_axis_scale(plan, along_axis)),
         )
         _append_line_reference(plan, partition_id=str(partition["id"]), basis="dimension",
                                source_refs=[*partition.get("source_refs", []), *chain["source_refs"],
@@ -207,8 +210,16 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
     # Each edge is considered once against verified ticks on its own axis.
     # A nearby tick on the other axis cannot authorize a move.
     for edge_index in range(len(ring)):
-        segment = next(row for row in _segments(plan["footprint_pixels"], closed=True)
-                       if row[0] == edge_index)
+        segment = next((row for row in _segments(plan["footprint_pixels"], closed=True)
+                        if row[0] == edge_index), None)
+        if segment is None:
+            rejections.append({
+                "object": f"footprint:{edge_index}", "kind": "perimeter",
+                "axis": axis, "chain_id": chain["id"], "basis": "dimension",
+                "action": "rejected",
+                "reason": "perimeter edge is non-orthogonal before dimension alignment",
+            })
+            continue
         _, along_axis, _, old_cross, span = segment
         if along_axis != expected_along:
             continue
@@ -218,11 +229,13 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
             continue
 
         before_edge = copy.deepcopy(plan)
+        edge_directions = _footprint_edge_directions(plan)
         orthogonal_partitions, orthogonal_openings = _orthogonal_ids(plan)
         partition_attachments, opening_hosts = _attachment_requirements(plan)
         attached = move_straight_wall(
             plan, collection="footprint", identity=str(edge_index),
             along_axis=along_axis, old_cross=old_cross, new_cross=target, span=span,
+            endpoint_tolerance_px=_junction_tolerance_pixels(_axis_scale(plan, along_axis)),
         )
         safe, reason = _footprint_preserves_declarations(
             plan,
@@ -230,6 +243,9 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
             orthogonal_openings=orthogonal_openings,
             partition_attachments=partition_attachments,
             opening_hosts=opening_hosts,
+            footprint_edge_directions=edge_directions,
+            footprint_axis_scales={candidate_axis: _axis_scale(plan, candidate_axis)
+                                   for candidate_axis in ("x", "y")},
         )
         base = {
             "object": f"footprint:{edge_index}",

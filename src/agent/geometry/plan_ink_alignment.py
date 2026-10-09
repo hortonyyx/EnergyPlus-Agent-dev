@@ -16,6 +16,7 @@ import numpy as np
 from PIL import Image
 from shapely.geometry import LineString, Point, Polygon
 
+from src.agent.correction.config import load_core_tolerances
 from src.agent.geometry.plan_drawing_differences import _ink, _runs
 
 
@@ -26,6 +27,8 @@ MIN_OPENING_EDGE_SUPPORT = 0.50
 MIN_OPENING_SIDE_CONTINUITY = 0.80
 MAX_OPENING_GAP_SUPPORT = 0.20
 WALL_FACE_RANGE_M = (0.05, 0.45)
+MIN_JUNCTION_TOLERANCE_M = 0.05
+MAX_JUNCTION_TOLERANCE_M = 0.30
 
 
 def _finite(value: object) -> bool:
@@ -41,6 +44,14 @@ def _axis_scale(plan: Mapping[str, Any], axis: str) -> float:
     if not all(_finite(value) for value in (p0, w0, p1, w1)) or p0 == p1 or w0 == w1:
         raise ValueError(f"distinct numeric plan.{axis}_anchors are required for ink alignment")
     return abs((float(w1) - float(w0)) / (float(p1) - float(p0)))
+
+
+def _junction_tolerance_pixels(metres_per_pixel: float) -> float:
+    """Match the precompile join tolerance without applying its edits early."""
+
+    return (min(MAX_JUNCTION_TOLERANCE_M,
+                max(MIN_JUNCTION_TOLERANCE_M, 3.0 * metres_per_pixel))
+            / metres_per_pixel)
 
 
 def _segments(points: list[list[float]], *, closed: bool = False):
@@ -189,6 +200,23 @@ def _orthogonal_ids(plan: Mapping[str, Any]) -> tuple[set[str], set[str]]:
     return partitions, openings
 
 
+def _footprint_edge_directions(plan: Mapping[str, Any]) -> dict[int, tuple[str, int, float]]:
+    """Record every nonzero orthogonal perimeter edge's axis and direction."""
+
+    ring = plan.get("footprint_pixels", [])
+    if not isinstance(ring, list) or len(ring) < 3:
+        return {}
+    result: dict[int, tuple[str, int, float]] = {}
+    for index, (first, second) in enumerate(zip(ring, [*ring[1:], ring[0]])):
+        dx = float(second[0]) - float(first[0])
+        dy = float(second[1]) - float(first[1])
+        if abs(dx) <= 1e-9 and abs(dy) > 1e-9:
+            result[index] = ("y", 1 if dy > 0 else -1, abs(dy))
+        elif abs(dy) <= 1e-9 and abs(dx) > 1e-9:
+            result[index] = ("x", 1 if dx > 0 else -1, abs(dx))
+    return result
+
+
 def _point_on_segment(point: list[float], first: list[float], second: list[float],
                       tolerance: float = 1e-5) -> bool:
     if first[0] == second[0]:
@@ -251,9 +279,35 @@ def _footprint_preserves_declarations(
     orthogonal_openings: set[str] | None = None,
     partition_attachments: dict[tuple[str, int], set[str]] | None = None,
     opening_hosts: dict[str, set[str]] | None = None,
+    footprint_edge_directions: dict[int, tuple[str, int, float]] | None = None,
+    footprint_axis_scales: Mapping[str, float] | None = None,
 ) -> tuple[bool, str | None]:
+    ring = plan.get("footprint_pixels", [])
+    if footprint_edge_directions:
+        pairs = list(zip(ring, [*ring[1:], ring[0]])) if len(ring) >= 3 else []
+        minimum_edge_m = load_core_tolerances().min_edge_length_m
+        for edge_index, (axis, direction, original_length_px) in footprint_edge_directions.items():
+            if edge_index >= len(pairs):
+                return False, f"would remove footprint edge {edge_index}"
+            first, second = pairs[edge_index]
+            delta = (float(second[0]) - float(first[0]) if axis == "x"
+                     else float(second[1]) - float(first[1]))
+            perpendicular_delta = (float(second[1]) - float(first[1]) if axis == "x"
+                                   else float(second[0]) - float(first[0]))
+            if abs(perpendicular_delta) > 1e-9:
+                return False, f"would make footprint edge {edge_index} non-orthogonal"
+            if delta * direction <= 1e-9:
+                return False, f"would collapse or reverse footprint edge {edge_index}"
+            if footprint_axis_scales is not None:
+                scale = float(footprint_axis_scales[axis])
+                if (original_length_px * scale >= minimum_edge_m - 1e-9
+                        and abs(delta) * scale < minimum_edge_m - 1e-9):
+                    return False, (
+                        f"would shrink footprint edge {edge_index} below "
+                        f"min_edge_length_m {minimum_edge_m:.6f} m"
+                    )
     try:
-        footprint = Polygon(plan.get("footprint_pixels", []))
+        footprint = Polygon(ring)
     except (TypeError, ValueError) as error:
         return False, f"moved footprint is invalid: {error}"
     if not footprint.is_valid or footprint.area <= 0 or footprint.interiors:
@@ -321,8 +375,9 @@ def _footprint_preserves_declarations(
 
 def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
                        along_axis: str, old_cross: float, new_cross: float,
-                       span: list[float]) -> dict[str, list[str]]:
-    """Move one declared wall line and the objects exactly attached to it."""
+                       span: list[float],
+                       endpoint_tolerance_px: float = 1e-6) -> dict[str, list[str]]:
+    """Move one wall line with objects attached or within junction tolerance."""
 
     # Reuse one float object for every moved coordinate.  Computing attached
     # coordinates as ``old + delta`` can round to a neighbouring binary float,
@@ -340,6 +395,29 @@ def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
     # continuation diagonal.  Grow the affected span until the whole connected
     # collinear chain is known, then move every point on that chain together.
     effective_span = [float(span[0]), float(span[1])]
+    footprint_point_indices: set[int] | None = None
+    if collection == "footprint":
+        ring = plan["footprint_pixels"]
+        edge_index = int(identity)
+        footprint_point_indices = {edge_index, (edge_index + 1) % len(ring)}
+        # A perimeter side may be split by collinear vertices or repeated
+        # points. Move that connected side atomically so changing one segment
+        # cannot turn its neighbour diagonal.
+        changed = True
+        while changed:
+            changed = False
+            for first_index in range(len(ring)):
+                second_index = (first_index + 1) % len(ring)
+                if not ({first_index, second_index} & footprint_point_indices):
+                    continue
+                first, second = ring[first_index], ring[second_index]
+                if (_same_line(first, cross_index=cross_index, cross_at=old_cross)
+                        and _same_line(second, cross_index=cross_index, cross_at=old_cross)):
+                    before = len(footprint_point_indices)
+                    footprint_point_indices.update((first_index, second_index))
+                    changed = changed or len(footprint_point_indices) != before
+        along_values = [float(ring[index][along_index]) for index in footprint_point_indices]
+        effective_span = [min(along_values), max(along_values)]
     connected: list[dict[str, Any]] = []
     pending = list(plan.get("partitions", []))
     while True:
@@ -375,8 +453,8 @@ def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
                 point[cross_index] = new_cross
     elif collection == "footprint":
         ring = plan["footprint_pixels"]
-        edge_index = int(identity)
-        for point_index in (edge_index, (edge_index + 1) % len(ring)):
+        assert footprint_point_indices is not None
+        for point_index in footprint_point_indices:
             if _same_line(ring[point_index], cross_index=cross_index, cross_at=old_cross):
                 ring[point_index][cross_index] = new_cross
     else:
@@ -419,8 +497,8 @@ def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
             if (isinstance(point, list) and len(point) == 2
                     and _finite(point[cross_index]) and _finite(point[along_index])
                     and abs(float(point[cross_index]) - old_cross) <= 1e-6
-                    and effective_span[0] - 1e-6 <= float(point[along_index])
-                    <= effective_span[1] + 1e-6):
+                    and effective_span[0] - endpoint_tolerance_px <= float(point[along_index])
+                    <= effective_span[1] + endpoint_tolerance_px):
                 point[cross_index] = new_cross
                 moved_junctions.append(f"{partition.get('id', '?')}:{endpoint_index}")
     return {"walls": sorted(set(moved_walls)), "openings": sorted(set(moved_openings)),
@@ -586,7 +664,17 @@ def align_plan_to_ink(image: Image.Image, plan: Mapping[str, Any], *,
         # Move each exterior edge at most once.  Later edges see prior corner updates.
         for edge_index in range(len(ring)):
             ring = result["footprint_pixels"]
-            segment = next(row for row in _segments(ring, closed=True) if row[0] == edge_index)
+            segment = next((row for row in _segments(ring, closed=True)
+                            if row[0] == edge_index), None)
+            if segment is None:
+                rejection = {
+                    "object": f"footprint:{edge_index}", "kind": "perimeter",
+                    "action": "rejected",
+                    "reason": "perimeter edge is non-orthogonal before ink alignment",
+                }
+                items.append(rejection)
+                rejections.append(rejection)
+                continue
             _, along_axis, cross_axis, cross_at, span = segment
             outward = _outward_sign(ring, edge_index, cross_axis)
             target, detail = _choose_wall_line(
@@ -601,13 +689,18 @@ def align_plan_to_ink(image: Image.Image, plan: Mapping[str, Any], *,
                 items.append({**base, "action": "not_moved"})
                 continue
             before_edge = copy.deepcopy(result)
+            edge_directions = _footprint_edge_directions(result)
             moved = move_straight_wall(result, collection="footprint", identity=str(edge_index),
                                        along_axis=along_axis, old_cross=cross_at,
-                                       new_cross=target, span=span)
+                                       new_cross=target, span=span,
+                                       endpoint_tolerance_px=_junction_tolerance_pixels(
+                                           mpp[along_axis]))
             safe, reason = _footprint_preserves_declarations(
                 result, orthogonal_partitions=orthogonal_partitions,
                 orthogonal_openings=orthogonal_openings,
                 partition_attachments=partition_attachments, opening_hosts=opening_hosts,
+                footprint_edge_directions=edge_directions,
+                footprint_axis_scales=mpp,
             )
             if not safe:
                 result = before_edge
@@ -642,7 +735,9 @@ def align_plan_to_ink(image: Image.Image, plan: Mapping[str, Any], *,
         before_wall = copy.deepcopy(result)
         moved = move_straight_wall(result, collection="partitions", identity=str(partition["id"]),
                                    along_axis=along_axis, old_cross=cross_at,
-                                   new_cross=target, span=span)
+                                   new_cross=target, span=span,
+                                   endpoint_tolerance_px=_junction_tolerance_pixels(
+                                       mpp[along_axis]))
         safe, reason = _footprint_preserves_declarations(
             result, orthogonal_partitions=orthogonal_partitions,
             orthogonal_openings=orthogonal_openings,

@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from PIL import Image, ImageDraw
+from shapely.geometry import Polygon
 
 from src.agent.geometry.plan_dimension_alignment import align_plan_to_dimensions
 from src.agent.geometry.plan_ink_alignment import align_plan_to_ink, move_straight_wall
@@ -96,6 +97,102 @@ def test_wall_move_assigns_one_exact_coordinate_to_every_attached_endpoint():
     assert coordinates and all(coordinate == target for coordinate in coordinates)
     assert moved["junctions"] == ["P2:1"]
     assert moved["openings"] == ["D1", "PASS1"]
+
+
+def test_dimension_move_does_not_amplify_near_perpendicular_junction_gap():
+    value = {
+        "floor_id": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+        "x_anchors": [[0, 0.0], [100, 2.0]],
+        "y_anchors": [[0, 0.0], [100, 2.0]],
+        "basis": "near-junction regression",
+        "footprint_pixels": [[0, 0], [100, 0], [100, 100], [0, 100]],
+        "partitions": [
+            {"id": "horizontal", "points": [[10, 50], [60, 50]],
+             "source_refs": ["plan.png: horizontal divider"]},
+            {"id": "vertical", "points": [[60.05, 50], [60.05, 90]],
+             "source_refs": ["plan.png: near perpendicular junction"]},
+        ],
+        "openings": [], "space_seeds": [], "assumptions": [], "unresolved": [],
+        "dimension_chains": [{
+            "id": "Y_OVERALL", "axis": "y", "segments_mm": [1100, 900],
+            "total_mm": 2000, "tick_pixels": [0, 55, 100],
+            "source_refs": ["plan.png: overall y chain"],
+        }],
+    }
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    rows = {row["id"]: row["points"] for row in aligned["partitions"]}
+    assert rows["horizontal"][-1] == [60.0, 55.0]
+    assert rows["vertical"][0] == [60.05, 55.0]
+    assert rows["vertical"][1][0] == rows["vertical"][0][0]
+    change = next(row for row in report["changes"] if row["object"] == "partition:horizontal")
+    assert change["moved_with_wall"]["junctions"] == ["vertical:0"]
+    assert Polygon(aligned["footprint_pixels"]).is_valid
+
+
+def test_dimension_move_keeps_split_collinear_footprint_orthogonal():
+    value = {
+        "floor_id": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+        "x_anchors": [[0, 0.0], [100, 10.0]],
+        "y_anchors": [[0, 10.0], [100, 0.0]],
+        "basis": "split perimeter regression",
+        "footprint_pixels": [
+            [0, 0], [100, 0], [100, 100], [60, 100], [60, 80],
+            [60, 60], [60, 60], [60, 20], [0, 20],
+        ],
+        "partitions": [], "openings": [], "space_seeds": [],
+        "assumptions": [], "unresolved": [],
+        "dimension_chains": [{
+            "id": "X_OVERALL", "axis": "x", "segments_mm": [5950, 4050],
+            "total_mm": 10000, "tick_pixels": [0, 59.5, 100],
+            "source_refs": ["plan.png: overall x chain"],
+        }],
+    }
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    assert [point[0] for point in aligned["footprint_pixels"][3:8]] == [59.5] * 5
+    assert all(first[0] == second[0] or first[1] == second[1]
+               for first, second in zip(
+                   aligned["footprint_pixels"],
+                   [*aligned["footprint_pixels"][1:], aligned["footprint_pixels"][0]],
+               ))
+    assert Polygon(aligned["footprint_pixels"]).is_valid
+    assert not report["rejections"]
+
+
+def test_dimension_move_rejects_shrinking_declared_step_below_kernel_minimum():
+    value = {
+        "floor_id": "F2", "z_floor": 4.0, "ceiling_height": 3.6,
+        "x_anchors": [[0, 0.0], [100, 10.0]],
+        "y_anchors": [[0, 12.0], [120, 0.0]],
+        "basis": "short perimeter step regression",
+        "footprint_pixels": [
+            [0, 0], [94.24, 0], [94.24, 50], [92.86, 50],
+            [92.86, 100], [100, 100], [100, 120], [0, 120],
+        ],
+        "partitions": [], "openings": [], "space_seeds": [],
+        "assumptions": [], "unresolved": [],
+        "dimension_chains": [{
+            "id": "X_WITH_STEP", "axis": "x", "segments_mm": [9290, 710],
+            "total_mm": 10000, "tick_pixels": [0, 92.9, 100],
+            "source_refs": ["plan.png: overall x chain"],
+        }],
+    }
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    assert aligned["footprint_pixels"][1:4] == [
+        [94.24, 0], [94.24, 50], [92.9, 50],
+    ]
+    assert aligned["footprint_pixels"][2][0] - aligned["footprint_pixels"][3][0] >= 1.0
+    rejection = next(row for row in report["rejections"]
+                     if row.get("object") == "footprint:1")
+    assert rejection["reason"] == (
+        "would shrink footprint edge 2 below min_edge_length_m 0.100000 m"
+    )
+    assert Polygon(aligned["footprint_pixels"]).is_valid
 
 
 def test_reading_alignment_rolls_back_when_only_original_strictly_compiles(tmp_path, monkeypatch):
