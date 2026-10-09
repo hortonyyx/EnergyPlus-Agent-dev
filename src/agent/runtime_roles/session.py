@@ -269,6 +269,51 @@ class RoleSession:
     def image_origins(self, raw):
         return self.frozen.image_origins(raw)
 
+    def _failed_plan_trial_event(self, task_id):
+        """Select a failed draft only from the latest durable trial event."""
+        child = self.registry.child(task_id)
+        latest = next((event for event in reversed(child.events)
+                       if event.payload.event_type == "tool_execution"
+                       and event.payload.tool_name == "trial_plan_bim"), None)
+        if latest is None:
+            return None
+        payload = latest.payload
+        if payload.outcome == "unknown":
+            return {
+                "status": "unavailable", "event_id": latest.event_id,
+                "reason": (
+                    "The latest trial_plan_bim write outcome is unknown. Earlier failed drafts and workspace-only "
+                    "receipts are diagnostic evidence only and are not imported as an editable baseline."
+                ),
+            }
+        if payload.outcome != "failed":
+            return None
+        if payload.raw_result.kind not in {"blob", "json_references", "image_references"}:
+            return {
+                "status": "unavailable", "event_id": latest.event_id,
+                "reason": "The known-failed trial result has no hash-verified raw-result capture.",
+            }
+        try:
+            raw = child.resolve(payload.raw_result)
+        except (ValueError, TypeError, KeyError, json.JSONDecodeError) as error:
+            return {"status": "unavailable", "event_id": latest.event_id,
+                    "reason": f"The known-failed trial result could not be hash-verified: {error}"}
+        structured = raw.get("structuredContent") if isinstance(raw, Mapping) else None
+        if not isinstance(structured, Mapping):
+            structured = raw if isinstance(raw, Mapping) else {}
+        required = ("receipt_file", "plan_sha256", "compiled_numeric_plan_sha256")
+        if structured.get("status") != "failed" or any(
+                not isinstance(structured.get(key), str) for key in required):
+            return {
+                "status": "unavailable", "event_id": latest.event_id,
+                "reason": "The known-failed trial event has no complete receipt and numeric draft identity.",
+            }
+        return {
+            "status": "available", "event_id": latest.event_id,
+            "raw_result": payload.raw_result.model_dump(mode="json"),
+            **{key: structured[key] for key in required},
+        }
+
     def _failure_handoff(self, task_id):
         """Reference prior evidence and carry its last actionable failures forward."""
         record = self.registry.records[task_id]
@@ -287,15 +332,22 @@ class RoleSession:
             )
             return handoff
         if record.get("role_id") == "plan_reader":
-            from .trial import PlanTrial
-            workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
-            prior = PlanTrial(None, image_name=record["image"], workspace=workspace,
-                              receipt_directory=workspace / "trial_receipts")
-            selected = prior.verified_failed_draft(record.get("input_sha256"))
-            if selected is not None:
+            trial_event = self._failed_plan_trial_event(task_id)
+            if trial_event and trial_event["status"] == "available":
+                from .trial import PlanTrial
+                workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
+                prior = PlanTrial(None, image_name=record["image"], workspace=workspace,
+                                  receipt_directory=workspace / "trial_receipts")
+                selected = prior.verified_failed_draft(
+                    record.get("input_sha256"), receipt_file=trial_event["receipt_file"],
+                    plan_sha256=trial_event["plan_sha256"],
+                    compiled_numeric_plan_sha256=trial_event["compiled_numeric_plan_sha256"],
+                )
                 _, receipt = selected
                 handoff["editable_draft"] = {
                     "status": "failed", "validation_passed": False, "editable": True,
+                    "event_id": trial_event["event_id"],
+                    "raw_result": trial_event["raw_result"],
                     "plan_sha256": receipt["plan_sha256"],
                     "receipt_file": receipt["receipt_file"],
                     "compiled_numeric_plan_sha256": receipt["compiled_numeric_plan_sha256"],
@@ -304,6 +356,8 @@ class RoleSession:
                         "Revise the located objects; unchanged objects and their source descriptions remain in place."
                     ),
                 }
+            elif trial_event and trial_event["status"] == "unavailable":
+                handoff["draft_recovery"] = trial_event
         child = self.registry.child(task_id)
         known_failure = False
         for event in reversed(child.events):
@@ -812,9 +866,9 @@ class RoleSession:
                 validation = prior_record.get("validation") or {}
                 workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
                 from .trial import PlanTrial, canonical_plan_sha256
-                prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
-                                  receipt_directory=workspace / "trial_receipts")
                 if validation.get("source_geometry_ready") is True and validation.get("validation_passed") is True:
+                    prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
+                                      receipt_directory=workspace / "trial_receipts")
                     _, prior_receipt = prior.verified_plan(validation["plan_sha256"])
                     compiled_plan = prior.numeric_plan(prior_receipt)
                     if not isinstance(compiled_plan, dict):
@@ -830,7 +884,15 @@ class RoleSession:
                     if compiled_delivery:
                         trial.reference_plan = copy.deepcopy(compiled_plan)
                 elif prior_record.get("status") == "failed":
-                    trial.inherit_failed_reference(prior, task["input_sha256"])
+                    editable = (task.get("previous_task_handoff") or {}).get("editable_draft")
+                    if editable:
+                        prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
+                                          receipt_directory=workspace / "trial_receipts")
+                        trial.inherit_failed_reference(
+                            prior, task["input_sha256"], receipt_file=editable["receipt_file"],
+                            plan_sha256=editable["plan_sha256"],
+                            compiled_numeric_plan_sha256=editable["compiled_numeric_plan_sha256"],
+                        )
                 # The accepted review also covers warnings from trials made
                 # after the selected successful geometry receipt.
                 trial.inherited_topology_issues = validation.get("topology_issues", [])

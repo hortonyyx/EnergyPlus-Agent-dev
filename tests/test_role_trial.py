@@ -147,7 +147,11 @@ def test_new_reader_locally_repairs_hash_verified_failed_draft_with_old_profile(
             receipt_directory=current_workspace / "trial_receipts", workspace=current_workspace,
             profile_directory=tmp_path / "current_profiles",
         )
-        inherited = current.inherit_failed_reference(prior, image_sha)
+        inherited = current.inherit_failed_reference(
+            prior, image_sha, receipt_file=failed["receipt_file"],
+            plan_sha256=failed["plan_sha256"],
+            compiled_numeric_plan_sha256=failed["compiled_numeric_plan_sha256"],
+        )
         assert inherited["validation_passed"] is False and inherited["status"] == "failed"
         assert current.inherited_reference_ids() == {"profile_001"}
         assert (tmp_path / "current_profiles/profile_001.json").is_file()
@@ -174,7 +178,11 @@ def test_new_reader_locally_repairs_hash_verified_failed_draft_with_old_profile(
             workspace=prepare_workspace("wrong"),
         )
         with pytest.raises(ValueError, match="does not match this reader task"):
-            wrong_image_reader.inherit_failed_reference(prior, "0" * 64)
+            wrong_image_reader.inherit_failed_reference(
+                prior, "0" * 64, receipt_file=failed["receipt_file"],
+                plan_sha256=failed["plan_sha256"],
+                compiled_numeric_plan_sha256=failed["compiled_numeric_plan_sha256"],
+            )
 
     asyncio.run(scenario())
 

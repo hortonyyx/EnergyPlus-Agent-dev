@@ -17,7 +17,7 @@ from src.agent.runtime_roles.session import RoleSession, envelope
 from src.agent_runtime.adapter import ScriptedAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
-from src.harness_contracts import ToolExecutionPayload
+from src.harness_contracts import MissingCapture, ToolExecutionPayload
 
 from test_agent_runtime import response, versions
 
@@ -278,6 +278,79 @@ def test_failed_rework_automatically_carries_located_tool_evidence_without_issue
     assert failure["evidence"]["event_id"]
     assert failure["evidence"]["receipt_file"] == "trial_receipts/trial_003.json"
     assert handoff["complete_record"]["sha256"]
+
+
+def test_unknown_latest_trial_does_not_import_orphan_receipt_or_older_failure(environment):
+    from src.agent.runtime_roles.trial import PlanTrial
+    from tests.test_bim_agent_plan_partition import example
+
+    class FailedBuild:
+        async def call_tool(self, name, arguments):
+            digest = hashlib.sha256(arguments["plan_json"].encode("utf-8")).hexdigest()
+            return envelope({
+                "source_geometry_ready": False,
+                "plan_input": {"plan_file": "legacy/plan.json", "plan_sha256": digest},
+                "error": "opening W1 has no full host",
+            }, error=True)
+
+        def image_origins(self, raw):
+            return {}
+
+    store, make = environment
+    session = make()
+    previous = session._task({
+        "task_id": "plan-orphan", "role_id": "plan_reader", "image": "north.png",
+        "target": "F1", "origin": "Shared origin",
+    })
+    child = session.registry.admit(previous)
+    workspace = child.task_directory / "bim/trial_workspace"
+    (workspace / "images").mkdir(parents=True)
+    source = session.run_directory / "images/north.png"
+    (workspace / "images/north.png").write_bytes(source.read_bytes())
+    (workspace / "inputs.json").write_text(json.dumps({
+        "images": {"north.png": {
+            "sha256": previous["input_sha256"], "size": [100, 100],
+        }},
+    }), encoding="utf-8", newline="\n")
+    trial = PlanTrial(
+        FailedBuild(), image_name="north.png", workspace=workspace,
+        receipt_directory=workspace / "trial_receipts",
+    )
+    first = asyncio.run(trial.call(example()))
+    known = child.append(ToolExecutionPayload(
+        call_id="trial-known", tool_name="trial_plan_bim", full_arguments={"plan": {}},
+        raw_result=child.capture(first, force_blob=True), shown_result=child.capture(first, force_blob=True),
+        repeatability="non_idempotent_write", operation_key="trial-known", outcome="failed",
+    ))
+    session.registry.save(previous, status="running")
+    known_handoff = session._failure_handoff("plan-orphan")
+    assert known_handoff["editable_draft"]["event_id"] == known.event_id
+    assert known_handoff["editable_draft"]["plan_sha256"] == first["structuredContent"]["plan_sha256"]
+    second_plan = example()
+    second_plan["openings"][0]["z"] = [0, 2.2]
+    second = asyncio.run(trial.call(second_plan))
+    assert second["structuredContent"]["receipt_file"] == "trial_receipts/trial_002.json"
+    unknown = child.append(ToolExecutionPayload(
+        call_id="trial-unknown", tool_name="trial_plan_bim", full_arguments={"plan": {}},
+        raw_result=MissingCapture(reason="interrupted after the receipt write"),
+        shown_result=MissingCapture(reason="no result was presented"),
+        repeatability="non_idempotent_write", operation_key="trial-unknown", outcome="unknown",
+    ))
+    assert known.event_id != unknown.event_id
+    assert (workspace / "trial_receipts/trial_002.json").is_file()
+    session.registry.save(previous, status="failed", reason="unknown_write_outcome",
+                          runtime={"status": "unknown_write_outcome"})
+
+    handoff = session._failure_handoff("plan-orphan")
+    assert "editable_draft" not in handoff
+    assert handoff["draft_recovery"]["status"] == "unavailable"
+    assert handoff["draft_recovery"]["event_id"] == unknown.event_id
+    assert "workspace-only receipts" in handoff["draft_recovery"]["reason"]
+    admitted = session._task({
+        "task_id": "plan-after-orphan", "role_id": "plan_reader", "image": "north.png",
+        "target": "F1", "origin": "Shared origin", "previous_task_id": "plan-orphan",
+    })
+    assert "editable_draft" not in admitted["previous_task_handoff"]
 
 
 @pytest.mark.parametrize("environment", [2], indirect=True)

@@ -828,19 +828,26 @@ class PlanTrial:
         """References copied into this same-image reader scope."""
         return set(self._reference_profiles)
 
-    def verified_failed_draft(self, expected_image_sha256: str):
-        """Return the newest complete failed declaration, never an accepted plan.
+    def verified_failed_draft(self, expected_image_sha256: str, *, receipt_file: str,
+                              plan_sha256: str, compiled_numeric_plan_sha256: str | None = None):
+        """Return one event-selected failed declaration, never an accepted plan.
 
-        Only a persisted failure with a hash-verified resolved numeric product is
-        editable.  Rejected/unknown calls and format-only failures cannot become
-        a cross-task baseline.
+        The caller must bind the selection to a known-failed tool event.  This
+        method verifies its exact receipt and products; it never scans for a
+        newer workspace file because that file may belong to an unknown write.
         """
-        receipt = next((row for row in reversed(self.receipts)
-                        if row.get("status") == "failed"
-                        and isinstance(row.get("input_plan_file"), str)
-                        and isinstance(row.get("compiled_numeric_plan_sha256"), str)), None)
+        receipt = next((row for row in self.receipts
+                        if row.get("receipt_file") == receipt_file
+                        and row.get("plan_sha256") == plan_sha256), None)
         if receipt is None:
-            return None
+            raise ValueError("known failed trial event does not match a saved receipt")
+        if (receipt.get("status") != "failed"
+                or not isinstance(receipt.get("input_plan_file"), str)
+                or not isinstance(receipt.get("compiled_numeric_plan_sha256"), str)):
+            raise ValueError("known failed trial has no complete editable declaration")
+        if (compiled_numeric_plan_sha256 is not None
+                and receipt["compiled_numeric_plan_sha256"] != compiled_numeric_plan_sha256):
+            raise ValueError("known failed trial numeric plan differs from its event result")
         self._verified_original_image(expected_image_sha256)
         if self.workspace is None or not isinstance(receipt.get("receipt_file"), str):
             raise ValueError("editable failed trial has no durable receipt")
@@ -853,11 +860,13 @@ class PlanTrial:
         self.numeric_plan(receipt)
         return plan, {"validation_passed": False, "editable_draft": True, **receipt}
 
-    def inherit_failed_reference(self, prior, expected_image_sha256: str):
+    def inherit_failed_reference(self, prior, expected_image_sha256: str, *, receipt_file: str,
+                                 plan_sha256: str, compiled_numeric_plan_sha256: str | None = None):
         """Use a same-image failed declaration as an editable, non-submit-ready base."""
-        selected = prior.verified_failed_draft(expected_image_sha256)
-        if selected is None:
-            return None
+        selected = prior.verified_failed_draft(
+            expected_image_sha256, receipt_file=receipt_file, plan_sha256=plan_sha256,
+            compiled_numeric_plan_sha256=compiled_numeric_plan_sha256,
+        )
         plan, receipt = selected
         self.reference_plan = copy.deepcopy(plan)
         self.reference_validation_passed = False

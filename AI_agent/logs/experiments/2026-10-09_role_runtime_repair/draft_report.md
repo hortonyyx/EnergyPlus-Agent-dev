@@ -32,6 +32,7 @@
 - 已观察的开口高度越层与宿主失败现在分别定位到 `plan.openings[i].z` 或 `plan.openings[i]`，给当前值、楼层高程范围或宿主/点位修订动作；明确保留原图中的墙和开口，不为通过编译而删除或补造。
 - re-dispatch 不再要求调度员重复填写 `issues`。新任务会自动收到 `previous_task_handoff`，包含上一任务状态、最近已落盘的失败/unknown 工具结果、对象与建议、事件 ID、完整 raw result 引用、trial receipt 路径和 reader record 哈希；`issues` 仍可补充新的图纸事实。
 - 独立审查后的补修使 handoff 同时声明 `editable_draft`：只选择同一原图哈希下最近一份有完整声明和数值编译产物的失败回执。后继 `PlanTrial` 直接以它为 operations 基线，不把它登记为通过或 accepted，也不从 outcome unknown 的调用推断成功。
+- 后续复核把选择依据进一步收紧到上一任务最新一条 `trial_plan_bim` 执行事件：必须是明确 `outcome=failed`，其 raw result 必须能从哈希捕获中回读，并精确绑定同一 `receipt_file`、`plan_sha256` 和 numeric plan SHA。若最新 trial outcome 为 unknown，不回退到更早 known-failed 草稿；目录中即使已有中断后留下的更晚回执，也只作为未确认文件，不导入新 reader。
 - 失败基线引用的 measurement profile 会先核验原图与文件哈希，再复制到新 reader 的 `pixel_profiles` 并登记到新任务引用作用域；未改对象的 `source_refs` 原样保留。新改对象仍由新任务的 operation 提供定位来源。旧 view 名称只作为既有来源描述保留，需要新检查时仍查看当前任务的同一原图。
 - 精简 handoff 现保留高度错误的 `current`、`allowed_floor_bounds_m`，以及既有 `*_remaining` 计数；不会因摘要丢失当前值、允许楼层范围或尚待修复的对象数。
 
@@ -43,7 +44,8 @@
 - 用上述真实失败回执构造一次离线 re-dispatch handoff：约 6,697 字符，带对象路径、8 条 junction 修订、event、receipt 和 reader record SHA；无模型/API 请求。
 - 直接对上一轮 `trial_009`–`011` 的原始声明与原因重算反馈：高度失败定位 `plan.openings[0].z`、允许 `[4.0, 7.6]`；两项宿主失败定位 `plan.openings[13]`、`plan.openings[16]`。
 - 补修后的最小真行为测试使用一份含旧 profile 和旧 `source_refs` 的完整失败声明启动新的 reader trial，只更新 `openings:D1.z` 后通过；另一开口、全部 partitions 与旧来源保持逐项相等。错误原图哈希被拒绝，旧失败声明不能通过 `verified_plan`。
-- 补修定向回归：`36 passed, 1 deselected`（trial/session/readers；deselect 仍是禁止在未登记工作树启动真实工具服务的版本校验用例），反馈/guidance 相邻组 `7 passed`；测试进程报告 `0 provider calls`。
+- 补修定向回归：`37 passed, 1 deselected`（trial/session/readers；deselect 仍是禁止在未登记工作树启动真实工具服务的版本校验用例），反馈/guidance 相邻组 `7 passed`；测试进程报告 `0 provider calls`。
+- outcome 绑定反例构造了“先有 known-failed，再写出第二份回执但执行事件为 unknown”的真实 trial 工作区：known-failed 单独存在时可生成 editable baseline；unknown 成为最新事件后，第二份孤儿回执和更早失败草稿均不继承。
 
 ## 小测入口
 
