@@ -248,7 +248,7 @@ def _attachment_requirements(plan: Mapping[str, Any]) -> tuple[
         partition_id = str(partition.get("id", "?"))
         points = partition.get("points", [])
         for endpoint_index in (0, len(points) - 1):
-            if not points:
+            if len(points) < 2:
                 continue
             endpoint = points[endpoint_index]
             attached = {
@@ -491,11 +491,16 @@ def move_straight_wall(plan: dict[str, Any], *, collection: str, identity: str,
             continue
         points = partition.get("points", [])
         for endpoint_index in (0, len(points) - 1):
-            if not points:
+            if len(points) < 2:
                 continue
             point = points[endpoint_index]
+            neighbor = points[1 if endpoint_index == 0 else len(points) - 2]
             if (isinstance(point, list) and len(point) == 2
+                    and isinstance(neighbor, list) and len(neighbor) == 2
                     and _finite(point[cross_index]) and _finite(point[along_index])
+                    and _finite(neighbor[cross_index]) and _finite(neighbor[along_index])
+                    and abs(float(point[along_index]) - float(neighbor[along_index])) <= 1e-6
+                    and abs(float(point[cross_index]) - float(neighbor[cross_index])) > 1e-6
                     and abs(float(point[cross_index]) - old_cross) <= 1e-6
                     and effective_span[0] - endpoint_tolerance_px <= float(point[along_index])
                     <= effective_span[1] + endpoint_tolerance_px):

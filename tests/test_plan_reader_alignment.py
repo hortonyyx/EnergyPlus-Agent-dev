@@ -131,6 +131,40 @@ def test_dimension_move_does_not_amplify_near_perpendicular_junction_gap():
     assert Polygon(aligned["footprint_pixels"]).is_valid
 
 
+def test_dimension_move_does_not_drag_parallel_gap_endpoint_into_diagonal():
+    value = {
+        "floor_id": "F1", "z_floor": 0.0, "ceiling_height": 3.0,
+        "x_anchors": [[0, 0.0], [100, 2.0]],
+        "y_anchors": [[0, 0.0], [100, 2.0]],
+        "basis": "parallel near-gap regression",
+        "footprint_pixels": [[0, 0], [100, 0], [100, 100], [0, 100]],
+        "partitions": [
+            {"id": "a", "points": [[10, 50], [40, 50]],
+             "source_refs": ["plan.png: first horizontal divider"]},
+            {"id": "b", "points": [[40.05, 50], [80, 50]],
+             "source_refs": ["plan.png: second horizontal divider"]},
+        ],
+        "openings": [], "space_seeds": [], "assumptions": [], "unresolved": [],
+        "dimension_chains": [{
+            "id": "Y_OVERALL", "axis": "y", "segments_mm": [1100, 900],
+            "total_mm": 2000, "tick_pixels": [0, 55, 100],
+            "source_refs": ["plan.png: overall y chain"],
+        }],
+    }
+
+    aligned, report = align_plan_to_dimensions(value)
+
+    rows = {row["id"]: row["points"] for row in aligned["partitions"]}
+    assert rows == {
+        "a": [[10, 55.0], [40, 55.0]],
+        "b": [[40.05, 55.0], [80, 55.0]],
+    }
+    first_change = next(row for row in report["changes"] if row["object"] == "partition:a")
+    assert first_change["moved_with_wall"]["junctions"] == []
+    assert all(p1[1] == p2[1]
+               for points in rows.values() for p1, p2 in zip(points, points[1:]))
+
+
 def test_dimension_move_keeps_split_collinear_footprint_orthogonal():
     value = {
         "floor_id": "F1", "z_floor": 0.0, "ceiling_height": 3.0,

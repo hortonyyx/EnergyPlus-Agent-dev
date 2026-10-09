@@ -160,11 +160,16 @@ def _append_coordinate_references(plan: dict[str, Any], chain: Mapping[str, Any]
 
 
 def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[float],
-                     mpp: float, chain: Mapping[str, Any]) -> list[dict[str, Any]]:
-    changes = []
+                     mpp: float, chain: Mapping[str, Any]) -> tuple[list[dict[str, Any]],
+                                                                    list[dict[str, Any]]]:
+    changes: list[dict[str, Any]] = []
+    rejections: list[dict[str, Any]] = []
     # A vertical wall has an x coordinate; a horizontal wall has a y coordinate.
     expected_along = "y" if axis == "x" else "x"
-    for partition in plan.get("partitions", []):
+    partition_ids = [str(row.get("id")) for row in plan.get("partitions", [])]
+    for partition_id in partition_ids:
+        partition = next(row for row in plan.get("partitions", [])
+                         if str(row.get("id")) == partition_id)
         segments = list(_segments(partition.get("points", [])))
         if len(segments) != 1:
             continue
@@ -175,16 +180,16 @@ def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[flo
         distance_m = abs(target - old_cross) * mpp
         if distance_m >= MAX_ALIGNMENT_WORLD_M:
             continue
+        before_wall = copy.deepcopy(plan)
+        orthogonal_partitions, orthogonal_openings = _orthogonal_ids(plan)
+        partition_attachments, opening_hosts = _attachment_requirements(plan)
         attached = move_straight_wall(
-            plan, collection="partitions", identity=str(partition["id"]),
+            plan, collection="partitions", identity=partition_id,
             along_axis=along_axis, old_cross=old_cross, new_cross=target, span=span,
             endpoint_tolerance_px=_junction_tolerance_pixels(_axis_scale(plan, along_axis)),
         )
-        _append_line_reference(plan, partition_id=str(partition["id"]), basis="dimension",
-                               source_refs=[*partition.get("source_refs", []), *chain["source_refs"],
-                                            f"dimension_chain:{chain['id']}"])
-        changes.append({
-            "object": f"partition:{partition['id']}",
+        base = {
+            "object": f"partition:{partition_id}",
             "kind": "partition",
             "axis": axis,
             "from_pixel": round(old_cross, 6),
@@ -192,9 +197,24 @@ def _snap_partitions(plan: dict[str, Any], *, axis: str, target_pixels: list[flo
             "movement_m": round((target - old_cross) * mpp, 6),
             "chain_id": chain["id"],
             "basis": "dimension",
-            "moved_with_wall": attached,
-        })
-    return changes
+        }
+        safe, reason = _footprint_preserves_declarations(
+            plan,
+            orthogonal_partitions=orthogonal_partitions,
+            orthogonal_openings=orthogonal_openings,
+            partition_attachments=partition_attachments,
+            opening_hosts=opening_hosts,
+        )
+        if not safe:
+            plan.clear()
+            plan.update(before_wall)
+            rejections.append({**base, "action": "rejected", "reason": reason})
+            continue
+        _append_line_reference(plan, partition_id=partition_id, basis="dimension",
+                               source_refs=[*partition.get("source_refs", []), *chain["source_refs"],
+                                            f"dimension_chain:{chain['id']}"])
+        changes.append({**base, "moved_with_wall": attached})
+    return changes, rejections
 
 
 def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[float],
@@ -377,12 +397,13 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
                 result, axis=axis, target_pixels=target_pixels,
                 mpp=_axis_scale(result, axis), chain=chain,
             )
-            snapped = [*edge_changes, *_snap_partitions(
+            partition_changes, partition_rejections = _snap_partitions(
                 result, axis=axis, target_pixels=target_pixels,
                 mpp=_axis_scale(result, axis), chain=chain,
-            )]
+            )
+            snapped = [*edge_changes, *partition_changes]
             changes.extend(snapped)
-            rejections.extend(edge_rejections)
+            rejections.extend([*edge_rejections, *partition_rejections])
             applied_chains += 1
             supplemental_chains += 1
             items.append({
@@ -403,13 +424,14 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
         edge_changes, edge_rejections = _snap_footprint(
             result, axis=axis, target_pixels=target_pixels, mpp=mpp, chain=chain,
         )
-        snapped = [*edge_changes, *_snap_partitions(
+        partition_changes, partition_rejections = _snap_partitions(
             result, axis=axis, target_pixels=target_pixels, mpp=mpp, chain=chain,
-        )]
+        )
+        snapped = [*edge_changes, *partition_changes]
         accepted_axes.add(axis)
         applied_chains += 1
         changes.extend(snapped)
-        rejections.extend(edge_rejections)
+        rejections.extend([*edge_rejections, *partition_rejections])
         start_difference = start_world - old_start_world
         end_difference = end_world - old_end_world
         maximum_difference = max(abs(start_difference), abs(end_difference))

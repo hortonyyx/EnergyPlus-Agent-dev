@@ -27,7 +27,8 @@
 1. `move_straight_wall` 现在将由连续共线子段和重复顶点构成的同一轮廓侧作为整体移动。共享顶点不会只改一侧，因此规整不再自己制造斜边。
 2. 墨线与尺寸对齐在逐边处理时使用显式查找失败回执。若输入或前序结果出现非正交边，会记录具体 edge 的 rejection，不再让裸 `StopIteration` 逃逸成 runtime unknown-write。
 3. 每次轮廓移动前保存已有非零边的轴向、方向和长度。移动后必须保持正交、方向不反转、边不消失；原先达到 kernel `min_edge_length_m` 的有效边也不得被压到该下限以下。失败时整次边移动回滚并留下原因。
-4. 墨线和尺寸移动墙线时，按预编译同一口径使用 `max(5 cm, 3 px)`、上限 `30 cm` 的逐轴物理容差识别近接头。随动只改变墙线移动的法向坐标，不扭斜相交墙；后续严格预编译仍负责其余接头修订。
+4. 墨线和尺寸移动墙线时，按预编译同一口径使用 `max(5 cm, 3 px)`、上限 `30 cm` 的逐轴物理容差识别近接头。容差随动仅适用于与移动墙垂直的端部段；同轴小间隙不会只移动一个端点而被扭成斜墙。
+5. 尺寸对齐的 partition 移动补上与墨线对齐相同的正交、附着、opening host、seed 和轮廓覆盖保持检查；失败时整步回滚并记录 rejection。后续严格预编译仍负责其余接头修订。
 
 没有减少声明对象，也没有更改房间 seed、opening host 或既有附着要求。轮廓移动仍须通过简单 polygon、无内环、对象在轮廓内、原有 partition/opening 附着保持等检查。
 
@@ -41,12 +42,13 @@
 
 ## 检查
 
-新增 3 项缺陷回归：近接头随墙移动不被放大、含连续共线段和重复顶点的轮廓保持正交、有效短台阶不得被压到 kernel 最小边长以下。既有对齐测试与下游平面规整、分区、开口及角色提交相关检查一并执行。
+新增 4 项缺陷回归：近接头随墙移动不被放大、同轴小间隙不得被单端拖成斜墙、含连续共线段和重复顶点的轮廓保持正交、有效短台阶不得被压到 kernel 最小边长以下。
 
 ```text
 tests/test_plan_reader_alignment.py
-18 passed
+19 passed
 
+初次修复完成时另执行：
 tests/test_plan_reader_alignment.py
 tests/test_plan_regularization.py
 tests/test_plan_partition.py
@@ -57,10 +59,11 @@ tests/test_role_plan_revisions.py
 127 passed
 ```
 
-命令统一使用 `pytest -n 0 -p no:cacheprovider --basetemp <worktree>/AI_agent/archive/local_backup/kernel-repair-pytest`。`git diff --check` 通过；三个改动 Python 文件由 `compileall` 验证通过。主环境未安装 `ruff`，因此没有把 lint 结果冒充为已执行。
+命令统一使用 `pytest -n 0 -p no:cacheprovider --basetemp <worktree>/AI_agent/archive/local_backup/kernel-repair-pytest`。独立审查补充同轴反例修复后按项目经理安排只重跑 19 项对齐定向检查，没有重复 127 项集合；大集合由主助手集成后统一执行。`git diff --check` 通过；改动 Python 文件由 `compileall` 验证通过。主环境未安装 `ruff`，因此没有把 lint 结果冒充为已执行。
 
 ## 剩余风险
 
 - 三份原始声明修复后仍严格编译失败，原因是本包外的原始悬空墙、读图或格式问题；本报告只证明三项 kernel 自造缺陷已被消除，不能外推为平面稿、整案或房间语义通过。
 - F2 台阶得到保留，因为把它缩到 `0.10 m` 以下会违反当前 kernel 配置。台阶本身是否应由读图员删除仍是读图判断，kernel 不替代该判断。
 - 本包没有运行 work model、角色小测或整案，因此真实行为和质量影响须由项目经理在后续已批准的小测中验证。
+- 独立审查补充修复后的大集合尚待主助手在集成提交上统一执行；本分支已通过 19 项对齐定向检查和三份原始声明的哈希锁定纯函数重放。
