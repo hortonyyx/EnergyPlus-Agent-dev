@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Annotated, Literal
 
 from pydantic import Field, JsonValue, field_validator, model_validator
 
 from .base import ContractModel, EventTimestamp, NonEmptyStr, ParentTaskRef, Sha256
-from .budget import BudgetReservation, BudgetSettlement, UsageEvidence
+from .budget import BudgetAmounts, BudgetReservation, BudgetSettlement, UsageEvidence
 from .refs import BlobRef, HashedBlobRef, ImageTransmission, SourceRef
 
 
@@ -298,6 +299,21 @@ class AnswerRepairPayload(ContractModel):
         return self
 
 
+class ToolFailureDetails(ContractModel):
+    """Sanitized local exception evidence captured after durable tool intent."""
+
+    exception_type: NonEmptyStr
+    stage: NonEmptyStr
+    diagnostic: NonEmptyStr
+
+    @field_validator("diagnostic")
+    @classmethod
+    def bounded_diagnostic(cls, value):
+        if len(value.encode("utf-8", errors="backslashreplace")) > 2048:
+            raise ValueError("tool failure diagnostic exceeds 2 KB")
+        return value
+
+
 class ToolExecutionPayload(ContractModel):
     event_type: Literal["tool_execution"] = "tool_execution"
     call_id: NonEmptyStr
@@ -313,6 +329,7 @@ class ToolExecutionPayload(ContractModel):
     retry_event_id: NonEmptyStr | None = None
     invocation_event_id: NonEmptyStr | None = None
     presentation_status: Literal["sent", "prepared", "historical_unverified"] = "sent"
+    failure: ToolFailureDetails | None = None
 
     @model_validator(mode="after")
     def validate_execution_result(self) -> ToolExecutionPayload:
@@ -322,6 +339,8 @@ class ToolExecutionPayload(ContractModel):
         if not is_write and self.applied_write_id is not None:
             raise ValueError("read-only tools cannot report an applied write")
         if self.outcome == "succeeded":
+            if self.failure is not None:
+                raise ValueError("a successful execution cannot carry failure details")
             if self.capture_scope == "complete" and (
                 self.raw_result.kind == "missing" or self.shown_result.kind == "missing"
             ):
@@ -447,6 +466,30 @@ class BudgetEventPayload(ContractModel):
         return self
 
 
+class BudgetWaitPayload(ContractModel):
+    """Observable wait for a live root time reservation to settle."""
+
+    event_type: Literal["budget_wait"] = "budget_wait"
+    phase: Literal["begin", "end"]
+    wait_id: NonEmptyStr
+    reason: NonEmptyStr
+    active_hold_ids: tuple[NonEmptyStr, ...]
+    root_available: BudgetAmounts
+    task_available: BudgetAmounts
+    wall_remaining_seconds: Decimal = Field(ge=0)
+    elapsed_seconds: Decimal | None = Field(default=None, ge=0)
+    outcome: Literal["capacity_changed", "wall_deadline_exhausted", "cancelled"] | None = None
+
+    @model_validator(mode="after")
+    def phase_fields_match(self) -> BudgetWaitPayload:
+        if self.phase == "begin":
+            if self.elapsed_seconds is not None or self.outcome is not None:
+                raise ValueError("budget wait begin cannot claim an outcome")
+        elif self.elapsed_seconds is None or self.outcome is None:
+            raise ValueError("budget wait end needs elapsed_seconds and outcome")
+        return self
+
+
 class BudgetOverrunPayload(ContractModel):
     """Auditable explanation for a reported token use above its reservation."""
 
@@ -535,6 +578,7 @@ EventPayload = Annotated[
     | StateInspectionPayload
     | RunLifecyclePayload
     | BudgetEventPayload
+    | BudgetWaitPayload
     | BudgetOverrunPayload
     | ContextEventPayload
     | CheckpointPayload

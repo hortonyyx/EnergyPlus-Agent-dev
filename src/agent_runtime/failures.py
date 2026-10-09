@@ -24,6 +24,46 @@ def _sanitize(value, secret=""):
     return text
 
 
+def safe_exception_details(exc: BaseException, *, stage: str) -> dict[str, str]:
+    """Keep local failure identity while conservatively omitting arbitrary text."""
+
+    def safe_text(value, fallback):
+        try:
+            text = str(value)
+        except BaseException:
+            return fallback
+        encoded = text.encode("utf-8", errors="backslashreplace")[:2048]
+        normalized = encoded.decode("utf-8", errors="replace")
+        return normalized or fallback
+
+    try:
+        raw_exception_type = (
+            f"{getattr(type(exc), '__module__', 'unknown')}."
+            f"{getattr(type(exc), '__qualname__', 'Exception')}"
+        )
+    except BaseException:
+        raw_exception_type = "unknown.Exception"
+    exception_type = safe_text(raw_exception_type, "unknown.Exception")
+    safe_stage = safe_text(stage, "tool:unknown")
+    try:
+        message = str(exc)
+    except BaseException:
+        diagnostic = "exception message unavailable because __str__ failed"
+    else:
+        # Exception text can contain arbitrary tool inputs, URI userinfo,
+        # credentials or tokens. Type and stage retain the actionable signal.
+        diagnostic = (
+            "exception carried no message"
+            if not message
+            else "exception message omitted by safety policy"
+        )
+    return {
+        "exception_type": exception_type,
+        "stage": safe_stage,
+        "diagnostic": safe_text(diagnostic, "exception diagnostic unavailable"),
+    }
+
+
 class ModelServiceError(Exception):
     def __init__(self, details: dict, usage):
         # Never include the original HTTP exception, URL or response in str().

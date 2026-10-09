@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 from dataclasses import replace
+from decimal import Decimal
 from pathlib import Path
 
 import httpx
@@ -17,9 +18,9 @@ from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter, parse_re
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import (
-    BudgetAmounts, BudgetLedger, BudgetReservation, BudgetSettlement, CostUnavailable,
+    BudgetAmounts, BudgetEventPayload, BudgetLedger, BudgetReservation, BudgetSettlement, CostUnavailable,
     EventLog, InputMaterialRequirement, RemoteModelIdentity, ReturnRequirement,
-    RoleDefinition, ToolGrant, UsageMissing, VersionManifest, VersionStamp,
+    RoleDefinition, ToolGrant, UsageMissing, UsageReported, VersionManifest, VersionStamp,
 )
 
 
@@ -164,6 +165,302 @@ def test_unknown_write_inspects_persisted_state_and_does_not_repeat(tmp_path):
         observed = json.loads(engine.store.get_bytes(checks[0].persisted_state))
         assert observed["observed_after"] == tools.snapshot_state()
         assert "secret fake credential" not in engine.store.path.read_text()
+        execution = next(e.payload for e in engine.store.events
+                         if e.payload.event_type == "tool_execution")
+        assert execution.failure.exception_type == "builtins.ConnectionError"
+        assert execution.failure.stage == "tool:save"
+        assert execution.failure.diagnostic == "exception message omitted by safety policy"
+
+
+def test_unknown_write_keeps_empty_stop_iteration_identity(tmp_path):
+    tools = Tools(tmp_path / "tools")
+
+    def stop_iteration(name, arguments):
+        tools.calls.append((name, arguments))
+        raise StopIteration
+
+    tools.call_tool = stop_iteration
+    engine = runtime(tmp_path, [response(("a", "save", {"value": 1}))], tools=tools)
+    with engine.store:
+        receipt = asyncio.run(engine.run(MESSAGES))
+        execution = next(e.payload for e in engine.store.events
+                         if e.payload.event_type == "tool_execution")
+        assert receipt["status"] == "unknown_write_outcome"
+        assert execution.failure.exception_type == "builtins.StopIteration"
+        assert execution.failure.stage == "tool:save"
+        assert execution.failure.diagnostic == "exception carried no message"
+        assert len(tools.calls) == 1
+
+
+def test_unknown_write_diagnostic_survives_invalid_unicode_without_leaking(tmp_path):
+    class InvalidUnicodeError(Exception):
+        def __str__(self):
+            return "\udcff https://user:password@example.invalid/?access_token=do-not-save"
+
+    tools = Tools(tmp_path / "tools")
+
+    def fail(name, arguments):
+        tools.calls.append((name, arguments))
+        raise InvalidUnicodeError
+
+    tools.call_tool = fail
+    engine = runtime(tmp_path, [response(("a", "save", {"value": 1}))], tools=tools)
+    with engine.store:
+        receipt = asyncio.run(engine.run(MESSAGES))
+        execution = next(e.payload for e in engine.store.events
+                         if e.payload.event_type == "tool_execution")
+        assert receipt["status"] == "unknown_write_outcome"
+        assert execution.failure.exception_type.endswith(".InvalidUnicodeError")
+        assert execution.failure.diagnostic == "exception message omitted by safety policy"
+        journal = engine.store.path.read_text(encoding="utf-8")
+        assert "do-not-save" not in journal and "user:password" not in journal
+
+
+def test_unknown_write_diagnostic_survives_broken_exception_string(tmp_path):
+    class BrokenStringError(Exception):
+        def __str__(self):
+            raise UnicodeError("cannot render exception")
+
+    tools = Tools(tmp_path / "tools")
+
+    def fail(name, arguments):
+        tools.calls.append((name, arguments))
+        raise BrokenStringError
+
+    tools.call_tool = fail
+    engine = runtime(tmp_path, [response(("a", "save", {"value": 1}))], tools=tools)
+    with engine.store:
+        receipt = asyncio.run(engine.run(MESSAGES))
+        execution = next(e.payload for e in engine.store.events
+                         if e.payload.event_type == "tool_execution")
+        assert receipt["status"] == "unknown_write_outcome"
+        assert execution.failure.exception_type.endswith(".BrokenStringError")
+        assert execution.failure.diagnostic == "exception message unavailable because __str__ failed"
+
+
+def test_inflight_root_time_hold_waits_and_gives_older_sibling_first_turn(tmp_path):
+    class OrderedAdapter:
+        def __init__(self, label, replies, order, *, started=None, release=None):
+            self.label, self.replies, self.order = label, list(replies), order
+            self.started, self.release = started, release
+            self.requests = []
+
+        async def send(self, prepared, *, timeout):
+            self.requests.append(prepared)
+            self.order.append(self.label)
+            if self.started is not None and len(self.requests) == 1:
+                self.started.set()
+                await self.release.wait()
+            return self.replies.pop(0)
+
+    async def scenario():
+        root_limits = RunLimits(model_calls=4, tool_calls=0, seconds=5, tokens=100_000)
+        child_limits = RunLimits(model_calls=3, tool_calls=0, seconds=30, tokens=100_000)
+        started, release, order = asyncio.Event(), asyncio.Event(), []
+        truncated = response(text="discarded partial answer")
+        truncated["choices"][0]["finish_reason"] = "length"
+        with EventStore(tmp_path / "run", run_id="shared-time", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as root:
+            first = Runtime(store=root.for_task("first", "parent"),
+                adapter=OrderedAdapter("first", [truncated, response(text="first done")], order,
+                                       started=started, release=release),
+                tools=Tools(tmp_path / "tools-first"), role=role(child_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=child_limits, request_timeout_seconds=5)
+            second_adapter = OrderedAdapter("second", [response(text="second done")], order)
+            second = Runtime(store=root.for_task("second", "parent"), adapter=second_adapter,
+                tools=Tools(tmp_path / "tools-second"), role=role(child_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=child_limits, request_timeout_seconds=5)
+            first_task = asyncio.create_task(first.run(MESSAGES))
+            await started.wait()
+            second_task = asyncio.create_task(second.run(MESSAGES))
+            await asyncio.sleep(0)
+            assert order == ["first"]
+            release.set()
+            first_receipt, second_receipt = await asyncio.gather(first_task, second_task)
+            assert first_receipt["status"] == second_receipt["status"] == "completed"
+            assert order == ["first", "second", "first"]
+            assert len(second_adapter.requests) == 1
+            waits = [e.payload for e in root.all_events
+                     if e.task_id == "second" and e.payload.event_type == "budget_wait"]
+            assert [event.phase for event in waits] == ["begin", "end"]
+            assert waits[0].wait_id == waits[1].wait_id
+            assert waits[0].root_available.seconds == 0
+            assert waits[0].active_hold_ids == ("first:request-1",)
+            assert waits[1].outcome == "capacity_changed"
+            assert waits[1].elapsed_seconds is not None
+            root.validate()
+
+    asyncio.run(scenario())
+
+
+def test_settled_root_time_exhaustion_stops_without_wait_or_send(tmp_path):
+    async def scenario():
+        root_limits = RunLimits(model_calls=3, tool_calls=0, seconds=5, tokens=100_000)
+        child_limits = RunLimits(model_calls=1, tool_calls=0, seconds=30, tokens=100_000)
+        with EventStore(tmp_path / "run", run_id="settled-time", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as root:
+            reservation = BudgetReservation(reservation_id="prior:request-1",
+                purpose="primary_task", task_id="parent",
+                amounts=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("5")))
+            root.append(BudgetEventPayload(action="reserve", reservation=reservation))
+            root.append(BudgetEventPayload(action="settle", settlement=BudgetSettlement(
+                reservation_id=reservation.reservation_id,
+                actual=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("5")),
+                usage=UsageReported(raw_usage={"total_tokens": 30}),
+                cost=CostUnavailable(reason="no configured money budget"))))
+            adapter = ScriptedAdapter([response(text="must not send")])
+            engine = Runtime(store=root.for_task("child", "parent"), adapter=adapter,
+                tools=Tools(tmp_path / "tools-child"), role=role(child_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=child_limits, request_timeout_seconds=5)
+            receipt = await engine.run(MESSAGES)
+            assert receipt["status"] == "root_time_budget_exhausted"
+            assert adapter.requests == []
+
+    asyncio.run(scenario())
+
+
+def test_small_positive_root_time_remainder_is_used_as_request_timeout(tmp_path):
+    class TimeoutRecordingAdapter:
+        def __init__(self):
+            self.timeouts = []
+
+        async def send(self, prepared, *, timeout):
+            self.timeouts.append(timeout)
+            return response(text="done")
+
+    async def scenario():
+        root_limits = RunLimits(model_calls=2, tool_calls=0, seconds=5, tokens=100_000)
+        child_limits = RunLimits(model_calls=1, tool_calls=0, seconds=30, tokens=100_000)
+        with EventStore(tmp_path / "run", run_id="small-remainder", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as root:
+            reservation = BudgetReservation(reservation_id="prior:request-1",
+                purpose="primary_task", task_id="parent",
+                amounts=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("4.999")))
+            root.append(BudgetEventPayload(action="reserve", reservation=reservation))
+            root.append(BudgetEventPayload(action="settle", settlement=BudgetSettlement(
+                reservation_id=reservation.reservation_id,
+                actual=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("4.999")),
+                usage=UsageReported(raw_usage={"total_tokens": 30}),
+                cost=CostUnavailable(reason="no configured money budget"))))
+            adapter = TimeoutRecordingAdapter()
+            engine = Runtime(store=root.for_task("child", "parent"), adapter=adapter,
+                tools=Tools(tmp_path / "tools-child"), role=role(child_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=child_limits, request_timeout_seconds=5)
+            receipt = await engine.run(MESSAGES)
+            assert receipt["status"] == "completed"
+            assert len(adapter.timeouts) == 1
+            assert 0 < adapter.timeouts[0] <= 0.001
+
+    asyncio.run(scenario())
+
+
+def test_wall_deadline_ends_wait_for_live_root_time_hold_without_sending(tmp_path):
+    class HoldingAdapter:
+        def __init__(self, started, release):
+            self.started, self.release, self.requests = started, release, []
+
+        async def send(self, prepared, *, timeout):
+            self.requests.append(prepared)
+            self.started.set()
+            await self.release.wait()
+            return response(text="holder done")
+
+    async def scenario():
+        root_limits = RunLimits(model_calls=2, tool_calls=0, seconds=1, tokens=100_000)
+        holder_limits = RunLimits(model_calls=1, tool_calls=0, seconds=30, tokens=100_000)
+        waiter_limits = RunLimits(model_calls=1, tool_calls=0, seconds=0.1, tokens=100_000)
+        started, release = asyncio.Event(), asyncio.Event()
+        with EventStore(tmp_path / "run", run_id="wall-deadline", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as root:
+            holder = Runtime(store=root.for_task("holder", "parent"),
+                adapter=HoldingAdapter(started, release), tools=Tools(tmp_path / "tools-holder"),
+                role=role(holder_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=holder_limits, request_timeout_seconds=1)
+            waiter_adapter = ScriptedAdapter([response(text="must not send")])
+            waiter = Runtime(store=root.for_task("waiter", "parent"), adapter=waiter_adapter,
+                tools=Tools(tmp_path / "tools-waiter"), role=role(waiter_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=waiter_limits, request_timeout_seconds=1)
+            holder_task = asyncio.create_task(holder.run(MESSAGES))
+            await started.wait()
+            try:
+                waiter_receipt = await waiter.run(MESSAGES)
+                assert waiter_receipt["status"] == "child_time_budget_exhausted"
+                assert waiter_adapter.requests == []
+                waits = [e.payload for e in root.all_events
+                         if e.task_id == "waiter" and e.payload.event_type == "budget_wait"]
+                assert [event.phase for event in waits] == ["begin", "end"]
+                assert waits[1].outcome == "wall_deadline_exhausted"
+            finally:
+                release.set()
+                holder_receipt = await holder_task
+            assert holder_receipt["status"] == "completed"
+
+    asyncio.run(scenario())
+
+
+def test_retry_waits_when_sibling_fills_root_time_during_backoff(tmp_path):
+    class RetryAdapter:
+        def __init__(self, failed):
+            self.failed, self.requests = failed, []
+
+        async def send(self, prepared, *, timeout):
+            self.requests.append(prepared)
+            if len(self.requests) == 1:
+                self.failed.set()
+                raise TimeoutError("temporary offline timeout")
+            return response(text="retry done")
+
+    class HoldingAdapter:
+        def __init__(self, started, release):
+            self.started, self.release, self.requests = started, release, []
+
+        async def send(self, prepared, *, timeout):
+            self.requests.append(prepared)
+            self.started.set()
+            await self.release.wait()
+            return response(text="holder done")
+
+    async def scenario():
+        root_limits = RunLimits(model_calls=3, tool_calls=0, seconds=5, tokens=100_000)
+        retry_limits = RunLimits(model_calls=2, tool_calls=0, seconds=30, tokens=100_000,
+                                 max_model_retries=1, retry_backoff_seconds=0.03)
+        holder_limits = RunLimits(model_calls=1, tool_calls=0, seconds=30, tokens=100_000)
+        failed, holder_started, release = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        with EventStore(tmp_path / "run", run_id="retry-wait", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as root:
+            retry_adapter = RetryAdapter(failed)
+            retrying = Runtime(store=root.for_task("retrying", "parent"), adapter=retry_adapter,
+                tools=Tools(tmp_path / "tools-retrying"), role=role(retry_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=retry_limits, request_timeout_seconds=5)
+            holder = Runtime(store=root.for_task("holder", "parent"),
+                adapter=HoldingAdapter(holder_started, release),
+                tools=Tools(tmp_path / "tools-holder"), role=role(holder_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=holder_limits, request_timeout_seconds=5)
+            retry_task = asyncio.create_task(retrying.run(MESSAGES))
+            await failed.wait()
+            holder_task = asyncio.create_task(holder.run(MESSAGES))
+            await holder_started.wait()
+            await asyncio.sleep(0.05)
+            assert len(retry_adapter.requests) == 1 and not retry_task.done()
+            release.set()
+            retry_receipt, holder_receipt = await asyncio.gather(retry_task, holder_task)
+            assert retry_receipt["status"] == holder_receipt["status"] == "completed"
+            assert len(retry_adapter.requests) == 2
+            waits = [e.payload for e in root.all_events
+                     if e.task_id == "retrying" and e.payload.event_type == "budget_wait"]
+            assert [event.phase for event in waits] == ["begin", "end"]
+            assert waits[0].active_hold_ids == ("holder:request-1",)
+            assert waits[1].outcome == "capacity_changed"
+
+    asyncio.run(scenario())
 
 
 def test_readonly_role_rejects_entire_batch_before_write(tmp_path):

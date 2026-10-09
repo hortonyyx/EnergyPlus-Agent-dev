@@ -6,6 +6,8 @@ import asyncio
 import copy
 import json
 import time
+import weakref
+from collections import deque
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 from decimal import Decimal
@@ -15,9 +17,9 @@ from typing import Literal
 from pydantic import Field
 
 from src.harness_contracts import (
-    AnswerRepairPayload, BudgetAmounts, BudgetEventPayload, BudgetOverrunPayload, CheckpointPayload, HashedBlobRef,
+    AnswerRepairPayload, BudgetAmounts, BudgetEventPayload, BudgetOverrunPayload, BudgetWaitPayload, CheckpointPayload, HashedBlobRef,
     EstimatedCostUpperBound, MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
-    StateInspectionPayload, ToolExecutionPayload, ToolInvocationPayload,
+    StateInspectionPayload, ToolExecutionPayload, ToolFailureDetails, ToolInvocationPayload,
     ToolPresentationPayload, UsageMissing, UsageReported, authorize_tool_call,
     TruncationPayload,
 )
@@ -28,11 +30,68 @@ from .accounting import (account_request_usage, bills_images_separately,
     get_cny_price_schedule, require_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
 from .estimation import get_model_profile, estimate_chat_request
-from .failures import ModelServiceError, classify_failure, is_unprocessed_rejection, rejected_request_usage
+from .failures import (ModelServiceError, classify_failure, is_unprocessed_rejection,
+                       rejected_request_usage, safe_exception_details)
 from .dispatch import get_dispatcher, route_policies
 from src.harness_contracts.events import ModelFailureDetails
 from .output_limits import validate_output_limit
 from .store import EventStore
+
+
+class _BudgetCapacitySignal:
+    """Event-loop local notification for released shared root reservations."""
+
+    def __init__(self):
+        self.revision = 0
+        self.active_reservations: set[str] = set()
+        self.waiters: deque[tuple[asyncio.Future, int]] = deque()
+
+    def start(self, reservation_id: str) -> None:
+        self.active_reservations.add(reservation_id)
+
+    def complete(self, reservation_id: str) -> None:
+        if reservation_id not in self.active_reservations:
+            return
+        self.active_reservations.discard(reservation_id)
+        self.revision += 1
+        self._wake_head()
+
+    def _wake_head(self) -> None:
+        if not self.waiters:
+            return
+        waiter, observed_revision = self.waiters[0]
+        if self.revision != observed_revision and not waiter.done():
+            waiter.set_result(None)
+
+    async def wait_for_change(self, revision: int, *, timeout: float) -> bool:
+        if self.revision != revision and not self.waiters:
+            return True
+        waiter = asyncio.get_running_loop().create_future()
+        entry = (waiter, revision)
+        self.waiters.append(entry)
+        try:
+            self._wake_head()
+            try:
+                await asyncio.wait_for(waiter, timeout=timeout)
+            except TimeoutError:
+                return False
+            return True
+        finally:
+            if entry in self.waiters:
+                self.waiters.remove(entry)
+            self._wake_head()
+
+
+_BUDGET_CAPACITY_SIGNALS = weakref.WeakKeyDictionary()
+
+
+def _shared_budget_capacity_signal(store: EventStore) -> _BudgetCapacitySignal:
+    root = store._root
+    signal = _BUDGET_CAPACITY_SIGNALS.get(root)
+    if signal is None:
+        signal = _BudgetCapacitySignal()
+        _BUDGET_CAPACITY_SIGNALS[root] = signal
+    return signal
 
 
 class RunLimits(ContractModel):
@@ -117,6 +176,7 @@ class Runtime:
         self.answer_repair_error = None
         self.last_summary_at = 0
         self.context = None
+        self._budget_capacity = _shared_budget_capacity_signal(self.store)
         # Checkpoints reuse the last observed tool state. Every actual tool
         # still gets fresh before/after snapshots, and resume re-reads disk.
         self._tool_state = None
@@ -185,8 +245,14 @@ class Runtime:
                     if reason:
                         return self._stop(reason)
                     continue
+                budget_revision = self._budget_capacity.revision
                 reason = self._budget_stop()
                 if reason:
+                    reason = await self._wait_for_transient_root_time_reservation(
+                        reason, revision=budget_revision
+                    )
+                    if reason is None:
+                        continue
                     return self._stop(reason)
                 # Deterministic projection always precedes any optional paid summary.
                 projection = self._project()
@@ -340,6 +406,7 @@ class Runtime:
                     if profile_limit is not None and profile_limit <= effective_context_limit:
                         return None, "model_profile_context_limit_exhausted"
                     return None, "configured_context_limit_exhausted"
+                budget_revision = self._budget_capacity.revision
                 self._load_budget()
                 remaining = self._remaining()
                 if remaining <= 0:
@@ -353,9 +420,15 @@ class Runtime:
                 if self.request_timeout_seconds is not None:
                     seconds = min(seconds, Decimal(str(self.request_timeout_seconds)))
                 if seconds <= 0:
-                    return None, self._scoped_budget_reason(
+                    reason = self._scoped_budget_reason(
                         "time", task=self.task_budget.available.seconds <= 0
                     )
+                    reason = await self._wait_for_transient_root_time_reservation(
+                        reason, revision=budget_revision, lease=lease
+                    )
+                    if reason is None:
+                        continue
+                    return None, reason
                 budget_purpose = (
                     "child_task"
                     if purpose == "primary_task" and not self.store.is_root_task
@@ -381,10 +454,16 @@ class Runtime:
                 effective = task_decision.effective_estimate
                 decision = self.budget.reserve(reservation_id, effective)
                 if decision.action == "stop":
-                    return None, self._budget_reason(
+                    reason = self._budget_reason(
                         decision,
                         scope="root" if not self.store.is_root_task else None,
                     )
+                    reason = await self._wait_for_transient_root_time_reservation(
+                        reason, revision=budget_revision, lease=lease
+                    )
+                    if reason is None:
+                        continue
+                    return None, reason
                 if task_decision.action == "reduce_output" or decision.action == "reduce_output":
                     reduction = (
                         decision
@@ -432,6 +511,7 @@ class Runtime:
                 self._fault("after_request")
                 sent_at = time.monotonic()
                 request_timeout = min(self._remaining(), float(seconds))
+                self._budget_capacity.start(reservation.reservation_id)
                 try:
                     raw = await asyncio.wait_for(
                         self.adapter.send(prepared, timeout=request_timeout),
@@ -446,12 +526,16 @@ class Runtime:
                         lease.release()
                     self._record_model_failure(failure, elapsed=elapsed, dispatch_adjustment=adjustment)
                     usage = exc.usage if isinstance(exc, ModelServiceError) else UsageMissing(reason="request ended without a service usage receipt")
-                    settlement_stop = self._settle(reservation.reservation_id, usage,
-                                 seconds=elapsed)
+                    try:
+                        settlement_stop = self._settle(reservation.reservation_id, usage,
+                                     seconds=elapsed)
+                    finally:
+                        self._budget_capacity.complete(reservation.reservation_id)
+                    await self._yield_budget_waiters()
                     self._refresh_counts()
                     if settlement_stop:
                         return None, settlement_stop
-                    if redispatch and self._budget_stop() is None:
+                    if redispatch and await self._retry_budget_available():
                         self.redispatch_of, self.retry_of = request.event_id, None
                         purpose = logical_purpose
                         continue
@@ -460,19 +544,28 @@ class Runtime:
                         self.retry_of, purpose = request.event_id, "retry"
                         continue
                     return None, self._failure_stop_reason(failure)
+                except BaseException:
+                    # Process-style fault injection and interpreter shutdown do
+                    # not leave peers waiting on an operation no longer running.
+                    self._budget_capacity.complete(reservation.reservation_id)
+                    raise
                 if lease:
                     lease.release()
-                self.stage = "model_response"
-                parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
-                elapsed = time.monotonic() - sent_at
-                adjustment = lease.succeeded() if lease else None
-                self.redispatch_of = None
-                response = self.store.append(parsed.event_payload,
-                    source_refs=(self.store.source("request-duration", {"elapsed_seconds": elapsed,
-                        "basis": "local monotonic wall time from send through returned response"}),
-                        *((self.store.source("dispatch-adjustment", adjustment),) if adjustment else ())))
-                reason = self._settle(reservation.reservation_id, parsed.event_payload.usage,
-                                      seconds=elapsed)
+                try:
+                    self.stage = "model_response"
+                    parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
+                    elapsed = time.monotonic() - sent_at
+                    adjustment = lease.succeeded() if lease else None
+                    self.redispatch_of = None
+                    response = self.store.append(parsed.event_payload,
+                        source_refs=(self.store.source("request-duration", {"elapsed_seconds": elapsed,
+                            "basis": "local monotonic wall time from send through returned response"}),
+                            *((self.store.source("dispatch-adjustment", adjustment),) if adjustment else ())))
+                    reason = self._settle(reservation.reservation_id, parsed.event_payload.usage,
+                                          seconds=elapsed)
+                finally:
+                    self._budget_capacity.complete(reservation.reservation_id)
+                await self._yield_budget_waiters()
                 self._refresh_counts()
                 self._present_tools(prepared.body, sources, request, response, context_event_id)
                 truncation = None
@@ -880,7 +973,7 @@ class Runtime:
                 raw = await asyncio.wait_for(self.tools.call_tool(call.tool_name, call.full_arguments), timeout=self._remaining())
             except (Exception, asyncio.CancelledError) as exc:
                 failed = self._unknown_execution(intent, elapsed=time.monotonic() - tool_started,
-                                                 started_epoch=tool_epoch)
+                                                 started_epoch=tool_epoch, exception=exc)
                 if write:
                     self._inspect_unknown(failed.event_id, before)
                 return "unknown_write_outcome" if write else self._exception_reason(exc)
@@ -962,13 +1055,17 @@ class Runtime:
         if self.context:
             self.context.append(message, source, kind=kind)
 
-    def _unknown_execution(self, invocation, *, elapsed=None, started_epoch=None):
+    def _unknown_execution(self, invocation, *, elapsed=None, started_epoch=None,
+                           exception: BaseException | None = None):
         p = invocation.payload
+        failure = (ToolFailureDetails(**safe_exception_details(
+            exception, stage=f"tool:{p.tool_name}"
+        )) if exception is not None else None)
         return self.store.append(ToolExecutionPayload(call_id=p.call_id, tool_name=p.tool_name,
             full_arguments=p.full_arguments, repeatability=p.repeatability, operation_key=p.operation_key,
             outcome="unknown", raw_result=MissingCapture(reason="interrupted after durable intent; result not captured"),
             shown_result=MissingCapture(reason="no result was presented"),
-            invocation_event_id=invocation.event_id, presentation_status="prepared"),
+            invocation_event_id=invocation.event_id, presentation_status="prepared", failure=failure),
             source_refs=((self.store.source("tool-duration", {"elapsed_seconds": elapsed,
                 **({"started_epoch": started_epoch} if started_epoch is not None else {})}),)
                          if elapsed is not None else ()))
@@ -1283,6 +1380,102 @@ class Runtime:
             return self._scoped_budget_reason("time")
         return None
 
+    def _can_wait_for_root_time_reservation(self, reason):
+        """True only when a live sibling hold can still release root seconds."""
+
+        root_reason = self._scoped_budget_reason("time")
+        if reason != root_reason or self._remaining() <= 0:
+            return False
+        if self.task_budget.available.seconds <= 0:
+            return False
+        ledger = self.budget.ledger
+        if ledger.available.seconds > 0:
+            return False
+        limit = ledger.total_limit.seconds
+        charged = ledger.charged.seconds or Decimal(0)
+        if limit is None or charged >= limit:
+            return False
+        return bool(self._active_root_time_hold_ids())
+
+    def _active_root_time_hold_ids(self):
+        settled = {item.reservation_id for item in self.budget.ledger.settlements}
+        return tuple(sorted(
+            reservation.reservation_id
+            for reservation in self.budget.ledger.reservations
+            if reservation.reservation_id not in settled
+            and reservation.reservation_id in self._budget_capacity.active_reservations
+            and (reservation.amounts.seconds or 0) > 0
+        ))
+
+    async def _wait_for_transient_root_time_reservation(
+        self, reason, *, revision, lease=None
+    ):
+        """Wait once for a live hold, returning None when admission should retry."""
+
+        if not self._can_wait_for_root_time_reservation(reason):
+            return reason
+        if lease:
+            lease.release()
+        wait_id = f"{self.store.task_id}:budget-wait-{1 + sum(
+            event.payload.event_type == 'budget_wait' and event.payload.phase == 'begin'
+            for event in self.store.events
+        )}"
+        started = time.monotonic()
+        self.store.append(BudgetWaitPayload(
+            phase="begin", wait_id=wait_id, reason=reason,
+            active_hold_ids=self._active_root_time_hold_ids(),
+            root_available=self.budget.available,
+            task_available=self.task_budget.available,
+            wall_remaining_seconds=Decimal(str(max(0.0, self._remaining()))),
+        ))
+        try:
+            changed = await self._budget_capacity.wait_for_change(
+                revision, timeout=self._remaining()
+            )
+        except asyncio.CancelledError:
+            self._load_budget()
+            self.store.append(BudgetWaitPayload(
+                phase="end", wait_id=wait_id, reason=reason,
+                active_hold_ids=self._active_root_time_hold_ids(),
+                root_available=self.budget.available,
+                task_available=self.task_budget.available,
+                wall_remaining_seconds=Decimal(str(max(0.0, self._remaining()))),
+                elapsed_seconds=Decimal(str(max(0.0, time.monotonic() - started))),
+                outcome="cancelled",
+            ))
+            raise
+        self._load_budget()
+        self.store.append(BudgetWaitPayload(
+            phase="end", wait_id=wait_id, reason=reason,
+            active_hold_ids=self._active_root_time_hold_ids(),
+            root_available=self.budget.available,
+            task_available=self.task_budget.available,
+            wall_remaining_seconds=Decimal(str(max(0.0, self._remaining()))),
+            elapsed_seconds=Decimal(str(max(0.0, time.monotonic() - started))),
+            outcome="capacity_changed" if changed else "wall_deadline_exhausted",
+        ))
+        return None if changed else self._scoped_budget_reason("time", task=True)
+
+    async def _retry_budget_available(self):
+        """Retry/redispatch admission shares the same transient-hold wait path."""
+
+        while True:
+            revision = self._budget_capacity.revision
+            reason = self._budget_stop()
+            if reason is None:
+                return True
+            reason = await self._wait_for_transient_root_time_reservation(
+                reason, revision=revision
+            )
+            if reason is not None:
+                return False
+
+    async def _yield_budget_waiters(self):
+        # A just-settled task must not synchronously reserve the released
+        # seconds again before older waiters have a chance to re-enter.
+        if self._budget_capacity.waiters:
+            await asyncio.sleep(0)
+
     def _budget_reason(self, decision, *, scope=None):
         names = {"calls": "model", "tokens": "token", "seconds": "time", "money_usd": "money", "money_cny": "money"}
         if decision.exceeded_dimensions:
@@ -1364,16 +1557,22 @@ class Runtime:
     async def _allow_model_retry(self, failure):
         attempt = self._request_retry_count(failure.request_event_id)
         if (not failure.retryable or self.answer_repair_request_id is not None
-                or attempt >= self.limits.max_model_retries or self._budget_stop()):
+                or attempt >= self.limits.max_model_retries):
+            return False
+        if not await self._retry_budget_available():
             return False
         delay = self.limits.retry_backoff_seconds * 2 ** attempt
         if delay >= self._remaining():
             return False
         await asyncio.sleep(delay)
-        return self._budget_stop() is None
+        return await self._retry_budget_available()
 
     def _failure_stop_reason(self, failure):
         budget = self._budget_stop()
+        if budget and self._can_wait_for_root_time_reservation(budget):
+            # A transient sibling hold must not replace the actual terminal
+            # failure when no further retry/redispatch will be attempted.
+            budget = None
         if budget:
             return budget
         if failure.retryable and self._request_retry_count(failure.request_event_id) >= self.limits.max_model_retries:
