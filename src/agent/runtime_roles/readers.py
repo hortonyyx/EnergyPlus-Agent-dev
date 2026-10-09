@@ -374,6 +374,11 @@ class ReaderTools:
                                 if self._scope_directory is not None else None)
         self._image_sha256 = self._admitted_image_sha256()
         self._load_references()
+        if trial is not None and hasattr(trial, "inherited_reference_ids"):
+            inherited = trial.inherited_reference_ids()
+            if inherited - self._issued_references:
+                self._issued_references.update(inherited)
+                self._save_references()
         from .submission import ReaderSubmission
         self.submission = ReaderSubmission(role_id=role_id, image_name=image_name,
             directory=self._scope_directory, trial=trial, target=target)

@@ -466,6 +466,8 @@ class PlanTrial:
         self._memory_plans: dict[str, dict[str, Any]] = {}
         self._memory_numeric: dict[str, dict[str, Any]] = {}
         self.reference_plan = None
+        self.reference_validation_passed = None
+        self.reference_receipt = None
         self._reference_profiles = {}
         self.allowed_rework_targets = None
         self.inherited_topology_issues = []
@@ -534,6 +536,15 @@ class PlanTrial:
                 if (not profile_path.is_file()
                         or _file_sha256(profile_path) != profile.get("sha256")):
                     raise ValueError(f"trial measurement profile changed: {profile_path}")
+                profile_id = profile.get("profile_id")
+                if not isinstance(profile_id, str) or not profile_id:
+                    raise ValueError("trial measurement profile has no profile_id")
+                inherited = self._reference_profiles.get(profile_id)
+                if inherited and inherited["sha256"] != profile["sha256"]:
+                    raise ValueError(f"trial measurement profile identity changed: {profile_id}")
+                self._reference_profiles[profile_id] = {
+                    "path": profile_path, "sha256": profile["sha256"],
+                }
             if receipt.get("status") == "passed":
                 candidate = receipt.get("candidate")
                 if not isinstance(candidate, str):
@@ -770,14 +781,95 @@ class PlanTrial:
         prior = self._successful()
         if prior:
             return self.load_plan(prior), prior["plan_sha256"]
-        if self.reference_plan is not None:
+        if self.reference_plan is not None and self.reference_validation_passed is not False:
             return copy.deepcopy(self.reference_plan), canonical_plan_sha256(self.reference_plan)
         draft = next((row for row in reversed(self.receipts)
                       if row.get("compiled_numeric_plan_sha256")), None)
         if draft:
             self.numeric_plan(draft)  # A resumed draft must retain its verified numeric product.
             return self.load_plan(draft), draft["plan_sha256"]
+        if self.reference_plan is not None:
+            return copy.deepcopy(self.reference_plan), canonical_plan_sha256(self.reference_plan)
         return None, None
+
+    def _verified_original_image(self, expected_sha256: str) -> None:
+        if self.workspace is None or not isinstance(expected_sha256, str) or not expected_sha256:
+            raise ValueError("inherited trial needs the expected original image sha256")
+        manifest_path = self.workspace / "inputs.json"
+        if not manifest_path.is_file():
+            raise ValueError("inherited trial has no inputs.json")
+        manifest = json.loads(manifest_path.read_bytes())
+        recorded = (manifest.get("images", {}).get(self.image_name, {}).get("sha256")
+                    if isinstance(manifest, Mapping) else None)
+        image_path = self.workspace / "images" / self.image_name
+        if recorded != expected_sha256 or not image_path.is_file() or _file_sha256(image_path) != expected_sha256:
+            raise ValueError("inherited trial original image does not match this reader task")
+
+    def _inherit_profiles(self, prior, receipt) -> None:
+        profiles = {}
+        for row in receipt.get("measurement_profiles", []):
+            if not isinstance(row, Mapping) or not isinstance(row.get("profile_id"), str):
+                raise ValueError("inherited trial measurement profile is malformed")
+            path = _inside(prior.workspace, row.get("file", ""))
+            if not path.is_file() or _file_sha256(path) != row.get("sha256"):
+                raise ValueError(f"inherited trial measurement profile changed: {row['profile_id']}")
+            target = path
+            if self.profile_directory is not None:
+                self.profile_directory.mkdir(parents=True, exist_ok=True)
+                target = self.profile_directory / f"{row['profile_id']}.json"
+                if target.is_file() and _file_sha256(target) != row["sha256"]:
+                    raise ValueError(f"inherited profile collides with current reader evidence: {row['profile_id']}")
+                if not target.is_file():
+                    shutil.copyfile(path, target)
+            profiles[row["profile_id"]] = {"path": target, "sha256": row["sha256"]}
+        self._reference_profiles = profiles
+
+    def inherited_reference_ids(self) -> set[str]:
+        """References copied into this same-image reader scope."""
+        return set(self._reference_profiles)
+
+    def verified_failed_draft(self, expected_image_sha256: str):
+        """Return the newest complete failed declaration, never an accepted plan.
+
+        Only a persisted failure with a hash-verified resolved numeric product is
+        editable.  Rejected/unknown calls and format-only failures cannot become
+        a cross-task baseline.
+        """
+        receipt = next((row for row in reversed(self.receipts)
+                        if row.get("status") == "failed"
+                        and isinstance(row.get("input_plan_file"), str)
+                        and isinstance(row.get("compiled_numeric_plan_sha256"), str)), None)
+        if receipt is None:
+            return None
+        self._verified_original_image(expected_image_sha256)
+        if self.workspace is None or not isinstance(receipt.get("receipt_file"), str):
+            raise ValueError("editable failed trial has no durable receipt")
+        saved = _inside(self.workspace, receipt["receipt_file"])
+        if not saved.is_file() or json.loads(saved.read_bytes()) != receipt:
+            raise ValueError("failed trial receipt changed since execution")
+        plan = self.load_plan(receipt)
+        if canonical_plan_sha256(plan) != receipt["plan_sha256"]:
+            raise ValueError("failed trial declaration hash mismatch")
+        self.numeric_plan(receipt)
+        return plan, {"validation_passed": False, "editable_draft": True, **receipt}
+
+    def inherit_failed_reference(self, prior, expected_image_sha256: str):
+        """Use a same-image failed declaration as an editable, non-submit-ready base."""
+        selected = prior.verified_failed_draft(expected_image_sha256)
+        if selected is None:
+            return None
+        plan, receipt = selected
+        self.reference_plan = copy.deepcopy(plan)
+        self.reference_validation_passed = False
+        self.reference_receipt = {
+            "status": "failed", "validation_passed": False,
+            "plan_sha256": receipt["plan_sha256"],
+            "receipt_file": receipt["receipt_file"],
+            "compiled_numeric_plan_sha256": receipt["compiled_numeric_plan_sha256"],
+        }
+        self.allowed_rework_targets = None
+        self._inherit_profiles(prior, receipt)
+        return copy.deepcopy(self.reference_receipt)
 
     def inherit_reference(self, prior, plan_sha256, allowed_targets):
         from src.agent.geometry.plan_revision import SCALARS, COLLECTIONS
@@ -795,12 +887,14 @@ class PlanTrial:
                 raise ValueError(f"rework_targets must name an editable plan field or collection:id: {target}")
         plan, receipt = prior.verified_plan(plan_sha256)
         self.reference_plan = copy.deepcopy(plan)
+        self.reference_validation_passed = True
+        self.reference_receipt = {
+            "status": "passed", "validation_passed": True,
+            "plan_sha256": receipt["plan_sha256"], "receipt_file": receipt["receipt_file"],
+        }
         self.allowed_rework_targets = list(allowed_targets)
         self.inherited_topology_issues = copy.deepcopy(receipt.get("topology_issues", []))
-        self._reference_profiles = {
-            row["profile_id"]: {"path": _inside(prior.workspace, row["file"]), "sha256": row["sha256"]}
-            for row in receipt.get("measurement_profiles", [])
-        }
+        self._inherit_profiles(prior, receipt)
 
     async def run(self, plan=None, *, operations=None) -> dict[str, Any]:
         if (plan is None) == (operations is None):
@@ -1187,6 +1281,7 @@ class PlanTrial:
             "image": self.image_name,
             "reference_plan_sha256": (canonical_plan_sha256(self.reference_plan)
                                       if self.reference_plan is not None else None),
+            "reference_receipt": self.reference_receipt,
             "allowed_rework_targets": self.allowed_rework_targets,
             "receipts": rows,
         }

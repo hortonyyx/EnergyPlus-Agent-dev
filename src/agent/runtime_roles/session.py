@@ -182,7 +182,8 @@ def _compact_failure_result(value):
     hint = structured.get("repair_hint")
     if isinstance(hint, Mapping):
         kept = {key: copy.deepcopy(hint[key]) for key in (
-            "path", "note", "junction_repairs", "space_seeds", "missing_wall_check",
+            "path", "note", "current", "allowed_floor_bounds_m", "junction_repairs",
+            "junction_repairs_remaining", "space_seeds", "missing_wall_check",
         ) if key in hint}
         if kept:
             result["repair_hint"] = kept
@@ -195,6 +196,9 @@ def _compact_failure_result(value):
             result[key] = copy.deepcopy(rows[:12])
             if len(rows) > 12:
                 result[key + "_remaining"] = len(rows) - 12
+    for key, count in structured.items():
+        if key.endswith("_remaining") and isinstance(count, int) and not isinstance(count, bool):
+            result[key] = count
     return result or None
 
 
@@ -282,6 +286,24 @@ class RoleSession:
                 "the prior delivery's earlier corrected failures are not current rework evidence."
             )
             return handoff
+        if record.get("role_id") == "plan_reader":
+            from .trial import PlanTrial
+            workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
+            prior = PlanTrial(None, image_name=record["image"], workspace=workspace,
+                              receipt_directory=workspace / "trial_receipts")
+            selected = prior.verified_failed_draft(record.get("input_sha256"))
+            if selected is not None:
+                _, receipt = selected
+                handoff["editable_draft"] = {
+                    "status": "failed", "validation_passed": False, "editable": True,
+                    "plan_sha256": receipt["plan_sha256"],
+                    "receipt_file": receipt["receipt_file"],
+                    "compiled_numeric_plan_sha256": receipt["compiled_numeric_plan_sha256"],
+                    "instruction": (
+                        "This hash-verified complete failed declaration is the operations baseline in the new task. "
+                        "Revise the located objects; unchanged objects and their source descriptions remain in place."
+                    ),
+                }
         child = self.registry.child(task_id)
         known_failure = False
         for event in reversed(child.events):
@@ -785,13 +807,14 @@ class RoleSession:
                 trial = await stack.enter_async_context(PlanTrialSession(
                     scoped.run_directory, task["image"], root=self.root))
             previous = self.registry.read(task["previous_task_id"]) if task.get("previous_artifact") else None
-            if trial is not None and previous is not None:
-                validation = self.registry.records[task["previous_task_id"]].get("validation") or {}
+            if trial is not None and task.get("previous_task_id"):
+                prior_record = self.registry.records[task["previous_task_id"]]
+                validation = prior_record.get("validation") or {}
+                workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
+                from .trial import PlanTrial, canonical_plan_sha256
+                prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
+                                  receipt_directory=workspace / "trial_receipts")
                 if validation.get("source_geometry_ready") is True and validation.get("validation_passed") is True:
-                    from .trial import PlanTrial, canonical_plan_sha256
-                    workspace = self.registry.child(task["previous_task_id"]).task_directory / "bim/trial_workspace"
-                    prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
-                                      receipt_directory=workspace / "trial_receipts")
                     _, prior_receipt = prior.verified_plan(validation["plan_sha256"])
                     compiled_plan = prior.numeric_plan(prior_receipt)
                     if not isinstance(compiled_plan, dict):
@@ -806,6 +829,8 @@ class RoleSession:
                     # original declaration and retain their historical base.
                     if compiled_delivery:
                         trial.reference_plan = copy.deepcopy(compiled_plan)
+                elif prior_record.get("status") == "failed":
+                    trial.inherit_failed_reference(prior, task["input_sha256"])
                 # The accepted review also covers warnings from trials made
                 # after the selected successful geometry receipt.
                 trial.inherited_topology_issues = validation.get("topology_issues", [])

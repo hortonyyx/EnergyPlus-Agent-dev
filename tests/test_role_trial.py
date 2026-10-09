@@ -92,6 +92,93 @@ def test_failed_trial_is_retained_but_not_accepted():
     asyncio.run(scenario())
 
 
+def test_new_reader_locally_repairs_hash_verified_failed_draft_with_old_profile(tmp_path):
+    async def scenario():
+        raw_image = b"same-admitted-original"
+        image_sha = hashlib.sha256(raw_image).hexdigest()
+
+        def prepare_workspace(name):
+            workspace = tmp_path / name
+            (workspace / "images").mkdir(parents=True)
+            (workspace / "images/plan.png").write_bytes(raw_image)
+            (workspace / "inputs.json").write_text(json.dumps({
+                "images": {"plan.png": {"size": [12, 8], "sha256": image_sha}},
+            }), encoding="utf-8", newline="\n")
+            return workspace
+
+        prior_workspace = prepare_workspace("prior")
+        profiles = tmp_path / "prior_profiles"
+        profiles.mkdir()
+        profile = {
+            "name": "plan.png", "image_sha256": image_sha, "axis": "x",
+            "candidates": [
+                {"id": "C01", "pixels": [5, 5], "peak": 5},
+                {"id": "C02", "pixels": [7, 7], "peak": 7},
+            ],
+        }
+        (profiles / "profile_001.json").write_text(
+            json.dumps(profile), encoding="utf-8", newline="\n")
+        plan = example()
+        midpoint = {"midpoint": [
+            {"profile": "profile_001", "candidate": "C01"},
+            {"profile": "profile_001", "candidate": "C02"},
+        ]}
+        for point in plan["partitions"][0]["points"]:
+            point[0] = midpoint
+        for field in ("p1", "p2"):
+            plan["openings"][0][field][0] = midpoint
+        for row in [*plan["partitions"], *plan["openings"]]:
+            row["source_refs"] = ["view_old: located on the admitted plan"]
+
+        prior = PlanTrial(
+            Tools(ready=False, workspace=prior_workspace), image_name="plan.png",
+            receipt_directory=prior_workspace / "trial_receipts", workspace=prior_workspace,
+            profile_directory=profiles,
+        )
+        failed = await prior.run(plan)
+        assert failed["status"] == "failed" and failed["compiled_numeric_plan_sha256"]
+        with pytest.raises(ValueError, match="successful isolated trial"):
+            prior.verified_plan(failed["plan_sha256"])
+
+        current_workspace = prepare_workspace("current")
+        current_tools = Tools(ready=True, workspace=current_workspace)
+        current = PlanTrial(
+            current_tools, image_name="plan.png",
+            receipt_directory=current_workspace / "trial_receipts", workspace=current_workspace,
+            profile_directory=tmp_path / "current_profiles",
+        )
+        inherited = current.inherit_failed_reference(prior, image_sha)
+        assert inherited["validation_passed"] is False and inherited["status"] == "failed"
+        assert current.inherited_reference_ids() == {"profile_001"}
+        assert (tmp_path / "current_profiles/profile_001.json").is_file()
+        repaired = await current.run(operations=[{
+            "op": "update", "collection": "openings", "id": "D1", "changes": {"z": [0, 2.2]},
+            "reason": "repair the named height only",
+            "source_refs": ["view_current: opening height mark"],
+            "bbox": [4, 2, 8, 6],
+        }])
+        assert repaired["status"] == "passed"
+        assert repaired["base_plan_sha256"] == failed["plan_sha256"]
+        declaration = current.load_plan(repaired)
+        assert declaration["openings"][0]["z"] == [0, 2.2]
+        assert declaration["openings"][1] == plan["openings"][1]
+        assert declaration["partitions"] == plan["partitions"]
+        compiled_call = json.loads(current_tools.calls[0][1]["plan_json"])
+        assert compiled_call["partitions"][0]["source_refs"] == ["view_old: located on the admitted plan"]
+        assert repaired["measurement_profiles"][0]["profile_id"] == "profile_001"
+        copied = current_workspace / repaired["measurement_profiles"][0]["file"]
+        assert copied.is_file()
+
+        wrong_image_reader = PlanTrial(
+            Tools(), image_name="plan.png", receipt_directory=tmp_path / "wrong/receipts",
+            workspace=prepare_workspace("wrong"),
+        )
+        with pytest.raises(ValueError, match="does not match this reader task"):
+            wrong_image_reader.inherit_failed_reference(prior, "0" * 64)
+
+    asyncio.run(scenario())
+
+
 def test_resolution_error_is_a_repairable_failed_receipt(tmp_path):
     async def scenario():
         (tmp_path / "images").mkdir()

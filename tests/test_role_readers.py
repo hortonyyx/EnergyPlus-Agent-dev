@@ -133,3 +133,23 @@ def test_reader_reference_provenance_survives_resume_and_enters_snapshot(tmp_pat
         assert snapshot["reader_scope"]["sidecar_sha256"]
         assert snapshot["trial"]["snapshot_sha256"] == "0" * 64
     asyncio.run(scenario())
+
+
+def test_inherited_profile_enters_new_reader_reference_scope(tmp_path):
+    class InheritedTrial(Trial):
+        def inherited_reference_ids(self):
+            return {"profile_009"}
+
+    async def scenario():
+        (tmp_path / "inputs.json").write_text(json.dumps({
+            "images": {"plan.png": {"sha256": "a" * 64}}
+        }))
+        frozen = Frozen(tmp_path)
+        tools = ReaderTools(
+            frozen, role_id="plan_reader", image_name="plan.png", trial=InheritedTrial())
+        await tools.call_tool("map_pixels", {"profile": "profile_009"})
+        assert frozen.calls[-1] == ("map_pixels", {"profile": "profile_009"})
+        saved = json.loads((tmp_path / "reader_issued_references.json").read_text())
+        assert saved["references"] == ["profile_009"]
+
+    asyncio.run(scenario())

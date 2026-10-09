@@ -240,7 +240,10 @@ def test_failed_rework_automatically_carries_located_tool_evidence_without_issue
     raw = envelope({
         "status": "failed",
         "reason": "opening W1 has no full host",
-        "repair_hint": {"path": "plan.openings[0]", "note": "Move W1 onto its observed wall."},
+        "repair_hint": {"path": "plan.openings[0]", "note": "Move W1 onto its observed wall.",
+                        "current": [0.0, 3.4], "allowed_floor_bounds_m": [0.0, 3.0],
+                        "junction_repairs_remaining": 2},
+        "changes_remaining": 4,
         "next_action": {"objects": ["plan.openings[0]"], "instruction": "Correct W1 and retry."},
         "receipt_file": "trial_receipts/trial_003.json",
     }, error=True)
@@ -267,6 +270,10 @@ def test_failed_rework_automatically_carries_located_tool_evidence_without_issue
     assert handoff["reason"] == "incomplete_response"
     failure = handoff["tool_failures"][0]
     assert failure["feedback"]["repair_hint"]["path"] == "plan.openings[0]"
+    assert failure["feedback"]["repair_hint"]["current"] == [0.0, 3.4]
+    assert failure["feedback"]["repair_hint"]["allowed_floor_bounds_m"] == [0.0, 3.0]
+    assert failure["feedback"]["repair_hint"]["junction_repairs_remaining"] == 2
+    assert failure["feedback"]["changes_remaining"] == 4
     assert failure["feedback"]["next_action"]["objects"] == ["plan.openings[0]"]
     assert failure["evidence"]["event_id"]
     assert failure["evidence"]["receipt_file"] == "trial_receipts/trial_003.json"
