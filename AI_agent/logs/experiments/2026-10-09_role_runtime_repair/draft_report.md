@@ -52,3 +52,9 @@
 ## 小测入口
 
 历史可复用入口为 `AI_agent/logs/experiments/2026-10-06_plan_reader_probe/run_probe.py`，但它硬编码 sm24 F1、旧 domain 版本和旧评分参照。主助手已另写本轮 `run_plan_probe.py`，真实单层小测由主助手负责。
+
+## 集成与真实小测补录
+
+集成检查发现两项成功的纯内存 PlanTrial 返工没有 `receipt_file`，被新继承逻辑误作必需字段而失败。`7c76446e` 修复该兼容路径，失败声明的持久证据与哈希要求保持；domain v56 登记后六个受影响文件 62 项完整通过，无 deselect 或 skip。与原集合去重后的最终结果见 [离线汇总](offline_final_summary.json)。
+
+真实小测已完成，但暴露剩余接口问题：首稿缺 `unresolved`；格式失败未生成 editable draft 时模型仍试 operations；提交阶段在 `wall_reference`、`notes` 和 `dimension_basis` 上共被拒九次，才 accepted。最终外轮廓与门窗覆盖有实质错误，不能把成功返工或提交当质量通过。下一轮须针对这些原始参数统一接口并减少重复声明，同时改善整体读图，见[本轮报告](README.md)。

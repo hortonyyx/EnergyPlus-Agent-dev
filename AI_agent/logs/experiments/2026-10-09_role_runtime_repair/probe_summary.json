@@ -1,0 +1,106 @@
+{
+  "case": "sm25-L_anchor",
+  "scope": "single assigned F1 plan reader; not a whole-building delivery",
+  "git_commit": "30085ccefdd50ee742ecea2fecf65941ad70f941",
+  "runtime": "runtime-v2-20261009",
+  "domain": "domain-v56-20261009",
+  "work_model": "glm-5.3-flash",
+  "reasoning_effort": "medium",
+  "wall_seconds": 3484.840125322342,
+  "runner_status": "passed",
+  "quality_status": "failed",
+  "stop_decision": "No whole-case run: material footprint, source-space and opening errors remain. No rerun or provider fallback.",
+  "tasks": [
+    {
+      "task": "plan_f1",
+      "parent": "coordinator",
+      "start_min": 0.0,
+      "first_request_min": 0.0,
+      "first_trial_attempt_min": 35.7,
+      "first_trial_min": 35.7,
+      "first_successful_trial_min": 53.0,
+      "submitted_attempt_min": 55.5,
+      "submitted_min": 57.6,
+      "end_min": 57.8,
+      "requests": 40,
+      "responses": 40,
+      "requests_missing_usage": 0,
+      "model_min": 56.9,
+      "median_request_s": 39.1,
+      "output_tokens": 146171,
+      "refused": 0,
+      "tool_errors": 21,
+      "tool_outcomes": {
+        "succeeded": 46,
+        "failed": 21
+      },
+      "compactions": 4,
+      "budget_wait_count": 0,
+      "budget_wait_seconds": 0,
+      "budget_wait_outcomes": {},
+      "input_tokens": 838202,
+      "cache_read_tokens": 1374272,
+      "cache_creation_tokens": 0,
+      "cache_read_ratio": 0.6211471863624161,
+      "tools": {
+        "view_pixel_profile": 28,
+        "view_image": 12,
+        "trial_plan_bim": 12,
+        "submit_plan_reading": 10,
+        "pixel_profile": 3,
+        "inputs": 1,
+        "view_plan_blocks": 1
+      }
+    }
+  ],
+  "tool_count": 67,
+  "trial_calls": 12,
+  "accepted_submissions": 1,
+  "submission_attempts": 10,
+  "rooms": {
+    "reference_count": 14,
+    "candidate_count": 17,
+    "matched_count": 14
+  },
+  "opening_comparison": {
+    "reference_count": 31,
+    "matched": 21,
+    "positions": 18,
+    "unmatched_reference": [
+      "WNC",
+      "WE1",
+      "WE2",
+      "WE3",
+      "WE4",
+      "WE5",
+      "WE6",
+      "WE7",
+      "WW2",
+      "WC_N"
+    ],
+    "unmatched_answer": [
+      "O_stub_passage"
+    ]
+  },
+  "matched_opening_along_endpoint_tiers": {
+    "<=5cm": 15,
+    "5-10cm": 3,
+    "10-30cm": 1,
+    ">30cm": 2
+  },
+  "evaluation_limit": "Frozen reference uses 2cm room-boundary tolerance, so its severe labels also include small offsets. Acceptance is blocked by independent original-image footprint mismatch (140m2 invented NE space), extra/split spaces and 10 unmatched reference doors/windows; not by tiny deviations or connection proxy counts alone. Matched endpoint tiers exclude perpendicular offsets and missing openings.",
+  "preservation_checks": {
+    "exact_task": true,
+    "no_auto_added": true,
+    "accepted_artifact": true,
+    "request_route_exact": true,
+    "http_request_count_bounded": true,
+    "versions_unchanged": true,
+    "original_unchanged": true,
+    "runner_unchanged": true,
+    "journal_request_counts": true
+  },
+  "capture_errors": [],
+  "whole_case_runs": 0,
+  "coordinator_requests": 0
+}

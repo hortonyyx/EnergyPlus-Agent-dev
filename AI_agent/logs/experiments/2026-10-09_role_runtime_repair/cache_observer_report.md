@@ -25,3 +25,9 @@ python AI_agent/logs/experiments/2026-10-07_runtime_cache_b1/analyze.py AI_agent
 用 v53 重算后与独立终审一致：105 请求、100 响应、5 请求缺 usage；137 工具执行为 110 succeeded / 26 failed / 1 unknown。四份立面 accepted，无成功平面试建或提交；unknown 的原始结果确实未捕获，报告明确标注。用量一致：未缓存输入 2,637,143、缓存读取 1,753,920、输出 501,027。详见 [重算记录](v53_observer_verified.json)。
 
 四项观察器行为检查通过，另覆盖预算等待起止配对及末尾未提交的完整 JSON 行。首次检查的 blob 测试夹具遗漏引用种类，已修正；同时将 capture 解析改为 JSON 模式，兼容严格合同中的 tuple。没有新增依赖，没有 work model 请求。完整行为观察仍由 dev model 阅读原始参数、返回和产物完成，统计不代替质量评价。
+
+## 本轮真实小测补录
+
+固定 runtime v2 / domain v56 的 GLMFlash medium 单层小测完成：40 请求/40 响应，无缺失 usage 或 capture 错误。未缓存输入 838,202、缓存读取 1,374,272、输出 146,171；实际加权缓存命中为 **62.1147%**，四次压缩，零预算等待。单层只有一个读图员，不能用它验证并发预算修复；任务和并发与旧整案不同，62.1% 也不能归因于压缩比例变化或作为 Claude Code 优势证据。
+
+完整行为观察未发现压缩导致重复取同一证据。模型请求累计约 56.9 分钟（含服务与网络），不能直接叫纯生成时间。运行中一次 RSS 791.27 MiB 的快照含包装进程与三个 domain 工具服务，不是峰值或 runtime 本体单独占用。实际质量未通过，详见[本轮结果](README.md)及[原始行为观察](live_behavior_notes.md)。
