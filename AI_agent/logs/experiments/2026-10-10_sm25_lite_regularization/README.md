@@ -1,6 +1,6 @@
 # sm25 Lite BIM 规整：人工调度实验准备
 
-状态：`prepared_not_started`。本目录只准备配置、首次六任务和离线审计；没有初始化 run、派工、调用 HTTP/模型、运行整案或消费费用。当前准备基准为 `d5f5a5ef`，`run_config.json` 中的 `integrated_code_version` 仍是占位符。domain 集成、离线检查和版本登记完成后，项目经理必须先把它替换为实际版本，再执行任何包装器命令；`init` 会把配置哈希和已登记 agent 版本冻结到新 run。
+状态：`prepared_not_started`。尚未初始化 run、派工、调用 HTTP/模型或消费费用。代码已经集成为 `851b62ce`，登记 `runtime-v2-20261009 / domain-v57-20261010`；仅 domain 变化，三个分工角色的 fingerprint 更新，单模型 fingerprint 保持。定向检查与独立审查通过，主树全量离线检查正在执行，详见 [集成验证](integration_validation.md)。完整检查和离线预检通过后才初始化；`init` 会把配置哈希和已登记 agent 版本冻结到新 run。
 
 ## 固定范围
 

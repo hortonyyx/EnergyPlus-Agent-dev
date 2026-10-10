@@ -1,6 +1,6 @@
 # Lite BIM domain 集成与离线验证
 
-2026-10-10。基线 `d5f5a5ef`，runtime v2 保持；domain 实现版本在最终代码提交后登记。本记录不代替 sm25 新一轮模型验收。
+2026-10-10。基线 `d5f5a5ef`，实现提交 `4e2610b6`，fingerprint 接线修正 `851b62ce`。已登记并校验 `runtime-v2-20261009 / domain-v57-20261010`，仅 domain 变化，三个分工角色的 fingerprint 更新，单模型 fingerprint 保持。本记录不代替 sm25 新一轮模型验收。
 
 ## 实现范围
 
@@ -40,4 +40,4 @@
 
 审查发现并修复：高度移动缺少装配审计字段、跨层末次量化报告不同步、装配目标标高被草稿标高覆盖、立面返工覆盖未改字段的原读数，以及大体积审计进入返工模型上下文。实际 producer 和 adapter 消息检查覆盖最后两条接线，完整原始记录不删。
 
-全量离线检查、版本校验、新 sm25 运行与独立质量评价尚未开始。本文件会随实际进度更新，不将定向通过外推为整案成功。
+首次版本登记发现模板解析环境缺少新 `previous_context` 符号，已在 domain 的 `version_fingerprints.py` 同步修复后登记成功；未修改 runtime。主树全量离线检查已启动：`python -m pytest -n 2 tests -p no:cacheprovider --basetemp AI_agent/archive/local_backup/lite-full-tests -q`，日志在本批归档的 `full_pytest.log`。新 sm25 运行与独立质量评价尚未开始，不将定向通过外推为整案成功。
