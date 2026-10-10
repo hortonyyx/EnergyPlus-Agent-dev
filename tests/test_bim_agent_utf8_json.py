@@ -46,6 +46,10 @@ def test_build_and_reread_source_with_nonascii_standard_under_gbk(tmp_path, gbk_
         raw.decode("gbk")
     source = json.loads(raw)
     assert source["spaces"]
+    assert built["height_coverage"]["schema_version"] == "opening_heights_v2"
+    assert built["facade_counts"]["schema_version"] == "facade_count_report_v1"
+    for key in ("height_coverage", "facade_counts"):
+        assert built[key]["source_model_sha256"] == source["source_model_sha256"]
     image, view = toolkit.plan_view(built["candidate"], source["floors"][0]["id"])
     assert image.data and (run / view["plan_image"]).is_file()
     assert view["floor_id"] == source["floors"][0]["id"]

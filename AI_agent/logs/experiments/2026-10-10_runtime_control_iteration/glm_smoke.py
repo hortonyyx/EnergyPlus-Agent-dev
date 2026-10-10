@@ -343,6 +343,7 @@ async def run_smoke(output: Path, *, live: bool, credentials_file: Path | None) 
                 code_paths=(str(Path(__file__).resolve().relative_to(ROOT).as_posix()),))
                 if live else _offline_versions(store, prompt=SYSTEM, tools=specs,
                                                parameters=parameters, route=route))
+            _write_json(output / "versions.json", versions.model_dump(mode="json"))
             engine = Runtime(store=store, adapter=guarded, tools=tools, role=role,
                 model=MODEL, parameters=parameters, versions=versions, limits=limits,
                 context_policy=context_policy, strict_model_profile=True,

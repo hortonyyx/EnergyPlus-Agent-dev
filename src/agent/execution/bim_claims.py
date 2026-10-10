@@ -148,8 +148,8 @@ class ClaimStore:
 
     def candidate(self, name):
         path = self.toolkit.candidate_path(name)
-        return (json.loads((path / "proposal.json").read_text()),
-                json.loads((path / "source_model.json").read_text()))
+        return (json.loads((path / "proposal.json").read_bytes()),
+                json.loads((path / "source_model.json").read_bytes()))
 
     def _write(self, prefix, value):
         self.folder.mkdir(exist_ok=True)

@@ -72,6 +72,22 @@ class OverlapAdapter:
         return _response(text=_answer())
 
 
+def test_response_diagnostics_do_not_require_perf_counter_on_injected_business_clock(tmp_path):
+    """The business-clock fixture supplies only the methods used by budgets."""
+    from test_agent_runtime import MESSAGES, response, runtime
+    import src.agent_runtime.loop as runtime_loop
+    assert not hasattr(runtime_loop.time, "perf_counter")
+    engine = runtime(tmp_path, [response(text="offline response")])
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed"
+        assert result["model_calls"] == 1 and result["reported_tokens"] == 30
+        assert len(engine.budget.ledger.settlements) == 1
+        assert any(e.payload.event_type == "model_response" for e in engine.store.events)
+        assert result["runtime_processing"]["process_phase_seconds"]["response_parse_capture"] >= 0
+        engine.store.validate()
+
+
 def _setup(tmp_path, store, limits, factory, concurrency):
     run = tmp_path / "bim"
     run.mkdir()

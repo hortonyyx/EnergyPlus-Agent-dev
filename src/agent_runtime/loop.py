@@ -641,10 +641,10 @@ class Runtime:
                     lease.release()
                 try:
                     self.stage = "model_response"
-                    parse_started = time.perf_counter()
+                    parse_started = perf_counter()
                     with self._measure("response_parse_capture"):
                         parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
-                    parse_elapsed = time.perf_counter() - parse_started
+                    parse_elapsed = perf_counter() - parse_started
                     elapsed = time.monotonic() - sent_at
                     adjustment = lease.succeeded() if lease else None
                     self.redispatch_of = None
