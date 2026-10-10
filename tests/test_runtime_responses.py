@@ -266,9 +266,11 @@ def test_failed_terminal_without_usage_keeps_prior_frame_usage_and_rejects_parti
     with pytest.raises(ModelServiceError) as caught:
         send(adapter, prepare(store))
     assert caught.value.details["category"] == "service_error"
-    assert caught.value.details["usage_received"] is True
-    assert caught.value.usage.raw_usage == known_usage
-    assert reported_total_tokens(caught.value.usage.raw_usage) == 52
+    assert caught.value.details["usage_received"] is False
+    assert caught.value.usage.kind == "missing"
+    assert caught.value.observed_usage.raw_usage == known_usage
+    assert reported_total_tokens(caught.value.observed_usage.raw_usage) == 52
+    assert adapter.last_received_usage.raw_usage == known_usage
     assert len(requests) == 1
 
 
@@ -297,7 +299,9 @@ def test_nonterminal_or_invalid_stream_is_not_success(store, content, category):
     with pytest.raises(ModelServiceError) as caught:
         send(adapter, prepare(store))
     assert caught.value.details["category"] == category
-    assert caught.value.usage.raw_usage == USAGE
+    assert caught.value.usage.kind == "missing"
+    assert caught.value.details["usage_received"] is False
+    assert caught.value.observed_usage.raw_usage == USAGE
 
 
 def test_interrupted_transport_carries_last_usage_no_exception_secrets(store):
@@ -310,7 +314,9 @@ def test_interrupted_transport_carries_last_usage_no_exception_secrets(store):
     with pytest.raises(ModelServiceError) as caught:
         send(adapter, prepare(store))
     assert caught.value.details["category"] == "transport_error"
-    assert caught.value.usage.raw_usage == USAGE
+    assert caught.value.usage.kind == "missing"
+    assert caught.value.details["usage_received"] is False
+    assert caught.value.observed_usage.raw_usage == USAGE
     assert "private-oauth-token" not in json.dumps(caught.value.details)
     assert caught.value.__cause__ is None
 
@@ -445,3 +451,37 @@ def test_incomplete_terminal_error_diagnostics_redact_bearer_before_journal(stor
     assert parsed.protocol_error == "incomplete_response"
     assert b"secret-oauth-from-response" not in store.capture_bytes(parsed.event_payload.raw_response)
     assert parsed.event_payload.usage.raw_usage == USAGE
+
+
+def test_wait_for_cancelled_stream_preserves_current_usage_but_next_request_resets(store):
+    class WaitingStream(httpx.AsyncByteStream):
+        def __init__(self, with_usage):
+            self.with_usage = with_usage
+
+        async def __aiter__(self):
+            progress = response(status="in_progress", usage=self.with_usage)
+            yield sse({"type": "response.in_progress", "response": progress})
+            await asyncio.Event().wait()
+
+    requests = []
+    def handle(request):
+        requests.append(request)
+        return httpx.Response(200, stream=WaitingStream(with_usage=len(requests) == 1))
+
+    adapter = HttpResponsesAdapter(token_provider=provider(), transport=httpx.MockTransport(handle))
+    assert adapter.last_received_usage.kind == "missing"
+    request = prepare(store)
+    async def run():
+        try:
+            with pytest.raises(TimeoutError):
+                await asyncio.wait_for(adapter.send(request, timeout=5), timeout=.03)
+            assert adapter.last_received_usage.kind == "reported"
+            assert adapter.last_received_usage.raw_usage == USAGE
+            assert reported_total_tokens(adapter.last_received_usage.raw_usage) == 52
+            with pytest.raises(TimeoutError):
+                await asyncio.wait_for(adapter.send(request, timeout=5), timeout=.03)
+            assert adapter.last_received_usage.kind == "missing"
+            assert len(requests) == 2
+        finally:
+            await adapter.close()
+    asyncio.run(run())

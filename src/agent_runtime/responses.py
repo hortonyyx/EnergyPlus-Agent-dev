@@ -303,28 +303,34 @@ class HttpResponsesAdapter:
 
 Only response.completed is a successful terminal object. response.incomplete
 returns failure evidence for the parser/truncation journal, never executable calls.
+    last_received_usage is per-request observed evidence, not a final settlement
+    total when the stream fails or is cancelled without terminal usage.
 """
 
     def __init__(self, *, token_provider, transport=None):
         self._token_provider = token_provider
         self.client = httpx.AsyncClient(transport=transport, follow_redirects=False)
         self.last_send_timing = {}
+        self.last_received_usage = UsageMissing(reason="no request usage received")
 
     async def close(self):
         await self.client.aclose()
 
     async def send(self, request: PreparedRequest, *, timeout: float):
-        token, latest = "", {}
+        token = ""
         self.last_send_timing = {}
+        self.last_received_usage = UsageMissing(reason="current request has not reported usage")
         started = perf_counter()
         def failure(category, description, raw=None, retryable=False, error_type=None):
+            # Mid-stream observations do not establish the final total. A
+            # missing terminal usage must keep the runtime's unknown hold.
             usage = _usage(raw)
-            if usage.kind == "missing":
-                usage = _usage(latest)
-            return ModelServiceError({"category": category, "retryable": retryable,
+            error = ModelServiceError({"category": category, "retryable": retryable,
                 "service_error_type": _sanitize(error_type, token)[:256] if error_type else None,
                 "body_excerpt": _sanitize(description, token)[:2048],
                 "usage_received": usage.kind == "reported"}, usage)
+            error.observed_usage = self.last_received_usage
+            return error
         try:
             try:
                 token = await self._token_provider()
@@ -343,10 +349,11 @@ returns failure evidence for the parser/truncation journal, never executable cal
                     except ValueError:
                         error.usage = _usage({})
                     error.details["usage_received"] = error.usage.kind == "reported"
+                    self.last_received_usage = error.usage
+                    error.observed_usage = self.last_received_usage
                     raise error
                 done_items, data = {}, []
                 async def event():
-                    nonlocal latest
                     if not data:
                         return None
                     event_raw = json.loads("\n".join(data))
@@ -354,11 +361,9 @@ returns failure evidence for the parser/truncation journal, never executable cal
                         raise ValueError("invalid SSE object")
                     kind = event_raw.get("type")
                     value = event_raw.get("response")
-                    if value is None and event_raw.get("usage") is not None:
-                        latest = {"usage": event_raw["usage"]}
-                    if isinstance(value, dict):
-                        if _usage(value).kind == "reported" or _usage(latest).kind != "reported":
-                            latest = value
+                    frame_usage = _usage(value if isinstance(value, dict) else event_raw)
+                    if frame_usage.kind == "reported":
+                        self.last_received_usage = frame_usage
                     if kind == "response.output_item.done":
                         index, item = event_raw["output_index"], event_raw["item"]
                         if type(index) is not int or index < 0 or not isinstance(item, dict):
@@ -369,7 +374,8 @@ returns failure evidence for the parser/truncation journal, never executable cal
                     if kind in {"response.failed", "error"}:
                         reason = (value or event_raw).get("error") or (value or {}).get("incomplete_details") or {}
                         raise failure("service_error",
-                            json.dumps(reason), value, error_type=reason.get("type", reason.get("code")) if isinstance(reason, dict) else None)
+                            json.dumps(reason), value if isinstance(value, dict) else event_raw,
+                            error_type=reason.get("type", reason.get("code")) if isinstance(reason, dict) else None)
                     if kind in {"response.completed", "response.incomplete"}:
                         expected = "completed" if kind == "response.completed" else "incomplete"
                         if not isinstance(value, dict) or value.get("object") != "response" or value.get("status") != expected or not isinstance(value.get("output"), list):
