@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 from pydantic import Field, JsonValue, model_validator
 
 from .base import ContractModel, NonEmptyStr
+from .refs import SourceRef
 
 
 class BudgetAmounts(ContractModel):
@@ -187,10 +188,46 @@ class BudgetSettlement(ContractModel):
         return self.actual.tokens + self.image_tokens_estimate
 
 
+class BudgetRelease(ContractModel):
+    """Append-only abandonment of a reservation proven never dispatched."""
+
+    reservation_id: NonEmptyStr
+    reason: NonEmptyStr
+
+
+class BudgetReconciliation(ContractModel):
+    """A sourced late receipt; the original unknown settlement remains intact."""
+
+    reservation_id: NonEmptyStr
+    request_event_id: NonEmptyStr
+    settlement_event_id: NonEmptyStr
+    evidence: SourceRef
+    settlement: BudgetSettlement
+
+    @model_validator(mode="after")
+    def require_reported_receipt(self) -> BudgetReconciliation:
+        if self.settlement.reservation_id != self.reservation_id:
+            raise ValueError("reconciliation settlement must use the same reservation")
+        if self.evidence.blob is None or self.evidence.blob.kind != "sha256":
+            raise ValueError("reconciliation requires hashed source evidence")
+        if (self.settlement.usage.kind != "reported"
+                or _reported_total_tokens(self.settlement.usage.raw_usage) is None
+                or self.settlement.actual.tokens != _reported_total_tokens(self.settlement.usage.raw_usage)):
+            raise ValueError("reconciliation needs complete reported token usage")
+        return self
+
+
 class BudgetLedger(ContractModel):
     total_limit: BudgetAmounts
     reservations: tuple[BudgetReservation, ...]
     settlements: tuple[BudgetSettlement, ...] = ()
+    releases: tuple[BudgetRelease, ...] = ()
+    reconciliations: tuple[BudgetReconciliation, ...] = ()
+
+    @property
+    def effective_settlements(self) -> tuple[BudgetSettlement, ...]:
+        replacements = {r.reservation_id: r.settlement for r in self.reconciliations}
+        return tuple(replacements.get(s.reservation_id, s) for s in self.settlements)
 
     @model_validator(mode="after")
     def validate_ledger(self) -> BudgetLedger:
@@ -202,8 +239,36 @@ class BudgetLedger(ContractModel):
                 raise ValueError(f"duplicate reservation_id: {item.reservation_id}")
             reservation_by_id[item.reservation_id] = item
 
+        originals = {s.reservation_id: s for s in self.settlements}
+        if len(originals) != len(self.settlements):
+            raise ValueError("reservation settled twice")
+        released: set[str] = set()
+        for release in self.releases:
+            if release.reservation_id not in reservation_by_id:
+                raise ValueError("release has no reservation")
+            if release.reservation_id in released or release.reservation_id in originals:
+                raise ValueError("reservation already released or settled")
+            released.add(release.reservation_id)
+        reconciled: set[str] = set()
+        for receipt in self.reconciliations:
+            old = originals.get(receipt.reservation_id)
+            new = receipt.settlement
+            if old is None or old.usage.kind != "missing":
+                raise ValueError("reconciliation must target an original missing-usage settlement")
+            if receipt.reservation_id in reconciled:
+                raise ValueError("reservation reconciled twice")
+            reconciled.add(receipt.reservation_id)
+            for name in ("seconds", "calls", "money_usd"):
+                if getattr(old.actual, name) is not None and getattr(new.actual, name) != getattr(old.actual, name):
+                    raise ValueError("reconciliation cannot change known actual charges")
+            for name in ("image_tokens_estimate",):
+                if getattr(old, name) != getattr(new, name):
+                    raise ValueError("reconciliation cannot change the request image allowance")
+            reservation = reservation_by_id[receipt.reservation_id]
+            if reservation.amounts.money_cny is not None and new.estimated_cost_cny is None:
+                raise ValueError("reconciliation must resolve the unknown CNY charge")
         settled: set[str] = set()
-        for item in self.settlements:
+        for item in self.effective_settlements:
             if item.reservation_id in settled:
                 raise ValueError(f"reservation settled twice: {item.reservation_id}")
             settled.add(item.reservation_id)
@@ -257,11 +322,11 @@ class BudgetLedger(ContractModel):
                     None
                     if self.committed.tokens is None
                     else self.committed.tokens
-                    - sum(item.token_overrun for item in self.settlements)
+                    - sum(item.token_overrun for item in self.effective_settlements)
                 ),
                 "money_cny": (
                     None if self.committed.money_cny is None else self.committed.money_cny
-                    - sum(item.money_cny_overrun for item in self.settlements)
+                    - sum(item.money_cny_overrun for item in self.effective_settlements)
                 ),
             }
         )
@@ -276,7 +341,7 @@ class BudgetLedger(ContractModel):
     def outstanding(self) -> BudgetAmounts:
         """Full conservative holds for reservations without a settlement."""
 
-        settled = {item.reservation_id for item in self.settlements}
+        settled = {item.reservation_id for item in self.settlements} | {item.reservation_id for item in self.releases}
         total = BudgetAmounts()
         for reservation in self.reservations:
             if reservation.reservation_id not in settled:
@@ -291,7 +356,7 @@ class BudgetLedger(ContractModel):
             item.reservation_id: item for item in self.reservations
         }
         total = BudgetAmounts()
-        for settlement in self.settlements:
+        for settlement in self.effective_settlements:
             reservation = reservation_by_id.get(settlement.reservation_id)
             if reservation is not None:
                 total = total.add(_effective_charge(reservation, settlement))

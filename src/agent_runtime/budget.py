@@ -11,6 +11,8 @@ from src.harness_contracts import (
     BudgetAmounts,
     BudgetEventPayload,
     BudgetLedger,
+    BudgetRelease,
+    BudgetReconciliation,
     BudgetReservation,
     BudgetSettlement,
     CostUnavailable,
@@ -191,6 +193,8 @@ class RuntimeBudget:
         self.cny_pricing = cny_pricing
         self._reservations: list[BudgetReservation] = []
         self._settlements: list[BudgetSettlement] = []
+        self._releases: list[BudgetRelease] = []
+        self._reconciliations: list[BudgetReconciliation] = []
         self._fatal_reason: str | None = None
         # Validate the total even before the first request.
         self.ledger
@@ -201,7 +205,22 @@ class RuntimeBudget:
             total_limit=self.total_limit,
             reservations=tuple(self._reservations),
             settlements=tuple(self._settlements),
+            releases=tuple(self._releases), reconciliations=tuple(self._reconciliations),
         )
+
+    def clone(self) -> RuntimeBudget:
+        """Independent mutable admission state over immutable journal contracts."""
+        copied = type(self)(self.total_limit, near_limit_policy=self.near_limit_policy,
+            min_output_tokens=self.min_output_tokens, pricing=self.pricing,
+            cny_pricing=self.cny_pricing)
+        copied._reservations = list(self._reservations)
+        copied._settlements = list(self._settlements)
+        copied._releases = list(self._releases)
+        copied._reconciliations = list(self._reconciliations)
+        copied._fatal_reason = self._fatal_reason
+        return copied
+
+    copy = clone
 
     @property
     def available(self) -> BudgetAmounts:
@@ -253,6 +272,7 @@ class RuntimeBudget:
             total_limit=self.total_limit,
             reservations=tuple(candidate),
             settlements=tuple(self._settlements),
+            releases=tuple(self._releases), reconciliations=tuple(self._reconciliations),
         )
         self._reservations.append(reservation)
         return BudgetDecision(
@@ -291,6 +311,9 @@ class RuntimeBudget:
         if reservation is None:
             self._fatal_reason = "settlement_without_reservation"
             return self._stop(self._fatal_reason)
+        if any(item.reservation_id == reservation_id for item in self._releases):
+            self._fatal_reason = "settlement_after_release"
+            return self._stop(self._fatal_reason, reservation=reservation)
         if any(
             item.reservation_id == reservation_id for item in self._settlements
         ):
@@ -364,6 +387,7 @@ class RuntimeBudget:
                 total_limit=self.total_limit,
                 reservations=tuple(self._reservations),
                 settlements=tuple([*self._settlements, settlement]),
+                releases=tuple(self._releases), reconciliations=tuple(self._reconciliations),
             )
         except ValidationError:
             self._fatal_reason = "invalid_settlement_evidence"
@@ -414,11 +438,23 @@ class RuntimeBudget:
             cny_pricing=cny_pricing,
         )
         materialized = list(events)
+        reservation_events = {}
+        settlement_events = {}
+        request_events = {}
         for item in materialized:
             payload = getattr(item, "payload", item)
+            if getattr(payload, "event_type", None) == "adapter_request" and payload.reservation_id:
+                if any(r.reservation_id == payload.reservation_id for r in budget._releases):
+                    raise ValueError("released reservation cannot be dispatched")
+                request_events[payload.reservation_id] = item
             if not isinstance(payload, BudgetEventPayload):
                 continue
-            if payload.reservation is not None:
+            if payload.action in {"release", "reconcile"}:
+                from src.harness_contracts.validation import validate_budget_recovery_event
+                record = payload.release if payload.action == "release" else payload.reconciliation
+                validate_budget_recovery_event(item, reservation_events.get(record.reservation_id),
+                    settlement_events.get(record.reservation_id), request_events.get(record.reservation_id))
+            if payload.action == "reserve":
                 if not _fits(payload.reservation.amounts, budget.available):
                     raise ValueError("recorded reservation exceeds available budget")
                 candidate = [*budget._reservations, payload.reservation]
@@ -426,21 +462,35 @@ class RuntimeBudget:
                     total_limit=total_limit,
                     reservations=tuple(candidate),
                     settlements=tuple(budget._settlements),
+                    releases=tuple(budget._releases), reconciliations=tuple(budget._reconciliations),
                 )
                 budget._reservations.append(payload.reservation)
-            else:
+                reservation_events[payload.reservation.reservation_id] = item
+            elif payload.action == "settle":
                 candidate = [*budget._settlements, payload.settlement]
                 BudgetLedger(
                     total_limit=total_limit,
                     reservations=tuple(budget._reservations),
                     settlements=tuple(candidate),
+                    releases=tuple(budget._releases), reconciliations=tuple(budget._reconciliations),
                 )
                 budget._settlements.append(payload.settlement)
+                settlement_events[payload.settlement.reservation_id] = item
+            elif payload.action == "release":
+                budget._releases.append(payload.release)
+                budget.ledger
+            elif payload.action == "reconcile":
+                budget._reconciliations.append(payload.reconciliation)
+                budget.ledger
         budget._recover_response_overrun(materialized)
         reservations = {r.reservation_id: r for r in budget._reservations}
         if any(reservations[s.reservation_id].amounts.money_cny is not None
-               and s.estimated_cost_cny is None for s in budget._settlements):
+               and s.estimated_cost_cny is None for s in budget.ledger.effective_settlements):
             budget._fatal_reason = "money_cny_usage_unavailable"
+        elif total_limit.tokens is not None and (budget.ledger.committed.tokens or 0) > total_limit.tokens:
+            budget._fatal_reason = "token_budget_exhausted"
+        elif total_limit.money_cny is not None and (budget.ledger.committed.money_cny or 0) >= total_limit.money_cny:
+            budget._fatal_reason = "money_budget_exhausted"
         return budget
 
     def _reduced_estimate(

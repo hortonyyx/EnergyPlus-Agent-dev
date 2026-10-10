@@ -444,11 +444,18 @@ class EventLog(ContractModel):
     def _validate_budget_events(self) -> None:
         reservations = []
         settlements = []
+        releases = []
+        reconciliations = []
         reservation_events: dict[str, EventEnvelope] = {}
         settlement_events: dict[str, EventEnvelope] = {}
         overrun_reservations: set[str] = set()
+        requests_by_reservation: dict[str, EventEnvelope] = {}
         for event in self.events:
             payload = event.payload
+            if isinstance(payload, AdapterRequestPayload) and payload.reservation_id:
+                if any(r.reservation_id == payload.reservation_id for r in releases):
+                    raise ValueError("released reservation cannot be dispatched")
+                requests_by_reservation[payload.reservation_id] = event
             if isinstance(payload, BudgetOverrunPayload):
                 reservation_event = reservation_events.get(payload.reservation_id)
                 settlement_event = settlement_events.get(payload.reservation_id)
@@ -489,6 +496,7 @@ class EventLog(ContractModel):
                     total_limit=self.budget_limit,
                     reservations=tuple(reservations),
                     settlements=tuple(settlements),
+                    releases=tuple(releases), reconciliations=tuple(reconciliations),
                 )
                 _require_available_for_reservation(
                     payload.reservation.amounts, current.available
@@ -505,6 +513,17 @@ class EventLog(ContractModel):
                     raise ValueError("budget settlement task must match reservation task")
                 settlements.append(payload.settlement)
                 settlement_events[payload.settlement.reservation_id] = event
+            if payload.action in {"release", "reconcile"}:
+                record = payload.release if payload.action == "release" else payload.reconciliation
+                assert record is not None
+                validate_budget_recovery_event(event,
+                    reservation_events.get(record.reservation_id),
+                    settlement_events.get(record.reservation_id),
+                    requests_by_reservation.get(record.reservation_id))
+                if payload.release is not None:
+                    releases.append(payload.release)
+                else:
+                    reconciliations.append(payload.reconciliation)
             # Validate every journal prefix. A later settlement may release a
             # conservative hold, but it cannot erase evidence that an earlier
             # reservation was admitted over the configured total.
@@ -512,6 +531,7 @@ class EventLog(ContractModel):
                 total_limit=self.budget_limit,
                 reservations=tuple(reservations),
                 settlements=tuple(settlements),
+                releases=tuple(releases), reconciliations=tuple(reconciliations),
             )
 
     def _validate_duplicate_writes(self) -> None:
@@ -531,6 +551,38 @@ class EventLog(ContractModel):
                     f"operation applied more than once: {payload.operation_key}"
                 )
             applied_operations.add(payload.operation_key)  # type: ignore[arg-type]
+
+
+def validate_budget_recovery_event(
+    event: EventEnvelope,
+    reservation_event: EventEnvelope | None,
+    settlement_event: EventEnvelope | None,
+    request_event: EventEnvelope | None,
+) -> None:
+    """Shared full/incremental cross-event checks; caller supplies prior indexes."""
+    payload = event.payload
+    if not isinstance(payload, BudgetEventPayload) or payload.action not in {"release", "reconcile"}:
+        raise ValueError("expected a budget recovery event")
+    if reservation_event is None or reservation_event.sequence >= event.sequence:
+        raise ValueError("budget recovery requires a prior reservation")
+    if reservation_event.task_id != event.task_id:
+        raise ValueError("budget recovery must remain in the reservation task")
+    if payload.action == "release":
+        if request_event is not None or settlement_event is not None:
+            raise ValueError("only an unsent, unsettled reservation can be released")
+        return
+    receipt = payload.reconciliation
+    assert receipt is not None
+    if (settlement_event is None or settlement_event.event_id != receipt.settlement_event_id
+            or settlement_event.sequence >= event.sequence):
+        raise ValueError("reconciliation must bind its prior original settlement")
+    if (request_event is None or request_event.event_id != receipt.request_event_id
+            or request_event.sequence >= settlement_event.sequence):
+        raise ValueError("reconciliation must bind the reservation's prior request")
+    if settlement_event.task_id != event.task_id or request_event.task_id != event.task_id:
+        raise ValueError("reconciliation references must remain in the reservation task")
+    if receipt.evidence not in event.source_refs:
+        raise ValueError("reconciliation evidence must also be an event source")
 
 
 def validate_event_log(events: tuple[EventEnvelope, ...], **kwargs: object) -> EventLog:

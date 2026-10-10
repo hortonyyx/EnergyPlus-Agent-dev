@@ -7,7 +7,7 @@ are estimates from a checked-in price observation, never provider bills.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from decimal import Decimal
 import io
 from typing import Iterable, Mapping
@@ -144,6 +144,10 @@ class StoredRequestAccounting:
     model: str
     route_id: str
     accounting: RequestUsageAccounting
+    original_usage_kind: str | None = None
+    original_missing_reason: str | None = None
+    reconciliation_event_id: str | None = None
+    reconciliation_source: dict[str, object] | None = None
 
     def receipt_dict(self) -> dict[str, object]:
         return {
@@ -151,6 +155,10 @@ class StoredRequestAccounting:
             "task_id": self.task_id,
             "model": self.model,
             "route_id": self.route_id,
+            "original_usage_kind": self.original_usage_kind,
+            "original_missing_reason": self.original_missing_reason,
+            "reconciliation_event_id": self.reconciliation_event_id,
+            "reconciliation_source": self.reconciliation_source,
             **self.accounting.receipt_dict(),
         }
 
@@ -309,6 +317,19 @@ def request_accounting_from_store(
                 if event.payload.event_type == "budget" and event.payload.action == "settle"
                 and event.payload.settlement.reservation_id == request.payload.reservation_id), None)
             usage = None if settlement is None else settlement.usage
+    original_usage = usage
+    reconciliation = next((event for event in store.all_events
+        if event.payload.event_type == "budget" and event.payload.action == "reconcile"
+        and event.payload.reconciliation.request_event_id == request_event_id), None)
+    if reconciliation is not None:
+        receipt = reconciliation.payload.reconciliation
+        original_settlement_event = next(event for event in store.all_events
+            if event.event_id == receipt.settlement_event_id)
+        original_usage = original_settlement_event.payload.settlement.usage
+        reconciled_usage = receipt.settlement.usage
+        if isinstance(usage, UsageReported) and usage != reconciled_usage:
+            raise ValueError("supplied usage conflicts with the journaled reconciliation")
+        usage = reconciled_usage
     # A read-only projection of older journals applies the same narrow rule;
     # original events/settlements stay untouched and unknown outcomes stay unknown.
     if usage is None or isinstance(usage, UsageMissing):
@@ -321,17 +342,32 @@ def request_accounting_from_store(
     pricing = get_cny_price_schedule(
         identity.remote_alias, route_id=identity.route_id
     )
+    accounting = account_request_usage(
+        usage, image_tokens_estimate=image_tokens, pricing=pricing,
+        billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic"} else "metered_or_unknown")
+    if reconciliation is not None:
+        receipt = reconciliation.payload.reconciliation
+        settled = receipt.settlement
+        accounting = replace(accounting,
+            budget_charge_tokens=settled.effective_tokens,
+            additional_image_tokens=settled.effective_tokens - settled.actual.tokens,
+            reported_usage_includes_image_tokens=settled.reported_usage_includes_image_tokens,
+            estimated_cost_cny=settled.estimated_cost_cny,
+            known_cost_components_cny=settled.estimated_cost_cny,
+            cost_estimate_complete=settled.estimated_cost_cny is not None,
+            usage_basis="reconciled_provider_reported",
+            price_source="journaled reconciliation; see the original request rate evidence",
+            note=accounting.note + " Late provider receipt appended; original missing usage is preserved.")
     return StoredRequestAccounting(
         request_event_id=request_event_id,
         task_id=request.task_id,
         model=identity.remote_alias,
         route_id=identity.route_id,
-        accounting=account_request_usage(
-            usage,
-            image_tokens_estimate=image_tokens,
-            pricing=pricing,
-            billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic"} else "metered_or_unknown",
-        ),
+        accounting=accounting,
+        original_usage_kind=getattr(original_usage, "kind", None),
+        original_missing_reason=getattr(original_usage, "reason", None),
+        reconciliation_event_id=None if reconciliation is None else reconciliation.event_id,
+        reconciliation_source=None if reconciliation is None else reconciliation.payload.reconciliation.evidence.model_dump(mode="json"),
     )
 
 
@@ -356,6 +392,8 @@ def summarize_request_accounting(
         )
         return {
             "requests": len(selected),
+            "reconciled_requests": sum(r.reconciliation_event_id is not None for r in selected),
+            "original_missing_usage_requests": sum(r.original_usage_kind == "missing" for r in selected),
             "rejected_unprocessed_requests": sum(r.accounting.usage_basis == "rejected_before_processing" for r in selected),
             **{field: (sum(values) if values and all(v is not None for v in values) else None)
                for field in ("reported_input_tokens", "reported_cache_read_tokens", "reported_cache_write_tokens", "reported_output_tokens")

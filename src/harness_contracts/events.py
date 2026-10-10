@@ -8,7 +8,7 @@ from typing import Annotated, Literal
 from pydantic import Field, JsonValue, field_validator, model_validator
 
 from .base import ContractModel, EventTimestamp, NonEmptyStr, ParentTaskRef, Sha256
-from .budget import BudgetAmounts, BudgetReservation, BudgetSettlement, UsageEvidence
+from .budget import BudgetAmounts, BudgetReconciliation, BudgetRelease, BudgetReservation, BudgetSettlement, UsageEvidence
 from .refs import BlobRef, HashedBlobRef, ImageTransmission, SourceRef
 
 
@@ -466,20 +466,18 @@ class TaskControlPayload(ContractModel):
 
 class BudgetEventPayload(ContractModel):
     event_type: Literal["budget"] = "budget"
-    action: Literal["reserve", "settle"]
+    action: Literal["reserve", "settle", "release", "reconcile"]
     reservation: BudgetReservation | None = None
     settlement: BudgetSettlement | None = None
+    release: BudgetRelease | None = None
+    reconciliation: BudgetReconciliation | None = None
 
     @model_validator(mode="after")
     def exactly_one_budget_record(self) -> BudgetEventPayload:
-        if self.action == "reserve" and (
-            self.reservation is None or self.settlement is not None
-        ):
-            raise ValueError("reserve event needs only reservation")
-        if self.action == "settle" and (
-            self.settlement is None or self.reservation is not None
-        ):
-            raise ValueError("settle event needs only settlement")
+        records = {"reserve": self.reservation, "settle": self.settlement,
+                   "release": self.release, "reconcile": self.reconciliation}
+        if records[self.action] is None or sum(value is not None for value in records.values()) != 1:
+            raise ValueError(f"{self.action} event needs only its matching budget record")
         return self
 
 
