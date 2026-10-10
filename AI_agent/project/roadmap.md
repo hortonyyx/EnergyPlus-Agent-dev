@@ -1,6 +1,12 @@
 # 路线与当前任务
 
-**10-10 当前节点：runtime 可控续跑与开销迭代已完成，登记 runtime v5 / domain v60；domain 下一轮设计按用户安排留待讨论。** 在独立审阅后，用户授权先迭代runtime并优先用GLM订阅测试。已接通定向消息、安全边界暂停/继续、未发送预留释放、真实usage补账、工具恢复分类与原task ID委派恢复；追加事件改增量校验，预算投影按相关变更缓存，实际连接与角色上下文配置同源。必要domain改动限于接线、配置和UTF-8持久文件读取，未改规整或识读方法。
+**10-11 当前节点：Sim BIM Agent 的 ChatGPT 订阅直连已实现，登记 runtime v6 / domain v61。** 用户要求把独立模型接入加入本轮 runtime 迭代，并明确不购买额外按量 API。已实现独立 SIWC 登录、原生 Responses 流、函数工具与图片回传、opaque output 恢复、用量与缓存记账，支持单模型和分工入口。domain 仅改 provider/配置接线，工具与指引指纹不变；外部 MCP 调度入口不支持此新线路。
+
+- **验证与证据：** 最终登记代码的18文件286项离线检查全部通过（48.67秒）；独立Python进程完成两轮SSE夹具与一次本地工具调用（0.188秒），无Codex子进程。虚构100 token只作夹具计数。见[本轮报告](../logs/experiments/2026-10-11_chatgpt_subscription_runtime/README.md)。
+- **当前交接：** [订阅直连与命名交接](../logs/worklog/2026-10-11_chatgpt_subscription_runtime_close.md)；[独立登录与运行说明](../workflow/chatgpt_subscription_runtime.md)。用户明确先不登录、之后换另一个账号；已取消授权等待并确认本程序无账号，真实OpenAI模型请求0，订阅可用性未验。无付费回退或新sm25整案。
+- **下一入口：** 用户选号后登录 Sim BIM Agent、读取真实模型目录，再做有界订阅协议小测；domain 下一步仍按此前安排先讨论。runtime v5 的定向消息、恢复和性能工作继续有效，详见下方前轮记录。
+
+**10-10 前轮节点：runtime 可控续跑与开销迭代已完成，登记 runtime v5 / domain v60；domain 下一轮设计按用户安排留待讨论。** 在独立审阅后，用户授权先迭代runtime并优先用GLM订阅测试。已接通定向消息、安全边界暂停/继续、未发送预留释放、真实usage补账、工具恢复分类与原task ID委派恢复；追加事件改增量校验，预算投影按相关变更缓存，实际连接与角色上下文配置同源。必要domain改动限于接线、配置和UTF-8持久文件读取，未改规整或识读方法。
 
 - **验证与证据：** [实施报告](../logs/experiments/2026-10-10_runtime_control_iteration/README.md) · [GLM原始回执](../logs/experiments/2026-10-10_runtime_control_iteration/glm_live/smoke_result.json) · [前置独立审阅](../logs/reviews/2026-10-10_runtime_independent_review/summary.md)。分批去重826通过、1显式跳过，初轮30失败已逐项复验消除；最后57项runtime与16项真实工具/恢复/回放全过，另68项领域工具检查通过。一次GLM订阅协议小测在v4/v59完成，14/14检查通过，2请求、654 token、8.625秒；最终版补齐诊断计时钟隔离及UTF-8候选读取。冻结1269事件的全部前缀全量/增量校验与预算一致；微基准不代表整案加速。
 - **当前交接：** [runtime迭代交接](../logs/worklog/2026-10-10_runtime_control_iteration_close.md)；[控制与恢复入口](../workflow/runtime_controls.md)。旧sm25失败run及其未知用量保持冻结，缺usage仍需真实凭据，不能凭恢复接口强行放行。

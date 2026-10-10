@@ -9,7 +9,7 @@
 
 ## 目标与开发取向
 
-- **10-11 用户定名：产品对外名称为 Sim BIM Agent。** 独立 ChatGPT 登录应用采用该名称；Lite BIM 仍表示轻量模型产出。用户本轮明确暂不登录，要之后换另一个账号；不得使用当前 Codex 账号凭据代接或追加真实 OpenAI 请求。
+- **10-11 当前节点：产品对外名称为 Sim BIM Agent；ChatGPT 订阅原生 runtime 接入已实现，登记 runtime v6 / domain v61。** 独立授权、Responses 工具循环、多轮状态/恢复及用量接线离线通过，18文件286项检查全过；独立Python进程2轮夹具/1次本地工具通过。domain仅改入口和配置，建模方法不变。用户明确暂不登录，之后换另一个账号；已取消授权等待，应用无账号、真实OpenAI请求0，不能称真实订阅已接通。无Codex凭据复用或付费API回退。见[本轮报告](logs/experiments/2026-10-11_chatgpt_subscription_runtime/README.md)、[当前交接](logs/worklog/2026-10-11_chatgpt_subscription_runtime_close.md)及[登录入口](workflow/chatgpt_subscription_runtime.md)。Lite BIM仍表示轻量模型产出，下一轮domain方案留待讨论。
 
 - 最终开发一套统一的 Agent，产出可查看、可修改、可用于后续分析的轻量 BIM。还原建模、部分推理建模、完全推理建模按信息充分程度命名，仅作研发分工与评价分类，不拆成独立产品或长期管线。09-25 的 Astra／Opus 双负责人及 10-03 的 Opus 项目经理安排保留为历史；**10-08 起由 Codex（当前主助手）统一统筹**。各工作包共用 BIM Agent、源 BIM 和 harness，具体分工见 [当前任务](project/roadmap.md)。
 - 09-30 用户将部分推理建模改交 Astra 直接接手：与用户共同调到其认可验收，随后结合 Claude 实现及 Astra 实际开发过程搭建初步工作框架，由 dev model 验证成功后，再交 work model 测试并推进。用户随后明确目前最好的是汇报演示版，改以该版165空间体/322窗组/173门继续；源为showcase中的revision_02/inferred。已按用户首次意见另存09-30修订01（267空间/334窗组/284门），20项源检查通过；10-01续改[修订02](logs/experiments/2026-10-01_voimatalo_door_revision/README.md)，修正房门成对靠隔墙布置并澄清端墙无窗推断，11项本轮核查通过；10-01用户已确认精细档达标，[验收记录](logs/experiments/2026-10-01_voimatalo_door_revision/acceptance.json)固定当前基准。已按[框架实施起点](design/partial_inference_framework_start.md)接通首包公共支持；10-01用户指定开发测试用6.1 Sol和6 Sol，已完成同条件各独立一次验证：两组源几何通过，6.1 Sol建筑方案较好，但两组未复现标准层精细粒度，6 Sol门仍机械居中。工具缺口已离线修复。本轮已收工，下轮先由用户查看两份输出，再决定后续；复测未获批准，work model 尚未启动。09-16及Claude 09-25/26成果保留作参考，不回退公共代码。
@@ -39,7 +39,7 @@
 
 ## 权限与执行
 
-- **10-10 最新执行：** 用户授权先迭代 runtime，需要测试时优先 GLM 订阅。已实现同次任务定向纠正、安全暂停/继续、带真实证据的预算恢复、原 task ID 委派恢复、增量日志校验与预算缓存、实际连接与上下文配置贯通，登记 **runtime v5 / domain v60**。domain 仅含必要恢复接线、配置与 Windows UTF-8 读取修复，规整/识读方法留待下一轮讨论。一次 GLM 订阅协议小测（v4/v59，后续仅补计时钟隔离与候选读取）14/14通过，2请求、654 token、8.625秒；无新sm25真实模型整案。离线集成检查及失败修复过程见[实施报告](logs/experiments/2026-10-10_runtime_control_iteration/README.md)，使用见[控制与恢复](workflow/runtime_controls.md)，下一入口见[路线](project/roadmap.md)。恢复能力、BIM质量与整案效率仍分别验收。
+- **10-10 前一轮 runtime 执行：** 用户授权先迭代 runtime，需要测试时优先 GLM 订阅。已实现同次任务定向纠正、安全暂停/继续、带真实证据的预算恢复、原 task ID 委派恢复、增量日志校验与预算缓存、实际连接与上下文配置贯通，登记 **runtime v5 / domain v60**。domain 仅含必要恢复接线、配置与 Windows UTF-8 读取修复，规整/识读方法留待下一轮讨论。一次 GLM 订阅协议小测（v4/v59，后续仅补计时钟隔离与候选读取）14/14通过，2请求、654 token、8.625秒；无新sm25真实模型整案。离线集成检查及失败修复过程见[实施报告](logs/experiments/2026-10-10_runtime_control_iteration/README.md)，使用见[控制与恢复](workflow/runtime_controls.md)，下一入口见[路线](project/roadmap.md)。恢复能力、BIM质量与整案效率仍分别验收。
 
 - **10-10 前一轮建模终态（保持冻结）：** Lite BIM 减负包已登记 domain v57（当时runtime v2），一次人工调度 sm25 已失败收口，**规整BIM交付目标未达到**。四立面完成、两平面失败，无整楼候选；F1超时缺usage触发当时runtime费用停止，准备的同次人工恢复未派发，未重复冷启。已知费用9.1655892元，完整费用未知。见[本轮报告](logs/experiments/2026-10-10_sm25_lite_regularization/README.md)与[交接](logs/worklog/2026-10-10_lite_bim_domain_close.md)。新runtime不追改旧失败账本或原地升级旧run，后续仍需讨论声明恢复、近轴接头/尺寸链，不自动追加模型实测。
 
