@@ -26,7 +26,7 @@ from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters
 from src.agent_runtime.store import json_bytes
 from src.agent_runtime.versions import make_versions
-from src.harness_contracts import ToolExecutionPayload, ToolInvocationPayload, RunLifecyclePayload
+from src.harness_contracts import HashedBlobRef, ToolExecutionPayload, ToolInvocationPayload, RunLifecyclePayload
 from src.harness_contracts.roles import ToolGrant
 
 from .accounting import role_accounting
@@ -424,6 +424,7 @@ class RoleSession:
         return await self._call_tool(name, arguments)
 
     async def _call_tool(self, name, arguments):
+        original_arguments = arguments
         try:
             if name not in self.schemas:
                 if name not in self.ordinary_schemas:
@@ -468,7 +469,12 @@ class RoleSession:
                 async with self.write_lock:
                     return await self.edit_candidate(**arguments)
             if name == "delegate_readers":
-                value = await self.delegate_many(arguments["tasks"])
+                invocation = next((event for event in reversed(self.store.events)
+                    if event.payload.event_type == "tool_invocation"
+                    and event.payload.tool_name == name
+                    and event.payload.full_arguments == original_arguments), None)
+                value = await self.delegate_many(arguments["tasks"],
+                    call_id=invocation.payload.call_id if invocation else None)
                 first = {}
                 for event in self.store.all_events:
                     payload = event.payload
@@ -813,15 +819,45 @@ class RoleSession:
                             for task in auto_added]
         return result
 
-    async def delegate_many(self, tasks):
+    def _delegate_batch(self, tasks, call_id):
+        # Bind the expanded batch to the durable parent call, before any child
+        # starts. A restart must not infer "first dispatch" from partial child
+        # records: those records are precisely what an interrupted batch leaves.
+        requested = copy.deepcopy(tasks)
+        identity = call_id if call_id is not None else "direct:" + hashlib.sha256(json_bytes(requested)).hexdigest()
+        key = hashlib.sha256(json_bytes([self.store.run_id, self.store.task_id, identity])).hexdigest()
+        path = self.store.directory / "role_batches" / (key + ".json")
+        if path.is_file():
+            record = json.loads(path.read_bytes())
+            body = {key: value for key, value in record.items() if key != "record_blob"}
+            if self.store.get_bytes(HashedBlobRef.model_validate(record["record_blob"])) != json_bytes(body):
+                raise ValueError("reader batch metadata hash mismatch")
+            if (body["run_id"], body["parent_task_id"], body["call_id"], body["requested_tasks"]) != (
+                    self.store.run_id, self.store.task_id, identity, requested):
+                raise ValueError("reader call identity already belongs to different tasks")
+            for task in body["tasks"]:
+                image = self.run_directory / "images" / task["image"]
+                if hashlib.sha256(image.read_bytes()).hexdigest() != task["input_sha256"]:
+                    raise ValueError("reader batch original image changed since admission")
+            return body["tasks"], body["auto_added"]
         first_dispatch = not self.registry.records
         prepared = self._with_plan_floors(tasks, add_missing=first_dispatch)
-        tasks, auto_added = prepared if first_dispatch else (prepared, [])
-        identities = [task["task_id"] for task in tasks]
+        expanded, auto_added = prepared if first_dispatch else (prepared, [])
+        identities = [task["task_id"] for task in expanded]
         if len(identities) != len(set(identities)):
             raise ValueError("reader task IDs must be unique within a batch")
         # Validate every dispatch before starting any model request.
-        admitted = [self._task(task) for task in tasks]
+        admitted = [self._task(task) for task in expanded]
+        body = {"run_id": self.store.run_id, "parent_task_id": self.store.task_id,
+                "call_id": identity, "requested_tasks": requested,
+                "tasks": admitted, "auto_added": auto_added}
+        record = {**body, "record_blob": self.store.put_json(body).model_dump(mode="json")}
+        self.store.write_json("role_batches/" + path.name, record)
+        return admitted, auto_added
+
+    async def delegate_many(self, tasks, *, call_id=None):
+        admitted, auto_added = self._delegate_batch(tasks, call_id)
+        identities = [task["task_id"] for task in admitted]
         for task in admitted:
             self.registry.admit(task)
 
@@ -852,7 +888,7 @@ class RoleSession:
             self.registry.read(task["task_id"])
             return {**saved, "reused_saved_result": True}
         recoverable_stop = saved and saved.get("reason") in {
-            "cancelled", "money_cny_usage_unavailable", "resume_pending_operation",
+            "cancelled", "token_usage_unavailable", "money_cny_usage_unavailable", "resume_pending_operation",
             "resume_uncheckpointed_budget_reservation"}
         if saved and saved["status"] not in {"running", "interrupted"} and not recoverable_stop:
             return {**saved, "reused_saved_result": True}
@@ -875,7 +911,8 @@ class RoleSession:
                      "seconds": timing["time_budget_seconds"], "max_model_retries": self.limits.max_model_retries,
                      "retry_backoff_seconds": self.limits.retry_backoff_seconds,
                      "max_consecutive_truncations": self.limits.max_consecutive_truncations,
-                     "max_total_truncations": self.limits.max_total_truncations}
+                     "max_total_truncations": self.limits.max_total_truncations,
+                     "max_tool_recovery_retries": self.limits.max_tool_recovery_retries}
         if self.limits.tokens is not None and (allowance["tokens"] is None or allowance["tokens"] > self.limits.tokens):
             allowance["tokens"] = self.limits.tokens
         limits = RunLimits(**allowance)
@@ -1127,16 +1164,21 @@ class RoleSession:
                      if event.payload.event_type == "tool_execution" and event.payload.outcome != "unknown"}
         resolved_calls = {event.payload.call_id for event in self.store.events
                           if event.payload.event_type == "tool_execution" and event.payload.outcome != "unknown"}
+        latest_invocations = {event.payload.call_id: event.event_id for event in self.store.events
+                              if event.payload.event_type == "tool_invocation"}
         recovered = []
         for event in list(self.store.events):
             call = event.payload
             if (call.event_type != "tool_invocation" or event.event_id in completed
-                    or call.call_id in resolved_calls):
+                    or call.call_id in resolved_calls
+                    or latest_invocations[call.call_id] != event.event_id):
                 continue
             unknown = next((row for row in reversed(self.store.events)
                 if row.payload.event_type == "tool_execution" and
                 row.payload.invocation_event_id == event.event_id and row.payload.outcome == "unknown"), None)
-            retry = None
+            retry_source = next((source.blob for source in event.source_refs
+                if source.source_id == "tool-recovery-attempt"), None)
+            retry_id = json.loads(self.store.get_bytes(retry_source))["retry_event_id"] if retry_source else None
             if unknown:
                 # A permission-level read label is not replay authorization.
                 # Only this task-aware delegate path can recover paid children.
@@ -1150,10 +1192,12 @@ class RoleSession:
                     continue
                 retry = self.store.append(RunLifecyclePayload(action="retry", attempt=attempts + 1,
                     retry_of_event_id=unknown.event_id, reason="recover existing reader task identities and checkpoints"))
+                retry_id = retry.event_id
                 event = self.store.append(ToolInvocationPayload(call_id=call.call_id,
                     tool_name=call.tool_name, full_arguments=call.full_arguments,
                     repeatability=call.repeatability, operation_key=call.operation_key,
-                    state_before=self.store.put_json(self.snapshot_state())))
+                    state_before=self.store.put_json(self.snapshot_state())),
+                    source_refs=(self.store.source("tool-recovery-attempt", {"retry_event_id": retry_id}),))
             if call.tool_name == "delegate_readers":
                 raw = await self.call_tool(call.tool_name, call.full_arguments)
             elif call.tool_name in {"assemble_from_readers", "edit_bim"}:
@@ -1188,7 +1232,7 @@ class RoleSession:
             self.store.append(ToolExecutionPayload(call_id=call.call_id, tool_name=call.tool_name,
                 full_arguments=call.full_arguments, repeatability=call.repeatability,
                 operation_key=call.operation_key, invocation_event_id=event.event_id,
-                retry_event_id=retry.event_id if retry else None,
+                retry_event_id=retry_id,
                 outcome="failed" if raw.get("isError") else "succeeded",
                 applied_write_id=call.operation_key if call.repeatability != "read_only" and not raw.get("isError") else None,
                 raw_result=self.store.capture(raw, force_blob=True), shown_result=self.store.capture(shown, force_blob=True),

@@ -29,6 +29,7 @@ from .adapter import (convert_tool_result, parse_response, prepare_request,
 from .accounting import (account_request_usage, bills_images_separately,
     get_cny_price_schedule, require_cny_price_schedule, request_accounting_from_store, summarize_request_accounting)
 from .budget import PriceSchedule, RequestEstimate, RuntimeBudget
+from .budget_projection import load_budget_projection
 from .estimation import get_model_profile, estimate_chat_request
 from .failures import (ModelServiceError, classify_failure, is_unprocessed_rejection,
                        rejected_request_usage, safe_exception_details)
@@ -389,10 +390,10 @@ class Runtime:
         minimum = self.limits.min_output_tokens
         if self.low_output_limit_reason is None:
             minimum = max(minimum, profile_minimum)
-        self.budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events,
+        self.budget = load_budget_projection(self.store, self.store.budget_limit,
             near_limit_policy=self.limits.near_limit, min_output_tokens=minimum,
             pricing=self.pricing, cny_pricing=self.cny_pricing)
-        self.task_budget = RuntimeBudget.from_events(self.limits.ledger_limit(), self.store.events,
+        self.task_budget = load_budget_projection(self.store, self.limits.ledger_limit(), task_id=self.store.task_id,
             near_limit_policy=self.limits.near_limit, min_output_tokens=minimum,
             pricing=self.pricing, cny_pricing=self.cny_pricing)
 
@@ -400,10 +401,10 @@ class Runtime:
         requests = [e for e in self.store.events if e.payload.event_type == "adapter_request"]
         usages = {e.payload.request_event_id: e.payload.usage for e in self.store.events
                   if e.payload.event_type == "model_response"}
-        settlements = {s.reservation_id: s for s in self.task_budget.ledger.settlements}
+        settlements = {s.reservation_id: s for s in self.task_budget.ledger.effective_settlements}
         for request in requests:
             settlement = settlements.get(request.payload.reservation_id)
-            if request.event_id not in usages and settlement is not None:
+            if settlement is not None:
                 # HTTP failures can carry a usage receipt without a successful
                 # chat response; account for each actual request exactly once.
                 usages[request.event_id] = settlement.usage
@@ -713,10 +714,22 @@ class Runtime:
             self._append_message(self._truncation_prompt(), self._event_source(event))
 
     def _record_truncation(self, response, *, blocked=None):
-        existing = next((e for e in self.store.events
+        existing = next((e for e in reversed(self.store.events)
             if e.payload.event_type == "response_truncation"
             and e.payload.response_event_id == response.event_id), None)
         if existing is not None:
+            request = next(e for e in self.store.events if e.event_id == response.payload.request_event_id)
+            receipt = next((r for r in self.task_budget.ledger.reconciliations
+                if r.reservation_id == request.payload.reservation_id), None)
+            if (receipt is not None and blocked is None and existing.payload.action == "stop"
+                    and existing.payload.reason in {"money_cny_usage_unavailable", "token_usage_unavailable"}
+                    and existing.payload.consecutive_count <= self.limits.max_consecutive_truncations
+                    and existing.payload.total_count <= self.limits.max_total_truncations):
+                # This is an effective projection of the old stop, backed by
+                # the appended reconciliation. Keep its single journal record.
+                return existing.model_copy(update={"payload": existing.payload.model_copy(update={
+                    "action": "continue",
+                    "reason": "late usage reconciled; discard truncated output and request a concise continuation"})})
             return existing
         total, consecutive = 0, 0
         for event in self.store.all_events:
@@ -768,6 +781,7 @@ class Runtime:
         # Other children may reserve or settle root budget while this request is
         # in flight. Rebuild both ledgers from the shared durable journal.
         self._load_budget()
+        usage = self._effective_budget_usage(reservation_id, usage)
         if any(s.reservation_id == reservation_id for s in self.budget.ledger.settlements):
             self._record_token_overrun(reservation_id, usage)
             return self._recorded_settlement_stop(reservation_id) or self._settled_token_stop()
@@ -836,6 +850,12 @@ class Runtime:
             return account_request_usage(usage, image_tokens_estimate=0, pricing=None)
         return request_accounting_from_store(self.store, request.event_id, usage=usage).accounting
 
+    def _effective_budget_usage(self, reservation_id, fallback):
+        """Project a late receipt without rewriting the original response."""
+        settlement = next((s for s in self.task_budget.ledger.effective_settlements
+            if s.reservation_id == reservation_id), None)
+        return settlement.usage if settlement is not None else fallback
+
     def _recorded_settlement_stop(self, reservation_id):
         for event in reversed(self.store.events):
             if (event.payload.event_type != "run_lifecycle"
@@ -846,12 +866,19 @@ class Runtime:
                     saved = json.loads(self.store.get_bytes(source.blob))
                     reservation = saved.get("decision", {}).get("reservation") or {}
                     if reservation.get("reservation_id") == reservation_id:
+                        if (any(r.reservation_id == reservation_id for r in self.task_budget.ledger.reconciliations)
+                                and saved.get("stop_reason") in {"money_cny_usage_unavailable",
+                                    "token_usage_unavailable", "unsettled_reported_usage"}):
+                            continue
                         return saved.get("stop_reason")
         return None
 
     def _settled_token_stop(self):
         for budget, task in ((self.budget, False), (self.task_budget, True)):
-            if budget.fatal_reason == "money_cny_usage_unavailable":
+            if budget.fatal_reason is not None:
+                if budget.fatal_reason in {"token_budget_exhausted", "money_budget_exhausted"}:
+                    dimension = "token" if budget.fatal_reason == "token_budget_exhausted" else "money"
+                    return self._scoped_budget_reason(dimension, task=task)
                 return budget.fatal_reason
             if (budget.total_limit.money_cny is not None
                     and (budget.ledger.committed.money_cny or 0) >= budget.total_limit.money_cny):
@@ -865,6 +892,10 @@ class Runtime:
         return None
 
     def _record_token_overrun(self, reservation_id, usage):
+        # The reconciliation itself carries the complete overrun. The older
+        # budget_overrun event protocol references only the original settlement.
+        if any(r.reservation_id == reservation_id for r in self.budget.ledger.reconciliations):
+            return
         reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
         accounting = self._request_accounting(reservation_id, usage)
         actual_tokens = accounting.budget_charge_tokens
@@ -1286,10 +1317,27 @@ class Runtime:
         self._control_paused = saved.get("control_paused", False)
         requested_reservations = {e.payload.reservation_id for e in self.store.events
             if e.payload.event_type == "adapter_request" and e.payload.reservation_id}
-        if any(r.reservation_id not in requested_reservations for r in self.task_budget.ledger.reservations):
-            # The durable request always precedes send. A reservation without one
-            # was never sent, but no release contract exists yet: keep the hold.
-            return "resume_uncheckpointed_budget_reservation"
+        released = {r.reservation_id for r in self.task_budget.ledger.releases}
+        settled = {s.reservation_id for s in self.task_budget.ledger.settlements}
+        for reservation in self.task_budget.ledger.reservations:
+            if reservation.reservation_id not in requested_reservations | released | settled:
+                from .budget_recovery import release_unsent_reservation
+                release_unsent_reservation(self.store, reservation.reservation_id,
+                    reason="resume_unsent_reservation")
+        self._load_budget()
+        self._refresh_counts()
+        if (self.terminal_reason in {"money_cny_usage_unavailable", "token_usage_unavailable",
+                "unsettled_reported_usage"} and self.counts["usage_complete"]
+                and self._settled_token_stop() is None):
+            self.terminal_reason = None
+        # A checkpoint may have captured a blocked response without accepting
+        # it into model history. Replay that response after its late receipt,
+        # while already accepted/pending responses remain exactly once.
+        reconciled_requests = {r.request_event_id for r in self.task_budget.ledger.reconciliations}
+        accepted_response_ids = {source.event_id for source in self.sources}
+        suffix = [e for e in self.store.events if e.payload.event_type == "model_response"
+            and e.sequence <= sequence and e.payload.request_event_id in reconciled_requests
+            and e.event_id not in accepted_response_ids and e.event_id != self.pending_response_id] + suffix
         expected_state = saved["tool_state"]
         committed_summaries = set()
         for event in suffix:
@@ -1307,14 +1355,15 @@ class Runtime:
                 request = next(e for e in self.store.events if e.event_id == p.request_event_id)
                 reservation_id = request.payload.reservation_id
                 if reservation_id:
+                    usage = self._effective_budget_usage(reservation_id, p.usage)
                     timing = next((s.blob for s in event.source_refs if s.source_id == "request-duration"), None)
                     elapsed = json.loads(self.store.get_bytes(timing))["elapsed_seconds"] if timing else None
-                    reason = self._settle(reservation_id, p.usage, seconds=elapsed)
+                    reason = self._settle(reservation_id, usage, seconds=elapsed)
                     parsed = parse_response(self.store.resolve(p.raw_response), p.request_event_id,
                         self.store, echo_fields=self.echo_fields)
                     if parsed.finish_reason == "length":
                         truncation = self._record_truncation(event, blocked=reason or (
-                            "token_usage_unavailable" if reported_tokens(p.usage) is None else None))
+                            "token_usage_unavailable" if reported_tokens(usage) is None else None))
                         if reason:
                             return reason
                         if truncation.payload.action == "stop":
@@ -1325,7 +1374,7 @@ class Runtime:
                         continue
                     if reason:
                         return reason
-                    if parsed.protocol_error == "empty_response" and reported_tokens(p.usage) == 0:
+                    if parsed.protocol_error == "empty_response" and reported_tokens(usage) == 0:
                         # Rejected empty replies never become assistant history,
                         # including when a crash happens before retry/stop.
                         if not any(e.payload.event_type == "run_lifecycle" and e.payload.model_failure
@@ -1335,7 +1384,7 @@ class Runtime:
                                 category="empty_response", retryable=True, usage_received=True,
                                 service_error_type="empty_response"))
                         continue
-                    if reported_tokens(p.usage) is None:
+                    if reported_tokens(usage) is None:
                         return "token_usage_unavailable"
                     reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
                     if request.payload.logical_purpose == "context_summary" or reservation.purpose == "context_summary":
@@ -1431,8 +1480,9 @@ class Runtime:
             else:
                 self.redispatch_of, self.retry_of = None, request.event_id
         self._refresh_counts()
-        if self.budget.fatal_reason:
-            return self.budget.fatal_reason
+        reason = self._settled_token_stop()
+        if reason:
+            return reason
         self.store.append(RunLifecyclePayload(action="resume", reason="durable results replayed and saved state rechecked",
             state_inspection_event_id=inspected.event_id, checkpoint=ref))
         self._checkpoint()
@@ -1498,9 +1548,9 @@ class Runtime:
 
     def _budget_stop(self):
         self._load_budget()
-        for budget in (self.budget, self.task_budget):
-            if budget.fatal_reason is not None:
-                return budget.fatal_reason
+        settled_stop = self._settled_token_stop()
+        if settled_stop:
+            return settled_stop
         if self._remaining() <= 0:
             return self._scoped_budget_reason("time", task=True)
         if self.counts["model_calls"] >= self.limits.model_calls:
@@ -1546,7 +1596,8 @@ class Runtime:
         return bool(self._active_root_time_hold_ids())
 
     def _active_root_time_hold_ids(self):
-        settled = {item.reservation_id for item in self.budget.ledger.settlements}
+        settled = {item.reservation_id for item in self.budget.ledger.settlements} | {
+            item.reservation_id for item in self.budget.ledger.releases}
         return tuple(sorted(
             reservation.reservation_id
             for reservation in self.budget.ledger.reservations
@@ -1769,7 +1820,7 @@ class Runtime:
             if path.is_file():
                 artifacts.append(self.store.put_bytes(path.read_bytes()))
                 paths.append(str(path))
-        costs = [s.cost for s in self.task_budget.ledger.settlements]
+        costs = [s.cost for s in self.task_budget.ledger.effective_settlements]
         estimated = self.task_budget.ledger.committed.money_usd
         accounting_records = [request_accounting_from_store(self.store, e.event_id)
             for e in self.store.all_events if e.payload.event_type == "adapter_request"]

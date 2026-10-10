@@ -26,7 +26,7 @@ class InjectedCrash(BaseException):
 
 
 @pytest.mark.parametrize("boundary", ["after_reservation", "after_retry"])
-def test_resume_stops_on_reservation_without_durable_request(tmp_path, boundary):
+def test_resume_releases_reservation_without_durable_request(tmp_path, boundary):
     limits = RunLimits(
         model_calls=3,
         tool_calls=1,
@@ -71,17 +71,18 @@ def test_resume_stops_on_reservation_without_durable_request(tmp_path, boundary)
 
     resumed = runtime(
         tmp_path,
-        [response(("unexpected", "save", {"value": 99}))],
+        [response(("resumed", "save", {"value": 99})), response(text="done")],
         limits=limits,
         tools=engine.tools,
     )
     with resumed.store:
         receipt = asyncio.run(resumed.run(MESSAGES, resume=True))
 
-    assert receipt["status"] == "resume_uncheckpointed_budget_reservation"
-    assert resumed.adapter.requests == []
-    assert engine.tools.calls == []
-    assert not (tmp_path / "tools" / "saved.json").exists()
+    assert receipt["status"] == "completed"
+    assert len(resumed.adapter.requests) == 2
+    assert engine.tools.calls == [("save", {"value": 99})]
+    assert json.loads((tmp_path / "tools" / "saved.json").read_bytes()) == {"value": 99}
+    assert len(resumed.budget.ledger.releases) == 1
 
 
 @pytest.mark.parametrize("mismatch", ["run", "task", "budget"])

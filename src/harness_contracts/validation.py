@@ -101,17 +101,16 @@ class EventLog(ContractModel):
         return self
 
     def _validate_task_controls(self, event_by_id, missing_ids) -> None:
+        acknowledged = set()
         for event in self.events:
             p = event.payload
             if not isinstance(p, TaskControlPayload):
                 continue
             if p.target_task_id != event.task_id:
                 raise ValueError("task control must be acknowledged by its target task")
-            if any(prior.sequence < event.sequence and
-                   isinstance(prior.payload, TaskControlPayload) and
-                   prior.payload.command_id == p.command_id
-                   for prior in event_by_id.values()):
+            if p.command_id in acknowledged:
                 raise ValueError("task control already acknowledged")
+            acknowledged.add(p.command_id)
 
     def _validate_single_event_references(self, event_by_id, missing_ids) -> None:
         """Shared reference checks for an already typed new event.

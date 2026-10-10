@@ -10,7 +10,7 @@ from src.agent_runtime.control import submit_command, control_status
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.store import EventStore
-from src.harness_contracts import RunLifecyclePayload
+from src.harness_contracts import RunLifecyclePayload, TaskControlPayload
 
 from test_agent_runtime import MESSAGES, response, runtime
 from test_runtime_child_tasks import _child
@@ -22,6 +22,25 @@ async def until(predicate):
         while not predicate():
             await asyncio.sleep(0.005)
     await asyncio.wait_for(wait(), 3)
+
+
+def test_control_target_and_duplicate_rejections_leave_journal_unchanged(tmp_path):
+    engine = runtime(tmp_path, [])
+    with engine.store as store:
+        command = store.put_json({"source": "offline"})
+        store.append(TaskControlPayload(command_id="once", action="pause",
+            target_task_id=store.task_id, command=command))
+        before = store.path.read_bytes()
+        for payload in (
+            TaskControlPayload(command_id="once", action="resume",
+                target_task_id=store.task_id, command=command),
+            TaskControlPayload(command_id="wrong-target", action="pause",
+                target_task_id="another-task", command=command),
+        ):
+            with pytest.raises(ValueError):
+                store.append(payload)
+            assert store.path.read_bytes() == before
+        store.validate()
 
 
 def test_inflight_correction_waits_for_tool_batch_and_pause_preserves_request_count(tmp_path):
