@@ -1,0 +1,64 @@
+"""Saved BIM JSON is UTF-8 even when Windows defaults to GBK."""
+import json
+from pathlib import Path
+
+import pytest
+
+from scripts.tool_scripts.bim_agent_continuation import _read, _write
+from scripts.tool_scripts.bim_agent_budget import saved_floor_status
+from scripts.tool_scripts.run_bim_agent import Toolkit
+from tests.test_bim_agent_plan_partition import example
+from tests.test_bim_agent_tools import _run_with_one_image
+
+
+STANDARD = "OpenStudio(R) standards — level 1 space types"
+
+
+@pytest.fixture
+def gbk_defaults(monkeypatch):
+    read_text, write_text, path_open = Path.read_text, Path.write_text, Path.open
+
+    def read(path, encoding=None, errors=None):
+        return read_text(path, encoding=encoding or "gbk", errors=errors)
+
+    def write(path, data, encoding=None, errors=None, newline=None):
+        return write_text(path, data, encoding=encoding or "gbk", errors=errors, newline=newline)
+
+    def open_file(path, mode="r", buffering=-1, encoding=None, errors=None, newline=None):
+        return path_open(path, mode, buffering, encoding if "b" in mode else encoding or "gbk", errors, newline)
+
+    monkeypatch.setattr(Path, "read_text", read)
+    monkeypatch.setattr(Path, "write_text", write)
+    monkeypatch.setattr(Path, "open", open_file)
+
+
+def test_build_and_reread_source_with_nonascii_standard_under_gbk(tmp_path, gbk_defaults):
+    run = _run_with_one_image(tmp_path)
+    plan = example()
+    plan["basis"] += "; 原图坐标 — observed calibration"
+    toolkit = Toolkit(run)
+    toolkit.log("unicode_observation", {"standard": STANDARD, "label": "源模型"})
+    built = toolkit.build_plan("plan.png", json.dumps(plan, ensure_ascii=False))
+    assert built["source_geometry_ready"], built
+    raw = (run / built["candidate"] / "source_model.json").read_bytes()
+    assert STANDARD in raw.decode("utf-8")
+    with pytest.raises(UnicodeDecodeError):
+        raw.decode("gbk")
+    source = json.loads(raw)
+    assert source["spaces"]
+    image, view = toolkit.plan_view(built["candidate"], source["floors"][0]["id"])
+    assert image.data and (run / view["plan_image"]).is_file()
+    assert view["floor_id"] == source["floors"][0]["id"]
+    status = saved_floor_status(toolkit, built["candidate"])
+    assert status["candidate_source_geometry_ready"]
+    assert status["unreadable_saved_candidates"] == []
+    assert STANDARD in (run / "tools.jsonl").read_bytes().decode("utf-8")
+    assert toolkit.input_view_status()["images"]
+
+
+def test_continuation_receipt_roundtrip_preserves_utf8_bytes_under_gbk(tmp_path, gbk_defaults):
+    path = tmp_path / "receipt.json"
+    value = {"standard": STANDARD, "label": "源模型"}
+    _write(path, value)
+    assert json.loads(path.read_bytes().decode("utf-8")) == value
+    assert _read(path) == value

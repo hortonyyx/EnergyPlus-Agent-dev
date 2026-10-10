@@ -240,7 +240,7 @@ def terminate_subscription(process):
 
 def run_guide(run: Path) -> str:
     """System prompt matching the run's admitted inputs and declared image kind."""
-    manifest = json.loads((run / "inputs.json").read_text())
+    manifest = json.loads((run / "inputs.json").read_bytes())
     mesh = bool(manifest.get("mesh_input"))
     kind = manifest.get("image_kind") or (("unknown" if mesh else "drawings") if manifest.get("images") else None)
     return build_guide(images=kind, mesh=mesh, **tool_capabilities(manifest))
@@ -286,7 +286,7 @@ def subscription(run: Path, prompt: str, *, model: str, name: str,
         raise ValueError("only configured subscription aliases are allowed")
     run = run.resolve()
     log_run = (log_run or run).resolve()
-    manifest = json.loads((run / "inputs.json").read_text())
+    manifest = json.loads((run / "inputs.json").read_bytes())
     provider = manifest.get("provider", "claude")
     if provider not in {"claude", "glm"}:
         raise ValueError("unsupported subscription provider")
@@ -523,7 +523,7 @@ def review_detail_observation(
 
 def cost_receipt_summary(run: Path):
     """Read each root receipt once; detail child folders deliberately have none."""
-    receipts = [json.loads(path.read_text()) for path in sorted(run.glob("*_receipt.json"))]
+    receipts = [json.loads(path.read_bytes()) for path in sorted(run.glob("*_receipt.json"))]
     estimates = [receipt.get("result", {}).get("total_cost_usd") for receipt in receipts]
     complete = all(isinstance(value, (int, float)) for value in estimates)
     partial = sum(value for value in estimates if isinstance(value, (int, float)))
@@ -618,7 +618,7 @@ def delivery_tool_reply(result: dict) -> dict:
 class Toolkit:
     def __init__(self, run: Path, readonly=False):
         self.run = run.resolve()
-        self.manifest = json.loads((self.run / "inputs.json").read_text())
+        self.manifest = json.loads((self.run / "inputs.json").read_bytes())
         self.readonly = readonly
 
     def candidate_budget(self):
@@ -777,7 +777,7 @@ class Toolkit:
         return result
 
     def log(self, action, data):
-        with (self.run / "tools.jsonl").open("a") as stream:
+        with (self.run / "tools.jsonl").open("a", encoding="utf-8", newline="\n") as stream:
             stream.write(json.dumps({"time": time.time(), "readonly": self.readonly,
                                      "action": action, "data": data}, ensure_ascii=False) + "\n")
 
@@ -816,7 +816,7 @@ class Toolkit:
         images = self.manifest.get("images", {})
         views = {name: [] for name in images}
         log = self.run / "tools.jsonl"
-        for line in log.read_text().splitlines() if log.exists() else []:
+        for line in log.read_text(encoding="utf-8").splitlines() if log.exists() else []:
             event = json.loads(line)
             if event.get("action") != "view_image":
                 continue
@@ -850,8 +850,8 @@ class Toolkit:
         """Build the handoff from saved source/check records, never model prose."""
         from src.agent.geometry.bim_delivery import summarize_delivery
         path = self.candidate_path(candidate)
-        source = json.loads((path / "source_model.json").read_text())
-        reviews = [json.loads(p.read_text()) for p in
+        source = json.loads((path / "source_model.json").read_bytes())
+        reviews = [json.loads(p.read_bytes()) for p in
                    sorted((self.run / "opening_reviews").glob("review_*.json"))]
         calibrations = {(row["image"], row["floor_id"]): row for _, row in self.registered_calibrations()}
         for review in reviews:
@@ -911,13 +911,13 @@ class Toolkit:
             if not isinstance(draft_id, str) or not draft_id.startswith("draft_") or not draft_id[6:].isdigit():
                 raise ValueError("choose resume or an existing draft_NNN")
             folder = self.run / "plan_drafts" / draft_id
-            record = json.loads((folder / "input.json").read_text())
+            record = json.loads((folder / "input.json").read_bytes())
             path = folder / "plan.json"
             expected, image_name = record["plan_sha256"], record["image"]
         if digest(path) != expected or digest(self.image_path(image_name)) != record["image_sha256"]:
             raise ValueError("saved plan or original image changed")
         return dict(draft_id=draft_id, plan_sha256=expected, image=image_name,
-                    declaration=json.loads(path.read_text()))
+                    declaration=json.loads(path.read_bytes()))
 
     def revise_plan(self, draft_id, expected_plan_sha256, operations_json):
         from src.agent.geometry.plan_revision import apply_plan_revision
@@ -957,7 +957,7 @@ class Toolkit:
         saved_source_result(self.run, result, parent=prior)
         saved_plan = updated
         try:
-            saved_plan = json.loads((self.run / result["plan_input"]["plan_file"]).read_text())
+            saved_plan = json.loads((self.run / result["plan_input"]["plan_file"]).read_bytes())
             with PILImage.open(self.image_path(parent["image"])) as original:
                 changes = opening_geometry_changes(
                     plan_geometry_feedback(parent["declaration"], original.size),
@@ -1304,7 +1304,7 @@ class Toolkit:
                     differences[row["floor_id"]] = {"status": "unavailable", "reason": str(error)}
             elif saved.is_file():
                 differences[row["floor_id"]] = dict(draft_id=row["draft_id"],
-                    **compact_differences(json.loads(saved.read_text())))
+                    **compact_differences(json.loads(saved.read_bytes())))
         if differences:
             result["drawing_differences"] = differences
         if regularization is not None:
@@ -1360,12 +1360,12 @@ class Toolkit:
         if plan_input is not None:
             result["plan_input"] = plan_input
             result["plan_compilation"] = json.loads(
-                (self.run / plan_input["compilation_file"]).read_text())
+                (self.run / plan_input["compilation_file"]).read_bytes())
         source_path = self.run / candidate / "source_model.json"
         if source_path.exists():
             from src.agent.geometry.opening_review import opening_inventory
             from src.agent.roles import room_use_review
-            source = json.loads(source_path.read_text())
+            source = json.loads(source_path.read_bytes())
             result["room_use_review"] = room_use_review(source, include_next_action=False)
             result["height_coverage"] = self.located_heights(candidate)
             result["facade_counts"] = self.facade_counts(candidate)
@@ -1382,7 +1382,7 @@ class Toolkit:
             result["source_image_projections"] = projections
             result["projection_errors"] = errors
             result["source_plan_views"], result["source_plan_errors"] = [], []
-            source = json.loads(source_path.read_text())
+            source = json.loads(source_path.read_bytes())
             for floor in source["floors"]:
                 try:
                     _, metadata = self.plan_view(candidate, floor["id"])
@@ -1397,7 +1397,7 @@ class Toolkit:
     def plan_view(self, candidate, floor_id):
         from src.agent.geometry.source_plan_view import render_source_plan
         path = self.candidate_path(candidate)
-        source = json.loads((path / "source_model.json").read_text())
+        source = json.loads((path / "source_model.json").read_bytes())
         pic, metadata = render_source_plan(source, floor_id)
         # Public floor ordinals are unique and safe as filenames; source floor
         # identity remains in the metadata and every tool argument.
@@ -1486,7 +1486,7 @@ class Toolkit:
         folder = self.run / "overlay_calibrations"
         records = []
         for path in sorted(folder.glob("calibration_*.json")) if folder.is_dir() else []:
-            record = json.loads(path.read_text())
+            record = json.loads(path.read_bytes())
             if not isinstance(record, dict):
                 raise ValueError(f"invalid overlay calibration record: {path.name}")
             records.append((path, record))
@@ -1513,7 +1513,7 @@ class Toolkit:
         path, calibration = calibrations[0]
         if calibration['image_sha256'] != self.manifest['images'][image]['sha256']:
             raise ValueError('calibration original image changed')
-        source = json.loads((self.candidate_path(candidate) / 'source_model.json').read_text())
+        source = json.loads((self.candidate_path(candidate) / 'source_model.json').read_bytes())
         report = review_space_relations(source, floor_id=floor_id,
             image_size=self.manifest['images'][image]['size'],
             x_anchors=calibration['x_anchors'], y_anchors=calibration['y_anchors'],
@@ -1537,7 +1537,7 @@ class Toolkit:
                         for path, row in self.registered_calibrations()}
         latest, stale_count = {}, 0
         for path in sorted((self.run / 'space_relation_reviews').glob('review_*.json')):
-            report = json.loads(path.read_text())
+            report = json.loads(path.read_bytes())
             pair = (report['image'], report['floor_id'])
             if (report['source_model_sha256'] != source['source_model_sha256']
                     or report['calibration_sha256'] != calibrations.get(pair)
@@ -1618,7 +1618,7 @@ class Toolkit:
         """Render and persist one projection from an immutable saved source BIM."""
         from src.agent.geometry.source_image_overlay import render_source_overlay
         path = self.candidate_path(candidate)
-        source = json.loads((path / "source_model.json").read_text())
+        source = json.loads((path / "source_model.json").read_bytes())
         image_path = self.image_path(image)
         with PILImage.open(image_path) as raw:
             pic, metadata = render_source_overlay(source, raw, floor_id=floor_id,
@@ -1701,7 +1701,7 @@ class Toolkit:
         folder = self.run / "image_overlays"
         projections = []
         for path in sorted(folder.glob("overlay_*.json")) if folder.is_dir() else []:
-            record = json.loads(path.read_text())
+            record = json.loads(path.read_bytes())
             if isinstance(record, dict) and record.get("mode") == "source_image_overlay":
                 projections.append(record)
         current = [row for row in projections
@@ -1724,7 +1724,7 @@ class Toolkit:
                     "calibration_file": calibration_path.relative_to(self.run).as_posix(),
                 })
         error_path = self.candidate_path(candidate) / "projection_errors.json"
-        errors = json.loads(error_path.read_text()).get("projection_errors", []) if error_path.is_file() else []
+        errors = json.loads(error_path.read_bytes()).get("projection_errors", []) if error_path.is_file() else []
         errors = [*errors, *calibration_load_errors]
         fields = ("image", "floor_id", "overlay_image", "source_model_sha256", "trigger_action",
                   "automatic_projection", "reused_calibration", "anchors", "basis", "image_sha256")
@@ -1791,7 +1791,7 @@ class Toolkit:
         from mcp.server.fastmcp import Image
         from src.agent.geometry.source_elevation_view import render_source_elevation
         path = self.candidate_path(candidate)
-        source = json.loads((path / "source_model.json").read_text())
+        source = json.loads((path / "source_model.json").read_bytes())
         if image:
             self.image_path(image)  # Validate before recording a comparison.
         calibrated = horizontal_anchors is not None or z_anchors is not None or bool(basis)
@@ -1935,7 +1935,7 @@ class Toolkit:
         folder = self.run / "plan_drafts" / draft_id
         if not (folder / "input.json").is_file():
             raise ValueError("choose an existing saved plan draft")
-        admitted = json.loads((folder / "input.json").read_text())
+        admitted = json.loads((folder / "input.json").read_bytes())
         plan_path = folder / "plan.json"
         if digest(plan_path) != admitted["plan_sha256"]:
             raise ValueError("saved plan changed")
@@ -1945,13 +1945,13 @@ class Toolkit:
         compilation_path = folder / "compilation.json"
         compilation = None
         if compilation_path.is_file():
-            saved = json.loads((folder / "result.json").read_text())["plan_input"]
+            saved = json.loads((folder / "result.json").read_bytes())["plan_input"]
             if (saved["plan_sha256"] != admitted["plan_sha256"]
                     or digest(compilation_path) != saved["compilation_sha256"]):
                 raise ValueError("saved compilation changed")
-            compilation = json.loads(compilation_path.read_text())
+            compilation = json.loads(compilation_path.read_bytes())
         with PILImage.open(image_path) as original:
-            pic, result = measure_plan_wall_support(original, json.loads(plan_path.read_text()),
+            pic, result = measure_plan_wall_support(original, json.loads(plan_path.read_bytes()),
                 rgb=rgb, tolerance=tolerance, radius_pixels=radius_pixels,
                 minimum_ink_pixels=minimum_ink_pixels,
                 spaces=compilation["space_mapping"] if compilation else None)
@@ -2194,7 +2194,7 @@ class Toolkit:
         allowed = {p.stem for p in (self.run / "space_traces").glob("trace_*.json")}
         if trace_id not in allowed:
             raise ValueError("unknown trace_id")
-        record = json.loads((self.run / "space_traces" / f"{trace_id}.json").read_text())
+        record = json.loads((self.run / "space_traces" / f"{trace_id}.json").read_bytes())
         if digest(self.image_path(record["name"])) != record["image_sha256"]:
             raise ValueError("trace original image changed")
         self.log("view_space_trace", {"trace_id": trace_id})
@@ -2204,7 +2204,7 @@ class Toolkit:
         allowed = {p.stem for p in (self.run / "space_traces").glob("trace_*.json")}
         if trace_id not in allowed:
             raise ValueError("unknown trace_id; first preview_space_trace")
-        result = json.loads((self.run / "space_traces" / f"{trace_id}.json").read_text())
+        result = json.loads((self.run / "space_traces" / f"{trace_id}.json").read_bytes())
         if not result["geometrically_executable"]:
             raise ValueError("trace has geometry errors; revise the contour/aperture endpoints first")
         if digest(self.image_path(result["name"])) != result["image_sha256"]:
@@ -2473,7 +2473,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         if not 1 <= limit <= 50 or offset < 0:
             raise ValueError('requires offset >= 0 and limit 1..50')
         proposal_path = toolkit.candidate_path(candidate)/'proposal.json'
-        geometry = json.loads(proposal_path.read_text())['geometry']
+        geometry = json.loads(proposal_path.read_bytes())['geometry']
         if floor_id is not None and floor_id not in {f['name'] for f in geometry['floors']}:
             raise ValueError('unknown floor_id')
         floors = [f for f in geometry['floors'] if floor_id is None or f['name'] == floor_id]
@@ -2511,7 +2511,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             saved = toolkit.inspect_plan(draft_id)
             report = toolkit.run / "plan_drafts" / str(draft_id) / "drawing_differences.json"
             if draft_id != "resume" and report.is_file():
-                data = json.loads(report.read_text())
+                data = json.loads(report.read_bytes())
                 if data.get("plan_sha256") == saved["plan_sha256"]:
                     saved["drawing_differences"] = data
             return saved
@@ -2626,8 +2626,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             """
             from src.agent.geometry.wall_reference import resolve_wall_references, convert_wall_dimensions
             path = toolkit.candidate_path(candidate)
-            source = json.loads((path / "source_model.json").read_text())
-            proposal = json.loads((path / "proposal.json").read_text())
+            source = json.loads((path / "source_model.json").read_bytes())
+            proposal = json.loads((path / "proposal.json").read_bytes())
             references = json.loads(references_json) if references_json else proposal.get("wall_references", [])
             dimensions = json.loads(dimensions_json) if dimensions_json else proposal.get("wall_dimensions", [])
             for d in dimensions:
@@ -2674,7 +2674,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             for several floors); this is a source projection, not original evidence.
             """
             path = toolkit.candidate_path(candidate)
-            proposal = json.loads((path/"proposal.json").read_text())
+            proposal = json.loads((path/"proposal.json").read_bytes())
             original_geometry = proposal['geometry']
             floors = [{'id': f['name'], 'z_floor': f['z_floor'], 'height': f['ceiling_height'],
                        'space_count': len(f['cells'])} for f in proposal['geometry']['floors']]
@@ -2692,11 +2692,11 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 include_geometry = False
             if not include_geometry:
                 proposal = {key: value for key, value in proposal.items() if key != 'geometry'}
-            report = json.loads((path/"report.json").read_text())
+            report = json.loads((path/"report.json").read_bytes())
             from src.agent.roles import room_use_review
             source_path = path / "source_model.json"
             result = {"candidate": candidate, "proposal": proposal, "floors": floors,
-                      "room_use_review": room_use_review(json.loads(source_path.read_text()))
+                      "room_use_review": room_use_review(json.loads(source_path.read_bytes()))
                           if source_path.exists() else None,
                       "geometry_included": include_geometry,
                       'floor_filter':floor_id, 'summary_due_to_size':summary_due_to_size,
@@ -2707,7 +2707,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                       "remaining_seconds": toolkit.remaining_seconds()}
             if source_path.exists():
                 from scripts.tool_scripts.bim_agent_precision import annotated_wall_placement
-                result['wall_placement'] = annotated_wall_placement(toolkit, json.loads(source_path.read_text()),
+                result['wall_placement'] = annotated_wall_placement(toolkit, json.loads(source_path.read_bytes()),
                     proposal.get('wall_references', []), proposal.get('wall_dimensions', []))
             toolkit.log("inspect_candidate", {"candidate": candidate, 'include_geometry': include_geometry})
             if include_plan:
@@ -2743,7 +2743,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             """
             from src.agent.geometry.opening_review import facade_inventory, opening_inventory, review_openings
             path = toolkit.candidate_path(candidate)
-            source = json.loads((path / "source_model.json").read_text())
+            source = json.loads((path / "source_model.json").read_bytes())
             if heights_only:
                 if review_json:
                     raise ValueError('heights_only cannot submit an opening review')
@@ -2896,7 +2896,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             folder = toolkit.run / 'parametric_drafts'
             folder.mkdir(exist_ok=True)
             draft = folder / f'draft_{len(list(folder.glob("*.json")))+1:03d}.json'
-            draft.write_text(plan_json)
+            draft.write_text(plan_json, encoding="utf-8", newline="\n")
             try:
                 plan = json.loads(plan_json)
                 proposal = expand_parametric_proposal(plan)
@@ -2921,7 +2921,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         @server.tool()
         def inspect_parametric_plan(candidate: str) -> dict:
             """Read the exact saved compact plan for revision; original evidence is separate."""
-            value = json.loads((toolkit.candidate_path(candidate) / 'parametric_plan.json').read_text())
+            value = json.loads((toolkit.candidate_path(candidate) / 'parametric_plan.json').read_bytes())
             toolkit.log('inspect_parametric_plan', {'candidate': candidate})
             return value
 
@@ -3064,7 +3064,7 @@ def run_experiment(args):
     candidates = []
     for path in sorted(run.glob("candidate_*/report.json")):
         try:
-            report = json.loads(path.read_text())
+            report = json.loads(path.read_bytes())
         except (OSError, ValueError) as error:
             # A hard stop may leave the newest export unfinished. Preserve the
             # failure and continue to the last readable saved building.
@@ -3088,7 +3088,7 @@ def run_experiment(args):
     if record.get("routing_error"):
         generation_status["error"] = record["routing_error"]
     if selection.exists() and not record.get("timed_out"):
-        chosen = json.loads(selection.read_text())["candidate"]
+        chosen = json.loads(selection.read_bytes())["candidate"]
         delivery = Toolkit(run).delivery(chosen, selection_origin="agent_selected", generation_status=generation_status)
     else:
         from scripts.tool_scripts.bim_agent_budget import fallback_selection

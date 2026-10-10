@@ -14,11 +14,11 @@ from scripts.tool_scripts.bim_agent_guidance import FINISHING
 
 
 def _read(path):
-    return json.loads(path.read_text())
+    return json.loads(path.read_bytes())
 
 
 def _write(path, value):
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n")
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def response_completed(record):

@@ -53,8 +53,8 @@ def _drawing_width(path, sha256, x_anchors, y_anchors, footprint):
 
 def building_precision(toolkit, candidate, source=None):
     path = toolkit.candidate_path(candidate)
-    source = source or json.loads((path/'source_model.json').read_text())
-    proposal = json.loads((path/'proposal.json').read_text())
+    source = source or json.loads((path/'source_model.json').read_bytes())
+    proposal = json.loads((path/'proposal.json').read_bytes())
     floors = {f['id']: f for f in source['floors']}
     evidence, errors = {}, []
     for _, calibration in toolkit.registered_calibrations():
@@ -111,7 +111,7 @@ def building_precision(toolkit, candidate, source=None):
     previous = source.get('generation', {}).get('provenance', {}).get('parent_candidate')
     previous_path = toolkit.run / str(previous) / 'precision_report.json'
     if previous and previous_path.is_file():
-        before = json.loads(previous_path.read_text())
+        before = json.loads(previous_path.read_bytes())
         key = lambda row: json.dumps(row, sort_keys=True)
         old, new = {key(r) for r in before['items']}, {key(r) for r in report['items']}
         report['changes'] = dict(status='compared', previous_candidate=previous,
@@ -120,5 +120,5 @@ def building_precision(toolkit, candidate, source=None):
             resolved=[r for r in before['items'] if key(r) not in new])
     else:
         report['changes'] = dict(status='no_previous_report', previous_candidate=previous)
-    (path / 'precision_report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+    (path / 'precision_report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
     return report

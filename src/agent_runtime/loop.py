@@ -9,10 +9,11 @@ import time
 import weakref
 from collections import deque
 from contextlib import asynccontextmanager, contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 from pathlib import Path
 from typing import Literal
+from time import perf_counter
 
 from pydantic import Field
 
@@ -150,6 +151,9 @@ class Runtime:
     # reader cannot hold the entire shared time budget. None preserves the
     # established single-model deadline and exact request path.
     request_timeout_seconds: float | None = None
+    _phase_seconds: dict[str, float] = field(default_factory=dict, init=False, repr=False)
+    _control_applied: set[str] = field(default_factory=set, init=False, repr=False)
+    _control_paused: bool = field(default=False, init=False, repr=False)
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
@@ -293,11 +297,12 @@ class Runtime:
 
     @contextmanager
     def _measure(self, phase):
-        started = time.perf_counter()
+        # Observation timing stays separate from the injected admission clock.
+        started = perf_counter()
         try:
             yield
         finally:
-            self._phase_seconds[phase] = self._phase_seconds.get(phase, 0.0) + time.perf_counter() - started
+            self._phase_seconds[phase] = self._phase_seconds.get(phase, 0.0) + perf_counter() - started
 
     def _apply_control(self, event):
         payload = event.payload

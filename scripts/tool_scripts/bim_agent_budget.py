@@ -12,7 +12,7 @@ import time
 
 
 def _read(path):
-    return json.loads(path.read_text())
+    return json.loads(path.read_bytes())
 
 
 def candidate_floor_images(run, candidate, seen=None):
