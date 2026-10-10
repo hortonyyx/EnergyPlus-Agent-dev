@@ -1,0 +1,170 @@
+{
+  "schema_version": "manual_dispatch_final_accounting_v1",
+  "run": "D:\\EnergyPlus-Agent-worktrees\\lite-sm25-run-20261010\\AI_agent\\archive\\local_backup\\2026-10-10_sm25_lite_regularization\\manual_dispatch_sm25_lite_v1",
+  "terminal": {
+    "status": "failed",
+    "stop_reason": "No validated plan or BIM: F2 exhausted 40 requests without a declaration; F1 timed out on request 21 after five failed trials. Missing usage set persistent root money_cny_usage_unavailable; prepared same-run assisted recovery was not dispatched.",
+    "root_stop_event_id": "event-001267",
+    "delivery_status": "no_saved_candidate",
+    "source_fidelity": "not_evaluated",
+    "evaluation_status": "not_run",
+    "quality_passed": null
+  },
+  "run_wall_seconds": 3744.525,
+  "per_role": {
+    "coordinator": {
+      "tasks": 1,
+      "task_outcomes": {},
+      "requests": 0,
+      "responses": 0,
+      "failed_requests": 0,
+      "pending_requests": 0,
+      "task_elapsed_seconds_sum": 3744.525,
+      "role_wall_span_seconds": 3744.525,
+      "lifecycle_complete": true,
+      "task_elapsed_can_overlap": false,
+      "cumulative_model_request_seconds": 0,
+      "prompt_tokens": 0,
+      "cached_prompt_tokens": 0,
+      "uncached_prompt_tokens": 0,
+      "cache_over_prompt": null,
+      "output_tokens": 0,
+      "reported_image_tokens": 0,
+      "image_tokens_estimate": 0,
+      "additional_image_tokens": 0,
+      "provider_total_tokens": 0,
+      "budget_charge_tokens": 0,
+      "settled_estimated_cost_cny": "0",
+      "accounting_complete": true,
+      "tool_invocations": 0,
+      "tool_executions": 0,
+      "tool_pending": 0,
+      "tool_errors": 0,
+      "tools": {}
+    },
+    "plan_reader": {
+      "tasks": 2,
+      "task_outcomes": {
+        "failed": 2
+      },
+      "requests": 61,
+      "responses": 60,
+      "failed_requests": 1,
+      "pending_requests": 0,
+      "task_elapsed_seconds_sum": 6387.53,
+      "role_wall_span_seconds": 3577.857,
+      "lifecycle_complete": true,
+      "incomplete_tasks": [],
+      "task_elapsed_can_overlap": true,
+      "cumulative_model_request_seconds": 6107.062,
+      "prompt_tokens": null,
+      "cached_prompt_tokens": null,
+      "uncached_prompt_tokens": null,
+      "cache_over_prompt": null,
+      "output_tokens": null,
+      "reported_image_tokens": null,
+      "image_tokens_estimate": null,
+      "additional_image_tokens": null,
+      "provider_total_tokens": null,
+      "budget_charge_tokens": null,
+      "settled_estimated_cost_cny": null,
+      "accounting_complete": false,
+      "tool_invocations": 75,
+      "tool_executions": 75,
+      "tool_pending": 0,
+      "tool_errors": 5,
+      "tools": {
+        "view_pixel_profile": 35,
+        "view_image": 32,
+        "trial_plan_bim": 5,
+        "inputs": 2,
+        "view_plan_blocks": 1
+      }
+    },
+    "elevation_reader": {
+      "tasks": 4,
+      "task_outcomes": {
+        "completed": 4
+      },
+      "requests": 38,
+      "responses": 38,
+      "failed_requests": 0,
+      "pending_requests": 0,
+      "task_elapsed_seconds_sum": 1396.414,
+      "role_wall_span_seconds": 395.968,
+      "lifecycle_complete": true,
+      "incomplete_tasks": [],
+      "task_elapsed_can_overlap": true,
+      "cumulative_model_request_seconds": 1349.513,
+      "prompt_tokens": 1032471,
+      "cached_prompt_tokens": 838400,
+      "uncached_prompt_tokens": 194071,
+      "cache_over_prompt": 0.812032,
+      "output_tokens": 90337,
+      "reported_image_tokens": 152511,
+      "image_tokens_estimate": 168415,
+      "additional_image_tokens": 152511,
+      "provider_total_tokens": 1122808,
+      "budget_charge_tokens": 1275319,
+      "settled_estimated_cost_cny": "0.7014330",
+      "accounting_complete": true,
+      "tool_invocations": 55,
+      "tool_executions": 55,
+      "tool_pending": 0,
+      "tool_errors": 1,
+      "tools": {
+        "view_pixel_profile": 22,
+        "view_image": 12,
+        "pixel_profile": 9,
+        "submit_elevation_reading": 5,
+        "inputs": 4,
+        "view_pixel_region_overview": 2,
+        "get_bim_reference": 1
+      }
+    }
+  },
+  "totals": {
+    "requests": 99,
+    "responses": 98,
+    "pending": 0,
+    "failed": 1,
+    "prompt_tokens": 4934883,
+    "cached_prompt_tokens": 3999232,
+    "uncached_prompt_tokens": 935651,
+    "output_tokens": 345672,
+    "reported_image_tokens": 578810,
+    "provider_total_tokens": 5280555,
+    "budget_charge_tokens": 5859365,
+    "settled_estimated_cost_cny": "9.1655892",
+    "model_calls_fraction": [
+      99,
+      180
+    ],
+    "tool_calls_fraction": [
+      130,
+      700
+    ],
+    "settled_cost_cny_fraction": [
+      "9.1655892",
+      "20"
+    ],
+    "accounting_complete": false
+  },
+  "integrity": {
+    "events": 1269,
+    "last_event_id": "event-001268",
+    "partial_tail_ignored": false,
+    "invalid_complete_lines": 0,
+    "settlement_mismatches": 0,
+    "capture_errors": 0,
+    "unknown_task_roles": []
+  },
+  "basis": {
+    "source_helper": "observe_runtime_accounting.py",
+    "cost": "settled runtime estimate from configured CNY rates; not a provider bill",
+    "cache": "cached tokens are a subset of prompt tokens",
+    "image": "provider totals do not add images again; budget charge follows settlements",
+    "timing": "reader task elapsed sums may overlap; run wall is initialization to root stop",
+    "quality": "generation completion and delivery do not imply source-fidelity or evaluator quality"
+  }
+}

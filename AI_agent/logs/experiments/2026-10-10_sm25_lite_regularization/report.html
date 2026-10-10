@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>sm25 · Lite BIM domain v57 实测</title>
+<style>
+:root{font-family:system-ui,"Microsoft YaHei",sans-serif;color:#192d32;background:#f3f5f3;line-height:1.7}body{margin:0}main{max-width:1160px;margin:auto;padding:48px 28px 64px}header{border-top:5px solid #185749;padding-top:22px}.eyebrow{font-size:14px;color:#48635e;letter-spacing:.12em}h1{font-size:34px;line-height:1.3;margin:12px 0}h2{font-size:23px;margin-top:36px}p{max-width:960px}.status{background:#f8e8e3;border-left:5px solid #963b2e;padding:16px 22px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}.metric{padding:18px;background:white;border:1px solid #dbe3df}.metric strong{display:block;font-size:28px;color:#185749}.metric span{font-size:13px;color:#52615b}table{border-collapse:collapse;width:100%;background:white;font-size:15px}th,td{text-align:left;padding:12px 15px;border-bottom:1px solid #dce3e0;vertical-align:top}th{background:#e5ede8}a{color:#12604d;text-underline-offset:3px}.note{color:#576661;font-size:14px}.visual{margin:0;padding:12px;background:#19212b;color:#eee}.visual img{width:100%;height:auto;display:block}.visual figcaption{padding:10px 8px;font-size:14px}.links{display:flex;gap:18px;flex-wrap:wrap}footer{margin-top:42px;border-top:1px solid #ced9d3;padding-top:18px;font-size:13px;color:#576661}@media(max-width:700px){main{padding:25px 16px}h1{font-size:27px}.metrics{grid-template-columns:repeat(2,1fr)}table{font-size:13px}th,td{padding:9px 8px}}
+</style>
+<main>
+<header><div class="eyebrow">ENERGYPLUS AGENT · 2026-10-10 · SM25</div><h1>10 cm 规整已接通，完整 BIM 尚未产出</h1><p>domain v57 首次实测记录。目标是减轻读图和建模负担，同时保留建筑空间划分与关系。本轮结果未达到人工调度完成规整输出的目标。</p></header>
+<div class="status"><strong>本次运行已失败收口</strong><br>四个立面完成；一层止于五份失败声明，二层没有完整声明。没有最终平面、回叠或 BIM 查看页，也没有运行 GT 评价。</div>
+<div class="metrics"><div class="metric"><strong>62分24.5秒</strong><span>初始化至终止，含收口</span></div><div class="metric"><strong>99 / 98</strong><span>模型请求 / 返回响应</span></div><div class="metric"><strong>¥9.1656 + ?</strong><span>已知估算；一超时请求费用未知</span></div><div class="metric"><strong>4 / 6</strong><span>accepted 读图任务；均为立面</span></div></div>
+<h2>本轮改了什么</h2><table><tbody><tr><th>版本与模式</th><td>runtime v2 保持；domain v57，仅分工路径变化。项目经理人工调度，平面 Qwen3.8-27B / thinking，立面 Qwen3.8-Flash / thinking。</td></tr><tr><th>实际接通</th><td>0.1 m共享尺寸链与XYZ落位、原始/采用读数审计、立面规整、跨层标高区分、精简返工上下文；保留拓扑和对象库存守卫。</td></tr><tr><th>尚未实现</th><td>专用OCR、自动按全图标注选步长、活动读图员消息注入、缺usage后的正式恢复入口。</td></tr><tr><th>离线检查</th><td>全量首次5,969通过、12个旧夹具/指引断言失败；修复后六个完整文件61/61通过，未重复全量。旧稿回放通过不代表本次新看图成功。</td></tr></tbody></table>
+<h2>逐角色结果</h2><table><thead><tr><th>任务</th><th>请求 / 工具</th><th>结果</th></tr></thead><tbody><tr><td>一层平面</td><td>21 / 24</td><td>约33.6分首trial，五次均失败；两组南侧门合并仍未修好，最后请求超时。</td></tr><tr><td>二层平面</td><td>40 / 51</td><td>22次看图、28次剖面，无trial；耗尽角色请求额度。</td></tr><tr><td>北立面</td><td>8 / 13</td><td>一次schema自修后完成。</td></tr><tr><td>南立面</td><td>10 / 16</td><td>完成，原图复核未见实质错误。</td></tr><tr><td>东立面</td><td>10 / 15</td><td>完成，门底离地读数保留并采用0.2m。</td></tr><tr><td>西立面</td><td>10 / 11</td><td>完成，4.32m窗宽采用4.3m。</td></tr></tbody></table>
+<p class="note">四立面共118项原始/采用读数，4项改变，最大2.34cm。尚未与平面匹配或装配，不能据此宣布整楼质量通过。</p>
+<h2>为什么没能继续人工返工</h2><p>一层超时请求已有结算事件，但没有usage，费用不可算。runtime保留0.370086元预留，同时永久停止后续模型调用；重新打开同次运行仍会停止。二层人工盘点与六尺寸链已经复核，但恢复任务未派发。没有改账本、伪造费用或重开冷启。</p>
+<h2>原始声明诊断：不是 BIM 结果</h2><p>下图把一层trial005的原样声明叠回原图，没有移动或修复坐标。红色D6把相邻会议室各自的一组双扇门合成一处跨隔墙开口。另有西上门D1宽度误读，均不能靠10cm规整纠正。</p>
+<figure class="visual"><a href="F1_trial005_raw_declarations_NOT_BIM.png"><img src="F1_trial005_raw_declarations_NOT_BIM.png" alt="一层未通过编译的原始声明诊断叠图，右侧展示D6两门组被错误合并"></a><figcaption>未通过编译 · 非BIM · 原图与原始声明坐标直接叠加。点击可看原尺寸。</figcaption></figure>
+<h2>质量、用量与比较边界</h2><table><tbody><tr><th>≤5 / 5–10 / 10–30 / &gt;30 cm</th><td>均不可评价。没有最终源BIM；不是零误差。</td></tr><tr><th>98响应已知用量</th><td>input 4,934,883（cache 3,999,232），output 345,672，provider total 5,280,555；缓存81.04%。另一个超时请求usage未知。</td></tr><tr><th>与10-09比较</th><td>旧版经两次人工返工完成，45分32秒 / 98请求 / ¥8.7029。本次失败，62分24.5秒 / 99请求 / 已知¥9.1656。缓存更高未转成出模改善，不宣称提速或降本。</td></tr><tr><th>下一步</th><td>优先补完整raw声明的局部修订、近轴接头与尺寸链原子移动，再讨论阶段性人工介入和可审计费用恢复。没有自动追加模型实测。</td></tr></tbody></table>
+<h2>证据</h2><nav class="links"><a href="README.md">完整报告</a><a href="observer_notes.md">逐角色行为</a><a href="plan_visual_review.md">平面原图核对</a><a href="elevation_visual_review.md">立面原图核对</a><a href="final_accounting.json">最终记账</a><a href="recovery_blocker.md">恢复阻断</a><a href="run_file_manifest.json">归档清单</a></nav>
+<footer>本页为静态实验报告，不是BIM查看器。原始运行已冻结；没有使用GT修正或填补结果。无外部脚本、模型或网络请求。</footer>
+</main>
+</html>
