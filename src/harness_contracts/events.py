@@ -447,6 +447,23 @@ class RunLifecyclePayload(ContractModel):
         return self
 
 
+class TaskControlPayload(ContractModel):
+    """A durable acknowledgement of an operator command at a safe boundary."""
+
+    event_type: Literal["task_control"] = "task_control"
+    command_id: NonEmptyStr
+    action: Literal["pause", "resume", "message"]
+    target_task_id: NonEmptyStr
+    command: HashedBlobRef
+    message: NonEmptyStr | None = None
+
+    @model_validator(mode="after")
+    def message_matches_action(self) -> TaskControlPayload:
+        if (self.action == "message") != (self.message is not None):
+            raise ValueError("only a message control requires message text")
+        return self
+
+
 class BudgetEventPayload(ContractModel):
     event_type: Literal["budget"] = "budget"
     action: Literal["reserve", "settle"]
@@ -577,6 +594,7 @@ EventPayload = Annotated[
     | ToolPresentationPayload
     | StateInspectionPayload
     | RunLifecyclePayload
+    | TaskControlPayload
     | BudgetEventPayload
     | BudgetWaitPayload
     | BudgetOverrunPayload

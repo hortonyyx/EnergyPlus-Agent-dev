@@ -656,11 +656,12 @@ class ContextManager:
         required_view_ids: tuple[str, ...] = (),
         consume_retrievals: bool = True,
         token_estimator: Callable[[list[dict]], int] | None = None,
+        request_token_estimator: Callable[[list[dict], list[SourceRef]], int] | None = None,
     ) -> ContextProjection:
         if self.policy.active_window_messages is None:
             return self._project_by_tokens(required_tags=required_tags,
                 required_view_ids=required_view_ids, consume_retrievals=consume_retrievals,
-                token_estimator=token_estimator)
+                token_estimator=token_estimator, request_token_estimator=request_token_estimator)
         required = set(required_tags) | set(self.policy.pinned_tags)
         exact_retrievals = set(self._retrieval_pins)
         selected, omitted = self._select_history(
@@ -818,10 +819,13 @@ class ContextManager:
                 "viewed again using the input names and image-viewing tools, and saved work/evidence "
                 "can be inspected through the retrieval entries in the current runtime state.")
 
-    def _project_by_tokens(self, *, required_tags, required_view_ids, consume_retrievals, token_estimator):
+    def _project_by_tokens(self, *, required_tags, required_view_ids, consume_retrievals, token_estimator,
+                           request_token_estimator=None):
         from .estimation import approximate_text_tokens, _text_payload
 
-        def estimate(messages):
+        def estimate(messages, sources):
+            if request_token_estimator is not None:
+                return request_token_estimator(messages, sources)
             if token_estimator is not None:
                 return token_estimator(messages)
             # Standalone/offline callers have no provider profile. Count text
@@ -855,7 +859,7 @@ class ContextManager:
 
         messages, sources = assemble(selected, self._last_compaction)
         events = []
-        if estimate(messages) >= self.policy.compact_at_tokens:
+        if estimate(messages, sources) >= self.policy.compact_at_tokens:
             protected = {r.history_id for r in self._history[:self.policy.preserve_initial_messages]}
             protected.update(r.history_id for r in selected if required & set(r.tags) or any(
                 key in self._retrieval_pins or self._images[key].view_id in views
@@ -868,9 +872,9 @@ class ContextManager:
                 for k in r.image_keys) for r in selected}
 
             def fits(records):
-                projected, _ = assemble(records, self._last_compaction)
+                projected, projected_sources = assemble(records, self._last_compaction)
                 image_keys = {key for r in records for key in r.image_keys}
-                return (estimate(projected) <= target
+                return (estimate(projected, projected_sources) <= target
                     and (self.policy.max_image_bytes is None
                          or sum(image_bytes[r.history_id] for r in records) <= self.policy.max_image_bytes)
                     and (self.policy.max_images is None or len(image_keys) <= self.policy.max_images))

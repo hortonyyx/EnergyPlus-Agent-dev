@@ -26,7 +26,7 @@ from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters
 from src.agent_runtime.store import json_bytes
 from src.agent_runtime.versions import make_versions
-from src.harness_contracts import ToolExecutionPayload
+from src.harness_contracts import ToolExecutionPayload, ToolInvocationPayload, RunLifecyclePayload
 from src.harness_contracts.roles import ToolGrant
 
 from .accounting import role_accounting
@@ -255,6 +255,13 @@ class RoleSession:
                 return "idempotent_write"
             return "non_idempotent_write" if name in {"build_from_artifact", "apply_elevation_heights", "assemble_from_readers", "edit_bim"} else "read_only"
         return self.frozen.repeatability(name)
+
+    def recovery_policy(self, name):
+        if name == "delegate_readers":
+            return "resume_task"
+        if name in self.schemas:
+            return "manual"
+        return getattr(self.frozen, "recovery_policy", lambda _: "manual")(name)
 
     def snapshot_state(self):
         value = self.frozen.snapshot_state()
@@ -838,7 +845,10 @@ class RoleSession:
         if saved and saved["status"] == "completed":
             self.registry.read(task["task_id"])
             return {**saved, "reused_saved_result": True}
-        if saved and saved["status"] not in {"running", "interrupted"}:
+        recoverable_stop = saved and saved.get("reason") in {
+            "cancelled", "money_cny_usage_unavailable", "resume_pending_operation",
+            "resume_uncheckpointed_budget_reservation"}
+        if saved and saved["status"] not in {"running", "interrupted"} and not recoverable_stop:
             return {**saved, "reused_saved_result": True}
         deadline = self.started_epoch + self.limits.seconds
         budget = {**ROLE_TASK_BUDGET[task["role_id"]], **task.get("budget", {})}
@@ -1105,12 +1115,36 @@ class RoleSession:
         """
         from src.agent_runtime.adapter import convert_tool_result
         completed = {event.payload.invocation_event_id for event in self.store.events
-                     if event.payload.event_type == "tool_execution"}
+                     if event.payload.event_type == "tool_execution" and event.payload.outcome != "unknown"}
+        resolved_calls = {event.payload.call_id for event in self.store.events
+                          if event.payload.event_type == "tool_execution" and event.payload.outcome != "unknown"}
         recovered = []
         for event in list(self.store.events):
             call = event.payload
-            if call.event_type != "tool_invocation" or event.event_id in completed:
+            if (call.event_type != "tool_invocation" or event.event_id in completed
+                    or call.call_id in resolved_calls):
                 continue
+            unknown = next((row for row in reversed(self.store.events)
+                if row.payload.event_type == "tool_execution" and
+                row.payload.invocation_event_id == event.event_id and row.payload.outcome == "unknown"), None)
+            retry = None
+            if unknown:
+                # A permission-level read label is not replay authorization.
+                # Only this task-aware delegate path can recover paid children.
+                if call.tool_name != "delegate_readers":
+                    continue
+                attempts = sum(row.payload.event_type == "tool_invocation" and
+                    row.payload.call_id == call.call_id for row in self.store.events)
+                if attempts > self.limits.max_tool_recovery_retries:
+                    continue
+                if sum(row.payload.event_type == "tool_invocation" for row in self.store.all_events) >= self.limits.tool_calls:
+                    continue
+                retry = self.store.append(RunLifecyclePayload(action="retry", attempt=attempts + 1,
+                    retry_of_event_id=unknown.event_id, reason="recover existing reader task identities and checkpoints"))
+                event = self.store.append(ToolInvocationPayload(call_id=call.call_id,
+                    tool_name=call.tool_name, full_arguments=call.full_arguments,
+                    repeatability=call.repeatability, operation_key=call.operation_key,
+                    state_before=self.store.put_json(self.snapshot_state())))
             if call.tool_name == "delegate_readers":
                 raw = await self.call_tool(call.tool_name, call.full_arguments)
             elif call.tool_name in {"assemble_from_readers", "edit_bim"}:
@@ -1145,6 +1179,7 @@ class RoleSession:
             self.store.append(ToolExecutionPayload(call_id=call.call_id, tool_name=call.tool_name,
                 full_arguments=call.full_arguments, repeatability=call.repeatability,
                 operation_key=call.operation_key, invocation_event_id=event.event_id,
+                retry_event_id=retry.event_id if retry else None,
                 outcome="failed" if raw.get("isError") else "succeeded",
                 applied_write_id=call.operation_key if call.repeatability != "read_only" and not raw.get("isError") else None,
                 raw_result=self.store.capture(raw, force_blob=True), shown_result=self.store.capture(shown, force_blob=True),
@@ -1153,6 +1188,7 @@ class RoleSession:
                              self.store.source("role-operation-recovery", {"original_invocation": event.event_id,
                                  "method": "resume child checkpoints" if call.tool_name == "delegate_readers" else "read durable operation receipt"})))
             recovered.append(event.event_id)
+            resolved_calls.add(call.call_id)
         return recovered
 
 

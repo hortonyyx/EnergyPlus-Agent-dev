@@ -19,6 +19,7 @@ from .events import (
     EventEnvelope,
     ModelResponsePayload,
     RunLifecyclePayload,
+    TaskControlPayload,
     StateInspectionPayload,
     ToolExecutionPayload,
     ToolInvocationPayload,
@@ -88,6 +89,7 @@ class EventLog(ContractModel):
         self._validate_inspections(event_by_id, missing_ids)
         self._validate_recovery(event_by_id, missing_ids)
         self._validate_context(event_by_id, missing_ids)
+        self._validate_task_controls(event_by_id, missing_ids)
         for event in self.events:
             if isinstance(event.payload, CheckpointPayload):
                 _require_prior_event(event.payload.after_event_id, event, event_by_id,
@@ -97,6 +99,19 @@ class EventLog(ContractModel):
         self._validate_invocations(event_by_id, missing_ids)
         self._validate_presentations(event_by_id, missing_ids)
         return self
+
+    def _validate_task_controls(self, event_by_id, missing_ids) -> None:
+        for event in self.events:
+            p = event.payload
+            if not isinstance(p, TaskControlPayload):
+                continue
+            if p.target_task_id != event.task_id:
+                raise ValueError("task control must be acknowledged by its target task")
+            if any(prior.sequence < event.sequence and
+                   isinstance(prior.payload, TaskControlPayload) and
+                   prior.payload.command_id == p.command_id
+                   for prior in event_by_id.values()):
+                raise ValueError("task control already acknowledged")
 
     def _validate_truncations(self, event_by_id, missing_ids) -> None:
         recorded = set()

@@ -8,7 +8,7 @@ import json
 import time
 import weakref
 from collections import deque
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import asdict, dataclass
 from decimal import Decimal
 from pathlib import Path
@@ -21,7 +21,7 @@ from src.harness_contracts import (
     EstimatedCostUpperBound, MissingCapture, RunAggregateUsagePayload, RunLifecyclePayload, SourceRef,
     StateInspectionPayload, ToolExecutionPayload, ToolFailureDetails, ToolInvocationPayload,
     ToolPresentationPayload, UsageMissing, UsageReported, authorize_tool_call,
-    TruncationPayload,
+    TruncationPayload, TaskControlPayload,
 )
 from src.harness_contracts.base import ContractModel
 from .adapter import (convert_tool_result, parse_response, prepare_request,
@@ -109,6 +109,7 @@ class RunLimits(ContractModel):
     max_consecutive_truncations: int = Field(default=2, ge=0)
     max_total_truncations: int = Field(default=3, ge=0)
     summary_every: int = Field(default=0, ge=0)
+    max_tool_recovery_retries: int = Field(default=1, ge=0)
 
     def ledger_limit(self):
         return BudgetAmounts(tokens=self.tokens, calls=self.model_calls,
@@ -176,6 +177,9 @@ class Runtime:
         self.answer_repair_error = None
         self.last_summary_at = 0
         self.context = None
+        self._control_applied = set()
+        self._control_paused = False
+        self._phase_seconds = {}
         self._budget_capacity = _shared_budget_capacity_signal(self.store)
         # Checkpoints reuse the last observed tool state. Every actual tool
         # still gets fresh before/after snapshots, and resume re-reads disk.
@@ -238,6 +242,13 @@ class Runtime:
                 self.context.retrieve_image(view_id, digest)
                 self._checkpoint()
             while True:
+                # A complete tool interaction stays intact. Operator messages
+                # enter immediately before the next model request, never
+                # between an assistant tool call and its tool result.
+                if not self.pending_response_id:
+                    reason = await self._control_boundary()
+                    if reason:
+                        return self._stop(reason)
                 if self.terminal_reason:
                     return self._stop(self.terminal_reason)
                 if self.pending_response_id:
@@ -278,6 +289,69 @@ class Runtime:
                 self._checkpoint()
         except (Exception, asyncio.CancelledError) as exc:
             return self._exception_stop(exc)
+
+    @contextmanager
+    def _measure(self, phase):
+        started = time.perf_counter()
+        try:
+            yield
+        finally:
+            self._phase_seconds[phase] = self._phase_seconds.get(phase, 0.0) + time.perf_counter() - started
+
+    def _apply_control(self, event):
+        payload = event.payload
+        if payload.command_id in self._control_applied:
+            return
+        command = json.loads(self.store.get_bytes(payload.command))
+        if (command["run_id"] != self.store.run_id or command["target_task_id"] != self.store.task_id
+                or command["command_id"] != payload.command_id or command["action"] != payload.action
+                or command.get("text") != payload.message):
+            raise ValueError("control command differs from its recorded acknowledgement")
+        if payload.action == "message":
+            source = SourceRef(source_id=payload.command_id, source_kind="user",
+                locator=f"operator:{command['source']}", event_id=event.event_id, blob=payload.command)
+            self._append_message({"role": "user", "content": payload.message}, source)
+            if self.context:
+                from .context import StateEntry
+                self.context.set_state(StateEntry(key=f"operator-input-{payload.command_id}",
+                    category="user_requirement", value=payload.message, epistemic_status="user_stated",
+                    source_refs=(source,)))
+            # A correction arriving during a final response still gets one
+            # ordinary budgeted turn before the run has been closed.
+            if self.terminal_reason == "completed":
+                self.terminal_reason, self.answer = None, None
+        else:
+            self._control_paused = payload.action == "pause"
+        self._control_applied.add(payload.command_id)
+
+    async def _control_boundary(self):
+        from .control import read_commands
+        while True:
+            changed = False
+            for command in read_commands(self.store.directory):
+                if command.run_id != self.store.run_id:
+                    raise ValueError("control inbox contains another run's command")
+                if command.target_task_id != self.store.task_id or command.command_id in self._control_applied:
+                    continue
+                blob = self.store.put_json(command.model_dump(mode="json"))
+                event = self.store.append(TaskControlPayload(command_id=command.command_id,
+                    action=command.action, target_task_id=self.store.task_id,
+                    command=blob, message=command.text), source_refs=(SourceRef(
+                        source_id=command.command_id, source_kind="user",
+                        locator=f"operator:{command.source}", blob=blob),))
+                self._fault("after_control_event")
+                self._apply_control(event)
+                changed = True
+            if changed:
+                self._checkpoint()
+            if not self._control_paused:
+                return None
+            self.stage = "paused"
+            remaining = self._remaining()
+            if remaining <= 0:
+                return self._scoped_budget_reason("time", task=True)
+            # Pause does not cancel remote work or buy more wall-clock time.
+            await asyncio.sleep(min(0.1, remaining))
 
     def _config(self):
         model_profile = asdict(get_model_profile(
@@ -370,13 +444,17 @@ class Runtime:
                 "external_coordinator_usage": "unavailable", "dimensions": dimensions}
 
     def _project(self):
+        with self._measure("context_projection"):
+            return self._project_unmeasured()
+
+    def _project_unmeasured(self):
         if self.context is None:
             return self.messages, self.sources, None
         p = self.context.project(required_tags=self.required_context_tags,
             required_view_ids=self.required_view_ids, consume_retrievals=False,
-            token_estimator=lambda messages: estimate_chat_request({"model": self.model,
+            request_token_estimator=lambda messages, sources: estimate_chat_request({"model": self.model,
                 "messages": (messages if self.versions.remote_model.route_id == "glm-subscription-anthropic"
-                    else reasoning_history_messages(messages, self.reasoning_history)),
+                    else reasoning_history_messages(messages, self.reasoning_history, sources)),
                 "tools": self.specs, **self.parameters},
                 strict=self.strict_model_profile).input_tokens_estimate)
         last = p.decision_event_ids[-1] if p.decision_event_ids else next((
@@ -390,12 +468,13 @@ class Runtime:
         while True:
             async with self._dispatch_slot() as lease:
                 self.stage = "prepare_request"
-                prepared = prepare_request(store=self.store, model=self.model,
-                    messages=messages, message_sources=sources, tools=tools,
-                    tool_source=self.tool_source, parameters=parameters, versions=self.versions,
-                    image_originals=self.originals,
-                    reasoning_history=self.reasoning_history,
-                    strict_model_profile=self.strict_model_profile)
+                with self._measure("request_prepare"):
+                    prepared = prepare_request(store=self.store, model=self.model,
+                        messages=messages, message_sources=sources, tools=tools,
+                        tool_source=self.tool_source, parameters=parameters, versions=self.versions,
+                        image_originals=self.originals,
+                        reasoning_history=self.reasoning_history,
+                        strict_model_profile=self.strict_model_profile)
                 profile_limit = prepared.context_window_tokens
                 configured_limit = self.limits.context_tokens
                 available_limits = tuple(limit for limit in (profile_limit, configured_limit)
@@ -517,9 +596,12 @@ class Runtime:
                         self.adapter.send(prepared, timeout=request_timeout),
                         timeout=request_timeout,
                     )
+                    adapter_elapsed = time.monotonic() - sent_at
+                    self._phase_seconds["adapter_send"] = self._phase_seconds.get("adapter_send", 0.0) + adapter_elapsed
                 except (Exception, asyncio.CancelledError) as exc:
                     failure = classify_failure(exc, request.event_id)
                     elapsed = time.monotonic() - sent_at
+                    self._phase_seconds["adapter_send"] = self._phase_seconds.get("adapter_send", 0.0) + elapsed
                     redispatch = lease is not None and failure.category == "temporary_rate_limit"
                     adjustment = lease.rejected() if redispatch else None
                     if lease:
@@ -553,13 +635,19 @@ class Runtime:
                     lease.release()
                 try:
                     self.stage = "model_response"
-                    parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
+                    parse_started = time.perf_counter()
+                    with self._measure("response_parse_capture"):
+                        parsed = parse_response(raw, request.event_id, self.store, echo_fields=self.echo_fields)
+                    parse_elapsed = time.perf_counter() - parse_started
                     elapsed = time.monotonic() - sent_at
                     adjustment = lease.succeeded() if lease else None
                     self.redispatch_of = None
                     response = self.store.append(parsed.event_payload,
                         source_refs=(self.store.source("request-duration", {"elapsed_seconds": elapsed,
-                            "basis": "local monotonic wall time from send through returned response"}),
+                            "basis": "local monotonic wall time from send through parsed response",
+                            "phases": {"adapter_send_seconds": adapter_elapsed,
+                                "response_parse_capture_seconds": parse_elapsed,
+                                **getattr(self.adapter, "last_send_timing", {})}}),
                             *((self.store.source("dispatch-adjustment", adjustment),) if adjustment else ())))
                     reason = self._settle(reservation.reservation_id, parsed.event_payload.usage,
                                           seconds=elapsed)
@@ -948,6 +1036,8 @@ class Runtime:
                 continue
             if self._remaining() <= 0:
                 return "time_budget_exhausted"
+            if self.counts["tool_calls"] >= self.limits.tool_calls:
+                return "tool_budget_exhausted"
             # A pending response may survive a process interruption while
             # another task consumes the root allowance before it resumes.
             if self.root_tool_calls is not None and sum(
@@ -957,13 +1047,27 @@ class Runtime:
             self.stage = f"tool:{call.tool_name}"
             self._fault("before_tool")
             repeatability = self.tools.repeatability(call.tool_name)
+            unknown = self._unresolved_tool_calls().get(call.call_id)
+            retry_event = None
+            if unknown is not None:
+                if self._tool_recovery_policy(call.tool_name) != "retry_read":
+                    return "resume_pending_operation"
+                attempts = sum(e.payload.event_type == "tool_invocation" and
+                    e.payload.call_id == call.call_id for e in self.store.events)
+                if attempts > self.limits.max_tool_recovery_retries:
+                    return "tool_recovery_retries_exhausted"
+                retry_event = self.store.append(RunLifecyclePayload(action="retry",
+                    reason="explicit repeatable-read recovery; original outcome remains unknown",
+                    retry_of_event_id=unknown.event_id, attempt=attempts + 1))
             write = repeatability != "read_only"
             key = f"{self.store.run_id}:{call.call_id}" if write else None
             self._tool_state = copy.deepcopy(self.tools.snapshot_state())
             before = self.store.put_json(self._tool_state)
             intent = self.store.append(ToolInvocationPayload(call_id=call.call_id,
                 tool_name=call.tool_name, full_arguments=call.full_arguments,
-                repeatability=repeatability, operation_key=key, state_before=before))
+                repeatability=repeatability, operation_key=key, state_before=before),
+                source_refs=((self.store.source("tool-recovery-attempt", {
+                    "retry_event_id": retry_event.event_id}),) if retry_event else ()))
             self._refresh_counts()
             if self.tool_budget_update is not None:
                 self.tool_budget_update(self)
@@ -990,7 +1094,8 @@ class Runtime:
                     raw_result=self.store.capture(raw, force_blob=True),
                     shown_result=MissingCapture(reason="MCP presentation conversion failed"),
                     repeatability=repeatability, operation_key=key, outcome="failed",
-                    invocation_event_id=intent.event_id, presentation_status="prepared"), source_refs=(duration,))
+                    invocation_event_id=intent.event_id, presentation_status="prepared",
+                    retry_event_id=retry_event.event_id if retry_event else None), source_refs=(duration,))
                 return "tool_presentation_failed"
             self._tool_state = copy.deepcopy(self.tools.snapshot_state())
             execution = self.store.append(ToolExecutionPayload(call_id=call.call_id,
@@ -1000,7 +1105,9 @@ class Runtime:
                 repeatability=repeatability, operation_key=key,
                 outcome="failed" if raw.get("isError") else "succeeded",
                 applied_write_id=key if write and not raw.get("isError") else None,
-                invocation_event_id=intent.event_id, presentation_status="prepared"),
+                invocation_event_id=intent.event_id, presentation_status="prepared",
+                retry_event_id=retry_event.event_id if retry_event else None),
+                # The retry lifecycle is kept separately from read/write access.
                 source_refs=(self.store.source("tool-state-after", self._tool_state), duration))
             self._fault("after_execution")
             self._accept_execution(execution)
@@ -1012,6 +1119,10 @@ class Runtime:
     def _accept_execution(self, event):
         p = event.payload
         if p.call_id in self.used_ids:
+            return
+        if p.outcome == "unknown":
+            # Retain the original evidence. Recovery policy is checked below;
+            # an unknown result is never presented as a completed tool reply.
             return
         if p.shown_result.kind == "missing":
             self.terminal_reason = "resume_pending_operation" if p.outcome == "unknown" else "tool_presentation_failed"
@@ -1061,11 +1172,14 @@ class Runtime:
         failure = (ToolFailureDetails(**safe_exception_details(
             exception, stage=f"tool:{p.tool_name}"
         )) if exception is not None else None)
+        retry = next((s.blob for s in invocation.source_refs if s.source_id == "tool-recovery-attempt"), None)
+        retry_id = json.loads(self.store.get_bytes(retry))["retry_event_id"] if retry else None
         return self.store.append(ToolExecutionPayload(call_id=p.call_id, tool_name=p.tool_name,
             full_arguments=p.full_arguments, repeatability=p.repeatability, operation_key=p.operation_key,
             outcome="unknown", raw_result=MissingCapture(reason="interrupted after durable intent; result not captured"),
             shown_result=MissingCapture(reason="no result was presented"),
-            invocation_event_id=invocation.event_id, presentation_status="prepared", failure=failure),
+            invocation_event_id=invocation.event_id, presentation_status="prepared", failure=failure,
+            retry_event_id=retry_id),
             source_refs=((self.store.source("tool-duration", {"elapsed_seconds": elapsed,
                 **({"started_epoch": started_epoch} if started_epoch is not None else {})}),)
                          if elapsed is not None else ()))
@@ -1077,7 +1191,26 @@ class Runtime:
         self.store.append(StateInspectionPayload(purpose="unknown_write_recovery",
             target_event_id=event_id, persisted_state=state, conclusion="inconclusive"))
 
+    def _tool_recovery_policy(self, name):
+        policy = getattr(self.tools, "recovery_policy", lambda _: "manual")(name)
+        if policy not in {"retry_read", "resume_task", "manual"}:
+            raise ValueError("unsupported tool recovery policy")
+        if policy == "retry_read" and self.tools.repeatability(name) != "read_only":
+            raise ValueError("repeatable-read recovery cannot authorize a write")
+        return policy
+
+    def _unresolved_tool_calls(self):
+        latest = {}
+        for event in self.store.events:
+            if event.payload.event_type == "tool_execution":
+                latest[event.payload.call_id] = event
+        return {key: event for key, event in latest.items() if event.payload.outcome == "unknown"}
+
     def _checkpoint(self):
+        with self._measure("checkpoint"):
+            return self._checkpoint_unmeasured()
+
+    def _checkpoint_unmeasured(self):
         if self._tool_state is None:
             self._tool_state = copy.deepcopy(self.tools.snapshot_state())
         snapshot = {"messages": self.messages if self.context is None else None,
@@ -1095,6 +1228,7 @@ class Runtime:
             "answer_repair_original": self.answer_repair_original,
             "answer_repair_error": self.answer_repair_error,
             "last_summary_at": self.last_summary_at,
+            "control_applied": sorted(self._control_applied), "control_paused": self._control_paused,
             "elapsed_seconds": self.limits.seconds - self._remaining(), "started_epoch": self.started_epoch,
             "tool_state": self._tool_state, "config": self._config(),
             "versions": self.versions.model_dump(mode="json"), "last_event_id": self.store.events[-1].event_id}
@@ -1148,6 +1282,8 @@ class Runtime:
         self.answer_repair_original = saved.get("answer_repair_original")
         self.answer_repair_error = saved.get("answer_repair_error")
         self.last_summary_at = saved.get("last_summary_at", 0)
+        self._control_applied = set(saved.get("control_applied", []))
+        self._control_paused = saved.get("control_paused", False)
         requested_reservations = {e.payload.reservation_id for e in self.store.events
             if e.payload.event_type == "adapter_request" and e.payload.reservation_id}
         if any(r.reservation_id not in requested_reservations for r in self.task_budget.ledger.reservations):
@@ -1219,6 +1355,8 @@ class Runtime:
                     expected_state = json.loads(self.store.get_bytes(after))
             elif p.event_type == "context" and self.context:
                 self.context.replay_events([event])
+            elif p.event_type == "task_control":
+                self._apply_control(event)
         if self.context:
             self.messages, self.sources = self.context.full_history()
         complete = {e.payload.invocation_event_id for e in self.store.events if e.payload.event_type == "tool_execution"}
@@ -1228,14 +1366,24 @@ class Runtime:
                 result = self._unknown_execution(event)
                 if p.repeatability != "read_only":
                     self._inspect_unknown(result.event_id, p.state_before)
-                return "resume_pending_operation"
-        for event in self.store.events:
-            if event.payload.event_type == "tool_execution" and event.payload.outcome == "unknown":
+        unresolved = self._unresolved_tool_calls()
+        for event in unresolved.values():
+            if self._tool_recovery_policy(event.payload.tool_name) != "retry_read":
                 if event.payload.repeatability != "read_only":
                     self._inspect_unknown(event.event_id, None)
                 return "resume_pending_operation"
+            attempts = sum(e.payload.event_type == "tool_invocation" and
+                e.payload.call_id == event.payload.call_id for e in self.store.events)
+            if attempts > self.limits.max_tool_recovery_retries:
+                return "tool_recovery_retries_exhausted"
         observed_state = self.tools.snapshot_state()
         safe = expected_state == observed_state
+        if not safe and unresolved:
+            # Only the domain adapter can attest to harmless observation-cache
+            # changes. Its protected source/artifact identity must still match.
+            inspect_reads = getattr(self.tools, "can_resume_reads", None)
+            safe = bool(inspect_reads and inspect_reads(expected_state, observed_state,
+                tuple(event.payload.tool_name for event in unresolved.values())))
         inspected = self.store.append(StateInspectionPayload(purpose="resume",
             target_event_id=saved["last_event_id"], persisted_state=ref,
             conclusion="safe_to_resume" if safe else "inconclusive"))
@@ -1284,7 +1432,7 @@ class Runtime:
                 self.redispatch_of, self.retry_of = None, request.event_id
         self._refresh_counts()
         if self.budget.fatal_reason:
-            return "token_reservation_exceeded"
+            return self.budget.fatal_reason
         self.store.append(RunLifecyclePayload(action="resume", reason="durable results replayed and saved state rechecked",
             state_inspection_event_id=inspected.event_id, checkpoint=ref))
         self._checkpoint()
@@ -1503,7 +1651,9 @@ class Runtime:
                 continue
             prior = [e for e in self.store.events if e.sequence < request.sequence
                      and (e.payload.event_type == "adapter_request" or
-                          e.payload.event_type == "run_lifecycle" and e.payload.action == "retry")]
+                          e.payload.event_type == "run_lifecycle" and e.payload.action == "retry"
+                          and any(target.event_id == e.payload.retry_of_event_id and
+                                  target.payload.event_type == "adapter_request" for target in self.store.events))]
             if not prior or prior[-1].payload.event_type != "run_lifecycle":
                 break
             count += 1
@@ -1548,7 +1698,9 @@ class Runtime:
         sources = []
         if elapsed is not None:
             sources.append(self.store.source("request-duration", {"elapsed_seconds": elapsed,
-                "basis": "local monotonic wall time from send through failure"}))
+                "basis": "local monotonic wall time from send through failure",
+                "phases": {"adapter_send_seconds": elapsed,
+                    **getattr(self.adapter, "last_send_timing", {})}}))
         if dispatch_adjustment is not None:
             sources.append(self.store.source("dispatch-adjustment", dispatch_adjustment))
         self.store.append(RunLifecyclePayload(action="failure", failure_stage="model_request",
@@ -1641,6 +1793,9 @@ class Runtime:
                 self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
                 reason=self.low_output_limit_reason),
             **self.counts, "elapsed_seconds": elapsed, "timing": timing,
+            "runtime_processing": {"process_phase_seconds": dict(self._phase_seconds),
+                "shared_journal": getattr(self.store, "timing_totals", {}),
+                "scope": "current process only; phases can contain journal work and must not be summed as exclusive wall time"},
             "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
             "truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.events),
             "root_truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.all_events),

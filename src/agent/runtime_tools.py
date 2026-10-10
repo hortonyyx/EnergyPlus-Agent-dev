@@ -307,6 +307,14 @@ class FrozenBimTools:
 
         return repeatability_for(name)
 
+    def recovery_policy(self, name: str) -> str:
+        # This is deliberately independent of the broader read-only permission
+        # class: some tools create workflow decisions or launch other work.
+        repeatable_observations = {"get_bim_reference", "inputs", "view_image", "pixel_profile",
+            "view_pixel_profile", "view_pixel_region_overview", "view_pixel_region",
+            "map_pixels", "read_candidate_items"}
+        return "retry_read" if name in repeatable_observations else "manual"
+
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if not self._catalog_checked:
             await self.list_tools()

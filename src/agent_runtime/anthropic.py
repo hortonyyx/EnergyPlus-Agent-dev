@@ -11,6 +11,7 @@ import base64
 import copy
 import hashlib
 import json
+import time
 
 from src.harness_contracts import (AdapterRequestPayload, ImageTransmission,
     InjectedContent, ModelResponsePayload, ParameterAudit, ParametersNotReported,
@@ -37,13 +38,22 @@ class HttpAnthropicAdapter(HttpChatAdapter):
         self.endpoint = base_url.rstrip("/") + "/v1/messages?beta=true"
 
     async def send(self, request: PreparedRequest, *, timeout: float):
-        response = await self.client.post(self.endpoint, content=request.wire_bytes,
-            headers={"Authorization": f"Bearer {self._key}", "Content-Type": "application/json",
-                "anthropic-version": "2023-06-01", "anthropic-beta": CAPTURED_BETAS}, timeout=timeout)
+        self.last_send_timing = {}
+        started = time.monotonic()
+        try:
+            response = await self.client.post(self.endpoint, content=request.wire_bytes,
+                headers={"Authorization": f"Bearer {self._key}", "Content-Type": "application/json",
+                    "anthropic-version": "2023-06-01", "anthropic-beta": CAPTURED_BETAS}, timeout=timeout)
+        finally:
+            self.last_send_timing["http_round_trip_seconds"] = time.monotonic() - started
         if not response.is_success:
             from .failures import http_failure
             raise http_failure(response, secret=self._key, provider=self.failure_provider)
-        return response.json()
+        started = time.monotonic()
+        try:
+            return response.json()
+        finally:
+            self.last_send_timing["http_json_decode_seconds"] = time.monotonic() - started
 
 
 def native_blocks(content):

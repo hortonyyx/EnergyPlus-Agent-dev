@@ -6,6 +6,7 @@ import base64
 import copy
 import hashlib
 import json
+import time
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit
@@ -204,13 +205,22 @@ class HttpChatAdapter:
 
     async def send(self, request: PreparedRequest, *, timeout: float):
         # Sending these bytes bypasses SDK extra_body merges and hidden retries.
-        response = await self.client.post(self.endpoint, content=request.wire_bytes,
-            headers={"Authorization": f"Bearer {self._key}",
-                     "Content-Type": "application/json"}, timeout=timeout)
+        self.last_send_timing = {}
+        started = time.monotonic()
+        try:
+            response = await self.client.post(self.endpoint, content=request.wire_bytes,
+                headers={"Authorization": f"Bearer {self._key}",
+                         "Content-Type": "application/json"}, timeout=timeout)
+        finally:
+            self.last_send_timing["http_round_trip_seconds"] = time.monotonic() - started
         if not response.is_success:
             from .failures import http_failure
             raise http_failure(response, secret=self._key, provider=self.failure_provider)
-        return response.json()
+        started = time.monotonic()
+        try:
+            return response.json()
+        finally:
+            self.last_send_timing["http_json_decode_seconds"] = time.monotonic() - started
 
 
 class ScriptedAdapter:

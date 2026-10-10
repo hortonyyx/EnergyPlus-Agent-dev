@@ -509,6 +509,25 @@ class ReaderTools:
             raise ValueError(f"tool {name!r} is outside {self.role_id}")
         return self.frozen.repeatability(name)
 
+    def recovery_policy(self, name: str) -> str:
+        if name == "view_plan_blocks" and self.role_id == "plan_reader":
+            return "retry_read"
+        if self.repeatability(name) != "read_only":
+            return "manual"
+        return getattr(self.frozen, "recovery_policy", lambda _: "manual")(name)
+
+    def can_resume_reads(self, expected, observed, names):
+        if any(self.recovery_policy(name) != "retry_read" for name in names):
+            return False
+        if any(expected.get(key) != observed.get(key) for key in ("frozen", "trial", "submission")):
+            return False
+        before, after = expected.get("reader_scope", {}), observed.get("reader_scope", {})
+        if any(before.get(key) != after.get(key) for key in ("role_id", "image", "image_sha256")):
+            return False
+        # Observation progress and newly issued same-image reference caches can
+        # be rebuilt. Existing references and protected BIM/trial state cannot.
+        return set(before.get("references", ())) <= set(after.get("references", ()))
+
     def _enforce_single_image(self, arguments: Mapping[str, Any], *, plan_object=False) -> None:
         for key, value in _walk(arguments):
             # A plan's nested object name is not an image-selector parameter.
