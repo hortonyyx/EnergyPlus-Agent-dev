@@ -14,6 +14,7 @@ from src.harness_contracts import (
     BlobCapture, BudgetAmounts, EventEnvelope, EventLog, HashedBlobRef,
     InlineCapture, JsonReferencedCapture, KnownParentTask, KnownTimestamp, RootTask, SourceRef,
 )
+from src.harness_contracts.incremental import EventValidationIndex
 
 
 def json_bytes(value) -> bytes:
@@ -74,10 +75,29 @@ class EventStore:
                     raise ValueError("journal limits/identity cannot change on resume")
             repair = self._repair_tail() if recover_tail else None
             self._all_events = self.read_events(self.path)
+            self._timing_totals = {"event_validation_seconds": 0.0,
+                                   "journal_write_seconds": 0.0}
+            self._append_failed = False
             if self._all_events:
                 self.validate()
                 if any(e.run_id != run_id for e in self._all_events):
                     raise ValueError("journal identity differs from requested run")
+            self._index = EventValidationIndex(run_id=run_id, root_task_id=task_id,
+                                               budget_limit=budget_limit)
+            self._budget_events = []
+            self._budget_events_by_task = {}
+            self._budget_projection_events = []
+            self._budget_projection_events_by_task = {}
+            # Full validation above remains the recovery authority. Rebuild the
+            # disposable hot-path indices once, without writing old events.
+            started = time.perf_counter()
+            try:
+                for event in self._all_events:
+                    update = self._index.budget.prepare(event)
+                    self._index.commit(event, update)
+                    self._index_budget_event(event)
+            finally:
+                self._timing_totals["event_validation_seconds"] += time.perf_counter() - started
             if not path.exists():
                 self.write_json("journal.json", metadata)
             if repair:
@@ -93,13 +113,47 @@ class EventStore:
     def events(self) -> list[EventEnvelope]:
         """Events belonging to this task facade, in global journal order."""
 
-        return [event for event in self._root._all_events if event.task_id == self.task_id]
+        return list(self._root._index.events_by_task.get(self.task_id, ()))
 
     @property
     def all_events(self) -> list[EventEnvelope]:
         """All events in the run, shared by every task facade."""
 
         return list(self._root._all_events)
+
+    @property
+    def event_revision(self) -> int:
+        return len(self._root._all_events)
+
+    @property
+    def budget_revision(self) -> int:
+        """Revision of all budget-affecting receipts and request/response links."""
+        return len(self._root._budget_projection_events)
+
+    def budget_events(self, task_id: str | None = None) -> list[EventEnvelope]:
+        """Indexed budget events; None selects the shared run ledger."""
+        root = self._root
+        return list(root._budget_events if task_id is None
+                    else root._budget_events_by_task.get(task_id, ()))
+
+    def budget_projection_events(self, task_id: str | None = None) -> list[EventEnvelope]:
+        """Indexed input for RuntimeBudget.from_events, including request/response."""
+        root = self._root
+        return list(root._budget_projection_events if task_id is None
+                    else root._budget_projection_events_by_task.get(task_id, ()))
+
+    @property
+    def timing_totals(self) -> dict[str, float]:
+        """Shared cumulative wall seconds, with no timing events or history scan."""
+        return dict(self._root._timing_totals)
+
+    def _index_budget_event(self, event):
+        if event.payload.event_type == "budget":
+            self._root._budget_events.append(event)
+            self._root._budget_events_by_task.setdefault(event.task_id, []).append(event)
+        if event.payload.event_type in {"budget", "adapter_request", "model_response"}:
+            self._root._budget_projection_events.append(event)
+            self._root._budget_projection_events_by_task.setdefault(event.task_id, []).append(event)
 
     @property
     def is_root_task(self) -> bool:
@@ -115,15 +169,9 @@ class EventStore:
             return root
         if task_id == parent_task_id:
             raise ValueError("task cannot be its own parent")
-        known_tasks = {root.root_task_id, *(event.task_id for event in root._all_events)}
-        if parent_task_id not in known_tasks:
+        if parent_task_id not in root._index.parents:
             raise ValueError("parent task does not exist in this run")
-        existing = [event for event in root._all_events if event.task_id == task_id]
-        if existing and any(
-            event.parent_task.kind != "known"
-            or event.parent_task.task_id != parent_task_id
-            for event in existing
-        ):
+        if task_id in root._index.parents and root._index.parents[task_id] != parent_task_id:
             raise ValueError("task parent differs from persisted ancestry")
 
         child = object.__new__(EventStore)
@@ -300,6 +348,8 @@ class EventStore:
                parent_task_id: str | None = None) -> EventEnvelope:
         if self._lock.closed:
             raise ValueError("journal is closed")
+        if self._root._append_failed:
+            raise ValueError("journal append failed; reopen with explicit recovery before writing")
         if self is not self._root and (task_id is not None or parent_task_id is not None):
             raise ValueError("task facade cannot append for another task")
         effective_task = task_id or self.task_id
@@ -314,22 +364,42 @@ class EventStore:
             parent = KnownParentTask(task_id=effective_parent)
         all_events = self._root._all_events
         seq = all_events[-1].sequence + 1 if all_events else 0
-        event = EventEnvelope(event_id=f"event-{seq:06d}", run_id=self.run_id,
-            task_id=effective_task, parent_task=parent, sequence=seq,
-            occurred_at=KnownTimestamp(value=datetime.now(UTC)),
-            source_refs=tuple(source_refs), payload=payload)
-        # Validate before appending. Prefixes with an in-flight request are valid.
-        self._validate_events([*all_events, event])
-        with self.path.open("ab") as output:
-            output.write(event.model_dump_json().encode("utf-8") + b"\n")
-            output.flush()
-            os.fsync(output.fileno())
-        self._sync_directory(self.directory)
+        root = self._root
+        started = time.perf_counter()
+        try:
+            event = EventEnvelope(event_id=f"event-{seq:06d}", run_id=self.run_id,
+                task_id=effective_task, parent_task=parent, sequence=seq,
+                occurred_at=KnownTimestamp(value=datetime.now(UTC)),
+                source_refs=tuple(source_refs), payload=payload)
+            # Validate before appending. In-flight request prefixes are valid.
+            update = root._index.prepare(event)
+        finally:
+            root._timing_totals["event_validation_seconds"] += time.perf_counter() - started
+        started = time.perf_counter()
+        try:
+            with self.path.open("ab") as output:
+                output.write(event.model_dump_json().encode("utf-8") + b"\n")
+                output.flush()
+                os.fsync(output.fileno())
+            self._sync_directory(self.directory)
+        except BaseException:
+            # A failed flush may have left a complete or torn record on disk.
+            # Keep indices unchanged and prevent another append reusing its ID.
+            root._append_failed = True
+            raise
+        finally:
+            root._timing_totals["journal_write_seconds"] += time.perf_counter() - started
         all_events.append(event)
+        root._index.commit(event, update)
+        root._index_budget_event(event)
         return event
 
     def validate(self) -> EventLog:
-        return self._validate_events(self._root._all_events)
+        started = time.perf_counter()
+        try:
+            return self._validate_events(self._root._all_events)
+        finally:
+            self._root._timing_totals["event_validation_seconds"] += time.perf_counter() - started
 
     def _validate_events(self, events: list[EventEnvelope]) -> EventLog:
         log = EventLog(mode="complete", events=tuple(events),
@@ -363,11 +433,7 @@ class EventStore:
         return f"{self.task_id}:request-{ordinal}"
 
     def next_reservation_id(self) -> str:
-        count = sum(
-            event.payload.event_type == "budget"
-            and event.payload.action == "reserve"
-            for event in self.events
-        )
+        count = self._root._index.reservation_counts.get(self.task_id, 0)
         return self.reservation_id(count + 1)
 
     def write_json(self, name: str, value):

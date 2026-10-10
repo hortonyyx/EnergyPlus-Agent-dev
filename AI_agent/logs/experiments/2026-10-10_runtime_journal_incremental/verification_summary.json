@@ -1,0 +1,52 @@
+{
+  "recorded_at_utc": "2026-10-10T14:38:53.948306+00:00",
+  "scope": "runtime journal validation/indexing only; domain and loop.py unchanged",
+  "implementation_base": "83cf373b",
+  "budget_prerequisite": "38451bc4e0f9d5b1bb837dd6c4c621d1d0728c7f",
+  "evidence_kind": "Summary transcribed from local tool pytest outputs; no work-model quality claim",
+  "checks": [
+    {
+      "scope": "baseline contracts/runtime/r1b budget",
+      "result": "68 passed, 2 failed in 14.07s under default 8-worker execution; both failures passed targeted utf8 serial rerun (2 passed in 0.71s)",
+      "failures": "0.1s deadline under worker load; locale decoding of UTF8 source in AST test"
+    },
+    {
+      "scope": "recovery edges/truncation/time settlement/CNY billing",
+      "result": "32 passed in 20.19s"
+    },
+    {
+      "scope": "all 1269 frozen prefixes versus full validation, with committed and available budget parity",
+      "result": "13 passed in 551.79s; includes 12 initial regression cases and one frozen-prefix test",
+      "source_event_sha256": "813eabbe542e79b12b08c2a1e507b58aac50b56d73ee7841e8e87b32e75c92db"
+    },
+    {
+      "scope": "integrated journal index and budget recovery",
+      "result": "41 passed, 2 deselected in 1.08s",
+      "command": "python -X utf8 -m pytest tests/test_runtime_journal_incremental.py tests/test_runtime_budget_recovery.py -q -n 0 -k 'not frozen'",
+      "selection_note": "Actual -k expression: not frozen; the expensive frozen prefix test already ran and the existing frozen-rate-named test was excluded by this expression."
+    }
+  ],
+  "invariants_tested": [
+    "budget overbooking",
+    "duplicate reservation and settlement",
+    "cross-task settlement",
+    "duplicate applied write",
+    "unknown-write inspection and retry",
+    "duplicate invocation, truncation and answer repair",
+    "append validation rollback",
+    "append fsync failure index isolation and poison state",
+    "release and reconcile normal/overrun prefix parity",
+    "duplicate reconciliation",
+    "full validation on restart and explicit validate",
+    "budget projection revision shared by six child tasks, request/response invalidation, unrelated-event stability and restart reconstruction"
+  ],
+  "benchmarks": "benchmark.json; preloaded memory only, three samples each; excludes I/O and does not establish whole-run speed",
+  "external_activity": {
+    "real_http_requests": 0,
+    "work_model_requests": 0,
+    "mcp_operations": 0,
+    "deepseek_requests": 0,
+    "old_run_writes": 0
+  },
+  "integration_note": "TaskControl target-task checks must be added to the shared EventLog._validate_single_event_references helper by the main integrator; incremental command IDs are already indexed."
+}

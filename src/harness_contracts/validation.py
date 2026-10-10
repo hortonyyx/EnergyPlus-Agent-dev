@@ -113,6 +113,28 @@ class EventLog(ContractModel):
                    for prior in event_by_id.values()):
                 raise ValueError("task control already acknowledged")
 
+    def _validate_single_event_references(self, event_by_id, missing_ids) -> None:
+        """Shared reference checks for an already typed new event.
+
+        Incremental callers provide a one-event view and the committed index.
+        Cross-event uniqueness and budgets belong to their incremental state;
+        complete validation above still independently replays the whole log.
+        New reference-bearing payloads must be checked in both paths.
+        """
+        self._validate_response_requests(event_by_id, missing_ids)
+        self._validate_answer_repairs(event_by_id, missing_ids)
+        self._validate_truncations(event_by_id, missing_ids)
+        self._validate_inspections(event_by_id, missing_ids)
+        self._validate_recovery(event_by_id, missing_ids)
+        self._validate_context(event_by_id, missing_ids)
+        self._validate_task_controls(event_by_id, missing_ids)
+        for event in self.events:
+            if isinstance(event.payload, CheckpointPayload):
+                _require_prior_event(event.payload.after_event_id, event, event_by_id,
+                                     missing_ids, "checkpoint boundary")
+        self._validate_invocations(event_by_id, missing_ids)
+        self._validate_presentations(event_by_id, missing_ids)
+
     def _validate_truncations(self, event_by_id, missing_ids) -> None:
         recorded = set()
         for event in self.events:
