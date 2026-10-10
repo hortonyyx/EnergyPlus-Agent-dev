@@ -115,6 +115,27 @@ def test_existing_anthropic_and_openai_compatible_routes_are_accepted(
     assert parsed["elevation_reader"].model == model
 
 
+def test_role_context_overrides_are_explicit_and_strict():
+    configured = roles()
+    configured["plan_reader"]["context"] = {
+        "context_tokens": 180_000, "compact_at_tokens": 90_000, "max_images": 2}
+    parsed = load_roles(configured)
+    assert parsed["plan_reader"].model_dump(mode="json")["context"] == configured["plan_reader"]["context"]
+    configured["plan_reader"]["context"]["unknown"] = 1
+    with pytest.raises(ValidationError, match="unknown"):
+        load_roles(configured)
+
+
+def test_role_context_overrides_survive_configuration_cli(tmp_path):
+    selected = case()
+    selected["roles"]["elevation_reader"]["context"] = {
+        "context_tokens": 180_000, "compact_at_tokens": 90_000, "max_image_bytes": 8_000_000}
+    parsed = load(tmp_path, selected)["cases"][0]
+    argv = argv_for(parsed)
+    encoded = json.loads(argv[argv.index("--roles-json") + 1])
+    assert encoded["elevation_reader"]["context"] == selected["roles"]["elevation_reader"]["context"]
+
+
 def test_unreviewed_route_deepseek_and_low_output_are_rejected():
     with pytest.raises(ValidationError, match="reviewed live provider"):
         load_roles(roles(coordinator=role("unknown-route")))

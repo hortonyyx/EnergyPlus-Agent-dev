@@ -12,7 +12,6 @@ import asyncio
 import base64
 import hashlib
 import json
-import os
 import time
 from decimal import Decimal
 from pathlib import Path
@@ -25,14 +24,14 @@ from src.agent.runtime_tools import (
 from src.agent.runtime_context import update_building_context
 from src.agent.runtime_delivery import finalize_runtime_building
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
-from src.agent_runtime.anthropic import HttpAnthropicAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.accounting import require_cny_price_schedule
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
-from src.agent_runtime.providers import (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
-    provider_parameters, subscription_credentials, validate_provider_model)
+from src.agent_runtime.providers import (SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
+    provider_parameters, validate_provider_model)
+from src.agent_runtime.connections import paratera_credentials, resolve_connection
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
@@ -71,20 +70,6 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
     return run, guide, task
 
 
-def paratera_credentials(path: Path | None) -> tuple[str, str]:
-    """Read only the two permitted keys, without sourcing/exporting an .env file."""
-    values = {}
-    if path:
-        from dotenv import dotenv_values
-        private = dotenv_values(path, interpolate=False)
-        values = {name: private.get(name) for name in ("PARATERA_BASE_URL", "PARATERA_API_KEY")}
-    base_url = values.get("PARATERA_BASE_URL") or os.environ.get("PARATERA_BASE_URL", "https://llmapi.paratera.com/v1")
-    key = values.get("PARATERA_API_KEY") or os.environ.get("PARATERA_API_KEY")
-    if not key:
-        raise ValueError("PARATERA_API_KEY was not supplied")
-    return base_url, key
-
-
 def publish_tool_budget(engine):
     """Bridge the runtime ledger to the existing, shared tool-tail formatter."""
     run = engine.tools.run_directory.resolve()
@@ -120,10 +105,12 @@ async def execute(args) -> dict:
         max_consecutive_truncations=args.max_consecutive_truncations,
         max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
-    context_policy = ContextPolicy(active_window_messages=args.context_window,
-        compact_at_tokens=args.compact_at_tokens,
-        large_result_bytes=args.large_result_bytes, max_images=args.max_images,
-        max_image_bytes=args.max_image_bytes, pinned_tags=tuple(args.pin_tag)) if args.context else None
+    context_values = {"active_window_messages": args.context_window,
+        "compact_at_tokens": args.compact_at_tokens,
+        "large_result_bytes": args.large_result_bytes, "max_images": args.max_images,
+        "max_image_bytes": args.max_image_bytes}
+    context_policy = ContextPolicy(**{key: value for key, value in context_values.items()
+        if value is not None}, pinned_tags=tuple(args.pin_tag)) if args.context else None
     pricing = PriceSchedule.model_validate_json(args.price_schedule.read_bytes()) if args.price_schedule else None
     if args.repair_tail and not args.resume:
         raise ValueError("--repair-tail requires --resume")
@@ -161,13 +148,13 @@ async def execute(args) -> dict:
                     route = {"route_id": "offline-scripted", "model": "scripted-model",
                         "fixture_sha256": hashlib.sha256(fixture).hexdigest()}
                 else:
-                    base_url, key = (subscription_credentials(args.credentials_file, provider=args.provider)
-                        if args.provider in SUBSCRIPTION_PROVIDERS else paratera_credentials(args.credentials_file))
-                    adapter_type = HttpAnthropicAdapter if args.provider == GLM_SUBSCRIPTION_ANTHROPIC else HttpChatAdapter
-                    adapter = adapter_type(base_url=base_url, api_key=key)
-                    route = {"route_id": args.provider, "model": args.model, "base_url": base_url,
-                        "billing_mode": "subscription" if args.provider in SUBSCRIPTION_PROVIDERS else "metered"}
+                    connection = resolve_connection(args.provider, args.credentials_file)
+                    adapter = connection.create_adapter()
+                    route = connection.descriptor.model_route(args.model)
                 route["reasoning_history"] = args.reasoning_history
+                route["context"] = ({"context_tokens": limits.context_tokens,
+                    **context_policy.model_dump(mode="json")} if context_policy is not None
+                    else {"enabled": False, "context_tokens": limits.context_tokens})
                 specs = [{"type": "function", "function": {"name": t["name"],
                     "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
@@ -275,11 +262,11 @@ def parser():
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
     p.add_argument("--context-window", type=int, help="explicit legacy message-window replay; production defaults to token compaction")
-    p.add_argument("--compact-at-tokens", type=int, default=150_000,
+    p.add_argument("--compact-at-tokens", type=int,
                    help="compact only when estimated input tokens reach this threshold")
-    p.add_argument("--large-result-bytes", type=int, default=8192)
+    p.add_argument("--large-result-bytes", type=int)
     p.add_argument("--max-images", type=int, help="optional image count target at compaction; unset by default")
-    p.add_argument("--max-image-bytes", type=int, default=32_000_000)
+    p.add_argument("--max-image-bytes", type=int)
     p.add_argument("--pin-tag", action="append", default=[])
     p.add_argument("--keep-view-id", action="append", default=[])
     p.add_argument("--retrieve-image", nargs=2, action="append", default=[], metavar=("VIEW_ID", "SHA256"))

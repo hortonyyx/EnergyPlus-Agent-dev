@@ -8,13 +8,13 @@ import json
 import time
 from contextlib import AsyncExitStack
 
-from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_inputs, paratera_credentials, publish_tool_budget
+from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_inputs, publish_tool_budget
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
-from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
-from src.agent_runtime.anthropic import HttpAnthropicAdapter
-from .context_policy import role_context_policy
+from src.agent_runtime.adapter import ScriptedAdapter
+from .context_policy import context_policy_from_effective, effective_role_context
+from src.agent_runtime.connections import resolve_connection
 from src.agent_runtime.loop import Runtime, RunLimits
-from src.agent_runtime.providers import GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS, subscription_credentials
+from src.agent_runtime.providers import SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS
 from src.agent_runtime.run_paths import resolve_run_output
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
@@ -46,9 +46,18 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
         raise ValueError("role_division uses the shared route-aware CNY ledger; per-run USD price overrides are not supported")
     if args.money_cny is not None and any(role.provider in SUBSCRIPTION_PROVIDERS for role in routes.values()):
         raise ValueError("subscription roles cannot participate in a usage-priced money ceiling")
+    global_context = {"context_tokens": args.context_tokens,
+        "compact_at_tokens": args.compact_at_tokens,
+        "active_window_messages": args.context_window,
+        "large_result_bytes": args.large_result_bytes,
+        "max_images": args.max_images, "max_image_bytes": args.max_image_bytes}
+    global_context = {key: value for key, value in global_context.items() if value is not None}
+    role_contexts = {name: effective_role_context(name, global_defaults=global_context,
+        role_overrides=route.context) for name, route in routes.items()}
+    coordinator_context = role_contexts["coordinator"]
     limits = RunLimits(model_calls=args.model_calls, tool_calls=args.tool_calls, seconds=args.seconds,
         tokens=args.tokens, money_cny=args.money_cny, near_limit=args.near_limit,
-        min_output_tokens=args.min_output_tokens, context_tokens=args.context_tokens,
+        min_output_tokens=args.min_output_tokens, context_tokens=coordinator_context.context_tokens,
         max_model_retries=args.model_retries, retry_backoff_seconds=args.retry_backoff_seconds,
         max_consecutive_truncations=args.max_consecutive_truncations, max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
@@ -58,7 +67,19 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
     if args.provider == "scripted" and args.script is None:
         raise ValueError("scripted role runs require an explicit response fixture")
     guide = get_role_guide("coordinator")
+    connections = {}
+    if args.provider != "scripted":
+        connections = {provider: resolve_connection(provider, args.credentials_file)
+                       for provider in {role.provider for role in routes.values()}}
+    connection_routes = {name: (connections[role.provider].descriptor.model_dump(mode="json")
+        if role.provider != "scripted" else {"route_id": "scripted", "billing_mode": "offline",
+                                             "adapter_kind": "scripted"})
+        for name, role in routes.items()}
     configuration = {"roles": {key: role.model_dump(mode="json") for key, role in routes.items()},
+                     "global_context": global_context,
+                     "effective_context": {key: value.model_dump(mode="json")
+                                           for key, value in role_contexts.items()},
+                     "connections": connection_routes,
                      "max_concurrent_readers": args.max_concurrent_readers}
     if args.resume:
         if json.loads((output / "role_configuration.json").read_bytes()) != configuration:
@@ -85,11 +106,7 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
             responses = scripted["coordinator"] if task_id == "coordinator" else scripted["tasks"][task_id]
             offset = sum(event.payload.event_type == "adapter_request" for event in store.events)
             return ScriptedAdapter(responses[offset:])
-        credentials = args.credentials_file
-        base, key = (subscription_credentials(credentials, provider=config["provider"])
-                     if config["provider"] in SUBSCRIPTION_PROVIDERS else paratera_credentials(credentials))
-        cls = HttpAnthropicAdapter if config["provider"] == GLM_SUBSCRIPTION_ANTHROPIC else HttpChatAdapter
-        return cls(base_url=base, api_key=key)
+        return connections[config["provider"]].create_adapter()
 
     with EventStore(output, run_id=output.name, task_id="coordinator", budget_limit=limits.ledger_limit(),
                     recover_tail=args.repair_tail) as store:
@@ -101,14 +118,16 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
             frozen = FrozenBimTools(client, base_role, run_directory=run)
             tools = RoleSession(store=store, frozen=frozen, routes=routes, adapter_factory=factory,
                 limits=limits, root=ROOT, max_concurrent_readers=args.max_concurrent_readers,
-                started_epoch=manifest["started_epoch"], reader_fault_hook=reader_fault_hook)
+                started_epoch=manifest["started_epoch"], reader_fault_hook=reader_fault_hook,
+                role_contexts=role_contexts, connection_routes=connection_routes)
             catalog = await tools.list_tools()
             specs = [{"type": "function", "function": {"name": t["name"], "description": t.get("description", ""),
                        "parameters": t["inputSchema"]}} for t in catalog]
             role = base_role.model_copy(update={"tool_whitelist": tuple(
                 ToolGrant(tool_name=tool["name"], access="read" if tools.repeatability(tool["name"]) == "read_only" else "write")
                 for tool in catalog)})
-            route = {"route_id": primary["provider"], "model": primary["model"], "roles": configuration}
+            route = {**connection_routes["coordinator"], "model": primary["model"],
+                     "context": coordinator_context.model_dump(mode="json"), "roles": configuration}
             if args.script:
                 route["fixture_sha256"] = hashlib.sha256(args.script.read_bytes()).hexdigest()
             versions = make_versions(store, root=ROOT, prompt=guide, tools=specs, parameters=parameters,
@@ -127,9 +146,7 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 stack.push_async_callback(adapter.close)
             engine = Runtime(store=store, adapter=adapter, tools=tools, role=role, model=primary["model"],
                 parameters=parameters, versions=versions, limits=limits,
-                context_policy=role_context_policy("coordinator", compact_at_tokens=args.compact_at_tokens,
-                    active_window_messages=args.context_window, large_result_bytes=args.large_result_bytes,
-                    max_images=args.max_images, max_image_bytes=args.max_image_bytes),
+                context_policy=context_policy_from_effective("coordinator", coordinator_context),
                 context_update=update_role_context, root_tool_calls=limits.tool_calls,
                 start_epoch=manifest["started_epoch"], finalize_run=finalize_role_building,
                 tool_budget_update=publish_tool_budget, strict_model_profile=primary["provider"] in LIVE_PROVIDERS,

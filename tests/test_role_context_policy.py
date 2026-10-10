@@ -11,7 +11,9 @@ from pathlib import Path
 from PIL import Image
 import pytest
 
-from src.agent.runtime_roles.context_policy import role_context_policy
+from src.agent.runtime_roles.config import RoleContextOverrides
+from src.agent.runtime_roles.context_policy import (context_policy_from_effective,
+    effective_role_context, role_context_policy)
 from src.agent_runtime.anthropic import convert_messages
 from src.agent_runtime.context import ContextManager, ContextPolicy, StateEntry
 from src.agent_runtime.store import json_bytes
@@ -123,3 +125,21 @@ def test_reader_policies_keep_existing_projection_and_explicit_overrides():
     policy = role_context_policy("coordinator", compact_at_tokens=75_000, max_images=3)
     assert policy.compact_at_tokens == 75_000 and policy.max_images == 3
     assert policy.compact_to_ratio == 0.3
+
+
+def test_effective_context_uses_role_defaults_then_global_and_role_overrides():
+    assert effective_role_context("coordinator").compact_at_tokens == 150_000
+    assert effective_role_context("plan_reader").compact_at_tokens == 100_000
+    value = effective_role_context("plan_reader", global_defaults={
+        "context_tokens": 220_000, "compact_at_tokens": 120_000,
+        "active_window_messages": 18, "max_images": 5, "max_image_bytes": 9_000_000,
+    }, role_overrides=RoleContextOverrides(
+        context_tokens=180_000, compact_at_tokens=90_000, max_images=2))
+    assert value.model_dump(mode="json") == {
+        "context_tokens": 180_000, "active_window_messages": 18,
+        "compact_at_tokens": 90_000, "compact_to_ratio": 0.3,
+        "large_result_bytes": 8192, "max_images": 2, "max_image_bytes": 9_000_000,
+    }
+    policy = context_policy_from_effective("plan_reader", value)
+    assert policy.compact_at_tokens == 90_000 and policy.active_window_messages == 18
+    assert policy.max_images == 2 and policy.max_image_bytes == 9_000_000

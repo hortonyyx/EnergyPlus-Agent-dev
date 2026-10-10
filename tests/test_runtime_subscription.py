@@ -9,6 +9,7 @@ import pytest
 
 from src.agent.runtime_entry import parser, runtime_model_profile
 from src.agent.runtime_configuration import argv_for, load_configuration
+from src.agent_runtime.connections import resolve_connection
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.providers import (GLM_SUBSCRIPTION,
     GLM_SUBSCRIPTION_BASE_URL, provider_parameters, subscription_credentials)
@@ -54,6 +55,41 @@ def test_credentials_do_not_interpolate_secrets_or_read_environment(tmp_path, mo
     credentials = tmp_path / "private.env"
     credentials.write_text(f"GLM_BASE_URL={GLM_SUBSCRIPTION_BASE_URL}\nGLM_API_KEY=${{PRIVATE_VALUE}}\n")
     assert subscription_credentials(credentials)[1] == "${PRIVATE_VALUE}"
+
+
+def test_public_connection_descriptor_and_adapter_share_fake_endpoint_without_secret(tmp_path):
+    credentials = tmp_path / "fake.env"
+    credentials.write_text(
+        "PARATERA_BASE_URL=https://fake.example.test/v9\nPARATERA_API_KEY=fake-private-key\n",
+        encoding="utf-8",
+    )
+    connection = resolve_connection("paratera", credentials)
+    public = connection.descriptor.model_route("Qwen3.8-27B")
+    adapter = connection.create_adapter()
+    try:
+        assert adapter.endpoint == "https://fake.example.test/v9/chat/completions"
+        assert public == {
+            "route_id": "paratera", "model": "Qwen3.8-27B",
+            "base_url": "https://fake.example.test/v9", "billing_mode": "metered",
+            "adapter_kind": "openai_chat_completions",
+        }
+        assert "fake-private-key" not in json.dumps(public) and "fake-private-key" not in repr(connection)
+    finally:
+        asyncio.run(adapter.close())
+
+
+@pytest.mark.parametrize("base_url,match", [
+    ("https://user:private@fake.example.test/v1", "userinfo"),
+    ("https://fake.example.test/v1?api_key=private", "sensitive query"),
+])
+def test_public_connection_rejects_url_credentials_before_version_record(tmp_path, base_url, match):
+    credentials = tmp_path / "unsafe.env"
+    credentials.write_text(
+        f"PARATERA_BASE_URL={base_url}\nPARATERA_API_KEY=fake-private-key\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match=match):
+        resolve_connection("paratera", credentials)
 
 
 def test_cli_route_and_service_defaults_are_explicit():

@@ -11,6 +11,7 @@ from PIL import Image
 
 from src.agent.runtime_roles.artifacts import ArtifactRegistry
 from src.agent.runtime_roles.config import load_roles
+from src.agent.runtime_roles.context_policy import effective_role_context
 from src.agent.runtime_roles.feedback import reader_batch_reply
 from src.agent.runtime_roles.readers import ELEVATION_READER_TOOL_NAMES
 from src.agent.runtime_roles.elevation import merge_elevation_rework
@@ -152,6 +153,33 @@ def test_completed_delivery_is_hashed_reusable_and_cannot_be_replaced(environmen
         registry.save(registry.task("north"), status="failed", reason="should preserve result")
     with pytest.raises(ValueError, match="different input"):
         asyncio.run(make().delegate_many([dispatch(instructions="Changed task")]))
+
+
+def test_reader_runtime_receives_effective_context_limits_and_policy(environment):
+    _, make = environment
+    global_context = {"context_tokens": 220_000, "compact_at_tokens": 120_000,
+                      "active_window_messages": 18, "max_images": 4,
+                      "max_image_bytes": 9_000_000}
+    contexts = {name: effective_role_context(name, global_defaults=global_context)
+                for name in ROUTES}
+    contexts["elevation_reader"] = effective_role_context(
+        "elevation_reader", global_defaults=global_context,
+        role_overrides={"context_tokens": 180_000, "compact_at_tokens": 90_000,
+                        "max_images": 2})
+    seen = []
+
+    def inspect(name, engine):
+        if name == "before_request" and not seen:
+            seen.append(engine._config())
+
+    result = asyncio.run(make(role_contexts=contexts, reader_fault_hook=inspect)
+                         .delegate_many([dispatch()]))
+    assert result["results"][0]["status"] == "completed"
+    assert seen[0]["limits"]["context_tokens"] == 180_000
+    assert seen[0]["context_policy"]["compact_at_tokens"] == 90_000
+    assert seen[0]["context_policy"]["active_window_messages"] == 18
+    assert seen[0]["context_policy"]["max_images"] == 2
+    assert seen[0]["context_policy"]["max_image_bytes"] == 9_000_000
 
 
 def test_artifact_file_tampering_is_rejected_on_reopen(environment):

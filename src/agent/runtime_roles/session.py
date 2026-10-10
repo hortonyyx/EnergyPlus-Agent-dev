@@ -21,7 +21,7 @@ from PIL import Image
 from src.agent.runtime_context import update_building_context
 from src.agent.runtime_tools import local_observer_role
 from src.agent_runtime.context import StateEntry
-from .context_policy import role_context_policy
+from .context_policy import context_policy_from_effective, effective_role_context
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters
 from src.agent_runtime.store import json_bytes
@@ -224,11 +224,17 @@ def _auto_task_id(role_id, image, used):
 
 class RoleSession:
     def __init__(self, *, store, frozen, routes, adapter_factory, limits, root,
-                 max_concurrent_readers=8, started_epoch=None, reader_fault_hook=None):
+                 max_concurrent_readers=8, started_epoch=None, reader_fault_hook=None,
+                 role_contexts=None, connection_routes=None):
         if type(max_concurrent_readers) is not int or max_concurrent_readers < 1:
             raise ValueError("max_concurrent_readers must be a positive integer")
         self.store, self.frozen, self.routes = store, frozen, routes
         self.adapter_factory, self.limits, self.root = adapter_factory, limits, Path(root)
+        self.role_contexts = role_contexts or {name: effective_role_context(name)
+                                              for name in routes}
+        self.connection_routes = connection_routes or {
+            name: {"route_id": (route.provider if hasattr(route, "provider") else route["provider"])}
+            for name, route in routes.items()}
         self.run_directory = frozen.run_directory
         self.registry = ArtifactRegistry(store)
         self.started_epoch = time.time() if started_epoch is None else started_epoch
@@ -865,6 +871,7 @@ class RoleSession:
         allowance = {"model_calls": min(budget["model_calls"], self.limits.model_calls),
                      "tool_calls": min(budget["tool_calls"], self.limits.tool_calls),
                      "tokens": budget.get("tokens", self.limits.tokens),
+                     "context_tokens": self.role_contexts[task["role_id"]].context_tokens,
                      "seconds": timing["time_budget_seconds"], "max_model_retries": self.limits.max_model_retries,
                      "retry_backoff_seconds": self.limits.retry_backoff_seconds,
                      "max_consecutive_truncations": self.limits.max_consecutive_truncations,
@@ -938,7 +945,9 @@ class RoleSession:
                 ToolGrant(tool_name=tool["name"], access="read" if tools.repeatability(tool["name"]) == "read_only" else "write")
                 for tool in catalog)})
             parameters = role_parameters(config)
-            route = {"route_id": config["provider"], "model": config["model"]}
+            effective_context = self.role_contexts[task["role_id"]]
+            route = {**self.connection_routes[task["role_id"]], "model": config["model"],
+                     "context": effective_context.model_dump(mode="json")}
             specs = [{"type": "function", "function": {"name": t["name"], "description": t.get("description", ""),
                       "parameters": t["inputSchema"]}} for t in catalog]
             versions = make_versions(child, root=self.root, prompt=guide, tools=specs, parameters=parameters,
@@ -966,7 +975,7 @@ class RoleSession:
                 root_tool_calls=self.limits.tool_calls, start_epoch=timing["started_epoch"],
                 answer_validator=validate, max_answer_repairs=1,
                 low_output_limit_reason=config.get("low_output_limit_reason"),
-                context_policy=role_context_policy(task["role_id"]),
+                context_policy=context_policy_from_effective(task["role_id"], effective_context),
                 request_timeout_seconds=self.limits.seconds / (self.max_concurrent_readers + 1),
                 fault_hook=self.reader_fault_hook)
             original_ref = child.put_bytes(raw_image, "image/png")

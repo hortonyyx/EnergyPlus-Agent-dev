@@ -18,6 +18,23 @@ from src.agent_runtime.providers import (
 ROLE_NAMES = ("coordinator", "plan_reader", "elevation_reader")
 
 
+class RoleContextOverrides(BaseModel):
+    """Optional per-role overrides applied after explicit CLI-wide values."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    context_tokens: int | None = Field(default=None, ge=1)
+    compact_at_tokens: int | None = Field(default=None, ge=1)
+    active_window_messages: int | None = Field(default=None, ge=1)
+    large_result_bytes: int | None = Field(default=None, ge=1)
+    max_images: int | None = Field(default=None, ge=1)
+    max_image_bytes: int | None = Field(default=None, ge=1)
+
+    @model_serializer(mode="wrap")
+    def serialize_overrides(self, handler):
+        return {key: value for key, value in handler(self).items() if value is not None}
+
+
 class RoleConfiguration(BaseModel):
     """One explicit, reviewed chat route used by a runtime role."""
 
@@ -29,6 +46,7 @@ class RoleConfiguration(BaseModel):
     output_tokens: int = Field(gt=0)
     temperature: float | None = Field(default=None, ge=0, le=2, allow_inf_nan=False)
     enable_thinking: bool | None = Field(default=None, strict=True)
+    context: RoleContextOverrides | None = None
 
     @model_serializer(mode="wrap")
     def serialize_route(self, handler):

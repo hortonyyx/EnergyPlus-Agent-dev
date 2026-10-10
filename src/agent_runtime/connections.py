@@ -1,0 +1,109 @@
+"""Resolve live connections once for both transport and public run identity."""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from urllib.parse import parse_qsl, urlsplit
+
+from pydantic import BaseModel, ConfigDict
+
+from .providers import (
+    GLM_SUBSCRIPTION_ANTHROPIC,
+    SUBSCRIPTION_PROVIDERS,
+    subscription_credentials,
+)
+
+
+_SENSITIVE_QUERY_NAMES = frozenset({
+    "access_key", "access_token", "api_key", "apikey", "auth", "authorization",
+    "credential", "key", "password", "secret", "signature", "token",
+})
+
+
+class ConnectionDescriptor(BaseModel):
+    """Public connection identity safe to persist in version evidence."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    route_id: str
+    base_url: str
+    billing_mode: str
+    adapter_kind: str
+
+    def model_route(self, model: str) -> dict:
+        return {"route_id": self.route_id, "model": model,
+                **self.model_dump(mode="json", exclude={"route_id"})}
+
+
+def _public_base_url(value: str) -> str:
+    """Validate the exact URL that will be given to an HTTP adapter.
+
+    Userinfo and sensitive query parameters must never become version evidence.
+    The adapters already reject every query and fragment, so use the same public
+    value for transport instead of recording a sanitized URL that was not sent.
+    """
+    parsed = urlsplit(value)
+    if parsed.username or parsed.password:
+        raise ValueError("base URL must not contain userinfo or credentials")
+    sensitive = sorted({name for name, _ in parse_qsl(parsed.query, keep_blank_values=True)
+                        if name.casefold() in _SENSITIVE_QUERY_NAMES})
+    if sensitive:
+        raise ValueError("base URL contains sensitive query parameters: " + ", ".join(sensitive))
+    if parsed.scheme != "https" or parsed.query or parsed.fragment:
+        raise ValueError("base URL must be HTTPS and contain no query/fragment")
+    return value
+
+
+def paratera_credentials(path: Path | None) -> tuple[str, str]:
+    """Read only the two permitted keys, without sourcing/exporting an env file."""
+    values = {}
+    if path:
+        from dotenv import dotenv_values
+        private = dotenv_values(path, interpolate=False)
+        values = {name: private.get(name) for name in ("PARATERA_BASE_URL", "PARATERA_API_KEY")}
+    base_url = values.get("PARATERA_BASE_URL") or os.environ.get(
+        "PARATERA_BASE_URL", "https://llmapi.paratera.com/v1")
+    key = values.get("PARATERA_API_KEY") or os.environ.get("PARATERA_API_KEY")
+    if not key:
+        raise ValueError("PARATERA_API_KEY was not supplied")
+    return _public_base_url(base_url), key
+
+
+@dataclass(frozen=True)
+class ResolvedConnection:
+    """A private credential paired with its serializable public identity."""
+
+    descriptor: ConnectionDescriptor
+    api_key: str = field(repr=False)
+
+    def create_adapter(self):
+        from .adapter import HttpChatAdapter
+        from .anthropic import HttpAnthropicAdapter
+        adapter_type = (HttpAnthropicAdapter
+                        if self.descriptor.adapter_kind == "anthropic_messages"
+                        else HttpChatAdapter)
+        return adapter_type(base_url=self.descriptor.base_url, api_key=self.api_key)
+
+
+def resolve_connection(provider: str, credentials_file: Path | None) -> ResolvedConnection:
+    """Resolve one reviewed live route without exposing its credential."""
+    if provider in SUBSCRIPTION_PROVIDERS:
+        base_url, key = subscription_credentials(credentials_file, provider=provider)
+        billing_mode = "subscription"
+    elif provider == "paratera":
+        base_url, key = paratera_credentials(credentials_file)
+        billing_mode = "metered"
+    else:
+        raise ValueError(f"no live connection resolver for provider {provider!r}")
+    base_url = _public_base_url(base_url)
+    descriptor = ConnectionDescriptor(
+        route_id=provider,
+        base_url=base_url,
+        billing_mode=billing_mode,
+        adapter_kind=("anthropic_messages"
+                      if provider == GLM_SUBSCRIPTION_ANTHROPIC
+                      else "openai_chat_completions"),
+    )
+    return ResolvedConnection(descriptor=descriptor, api_key=key)
