@@ -1,0 +1,92 @@
+{
+  "reviewed_commit": "b45a9db7565dca304fced570ba06c1927bd44b76",
+  "near_axis": {
+    "error": "partition wall segment 0 is not orthogonal: [500.0, 100.0] -> [502.0, 1100.0]",
+    "rejections": [
+      {
+        "message": "partition wall segment 0 is not orthogonal: [500.0, 100.0] -> [502.0, 1100.0]",
+        "stage": "before_grid_compile"
+      }
+    ]
+  },
+  "exact_axis_control": {
+    "status": "pass",
+    "topology": "preserved"
+  },
+  "agreeing_dimension_chains": {
+    "rejections": [
+      {
+        "chain_id": "outer-b",
+        "axis": "x",
+        "segment_sum_mm": 10000.0,
+        "total_mm": 10000.0,
+        "closure_error_mm": 0.0,
+        "pixel_span": 990.0,
+        "mm_per_pixel_from_chain": 10.10101,
+        "tick_residual_pixels": [
+          0.0,
+          0.0
+        ],
+        "tick_residual_mm": [
+          0.0,
+          0.0
+        ],
+        "pixel_residual_tolerance": 9.9,
+        "segment_pixel_residual_mm": [
+          0.0
+        ],
+        "worst_segment_index": 0,
+        "closure_ok": true,
+        "scale_ok": true,
+        "accepted": true,
+        "original_segments_mm": [
+          10000.0
+        ],
+        "total_derived": true,
+        "original_tick_world_m": [
+          0.0,
+          10.0
+        ],
+        "adopted_tick_world_m": [
+          0.0,
+          10.0
+        ],
+        "adopted_segments_mm": [
+          10000.0
+        ],
+        "grid_step_m": 0.1,
+        "action": "rejected",
+        "reason": "supplemental overall chain conflicts with the accepted axis scale or origin",
+        "axis_cross_check": {
+          "existing_start_world_m": 0.0,
+          "supplemental_start_world_m": 0.0,
+          "start_difference_m": 0.0,
+          "existing_end_world_m": 10.0,
+          "supplemental_end_world_m": 10.0,
+          "end_difference_m": 0.0,
+          "maximum_absolute_difference_m": 0.0,
+          "tolerance_m": 0.001,
+          "existing_metres_per_pixel": 0.01,
+          "supplemental_metres_per_pixel": 0.010101010101,
+          "scale_relative_difference": 0.01010101,
+          "scale_relative_tolerance": 0.01,
+          "status": "conflict"
+        }
+      }
+    ],
+    "adopted_x_anchors": [
+      [
+        100.0,
+        0.0
+      ],
+      [
+        1100.0,
+        10.0
+      ]
+    ]
+  },
+  "annular_space": {
+    "error": "polygonize produced an unsupported space with an inner ring; source partition evidence: [{'partition_ids': ['core'], 'pixel_points': [[400.0, 400.0], [700.0, 400.0], [700.0, 700.0], [400.0, 700.0]]}]",
+    "scope": "general capability, not proven sm25 blocker"
+  }
+}
