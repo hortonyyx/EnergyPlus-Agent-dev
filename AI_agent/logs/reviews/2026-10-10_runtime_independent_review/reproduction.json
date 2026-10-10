@@ -1,0 +1,160 @@
+{
+  "schema": "runtime_independent_recovery_review.v1",
+  "created_at_utc": "2026-10-10T14:02:06.642163+00:00",
+  "baseline_head": "6e88fd7395aadde129da11b6ae481d7b472e4385",
+  "actual_head": "6e88fd7395aadde129da11b6ae481d7b472e4385",
+  "runtime_version": "runtime-v2-20261009",
+  "domain_version": "domain-v57-20261010",
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "scope": "six isolated offline microcases plus read-only historical ledger reconstruction",
+  "network": {
+    "live_model_calls": 0,
+    "http_calls": 0,
+    "mcp_calls": 0,
+    "new_connections_and_dns_forbidden_during_scenarios": true,
+    "blocked_attempts": 0,
+    "windows_asyncio_bootstrap": "private wake-up socketpair initialized before guard; no service endpoint"
+  },
+  "filesystem": {
+    "temporary_writes_and_cleanup": "only new TemporaryDirectory trees created by this script",
+    "durable_output": "AI_agent\\logs\\reviews\\2026-10-10_runtime_independent_review\\reproduction.json",
+    "production_or_historical_evidence_modified": false
+  },
+  "results": [
+    {
+      "name": "after_reservation",
+      "kind": "gap",
+      "expected_behavior_reproduced": true,
+      "expected_current_status": "resume_uncheckpointed_budget_reservation",
+      "actual_status": "resume_uncheckpointed_budget_reservation",
+      "initial_scripted_adapter_calls": 0,
+      "resume_scripted_adapter_calls": 0,
+      "total_tool_calls": 0,
+      "committed_calls": 1,
+      "journal_valid": true,
+      "elapsed_seconds": 0.08097549999365583
+    },
+    {
+      "name": "after_tool",
+      "kind": "gap",
+      "expected_behavior_reproduced": true,
+      "expected_current_status": "resume_pending_operation",
+      "actual_status": "resume_pending_operation",
+      "initial_scripted_adapter_calls": 1,
+      "resume_scripted_adapter_calls": 0,
+      "total_tool_calls": 1,
+      "committed_calls": 1,
+      "journal_valid": true,
+      "elapsed_seconds": 0.12630970000464004
+    },
+    {
+      "name": "after_response",
+      "kind": "positive_control",
+      "expected_behavior_reproduced": true,
+      "expected_current_status": "completed",
+      "actual_status": "completed",
+      "initial_scripted_adapter_calls": 1,
+      "resume_scripted_adapter_calls": 1,
+      "total_tool_calls": 1,
+      "committed_calls": 2,
+      "journal_valid": true,
+      "elapsed_seconds": 0.25190180000208784
+    },
+    {
+      "name": "after_execution",
+      "kind": "positive_control",
+      "expected_behavior_reproduced": true,
+      "expected_current_status": "completed",
+      "actual_status": "completed",
+      "initial_scripted_adapter_calls": 1,
+      "resume_scripted_adapter_calls": 1,
+      "total_tool_calls": 1,
+      "committed_calls": 2,
+      "journal_valid": true,
+      "elapsed_seconds": 0.19840489998750854
+    },
+    {
+      "name": "cancel_read_only",
+      "kind": "gap",
+      "expected_behavior_reproduced": true,
+      "first_status": "cancelled",
+      "expected_current_resume_status": "resume_pending_operation",
+      "actual_resume_status": "resume_pending_operation",
+      "resume_scripted_adapter_calls": 0,
+      "journal_valid": true,
+      "elapsed_seconds": 0.10264509999251459
+    },
+    {
+      "name": "sibling_missing_cny",
+      "kind": "gap",
+      "expected_behavior_reproduced": true,
+      "A_status": "money_cny_usage_unavailable",
+      "expected_current_B_resume_status": "token_reservation_exceeded",
+      "actual_B_resume_status": "token_reservation_exceeded",
+      "root_fatal": "money_cny_usage_unavailable",
+      "B_scripted_adapter_calls": 0,
+      "journal_valid": true,
+      "elapsed_seconds": 0.2596110000013141
+    }
+  ],
+  "historical_ledger": {
+    "path": "AI_agent\\archive\\local_backup\\2026-10-10_sm25_lite_regularization\\manual_dispatch_sm25_lite_v1",
+    "access": "read_only_static_event_reader_no_EventStore_constructor",
+    "fatal": "money_cny_usage_unavailable",
+    "limit_cny": "20",
+    "committed_cny": "9.5356752",
+    "available_cny": "10.4643248",
+    "event_count": 1269,
+    "unknown_reservation": {
+      "reservation_id": "plan_f1:request-21",
+      "purpose": "child_task",
+      "amounts": {
+        "tokens": 74210,
+        "money_usd": null,
+        "money_cny": "0.370086",
+        "seconds": "222.59253038787574",
+        "calls": 1
+      },
+      "task_id": "plan_f1"
+    },
+    "unknown_settlement": {
+      "reservation_id": "plan_f1:request-21",
+      "actual": {
+        "tokens": null,
+        "money_usd": null,
+        "money_cny": null,
+        "seconds": "221.5",
+        "calls": 1
+      },
+      "usage": {
+        "kind": "missing",
+        "reason": "request ended without a service usage receipt"
+      },
+      "cost": {
+        "kind": "unavailable",
+        "reason": "no configured price estimate or provider bill was supplied"
+      },
+      "image_tokens_estimate": 3955,
+      "reported_usage_includes_image_tokens": false,
+      "additional_image_tokens": 3955,
+      "token_overrun": 0,
+      "estimated_cost_cny": null,
+      "money_cny_overrun": "0"
+    },
+    "note": "Committed amount includes the unknown reservation hold; it is not an actual provider bill."
+  },
+  "summary": {
+    "cases": 6,
+    "expected_behavior_reproduced": 6,
+    "failed_to_reproduce": 0,
+    "elapsed_seconds": 2.3755261000042083,
+    "meaning": "Reproducing an existing gap is not a quality pass or an implemented fix.",
+    "not_covered": [
+      "live providers",
+      "MCP services",
+      "real BIM recovery",
+      "whole-case quality",
+      "full test suite"
+    ]
+  }
+}

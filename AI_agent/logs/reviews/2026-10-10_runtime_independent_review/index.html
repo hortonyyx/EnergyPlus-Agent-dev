@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>runtime 独立审阅 · 2026-10-10</title><style>
+:root{color-scheme:light;--ink:#1f2e35;--muted:#59666c;--line:#d8e0e3;--accent:#14626b}*{box-sizing:border-box}body{margin:0;background:#f4f6f6;color:var(--ink);font:16px/1.85 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1080px;margin:32px auto;padding:36px 44px;background:white;border:1px solid var(--line);border-radius:12px}h1{font-size:30px;line-height:1.35}h2{font-size:23px;margin-top:44px;border-top:1px solid var(--line);padding-top:24px}h3{font-size:19px;margin-top:30px}a{color:var(--accent);text-underline-offset:3px}p,li{overflow-wrap:anywhere}code{font-size:.9em;background:#eef2f3;border-radius:3px;padding:2px 4px;overflow-wrap:anywhere}table{display:block;overflow-x:auto;border-collapse:collapse;width:100%;font-size:14px;margin:20px 0}th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top;min-width:140px}th{background:#eef4f4}nav{font-size:14px;color:var(--muted);margin-bottom:25px}li{margin:7px 0}@media(max-width:700px){main{margin:0;border:0;border-radius:0;padding:22px 18px}h1{font-size:25px}h2{font-size:21px}}
+</style></head><body><main><nav>2026-10-10 · runtime v2 / domain v57 · 独立审阅，未改生产实现 · <a href="summary.md">Markdown 原稿</a></nav><h1>runtime 独立审阅与下一轮迭代方向</h1>
+<p>日期：2026-10-10。审阅基准：<code>6e88fd7395aadde129da11b6ae481d7b472e4385</code>，runtime v2 / domain v57。</p>
+<p><strong>结论：保留自有 runtime，下一轮先让同一任务可以安全介入、纠正和续跑，再收缩随日志增长的重复计算。现有请求记录、预算、检查点、图片引用和并发机制具有必要性；不足集中在任务控制、恢复闭环、热路径成本和配置一致性。没有证据支持整体换框架，也没有证据证明 runtime v2 已在同等质量下优于 Claude Code。</strong></p>
+<p>用户将 domain 下一轮设计留到明天，本轮先独立审阅 runtime。三名空白上下文 GPT 侧审阅者分别检查架构、效率和恢复，由项目经理复核源码、反例和真实记录；不是跨模型家族或双盲审查。生产实现与版本未改，未启动 work model、产品模型 API、MCP 或新 sm25 实测。离线诊断只使用 ScriptedAdapter、临时目录及冻结证据。网页版见 <a href="index.html">index.html</a>。</p>
+<h2>1. 目标差距与保留范围</h2>
+<p>按<a href="../../../project/goal.md">产品目标</a>，runtime 应是与建筑无关的轻量基础设施，支持多模型、调度和可靠运行，并在可比质量下改善速度、消耗、缓存。不能以缓存率高或没有崩溃代替 BIM 完成质量。</p>
+<table>
+<thead>
+<tr>
+  <th>能力</th>
+  <th>当前证据</th>
+  <th>判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>请求/响应、工具行为、图片与版本可追溯</td>
+  <td>最终请求字节、原始响应、实际工具呈现、图片哈希均有实现</td>
+  <td>必要，保留</td>
+</tr>
+<tr>
+  <td>共享根预算和任务隔离</td>
+  <td>并发读图员实际运行；根/子预算和单写者日志已存在</td>
+  <td>必要，保留；修复恢复闭环</td>
+</tr>
+<tr>
+  <td>崩溃后避免重复写</td>
+  <td>已持久化响应/执行的正对照能恢复，写工具只执行一次</td>
+  <td>必要，不能为提速删保护</td>
+</tr>
+<tr>
+  <td>人工或调度员运行中介入</td>
+  <td>可旁观文件，但没有正式的 task 消息、暂停、确认与继续协议</td>
+  <td>当前主要能力缺口</td>
+</tr>
+<tr>
+  <td>长任务低开销</td>
+  <td>每次事件追加完整验证历史；多处从完整历史重建账本</td>
+  <td>已测得随历史增长的重复开销</td>
+</tr>
+<tr>
+  <td>配置可控、结果可解释</td>
+  <td>分工 endpoint 身份漏记、读图员未采用统一入口的上下文控制</td>
+  <td>需收敛实际配置与记录</td>
+</tr>
+<tr>
+  <td>同等质量下优于成熟底座</td>
+  <td>旧对照条件有差异，最新 sm25 未交付 BIM</td>
+  <td>尚未证明</td>
+</tr>
+</tbody>
+</table>
+<p><code>src/agent_runtime</code> 当前为 21 个 Python 文件、7,166 物理行，不含 contracts 与 domain 包装。文件数或行数本身不证明臃肿。核心循环没有建筑建模算法；domain 经工具、上下文与收工回调接入，分界基本成立。应收缩重复路径与运行时计算，不为追求形式通用再增加抽象层。</p>
+<h2>2. 优先发现</h2>
+<h3>R1 · 高优先级：预算保护没有完整恢复出口</h3>
+<p>10-10 的 <code>plan_f1:request-21</code> 超时后缺 usage，费用仍未知。只读重建冻结的 1,269 条事件得到：已知估算费用 <strong>9.1655892 元</strong>，未知预留 <strong>0.370086 元</strong>，总占用 <strong>9.5356752 元</strong>，20 元账本尚余 <strong>10.4643248 元</strong>；但根账保持 <code>money_cny_usage_unavailable</code>，无法再派发请求。</p>
+<p>保留未知费用及完整预留是正确的；缺口是没有追加式补账或明确的保守继续策略。当前再提交同一 reservation 的结算也会被认定重复结算，不能通过编辑旧事件、填零 usage、另开 run 清账来绕过。</p>
+<p>另有两个独立复现：</p>
+<ul>
+<li>在预留已落盘、request 事件尚未落盘时崩溃，初次 adapter 调用 <strong>0</strong>、工具 <strong>0</strong>，恢复仍永久停在 <code>resume_uncheckpointed_budget_reservation</code>。request 事件先于 send，可对这个确定未发送的窗口追加幂等 release/abandon；已有 request 而无 response 的窗口仍不能如此释放。</li>
+<li>一个兄弟任务缺 usage 后，另一个任务从安全检查点恢复，会把根费用故障误报为 <code>token_reservation_exceeded</code>。实际拦截有效，但故障解释错误。</li>
+</ul>
+<p>建议先支持有来源、绑定原请求和原结算的追加式 reconciliation，以及确定未发送预留的幂等释放。后到 usage 不保证能取得；若希望缺 usage 时仍可继续，需要预先记录明确策略，保留未知标记并按保守估计占用。估计不是供应商账单，也不能据此承诺供应商实际扣费的绝对上限。</p>
+<p>依据：<a href="../../../../src/agent_runtime/budget.py">budget.py</a> 的 374–376、440–443 行；<a href="../../../../src/agent_runtime/loop.py">loop.py</a> 的 480–511、1151–1156、1286–1287 行；<a href="../../experiments/2026-10-10_sm25_lite_regularization/recovery_blocker.md">历史阻塞记录</a>；本轮 <a href="reproduction.json">离线复现结果</a>。</p>
+<h3>R2 · 高优先级：还没有可用的运行中任务控制</h3>
+<p><code>Runtime.run</code> 只接初始消息和恢复标志；分工入口等待整批 <code>gather</code>。已有并发与 task-scoped 日志，但缺少针对活动任务的正式纠正入口。10-09 人工返工成功依赖新任务和明确返工目标，不能证明已有运行中的消息注入或接管能力。</p>
+<p>取消也不能代替暂停：纯读取工具被取消后，首次返回 <code>cancelled</code>，恢复停在 <code>resume_pending_operation</code>；工具已返回、execution 尚未持久化时崩溃也会如此。已持久化响应或 execution 的正对照则能正常恢复并避免重复写。</p>
+<p>建议增加最小的 task 控制记录：指令 ID、目标 task、来源、正文/动作、处理确认；首批只做安全边界暂停、追加纠正、继续。命令可以先由 CLI/文件接口提交，不需要先建 UI 或消息平台。模型请求在途时先记录待暂停，到安全边界生效，不能把 HTTP 取消等同服务端未执行。</p>
+<p>恢复策略须与读写权限分开：纯读取可重取；委派按既有 task ID、子检查点及产物恢复；未知非幂等写仍隔离。尤其 <code>delegate_readers</code> 当前被标为 <code>read_only</code>，却会启动付费子任务并写产物，<strong>不能按这个标签统一自动重跑</strong>。上层还把任何 execution 当作委派已完成，包含 unknown，需一起修正。</p>
+<p>依据：<a href="../../../../src/agent_runtime/loop.py">loop.py</a> 的 152、240、973–979、1224–1236 行；<a href="../../../../src/agent/runtime_roles/session.py">session.py</a> 的 253–262、803–824、1106–1113 行。</p>
+<h3>R3 · 中优先级：全历史校验进入每次追加的热路径</h3>
+<p><code>EventStore.append</code> 每次都构造并验证完整 EventLog；预算验证又为每个历史预算事件重建账本。主循环还多次从全部 root/child 事件恢复预算。六角色共享事件循环，同步计算会占用其他任务的处理时间。</p>
+<p>冻结日志的离线微基准，每个前缀三次取中位数：</p>
+<table>
+<thead>
+<tr>
+  <th style="text-align:right">事件数</th>
+  <th style="text-align:right">首测：完整校验一次</th>
+  <th style="text-align:right">保存脚本后的复测</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:right">100</td>
+  <td style="text-align:right">4.44 ms</td>
+  <td style="text-align:right">4.09 ms</td>
+</tr>
+<tr>
+  <td style="text-align:right">300</td>
+  <td style="text-align:right">29.11 ms</td>
+  <td style="text-align:right">31.64 ms</td>
+</tr>
+<tr>
+  <td style="text-align:right">600</td>
+  <td style="text-align:right">104.91 ms</td>
+  <td style="text-align:right">126.02 ms</td>
+</tr>
+<tr>
+  <td style="text-align:right">900</td>
+  <td style="text-align:right">233.30 ms</td>
+  <td style="text-align:right">274.89 ms</td>
+</tr>
+<tr>
+  <td style="text-align:right">1,269</td>
+  <td style="text-align:right">461.23 ms</td>
+  <td style="text-align:right">562.98 ms</td>
+</tr>
+</tbody>
+</table>
+<p>这是本机本轮测量，重复运行会有波动。末尾前缀的 profile 中预算校验占约 99.4% 的校验耗时；不是整案耗时占比。不能把前缀测试累加/插值当作原运行实测，也不能直接承诺能节省几分钟。</p>
+<p>建议以追加日志为权威，运行中维护可重建的增量索引和账本，只校验新事件及所需不变量；启动、恢复、独立审计保留全量重放。先加细分计时，再用相同冻结日志比较。不要删除 fsync、图片哈希或未知写保护来换取漂亮数字。</p>
+<p>依据：<a href="../../../../src/agent_runtime/store.py">store.py</a> 的 322、335 行；<a href="../../../../src/harness_contracts/validation.py">validation.py</a> 的 429–496 行；<a href="../../../../src/agent_runtime/loop.py">loop.py</a> 的 310–342 行；<a href="reproduce_efficiency.py">复验脚本</a>与<a href="efficiency_evidence.json">结构化证据</a>。</p>
+<h3>R4 · 中优先级：配置与请求身份未贯通</h3>
+<ol>
+<li>分工模式从 credentials/env 取实际 endpoint 建 adapter，但根和读图员的版本 route 只写 provider/model。相同 provider 更换 <code>PARATERA_BASE_URL</code> 后，现有 route 核对不能识别 endpoint 变化。单模型入口已经记 <code>base_url</code>，应共用一个小型连接工厂，让 adapter 与版本记录使用同一公开描述，密钥不落盘。没有证据称旧运行实际发生过串线。</li>
+<li>统一入口的 <code>context_tokens</code>、compact/window/image 设置进入根运行，读图员新建 limits/policy 时没有采用这些值。读图员是主要消耗者，因此不能让用户以为修改一次入口配置就控制了所有角色。应显式规定全局默认、角色覆盖及实际生效值；或者把根专属选项明确命名。</li>
+<li><code>current_tool_chain</code> 压缩估计没有传 message sources，实发选择传了，机器生成的 state 可能被估计器误作新 user turn，从而少算仍将发送的 reasoning。构造样例选取后文本估计为 88 对 12,090 token。<strong>实发前 prepare_request 仍重新估计并检查上下文/预算，因此已确认的是未及时压缩、可能提前停止，不是已证实突破硬限。10-10 分工使用 <code>all</code>，不受此项影响。</strong></li>
+</ol>
+<p>依据：<a href="../../../../src/agent/runtime_roles/entry.py">entry.py</a> 的 51、88–111、130 行；<a href="../../../../src/agent/runtime_roles/session.py">session.py</a> 的 855–865、931、959 行；对照 <a href="../../../../src/agent/runtime_entry.py">runtime_entry.py</a> 的 164–168 行；<a href="../../../../src/agent_runtime/loop.py">loop.py</a> 的 377–408 行、<a href="../../../../src/agent_runtime/adapter.py">adapter.py</a> 的 69–96、120 行。</p>
+<h2>3. 提速与缓存：目前证据能支持到哪里</h2>
+<p>10-10 冻结读图员 receipt 的时间投影如下。角色并发，不能把各行相加当整案墙钟；这些值与 final accounting 的生命周期墙钟/结算累计口径也不完全相同。</p>
+<table>
+<thead>
+<tr>
+  <th>角色</th>
+  <th style="text-align:right">runtime elapsed</th>
+  <th style="text-align:right">模型请求阶段</th>
+  <th style="text-align:right">工具</th>
+  <th style="text-align:right">其他</th>
+  <th style="text-align:right">dispatch 排队</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>F1</td>
+  <td style="text-align:right">3,602.83 s</td>
+  <td style="text-align:right">3,455.97 s</td>
+  <td style="text-align:right">6.03 s</td>
+  <td style="text-align:right">140.83 s</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>F2</td>
+  <td style="text-align:right">2,834.75 s</td>
+  <td style="text-align:right">2,635.08 s</td>
+  <td style="text-align:right">3.69 s</td>
+  <td style="text-align:right">195.98 s</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>东立面</td>
+  <td style="text-align:right">385.41 s</td>
+  <td style="text-align:right">354.45 s</td>
+  <td style="text-align:right">3.97 s</td>
+  <td style="text-align:right">26.99 s</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>北立面</td>
+  <td style="text-align:right">390.61 s</td>
+  <td style="text-align:right">361.73 s</td>
+  <td style="text-align:right">1.11 s</td>
+  <td style="text-align:right">27.76 s</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>南立面</td>
+  <td style="text-align:right">412.69 s</td>
+  <td style="text-align:right">378.66 s</td>
+  <td style="text-align:right">5.84 s</td>
+  <td style="text-align:right">28.19 s</td>
+  <td style="text-align:right">0</td>
+</tr>
+<tr>
+  <td>西立面</td>
+  <td style="text-align:right">277.39 s</td>
+  <td style="text-align:right">253.08 s</td>
+  <td style="text-align:right">1.20 s</td>
+  <td style="text-align:right">23.11 s</td>
+  <td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>F1/F2 约 95.92% / 92.96% 落在模型请求阶段。当前 <code>model_seconds</code> 从 send 前计到响应解析之后，包含请求往返、JSON 解析和响应捕获；本地同步计算也可能延迟响应处理。没有 TTFT，不能把它全部解释为供应商生成、排队或思考。<code>other_seconds</code> 混合准备、上下文、日志等，也不能全算作日志开销。</p>
+<p>下一轮增加 prepare/context、event validation、checkpoint、transport、response parse/capture 的明确计时。应避免为计时再次扫描全史，且并行时间不能错误相加。当前证据支持清除重复计算，<strong>不支持承诺 runtime 单独把约 62 分钟降到 30 分钟</strong>；首次建稿与长期重复识读仍要结合明天的 domain 讨论。</p>
+<p>缓存方面：</p>
+<ul>
+<li>F1 第 3/4 请求分别约 643/596 秒且 cache 为 0，但尚未压缩、保留上一请求全部消息前缀。不能归咎于 runtime 改坏前缀，也不能将全部时长归为思考。</li>
+<li>F2 第 22 请求、F1 第 7/16 请求发生真实压缩，共同消息前缀降至初始两条，cache 均为 0。压缩降低输入量，但要付出重建前缀的代价。</li>
+<li>两平面采用 100k 压缩阈值、0.3 保留比例、<code>reasoning_history=all</code>、<code>summary_every=0</code>。这是移出旧交互并保留检索入口，不是已经把旧识读结论做成语义摘要。</li>
+<li>10-09 缓存 75.81%、10-10 为 81.04%；前者人工返工后交付，后者没有 BIM，不能据此宣布效率提高。10-03 迁移对照也存在协议/参数/线路差异，不能当当前 v2 同等条件优于 Claude Code 的证明。</li>
+</ul>
+<p>来源：<a href="../../experiments/2026-10-10_sm25_lite_regularization/README.md">10-10 实测报告</a>、<a href="../../experiments/2026-10-09_sm25_dev_and_tier4/README.md">10-09 诊断</a>、<a href="../../experiments/2026-10-03_migration_comparison/README.md">历史迁移对照</a>、<a href="../../../../src/agent_runtime/timing.py">timing.py</a>及本轮<a href="efficiency_evidence.json">效率证据</a>。未联网刷新其他框架能力，也未把旧对照当当前竞品结论。</p>
+<h2>4. 建议的下一轮实施范围</h2>
+<p>建议以“同一任务可控续跑，长任务开销可测且不反复重算”为一轮目标，分三段落地，先正确性、后优化。以下是审阅建议，尚未实施。</p>
+<table>
+<thead>
+<tr>
+  <th>顺序</th>
+  <th>交付范围</th>
+  <th>离线验收</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>1. 恢复闭环</td>
+  <td>确定未发送预留释放；有来源补账；实际停止原因；纯读/委派/未知写的恢复分类</td>
+  <td>重启和兄弟任务不重复扣费/释放；未知费用不被填零；已完成写不重放；未知写仍拦截</td>
+</tr>
+<tr>
+  <td>2. 最小任务控制</td>
+  <td>定向消息、安全边界暂停/继续、处理确认；沿用任务身份与上下文</td>
+  <td>六个 scripted 子任务混合成功/中断/暂停，纠正只送目标且不重复，重启后已完成任务不重跑</td>
+</tr>
+<tr>
+  <td>3. 热路径与配置</td>
+  <td>先拆分计时，再增量事件/账本；共用连接描述；显式角色配置；修正估计选择一致性</td>
+  <td>对合法/非法事件序列，增量与全量校验结论一致；记录随事件增长的单位开销；endpoint 改变能检测、角色限额实际生效</td>
+</tr>
+</tbody>
+</table>
+<p>通用控制与恢复语义放 runtime/contracts；读图员入口接线可能触及 <code>src/agent/runtime_roles</code>，该目录属于已登记 domain 表面，应按实际改动登记版本，不能只因意图是 runtime 就宣称 domain 字节完全未变。建筑规整规则、读图方法和首稿声明设计仍留到下一轮 domain 讨论。</p>
+<p>本包不扩角色、OCR、自由模型摘要、多级记忆或 provider 插件平台。已有连接解析可合并；旧 <code>external_coordinator_mcp</code> 路径可在核清消费者后移到研究入口，但不是恢复闭环的前置，不顺手大清理。模型可换目标仍在，当前 provider/model 白名单和 HTTPS 限制不等于已经支持任意服务器模型；该扩展另行做小范围配置设计。</p>
+<p>现有累计请求时间账与墙钟截止是<a href="../../../design/runtime_local_delegation.md">明确设计</a>，不是本轮发现的实现错误；是否分开配置是后续语义改进。活跃兄弟预留的等待机制已经存在，不重复建设。</p>
+<p>旧 10-10 run 保持冻结，且有既有截止时间和版本身份；本建议不承诺升级后直接续跑旧 run。先用离线故障场景验收新语义；是否做新的有界模型验证，按实施后范围另定。本轮不追加实测。</p>
+<h2>5. 本轮验证与证据</h2>
+<table>
+<thead>
+<tr>
+  <th>范围</th>
+  <th>方法与结果</th>
+  <th>边界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>架构与入口</td>
+  <td>三份独立审阅，主审回读当前源码与目标</td>
+  <td>静态确认，不等于模型行为验收</td>
+</tr>
+<tr>
+  <td>恢复</td>
+  <td><a href="reproduce_recovery.py">reproduce_recovery.py</a>：4 个崩溃边界、1 个纯读取消、1 个兄弟费用故障；<a href="reproduction.json">结果</a>记录断言，约 2.38 秒；主审复跑同结论，约 2.32 秒</td>
+  <td>6 个预期结果复现；其中 2 个为正常恢复正对照，不是 6 项产品修复通过</td>
+</tr>
+<tr>
+  <td>真实账本</td>
+  <td>同脚本只读重建 1,269 条事件</td>
+  <td>没有打开旧 run writer 或修改结算</td>
+</tr>
+<tr>
+  <td>效率</td>
+  <td><a href="reproduce_efficiency.py">reproduce_efficiency.py</a>：只读前缀微基准与冻结记录分析；<a href="efficiency_evidence.json">结果</a></td>
+  <td>离线测量，不等于整案收益或速度验收</td>
+</tr>
+<tr>
+  <td>生产与费用</td>
+  <td>runtime v2 / domain v57 不变；没有产品模型或 MCP 请求</td>
+  <td>未跑全量 pytest，未生成新 BIM/GT 评价</td>
+</tr>
+</tbody>
+</table>
+<p>复验从仓库根执行 <code>.venv/Scripts/python.exe -B AI_agent/logs/reviews/2026-10-10_runtime_independent_review/reproduce_recovery.py</code> 或对应效率脚本。默认 JSON 输出到 stdout，不覆盖此次证据；显式 <code>--output</code> 可保存新结果。恢复脚本仅写新建临时目录并清理自己的目录，网络被禁用；冻结 run 只读。脚本用于锁定当前发现，未来实现改变后应更新验收期望，不能保留“故障复现成功”作为产品通过标准。</p>
+</main></body></html>
