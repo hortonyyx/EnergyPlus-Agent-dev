@@ -318,7 +318,9 @@ returns failure evidence for the parser/truncation journal, never executable cal
         self.last_send_timing = {}
         started = perf_counter()
         def failure(category, description, raw=None, retryable=False, error_type=None):
-            usage = _usage(raw or latest)
+            usage = _usage(raw)
+            if usage.kind == "missing":
+                usage = _usage(latest)
             return ModelServiceError({"category": category, "retryable": retryable,
                 "service_error_type": _sanitize(error_type, token)[:256] if error_type else None,
                 "body_excerpt": _sanitize(description, token)[:2048],

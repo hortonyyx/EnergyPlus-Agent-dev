@@ -244,6 +244,32 @@ def test_stream_failures_preserve_usage_and_never_leak_oauth(store, kind, status
     assert len(requests) == 1
 
 
+def test_failed_terminal_without_usage_keeps_prior_frame_usage_and_rejects_partial_tools(store):
+    known_usage = {"input_tokens": 30, "output_tokens": 22, "total_tokens": 52}
+    partial_call = {"type": "function_call", "call_id": "partial-call", "name": "view",
+        "namespace": "runtime", "status": "in_progress", "arguments": '{"name":'}
+    progress = response([partial_call], status="in_progress")
+    progress["usage"] = known_usage
+    failed = response([partial_call], status="failed", usage=False)
+    failed["error"] = {"type": "server_error", "message": "stream failed"}
+    requests = []
+    def handle(request):
+        requests.append(request)
+        return httpx.Response(200, content=sse(
+            {"type": "response.in_progress", "response": progress},
+            {"type": "response.failed", "response": failed}))
+    adapter = HttpResponsesAdapter(token_provider=provider(), transport=httpx.MockTransport(handle))
+    # A failed stream must raise, never return partial calls to the parser or
+    # execution layer, even when the terminal response itself is nonempty.
+    with pytest.raises(ModelServiceError) as caught:
+        send(adapter, prepare(store))
+    assert caught.value.details["category"] == "service_error"
+    assert caught.value.details["usage_received"] is True
+    assert caught.value.usage.raw_usage == known_usage
+    assert reported_total_tokens(caught.value.usage.raw_usage) == 52
+    assert len(requests) == 1
+
+
 @pytest.mark.parametrize("reason,finish", [("max_output_tokens", "length"), ("content_filter", "stop")])
 def test_incomplete_terminal_retains_raw_evidence_but_parser_rejects(store, reason, finish):
     raw = response([{"type": "function_call", "call_id": "c", "namespace": "runtime", "name": "view", "arguments": "{"}], status="incomplete")
