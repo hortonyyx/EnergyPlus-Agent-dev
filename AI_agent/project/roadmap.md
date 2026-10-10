@@ -1,14 +1,15 @@
 # 路线与当前任务
 
-**10-10 当前节点：runtime 独立审阅完成，下一轮优先处理可控续跑与长任务开销；domain 下一轮设计按用户安排留到明天讨论。** 三名独立审阅者检查架构、效率和恢复，主审复核源码与真实证据。6个离线恢复场景按预期复现（4个缺口、2个正常恢复正对照）；未知费用仍占预留，但现有账本没有恢复出口；运行中任务纠正/暂停/继续缺正式接口。事件全史校验有随日志增长的开销，实际 endpoint 与读图员上下文配置也需贯通。未改生产实现，runtime v2/domain v57不变，未追加work model或MCP实测。
+**10-10 当前节点：runtime 可控续跑与开销迭代已完成，登记 runtime v5 / domain v60；domain 下一轮设计按用户安排留待讨论。** 在独立审阅后，用户授权先迭代runtime并优先用GLM订阅测试。已接通定向消息、安全边界暂停/继续、未发送预留释放、真实usage补账、工具恢复分类与原task ID委派恢复；追加事件改增量校验，预算投影按相关变更缓存，实际连接与角色上下文配置同源。必要domain改动限于接线、配置和UTF-8持久文件读取，未改规整或识读方法。
 
-- **当前审阅与交接：** [完整报告](../logs/reviews/2026-10-10_runtime_independent_review/summary.md) · [网页](../logs/reviews/2026-10-10_runtime_independent_review/index.html) · [恢复复现](../logs/reviews/2026-10-10_runtime_independent_review/reproduction.json) · [效率证据](../logs/reviews/2026-10-10_runtime_independent_review/efficiency_evidence.json)。恢复成功、BIM质量与效率胜出分别验收；现有模型请求阶段计时混有响应处理，不能据此将全部耗时归为供应商生成。
-- **下一入口：** 围绕同次任务的预算恢复、工具恢复分类、定向消息与安全暂停/继续确定有界实施包，再拆分计时、改增量校验并贯通配置。报告是迭代建议，尚未实施；不扩角色/自由摘要/provider平台，不修改或尝试升级续跑已冻结的10-10实测，不自动追加付费调用。若接线涉及`src/agent/runtime_roles`，按实际domain登记范围计版本。
+- **验证与证据：** [实施报告](../logs/experiments/2026-10-10_runtime_control_iteration/README.md) · [GLM原始回执](../logs/experiments/2026-10-10_runtime_control_iteration/glm_live/smoke_result.json) · [前置独立审阅](../logs/reviews/2026-10-10_runtime_independent_review/summary.md)。分批去重826通过、1显式跳过，初轮30失败已逐项复验消除；最后57项runtime与16项真实工具/恢复/回放全过，另68项领域工具检查通过。一次GLM订阅协议小测在v4/v59完成，14/14检查通过，2请求、654 token、8.625秒；最终版补齐诊断计时钟隔离及UTF-8候选读取。冻结1269事件的全部前缀全量/增量校验与预算一致；微基准不代表整案加速。
+- **当前交接：** [runtime迭代交接](../logs/worklog/2026-10-10_runtime_control_iteration_close.md)；[控制与恢复入口](../workflow/runtime_controls.md)。旧sm25失败run及其未知用量保持冻结，缺usage仍需真实凭据，不能凭恢复接口强行放行。
+- **下一入口：** 继续讨论domain的声明保存/局改、规整前置门槛与模型机械负担；之后再用新run验收sm25的人工调度规整输出。本轮协议成功不代表空间划分正确、缺usage已从真实供应商补全或整案30分钟达标。runtime后续小项包括原始GLM cached_tokens与统一汇总字段贯通；暂不扩角色、自由摘要或provider平台。
 
 **10-10 上一次执行节点：domain v57 已落地，首次 sm25 实测失败，规整 BIM 交付目标未达到。** runtime v2 不变；分工路径实现默认0.1m共享尺寸链/XYZ规整、立面采用值审计和精简返工上下文，单模型路径保持。全量旧夹具的12项失败已修复并在六文件61项复查通过。一次人工调度实测62分24.5秒，99请求/98响应/1超时，已知费用9.1655892元、完整费用未知；四立面完成，两平面失败，无整楼候选和GT评价。F1五份未编译声明无法原生局部恢复，F2无声明；最后超时缺usage触发runtime永久费用停止，人工恢复任务没有派发，也未重开冷启。
 
 - **10-10 独立审阅已完成（仅审阅）：** [充分性与必要性报告](../logs/reviews/2026-10-10_domain_necessity_sufficiency/summary.md) · [网页摘要](../logs/reviews/2026-10-10_domain_necessity_sufficiency/index.html)。三份独立审阅与当前源码复核认为：核心建模能力应保留，读图员首稿/失败恢复、混层参考与重复抄写需要收缩；近轴2cm与同为10m尺寸链的独立离线反例确认规整前置门槛问题。现有自报覆盖不能证明图纸保真，一般内环/跨层支持也仍有限。本轮未改生产代码或新增模型实测，v57/v2保持；建议尚未实施。
-- **domain 后续讨论入口（用户安排明天讨论）：** 上述审阅的有界收缩包，结合[失败实测报告](../logs/experiments/2026-10-10_sm25_lite_regularization/README.md)与[诊断叠图（非BIM）](../logs/experiments/2026-10-10_sm25_lite_regularization/F1_trial005_raw_declarations_NOT_BIM.png)定实施范围。重点为可保存/可局改的建模声明、近轴接头与尺寸链一致性、按角色参考及人工阶段介入；费用恢复转入上述runtime审阅。自动OCR选步长、活动reader消息入口及runtime恢复策略均未实现；不以继续加提醒或再放宽额度代替设计，不自动追加实测。
+- **domain 后续讨论入口（用户安排明天讨论）：** 上述审阅的有界收缩包，结合[失败实测报告](../logs/experiments/2026-10-10_sm25_lite_regularization/README.md)与[诊断叠图（非BIM）](../logs/experiments/2026-10-10_sm25_lite_regularization/F1_trial005_raw_declarations_NOT_BIM.png)定实施范围。重点为可保存/可局改的建模声明、近轴接头与尺寸链一致性、按角色参考及人工阶段介入。定向消息和runtime恢复策略已在本轮接通；自动OCR选步长尚未实现。不以继续加提醒或再放宽额度代替设计，不自动追加实测。
 - **当前交接：** [10-10 Lite BIM domain 与失败实测交接](../logs/worklog/2026-10-10_lite_bim_domain_close.md)。旧10-09成功稿和本次离线回放只作比较，不能当作本轮生成结果。以下段落为历史节点。
 
 **10-09 当前节点：sm25 模型能力与分工诊断已收工，下一轮详细讨论并设计迭代。** 按用户最新顺序，冷启请求 GPT-6 Sol/high 独立整案，再由项目经理人工担任调度员，通过 runtime v2 调用 Qwen3.8-27B 平面读图员及 Qwen3.8-Flash 立面读图员（非 GLM）。两轮 domain 均 v56，生产代码保持不变。Sol 外部 MCP 会话 22分33秒，无实质拓扑错误；第二轮 45分32秒，98 请求、估算 8.7029404 元，经项目经理亲自看图并指出漏外门及东门高度矛盾后由读图员局部返工，最终同为 29 空间、61 门窗、30 门连接、34 外部高度正确。两轮都未重现两处假楼板，但尺寸规整仍不完整；不是同工具/同上下文的纯模型 A/B，也不能宣称自主稳定恢复或 runtime 已优于 Claude Code。

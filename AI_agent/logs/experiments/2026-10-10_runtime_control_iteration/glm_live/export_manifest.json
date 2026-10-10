@@ -1,0 +1,56 @@
+{
+  "source_run": "AI_agent/archive/local_backup/2026-10-10_runtime_control_iteration_glm_live01",
+  "copied_files": {
+    "smoke_result.json": {
+      "bytes": 14102,
+      "sha256": "e749daad13a54aaf618d20b01ce3e3dca49c71f63ca1df204a9b1e289c8377ce"
+    },
+    "driver_manifest.json": {
+      "bytes": 2517,
+      "sha256": "04cd6c2887698811853d924550da5af35e74648e81dc3609f3ccf0b38ca35468"
+    },
+    "driver_observations.jsonl": {
+      "bytes": 1514,
+      "sha256": "80eff14892d3678ba067c0c64f9f3d0369cce2c40a96bfeb31976f42c38971fc"
+    },
+    "request_quota.jsonl": {
+      "bytes": 1084,
+      "sha256": "3f9166c53a567943d32b05e814c1083a9e69697e997e029a466c94b7b50d9d71"
+    },
+    "receipt.json": {
+      "bytes": 12881,
+      "sha256": "17dc7904c054cfccfa22e69d1da57b8b26e79da20cdacc1e0e6a04816802c39f"
+    },
+    "events.jsonl": {
+      "bytes": 37167,
+      "sha256": "207015dac48994d8b2827af96e16b247cb454e31b1dc3263efbd934822001262"
+    },
+    "checkpoint.json": {
+      "bytes": 232,
+      "sha256": "7421a32ffdbb75117d9adce40d802f2f058182d7815bce9919421ceedfc1d0c2"
+    }
+  },
+  "derived_files": {
+    "versions.json": {
+      "source_event_id": "event-000004",
+      "source_field": "payload.versions",
+      "sha256": "09b77583fb14cecbec5865ea1cf26821af0614e4ad56eaf239c0cf7fddaa6f60"
+    }
+  },
+  "note": "Original run preserved unchanged. Version manifest exported from first adapter_request, because the live driver recorded it inline but did not write the top-level versions.json pointer. Future driver now writes that convenience file. No additional live requests.",
+  "raw_cache_evidence": {
+    "source": "request_quota.jsonl response.usage.prompt_tokens_details.cached_tokens",
+    "cached_input_tokens": 256,
+    "input_tokens": 623,
+    "fraction": 0.41091492776886035,
+    "normalized_receipt_cache_field": "null; existing summary only recognizes cache_read_input_tokens"
+  },
+  "full_run_archive": {
+    "path": "run_evidence.zip",
+    "files": 100,
+    "bytes": 265410,
+    "sha256": "9fa22d6f50af34e2e485d98e67ee8d46619638c0d863c7d18ec4e50d549b823d",
+    "excluded": "writer.lock and controls/inbox.lock only",
+    "verification": "Every archived file hash compared with the original run; zip CRC verified."
+  }
+}

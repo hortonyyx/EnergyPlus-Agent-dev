@@ -1,0 +1,1610 @@
+...........F............................................................ [  8%]
+........................................................................ [ 17%]
+.........................................................FFF...FFFF..... [ 26%]
+........................................................................ [ 34%]
+.........................................F.............................. [ 43%]
+...F.................................................................... [ 52%]
+..............FFF....................................................... [ 61%]
+........................................................................ [ 69%]
+........................................................................ [ 78%]
+..........F...................................................s......... [ 87%]
+.FFF.F................................................FF.FFFFFF.FF...... [ 96%]
+.............................FF.                                         [100%]
+================================== FAILURES ===================================
+_____ test_small_positive_root_time_remainder_is_used_as_request_timeout ______
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_small_positive_root_time_0')
+
+    def test_small_positive_root_time_remainder_is_used_as_request_timeout(tmp_path):
+        class TimeoutRecordingAdapter:
+            def __init__(self):
+                self.timeouts = []
+
+            async def send(self, prepared, *, timeout):
+                self.timeouts.append(timeout)
+                return response(text="done")
+
+        async def scenario():
+            root_limits = RunLimits(model_calls=2, tool_calls=0, seconds=5, tokens=100_000)
+            child_limits = RunLimits(model_calls=1, tool_calls=0, seconds=30, tokens=100_000)
+            with EventStore(tmp_path / "run", run_id="small-remainder", task_id="parent",
+                            budget_limit=root_limits.ledger_limit()) as root:
+                reservation = BudgetReservation(reservation_id="prior:request-1",
+                    purpose="primary_task", task_id="parent",
+                    amounts=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("4.999")))
+                root.append(BudgetEventPayload(action="reserve", reservation=reservation))
+                root.append(BudgetEventPayload(action="settle", settlement=BudgetSettlement(
+                    reservation_id=reservation.reservation_id,
+                    actual=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("4.999")),
+                    usage=UsageReported(raw_usage={"total_tokens": 30}),
+                    cost=CostUnavailable(reason="no configured money budget"))))
+                adapter = TimeoutRecordingAdapter()
+                engine = Runtime(store=root.for_task("child", "parent"), adapter=adapter,
+                    tools=Tools(tmp_path / "tools-child"), role=role(child_limits), model="test",
+                    parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                    limits=child_limits, request_timeout_seconds=5)
+                receipt = await engine.run(MESSAGES)
+                assert receipt["status"] == "completed"
+                assert len(adapter.timeouts) == 1
+                assert 0 < adapter.timeouts[0] <= 0.001
+
+>       asyncio.run(scenario())
+
+tests\test_agent_runtime.py:358:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def scenario():
+        root_limits = RunLimits(model_calls=2, tool_calls=0, seconds=5, tokens=100_000)
+        child_limits = RunLimits(model_calls=1, tool_calls=0, seconds=30, tokens=100_000)
+        with EventStore(tmp_path / "run", run_id="small-remainder", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as root:
+            reservation = BudgetReservation(reservation_id="prior:request-1",
+                purpose="primary_task", task_id="parent",
+                amounts=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("4.999")))
+            root.append(BudgetEventPayload(action="reserve", reservation=reservation))
+            root.append(BudgetEventPayload(action="settle", settlement=BudgetSettlement(
+                reservation_id=reservation.reservation_id,
+                actual=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("4.999")),
+                usage=UsageReported(raw_usage={"total_tokens": 30}),
+                cost=CostUnavailable(reason="no configured money budget"))))
+            adapter = TimeoutRecordingAdapter()
+            engine = Runtime(store=root.for_task("child", "parent"), adapter=adapter,
+                tools=Tools(tmp_path / "tools-child"), role=role(child_limits), model="test",
+                parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
+                limits=child_limits, request_timeout_seconds=5)
+            receipt = await engine.run(MESSAGES)
+>           assert receipt["status"] == "completed"
+E           AssertionError: assert 'root_time_budget_exhausted' == 'completed'
+E
+E             - completed
+E             + root_time_budget_exhausted
+
+tests\test_agent_runtime.py:354: AssertionError
+_________ test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True] _________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_scripted_role_pipeline_ru0')
+case_name = 'sm21', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+        result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+>       _assert_complete_pipeline(fixture, result, two_floors=two_floors)
+
+tests\test_role_end_to_end.py:225:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fixture = D1Fixture(case_name='sm21', output=WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_sc...riptedAdapter object at 0x000001A1BEB0C800>, <src.agent_runtime.adapter.ScriptedAdapter object at 0x000001A1BE94E990>])
+result = {'agent_version': 'domain-v58-20261010', 'answer': None, 'artifact_paths': ['C:\\Users\\Horton\\AppData\\Local\\Temp\\...45d463b240eb695891c1b6d2', 'uri': 'blobs/88972f24bf728772e8bec00224b34bffe912b28e45d463b240eb695891c1b6d2'}, ...], ...}
+
+    def _assert_complete_pipeline(fixture, result, *, two_floors):
+>       assert result["status"] == "completed"
+E       AssertionError: assert 'unknown_error' == 'completed'
+E
+E         - completed
+E         + unknown_error
+
+tests\test_role_end_to_end.py:105: AssertionError
+________ test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False] _________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_scripted_role_pipeline_ru1')
+case_name = 'sm24', two_floors = False
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+        result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+>       _assert_complete_pipeline(fixture, result, two_floors=two_floors)
+
+tests\test_role_end_to_end.py:225:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fixture = D1Fixture(case_name='sm24', output=WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_sc...riptedAdapter object at 0x000001A1C0D98500>, <src.agent_runtime.adapter.ScriptedAdapter object at 0x000001A1BF5B56A0>])
+result = {'agent_version': 'domain-v58-20261010', 'answer': None, 'artifact_paths': ['C:\\Users\\Horton\\AppData\\Local\\Temp\\...383b72a11acabb651b90cf43d331d', 'uri': 'blobs/6a995c40bd2045fd35bfe0ad9d110216c58383b72a11acabb651b90cf43d331d'}], ...}
+
+    def _assert_complete_pipeline(fixture, result, *, two_floors):
+>       assert result["status"] == "completed"
+E       AssertionError: assert 'unknown_error' == 'completed'
+E
+E         - completed
+E         + unknown_error
+
+tests\test_role_end_to_end.py:105: AssertionError
+_________ test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True] _________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_scripted_role_pipeline_ru2')
+case_name = 'sm25', two_floors = True
+
+    @pytest.mark.parametrize(("case_name", "two_floors"), [("sm21", True), ("sm24", False), ("sm25", True)])
+    def test_scripted_role_pipeline_runs_real_frozen_mcp(tmp_path, case_name, two_floors):
+        fixture = make_fixture(case_name, tmp_path)
+        result = asyncio.run(
+            execute(fixture.args, adapter_factory=fixture.adapter_factory)
+        )
+>       _assert_complete_pipeline(fixture, result, two_floors=two_floors)
+
+tests\test_role_end_to_end.py:225:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fixture = D1Fixture(case_name='sm25', output=WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_sc...riptedAdapter object at 0x000001A1BEB48E90>, <src.agent_runtime.adapter.ScriptedAdapter object at 0x000001A1F9549FD0>])
+result = {'agent_version': 'domain-v58-20261010', 'answer': None, 'artifact_paths': ['C:\\Users\\Horton\\AppData\\Local\\Temp\\...713e5c1e3e01391d2251c8ac', 'uri': 'blobs/5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac'}, ...], ...}
+
+    def _assert_complete_pipeline(fixture, result, *, two_floors):
+>       assert result["status"] == "completed"
+E       AssertionError: assert 'unknown_error' == 'completed'
+E
+E         - completed
+E         + unknown_error
+
+tests\test_role_end_to_end.py:105: AssertionError
+_______ test_resume_reader_after_trial_checkpoint_does_not_repeat_trial _______
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_resume_reader_after_trial0')
+
+    def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+        crash = CrashOnce(
+            "after_checkpoint",
+            lambda engine: engine.role.role_id == "plan_reader"
+            and engine.counts["tool_calls"] == 1,
+        )
+        with pytest.raises(SimulatedProcessDeath):
+            asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    reader_fault_hook=crash,
+                )
+            )
+        assert crash.triggered
+        assert _tool_count(fixture.output, "trial_plan_bim") == 1
+
+        result = _resume(fixture)
+>       _assert_complete_pipeline(fixture, result, two_floors=False)
+
+tests\test_role_end_to_end.py:269:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fixture = D1Fixture(case_name='sm24', output=WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_re...inatorAdapter object at 0x000001A1BECFFC20>, <src.agent_runtime.adapter.ScriptedAdapter object at 0x000001A1BF187860>])
+result = {'agent_version': 'domain-v58-20261010', 'answer': None, 'artifact_paths': ['C:\\Users\\Horton\\AppData\\Local\\Temp\\...27c320202ddfc1e6d0107a8a26acb', 'uri': 'blobs/11213789e1dac6de38543fd8e0c9d5e1f0f27c320202ddfc1e6d0107a8a26acb'}], ...}
+
+    def _assert_complete_pipeline(fixture, result, *, two_floors):
+>       assert result["status"] == "completed"
+E       AssertionError: assert 'unknown_error' == 'completed'
+E
+E         - completed
+E         + unknown_error
+
+tests\test_role_end_to_end.py:105: AssertionError
+___________ test_resume_after_all_readers_preserves_reader_records ____________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_resume_after_all_readers_0')
+
+    def test_resume_after_all_readers_preserves_reader_records(tmp_path):
+        fixture = make_fixture("sm24", tmp_path)
+
+        def all_readers_before_build(engine):
+            return (
+                len(_reader_record_hashes(fixture)) == len(fixture.tasks)
+                and _tool_count(fixture.output, "assemble_from_readers") == 0
+            )
+
+        crash = CrashOnce("after_checkpoint", all_readers_before_build)
+        with pytest.raises(SimulatedProcessDeath):
+            asyncio.run(
+                execute(
+                    fixture.args,
+                    adapter_factory=fixture.adapter_factory,
+                    fault_hook=crash,
+                )
+            )
+        hashes_at_crash = _reader_record_hashes(fixture)
+        reader_requests_at_crash = _reader_request_count(fixture)
+        assert reader_requests_at_crash > 0
+
+        result = _resume(fixture)
+>       _assert_complete_pipeline(fixture, result, two_floors=False)
+
+tests\test_role_end_to_end.py:303:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+fixture = D1Fixture(case_name='sm24', output=WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_re...ter.ScriptedAdapter object at 0x000001A1BF703200>, <role_d1_fixtures.CoordinatorAdapter object at 0x000001A1BEC44D40>])
+result = {'agent_version': 'domain-v58-20261010', 'answer': None, 'artifact_paths': ['C:\\Users\\Horton\\AppData\\Local\\Temp\\...b06dff7e0c38fde191fd2a3392675', 'uri': 'blobs/948e4482b5ee3f352144fe7e6c2eff225a2b06dff7e0c38fde191fd2a3392675'}], ...}
+
+    def _assert_complete_pipeline(fixture, result, *, two_floors):
+>       assert result["status"] == "completed"
+E       AssertionError: assert 'unknown_error' == 'completed'
+E
+E         - completed
+E         + unknown_error
+
+tests\test_role_end_to_end.py:105: AssertionError
+____ test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim] ____
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_resume_after_inner_receip0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BECEAFC0>
+boundary_tool = 'build_plan_bim'
+
+    @pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+    def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+        from src.agent.runtime_roles.session import RoleSession
+
+        fixture = make_fixture("sm24", tmp_path)
+        original = RoleSession._once
+        crashed = False
+
+        async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+            nonlocal crashed
+            result = await original(session, operation_id, name, arguments, reference=reference)
+            if name == boundary_tool and not crashed:
+                crashed = True
+                raise SimulatedProcessDeath("inner build receipt saved")
+            return result
+
+        monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
+>       with pytest.raises(SimulatedProcessDeath):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'test_role_end_to_end.SimulatedProcessDeath'>
+
+tests\test_role_end_to_end.py:325: Failed
+__ test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction] ___
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_resume_after_inner_receip1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BECFF3E0>
+boundary_tool = 'claim_transaction'
+
+    @pytest.mark.parametrize("boundary_tool", ["build_plan_bim", "claim_transaction"])
+    def test_resume_after_inner_receipt_does_not_repeat_write(tmp_path, monkeypatch, boundary_tool):
+        from src.agent.runtime_roles.session import RoleSession
+
+        fixture = make_fixture("sm24", tmp_path)
+        original = RoleSession._once
+        crashed = False
+
+        async def stop_after_receipt(session, operation_id, name, arguments, *, reference):
+            nonlocal crashed
+            result = await original(session, operation_id, name, arguments, reference=reference)
+            if name == boundary_tool and not crashed:
+                crashed = True
+                raise SimulatedProcessDeath("inner build receipt saved")
+            return result
+
+        monkeypatch.setattr(RoleSession, "_once", stop_after_receipt)
+>       with pytest.raises(SimulatedProcessDeath):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE <class 'test_role_end_to_end.SimulatedProcessDeath'>
+
+tests\test_role_end_to_end.py:325: Failed
+___ test_first_request_sources_are_byte_identical_to_the_dispatch_baseline ____
+
+    def test_first_request_sources_are_byte_identical_to_the_dispatch_baseline():
+        permitted = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/intentional_model_text_changes.json").read_text(encoding="utf-8"))
+        junction_wording = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-08_quality_q1b/intentional_model_text_changes.json").read_text(encoding="utf-8"))
+        for relative in FIRST_REQUEST_SOURCES:
+            expected = git_bytes(relative)
+            for replacement in [*permitted.get(relative, []), *junction_wording.get(relative, [])]:
+                before, after = replacement["before"].encode(), replacement["after"].encode()
+                assert expected.count(before) == 1, relative
+                expected = expected.replace(before, after, 1)
+>           assert (ROOT / relative).read_bytes() == expected, relative
+E           AssertionError: src/agent/runtime_entry.py
+E           assert b'"""Run one ...n    main()\n' == b'"""Run one ...n    main()\n'
+E
+E             At index 357 diff: b't' != b'o'
+E             Use -v to get more diff
+
+tests\test_role_single_parity.py:79: AssertionError
+____ test_real_profile_is_resolved_to_recoverable_independent_numeric_plan ____
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_real_profile_is_resolved_0')
+
+    def test_real_profile_is_resolved_to_recoverable_independent_numeric_plan(tmp_path):
+        async def scenario():
+            reader = _run_with_one_image(tmp_path)
+            image = Image.new("RGB", (12, 8), "black")
+            draw = ImageDraw.Draw(image)
+            for x in (5, 7):
+                draw.line((x, 0, x, 7), fill=(128, 128, 128))
+            image.save(reader / "images" / "plan.png")
+            manifest = json.loads((reader / "inputs.json").read_text())
+            manifest["images"]["plan.png"]["sha256"] = hashlib.sha256(
+                (reader / "images" / "plan.png").read_bytes()
+            ).hexdigest()
+            (reader / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8", newline="\n")
+
+            async with _server_session(reader, readonly=True) as service:
+                response = await service.call_tool("view_pixel_profile", {
+                    "name": "plan.png", "box": [0, 0, 12, 8], "axis": "x",
+                    "rgb": [128, 128, 128], "tolerance": 0, "min_fraction": 0.5,
+                    "include_image": False,
+                })
+                assert not response.isError
+                profile = json.loads(response.content[0].text)
+            assert [row["peak"] for row in profile["candidates"]] == [5, 7]
+
+            plan = example()
+            midpoint = {"midpoint": [
+                {"profile": profile["profile_id"], "candidate": "C01"},
+                {"profile": profile["profile_id"], "candidate": "C02"},
+            ]}
+            for point in plan["partitions"][0]["points"]:
+                point[0] = midpoint
+            for key in ("p1", "p2"):
+                plan["openings"][0][key][0] = midpoint
+
+            async with PlanTrialSession(reader, "plan.png", root=ROOT) as trial:
+                receipt = await trial.run(plan)
+                assert receipt["status"] == "passed", receipt
+                assert len(receipt["measurement_bindings"]) == 4
+                assert receipt["measurement_profiles"] == [{
+                    "profile_id": profile["profile_id"],
+                    "file": f"trial_receipts/trial_001_profiles/{profile['profile_id']}.json",
+                    "sha256": hashlib.sha256(
+                        (reader / "pixel_profiles" / f"{profile['profile_id']}.json").read_bytes()
+                    ).hexdigest(),
+                }]
+                numeric_path = reader / "trial_workspace" / receipt["compiled_numeric_plan_file"]
+                numeric_bytes = numeric_path.read_bytes()
+                assert hashlib.sha256(numeric_bytes).hexdigest() == receipt["compiled_numeric_plan_sha256"]
+                numeric = json.loads(numeric_bytes)
+                assert numeric["partitions"][0]["points"] == [[6, 1], [6, 7]]
+                assert receipt["compiled_plan_sha256"] == receipt["compiled_numeric_plan_sha256"]
+
+            # The saved numeric plan compiles from a clean run containing no profiles.
+            independent = tmp_path / "independent"
+            (independent / "images").mkdir(parents=True)
+            (independent / "images" / "plan.png").write_bytes(
+                (reader / "images" / "plan.png").read_bytes()
+            )
+            (independent / "inputs.json").write_bytes((reader / "inputs.json").read_bytes())
+            from scripts.tool_scripts.run_bim_agent import Toolkit
+            built = Toolkit(independent).build_plan("plan.png", numeric_bytes.decode("utf-8"))
+            assert built["source_geometry_ready"] and not (independent / "pixel_profiles").exists()
+
+            # A new task edits the verified prior declaration without retyping its
+            # profile-based coordinates; a failed edit must not advance its baseline.
+            next_reader = tmp_path / "next_reader"
+            (next_reader / "images").mkdir(parents=True)
+            (next_reader / "images/plan.png").write_bytes((reader / "images/plan.png").read_bytes())
+            (next_reader / "inputs.json").write_bytes((reader / "inputs.json").read_bytes())
+            prior = PlanTrial(None, image_name="plan.png", workspace=reader / "trial_workspace",
+                              receipt_directory=reader / "trial_workspace/trial_receipts")
+            op = {"op": "update", "collection": "openings", "id": "D1", "changes": {"z": [0, 2.2]},
+                  "reason": "revised declared height", "source_refs": ["plan.png: explicit assumption"], "bbox": [5, 2, 8, 6]}
+            async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
+                rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
+                edited = await rework.run(operations=[op])
+                assert edited["source_geometry_ready"], edited
+                assert rework.load_plan(edited)["partitions"] == plan["partitions"]
+                assert rework.load_plan(edited)["openings"][1] == plan["openings"][1]
+                failed = await rework.run(operations=[{**op, "changes": {"p2": [7, 4.5]}}])
+                assert not failed["source_geometry_ready"]
+            async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
+                rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
+                assert rework.baseline()[1] == edited["plan_sha256"]
+                repaired = await rework.run(operations=[{**op, "changes": {"z": [0, 2.3]}}])
+                assert repaired["source_geometry_ready"]
+                assert repaired["base_plan_sha256"] == edited["plan_sha256"]
+                assert repaired["changes"][0]["before"]["p2"] == plan["openings"][0]["p2"]
+
+            # Resume reuses the verified receipt. Both derived products are tamper-evident.
+            async with PlanTrialSession(reader, "plan.png", root=ROOT) as resumed:
+                assert resumed.require_success(plan)["compiled_numeric_plan_sha256"] == receipt["compiled_numeric_plan_sha256"]
+            numeric_path.write_bytes(numeric_bytes + b" ")
+            with pytest.raises(ValueError, match="numeric plan changed"):
+                async with PlanTrialSession(reader, "plan.png", root=ROOT):
+                    pass
+            numeric_path.write_bytes(numeric_bytes)
+            copied_profile = reader / "trial_workspace" / receipt["measurement_profiles"][0]["file"]
+            copied_profile.write_bytes(copied_profile.read_bytes() + b" ")
+            with pytest.raises(ValueError, match="measurement profile changed"):
+                async with PlanTrialSession(reader, "plan.png", root=ROOT):
+                    pass
+
+>       asyncio.run(scenario())
+
+tests\test_role_trial.py:413:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def scenario():
+        reader = _run_with_one_image(tmp_path)
+        image = Image.new("RGB", (12, 8), "black")
+        draw = ImageDraw.Draw(image)
+        for x in (5, 7):
+            draw.line((x, 0, x, 7), fill=(128, 128, 128))
+        image.save(reader / "images" / "plan.png")
+        manifest = json.loads((reader / "inputs.json").read_text())
+        manifest["images"]["plan.png"]["sha256"] = hashlib.sha256(
+            (reader / "images" / "plan.png").read_bytes()
+        ).hexdigest()
+        (reader / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8", newline="\n")
+
+        async with _server_session(reader, readonly=True) as service:
+            response = await service.call_tool("view_pixel_profile", {
+                "name": "plan.png", "box": [0, 0, 12, 8], "axis": "x",
+                "rgb": [128, 128, 128], "tolerance": 0, "min_fraction": 0.5,
+                "include_image": False,
+            })
+            assert not response.isError
+            profile = json.loads(response.content[0].text)
+        assert [row["peak"] for row in profile["candidates"]] == [5, 7]
+
+        plan = example()
+        midpoint = {"midpoint": [
+            {"profile": profile["profile_id"], "candidate": "C01"},
+            {"profile": profile["profile_id"], "candidate": "C02"},
+        ]}
+        for point in plan["partitions"][0]["points"]:
+            point[0] = midpoint
+        for key in ("p1", "p2"):
+            plan["openings"][0][key][0] = midpoint
+
+        async with PlanTrialSession(reader, "plan.png", root=ROOT) as trial:
+            receipt = await trial.run(plan)
+>           assert receipt["status"] == "passed", receipt
+E           AssertionError: {'aligned_numeric_input_file': 'trial_receipts/trial_001_aligned_input.json', 'aligned_numeric_input_sha256': 'c780c1f..._alignment_v1', ...}, 'axis_orientation': {'world_east_toward': 'image_right', 'world_north_toward': 'image_top'}, ...}
+E           assert 'failed' == 'passed'
+E
+E             - passed
+E             + failed
+
+tests\test_role_trial.py:346: AssertionError
+_ test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_budget_exhausted] _
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_money_stop_delivers_lates0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF0FB890>
+reason = 'money_budget_exhausted'
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_a4r_money.py:263:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BECE4C20>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+_ test_money_stop_delivers_latest_complete_instead_of_selected_partial[root_money_budget_exhausted] _
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_money_stop_delivers_lates1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF54F230>
+reason = 'root_money_budget_exhausted'
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_a4r_money.py:263:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BF0FBC20>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+_ test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_cny_usage_unavailable] _
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_money_stop_delivers_lates2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BEB3B110>
+reason = 'money_cny_usage_unavailable'
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_a4r_money.py:263:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BECD81D0>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+___________ test_real_frozen_tools_keep_run99_state_across_75_steps ___________
+
+    def test_real_frozen_tools_keep_run99_state_across_75_steps():
+        # Always own a temporary directory inside this worktree, regardless of pytest --basetemp.
+        retained = os.environ.get("STAGE2_FROZEN_REPLAY_OUT")
+        if retained:
+            asyncio.run(replay_frozen_run99(Path(retained)))
+            return
+        with tempfile.TemporaryDirectory(prefix=".stage2-frozen-long-", dir=ROOT) as temporary:
+>           asyncio.run(replay_frozen_run99(Path(temporary) / "run"))
+
+tests\test_runtime_frozen_long_task.py:324:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+output = WindowsPath('C:/Users/Horton/Desktop/EnergyPlus-Agent-dev/.stage2-frozen-long-icppy8uw/run')
+
+    async def replay_frozen_run99(output):
+        output = output.resolve()
+        assert output.is_relative_to(ROOT)
+        output.mkdir(parents=True, exist_ok=False)
+        sequence = Run99Sequence()
+        manifest = json.loads((HISTORY / "inputs.json").read_bytes())
+        run, guide, task = prepare_inputs(output, images=HISTORY / "images", mesh=None,
+            building_input=None, scope=manifest["scope"], image_kind="drawings", max_candidates=24)
+        # This is a deterministic historical replay, not a new modelling run.
+        replay_manifest = json.loads((run / "inputs.json").read_bytes())
+        replay_manifest["plan_regularization_rule"] = "legacy"
+        (run / "inputs.json").write_text(json.dumps(replay_manifest, ensure_ascii=False),
+                                        encoding="utf-8", newline="\n")
+        # Synthetic usage omits images; R2 charges the unknown-model pixel bound
+        # per request. This allowance is only for the offline 75-step state replay.
+        limits = RunLimits(model_calls=80, tool_calls=80, seconds=900, tokens=120_000_000,
+                           context_tokens=12_000_000)
+        role = coordinator_role(limits.ledger_limit())
+        observer = ObserveReplay(output)
+        with EventStore(output, run_id="run99-frozen-tools", task_id="coordinator",
+                        budget_limit=limits.ledger_limit()) as store:
+            async with frozen_bim_client(run, repository_root=ROOT) as client:
+                tools = ReplayTools(client, role, run_directory=run, sequence=sequence, store=store)
+                catalog = await tools.list_tools()
+                write_frozen_materials(output / "frozen", repository_root=ROOT)
+                write_frozen_tool_catalog(output / "frozen", await client.list_tools(), readonly=False)
+                specs = [{"type": "function", "function": {"name": t["name"],
+                    "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
+                parameters = {"max_tokens": 64, "temperature": 0.0}
+                versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
+                    parameters=parameters, route={"route_id": "scripted-run99", "model": "offline-run99-fixture"},
+                    code_paths=("src/agent/runtime_context.py", "src/agent/runtime_tools.py",
+                        "src/agent/runtime_entry.py", "scripts/tool_scripts", "src/agent/geometry",
+                        "src/agent/correction", "src/agent/execution", "tests/test_runtime_frozen_long_task.py"))
+                store.write_json("versions.json", versions.model_dump(mode="json"))
+                adapter = ScriptedAdapter(sequence.scripted_responses())
+                engine = Runtime(store=store, adapter=adapter, tools=tools, role=role,
+                    model="offline-run99-fixture", parameters=parameters, versions=versions, limits=limits,
+                    context_policy=ContextPolicy(active_window_messages=8, max_images=2, max_image_bytes=250_000),
+                    context_update=update_building_context, fault_hook=observer)
+                receipt = await engine.run([{"role": "system", "content": guide},
+                                            {"role": "user", "content": task}])
+                report = {"receipt": receipt, "steps": observer.steps, "requests": observer.requests,
+                    "calls": tools.calls, "retrievals": observer.retrievals,
+                    "historical_catalog_additions": sorted(tools.historical_catalog),
+                    "limits": limits.model_dump(mode="json"),
+                    "source": {"path": str(HISTORY.relative_to(ROOT)),
+                        "inputs_sha256": digest((HISTORY / "inputs.json").read_bytes())},
+                    "boundary": "Real registered tools with three legacy claim APIs exposed only for replay; "
+                        "historical arguments unchanged; model responses scripted; "
+                        "usage 20 tokens/response is synthetic, not service usage. No whole-case model run."}
+                store.write_json("frozen_replay_report.json", report)
+>               assert receipt["status"] == "completed", receipt
+E               AssertionError: {'agent_version': 'domain-v58-20261010', 'answer': None, 'artifact_paths': ['C:\\Users\\Horton\\Desktop\\EnergyPlus-Ag...1397013599165247db3f0a80', 'uri': 'blobs/651ac557b8a90391bee12b398f85eccd78fd0f331397013599165247db3f0a80'}, ...], ...}
+E               assert 'failed' == 'completed'
+E
+E                 - completed
+E                 + failed
+
+tests\test_runtime_frozen_long_task.py:300: AssertionError
+---------------------------- Captured stdout call -----------------------------
+frozen replay step=20 state=17 bytes=16605 candidate=None
+frozen replay step=40 state=23 bytes=22596 candidate=None
+frozen replay step=46 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=47 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=48 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=49 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=50 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=51 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=52 state=33 bytes=33572 candidate=candidate_01
+frozen replay step=53 state=33 bytes=33572 candidate=candidate_01
+_ test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[4-3] __
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_batch_isolates_failure_an0')
+concurrency = 4, expected_peak = 3
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:128:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+>   ???
+E   AssertionError: assert ['child_faile...child_failed'] == ['completed',..., 'completed']
+E
+E     At index 0 diff: 'child_failed' != 'completed'
+E     Use -v to get more diff
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:104: AssertionError
+_ test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[1-1] __
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_batch_isolates_failure_an1')
+concurrency = 1, expected_peak = 1
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:128:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+>   ???
+E   AssertionError: assert ['child_faile...child_failed'] == ['completed',..., 'completed']
+E
+E     At index 0 diff: 'child_failed' != 'completed'
+E     Use -v to get more diff
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:104: AssertionError
+_ test_parallel_results_are_rechecked_against_saved_version_before_application _
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_parallel_results_are_rech0')
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:148:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+>   ???
+E   assert False
+E    +  where False = all(<generator object test_parallel_results_are_rechecked_against_saved_version_before_application.<locals>.scenario.<locals>.<genexpr> at 0x000001A1BF80B850>)
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:140: AssertionError
+_______________ test_parallel_batch_preserves_root_request_cap ________________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_parallel_batch_preserves_0')
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:179:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+>   ???
+E   AssertionError: assert 0 == 2
+E    +  where 0 = <built-in method count of list object at 0x000001A1C37DEA40>('completed')
+E    +    where <built-in method count of list object at 0x000001A1C37DEA40> = ['child_failed', 'child_failed', 'child_failed', 'child_failed'].count
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_parallel_delegation.py:174: AssertionError
+________ test_half_near_deadline_and_late_tool_refusal_through_runtime ________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_half_near_deadline_and_la0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BEE7D940>
+
+    def test_half_near_deadline_and_late_tool_refusal_through_runtime(tmp_path, monkeypatch):
+        actions = [{"tool": "inputs"}, {"tool": "inputs", "now": 4000},
+            {"tool": "inputs", "now": 6101},
+            {**_build(), "now": 6999, "at_tool": 7000}]
+>       out, receipt, requests, events = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runtime_r3.py:145:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BECDB6B0>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+____ test_tool_preparation_uses_the_same_start_and_does_not_restart_clock _____
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_tool_preparation_uses_the0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF207830>
+
+    def test_tool_preparation_uses_the_same_start_and_does_not_restart_clock(tmp_path, monkeypatch):
+>       _, receipt, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [{}], preparation_seconds=600))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runtime_r3.py:165:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1C2B92270>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+_________ test_stops_deliver_complete_before_newer_partial[deadline] __________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_stops_deliver_complete_be0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BED5ABA0>
+ending = 'deadline'
+
+    @pytest.mark.parametrize("ending", ["deadline", "normal", "model_limit"])
+    def test_stops_deliver_complete_before_newer_partial(tmp_path, monkeypatch, ending):
+        actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"}, _build()]
+        if ending == "deadline":
+            actions += [{"tool": "finish_bim", "arguments": {"candidate": "candidate_04"}},
+                {"tool": "inputs", "now": 6999, "at_tool": 7000}]
+        elif ending == "normal":
+            actions += [{}]
+>       out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions,
+            model_calls=4 if ending == "model_limit" else 20))
+
+tests\test_runtime_r3.py:189:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BECEA570>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+__________ test_stops_deliver_complete_before_newer_partial[normal] ___________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_stops_deliver_complete_be1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF052240>
+ending = 'normal'
+
+    @pytest.mark.parametrize("ending", ["deadline", "normal", "model_limit"])
+    def test_stops_deliver_complete_before_newer_partial(tmp_path, monkeypatch, ending):
+        actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"}, _build()]
+        if ending == "deadline":
+            actions += [{"tool": "finish_bim", "arguments": {"candidate": "candidate_04"}},
+                {"tool": "inputs", "now": 6999, "at_tool": 7000}]
+        elif ending == "normal":
+            actions += [{}]
+>       out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions,
+            model_calls=4 if ending == "model_limit" else 20))
+
+tests\test_runtime_r3.py:189:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BF051970>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+________ test_stops_deliver_complete_before_newer_partial[model_limit] ________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_stops_deliver_complete_be2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BEB3AD80>
+ending = 'model_limit'
+
+    @pytest.mark.parametrize("ending", ["deadline", "normal", "model_limit"])
+    def test_stops_deliver_complete_before_newer_partial(tmp_path, monkeypatch, ending):
+        actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"}, _build()]
+        if ending == "deadline":
+            actions += [{"tool": "finish_bim", "arguments": {"candidate": "candidate_04"}},
+                {"tool": "inputs", "now": 6999, "at_tool": 7000}]
+        elif ending == "normal":
+            actions += [{}]
+>       out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions,
+            model_calls=4 if ending == "model_limit" else 20))
+
+tests\test_runtime_r3.py:189:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1C0D22F90>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+_____________ test_only_partial_saved_is_delivered_as_incomplete ______________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_only_partial_saved_is_del0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1C22236B0>
+
+    def test_only_partial_saved_is_delivered_as_incomplete(tmp_path, monkeypatch):
+        actions = [_build(), {"tool": "inputs", "now": 6999, "at_tool": 7000}]
+>       out, receipt, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runtime_r3.py:207:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1C22202C0>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+_________________ test_non_timeout_preserves_model_selection __________________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_non_timeout_preserves_mod0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BFDDA780>
+
+    def test_non_timeout_preserves_model_selection(tmp_path, monkeypatch):
+        actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+            {"tool": "finish_bim", "arguments": {"candidate": "candidate_01"}}, {}]
+>       out, receipt, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runtime_r3.py:221:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BFDD84D0>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+_____________ test_external_coordinator_also_finalizes_saved_work _____________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_external_coordinator_also0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF929520>
+
+    def test_external_coordinator_also_finalizes_saved_work(tmp_path, monkeypatch):
+        from src.agent.runtime_coordinator import CoordinatorSession
+        from src.agent.runtime_tools import coordinator_role
+        from src.agent_runtime.agent_registry import agent_version_record
+>       out, _, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [_build(), {}]))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runtime_r3.py:233:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:126: in _scenario
+    receipt = await runtime_entry.execute(args)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent\runtime_entry.py:203: in execute
+    result = await engine.run(messages, image_originals=originals, resume=args.resume)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BF92B440>, adapter=<test_runtime_r3._scenario.<l...0001A1BE3005E0>, tool_budget_update=<function publish_tool_budget at 0x000001A1BE301440>, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+___ test_observer_service_uses_own_deadline_and_cannot_extend_parent[30-30] ___
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_observer_service_uses_own0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF817770>
+child_seconds = 30, actual_seconds = 30
+
+    @pytest.mark.parametrize("child_seconds, actual_seconds", [(30, 30), (300, 100)])
+    def test_observer_service_uses_own_deadline_and_cannot_extend_parent(tmp_path, monkeypatch, child_seconds, actual_seconds):
+        from src.agent import runtime_delegation, runtime_tools
+        from tests.test_runtime_delegation import _registered_view, _package, _response, _answer
+
+        async def scenario():
+            clock = [1000.0]
+            fake_time = SimpleNamespace(time=lambda: clock[0], monotonic=lambda: clock[0] + monotonic() * 1e-6)
+            for module in (loop, runtime_delegation, runner, bim_agent_budget):
+                monkeypatch.setattr(module, "time", fake_time)
+
+            @asynccontextmanager
+            async def local(run_directory, readonly=False, repository_root=None):
+                yield LocalClient(run_directory, clock, readonly=readonly)
+
+            monkeypatch.setattr(runtime_tools, "frozen_bim_client", local)
+            root_limits = RunLimits(model_calls=6, tool_calls=6, tokens=1_000_000, seconds=1000)
+            limits = RunLimits(model_calls=3, tool_calls=3, tokens=500_000, seconds=child_seconds)
+            with EventStore(tmp_path / "audit", run_id="r3-observer", task_id="coordinator",
+                            budget_limit=root_limits.ledger_limit()) as store:
+                view = _registered_view(store)
+                run = tmp_path / "parent"
+                run.mkdir()
+                manifest_path = run / "inputs.json"
+                manifest_path.write_text(json.dumps({"images": {}, "image_kind": "drawings",
+                    "started_epoch": 1000, "deadline_epoch": 1100, "time_budget_seconds": 100}))
+                parent_before = manifest_path.read_bytes()
+                frozen = FrozenBimTools(None, local_observer_role(root_limits.ledger_limit()), run_directory=run)
+                def nearing(_):
+                    clock[0] = 1000 + actual_seconds * .9
+                    return _response(calls=[("reference", "get_bim_reference", {"topic": "geometry"})])
+                adapter = ScriptedAdapter([nearing, _response(text=_answer())])
+                child = store.for_task("observer-1", parent_task_id="coordinator")
+                result = await run_observer(store=child, frozen_tools=frozen, adapter=adapter,
+                    model="test", parameters={"max_tokens": 4096}, limits=limits,
+                    package=_package(view), views=[view], notes=[], root=ROOT,
+                    route={"route_id": "scripted", "model": "test"}, parent_deadline_epoch=1100)
+                assert result["status"] == "completed", result
+                manifest = json.loads((child.task_directory / "bim/inputs.json").read_bytes())
+                assert manifest["started_epoch"] == 1000
+                assert manifest["deadline_epoch"] == 1000 + actual_seconds <= 1100
+                assert manifest["time_budget_seconds"] == actual_seconds
+                assert manifest_path.read_bytes() == parent_before
+                tail = adapter.requests[1].decode()
+                assert "剩余不足15%" in tail and "停止新范围探索" in tail
+                assert "返回已有观察与未核项" in tail
+                assert "先按已读信息保存全楼草稿" not in adapter.requests[1].decode()
+                store.validate()
+                _evidence(f"observer_{child_seconds}", {"model_requests": 0,
+                    "status": result["status"], "timing": {key: manifest[key] for key in
+                        ("started_epoch", "deadline_epoch", "time_budget_seconds")},
+                    "parent_deadline": 1100, "parent_unchanged": True, "readonly_reminder": True})
+>       asyncio.run(scenario())
+
+tests\test_runtime_r3.py:327:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:308: in scenario
+    result = await run_observer(store=child, frozen_tools=frozen, adapter=adapter,
+src\agent\runtime_delegation.py:287: in run_observer
+    return await _run_observer(store=store, frozen_tools=frozen_tools, adapter=adapter,
+src\agent\runtime_delegation.py:330: in _run_observer
+    receipt = await engine.run([{"role": "system", "content": OBSERVER_GUIDANCE},
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1C2045E20>, adapter=<src.agent_runtime.adapter.Sc...output_limit_reason=None, start_epoch=1000.0, finalize_run=None, tool_budget_update=None, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+__ test_observer_service_uses_own_deadline_and_cannot_extend_parent[300-100] __
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_observer_service_uses_own1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A1BF54E330>
+child_seconds = 300, actual_seconds = 100
+
+    @pytest.mark.parametrize("child_seconds, actual_seconds", [(30, 30), (300, 100)])
+    def test_observer_service_uses_own_deadline_and_cannot_extend_parent(tmp_path, monkeypatch, child_seconds, actual_seconds):
+        from src.agent import runtime_delegation, runtime_tools
+        from tests.test_runtime_delegation import _registered_view, _package, _response, _answer
+
+        async def scenario():
+            clock = [1000.0]
+            fake_time = SimpleNamespace(time=lambda: clock[0], monotonic=lambda: clock[0] + monotonic() * 1e-6)
+            for module in (loop, runtime_delegation, runner, bim_agent_budget):
+                monkeypatch.setattr(module, "time", fake_time)
+
+            @asynccontextmanager
+            async def local(run_directory, readonly=False, repository_root=None):
+                yield LocalClient(run_directory, clock, readonly=readonly)
+
+            monkeypatch.setattr(runtime_tools, "frozen_bim_client", local)
+            root_limits = RunLimits(model_calls=6, tool_calls=6, tokens=1_000_000, seconds=1000)
+            limits = RunLimits(model_calls=3, tool_calls=3, tokens=500_000, seconds=child_seconds)
+            with EventStore(tmp_path / "audit", run_id="r3-observer", task_id="coordinator",
+                            budget_limit=root_limits.ledger_limit()) as store:
+                view = _registered_view(store)
+                run = tmp_path / "parent"
+                run.mkdir()
+                manifest_path = run / "inputs.json"
+                manifest_path.write_text(json.dumps({"images": {}, "image_kind": "drawings",
+                    "started_epoch": 1000, "deadline_epoch": 1100, "time_budget_seconds": 100}))
+                parent_before = manifest_path.read_bytes()
+                frozen = FrozenBimTools(None, local_observer_role(root_limits.ledger_limit()), run_directory=run)
+                def nearing(_):
+                    clock[0] = 1000 + actual_seconds * .9
+                    return _response(calls=[("reference", "get_bim_reference", {"topic": "geometry"})])
+                adapter = ScriptedAdapter([nearing, _response(text=_answer())])
+                child = store.for_task("observer-1", parent_task_id="coordinator")
+                result = await run_observer(store=child, frozen_tools=frozen, adapter=adapter,
+                    model="test", parameters={"max_tokens": 4096}, limits=limits,
+                    package=_package(view), views=[view], notes=[], root=ROOT,
+                    route={"route_id": "scripted", "model": "test"}, parent_deadline_epoch=1100)
+                assert result["status"] == "completed", result
+                manifest = json.loads((child.task_directory / "bim/inputs.json").read_bytes())
+                assert manifest["started_epoch"] == 1000
+                assert manifest["deadline_epoch"] == 1000 + actual_seconds <= 1100
+                assert manifest["time_budget_seconds"] == actual_seconds
+                assert manifest_path.read_bytes() == parent_before
+                tail = adapter.requests[1].decode()
+                assert "剩余不足15%" in tail and "停止新范围探索" in tail
+                assert "返回已有观察与未核项" in tail
+                assert "先按已读信息保存全楼草稿" not in adapter.requests[1].decode()
+                store.validate()
+                _evidence(f"observer_{child_seconds}", {"model_requests": 0,
+                    "status": result["status"], "timing": {key: manifest[key] for key in
+                        ("started_epoch", "deadline_epoch", "time_budget_seconds")},
+                    "parent_deadline": 1100, "parent_unchanged": True, "readonly_reminder": True})
+>       asyncio.run(scenario())
+
+tests\test_runtime_r3.py:327:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:195: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py:691: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\test_runtime_r3.py:308: in scenario
+    result = await run_observer(store=child, frozen_tools=frozen, adapter=adapter,
+src\agent\runtime_delegation.py:287: in run_observer
+    return await _run_observer(store=store, frozen_tools=frozen_tools, adapter=adapter,
+src\agent\runtime_delegation.py:330: in _run_observer
+    receipt = await engine.run([{"role": "system", "content": OBSERVER_GUIDANCE},
+src\agent_runtime\loop.py:238: in run
+    self._checkpoint()
+src\agent_runtime\loop.py:1241: in _checkpoint
+    with self._measure("checkpoint"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Local\Programs\Python\Python312\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1BF54F290>, adapter=<src.agent_runtime.adapter.Sc...output_limit_reason=None, start_epoch=1000.0, finalize_run=None, tool_budget_update=None, request_timeout_seconds=None)
+phase = 'checkpoint'
+
+    @contextmanager
+    def _measure(self, phase):
+>       started = time.perf_counter()
+                  ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'perf_counter'
+
+src\agent_runtime\loop.py:296: AttributeError
+____ test_child_cleanup_time_overrun_keeps_unknown_hold_and_scoped_receipt ____
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_child_cleanup_time_overru0')
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_time_settlement.py:124:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1C4BF41A0>, adapter=<src.agent_runtime.adapter.Sc...w_output_limit_reason=None, start_epoch=None, finalize_run=None, tool_budget_update=None, request_timeout_seconds=None)
+reason = 'child_time_budget_exhausted'
+
+    def _stop(self, reason):
+        self._load_budget()
+        self._refresh_counts()
+        # Domain finalization reuses already saved artifacts; it must run before
+        # their hashes and the final receipt are recorded. No new model request.
+        finalization = (self.finalize_run(self, reason) if self.finalize_run
+                        and not reason.startswith("resume_") else None)
+        artifacts, paths = [], []
+        for path in self.tools.artifacts():
+            if path.is_file():
+                artifacts.append(self.store.put_bytes(path.read_bytes()))
+                paths.append(str(path))
+        costs = [s.cost for s in self.task_budget.ledger.effective_settlements]
+        estimated = self.task_budget.ledger.committed.money_usd
+        accounting_records = [request_accounting_from_store(self.store, e.event_id)
+            for e in self.store.all_events if e.payload.event_type == "adapter_request"]
+        task_accounting = summarize_request_accounting(
+            row for row in accounting_records if row.task_id == self.store.task_id)
+        from .timing import summarize_timing
+        # A timeout/cleanup may finish beyond the deadline; timing must retain
+        # the observed wall duration instead of clipping it to the time limit.
+        elapsed = self.elapsed_before + max(0.0, time.monotonic() - self.started)
+        timing = summarize_timing(self.store, current_task=self.store.task_id,
+            started_epoch=self.started_epoch, ended_epoch=self.started_epoch + elapsed,
+            status=reason, pending_queue=getattr(self, "_queue_interruption", None))
+        from .versions import version_labels
+        receipt = {"status": reason, "answer": self.answer,
+            **version_labels(self.versions),
+            **({"finalization": finalization} if finalization is not None else {}),
+            "started_epoch": self.started_epoch,
+            "deadline_epoch": self.started_epoch + self.limits.seconds,
+            "agent_version": self.versions.agent_version.identifier if self.versions.agent_version else None,
+            "output_limit_policy": validate_output_limit(self.model,
+                self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
+                reason=self.low_output_limit_reason),
+            **self.counts, "elapsed_seconds": elapsed, "timing": timing,
+>           "runtime_processing": {"process_phase_seconds": dict(self._phase_seconds),
+                                                                 ^^^^^^^^^^^^^^^^^^^
+                "shared_journal": getattr(self.store, "timing_totals", {}),
+                "scope": "current process only; phases can contain journal work and must not be summed as exclusive wall time"},
+            "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
+            "truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.events),
+            "root_truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.all_events),
+            "billing_usd": str(sum(c.usd for c in costs)) if costs and all(c.kind == "reported" for c in costs) else None,
+            "estimated_money_upper_bound_usd": str(estimated) if estimated is not None else None,
+            "artifacts": [r.model_dump(mode="json") for r in artifacts], "artifact_paths": paths,
+            "token_accounting": "provider-reported usage plus separately estimated images when omitted, and outstanding/unknown holds; estimates are not bills",
+            "image_tokens_estimate": task_accounting["image_tokens_estimate"],
+            "estimated_cost_cny": task_accounting["estimated_cost_cny"],
+            "committed_estimate_cny": (str(self.budget.ledger.committed.money_cny)
+                if self.budget.ledger.committed.money_cny is not None else None),
+            "cny_ceiling_note": "CNY ceiling uses registered rates and conservative holds, not provider bills. Missing usage retains its hold and stops further requests.",
+            "usage_accounting": task_accounting,
+            "root_usage_accounting": summarize_request_accounting(accounting_records),
+            "request_usage_accounting": [row.receipt_dict() for row in accounting_records
+                if row.task_id == self.store.task_id],
+            "budget": self.budget.ledger.model_dump(mode="json"),
+            "root_budget_available": self.budget.available.model_dump(mode="json"),
+            "task_budget": self.task_budget.ledger.model_dump(mode="json"),
+            "task_budget_available": self.task_budget.available.model_dump(mode="json"),
+            "budget_scope": "root" if self.store.is_root_task else "child"}
+E       AttributeError: 'Runtime' object has no attribute '_phase_seconds'
+
+src\agent_runtime\loop.py:1847: AttributeError
+_________ test_root_time_cap_wins_when_root_remaining_time_is_tighter _________
+
+tmp_path = WindowsPath('C:/Users/Horton/AppData/Local/Temp/pytest-of-Horton/pytest-305/test_root_time_cap_wins_when_r0')
+
+>   ???
+
+/workspaces/EnergyPlus-Agent-dev/tests/test_runtime_time_settlement.py:153:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Runtime(store=<src.agent_runtime.store.EventStore object at 0x000001A1C4BF40E0>, adapter=<src.agent_runtime.adapter.Sc...w_output_limit_reason=None, start_epoch=None, finalize_run=None, tool_budget_update=None, request_timeout_seconds=None)
+reason = 'root_time_budget_exhausted'
+
+    def _stop(self, reason):
+        self._load_budget()
+        self._refresh_counts()
+        # Domain finalization reuses already saved artifacts; it must run before
+        # their hashes and the final receipt are recorded. No new model request.
+        finalization = (self.finalize_run(self, reason) if self.finalize_run
+                        and not reason.startswith("resume_") else None)
+        artifacts, paths = [], []
+        for path in self.tools.artifacts():
+            if path.is_file():
+                artifacts.append(self.store.put_bytes(path.read_bytes()))
+                paths.append(str(path))
+        costs = [s.cost for s in self.task_budget.ledger.effective_settlements]
+        estimated = self.task_budget.ledger.committed.money_usd
+        accounting_records = [request_accounting_from_store(self.store, e.event_id)
+            for e in self.store.all_events if e.payload.event_type == "adapter_request"]
+        task_accounting = summarize_request_accounting(
+            row for row in accounting_records if row.task_id == self.store.task_id)
+        from .timing import summarize_timing
+        # A timeout/cleanup may finish beyond the deadline; timing must retain
+        # the observed wall duration instead of clipping it to the time limit.
+        elapsed = self.elapsed_before + max(0.0, time.monotonic() - self.started)
+        timing = summarize_timing(self.store, current_task=self.store.task_id,
+            started_epoch=self.started_epoch, ended_epoch=self.started_epoch + elapsed,
+            status=reason, pending_queue=getattr(self, "_queue_interruption", None))
+        from .versions import version_labels
+        receipt = {"status": reason, "answer": self.answer,
+            **version_labels(self.versions),
+            **({"finalization": finalization} if finalization is not None else {}),
+            "started_epoch": self.started_epoch,
+            "deadline_epoch": self.started_epoch + self.limits.seconds,
+            "agent_version": self.versions.agent_version.identifier if self.versions.agent_version else None,
+            "output_limit_policy": validate_output_limit(self.model,
+                self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
+                reason=self.low_output_limit_reason),
+            **self.counts, "elapsed_seconds": elapsed, "timing": timing,
+>           "runtime_processing": {"process_phase_seconds": dict(self._phase_seconds),
+                                                                 ^^^^^^^^^^^^^^^^^^^
+                "shared_journal": getattr(self.store, "timing_totals", {}),
+                "scope": "current process only; phases can contain journal work and must not be summed as exclusive wall time"},
+            "limits": self.limits.model_dump(mode="json"), "retries": self._retry_count(), "fallback": False,
+            "truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.events),
+            "root_truncations": sum(e.payload.event_type == "response_truncation" for e in self.store.all_events),
+            "billing_usd": str(sum(c.usd for c in costs)) if costs and all(c.kind == "reported" for c in costs) else None,
+            "estimated_money_upper_bound_usd": str(estimated) if estimated is not None else None,
+            "artifacts": [r.model_dump(mode="json") for r in artifacts], "artifact_paths": paths,
+            "token_accounting": "provider-reported usage plus separately estimated images when omitted, and outstanding/unknown holds; estimates are not bills",
+            "image_tokens_estimate": task_accounting["image_tokens_estimate"],
+            "estimated_cost_cny": task_accounting["estimated_cost_cny"],
+            "committed_estimate_cny": (str(self.budget.ledger.committed.money_cny)
+                if self.budget.ledger.committed.money_cny is not None else None),
+            "cny_ceiling_note": "CNY ceiling uses registered rates and conservative holds, not provider bills. Missing usage retains its hold and stops further requests.",
+            "usage_accounting": task_accounting,
+            "root_usage_accounting": summarize_request_accounting(accounting_records),
+            "request_usage_accounting": [row.receipt_dict() for row in accounting_records
+                if row.task_id == self.store.task_id],
+            "budget": self.budget.ledger.model_dump(mode="json"),
+            "root_budget_available": self.budget.available.model_dump(mode="json"),
+            "task_budget": self.task_budget.ledger.model_dump(mode="json"),
+            "task_budget_available": self.task_budget.available.model_dump(mode="json"),
+            "budget_scope": "root" if self.store.is_root_task else "child"}
+E       AttributeError: 'Runtime' object has no attribute '_phase_seconds'
+
+src\agent_runtime\loop.py:1847: AttributeError
+F-158 no-billed-calls gate READOUT (non-authoritative): 0 provider calls blocked in THIS process. Under -n parallelism this is the master process only, not workers; authoritative evidence that no billed call happened = the suite's FAILED-test set.
+=========================== short test summary info ===========================
+FAILED tests/test_agent_runtime.py::test_small_positive_root_time_remainder_is_used_as_request_timeout
+FAILED tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]
+FAILED tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]
+FAILED tests/test_role_end_to_end.py::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]
+FAILED tests/test_role_end_to_end.py::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial
+FAILED tests/test_role_end_to_end.py::test_resume_after_all_readers_preserves_reader_records
+FAILED tests/test_role_end_to_end.py::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]
+FAILED tests/test_role_end_to_end.py::test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]
+FAILED tests/test_role_single_parity.py::test_first_request_sources_are_byte_identical_to_the_dispatch_baseline
+FAILED tests/test_role_trial.py::test_real_profile_is_resolved_to_recoverable_independent_numeric_plan
+FAILED tests/test_runtime_a4r_money.py::test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_budget_exhausted]
+FAILED tests/test_runtime_a4r_money.py::test_money_stop_delivers_latest_complete_instead_of_selected_partial[root_money_budget_exhausted]
+FAILED tests/test_runtime_a4r_money.py::test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_cny_usage_unavailable]
+FAILED tests/test_runtime_frozen_long_task.py::test_real_frozen_tools_keep_run99_state_across_75_steps
+FAILED tests/test_runtime_parallel_delegation.py::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[4-3]
+FAILED tests/test_runtime_parallel_delegation.py::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[1-1]
+FAILED tests/test_runtime_parallel_delegation.py::test_parallel_results_are_rechecked_against_saved_version_before_application
+FAILED tests/test_runtime_parallel_delegation.py::test_parallel_batch_preserves_root_request_cap
+FAILED tests/test_runtime_r3.py::test_half_near_deadline_and_late_tool_refusal_through_runtime
+FAILED tests/test_runtime_r3.py::test_tool_preparation_uses_the_same_start_and_does_not_restart_clock
+FAILED tests/test_runtime_r3.py::test_stops_deliver_complete_before_newer_partial[deadline]
+FAILED tests/test_runtime_r3.py::test_stops_deliver_complete_before_newer_partial[normal]
+FAILED tests/test_runtime_r3.py::test_stops_deliver_complete_before_newer_partial[model_limit]
+FAILED tests/test_runtime_r3.py::test_only_partial_saved_is_delivered_as_incomplete
+FAILED tests/test_runtime_r3.py::test_non_timeout_preserves_model_selection
+FAILED tests/test_runtime_r3.py::test_external_coordinator_also_finalizes_saved_work
+FAILED tests/test_runtime_r3.py::test_observer_service_uses_own_deadline_and_cannot_extend_parent[30-30]
+FAILED tests/test_runtime_r3.py::test_observer_service_uses_own_deadline_and_cannot_extend_parent[300-100]
+FAILED tests/test_runtime_time_settlement.py::test_child_cleanup_time_overrun_keeps_unknown_hold_and_scoped_receipt
+FAILED tests/test_runtime_time_settlement.py::test_root_time_cap_wins_when_root_remaining_time_is_tighter
+30 failed, 793 passed, 1 skipped in 824.53s (0:13:44)

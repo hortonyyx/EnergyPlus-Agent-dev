@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "final_runtime": "runtime-v5-20261010",
+  "final_domain": "domain-v60-20261010",
+  "production_commit": "f54dd9f35a589c275bdb6bb0a7a218da252dfa9c",
+  "registration_commit": "b27405fa0b8a002c905b175d33075eb2fb79e98a",
+  "batches": [
+    {
+      "evidence": "integration.xml",
+      "version": "runtime-v3/domain-v58",
+      "tests": 824,
+      "passed": 793,
+      "failed": 30,
+      "skipped": 1,
+      "seconds": 824.352,
+      "sha256": "c1bee8041e46708cfd18a90a91c0f3e3e2b0e81653843a33c86fb7250806c25d",
+      "raw_sha256": "65815a8b9f00665091f27fc9bddae5f6fd39588f4312b819f4c3609ef1c30373"
+    },
+    {
+      "evidence": "recheck.xml",
+      "version": "runtime-v4/domain-v59",
+      "tests": 51,
+      "passed": 27,
+      "failed": 24,
+      "skipped": 0,
+      "seconds": 668.554,
+      "sha256": "54089b80fb700280684c31a7c3f55aec16fbb643bdb7562db383a4a8cf0dcb5e",
+      "raw_sha256": "29ecc229eab2ebdc1863668371b69b370fa1915168326b8f950f946830549d15"
+    },
+    {
+      "evidence": "clock_recheck.xml",
+      "version": "runtime-v5/domain-v60",
+      "tests": 57,
+      "passed": 57,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 87.979,
+      "sha256": "bbedebbefb3e55a267b540ed1ba6548a0aa49c6786b3d1b18bd79d8a615020bd",
+      "raw_sha256": "5561db5febef4ce5e28f40fd1203cfa33217f04fcd5a5d9c9814ef3df1160dd8"
+    },
+    {
+      "evidence": "final_integration.xml",
+      "version": "runtime-v5/domain-v60",
+      "tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 740.736,
+      "sha256": "c54e4fe976681875779ad7bbb09e3fdc26e709419b359446fe0c34ffe2725984",
+      "raw_sha256": "87dc1081312f140775fa0e5c653efb98a99feeb323583ae0e858fc099ac44ce2"
+    }
+  ],
+  "initial_failures": 30,
+  "unresolved_initial_failures": [],
+  "resolved_initial_failure_evidence": {
+    "tests.test_agent_runtime::test_small_positive_root_time_remainder_is_used_as_request_timeout": "recheck.xml",
+    "tests.test_role_end_to_end::test_resume_after_all_readers_preserves_reader_records": "final_integration.xml",
+    "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[build_plan_bim]": "final_integration.xml",
+    "tests.test_role_end_to_end::test_resume_after_inner_receipt_does_not_repeat_write[claim_transaction]": "final_integration.xml",
+    "tests.test_role_end_to_end::test_resume_reader_after_trial_checkpoint_does_not_repeat_trial": "final_integration.xml",
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm21-True]": "final_integration.xml",
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm24-False]": "final_integration.xml",
+    "tests.test_role_end_to_end::test_scripted_role_pipeline_runs_real_frozen_mcp[sm25-True]": "final_integration.xml",
+    "tests.test_role_single_parity::test_first_request_sources_are_byte_identical_to_the_dispatch_baseline": "recheck.xml",
+    "tests.test_role_trial::test_real_profile_is_resolved_to_recoverable_independent_numeric_plan": "recheck.xml",
+    "tests.test_runtime_a4r_money::test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_budget_exhausted]": "clock_recheck.xml",
+    "tests.test_runtime_a4r_money::test_money_stop_delivers_latest_complete_instead_of_selected_partial[money_cny_usage_unavailable]": "clock_recheck.xml",
+    "tests.test_runtime_a4r_money::test_money_stop_delivers_latest_complete_instead_of_selected_partial[root_money_budget_exhausted]": "clock_recheck.xml",
+    "tests.test_runtime_frozen_long_task::test_real_frozen_tools_keep_run99_state_across_75_steps": "final_integration.xml",
+    "tests.test_runtime_parallel_delegation::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[1-1]": "clock_recheck.xml",
+    "tests.test_runtime_parallel_delegation::test_batch_isolates_failure_and_child_budget_and_counts_every_attempt[4-3]": "clock_recheck.xml",
+    "tests.test_runtime_parallel_delegation::test_parallel_batch_preserves_root_request_cap": "clock_recheck.xml",
+    "tests.test_runtime_parallel_delegation::test_parallel_results_are_rechecked_against_saved_version_before_application": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_external_coordinator_also_finalizes_saved_work": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_half_near_deadline_and_late_tool_refusal_through_runtime": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_non_timeout_preserves_model_selection": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_observer_service_uses_own_deadline_and_cannot_extend_parent[30-30]": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_observer_service_uses_own_deadline_and_cannot_extend_parent[300-100]": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_only_partial_saved_is_delivered_as_incomplete": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_stops_deliver_complete_before_newer_partial[deadline]": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_stops_deliver_complete_before_newer_partial[model_limit]": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_stops_deliver_complete_before_newer_partial[normal]": "clock_recheck.xml",
+    "tests.test_runtime_r3::test_tool_preparation_uses_the_same_start_and_does_not_restart_clock": "clock_recheck.xml",
+    "tests.test_runtime_time_settlement::test_child_cleanup_time_overrun_keeps_unknown_hold_and_scoped_receipt": "recheck.xml",
+    "tests.test_runtime_time_settlement::test_root_time_cap_wins_when_root_remaining_time_is_tighter": "recheck.xml"
+  },
+  "latest_unique_outcomes": {
+    "passed": 826,
+    "failed": 0,
+    "skipped": 1
+  },
+  "interpretation": "Union of scoped batches on stated revisions, not a new full-suite execution at the final HEAD; overlapping cases counted once here. 68 claims/height/facade tests are separately transcribed in utf8_verification.json and not added to this union. The one opt-in frozen-prefix test was skipped in integration; all 1269 prefixes were independently verified in the journal evidence.",
+  "live_smoke": {
+    "evidence": "glm_live/smoke_result.json",
+    "runtime": "runtime-v4-20261010",
+    "domain": "domain-v59-20261010",
+    "calls": 2,
+    "requests_with_usage": 2,
+    "passed_checks": 14,
+    "elapsed_seconds": 8.625,
+    "input_tokens": 623,
+    "output_tokens": 31,
+    "billing": "subscription; no usage-based CNY estimate"
+  },
+  "new_real_model_bim_runs": 0,
+  "deepseek_calls": 0,
+  "seconds_basis": "XML batch times are JUnit suite timings. README uses pytest console totals; small overhead differences are expected.",
+  "raw_offline_evidence": {
+    "path": "offline_evidence.zip",
+    "sha256": "e59aba66fc150686ec8d7a631b92dae78dfd1228b739d23777c4bad566162f46",
+    "files": {
+      "integration.xml": {
+        "sha256": "65815a8b9f00665091f27fc9bddae5f6fd39588f4312b819f4c3609ef1c30373",
+        "bytes": 215548
+      },
+      "integration.log": {
+        "sha256": "9406fd59850986557efc55a11ea21652e760f60bba03cef69b6acffe0a8b3c5c",
+        "bytes": 95899
+      },
+      "recheck.xml": {
+        "sha256": "29ecc229eab2ebdc1863668371b69b370fa1915168326b8f950f946830549d15",
+        "bytes": 69923
+      },
+      "recheck.log": {
+        "sha256": "54c9770f973ce96df4e732ad234699aace3f2ed1a275b46af11e0875b4c430be",
+        "bytes": 63944
+      },
+      "clock_recheck.xml": {
+        "sha256": "5561db5febef4ce5e28f40fd1203cfa33217f04fcd5a5d9c9814ef3df1160dd8",
+        "bytes": 8513
+      },
+      "clock_recheck.log": {
+        "sha256": "4f9f768fa65c7708fbd0f7edb56150c5d7adfc0f8282364454c7a9a2c15d62b7",
+        "bytes": 361
+      },
+      "final_integration.xml": {
+        "sha256": "87dc1081312f140775fa0e5c653efb98a99feeb323583ae0e858fc099ac44ce2",
+        "bytes": 2505
+      },
+      "final_integration.log": {
+        "sha256": "abafcf2737fbdacd19e36832a872fe06160c89e70703ad452e06c0e451f56e22",
+        "bytes": 362
+      },
+      "timing_fixture.xml": {
+        "sha256": "76131849457a76eed8fe29ce86f47946244de197bbf24e087de07c7feb7e039a",
+        "bytes": 386
+      }
+    },
+    "readable_copy_note": "Git copies normalize line endings to LF and remove trailing whitespace only. Original console/XML bytes remain unchanged in this archive."
+  }
+}

@@ -37,9 +37,9 @@
 
 ## 权限与执行
 
-- **10-10 最新安排：** 用户将domain下一轮设计留到明天讨论，当前先审阅runtime下一步迭代方向。三份独立审阅、离线恢复复现与效率证据已形成[报告](logs/reviews/2026-10-10_runtime_independent_review/summary.md)：建议优先同次任务可控续跑，再收缩全历史重复计算并贯通实际配置。此次只落审阅文档与诊断脚本，生产实现/版本未变，未追加work model调用；建议尚未实施。当前入口见[路线](project/roadmap.md)。
+- **10-10 最新执行：** 用户授权先迭代 runtime，需要测试时优先 GLM 订阅。已实现同次任务定向纠正、安全暂停/继续、带真实证据的预算恢复、原 task ID 委派恢复、增量日志校验与预算缓存、实际连接与上下文配置贯通，登记 **runtime v5 / domain v60**。domain 仅含必要恢复接线、配置与 Windows UTF-8 读取修复，规整/识读方法留待下一轮讨论。一次 GLM 订阅协议小测（v4/v59，后续仅补计时钟隔离与候选读取）14/14通过，2请求、654 token、8.625秒；无新sm25真实模型整案。离线集成检查及失败修复过程见[实施报告](logs/experiments/2026-10-10_runtime_control_iteration/README.md)，使用见[控制与恢复](workflow/runtime_controls.md)，下一入口见[路线](project/roadmap.md)。恢复能力、BIM质量与整案效率仍分别验收。
 
-- **10-10 当前终态：** Lite BIM 减负包已登记 domain v57（runtime v2不变），一次人工调度 sm25 已失败收口，**规整BIM交付目标未达到**。四立面完成、两平面失败，无整楼候选；F1超时缺usage触发runtime永久费用停止，准备的同次人工恢复未派发，未重复冷启。已知费用9.1655892元，完整费用未知。见[本轮报告](logs/experiments/2026-10-10_sm25_lite_regularization/README.md)与[当前交接](logs/worklog/2026-10-10_lite_bim_domain_close.md)。后续优先讨论已定位的声明恢复、近轴接头/尺寸链和人工介入问题，不自动追加模型实测。
+- **10-10 前一轮建模终态（保持冻结）：** Lite BIM 减负包已登记 domain v57（当时runtime v2），一次人工调度 sm25 已失败收口，**规整BIM交付目标未达到**。四立面完成、两平面失败，无整楼候选；F1超时缺usage触发当时runtime费用停止，准备的同次人工恢复未派发，未重复冷启。已知费用9.1655892元，完整费用未知。见[本轮报告](logs/experiments/2026-10-10_sm25_lite_regularization/README.md)与[交接](logs/worklog/2026-10-10_lite_bim_domain_close.md)。新runtime不追改旧失败账本或原地升级旧run，后续仍需讨论声明恢复、近轴接头/尺寸链，不自动追加模型实测。
 
 - **10-10 本包执行授权（上述实测已执行）：** 用户要求按已讨论的 Lite BIM 减负方向迭代 domain，目标为项目经理介入调度读图员，以 sm25 实现规整输出。执行范围见[本包实施与验收](workflow/lite_bim_domain_brief_20261010.md)；覆盖本包开发、离线验证与一次人工调度整案及同次局部返工，不自动重复抽样。此条覆盖下一条的讨论阶段限制。
 

@@ -1,0 +1,56 @@
+{
+  "schema_version": "utf8_verification_v1",
+  "record_type": "tool_output_transcription",
+  "recorded_date": "2026-10-10",
+  "repository_commit": "f54dd9f3",
+  "commit_note": "Current f54dd9f3 includes the two ClaimStore.candidate JSON read_bytes fixes. The tests below were run against those working-tree fixes before the parent committed them; they were not rerun for this transcription.",
+  "scope": "Offline Toolkit, claims, height and facade verification; no model or MCP calls in these verification runs.",
+  "runs": [
+    {
+      "name": "forced_gbk_json_boundaries",
+      "command": ".venv\\Scripts\\python.exe -m pytest -q -n 0 tests/test_bim_agent_utf8_json.py",
+      "exit_code": 0,
+      "pytest_elapsed_seconds": 2.50,
+      "passed": 2,
+      "failed": 0,
+      "tool_output_summary": "2 passed in 2.50s",
+      "coverage": "Fixture explicitly forces default Path.read_text, Path.write_text and Path.open encoding to GBK. Verifies actual OpenStudio(R) standards em dash and Chinese text, UTF-8 source/log/receipt bytes, saved candidate and plan-view rereads, and real height/facade schema names plus matching source_model_sha256. Missing/not_counted evidence remains explicit; these assertions do not establish drawing fidelity."
+    },
+    {
+      "name": "related_modules_default_windows_encoding",
+      "command": ".venv\\Scripts\\python.exe -m pytest -q -n 0 tests/test_bim_claims.py tests/test_bim_claim_state.py tests/test_bim_claim_transactions.py tests/test_bim_height_coverage.py tests/test_bim_located_heights.py tests/test_bim_facade_counts.py",
+      "exit_code": 1,
+      "pytest_elapsed_seconds": 39.21,
+      "passed": 55,
+      "failed": 13,
+      "tool_output_summary": "13 failed, 55 passed in 39.21s",
+      "failure_explanation": "All 13 traces fail in existing test code calling Path.read_text() without an explicit encoding on UTF-8 source_model.json, proposal.json or delivery.html. Windows locale selected GBK. These traces do not show a production reading failure. The original tests and assertions were not edited.",
+      "failed_nodes": [
+        "tests/test_bim_claims.py::test_real_parameter_application_and_candidate_provenance_survive_reload",
+        "tests/test_bim_claims.py::test_aperture_removal_scope_matches_the_actual_proposal_collection[window-window]",
+        "tests/test_bim_claims.py::test_aperture_removal_scope_matches_the_actual_proposal_collection[door-opening]",
+        "tests/test_bim_claims.py::test_component_thickness_persists_without_changing_geometry[wall]",
+        "tests/test_bim_claims.py::test_component_thickness_persists_without_changing_geometry[floor]",
+        "tests/test_bim_claim_state.py::test_confirmation_has_no_mutation_and_follows_only_unchanged_descendants",
+        "tests/test_bim_claim_state.py::test_role_edit_preserves_height_check_but_physical_host_move_invalidates_it",
+        "tests/test_bim_claim_state.py::test_explicit_note_replacement_updates_source_and_keeps_history",
+        "tests/test_bim_claim_state.py::test_imported_claim_ids_are_not_mistaken_for_new_run_decisions",
+        "tests/test_bim_claim_transactions.py::test_record_adopt_apply_in_one_call_and_reload",
+        "tests/test_bim_claim_transactions.py::test_sibling_and_origin_tampering_refuse_inheritance",
+        "tests/test_bim_height_coverage.py::test_cross_floor_opening_is_unchecked_in_each_host_floor_scope",
+        "tests/test_bim_facade_counts.py::test_prebuild_count_reports_missing_window_on_save_and_delivery"
+      ]
+    },
+    {
+      "name": "related_modules_utf8_test_reader_defaults",
+      "command": ".venv\\Scripts\\python.exe -X utf8 -m pytest -q -n 0 tests/test_bim_claims.py tests/test_bim_claim_state.py tests/test_bim_claim_transactions.py tests/test_bim_height_coverage.py tests/test_bim_located_heights.py tests/test_bim_facade_counts.py --basetemp=C:/Users/Horton/AppData/Local/Temp/runtime_claims_utf8_verify",
+      "exit_code": 0,
+      "pytest_elapsed_seconds": 40.30,
+      "passed": 68,
+      "failed": 0,
+      "tool_output_summary": "68 passed in 40.30s",
+      "interpretation": "The same six-module set passes when existing test readers use UTF-8 defaults. This does not replace the separate forced-GBK regression, which verifies the production encoding boundaries explicitly."
+    }
+  ],
+  "limits": "Transcription of prior tool output, not a fresh execution. Does not establish full runtime E2E completion, the 75-step replay result, live-provider behavior, or independent building quality."
+}

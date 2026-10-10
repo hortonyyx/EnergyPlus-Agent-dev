@@ -1,0 +1,452 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "mode": "live",
+  "checks": {
+    "completed": true,
+    "request_bound": true,
+    "expected_two_requests": true,
+    "single_fixed_probe": true,
+    "paused_after_first_response": true,
+    "message_ack_after_first_response": true,
+    "resume_before_second_request": true,
+    "correction_sent_once": true,
+    "corrected_final_json": true,
+    "all_controls_applied": true,
+    "no_retry_or_fallback": true,
+    "usage_complete": true,
+    "request_response_pairing": true,
+    "single_tool_execution": true
+  },
+  "receipt": {
+    "status": "completed",
+    "answer": "{\"observed\":\"before\",\"correction_token\":\"after-correction\",\"status\":\"accepted\"}",
+    "model_calls": 2,
+    "tool_calls": 1,
+    "reported_tokens": 654,
+    "elapsed_seconds": 8.625,
+    "timing": {
+      "schema_version": 1,
+      "root_task_id": "glm_control_smoke",
+      "by_task": {
+        "glm_control_smoke": {
+          "parent_task_id": null,
+          "started_epoch": 1791645089.6412342,
+          "ended_epoch": 1791645098.2662342,
+          "status": "completed",
+          "elapsed_seconds": 8.625,
+          "requests": 2,
+          "model_seconds": 8.062999999994645,
+          "model_duration_complete": true,
+          "queue_seconds": 0.0,
+          "queue_duration_complete": true,
+          "tool_calls": 1,
+          "tool_inclusive_seconds": 0.0,
+          "tool_duration_complete": true,
+          "tool_timing_basis": "monotonic_observation",
+          "dispatch_adjustments": [],
+          "child_wait_seconds": 0,
+          "tool_seconds": 0.0,
+          "other_seconds": 0.5620000000053551
+        }
+      },
+      "critical_path": {
+        "last_child_task_id": null,
+        "last_child_ended_epoch": null,
+        "root_tail_seconds": null,
+        "all_tasks_ended": true
+      },
+      "note": "Parallel task seconds must not be summed as run wall time. Child wait is the union of child lifetimes overlapping parent tool calls; setup/teardown stays in tool_seconds. Other includes preparation, context, logging, retry backoff, restart downtime and unmeasured interruption spans. Model/tool totals contain known durations only; inspect completeness flags. Missing historical queue measurements are null, not zero."
+    },
+    "runtime_processing": {
+      "process_phase_seconds": {
+        "checkpoint": 0.2625459000119008,
+        "context_projection": 0.0006796999950893223,
+        "request_prepare": 0.010711800001445226,
+        "adapter_send": 8.062999999994645,
+        "response_parse_capture": 0.005070599989267066
+      },
+      "shared_journal": {
+        "event_validation_seconds": 0.003165400034049526,
+        "journal_write_seconds": 0.042344899964518845
+      },
+      "scope": "current process only; phases can contain journal work and must not be summed as exclusive wall time"
+    },
+    "usage_accounting": {
+      "requests": 2,
+      "reconciled_requests": 0,
+      "original_missing_usage_requests": 0,
+      "rejected_unprocessed_requests": 0,
+      "reported_input_tokens": 623,
+      "reported_cache_read_tokens": null,
+      "reported_cache_write_tokens": null,
+      "reported_output_tokens": 31,
+      "provider_reported_tokens": 654,
+      "image_tokens_estimate": 0,
+      "additional_image_tokens": 0,
+      "billing_modes": [
+        "subscription"
+      ],
+      "budget_charge_tokens": 654,
+      "estimated_cost_cny": null,
+      "known_cost_components_cny": null,
+      "usage_complete": true,
+      "cost_estimate_complete": false,
+      "by_model": {
+        "glm-5.3-flash": {
+          "requests": 2,
+          "reconciled_requests": 0,
+          "original_missing_usage_requests": 0,
+          "rejected_unprocessed_requests": 0,
+          "reported_input_tokens": 623,
+          "reported_cache_read_tokens": null,
+          "reported_cache_write_tokens": null,
+          "reported_output_tokens": 31,
+          "provider_reported_tokens": 654,
+          "image_tokens_estimate": 0,
+          "additional_image_tokens": 0,
+          "billing_modes": [
+            "subscription"
+          ],
+          "budget_charge_tokens": 654,
+          "estimated_cost_cny": null,
+          "known_cost_components_cny": null,
+          "usage_complete": true,
+          "cost_estimate_complete": false
+        }
+      },
+      "by_task": {
+        "glm_control_smoke": {
+          "requests": 2,
+          "reconciled_requests": 0,
+          "original_missing_usage_requests": 0,
+          "rejected_unprocessed_requests": 0,
+          "reported_input_tokens": 623,
+          "reported_cache_read_tokens": null,
+          "reported_cache_write_tokens": null,
+          "reported_output_tokens": 31,
+          "provider_reported_tokens": 654,
+          "image_tokens_estimate": 0,
+          "additional_image_tokens": 0,
+          "billing_modes": [
+            "subscription"
+          ],
+          "budget_charge_tokens": 654,
+          "estimated_cost_cny": null,
+          "known_cost_components_cny": null,
+          "usage_complete": true,
+          "cost_estimate_complete": false
+        }
+      },
+      "currency_note": "CNY values are estimates from observed rates, not bills. Subscription requests have no usage-based currency estimate."
+    },
+    "request_usage_accounting": [
+      {
+        "request_event_id": "event-000004",
+        "task_id": "glm_control_smoke",
+        "model": "glm-5.3-flash",
+        "route_id": "glm-subscription",
+        "original_usage_kind": "reported",
+        "original_missing_reason": null,
+        "reconciliation_event_id": null,
+        "reconciliation_source": null,
+        "provider_reported_tokens": 289,
+        "reported_image_tokens": null,
+        "image_tokens_estimate": 0,
+        "reported_usage_includes_image_tokens": false,
+        "additional_image_tokens": 0,
+        "image_charge_source": "none",
+        "billing_mode": "subscription",
+        "budget_charge_tokens": 289,
+        "estimated_cost_cny": null,
+        "known_cost_components_cny": null,
+        "cost_estimate_complete": false,
+        "image_billing_status": "not_applicable",
+        "price_source": null,
+        "note": "This request sent no images. Subscription route: no usage-based currency estimate; token/time budgets still apply.",
+        "reported_input_tokens": 278,
+        "reported_cache_read_tokens": null,
+        "reported_cache_write_tokens": null,
+        "reported_output_tokens": 11,
+        "usage_basis": "provider_reported"
+      },
+      {
+        "request_event_id": "event-000019",
+        "task_id": "glm_control_smoke",
+        "model": "glm-5.3-flash",
+        "route_id": "glm-subscription",
+        "original_usage_kind": "reported",
+        "original_missing_reason": null,
+        "reconciliation_event_id": null,
+        "reconciliation_source": null,
+        "provider_reported_tokens": 365,
+        "reported_image_tokens": null,
+        "image_tokens_estimate": 0,
+        "reported_usage_includes_image_tokens": false,
+        "additional_image_tokens": 0,
+        "image_charge_source": "none",
+        "billing_mode": "subscription",
+        "budget_charge_tokens": 365,
+        "estimated_cost_cny": null,
+        "known_cost_components_cny": null,
+        "cost_estimate_complete": false,
+        "image_billing_status": "not_applicable",
+        "price_source": null,
+        "note": "This request sent no images. Subscription route: no usage-based currency estimate; token/time budgets still apply.",
+        "reported_input_tokens": 345,
+        "reported_cache_read_tokens": null,
+        "reported_cache_write_tokens": null,
+        "reported_output_tokens": 20,
+        "usage_basis": "provider_reported"
+      }
+    ],
+    "limits": {
+      "model_calls": 4,
+      "tool_calls": 1,
+      "seconds": 480.0,
+      "tokens": 250000,
+      "money_usd": null,
+      "money_cny": null,
+      "near_limit": "stop",
+      "min_output_tokens": 1,
+      "context_tokens": 128000,
+      "max_model_retries": 0,
+      "retry_backoff_seconds": 0.0,
+      "max_consecutive_truncations": 0,
+      "max_total_truncations": 0,
+      "summary_every": 0,
+      "max_tool_recovery_retries": 0
+    },
+    "retries": 0,
+    "truncations": 0,
+    "fallback": false,
+    "runtime_version": "runtime-v4-20261010",
+    "domain_version": "domain-v59-20261010",
+    "git_commit": "69ea095780b77393fefc1eae23e80770d6fb8d0f"
+  },
+  "controls": {
+    "run_id": "runtime-control-glm-smoke",
+    "tasks": {
+      "glm_control_smoke": {
+        "paused": false,
+        "last_lifecycle": {
+          "action": "stop",
+          "reason": "completed"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command_id": "pause-after-request-1",
+        "sequence": 0,
+        "run_id": "runtime-control-glm-smoke",
+        "target_task_id": "glm_control_smoke",
+        "action": "pause",
+        "text": null,
+        "source": "glm_smoke_driver",
+        "created_at": "2026-10-10T15:11:29.775081+00:00",
+        "status": "applied",
+        "acknowledgement_event_id": "event-000012"
+      },
+      {
+        "command_id": "correction-after-request-1",
+        "sequence": 1,
+        "run_id": "runtime-control-glm-smoke",
+        "target_task_id": "glm_control_smoke",
+        "action": "message",
+        "text": "Operator correction: in the final JSON, set correction_token exactly to 'after-correction'. Keep observed='before' and status='accepted'.",
+        "source": "glm_smoke_driver",
+        "created_at": "2026-10-10T15:11:29.779639+00:00",
+        "status": "applied",
+        "acknowledgement_event_id": "event-000013"
+      },
+      {
+        "command_id": "resume-after-safe-boundary",
+        "sequence": 2,
+        "run_id": "runtime-control-glm-smoke",
+        "target_task_id": "glm_control_smoke",
+        "action": "resume",
+        "text": null,
+        "source": "glm_smoke_driver",
+        "created_at": "2026-10-10T15:11:34.178574+00:00",
+        "status": "applied",
+        "acknowledgement_event_id": "event-000015"
+      }
+    ]
+  },
+  "tool_calls": [
+    {
+      "name": "probe",
+      "arguments": {
+        "token": "before"
+      }
+    }
+  ],
+  "event_index": [
+    {
+      "sequence": 0,
+      "event_id": "event-000000",
+      "task_id": "glm_control_smoke",
+      "event_type": "run_lifecycle"
+    },
+    {
+      "sequence": 1,
+      "event_id": "event-000001",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 2,
+      "event_id": "event-000002",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 3,
+      "event_id": "event-000003",
+      "task_id": "glm_control_smoke",
+      "event_type": "budget"
+    },
+    {
+      "sequence": 4,
+      "event_id": "event-000004",
+      "task_id": "glm_control_smoke",
+      "event_type": "adapter_request"
+    },
+    {
+      "sequence": 5,
+      "event_id": "event-000005",
+      "task_id": "glm_control_smoke",
+      "event_type": "model_response"
+    },
+    {
+      "sequence": 6,
+      "event_id": "event-000006",
+      "task_id": "glm_control_smoke",
+      "event_type": "budget"
+    },
+    {
+      "sequence": 7,
+      "event_id": "event-000007",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 8,
+      "event_id": "event-000008",
+      "task_id": "glm_control_smoke",
+      "event_type": "tool_invocation"
+    },
+    {
+      "sequence": 9,
+      "event_id": "event-000009",
+      "task_id": "glm_control_smoke",
+      "event_type": "tool_execution"
+    },
+    {
+      "sequence": 10,
+      "event_id": "event-000010",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 11,
+      "event_id": "event-000011",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 12,
+      "event_id": "event-000012",
+      "task_id": "glm_control_smoke",
+      "event_type": "task_control"
+    },
+    {
+      "sequence": 13,
+      "event_id": "event-000013",
+      "task_id": "glm_control_smoke",
+      "event_type": "task_control"
+    },
+    {
+      "sequence": 14,
+      "event_id": "event-000014",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 15,
+      "event_id": "event-000015",
+      "task_id": "glm_control_smoke",
+      "event_type": "task_control"
+    },
+    {
+      "sequence": 16,
+      "event_id": "event-000016",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 17,
+      "event_id": "event-000017",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 18,
+      "event_id": "event-000018",
+      "task_id": "glm_control_smoke",
+      "event_type": "budget"
+    },
+    {
+      "sequence": 19,
+      "event_id": "event-000019",
+      "task_id": "glm_control_smoke",
+      "event_type": "adapter_request"
+    },
+    {
+      "sequence": 20,
+      "event_id": "event-000020",
+      "task_id": "glm_control_smoke",
+      "event_type": "model_response"
+    },
+    {
+      "sequence": 21,
+      "event_id": "event-000021",
+      "task_id": "glm_control_smoke",
+      "event_type": "budget"
+    },
+    {
+      "sequence": 22,
+      "event_id": "event-000022",
+      "task_id": "glm_control_smoke",
+      "event_type": "tool_presentation"
+    },
+    {
+      "sequence": 23,
+      "event_id": "event-000023",
+      "task_id": "glm_control_smoke",
+      "event_type": "checkpoint"
+    },
+    {
+      "sequence": 24,
+      "event_id": "event-000024",
+      "task_id": "glm_control_smoke",
+      "event_type": "run_lifecycle"
+    },
+    {
+      "sequence": 25,
+      "event_id": "event-000025",
+      "task_id": "glm_control_smoke",
+      "event_type": "run_usage_summary"
+    }
+  ],
+  "evidence": {
+    "events": "events.jsonl",
+    "receipt": "receipt.json",
+    "checkpoint": "checkpoint.json",
+    "versions": "versions.json",
+    "quota": "request_quota.jsonl",
+    "observations": "driver_observations.jsonl",
+    "manifest": "driver_manifest.json"
+  }
+}

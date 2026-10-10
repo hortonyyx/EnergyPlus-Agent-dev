@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "mode": "live",
+  "model": "glm-5.3-flash",
+  "provider": "glm-subscription",
+  "intended_live_provider": "glm-subscription",
+  "limits": {
+    "model_calls": 4,
+    "tool_calls": 1,
+    "seconds": 480.0,
+    "tokens": 250000,
+    "money_usd": null,
+    "money_cny": null,
+    "near_limit": "stop",
+    "min_output_tokens": 1,
+    "context_tokens": 128000,
+    "max_model_retries": 0,
+    "retry_backoff_seconds": 0.0,
+    "max_consecutive_truncations": 0,
+    "max_total_truncations": 0,
+    "summary_every": 0,
+    "max_tool_recovery_retries": 0
+  },
+  "parameters": {
+    "max_tokens": 8192,
+    "reasoning_effort": "low"
+  },
+  "output_limit_reason": "Authorized bounded runtime control protocol smoke: the expected output is one tool call and one compact JSON object, so 8192 tokens provide explicit small-task headroom.",
+  "route": {
+    "route_id": "glm-subscription",
+    "model": "glm-5.3-flash",
+    "base_url": "https://open.bigmodel.cn/api/coding/paas/v4",
+    "billing_mode": "subscription",
+    "adapter_kind": "openai_chat_completions",
+    "reasoning_history": "all",
+    "context": {
+      "context_tokens": 128000,
+      "active_window_messages": null,
+      "compact_at_tokens": 100000,
+      "compact_to_ratio": 0.6,
+      "large_result_bytes": 8192,
+      "pinned_tags": [],
+      "preserve_initial_messages": 2,
+      "max_images": null,
+      "max_image_bytes": 32000000
+    }
+  },
+  "fixed_inputs": {
+    "system": "You are executing a runtime control protocol smoke test. On the initial turn, call the read-only probe tool exactly once with token set exactly to 'before'. Do not give a final answer before the tool result. After the tool result, obey any later operator correction. Your final answer must be only one JSON object with exactly these keys: observed, correction_token, status. Set observed to 'before', status to 'accepted', and correction_token to the exact value required by the latest operator correction.",
+    "user": "Begin the protocol now.",
+    "correction": "Operator correction: in the final JSON, set correction_token exactly to 'after-correction'. Keep observed='before' and status='accepted'.",
+    "expected_answer": {
+      "observed": "before",
+      "correction_token": "after-correction",
+      "status": "accepted"
+    }
+  },
+  "control_ids": {
+    "pause": "pause-after-request-1",
+    "message": "correction-after-request-1",
+    "resume": "resume-after-safe-boundary"
+  },
+  "fallback": false,
+  "credentials_recorded": false
+}
