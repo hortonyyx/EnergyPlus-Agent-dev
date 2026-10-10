@@ -24,10 +24,6 @@ def test_reader_guides_are_single_image_and_keep_corresponding_existing_method()
         assert unavailable not in plan
     assert "trial_plan_bim" not in elevation
     assert "apply_elevation_heights" not in elevation
-    assert "segments_mm (the printed segment values)" in plan
-    assert "printed_segments_mm" not in plan
-    assert "structurally complete" in plan
-    assert "merge/split\nactual rooms merely to make a trial pass" in plan
 
 
 def test_elevation_guide_exposes_a_complete_valid_minimum_example():
@@ -39,6 +35,7 @@ def test_elevation_guide_exposes_a_complete_valid_minimum_example():
     assert normalized["counts"] == [{"floor_id": "F1", "window_count": 1, "door_count": 0}]
     assert normalized["openings"][0]["width_m"] > 0
     assert normalized["openings"][0]["head_m"] > normalized["openings"][0]["sill_m"]
+    assert normalized["regularization"]["grid_step_m"] == 0.1
 
 def test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft():
     guide = get_role_guide("coordinator")

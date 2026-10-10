@@ -191,7 +191,8 @@ def _regularization_inputs(plan: dict) -> tuple[dict[str, list[dict]], list[dict
     audit = raw.get("reading_alignment")
     if audit is not None:
         if (not isinstance(audit, dict)
-                or set(audit) != {"schema_version", "ink", "dimensions"}
+                or set(audit) - {"schema_version", "ink", "dimensions", "lite_bim"}
+                or not {"schema_version", "ink", "dimensions"}.issubset(audit)
                 or not isinstance(audit["schema_version"], str)
                 or not audit["schema_version"].strip()):
             raise ValueError("reading_alignment needs schema_version, ink and dimensions")
@@ -2112,6 +2113,24 @@ def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
         raise ValueError(f"unsupported regularization rule version {rule_version!r}")
     if not isinstance(plan, dict):
         raise TypeError("plan must be an object")
+    from src.agent.geometry.lite_bim_regularization import lite_grid_step, regularize_lite_plan
+    lite_step = lite_grid_step(plan)
+    if lite_step is not None:
+        result, lite_report = regularize_lite_plan(
+            plan, image_size=image_size, image_name=image_name, grid_step_m=lite_step)
+        report = {
+            "schema": "plan_regularization_report_v1", "rule_version": rule_version,
+            "status": "pass", "floor_id": result.get("floor_id"),
+            "plan_sha256": _plan_digest(result), "lite_bim": lite_report,
+            "changes": lite_report.get("changes", []), "rejections": [], "attempted_changes": [],
+            "hard_constraints": lite_report["hard_constraints"],
+            "reading_alignment": copy.deepcopy(result["regularization_inputs"]["reading_alignment"]),
+            "summary": lite_report["summary"],
+            "method": {"edits_plan_draft_only": True, "edits_source_bim_polygons": False,
+                       "grid_step_m": lite_step, "room_or_opening_deletion_allowed": False},
+        }
+        result["regularization"] = copy.deepcopy(report)
+        return result, report
     existing = plan.get("regularization")
     if (isinstance(existing, dict) and existing.get("rule_version") == rule_version
             and existing.get("status") == "pass"
@@ -2664,6 +2683,27 @@ def regularize_plan_stack(
             "skip_failed_pair")
     _validate_stack_items(items)
     result = copy.deepcopy(items)
+    from src.agent.geometry.lite_bim_regularization import lite_grid_step
+    grid_steps = [lite_grid_step(item["plan"]) for item in result]
+    if any(step is not None for step in grid_steps) and (
+            any(step is None for step in grid_steps) or len(set(grid_steps)) != 1):
+        raise PlanRegularizationError(
+            "Lite BIM assembly requires every floor to use the same grid_step_m",
+            report={"schema": "plan_stack_regularization_report_v1", "rule_version": rule_version,
+                    "status": "rejected", "rejections": [{"type": "inconsistent_lite_grid_policy",
+                    "floor_steps": dict(zip((i["floor_id"] for i in result), grid_steps))}]})
+    if grid_steps and grid_steps[0] is not None:
+        from src.agent.geometry.lite_bim_regularization import quantize_m
+        invalid_placements = [
+            {"floor_id": item["floor_id"], "field": field, "value_m": item[field]}
+            for item in result for field in ("z_floor", "height") if field in item
+            and abs(item[field] - quantize_m(item[field], grid_steps[0])) > 1e-7
+        ]
+        if invalid_placements:
+            raise PlanRegularizationError(
+                "Lite BIM target floor placement/height is off grid; revise the resolved level explicitly",
+                report={"schema": "plan_stack_regularization_report_v1", "rule_version": rule_version,
+                        "status": "rejected", "rejections": invalid_placements})
     original_separations = _stack_separations(result)
     floor_reports = {}
     baseline_proposals = {}
@@ -3142,6 +3182,29 @@ def regularize_plan_stack(
 
     # Recompile changed plan drafts and refuse any opening/connection change.
     for item in result:
+        from src.agent.geometry.lite_bim_regularization import lite_grid_step, regularize_lite_plan
+        lite_step = lite_grid_step(item["plan"])
+        if lite_step is not None:
+            try:
+                before_grid = copy.deepcopy(item["plan"])
+                item["plan"], lite_report = regularize_lite_plan(
+                    item["plan"], image_size=tuple(item["image_size"]),
+                    image_name=item["image_name"], grid_step_m=lite_step)
+                fields = ("footprint_pixels", "partitions", "openings", "z_floor", "ceiling_height")
+                geometry_changed = any(before_grid.get(key) != item["plan"].get(key) for key in fields)
+                if geometry_changed:
+                    stack_changes.extend(copy.deepcopy(lite_report.get("changes", [])))
+                floor_report = floor_reports[item["floor_id"]]
+                floor_report.update(
+                    lite_bim=copy.deepcopy(lite_report),
+                    hard_constraints=copy.deepcopy(lite_report["hard_constraints"]),
+                    reading_alignment=copy.deepcopy(item["plan"]["regularization_inputs"]["reading_alignment"]),
+                    plan_sha256=_plan_digest(item["plan"]),
+                )
+                item["plan"]["regularization"] = copy.deepcopy(floor_report)
+            except PlanRegularizationError as exc:
+                rejections.append({"type": "lite_grid_rejected", "floor_id": item["floor_id"], "report": exc.report})
+                continue
         before = baseline_proposals.get(item["floor_id"])
         proposal, error = _compile(item["plan"], tuple(item["image_size"]), item["image_name"])
         if error:
@@ -3287,4 +3350,5 @@ def regularize_plan_stack(
             "status": "pass",
         }
         item["plan"]["regularization"]["plan_sha256"] = _plan_digest(item["plan"])
+        floor_reports[item["floor_id"]]["plan_sha256"] = _plan_digest(item["plan"])
     return result, report

@@ -19,6 +19,7 @@ from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
 from src.agent.geometry.plan_dimension_alignment import align_plan_to_dimensions
 from src.agent.geometry.plan_ink_alignment import align_plan_to_ink, _set_reading_alignment
 from src.agent.geometry.plan_regularization import prepare_plan_junctions
+from src.agent.geometry.lite_bim_regularization import DEFAULT_LITE_GRID_M, regularize_lite_plan
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
 from .plan_format import audit_plan_replacement, format_failure, plan_format_errors
 from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
@@ -102,6 +103,7 @@ def canonical_plan_sha256(plan: Mapping[str, Any]) -> str:
 
 def _reading_align(
     numeric: Mapping[str, Any], *, image_path: Path | None, image_name: str,
+    grid_step_m: float | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     """Prepare, align and strictly preflight one reader numeric plan."""
 
@@ -146,8 +148,12 @@ def _reading_align(
                 "reason": f"original image could not be decoded for ink alignment: {error}",
             }
     if "dimension_chains" in result:
-        result, dimension_report = align_plan_to_dimensions(result)
+        result, dimension_report = align_plan_to_dimensions(result, grid_step_m=grid_step_m)
         reading_alignment["dimensions"] = dimension_report
+        if grid_step_m is not None and dimension_report["rejections"]:
+            from src.agent.geometry.plan_regularization import PlanRegularizationError
+            raise PlanRegularizationError(
+                "dimension chain: " + str(dimension_report["rejections"][0]), report=dimension_report)
 
     if image_size is not None:
         _, post_report = prepare_plan_junctions(
@@ -171,7 +177,7 @@ def _reading_align(
                           if isinstance(original_report, Mapping) else None)
         if aligned_error is None:
             alignment["status"] = "aligned"
-        elif original_error is None:
+        elif original_error is None and grid_step_m is None:
             result = baseline
             alignment["status"] = "rolled_back_to_original"
             alignment["fallback"] = {
@@ -196,6 +202,22 @@ def _reading_align(
         report = reading_alignment.get(key)
         if isinstance(report, Mapping):
             _set_reading_alignment(result, key, report)
+    if grid_step_m is not None:
+        if image_size is None:
+            # Isolated callers may have no decodable image. Bounds are inferred
+            # only for numeric preflight; the real Toolkit checks image bounds.
+            import math
+            points = [*result["footprint_pixels"],
+                      *(p for wall in result.get("partitions", []) for p in wall["points"]),
+                      *(o[field] for o in result.get("openings", []) for field in ("p1", "p2")),
+                      *(seed["point"] for seed in result.get("space_seeds", []))]
+            image_size = tuple(max(2, math.ceil(max(
+                [float(p[i]) for p in points] + [float(a[0]) for a in result[f"{axis}_anchors"]])) + 1)
+                               for i, axis in enumerate(("x", "y")))
+        result, lite_report = regularize_lite_plan(
+            result, image_size=image_size, image_name=image_name, grid_step_m=grid_step_m)
+        reading_alignment["lite_bim"] = lite_report
+        alignment["status"] = "lite_grid_applied"
     return result, reading_alignment, alignment
 
 
@@ -242,6 +264,14 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
             audit_refs[field] = _audit_reference(receipt, field, value)
     if audit_refs:
         visible["audit_refs"] = audit_refs
+    failure = visible.get("regularization_failure")
+    if isinstance(failure, Mapping):
+        visible.setdefault("audit_refs", {})["regularization_failure"] = _audit_reference(
+            receipt, "regularization_failure", failure)
+        visible["regularization_failure"] = {
+            field: copy.deepcopy(failure[field]) for field in ("status", "grid_step_m", "summary") if field in failure
+        }
+        visible["regularization_failure"]["rejections"] = copy.deepcopy(failure.get("rejections", [])[:4])
     reason = visible.get("reason")
     if isinstance(reason, str) and len(reason) > 1200:
         visible.setdefault("audit_refs", {})["reason"] = _audit_reference(receipt, "reason", reason)
@@ -268,12 +298,12 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
     alignment = visible.get("reading_alignment")
     if isinstance(alignment, Mapping):
         compact = {}
-        for key in ("ink", "dimensions"):
+        for key in ("ink", "dimensions", "lite_bim"):
             row = alignment.get(key)
             if isinstance(row, Mapping):
                 compact[key] = {
                     field: copy.deepcopy(row[field])
-                    for field in ("status", "summary", "search", "tolerances") if field in row
+                    for field in ("status", "summary", "search", "tolerances", "grid_step_m", "selection_basis") if field in row
                 }
         compact["full_list"] = (
             "The complete reading_alignment record is saved in this trial receipt and "
@@ -453,10 +483,12 @@ class PlanTrial:
     """
 
     def __init__(self, tools, *, image_name: str, receipt_directory: Path | None = None,
-                 workspace: Path | None = None, profile_directory: Path | None = None):
+                 workspace: Path | None = None, profile_directory: Path | None = None,
+                 grid_step_m: float | None = DEFAULT_LITE_GRID_M):
         if not isinstance(image_name, str) or not image_name.strip():
             raise ValueError("plan trial requires one image filename")
         self.tools = tools
+        self.grid_step_m = grid_step_m
         self.image_name = image_name
         self.workspace = Path(workspace).resolve() if workspace is not None else None
         self.receipt_directory = Path(receipt_directory).resolve() if receipt_directory is not None else None
@@ -617,7 +649,7 @@ class PlanTrial:
         # every plan coordinate is a numeric original-image pixel.  The shared
         # compiler remains literal and sees the aligned, fully audited draft.
         numeric, reading_alignment, alignment = _reading_align(
-            numeric, image_path=image_path, image_name=self.image_name,
+            numeric, image_path=image_path, image_name=self.image_name, grid_step_m=self.grid_step_m,
         )
         numeric_bytes = _canonical_plan_bytes(numeric)
         numeric_sha256 = hashlib.sha256(numeric_bytes).hexdigest()
@@ -968,6 +1000,11 @@ class PlanTrial:
                 alignment,
             ) = self._numeric_plan(plan, number)
         except (ValueError, TypeError, KeyError) as error:
+            def located_findings(check):
+                try:
+                    return check(normalized)
+                except (ValueError, TypeError, KeyError):
+                    return []
             receipt = {
                 "status": "failed",
                 "trial_id": f"trial_{number:03d}",
@@ -1015,11 +1052,14 @@ class PlanTrial:
                 "returned_images": [],
                 "reason": f"numeric_plan_resolution: {error}",
                 "repair_hint": plan_error_hint(normalized, str(error)),
+                "unhosted_openings": located_findings(unhosted_openings),
+                "loose_partition_ends": located_findings(loose_partition_ends),
                 "changes": change_report,
                 "base_plan_sha256": expected_base,
                 "phase": "operations" if previous_plan is not None else "draft",
                 "plan_revision": preservation,
                 "operations": copy.deepcopy(operations),
+                "regularization_failure": copy.deepcopy(getattr(error, "report", None)),
                 **(format_failure(errors) if errors else {}),
             }
             if self.receipt_directory is not None:
@@ -1351,10 +1391,12 @@ class PlanTrial:
 class PlanTrialSession:
     """Prepare one-image writable trial state and hide it behind :class:`PlanTrial`."""
 
-    def __init__(self, reader_run: Path, image_name: str, root: Path = ROOT):
+    def __init__(self, reader_run: Path, image_name: str, root: Path = ROOT,
+                 *, grid_step_m: float = DEFAULT_LITE_GRID_M):
         self.reader_run = Path(reader_run).resolve()
         self.image_name = image_name
         self.root = Path(root).resolve()
+        self.grid_step_m = grid_step_m
         self.workspace = self.reader_run / "trial_workspace"
         self._client_context = None
         self._client = None
@@ -1419,6 +1461,7 @@ class PlanTrialSession:
                 receipt_directory=self.workspace / "trial_receipts",
                 workspace=self.workspace,
                 profile_directory=self.reader_run / "pixel_profiles",
+                grid_step_m=self.grid_step_m,
             )
             return self.trial
         except Exception:

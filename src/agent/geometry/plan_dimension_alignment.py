@@ -37,8 +37,8 @@ def _chain_shape(raw: object, index: int) -> tuple[dict[str, Any] | None, dict[s
     path = f"dimension_chains[{index}]"
     if not isinstance(raw, Mapping):
         return None, {"chain_id": f"index:{index}", "reason": f"{path} must be an object"}
-    required = {"id", "axis", "segments_mm", "total_mm", "tick_pixels", "source_refs"}
-    allowed = required | {"start_world_m"}
+    required = {"id", "axis", "segments_mm", "tick_pixels", "source_refs"}
+    allowed = required | {"start_world_m", "total_mm"}
     unknown = sorted(set(raw) - allowed)
     missing = sorted(required - set(raw))
     chain_id = raw.get("id", f"index:{index}")
@@ -57,6 +57,8 @@ def _chain_shape(raw: object, index: int) -> tuple[dict[str, Any] | None, dict[s
     if (not isinstance(segments, list) or not segments
             or any(not _finite(value) or float(value) <= 0 for value in segments)):
         return None, {"chain_id": chain_id, "reason": "segments_mm must be positive finite millimetres"}
+    if "total_mm" not in raw:
+        total = math.fsum(segments)
     if (not isinstance(ticks, list) or len(ticks) != len(segments) + 1
             or any(not _finite(value) for value in ticks)):
         return None, {"chain_id": chain_id,
@@ -83,7 +85,7 @@ def _chain_shape(raw: object, index: int) -> tuple[dict[str, Any] | None, dict[s
     return chain, None
 
 
-def _check_chain(chain: Mapping[str, Any]) -> dict[str, Any]:
+def _check_chain(chain: Mapping[str, Any], *, closure_tolerance_mm: float = MAX_CLOSURE_ERROR_MM) -> dict[str, Any]:
     segments = chain["segments_mm"]
     ticks = chain["tick_pixels"]
     total = chain["total_mm"]
@@ -102,7 +104,7 @@ def _check_chain(chain: Mapping[str, Any]) -> dict[str, Any]:
     segment_residual_mm = [segment_pixel_mm[index] - segments[index]
                            for index in range(len(segments))]
     pixel_tolerance = max(2.0, 0.01 * abs(pixel_span))
-    closure_ok = abs(closure) <= MAX_CLOSURE_ERROR_MM
+    closure_ok = abs(closure) <= closure_tolerance_mm
     scale_ok = bool(pixel_span) and max(map(abs, residual_px), default=0.0) <= pixel_tolerance
     worst_segment = max(range(len(segments)), key=lambda index: abs(segment_residual_mm[index]))
     return {
@@ -295,7 +297,7 @@ def _snap_footprint(plan: dict[str, Any], *, axis: str, target_pixels: list[floa
     return changes, rejections
 
 
-def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+def align_plan_to_dimensions(plan: Mapping[str, Any], *, grid_step_m: float | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
     """Validate dimension chains, then let accepted overall chains set axis frames.
 
     A chain can replace an axis calibration only when its first and last ticks
@@ -317,6 +319,19 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
     accepted_axes: set[str] = set()
     applied_chains = 0
     supplemental_chains = 0
+    grid_nodes: dict[tuple[str, float], float] = {}
+
+    def accept_grid_nodes(chain, coordinates, check):
+        keys = [(chain["axis"], round(pixel, 6)) for pixel in chain["tick_pixels"]]
+        conflicts = [{"axis": key[0], "tick_pixel": key[1], "accepted_m": grid_nodes[key], "proposed_m": value}
+                     for key, value in zip(keys, coordinates)
+                     if key in grid_nodes and abs(grid_nodes[key] - value) > 1e-7]
+        if conflicts:
+            rejections.append({**check, "action": "rejected", "reason": "shared dimension-chain node conflicts",
+                               "conflicts": conflicts})
+            return False
+        grid_nodes.update(zip(keys, coordinates))
+        return True
 
     for index, raw in enumerate(raw_chains):
         chain, error = _chain_shape(raw, index)
@@ -324,7 +339,9 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
             rejections.append(error)
             continue
         assert chain is not None
-        check = _check_chain(chain)
+        check = _check_chain(chain, closure_tolerance_mm=(grid_step_m * 500 if grid_step_m else MAX_CLOSURE_ERROR_MM))
+        check["original_segments_mm"] = list(chain["segments_mm"])
+        check["total_derived"] = "total_mm" not in raw
         if not check["accepted"]:
             check["action"] = "rejected"
             check["reason"] = ("segment sum does not close to total" if not check["closure_ok"]
@@ -339,6 +356,36 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
         endpoint_tolerance_px = max(2.0, MAX_ALIGNMENT_WORLD_M / mpp_before)
         direction_px = _overall_direction(chain, footprint, endpoint_tolerance_px)
         if direction_px is None:
+            if grid_step_m is not None:
+                from src.agent.geometry.lite_bim_regularization import quantize_m
+                start = chain.get("start_world_m", _world(old_anchors, chain["tick_pixels"][0]))
+                direction = 1 if _world(old_anchors, chain["tick_pixels"][-1]) > _world(old_anchors, chain["tick_pixels"][0]) else -1
+                cumulative = [0.0]
+                for value in chain["segments_mm"]:
+                    cumulative.append(math.fsum((cumulative[-1], value)))
+                # A supplied total is authoritative within the grid tolerance;
+                # distribute the small closure remainder in code, not by model.
+                raw_world = [start + direction * v * chain["total_mm"] / cumulative[-1] / 1000 for v in cumulative]
+                world_ticks = [quantize_m(v, grid_step_m) for v in raw_world]
+                if any(a == b for a, b in zip(world_ticks, world_ticks[1:])):
+                    rejections.append({**check, "action": "rejected", "reason": "grid collapses a dimension-chain segment"})
+                    continue
+                if not accept_grid_nodes(chain, world_ticks, check):
+                    continue
+                slope = (old_anchors[1][1] - old_anchors[0][1]) / (old_anchors[1][0] - old_anchors[0][0])
+                targets = [old_anchors[0][0] + (v - old_anchors[0][1]) / slope for v in world_ticks]
+                edges, edge_rejected = _snap_footprint(result, axis=axis, target_pixels=targets, mpp=mpp_before, chain=chain)
+                walls, wall_rejected = _snap_partitions(result, axis=axis, target_pixels=targets, mpp=mpp_before, chain=chain)
+                _append_coordinate_references(result, chain, world_ticks)
+                changes.extend([*edges, *walls])
+                rejections.extend([*edge_rejected, *wall_rejected])
+                applied_chains += 1
+                items.append({**check, "action": "local_ticks_applied", "overall": False,
+                              "origin_basis": "dimension_chain" if "start_world_m" in chain else "local_anchor",
+                              "original_tick_world_m": raw_world, "adopted_tick_world_m": world_ticks,
+                              "adopted_segments_mm": [round(abs(b-a)*1000, 9) for a,b in zip(world_ticks, world_ticks[1:])],
+                              "grid_step_m": grid_step_m})
+                continue
             items.append({**check, "action": "checked_not_applied", "overall": False,
                           "reason": "first and last ticks do not correspond to both footprint outer faces",
                           "footprint_pixels": [round(value, 6) for value in footprint],
@@ -357,6 +404,20 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
             cumulative.append(math.fsum((cumulative[-1], value)))
         world_ticks = [start_world + old_world_direction * value / 1000.0 for value in cumulative]
         target_pixels = [start_px + (end_px - start_px) * value / chain["total_mm"] for value in cumulative]
+        if grid_step_m is not None:
+            from src.agent.geometry.lite_bim_regularization import quantize_m
+            raw_world = [start_world + old_world_direction * value * chain["total_mm"] / cumulative[-1] / 1000 for value in cumulative]
+            world_ticks = [quantize_m(value, grid_step_m) for value in raw_world]
+            start_world, end_world = world_ticks[0], world_ticks[-1]
+            if start_world == end_world or any(a == b for a, b in zip(world_ticks, world_ticks[1:])):
+                rejections.append({**check, "action": "rejected", "reason": "grid collapses a dimension-chain segment"})
+                continue
+            if not accept_grid_nodes(chain, world_ticks, check):
+                continue
+            target_pixels = [start_px + (end_px-start_px)*(v-start_world)/(end_world-start_world) for v in world_ticks]
+            check.update(original_tick_world_m=raw_world, adopted_tick_world_m=world_ticks,
+                         adopted_segments_mm=[round(abs(b-a)*1000,9) for a,b in zip(world_ticks,world_ticks[1:])],
+                         grid_step_m=grid_step_m)
 
         if axis in accepted_axes:
             start_difference = start_world - old_start_world
@@ -474,7 +535,7 @@ def align_plan_to_dimensions(plan: Mapping[str, Any]) -> tuple[dict[str, Any], d
         "schema_version": SCHEMA_VERSION,
         "status": "applied" if applied_chains or changes else ("rejected" if rejections else "unchanged"),
         "tolerances": {
-            "closure_mm": MAX_CLOSURE_ERROR_MM,
+            "closure_mm": grid_step_m * 500 if grid_step_m else MAX_CLOSURE_ERROR_MM,
             "tick_residual_pixels": "max(2 pixels, 1% of chain pixel span)",
             "wall_to_tick_m": MAX_ALIGNMENT_WORLD_M,
             "overall_endpoint_m": MAX_ALIGNMENT_WORLD_M,

@@ -109,7 +109,7 @@ EXTRA_TOOLS = [
              "basis": {"enum": ["observed", "inferred"]}, "along_start_m": {"type": "number"},
              "along_end_m": {"type": "number"}, "text": {"type": "string", "minLength": 1}},
              ("action", "reason"))}}, ("candidate", "edits"))},
-    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently and wait until every task in this call ends. On the first call, admitted plan and cardinal-elevation drawings omitted from tasks are added with default targets and origin; the result lists them. Give floor/facade target and common origin. Optional instructions (at most 400 characters) contain only drawing facts or a specific rework problem; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id and previous_task_id; the runtime attaches the prior task's located failure handoff and issues may add drawing facts. Completed IDs reuse deliveries; allowances come from the role.",
+    {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently and wait until every task in this call ends. On the first call, admitted plan and cardinal-elevation drawings omitted from tasks are added with default targets and origin; the result lists them. Give floor/facade target and common origin. Optional instructions (at most 400 characters) contain only drawing facts or a specific rework problem; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and explicit rework_targets; the runtime preserves every unpointed plan or elevation object and its original-reading audit. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
     {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
@@ -693,12 +693,17 @@ class RoleSession:
 
     def _task(self, arguments):
         from .submission import canonical_target, parse_target
-        from .trial import normalize_rework_targets
         arguments = normalize_stringified_parameters(arguments, TASK_SCHEMA)
         _validate_task_instructions([arguments])
         if "rework_targets" in arguments:
+            if arguments.get("role_id") == "elevation_reader":
+                from .elevation import normalize_elevation_rework_targets
+                normalized_targets = normalize_elevation_rework_targets(arguments["rework_targets"])
+            else:
+                from .trial import normalize_rework_targets
+                normalized_targets = normalize_rework_targets(arguments["rework_targets"])
             arguments = {**arguments,
-                         "rework_targets": normalize_rework_targets(arguments["rework_targets"])}
+                         "rework_targets": normalized_targets}
         jsonschema.validate(arguments, TASK_SCHEMA)
         arguments = {**arguments, "target": canonical_target(arguments["role_id"], arguments["target"])}
         valid_task_id(arguments["task_id"])
@@ -714,8 +719,13 @@ class RoleSession:
             previous = self.registry.records[arguments["previous_task_id"]]
             if previous["image"] != image or previous["role_id"] != arguments["role_id"] or canonical_target(previous["role_id"], previous["target"]) != arguments["target"]:
                 raise ValueError("rework must keep the same role, original image and target")
-            if arguments["role_id"] == "plan_reader" and previous.get("artifact") and not arguments.get("rework_targets"):
-                raise ValueError("plan rework needs explicit rework_targets such as plan.openings:D1; all other objects stay fixed")
+            if previous.get("artifact") and not arguments.get("rework_targets"):
+                example = ("plan.openings:D1" if arguments["role_id"] == "plan_reader"
+                           else "elevation.openings:W1.head_m")
+                raise ValueError(
+                    f"{arguments['role_id']} rework needs explicit rework_targets such as "
+                    f"{example}; all other objects stay fixed"
+                )
             task["previous_artifact"] = previous.get("artifact")
             task["previous_task_handoff"] = self._failure_handoff(arguments["previous_task_id"])
         parse_target(arguments["role_id"], arguments["target"])
@@ -906,7 +916,12 @@ class RoleSession:
                 trial.inherited_topology_issues = validation.get("topology_issues", [])
             from .elevation import ElevationReaderTools, ELEVATION_COORDINATES
             tool_class = ElevationReaderTools if task["role_id"] == "elevation_reader" else ReaderTools
-            tools = tool_class(scoped, role_id=task["role_id"], image_name=task["image"], trial=trial, target=task["target"])
+            tool_kwargs = {"role_id": task["role_id"], "image_name": task["image"],
+                           "trial": trial, "target": task["target"]}
+            if task["role_id"] == "elevation_reader":
+                tool_kwargs.update(previous_artifact=previous,
+                                   rework_targets=task.get("rework_targets"))
+            tools = tool_class(scoped, **tool_kwargs)
             catalog = await tools.list_tools()
             role = base_role.model_copy(update={"role_id": task["role_id"],
                 "read_only": False, "tool_whitelist": tuple(
@@ -918,7 +933,11 @@ class RoleSession:
                       "parameters": t["inputSchema"]}} for t in catalog]
             versions = make_versions(child, root=self.root, prompt=guide, tools=specs, parameters=parameters,
                                      route=route, code_paths=("src/agent/runtime_roles", "src/agent/runtime_tools.py"))
-            content = [{"type": "text", "text": json.dumps({"task": task, "previous_artifact": previous,
+            from .reader_context import previous_artifact_context
+            previous_context = previous_artifact_context(
+                previous, role_id=task["role_id"], artifact_reference=task.get("previous_artifact")
+            )
+            content = [{"type": "text", "text": json.dumps({"task": task, "previous_artifact": previous_context,
                        "coordinates": ELEVATION_COORDINATES if task["role_id"] == "elevation_reader"
                        else READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
                        {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw_image).decode()}}]

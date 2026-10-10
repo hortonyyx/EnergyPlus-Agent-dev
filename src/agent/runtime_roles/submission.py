@@ -82,10 +82,10 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "Submit the latest passed trial: trial_id=latest (or its ID/hash). Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
+        "description": "Submit the latest passed trial: trial_id=latest (or its ID/hash). Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; exact plan paths and unambiguous object aliases are accepted, while unknown or ambiguous items are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
-        "description": "Submit this facade's readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute elevations value_m/sill_z_m/head_z_m use metres. The tool checks fields, counts, ordering and evidence; fix pointed errors and resubmit.",
+        "description": "Submit this facade's batched readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute value_m/sill_m/head_m use metres. The tool checks fields, counts, ordering and evidence, adopts levels and opening width/sill/head on the 0.1 m Lite grid, and retains original readings in regularization metadata; fix pointed errors and resubmit.",
         "inputSchema": ELEVATION_SCHEMA},
 }
 
@@ -156,6 +156,54 @@ def _wall_defaults(plan, evidence, overrides, *, image_size=None):
             result[category].update(override)
             result[category]["dimension_basis"] = override.get("dimension_basis", override["convention"])
     return validate_wall_reference(result, image_size=image_size)
+
+
+def _normalize_note_items(notes, targets):
+    """Resolve common object aliases only when they identify one declared item."""
+
+    aliases = {}
+
+    def add(alias, target):
+        aliases.setdefault(alias, set()).add(target)
+
+    for target in sorted(targets):
+        add(target, target)
+        short = target.removeprefix("plan.")
+        add(short, target)
+        if ":" in short:
+            collection, identity = short.split(":", 1)
+            singular = collection[:-1] if collection.endswith("s") else collection
+            for alias in (
+                identity,
+                f"{collection}.{identity}",
+                f"plan.{collection}.{identity}",
+                f"{singular}:{identity}",
+                f"{singular}.{identity}",
+                f"plan.{singular}:{identity}",
+            ):
+                add(alias, target)
+        else:
+            add(short.removesuffix("_pixels"), target)
+
+    result = []
+    for index, raw in enumerate(notes):
+        note = dict(raw)
+        supplied = note["item"].strip()
+        matches = aliases.get(supplied, set())
+        if len(matches) == 1:
+            note["item"] = next(iter(matches))
+        elif len(matches) > 1:
+            raise ValueError(
+                f"notes[{index}].item {supplied!r} is ambiguous; use one of "
+                f"{sorted(matches)}"
+            )
+        else:
+            raise ValueError(
+                f"notes[{index}].item {supplied!r} is not a declared plan object; "
+                f"use its exact item from {sorted(targets)}"
+            )
+        result.append(note)
+    return result
 
 
 class ReaderSubmission:
@@ -253,17 +301,18 @@ class ReaderSubmission:
                 evidence = [*legacy_evidence, *(row for row in generated if row["item"] not in supplied)]
             artifact = validate_plan_artifact({"plan": numeric, "evidence": evidence,
                                                "unresolved": numeric["unresolved"]}, image_name=self.image_name)
-            for note in arguments.get("notes", []):
+            notes = _normalize_note_items(arguments.get("notes", []), {
+                row["item"] for row in artifact["evidence"]
+            })
+            for note in notes:
                 located = [row for row in artifact["evidence"] if row["item"] == note["item"]]
-                if not located:
-                    raise ValueError(f"notes.item is not a declared plan object: {note['item']}")
                 for row in located:
                     row["basis"] = row.get("basis", "") + f" [{note['kind']}] {note['basis']}"
             # The delivery is the exact numeric plan that the successful trial
             # compiled, including deterministic reader alignment and its audit.
             artifact["plan"] = numeric
             artifact["unresolved"] = list(dict.fromkeys([*numeric["unresolved"], *arguments.get("unresolved", []),
-                *(f"{note['item']}: {note['basis']}" for note in arguments.get("notes", []) if note["kind"] == "unresolved")]))
+                *(f"{note['item']}: {note['basis']}" for note in notes if note["kind"] == "unresolved")]))
             issues = list({row["issue_id"]: row for row in [*self.trial.inherited_topology_issues,
                            *topology_issues(self.trial.receipts)]}.values())
             validation = {**validation, "validation_passed": True,
@@ -272,7 +321,7 @@ class ReaderSubmission:
                 "evidence_origin": {"method": "verified_trial_pixels", "plan_sha256": digest,
                     "numeric_plan_sha256": validation.get("compiled_numeric_plan_sha256"),
                     "legacy_evidence_items": [row["item"] for row in legacy_evidence or []]},
-                "notes": arguments.get("notes", []),
+                "notes": notes,
                 "opening_hosts": opening_hosts(numeric),
                 "topology_issues": issues,
                 "topology_decisions": validate_topology(issues, arguments.get("topology_decisions", []),

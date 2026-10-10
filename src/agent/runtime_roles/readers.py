@@ -473,12 +473,15 @@ class ReaderTools:
             tools.append({
                 "name": "trial_plan_bim",
                 "description": (
-                    "Align, compile, check and overlay one isolated plan after the whole drawing is understood. "
+                    "Align, regularize, compile, check and overlay an early complete plan after a whole-image and "
+                    "batched-block read. "
                     "Send one complete plan with floor_id, z_floor, ceiling_height, x_anchors, y_anchors, basis, "
                     "footprint_pixels, partitions, openings, space_seeds, assumptions and unresolved. Optional "
-                    "dimension_chains rows use exactly id, axis, segments_mm, total_mm, tick_pixels and source_refs; "
-                    "tick_pixels has one more item than segments_mm. Do not invent field aliases. Nearby ink alignment "
-                    "uses this plan's scale; verified dimensions override ink. Failed returns name fields/objects and "
+                    "dimension_chains rows use id, axis, segments_mm, tick_pixels and source_refs; total_mm and "
+                    "start_world_m are optional. tick_pixels has one more item than segments_mm. Code accumulates "
+                    "shared chain nodes and adopts the configured Lite grid; do not hand-round or distribute residuals. "
+                    "Nearby ink alignment uses this plan's scale; original dimensions remain auditable while adopted "
+                    "values drive geometry. Failed returns named fields/objects and "
                     "repair actions. Operations use the remembered draft and preserve unpointed objects. Never omit an "
                     "observed wall/opening or change room topology to pass. Only passed trials can be submitted."
                 ),

@@ -85,7 +85,7 @@ DIMENSION_CHAIN = _object({
     "tick_pixels": _array(NUMBER, 2),
     "start_world_m": NUMBER,
     "source_refs": REFS,
-}, {"id", "axis", "segments_mm", "total_mm", "tick_pixels", "source_refs"})
+}, {"id", "axis", "segments_mm", "tick_pixels", "source_refs"})
 PLAN_FORMAT = _object({
     "floor_id": TEXT, "z_floor": LENGTH, "ceiling_height": LENGTH, "basis": TEXT,
     "x_anchors": _array(ANCHOR, 2, 2), "y_anchors": _array(ANCHOR, 2, 2),

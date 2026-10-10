@@ -9,7 +9,7 @@ import pytest
 from PIL import Image
 
 from src.agent.runtime_roles.readers import _evidence_targets
-from src.agent.runtime_roles.submission import ReaderSubmission
+from src.agent.runtime_roles.submission import ReaderSubmission, _normalize_note_items
 from src.agent.runtime_roles.trial import PlanTrial, canonical_plan_sha256
 from tests.test_role_readers import plan
 from tests.test_role_submission import PassedTrial, operation
@@ -24,8 +24,8 @@ def test_automatic_boxes_use_resolved_pixels_keep_inferences_and_allow_wall_over
     trial.numeric_plan = lambda receipt: copy.deepcopy(numeric)
     submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
     result = submission.submit({"trial_id": "latest", "notes": [
-        {"item": "plan.space_seeds:left", "kind": "inferred", "basis": "use from furniture"},
-        {"item": "plan.openings:W1", "kind": "unresolved", "basis": "verify height"}],
+        {"item": "left", "kind": "inferred", "basis": "use from furniture"},
+        {"item": "openings.W1", "kind": "unresolved", "basis": "verify height"}],
         "wall_reference": {"partitions": {"convention": "inner_face", "basis": "dimension converted to inner face"}}})
     assert result["status"] == "accepted"
     saved = submission.read()
@@ -40,6 +40,23 @@ def test_automatic_boxes_use_resolved_pixels_keep_inferences_and_allow_wall_over
     assert refs["perimeter"]["convention"] == "outer_face"
     assert refs["partitions"]["dimension_basis"] == "inner_face"
     assert saved["validation"]["notes"][0]["kind"] == "inferred"
+    assert [row["item"] for row in saved["validation"]["notes"]] == [
+        "plan.space_seeds:left", "plan.openings:W1"
+    ]
+
+
+def test_note_object_aliases_normalize_only_when_unambiguous():
+    notes = [{"item": "W1", "kind": "unresolved", "basis": "verify height"}]
+    assert _normalize_note_items(notes, {"plan.openings:W1", "plan.partitions:P1"})[0]["item"] == (
+        "plan.openings:W1"
+    )
+    with pytest.raises(ValueError, match="ambiguous"):
+        _normalize_note_items(notes, {"plan.openings:W1", "plan.partitions:W1"})
+    with pytest.raises(ValueError, match="not a declared plan object"):
+        _normalize_note_items(
+            [{"item": "W9", "kind": "unresolved", "basis": "unknown mark"}],
+            {"plan.openings:W1"},
+        )
 
 
 def test_latest_reference_survives_resume_and_rejects_stale_or_tampered_plan(tmp_path):

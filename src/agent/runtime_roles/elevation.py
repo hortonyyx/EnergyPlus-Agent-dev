@@ -15,6 +15,7 @@ import hashlib
 import copy
 import json
 import math
+import re
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -46,8 +47,164 @@ ELEVATION_COORDINATES = (
     "this image, increasing left to right, and facade_length_m from the overall "
     "dimension chain. The two pixels locate those distances. The task fixes the facade; "
     "the domain tool derives exterior viewing direction and world axis. "
-    "z_calibration maps image top/bottom to absolute Z metres. Preserve annotated numeric readings; only pixels evidence permits unique-ink corrections."
+    "z_calibration maps image top/bottom to absolute Z metres. Keep annotated numeric readings as provenance; "
+    "only pixels evidence permits unique-ink corrections, then the accepted height and width values adopt the Lite grid."
 )
+
+_ELEVATION_REWORK_COLLECTIONS = {
+    "openings": {"floor_id", "kind", "x_px", "width_m", "sill_m", "head_m",
+                 "evidence_type", "bbox", "opening_bbox"},
+    "elevations": {"floor_id", "kind", "value_m", "evidence_type", "bbox"},
+}
+_ELEVATION_REWORK_TOP_LEVEL = {"x_calibration", "z_calibration"}
+
+
+def normalize_elevation_rework_targets(targets: Any) -> list[str]:
+    """Canonicalize a deliberately small elevation artifact rework scope."""
+
+    if not isinstance(targets, Sequence) or isinstance(targets, (str, bytes, bytearray)) or not targets:
+        raise ValueError(
+            "elevation rework needs nonempty rework_targets such as "
+            "elevation.openings:W1.head_m or elevation.elevations:floor-F1.value_m"
+        )
+    result = []
+    for raw in targets:
+        if not isinstance(raw, str) or not raw.strip():
+            raise ValueError("elevation rework_targets must be nonempty strings")
+        text = raw.strip()
+        if text.startswith("elevation."):
+            text = text.removeprefix("elevation.")
+        if text in _ELEVATION_REWORK_TOP_LEVEL:
+            canonical = f"elevation.{text}"
+        else:
+            match = re.fullmatch(r"(openings|elevations)(?::([^\.]+))?(?:\.([A-Za-z_][A-Za-z0-9_]*))?", text)
+            if match is None:
+                raise ValueError(
+                    f"unknown elevation rework target {raw!r}; use "
+                    "elevation.openings:<id>[.<field>] or "
+                    "elevation.elevations:<id>[.<field>]"
+                )
+            collection, identity, field = match.groups()
+            if field is not None and identity is None:
+                raise ValueError("an elevation rework field needs an object ID")
+            if field is not None and field not in _ELEVATION_REWORK_COLLECTIONS[collection]:
+                raise ValueError(
+                    f"unknown {collection} rework field {field!r}; choose "
+                    f"{sorted(_ELEVATION_REWORK_COLLECTIONS[collection])}"
+                )
+            canonical = f"elevation.{collection}"
+            if identity is not None:
+                canonical += f":{identity}"
+            if field is not None:
+                canonical += f".{field}"
+        if canonical not in result:
+            result.append(canonical)
+    return result
+
+
+def _elevation_target_allows(targets: set[str], collection: str, identity: str, field: str | None = None) -> bool:
+    base = f"elevation.{collection}"
+    item = f"{base}:{identity}"
+    return base in targets or item in targets or (field is not None and f"{item}.{field}" in targets)
+
+
+def merge_elevation_rework(
+    previous_value: Mapping[str, Any], current_value: Mapping[str, Any], targets: Sequence[str]
+) -> dict[str, Any]:
+    """Protect unpointed facade readings and retain their first observation audit."""
+
+    canonical_targets = set(normalize_elevation_rework_targets(targets))
+    previous = validate_elevation_artifact(previous_value)
+    current = validate_elevation_artifact(current_value, image_name=previous["image"])
+
+    for field in ("image", "orientation", "view_direction"):
+        if current[field] != previous[field]:
+            raise ValueError(f"elevation rework changed protected artifact field {field}")
+    for field in _ELEVATION_REWORK_TOP_LEVEL:
+        if current.get(field) != previous.get(field) and f"elevation.{field}" not in canonical_targets:
+            raise ValueError(f"elevation rework changed protected artifact field {field}")
+
+    membership_changed = False
+    for collection, editable_fields in _ELEVATION_REWORK_COLLECTIONS.items():
+        prior_rows = {row["id"]: row for row in previous[collection]}
+        current_rows = {row["id"]: row for row in current[collection]}
+        for identity in sorted(set(prior_rows) | set(current_rows)):
+            if identity not in prior_rows or identity not in current_rows:
+                if not _elevation_target_allows(canonical_targets, collection, identity):
+                    raise ValueError(
+                        f"elevation rework changed protected object elevation.{collection}:{identity}"
+                    )
+                membership_changed = membership_changed or collection == "openings"
+                continue
+            prior_row, current_row = prior_rows[identity], current_rows[identity]
+            for field in sorted((set(prior_row) | set(current_row)) - {"id"}):
+                if prior_row.get(field) == current_row.get(field):
+                    continue
+                if _elevation_target_allows(canonical_targets, collection, identity, field):
+                    continue
+                # A model commonly copies the prior adopted grid value because
+                # regularization metadata is runtime-owned and absent from the
+                # submission schema.  That is unchanged, not a new observation.
+                if field in editable_fields and field in {"value_m", "width_m", "sill_m", "head_m"}:
+                    continue
+                raise ValueError(
+                    f"elevation rework changed protected field "
+                    f"elevation.{collection}:{identity}.{field}"
+                )
+    if current["counts"] != previous["counts"] and not membership_changed:
+        raise ValueError("elevation rework changed protected counts without a targeted opening object")
+
+    prior_readings = {
+        (row["item_kind"], row["item_id"], row["field"]): row
+        for row in previous["regularization"]["readings"]
+    }
+    current_readings = {
+        (row["item_kind"], row["item_id"], row["field"]): row
+        for row in current["regularization"]["readings"]
+    }
+    adopted = {
+        ("elevation" if collection == "elevations" else "opening", row["id"], field): row[field]
+        for collection, fields in (("elevations", ("value_m",)),
+                                   ("openings", ("width_m", "sill_m", "head_m")))
+        for row in current[collection]
+        for field in fields
+    }
+    merged_readings = []
+    for key in adopted:
+        current_reading = current_readings[key]
+        prior_reading = prior_readings.get(key)
+        if prior_reading is None:
+            merged_readings.append(copy.deepcopy(current_reading))
+            continue
+        collection = "elevations" if key[0] == "elevation" else "openings"
+        allowed = _elevation_target_allows(canonical_targets, collection, key[1], key[2])
+        same_adopted = math.isclose(
+            current_reading["adopted_m"], prior_reading["adopted_m"], abs_tol=1e-9
+        )
+        repeats_prior = any(
+            math.isclose(current_reading["original_m"], value, abs_tol=1e-9)
+            for value in (prior_reading["original_m"], prior_reading["adopted_m"])
+        )
+        if not allowed and not (same_adopted and repeats_prior):
+            raise ValueError(
+                f"elevation rework changed protected reading "
+                f"elevation.{collection}:{key[1]}.{key[2]}"
+            )
+        merged_reading = copy.deepcopy(
+            prior_reading if same_adopted and repeats_prior else current_reading
+        )
+        # Reusing the numeric provenance must not roll back an explicitly
+        # targeted evidence classification on the current object.
+        merged_reading["evidence_type"] = current_reading["evidence_type"]
+        merged_readings.append(merged_reading)
+
+    result = copy.deepcopy(current)
+    result.pop("artifact_sha256", None)
+    report = copy.deepcopy(current["regularization"])
+    report["readings"] = merged_readings
+    report["changes"] = [row for row in merged_readings if row["shift_m"] != 0.0]
+    result["regularization"] = report
+    return validate_elevation_artifact(result)
 
 
 def elevation_submission_tool():
@@ -80,8 +237,9 @@ def elevation_submission_tool():
         {"required": ["x_px", "width_m", "sill_m", "head_m", "bbox"]},
     ]
     return {"name": "submit_elevation_reading", "description":
-        "Submit the assigned facade: horizontal and vertical calibration plus a rough opening_bbox for each opening; "
+        "Submit the assigned facade in one batch: horizontal and vertical calibration, all located levels, and a rough opening_bbox for each opening; "
         "Only pixels evidence allows unique-ink corrections; other evidence needs explicit x_px/width_m/sill_m/head_m, which are retained and checked. "
+        "The accepted artifact adopts absolute levels and opening width/sill/head on the 0.1 m Lite grid while retaining every original reading and shift. "
         "Direction/axis come from task.target. "
         "Counts, locations and the immutable submission are checked.", "inputSchema": schema}
 
@@ -122,8 +280,17 @@ def expand_elevation_submission(arguments, target):
 class ElevationReaderSubmission(ReaderSubmission):
     """Role-local durable submission that binds deterministic ink alignment."""
 
-    def __init__(self, *args, admitted_image_sha256=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        admitted_image_sha256=None,
+        previous_artifact=None,
+        rework_targets=None,
+        **kwargs,
+    ):
         self.admitted_image_sha256 = admitted_image_sha256
+        self.previous_artifact = copy.deepcopy(previous_artifact)
+        self.rework_targets = list(rework_targets or [])
         super().__init__(*args, **kwargs)
 
     def _verified_image(self):
@@ -155,7 +322,9 @@ class ElevationReaderSubmission(ReaderSubmission):
         from .elevation_ink import align_elevation_artifact
         from .plan_review import box
 
-        artifact = validate_elevation_artifact(arguments, image_name=self.image_name)
+        artifact = validate_elevation_artifact(
+            arguments, image_name=self.image_name, apply_regularization=False
+        )
         if self.target_identity is not None and artifact["orientation"] != self.target_identity:
             raise ValueError(f"orientation must match task.target {self.target_identity}")
         floors = {row["floor_id"] for key in ("openings", "elevations", "counts")
@@ -176,7 +345,9 @@ class ElevationReaderSubmission(ReaderSubmission):
             artifact = copy.deepcopy(artifact)
             artifact.pop("artifact_sha256", None)
             artifact["z_calibration"] = z_evidence["calibration"]
-            artifact = validate_elevation_artifact(artifact, image_name=self.image_name)
+            artifact = validate_elevation_artifact(
+                artifact, image_name=self.image_name, apply_regularization=False
+            )
 
         image_path, image_sha256 = self._verified_image()
         validation = {
@@ -195,6 +366,10 @@ class ElevationReaderSubmission(ReaderSubmission):
                     opening[field] = copy.deepcopy(aligned[field])
         artifact["ink_alignment"] = alignment
         artifact = validate_elevation_artifact(artifact, image_name=self.image_name)
+        if self.previous_artifact is not None:
+            artifact = merge_elevation_rework(
+                self.previous_artifact, artifact, self.rework_targets
+            )
         validation["ink_alignment_sha256"] = _canonical_hash(alignment)
 
         value = {
@@ -226,7 +401,17 @@ class ElevationReaderSubmission(ReaderSubmission):
 class ElevationReaderTools(ReaderTools):
     """Expose a smaller facade contract, then use the existing durable validator."""
 
-    def __init__(self, frozen, *, role_id, image_name, trial=None, target=None):
+    def __init__(
+        self,
+        frozen,
+        *,
+        role_id,
+        image_name,
+        trial=None,
+        target=None,
+        previous_artifact=None,
+        rework_targets=None,
+    ):
         super().__init__(
             frozen, role_id=role_id, image_name=image_name, trial=trial, target=target
         )
@@ -237,6 +422,8 @@ class ElevationReaderTools(ReaderTools):
             trial=trial,
             target=target,
             admitted_image_sha256=self._image_sha256,
+            previous_artifact=previous_artifact,
+            rework_targets=rework_targets,
         )
 
     async def list_tools(self):
@@ -547,7 +734,11 @@ def _normalize_count(value: Any, index: int) -> dict[str, Any]:
 
 
 def validate_elevation_artifact(
-    value: Any, *, image_name: str | None = None
+    value: Any,
+    *,
+    image_name: str | None = None,
+    grid_step_m: float | None = None,
+    apply_regularization: bool = True,
 ) -> dict[str, Any]:
     """Validate and normalize one elevation reader's compact artifact.
 
@@ -571,6 +762,7 @@ def validate_elevation_artifact(
         "unresolved",
         "artifact_sha256",
         "ink_alignment",
+        "regularization",
     }
     required = {
         "orientation",
@@ -689,6 +881,17 @@ def validate_elevation_artifact(
         if [item.get("id") for item in aligned_rows if isinstance(item, Mapping)] != opening_ids:
             raise ValueError("ink_alignment openings do not match artifact openings")
         normalized["ink_alignment"] = copy.deepcopy(alignment)
+    from .elevation_regularization import (
+        regularize_elevation_artifact,
+        validate_elevation_regularization,
+    )
+    if row.get("regularization") is not None:
+        normalized["regularization"] = validate_elevation_regularization(
+            normalized, row["regularization"]
+        )
+    elif apply_regularization:
+        kwargs = {} if grid_step_m is None else {"grid_step_m": grid_step_m}
+        normalized, _ = regularize_elevation_artifact(normalized, **kwargs)
     normalized["artifact_sha256"] = _canonical_hash(normalized)
     if row.get("artifact_sha256") not in (None, normalized["artifact_sha256"]):
         raise ValueError("artifact_sha256 does not match normalized artifact content")
@@ -1228,6 +1431,11 @@ def height_application(
         raise ValueError("match_result contains no safe height matches")
 
     by_id = {row["id"]: row for row in normalized["openings"]}
+    regularized_readings = {
+        (row["item_id"], row["field"]): row
+        for row in normalized.get("regularization", {}).get("readings", [])
+        if row.get("item_kind") == "opening"
+    }
     entries = []
     used_artifact_ids: set[str] = set()
     used_source_ids: set[str] = set()
@@ -1256,10 +1464,15 @@ def height_application(
         unresolved = []
         if opening["evidence_type"] == "assumption":
             unresolved.append("Height is an explicit assumption, not a measured elevation value.")
+        sill_reading = regularized_readings.get((artifact_id, "sill_m"), {})
+        head_reading = regularized_readings.get((artifact_id, "head_m"), {})
         reason = (
             f"Elevation artifact {normalized['artifact_id']} opening {artifact_id}; "
             f"apply absolute building Z [{opening['sill_m']}, {opening['head_m']}] m "
-            f"from original-image bbox {opening['bbox']}."
+            f"on its Lite grid from original readings "
+            f"[{sill_reading.get('original_m', opening['sill_m'])}, "
+            f"{head_reading.get('original_m', opening['head_m'])}] m and original-image "
+            f"bbox {opening['bbox']}."
         )
         object_kind = "window" if opening["kind"] == "window" else "opening"
         operation = "update_window" if opening["kind"] == "window" else "update_opening"

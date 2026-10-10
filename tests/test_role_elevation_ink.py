@@ -342,14 +342,18 @@ def test_floor_contact_sill_is_not_replaced_by_another_lower_ink_line():
     assert not raised["floor_contact"]
 
 
-def test_normalization_retains_explicit_annotated_values_beside_a_rough_box():
+def test_normalization_retains_annotated_originals_beside_grid_adopted_values():
     from src.agent.runtime_roles.guidance import COMPACT_ELEVATION_EXAMPLE
     args = copy.deepcopy(COMPACT_ELEVATION_EXAMPLE)
     args["openings"][0].update(evidence_type="annotation_and_pixels", x_px=[205, 297],
                                width_m=1.1, sill_m=1.05, head_m=2.55)
     normalized = validate_elevation_artifact(expand_elevation_submission(args, "North/F1"), image_name="North.png")
     opening = normalized["openings"][0]
-    assert [opening[key] for key in ("x_px", "width_m", "sill_m", "head_m")] == [[205, 297], 1.1, 1.05, 2.55]
+    assert opening["x_px"] == [205, 297]
+    assert [opening[key] for key in ("width_m", "sill_m", "head_m")] == pytest.approx([1.1, 1.1, 2.6])
+    readings = {(row["item_id"], row["field"]): row for row in normalized["regularization"]["readings"]}
+    assert readings[("W1", "sill_m")]["original_m"] == pytest.approx(1.05)
+    assert readings[("W1", "head_m")]["original_m"] == pytest.approx(2.55)
     args["openings"][0].pop("width_m")
     with pytest.raises(ValueError):
         validate_elevation_artifact(expand_elevation_submission(args, "North/F1"), image_name="North.png")

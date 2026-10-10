@@ -99,6 +99,57 @@ def test_exact_audited_regularization_is_classified_but_real_geometry_still_requ
     assert [row["item"] for row in remaining] == ["adjacency"]
 
 
+def test_lite_grid_audit_accepts_joint_jamb_rounding_but_not_changed_connection():
+    before = {"kind": "door", "space_ids": ["room", "hall"], "exterior": False,
+              "xy": [(3.94, 2.0), (4.96, 2.0)]}
+    after = {**before, "xy": [(3.9, 2.0), (5.0, 2.0)]}
+    change = {"floor_id": "F1", "item": "openings:D1", "before": before, "after": after}
+    relationships = {"rooms": ["room", "hall"], "door": ["room", "hall"]}
+    rows = [{"type": "lite_grid_coordinate", "floor_id": "F1", "axis": "x",
+             "from_m": start, "to_m": end, "movement_m": end - start,
+             "grid_step_m": 0.1, "span_m": [0.0, 6.0], "opening_ids": ["D1"],
+             "before_relationships": relationships, "after_relationships": relationships}
+            for start, end in ((3.94, 3.9), (4.96, 5.0))]
+    rows.append({"type": "lite_grid_height", "floor_id": "F1", "axis": "z",
+                 "from_m": 2.13, "to_m": 2.1, "movement_m": -0.03, "grid_step_m": 0.1,
+                 "before_relationships": relationships, "after_relationships": relationships})
+    report = {"schema": "plan_regularization_report_v1", "rule_version": "plan_regularization_v1",
+              "status": "pass", "changes": rows}
+    accepted, remaining = accepted_regularization_changes([change], report, "F1")
+    assert len(accepted) == 1 and not remaining
+    changed_connection = copy.deepcopy(change)
+    changed_connection["after"]["space_ids"] = ["room", "outside"]
+    assert accepted_regularization_changes([changed_connection], report, "F1") == ([], [changed_connection])
+
+    # A hash-bound receipt still has to describe an actual grid movement.
+    bad_report = copy.deepcopy(report)
+    bad_report["changes"][0].update(to_m=3.92, movement_m=-0.02)
+    assert accepted_regularization_changes([change], bad_report, "F1") == ([], [change])
+    bad_report = copy.deepcopy(report)
+    bad_report["changes"][0]["after_relationships"] = {"rooms": ["room"]}
+    assert accepted_regularization_changes([change], bad_report, "F1") == ([], [change])
+
+
+def test_lite_grid_producer_report_replays_exported_room_and_opening_changes(tmp_path):
+    from src.agent.geometry.lite_bim_regularization import regularize_lite_plan
+    from src.agent.geometry.plan_partition import compile_plan_partition
+    from src.agent.geometry.plan_regularization import regularize_plan
+    from tests.test_lite_bim_regularization import SIZE, plan
+
+    raw = plan()
+    before, _ = compile_plan_partition(raw, image_size=SIZE, image_name="plan")
+    adopted, _ = regularize_lite_plan(raw, image_size=SIZE, image_name="plan")
+    adopted, report = regularize_plan(adopted, image_size=SIZE, image_name="plan")
+    after, _ = compile_plan_partition(adopted, image_size=SIZE, image_name="plan")
+    expected = _source(tmp_path, "before", before)
+    actual = _source(tmp_path, "after", after)
+    changes = compare_floor(expected, actual, "F1")
+    assert changes and any(row["type"] == "lite_grid_height" for row in report["changes"])
+    accepted, remaining = accepted_regularization_changes(changes, report, "F1")
+    assert {row["change_id"] for row in accepted} == {row["change_id"] for row in changes}
+    assert not remaining
+
+
 def test_crossing_opening_requires_explicit_width_preserving_world_adjustment():
     change = {
         "floor_id": "F1", "item": "openings:window", "change_id": "crossing-window",

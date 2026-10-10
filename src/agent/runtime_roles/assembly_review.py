@@ -167,6 +167,23 @@ def _regularization_opening_adjustments(row):
     return adjustments if set(adjustments) == crossing else None
 
 
+def _valid_lite_grid_change(row):
+    """Accept a grid audit only when its step, displacement and topology agree."""
+    fields = ("from_m", "to_m", "movement_m", "grid_step_m")
+    if any(isinstance(row.get(key), bool) or not isinstance(row.get(key), (int, float))
+           or not math.isfinite(float(row[key])) for key in fields):
+        return False
+    before, after, movement, step = (float(row[key]) for key in fields)
+    tolerance = _REGULARIZATION_COORDINATE_TOLERANCE_M
+    return (step > 0
+            and abs(movement) <= step / 2 + tolerance
+            and math.isclose(after - before, movement, abs_tol=tolerance, rel_tol=0)
+            and abs(after - round(after / step) * step) <= tolerance
+            and row.get("before_relationships") is not None
+            and row["before_relationships"] == row.get("after_relationships")
+            and not row.get("blocked_collapses"))
+
+
 def _regularization_moves(report, floor):
     """Return audited coordinate substitutions for one floor, or no exemptions.
 
@@ -180,11 +197,17 @@ def _regularization_moves(report, floor):
             or report.get("rule_version") != "plan_regularization_v1"
             or report.get("status") != "pass"):
         return []
-    coordinate_types = {"move_wall_line", "move_footprint_edge",
+    coordinate_types = {"move_wall_line", "move_footprint_edge", "lite_grid_coordinate",
                         "merge_duplicate_wall_into_fixed_footprint",
                         "retain_openings_on_merged_wall"}
     moves = []
     for row in report.get("changes", []):
+        if isinstance(row, dict) and row.get("type") in {"lite_grid_coordinate", "lite_grid_height"}:
+            if not _valid_lite_grid_change(row):
+                return []
+            if row["type"] == "lite_grid_height":
+                # floor_facts compares XY; validated Z changes do not waive any XY edit.
+                continue
         if not isinstance(row, dict) or row.get("type") not in coordinate_types:
             return []
         axis, before, after = row.get("axis"), row.get("from_m"), row.get("to_m")

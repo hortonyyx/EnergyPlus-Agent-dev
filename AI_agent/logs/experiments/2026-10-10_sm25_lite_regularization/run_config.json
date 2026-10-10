@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "batch_id": "2026-10-10-sm25-lite-regularization-manual-dispatch-v1",
+  "status": "prepared_not_started",
+  "sequence_gate": "Initialize only after the integrated Lite BIM domain version and its offline checks have been accepted by the project manager.",
+  "approval_required_before_init": false,
+  "approval": "User authorized one manually coordinated sm25 whole-case run using the integrated Lite BIM domain, including necessary bounded rework in the same run. This file does not authorize repeated cold-start sampling, an autonomous coordinator model, any fallback, or any DeepSeek call.",
+  "mode": "manual_coordinator_role_division",
+  "credentials_file": ".env",
+  "input_kind": "images",
+  "input": "case_tests/e2e_tests/sm25-L_anchor/case_data",
+  "image_kind": "drawings",
+  "floor_plan_images": [
+    "1f_view.png",
+    "2f_view.png"
+  ],
+  "output": "AI_agent/archive/local_backup/2026-10-10_sm25_lite_regularization/manual_dispatch_sm25_lite_v1",
+  "scope": "Reconstruct one inspectable Lite BIM of sm25 from the admitted original drawings only. Reader models start without prior plans, generated BIM, observations, calibrations, counts, target heights, reference answers, GT, or geometry from earlier runs. The root dev model manually coordinates readers, deterministic assembly, checks, bounded rework, and delivery. Preserve every drawn space, wall, door, window, floor assignment, and connection. Use the integrated 0.1 m Lite BIM policy and retain original observations separately from adopted values.",
+  "max_candidates": 64,
+  "max_concurrent_readers": 6,
+  "limits": {
+    "model_calls": 180,
+    "tool_calls": 700,
+    "tokens": null,
+    "money_cny": "20",
+    "seconds": 10800,
+    "model_retries": 2,
+    "retry_backoff_seconds": 2.0
+  },
+  "roles": {
+    "coordinator": {
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "enable_thinking": true
+    },
+    "plan_reader": {
+      "provider": "paratera",
+      "model": "Qwen3.8-27B",
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "enable_thinking": true
+    },
+    "elevation_reader": {
+      "provider": "paratera",
+      "model": "Qwen3.8-Flash",
+      "output_tokens": 16384,
+      "temperature": 0.7,
+      "enable_thinking": true
+    }
+  },
+  "execution_constraints": {
+    "coordinator_model_requests_allowed": 0,
+    "automatic_provider_fallback": false,
+    "deepseek_allowed": false,
+    "claude_allowed": false,
+    "glm_allowed": false,
+    "first_dispatch_must_explicitly_cover_all_declared_plan_and_cardinal_elevation_images": true,
+    "tasks_are_written_by_the_root_dev_model_before_init": true,
+    "same_route_retries_only": true,
+    "repeat_cold_start_allowed": false
+  },
+  "preparation": {
+    "baseline_commit": "d5f5a5ef",
+    "integrated_code_version": "FILL_AFTER_DOMAIN_INTEGRATION_BEFORE_VALIDATE",
+    "lite_bim_grid_m": 0.1,
+    "reused_wrapper": "AI_agent/logs/experiments/2026-10-09_sm25_dev_and_tier4/manual_dispatch.py",
+    "catalog_snapshot": "Reuses the 2026-10-09 reviewed model names; no catalog or balance request was made during preparation. validate rechecks the registered local agent version and price schedule without HTTP."
+  },
+  "budget_basis": {
+    "provider_realtime_balance_verified": false,
+    "hard_cap_cny": "20",
+    "price_basis": "Runtime's reviewed Paratera CNY schedules; estimates are not provider bills."
+  }
+}

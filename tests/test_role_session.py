@@ -13,6 +13,7 @@ from src.agent.runtime_roles.artifacts import ArtifactRegistry
 from src.agent.runtime_roles.config import load_roles
 from src.agent.runtime_roles.feedback import reader_batch_reply
 from src.agent.runtime_roles.readers import ELEVATION_READER_TOOL_NAMES
+from src.agent.runtime_roles.elevation import merge_elevation_rework
 from src.agent.runtime_roles.session import RoleSession, envelope
 from src.agent_runtime.adapter import ScriptedAdapter
 from src.agent_runtime.loop import RunLimits
@@ -35,6 +36,26 @@ def elevation():
                         "evidence_type": "assumption", "bbox": [0, 0, 10, 10]}],
         "openings": [], "counts": [{"floor_id": "F1", "window_count": 0, "door_count": 0}],
         "unresolved": ["Scripted empty facade fixture, not drawing quality evidence."]}
+
+
+def measured_elevation(*, eave=3.94, width=1.04, sill=1.02, head=2.24,
+                       evidence_type="annotation"):
+    return {"orientation": "North", "view_direction": "South",
+        "x_calibration": {"pixel_start": 0, "pixel_end": 100,
+                          "world_start_m": 10, "world_end_m": 0},
+        "z_calibration": {"pixel_start": 0, "pixel_end": 100,
+                          "world_start_m": 4, "world_end_m": 0},
+        "elevations": [
+            {"id": "ground", "kind": "ground", "value_m": 0,
+             "evidence_type": "annotation", "bbox": [0, 90, 10, 99]},
+            {"id": "eave", "kind": "eave", "value_m": eave,
+             "evidence_type": "annotation", "bbox": [0, 1, 10, 5]},
+        ],
+        "openings": [{"id": "W1", "floor_id": "F1", "kind": "window",
+            "x_px": [20, 30], "width_m": width, "sill_m": sill, "head_m": head,
+            "evidence_type": evidence_type, "bbox": [15, 40, 35, 90]}],
+        "counts": [{"floor_id": "F1", "window_count": 1, "door_count": 0}],
+        "unresolved": []}
 
 
 def dispatch(identity="north", **extra):
@@ -217,7 +238,8 @@ def test_rework_has_new_identity_and_cannot_switch_original(environment):
     session = make()
     asyncio.run(session.delegate_many([dispatch()]))
     result = asyncio.run(session.delegate_many([dispatch("north-r2", previous_task_id="north",
-        issues=["Check the unresolved edge"])]))["results"][0]
+        issues=["Check the unresolved edge"],
+        rework_targets=["elevation.elevations:ground.value_m"])]))["results"][0]
     assert result["status"] == "completed"
     previous = session.registry.task("north-r2")["previous_artifact"]
     assert previous == session.registry.records["north"]["artifact"]
@@ -226,7 +248,70 @@ def test_rework_has_new_identity_and_cannot_switch_original(environment):
     assert "earlier corrected failures are not current rework evidence" in handoff["instruction"]
     with pytest.raises(ValueError):
         asyncio.run(session.delegate_many([dispatch("north-r3", previous_task_id="north", target="wrong",
-                                                      issues=["wrong facade"])]))
+            issues=["wrong facade"],
+            rework_targets=["elevation.elevations:ground.value_m"])]))
+
+
+def test_elevation_rework_preserves_prior_originals_and_only_updates_target(environment):
+    store, make = environment
+    adapters = {}
+    submissions = {
+        "north": measured_elevation(),
+        "north-r2": measured_elevation(
+            eave=3.9, width=1.0, sill=1.0, head=2.36,
+            evidence_type="visual_estimate",
+        ),
+    }
+
+    def factory(task_id, *_):
+        adapter = ScriptedAdapter([
+            response((f"submit-{task_id}", "submit_elevation_reading", submissions[task_id])),
+            response(text="Submission acknowledged."),
+        ])
+        adapters[task_id] = adapter
+        return adapter
+
+    session = make(factory)
+    first = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
+    assert first["status"] == "completed"
+    second = asyncio.run(session.delegate_many([dispatch(
+        "north-r2", previous_task_id="north", issues=["correct W1 head and evidence"],
+        rework_targets=["elevation.openings:W1"],
+    )]))["results"][0]
+    assert second["status"] == "completed", second
+    messages = json.loads(adapters["north-r2"].requests[0])["messages"]
+    context = json.loads(next(row for row in messages if row["role"] == "user")["content"][0]["text"])
+    projected = context["previous_artifact"]
+    assert "regularization" not in projected and "ink_alignment" not in projected
+    assert projected["context_audit"]["registry_reference"] == first["artifact"]
+    assert projected["openings"] == session.registry.read("north")["openings"]
+    artifact = session.registry.read("north-r2")
+    readings = {(row["item_id"], row["field"]): row
+                for row in artifact["regularization"]["readings"]}
+    assert readings[("eave", "value_m")]["original_m"] == pytest.approx(3.94)
+    assert readings[("eave", "value_m")]["adopted_m"] == pytest.approx(3.9)
+    assert readings[("W1", "width_m")]["original_m"] == pytest.approx(1.04)
+    assert readings[("W1", "width_m")]["evidence_type"] == "visual_estimate"
+    assert readings[("W1", "head_m")]["original_m"] == pytest.approx(2.36)
+    assert readings[("W1", "head_m")]["adopted_m"] == pytest.approx(2.4)
+    assert readings[("W1", "head_m")]["evidence_type"] == "visual_estimate"
+
+    protected_change = measured_elevation(eave=3.9, width=1.16, sill=1.0, head=2.36)
+    with pytest.raises(ValueError, match="protected reading.*width_m"):
+        merge_elevation_rework(
+            session.registry.read("north"), protected_change,
+            ["elevation.openings:W1.head_m"],
+        )
+
+
+def test_completed_elevation_rework_requires_explicit_targets(environment):
+    store, make = environment
+    session = make()
+    asyncio.run(session.delegate_many([dispatch()]))
+    with pytest.raises(ValueError, match="elevation_reader rework needs explicit rework_targets"):
+        asyncio.run(session.delegate_many([
+            dispatch("north-r2", previous_task_id="north", issues=["check one height"])
+        ]))
 
 
 def test_failed_rework_automatically_carries_located_tool_evidence_without_issues(environment):

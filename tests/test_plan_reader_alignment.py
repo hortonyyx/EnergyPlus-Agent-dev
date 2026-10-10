@@ -606,7 +606,7 @@ def test_trial_compiles_aligned_numeric_plan_and_returns_only_compact_summary(tm
 
     async def scenario():
         trial = PlanTrial(Tools(), image_name="plan.png", workspace=workspace,
-                          receipt_directory=workspace / "trial_receipts")
+                          receipt_directory=workspace / "trial_receipts", grid_step_m=None)
         envelope = await trial.call(value)
         receipt = trial.receipts[-1]
         assert receipt["status"] == "passed"
@@ -661,7 +661,7 @@ def test_trial_rejects_unverified_regularized_toolkit_plan(tmp_path):
 
     async def scenario():
         trial = PlanTrial(Tools(), image_name="plan.png", workspace=workspace,
-                          receipt_directory=workspace / "trial_receipts")
+                          receipt_directory=workspace / "trial_receipts", grid_step_m=None)
         receipt = await trial.run(_plan())
         assert receipt["status"] == "failed"
         assert "Toolkit effective plan changed or is missing" in receipt["reason"]

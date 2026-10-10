@@ -141,6 +141,46 @@ def test_validate_defaults_runtime_fields_and_absolute_z(artifact):
     assert validate_elevation_artifact(result) == result
 
 
+def test_validate_regularizes_adopted_heights_and_width_but_keeps_original_readings(
+    artifact, source_bim
+):
+    artifact["elevations"][2]["value_m"] = 2.94
+    artifact["openings"][2].update(width_m=1.04, sill_m=1.06, head_m=2.24)
+
+    result = validate_elevation_artifact(artifact, image_name="North_view.png")
+
+    assert result["elevations"][2]["value_m"] == pytest.approx(2.9)
+    assert result["openings"][2]["width_m"] == pytest.approx(1.0)
+    assert result["openings"][2]["sill_m"] == pytest.approx(1.1)
+    assert result["openings"][2]["head_m"] == pytest.approx(2.2)
+    report = result["regularization"]
+    assert report["grid_step_m"] == pytest.approx(0.1)
+    readings = {(row["item_id"], row["field"]): row for row in report["readings"]}
+    assert readings[("read-W1", "sill_m")]["original_m"] == pytest.approx(1.06)
+    assert readings[("read-W1", "sill_m")]["adopted_m"] == pytest.approx(1.1)
+    assert validate_elevation_artifact(result) == result
+    matched = match_elevation(source_bim, result)
+    assert "read-W1" in {row["artifact_opening_id"] for row in matched["matches"]}
+
+    tampered = copy.deepcopy(result)
+    tampered.pop("artifact_sha256")
+    tampered["regularization"]["readings"][0]["evidence_type"] = "assumption"
+    with pytest.raises(ValueError, match="evidence_type"):
+        validate_elevation_artifact(tampered)
+
+    custom = validate_elevation_artifact(
+        artifact, image_name="North_view.png", grid_step_m=0.2
+    )
+    assert custom["regularization"]["grid_step_m"] == pytest.approx(0.2)
+    assert custom["openings"][2]["sill_m"] == pytest.approx(1.0)
+
+
+def test_regularization_never_replaces_an_observed_value_with_a_default(artifact):
+    artifact["openings"][2]["width_m"] = 0.04
+    with pytest.raises(ValueError, match="width collapses"):
+        validate_elevation_artifact(artifact, image_name="North_view.png")
+
+
 def test_validate_rejects_stale_artifact_hash(artifact):
     result = validate_elevation_artifact(artifact, image_name="North_view.png")
     result["artifact_sha256"] = "0" * 64

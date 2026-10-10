@@ -7,9 +7,10 @@ legacy ``x_px`` plus ``sill_m``/``head_m`` when a vertical calibration proves
 the pixel-to-height conversion.
 
 The public function returns an alignment envelope and never mutates the input
-artifact.  Callers can preserve the envelope beside the reader artifact, then
-apply ``aligned_values`` after their own submission checks. Those are effective
-values: marked dimensions and mixed evidence are never replaced by image ink.
+artifact.  Callers preserve the envelope beside the reader artifact, then apply
+``aligned_values`` before Lite-grid adoption. Marked dimensions and mixed
+evidence are never replaced by image ink; the later regularization report keeps
+these pre-grid readings beside the adopted values.
 """
 
 from __future__ import annotations
