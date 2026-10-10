@@ -28,8 +28,10 @@ def test_reference_example_is_complete_compilable_and_present_in_reader_guidance
     for stale in ("Even a failed trial is the next rework base", "base_plan_sha256", "finishing budget below"):
         assert stale not in PLAN_READER_GUIDANCE
     normalized_guidance = " ".join(PLAN_READER_GUIDANCE.split())
-    assert "endpoints within the reported tolerance (at most 0.30m) connect automatically" in normalized_guidance
-    assert "exact original-pixel target" in normalized_guidance
+    assert "send one complete plan to trial_plan_bim so code can place it" in normalized_guidance
+    assert "dimension chains, shared endpoints and openings on hosts are resolved by code" in normalized_guidance
+    assert "Use approximate original pixels for ALL actual walls, openings and room seeds" in normalized_guidance
+    assert "Original annotations remain evidence" in normalized_guidance
 
 
 def test_reader_example_is_the_reference_plan_at_image_scale():

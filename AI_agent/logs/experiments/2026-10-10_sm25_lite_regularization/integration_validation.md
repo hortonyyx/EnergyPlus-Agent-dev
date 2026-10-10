@@ -40,4 +40,18 @@
 
 审查发现并修复：高度移动缺少装配审计字段、跨层末次量化报告不同步、装配目标标高被草稿标高覆盖、立面返工覆盖未改字段的原读数，以及大体积审计进入返工模型上下文。实际 producer 和 adapter 消息检查覆盖最后两条接线，完整原始记录不删。
 
-首次版本登记发现模板解析环境缺少新 `previous_context` 符号，已在 domain 的 `version_fingerprints.py` 同步修复后登记成功；未修改 runtime。主树全量离线检查已启动：`python -m pytest -n 2 tests -p no:cacheprovider --basetemp AI_agent/archive/local_backup/lite-full-tests -q`，日志在本批归档的 `full_pytest.log`。新 sm25 运行与独立质量评价尚未开始，不将定向通过外推为整案成功。
+首次版本登记发现模板解析环境缺少新 `previous_context` 符号，已在 domain 的 `version_fingerprints.py` 同步修复后登记成功；未修改 runtime。
+
+## 主树统一检查
+
+全量命令：`python -m pytest -n 2 tests -p no:cacheprovider --basetemp AI_agent/archive/local_backup/lite-full-tests -q`。首次结果为 **5,969 passed / 12 failed / 17 skipped / 13 xfailed**，耗时 2,790.91 秒（46:30）；日志为本批归档的 `full_pytest.log`。三例真实 frozen MCP 脚本整案、角色会话及恢复检查均通过。这些脚本响应不是 work model 实测。
+
+12 项失败均已定位并只修测试，未改生产代码或登记版本：
+
+- 9 项在手动改变立面 fixture 的读数、对象或依据类型后沿用旧规整报告，被一致性守卫正确拒绝；现通过公开 `regularize_elevation_artifact → validate_elevation_artifact` 重建新读数的报告，再检查原本的高度越界、证据或标注保护行为。过期报告的生产拒绝逻辑保持。
+- 2 项逐字匹配已替换的旧指引，改为检查当前完整首稿、代码落位、原始依据和显式返工范围的说明；完整示例仍实际编译验证。
+- 1 项 `EmptyClaimStore` 缺少现有高度依据接口需要的 `run` 路径，补充隔离的临时路径，保留原开口与立面范围断言。
+
+2 cm 标注宽度保护用例显式使用 domain API 的 `0.01 m` 步长，并确认原差值没有被取整消除；它验证可配置底层契约，产品默认仍为 `0.1 m`。
+
+修复后的六个完整测试文件在主树统一复查：**61 passed / 0 failed，9.61 秒**，覆盖全部 12 项原失败，日志为 `fixture_recheck.log`。未重复全量。没有模型或计费 API 调用。新 sm25 运行与独立质量评价尚未开始，不将离线通过外推为整案成功。

@@ -1,6 +1,6 @@
 # sm25 Lite BIM 规整：人工调度实验准备
 
-状态：`prepared_not_started`。尚未初始化 run、派工、调用 HTTP/模型或消费费用。代码已经集成为 `851b62ce`，登记 `runtime-v2-20261009 / domain-v57-20261010`；仅 domain 变化，三个分工角色的 fingerprint 更新，单模型 fingerprint 保持。定向检查与独立审查通过，主树全量离线检查正在执行，详见 [集成验证](integration_validation.md)。完整检查和离线预检通过后才初始化；`init` 会把配置哈希和已登记 agent 版本冻结到新 run。
+状态：`prepared_not_started`。尚未初始化 run、派工、调用 HTTP/模型或消费费用。代码已经集成为 `851b62ce`，登记 `runtime-v2-20261009 / domain-v57-20261010`；仅 domain 变化，三个分工角色的 fingerprint 更新，单模型 fingerprint 保持。定向检查、独立审查与离线预检已完成。全量 5,969 passed / 12 failed；12 项均为旧测试夹具或指引断言，修复后六个完整文件 61/61 通过，生产代码保持，未重复全量。详见 [集成验证](integration_validation.md)。`init` 会把配置哈希和已登记 agent 版本冻结到新 run。
 
 ## 固定范围
 

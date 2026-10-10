@@ -48,7 +48,8 @@ def test_coordinator_guide_names_role_workflow_and_does_not_tell_it_to_draft():
     assert ">30cm differences require an explicit decision before delivery" in tool_text
     assert "unchosen items retain plan" not in tool_text
     assert "runtime carries the prior task's located failure handoff automatically" in guide
-    assert "runtime attaches the prior task's located failure handoff" in tool_text
+    assert "explicit rework_targets" in tool_text
+    assert "preserves every unpointed plan or elevation object and its original-reading audit" in tool_text
 
 
 def test_catalog_reports_exact_character_counts_and_unchanged_single_model():

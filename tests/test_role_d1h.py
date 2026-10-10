@@ -13,6 +13,8 @@ import pytest
 from scripts.tool_scripts.run_bim_agent import Toolkit
 from src.agent.runtime_roles.assembly import select_deliveries
 from src.agent.runtime_roles.config import load_roles
+from src.agent.runtime_roles.elevation import validate_elevation_artifact
+from src.agent.runtime_roles.elevation_regularization import regularize_elevation_artifact
 from src.agent.runtime_roles.levels import resolve_levels
 from src.agent.runtime_roles.session import EXTRA_TOOLS, RoleSession, envelope, role_parameters
 from src.agent_runtime.loop import RunLimits
@@ -168,6 +170,10 @@ def test_vertical_conflict_is_excluded_before_safe_batch(tmp_path):
         artifact = session.registry.read("North")
         artifact.pop("artifact_sha256")
         artifact["openings"][0]["head_m"] = 8
+        # This is a new synthetic reading, not a tampered replay of the prior
+        # adopted values. Regenerate its audit before testing host height bounds.
+        artifact, _ = regularize_elevation_artifact(artifact)
+        artifact = validate_elevation_artifact(artifact)
         task = session._task({"task_id": "high_north", "role_id": "elevation_reader", "image": "plan.png",
                               "target": "North", "instructions": "high opening from elevation"})
         session.registry.save(task, status="completed", artifact=artifact, validation={"validation_passed": True})

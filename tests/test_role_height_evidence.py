@@ -7,19 +7,29 @@ import json
 import pytest
 
 from src.agent.runtime_roles.elevation import validate_elevation_artifact
+from src.agent.runtime_roles.elevation_regularization import regularize_elevation_artifact
 from src.agent.runtime_roles.height_evidence import height_locations
 from tests.test_role_d1g import height_session
 
 
+def rebuilt_elevation(artifact):
+    """Build a new reading fixture; mutated readings cannot reuse prior audits."""
+    artifact = copy.deepcopy(artifact)
+    artifact.pop("artifact_sha256", None)
+    artifact.pop("regularization", None)
+    artifact.pop("ink_alignment", None)
+    regularized, _ = regularize_elevation_artifact(artifact)
+    return validate_elevation_artifact(regularized)
+
+
 def observed_west(session):
     artifact = session.registry.read("West")
-    artifact.pop("artifact_sha256")
     artifact["elevations"] = [
         {"id": "ground", "kind": "ground", "value_m": 0, "evidence_type": "pixels", "bbox": [0, 6.5, 12, 7.5]},
         {"id": "eave", "kind": "eave", "value_m": 3, "evidence_type": "annotation", "bbox": [0, .5, 12, 1.5]},
     ]
     artifact["openings"][0]["bbox"] = [8, 2.4, 10, 5.2]
-    return validate_elevation_artifact(artifact)
+    return rebuilt_elevation(artifact)
 
 
 def test_reader_coordinates_reach_delivery_and_stale_heights_lose_coverage(tmp_path):
@@ -69,6 +79,7 @@ def test_missing_or_unrelated_reader_coordinates_are_not_manufactured(tmp_path, 
                 level["evidence_type"] = "assumption"
         else:
             artifact["openings"][0]["bbox"] = [0, 0, 2, 2]
+        artifact = rebuilt_elevation(artifact)
         before = copy.deepcopy(artifact)
         report = height_locations(artifact, match, [12, 8])
         assert artifact == before
@@ -80,12 +91,16 @@ def test_single_level_scale_needs_independent_image_corroboration(tmp_path):
     with height_session(tmp_path) as session:
         artifact = observed_west(session)
         artifact["elevations"] = artifact["elevations"][:1]
+        artifact = rebuilt_elevation(artifact)
         match = {"tolerances_m": {"position": .35, "width": .25}, "matches": []}
         assert height_locations(artifact, match, [12, 8])["status"] == "uncorroborated_vertical_scale"
         other = {**artifact["openings"][0], "id": "second", "x_px": [2, 4], "bbox": [2, 2.4, 4, 5.2]}
-        artifact["openings"].append(other)
+        artifact["openings"].insert(0, other)
+        artifact["counts"][0]["window_count"] = 2
+        artifact = rebuilt_elevation(artifact)
         assert height_locations(artifact, match, [12, 8])["status"] == "prepared"
-        other["head_m"] = 10
+        artifact["openings"][0]["head_m"] = 10
+        artifact = rebuilt_elevation(artifact)
         assert height_locations(artifact, match, [12, 8])["status"] == "uncorroborated_vertical_scale"
 
 

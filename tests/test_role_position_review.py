@@ -9,12 +9,13 @@ import pytest
 
 from src.agent.runtime_roles.assembly_review import PositionReview
 from src.agent.runtime_roles.elevation import compare_opening_positions, match_elevation, validate_elevation_artifact
+from src.agent.runtime_roles.elevation_regularization import regularize_elevation_artifact
 from src.agent.runtime_roles.lineage import opening_plan
 from tests.test_role_d1g import height_session
 from tests.test_role_d1j import EditTools, drift_group
 
 
-def shifted(session, shift, *, task_id="NorthShift", width_delta=0, evidence_type=None):
+def shifted(session, shift, *, task_id="NorthShift", width_delta=0, evidence_type=None, grid_step_m=None):
     artifact = copy.deepcopy(session.registry.read("North"))
     artifact.pop("artifact_sha256")
     artifact["x_calibration"]["world_start_m"] += shift
@@ -22,6 +23,10 @@ def shifted(session, shift, *, task_id="NorthShift", width_delta=0, evidence_typ
     artifact["openings"][0]["width_m"] += width_delta
     if evidence_type is not None:
         artifact["openings"][0]["evidence_type"] = evidence_type
+    # Rebuild metadata for this deliberately changed fixture through the normal
+    # regularizer, retaining production replay checks against stale readings.
+    kwargs = {} if grid_step_m is None else {"grid_step_m": grid_step_m}
+    artifact, _ = regularize_elevation_artifact(artifact, **kwargs)
     artifact = validate_elevation_artifact(artifact)
     task = session._task({"task_id": task_id, "image": "plan.png", "role_id": "elevation_reader",
                           "target": "North/F1"})
@@ -234,6 +239,7 @@ def test_keep_plan_resolves_only_position_conflict_and_never_waives_height_bound
         assert not resolved["conflicts"] and resolved["matches"][0]["position_decision_id"] == row["decision_id"]
         artifact.pop("artifact_sha256")
         artifact["openings"][0]["head_m"] = 9
+        artifact, _ = regularize_elevation_artifact(artifact)
         artifact = validate_elevation_artifact(artifact)
         task = session._task({"task_id": "bad-height", "role_id": "elevation_reader", "image": "plan.png", "target": "North/F1"})
         session.registry.save(task, status="completed", artifact=artifact, validation={"validation_passed": True})
@@ -270,7 +276,12 @@ def test_ink_inconsistency_is_recorded_without_blocking_agreeing_readings(tmp_pa
 @pytest.mark.parametrize("width_delta", [.02, .4])
 def test_using_elevation_cannot_replace_retained_numeric_width_even_inside_review_tolerance(tmp_path, width_delta):
     with height_session(tmp_path) as session:
-        row = shifted(session, .2, width_delta=width_delta, evidence_type="annotation_and_pixels")
+        # Keep the 2cm case smaller than the position-review tolerance instead
+        # of rounding away the mismatch this numeric-width protection tests.
+        # This exercises the configurable fine-grid domain contract; the
+        # product's default Lite grid remains 0.1m.
+        row = shifted(session, .2, width_delta=width_delta, evidence_type="annotation_and_pixels", grid_step_m=.01)
+        assert session.registry.read("NorthShift")["openings"][0]["width_m"] == pytest.approx(1 + width_delta)
         before = session._source("candidate_01")
         result = asyncio.run(session.call_tool("edit_bim", {"candidate": "candidate_01",
             "edits": [decision(row, "use_elevation")]}))

@@ -191,7 +191,7 @@ def test_facade_mark_cannot_claim_an_interior_door():
         "mark_facade_mismatch", "unaccounted_model_opening"}
 
 
-def test_partial_contact_wall_keeps_exposed_window_and_height_facade_scope():
+def test_partial_contact_wall_keeps_exposed_window_and_height_facade_scope(tmp_path):
     from src.agent.execution.bim_height_coverage import height_coverage
 
     source = _partly_shared_wall_source()
@@ -211,6 +211,8 @@ def test_partial_contact_wall_keeps_exposed_window_and_height_facade_scope():
     assert report["findings"] == []
 
     class EmptyClaimStore:
+        run = tmp_path / "bim"
+
         def candidate(self, identity):
             return {"geometry": {"windows": [{"id": "NW"}], "openings": []}}, source
 
