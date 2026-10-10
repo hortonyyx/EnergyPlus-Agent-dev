@@ -193,8 +193,8 @@ def prepare_responses_request(*, store, model, messages, message_sources, tools,
         strict_model_profile=False, reasoning_history="all"):
     if len(messages) != len(message_sources):
         raise ValueError("every request message needs a recorded source")
-    if reasoning_history not in {"all", "current_tool_chain"}:
-        raise ValueError("unsupported reasoning_history")
+    if reasoning_history != "all":
+        raise ValueError("ChatGPT subscription requires reasoning_history=all to preserve opaque output items")
     body = build_responses_body(model=model, messages=messages, tools=tools, parameters=parameters)
     _, origins = _convert_messages(messages)
     injections = [InjectedContent(request_location=f"/input/{i}",

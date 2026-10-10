@@ -131,7 +131,9 @@ def test_two_round_tools_image_cache_opaque_replay_and_wire_capture(store):
             messages = [{"role": "system", "content": "Inspect locally"}, {"role": "user", "content": "View"}, assistant,
                 {"role": "tool", "tool_call_id": "call-view", "content": [{"type": "text", "text": "room image"},
                     {"type": "image_url", "image_url": {"url": image_url}}]}]
-            second_request = prepare(store, messages, reasoning_history="current_tool_chain")
+            with pytest.raises(ValueError, match="reasoning_history=all"):
+                prepare(store, messages, reasoning_history="current_tool_chain")
+            second_request = prepare(store, messages, reasoning_history="all")
             assert second_request.body["input"][2:5] == first["output"]
             assert second_request.body["input"][5] == {"type": "function_call_output", "call_id": "call-view", "output": [
                 {"type": "input_text", "text": "room image"}, {"type": "input_image", "image_url": image_url, "detail": "high"}]}
