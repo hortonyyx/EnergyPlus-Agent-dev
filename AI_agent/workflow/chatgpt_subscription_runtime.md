@@ -1,6 +1,6 @@
 # ChatGPT 订阅直连自有 Runtime
 
-这条通道让 EnergyPlus Agent 的自有 Runtime 直接使用用户已经拥有的、符合资格的 ChatGPT 订阅。认证采用 OpenAI 的 Sign in with ChatGPT（SIWC）开放客户端流程，请求直接发往公开 Responses API。运行不启动或依赖 Codex CLI、Codex app-server，也不读取、导入或复用 Codex 的登录 token。
+这条通道让 Sim BIM Agent 的自有 runtime 直接使用用户已经拥有的、符合资格的 ChatGPT 订阅。认证采用 OpenAI 的 Sign in with ChatGPT（SIWC）开放客户端流程，请求直接发往公开 Responses API。授权页应用名称为 **Sim BIM Agent**。运行不启动或依赖 Codex CLI、Codex app-server，也不读取、导入或复用 Codex 的登录 token。
 
 provider 名称固定为 `chatgpt-subscription`。这条通道不读取 `OPENAI_API_KEY`，不创建 API key，也不会在订阅认证或额度失败时切换到按量计费 API、其他 provider 或其他模型。要使用按量计费通道，必须另行配置并明确选择，不能作为本通道的自动恢复路径。
 
@@ -107,9 +107,11 @@ SIWC preview 的 Responses 请求固定使用 `store: false` 和 `stream: true`�
 
 当前 ChatGPT 订阅路由只允许 `reasoning_history: "all"`。`current_tool_chain` 会在发送请求前拒绝：Responses 返回的 reasoning、函数调用及其他 output item 可能是下一轮必须原样重放的 opaque 状态，不能沿用 Chat Completions 的历史裁剪方式删除。
 
-`output_tokens: 32000` 是本地预算预留，用来做上下文和最坏情况结算。当前 preview 不接受把它作为 `max_output_tokens` 发到 wire，因此 32k 不是服务端输出上限，也不是已经观测到的最小输出。ChatGPT 订阅路由强制采用 near-limit `stop`：预算不足时停止新请求，不临时缩小输出预留继续发送。
+`output_tokens: 32000` 是本地预算预留，用来做上下文和发送前预算判断。当前 preview 不接受把它作为 `max_output_tokens` 发到 wire，因此 32k 不是服务端输出上限，也不是已经观测到的最小输出；实际用量可能超过预留。ChatGPT 订阅路由强制采用 near-limit `stop`：预算不足时停止新请求，不临时缩小输出预留继续发送。当前登记的两款模型只接受 low/medium/high/xhigh/max 推理档位。
 
 每次请求保存实际 wire、来源、耗时和终态。服务返回 usage 时记录真实 input、output、total 和 cached token 字段；缺 usage 时保留 unknown，不填零。图片原件与实际发送内容分别留证，本地 profile 给出图片 token 估计；订阅响应的 input usage 已包含图片时不再重复加入 provider total。缓存命中与图片估算都不能冒充订阅账单或剩余额度。
+
+若流中途报告过用量，但断流、超时或失败终态没有最终用量，已观测计数单独留证；最终总量仍为未知，预留继续保留，不把中途数字当最终结算放行。
 
 ## 两请求协议 smoke
 

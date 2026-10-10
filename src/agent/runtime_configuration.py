@@ -21,7 +21,7 @@ from src.agent_runtime.output_limits import validate_output_limit
 from src.agent_runtime.accounting import require_cny_price_schedule
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.run_paths import resolve_run_output
-from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters, validate_provider_model
+from src.agent_runtime.providers import CHATGPT_SUBSCRIPTION, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS, provider_parameters, validate_provider_model
 from src.agent.runtime_roles.config import load_roles
 
 
@@ -62,6 +62,10 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             raise ValueError("reasoning_history currently supports single_model only")
         if case.get("provider") not in LIVE_PROVIDERS:
             raise ValueError("live configuration requires a reviewed provider")
+        if mode == "external_coordinator_mcp" and case["provider"] == CHATGPT_SUBSCRIPTION:
+            raise ValueError("ChatGPT subscription supports single_model and role_division; external_coordinator_mcp is not supported")
+        if case["provider"] == CHATGPT_SUBSCRIPTION and case.get("reasoning_history", "all") != "all":
+            raise ValueError("ChatGPT subscription requires reasoning_history=all")
         model = case.get("model")
         validate_provider_model(case["provider"], model)
         provider_parameters(case["provider"], output_tokens=case.get("output_tokens"),
@@ -108,8 +112,14 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
                 not isinstance(name, str) or Path(name).name != name
                 or not (ROOT / case["input"] / name).is_file() for name in floors)):
             raise ValueError("floor_plan_images must use admitted input filenames")
-        if not isinstance(case.get("credentials_file"), str) or not case["credentials_file"].strip():
+        providers = ({role.provider for role in role_configurations.values()}
+                     if role_configurations is not None else {case["provider"]})
+        if providers != {CHATGPT_SUBSCRIPTION} and (
+                not isinstance(case.get("credentials_file"), str) or not case["credentials_file"].strip()):
             raise ValueError("each case requires an explicit read-only credentials_file")
+        if case.get("chatgpt_auth_dir") is not None and (
+                not isinstance(case["chatgpt_auth_dir"], str) or not case["chatgpt_auth_dir"].strip()):
+            raise ValueError("chatgpt_auth_dir must be a nonempty directory path")
     return value
 
 
@@ -120,6 +130,8 @@ def validate_budget(case: dict) -> RunLimits:
     parsed = RunLimits.model_validate_json(json.dumps({
         name: limits.get(name) for name in
         ("model_calls", "tool_calls", "seconds", "tokens", "money_cny")}))
+    if case["provider"] in SUBSCRIPTION_PROVIDERS and parsed.money_cny is not None:
+        raise ValueError("subscription route cannot use a usage-priced money ceiling")
     if parsed.money_cny is not None:
         require_cny_price_schedule(case["model"], route_id=case["provider"])
     return parsed
@@ -140,12 +152,16 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                                 run_root=case.get("run_root"))
     argv = [sys.executable, "-m", ALLOWED_ENTRYPOINTS[case["mode"]],
             "--out", str(output), "--provider", case["provider"],
-            "--model", case["model"], "--credentials-file", str((ROOT / Path(case["credentials_file"]).expanduser()).resolve()),
-            "--scope", case["scope"], "--image-kind", case["image_kind"],
+            "--model", case["model"]]
+    if case.get("credentials_file"):
+        argv += ["--credentials-file", str((ROOT / Path(case["credentials_file"]).expanduser()).resolve())]
+    argv += ["--scope", case["scope"], "--image-kind", case["image_kind"],
             "--model-calls", str(limits["model_calls"]),
             "--tool-calls", str(limits["tool_calls"]),
             "--seconds", str(limits["seconds"]),
             "--output-tokens", str(case["output_tokens"])]
+    if case.get("chatgpt_auth_dir"):
+        argv += ["--chatgpt-auth-dir", str(Path(case["chatgpt_auth_dir"]).expanduser().resolve())]
     if case.get("run_root") is not None:
         if case["mode"] != "single_model":
             raise ValueError("explicit run_root currently supports single_model only")

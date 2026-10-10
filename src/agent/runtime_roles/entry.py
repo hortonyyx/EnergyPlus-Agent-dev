@@ -12,9 +12,9 @@ from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_input
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
 from src.agent_runtime.adapter import ScriptedAdapter
 from .context_policy import context_policy_from_effective, effective_role_context
-from src.agent_runtime.connections import resolve_connection
+from src.agent_runtime.connections import resolve_connection, validate_connection_model
 from src.agent_runtime.loop import Runtime, RunLimits
-from src.agent_runtime.providers import SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS
+from src.agent_runtime.providers import CHATGPT_SUBSCRIPTION, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS
 from src.agent_runtime.run_paths import resolve_run_output
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
@@ -46,6 +46,8 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
         raise ValueError("role_division uses the shared route-aware CNY ledger; per-run USD price overrides are not supported")
     if args.money_cny is not None and any(role.provider in SUBSCRIPTION_PROVIDERS for role in routes.values()):
         raise ValueError("subscription roles cannot participate in a usage-priced money ceiling")
+    if args.near_limit != "stop" and any(role.provider == CHATGPT_SUBSCRIPTION for role in routes.values()):
+        raise ValueError("ChatGPT subscription cannot enforce a reduced output cap; use --near-limit stop")
     global_context = {"context_tokens": args.context_tokens,
         "compact_at_tokens": args.compact_at_tokens,
         "active_window_messages": args.context_window,
@@ -69,8 +71,12 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
     guide = get_role_guide("coordinator")
     connections = {}
     if args.provider != "scripted":
-        connections = {provider: resolve_connection(provider, args.credentials_file)
+        connections = {provider: resolve_connection(provider, args.credentials_file,
+                           **({"chatgpt_auth_dir": getattr(args, "chatgpt_auth_dir", None)}
+                              if provider == CHATGPT_SUBSCRIPTION else {}))
                        for provider in {role.provider for role in routes.values()}}
+        for role in routes.values():
+            await validate_connection_model(connections[role.provider], role.model)
     connection_routes = {name: (connections[role.provider].descriptor.model_dump(mode="json")
         if role.provider != "scripted" else {"route_id": "scripted", "billing_mode": "offline",
                                              "adapter_kind": "scripted"})

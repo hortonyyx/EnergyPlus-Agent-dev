@@ -36,7 +36,7 @@ from src.agent_runtime.budget import RuntimeBudget
 from src.agent_runtime.call_quota import QuotaAdapter
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
-from src.agent_runtime.providers import (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
+from src.agent_runtime.providers import (CHATGPT_SUBSCRIPTION, GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
     provider_parameters, subscription_credentials, validate_provider_model)
 from src.agent_runtime.store import EventStore
 from src.harness_contracts import (ExternalCoordinatorMcpPayload, MissingCapture,
@@ -493,6 +493,8 @@ class CoordinatorSession:
 
 
 async def serve(args):
+    if args.provider == CHATGPT_SUBSCRIPTION:
+        raise ValueError("ChatGPT subscription uses the native single_model or role_division runtime entry")
     out = args.out.resolve()
     if not out.is_relative_to(ROOT):
         raise ValueError("coordinator output must stay inside this worktree")
@@ -585,7 +587,7 @@ def parser():
     p.add_argument("--mesh", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
     p.add_argument("--scope", default="Local observation and coordinator operations; no whole-case run authorized.")
-    p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)
+    p.add_argument("--provider", choices=("scripted", *(p for p in LIVE_PROVIDERS if p != CHATGPT_SUBSCRIPTION)), required=True)
     p.add_argument("--model", default="Qwen3.8-27B")
     p.add_argument("--credentials-file", type=Path)
     p.add_argument("--script", type=Path)

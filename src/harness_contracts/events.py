@@ -383,7 +383,7 @@ class ToolPresentationPayload(ContractModel):
     response_event_id: NonEmptyStr
     shown_result: CapturedValue
     context_event_id: NonEmptyStr | None = None
-    protocol_conversion: Literal["anthropic_messages_v1"] | None = None
+    protocol_conversion: Literal["anthropic_messages_v1", "responses_v1"] | None = None
 
 
 class StateInspectionPayload(ContractModel):

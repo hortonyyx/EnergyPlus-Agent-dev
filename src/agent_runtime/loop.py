@@ -157,6 +157,13 @@ class Runtime:
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
+        if self.versions.remote_model.route_id == "chatgpt-subscription":
+            if self.reasoning_history != "all":
+                raise ValueError("ChatGPT subscription requires reasoning_history=all")
+            if self.limits.near_limit != "stop":
+                raise ValueError("ChatGPT subscription output allowance is local only; reduce_output is unsupported")
+            if self.pricing is not None or self.limits.money_usd is not None or self.limits.money_cny is not None:
+                raise ValueError("ChatGPT subscription does not use a metered API money budget")
         if self.request_timeout_seconds is not None and self.request_timeout_seconds <= 0:
             raise ValueError("request_timeout_seconds must be positive")
         validate_output_limit(self.model, self.parameters.get("max_tokens",
@@ -458,14 +465,22 @@ class Runtime:
             return self.messages, self.sources, None
         p = self.context.project(required_tags=self.required_context_tags,
             required_view_ids=self.required_view_ids, consume_retrievals=False,
-            request_token_estimator=lambda messages, sources: estimate_chat_request({"model": self.model,
-                "messages": (messages if self.versions.remote_model.route_id == "glm-subscription-anthropic"
-                    else reasoning_history_messages(messages, self.reasoning_history, sources)),
-                "tools": self.specs, **self.parameters},
-                strict=self.strict_model_profile).input_tokens_estimate)
+            request_token_estimator=self._estimate_context_tokens)
         last = p.decision_event_ids[-1] if p.decision_event_ids else next((
             e.event_id for e in reversed(self.store.events) if e.payload.event_type == "context"), None)
         return list(p.messages), list(p.sources), last
+
+    def _estimate_context_tokens(self, messages, sources):
+        if self.versions.remote_model.route_id == "chatgpt-subscription":
+            from .responses import estimate_responses_messages
+            return estimate_responses_messages(model=self.model, messages=messages,
+                tools=self.specs, parameters=self.parameters,
+                strict=self.strict_model_profile).input_tokens_estimate
+        return estimate_chat_request({"model": self.model,
+                "messages": (messages if self.versions.remote_model.route_id == "glm-subscription-anthropic"
+                    else reasoning_history_messages(messages, self.reasoning_history, sources)),
+                "tools": self.specs, **self.parameters},
+                strict=self.strict_model_profile).input_tokens_estimate
 
     async def _model_call(self, messages, sources, *, purpose, tools, context_event_id=None):
         parameters = dict(self.parameters)
@@ -566,6 +581,10 @@ class Runtime:
                     source_refs=(self.store.source("request-budget-decision", {
                         **decision.model_dump(mode="json"), "original_output_limit": self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
                         "actual_output_limit": prepared.output_token_limit,
+                        **({"output_limit_enforcement": "local_reservation_only",
+                            "service_output_cap": None,
+                            "note": "ChatGPT subscription rejects output cap parameters; actual usage can exceed the reservation."}
+                           if self.versions.remote_model.route_id == "chatgpt-subscription" else {}),
                         "near_limit_action": "reduce_output" if degradation else "allow",
                         "degradation": degradation,
                         "token_estimate": asdict(prepared.token_estimate),
@@ -748,11 +767,21 @@ class Runtime:
                 and choices[0].get("finish_reason") == "length")
             if isinstance(raw, dict) and raw.get("type") == "message":
                 truncated = raw.get("stop_reason") == "max_tokens"
+            if isinstance(raw, dict) and raw.get("object") == "response":
+                truncated = (raw.get("status") == "incomplete" and
+                    (raw.get("incomplete_details") or {}).get("reason") == "max_output_tokens")
             total += int(truncated)
             if event.task_id == self.store.task_id:
                 consecutive = consecutive + 1 if truncated else 0
         raw = self.store.resolve(response.payload.raw_response)
-        if raw.get("type") == "message":
+        if raw.get("object") == "response":
+            blocks = raw.get("output", [])
+            thinking = ""  # Opaque encrypted reasoning is never public thought.
+            visible = "".join(part.get("text", "") for block in blocks
+                if block.get("type") == "message" for part in block.get("content", [])
+                if part.get("type") == "output_text")
+            calls = [block for block in blocks if block.get("type") == "function_call"]
+        elif raw.get("type") == "message":
             blocks = raw.get("content", [])
             thinking = "".join(b.get("thinking", "") for b in blocks if b.get("type") == "thinking" and isinstance(b.get("thinking", ""), str))
             visible = "".join(b.get("text", "") for b in blocks if b.get("type") == "text" and isinstance(b.get("text", ""), str))
@@ -764,7 +793,7 @@ class Runtime:
             visible, calls = message.get("content"), message.get("tool_calls")
         usage = response.payload.usage
         details = usage.raw_usage if usage.kind == "reported" else {}
-        completion_details = details.get("completion_tokens_details") or {}
+        completion_details = details.get("completion_tokens_details") or details.get("output_tokens_details") or {}
         count = completion_details.get("reasoning_tokens", details.get("reasoning_tokens", details.get("thinking_tokens")))
         exceeded = (consecutive > self.limits.max_consecutive_truncations
             or total > self.limits.max_total_truncations)
@@ -938,6 +967,9 @@ class Runtime:
             source_refs=(self.store.source("request-usage-accounting", accounting.receipt_dict()),))
 
     def _present_tools(self, body, sources, request, response, context_event_id):
+        if self.versions.remote_model.route_id == "chatgpt-subscription":
+            from .responses import present_tools
+            return present_tools(self.store, body, request, response, context_event_id)
         if request.payload.adapter == "anthropic-messages-http-v1":
             from .anthropic import present_tools
             return present_tools(self.store, body, request, response, context_event_id)
@@ -1752,6 +1784,12 @@ class Runtime:
 
     def _record_model_failure(self, failure, *, elapsed=None, dispatch_adjustment=None):
         sources = []
+        if self.versions.remote_model.route_id == "chatgpt-subscription" and not failure.usage_received:
+            observed = getattr(self.adapter, "last_received_usage", None)
+            if isinstance(observed, UsageReported):
+                sources.append(self.store.source("observed-stream-usage", {
+                    "usage": observed.model_dump(mode="json"), "completeness": "unknown",
+                    "note": "Observed before terminal failure; final usage is unknown. This evidence does not settle or release the token hold."}))
         if elapsed is not None:
             sources.append(self.store.source("request-duration", {"elapsed_seconds": elapsed,
                 "basis": "local monotonic wall time from send through failure",
@@ -1848,6 +1886,11 @@ class Runtime:
             "output_limit_policy": validate_output_limit(self.model,
                 self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),
                 reason=self.low_output_limit_reason),
+            **({"subscription_output_policy": {
+                "local_reservation_tokens": self.parameters["max_tokens"],
+                "service_output_cap": None, "enforcement": "local_reservation_only",
+                "note": "Requests are bounded by runtime call/time budgets. Output allowance is not a server cap; actual usage is settled, and exceeding the run token budget stops further work."}}
+               if self.versions.remote_model.route_id == "chatgpt-subscription" else {}),
             **self.counts, "elapsed_seconds": elapsed, "timing": timing,
             "runtime_processing": {"process_phase_seconds": dict(self._phase_seconds),
                 "shared_journal": getattr(self.store, "timing_totals", {}),

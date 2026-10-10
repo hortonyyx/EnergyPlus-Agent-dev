@@ -29,9 +29,9 @@ from src.agent_runtime.accounting import require_cny_price_schedule
 from src.agent_runtime.context import ContextPolicy
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
-from src.agent_runtime.providers import (SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
+from src.agent_runtime.providers import (CHATGPT_SUBSCRIPTION, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
     provider_parameters, validate_provider_model)
-from src.agent_runtime.connections import paratera_credentials, resolve_connection
+from src.agent_runtime.connections import paratera_credentials, resolve_connection, validate_connection_model
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.store import EventStore
 from src.agent_runtime.versions import make_versions
@@ -116,6 +116,15 @@ async def execute(args) -> dict:
         raise ValueError("--repair-tail requires --resume")
     if args.provider == "scripted" and args.script is None:
         raise ValueError("--provider scripted requires --script")
+    connection = None
+    if args.provider == CHATGPT_SUBSCRIPTION:
+        if args.reasoning_history != "all":
+            raise ValueError("ChatGPT subscription requires --reasoning-history all")
+        if args.near_limit != "stop":
+            raise ValueError("ChatGPT subscription cannot enforce a reduced output cap; use --near-limit stop")
+        connection = resolve_connection(args.provider, args.credentials_file,
+            chatgpt_auth_dir=getattr(args, "chatgpt_auth_dir", None))
+        await validate_connection_model(connection, args.model)
     if args.resume:
         run = output / "bim"
         guide, task = (output / "guide.txt").read_text(), (output / "task.txt").read_text()
@@ -148,7 +157,7 @@ async def execute(args) -> dict:
                     route = {"route_id": "offline-scripted", "model": "scripted-model",
                         "fixture_sha256": hashlib.sha256(fixture).hexdigest()}
                 else:
-                    connection = resolve_connection(args.provider, args.credentials_file)
+                    connection = connection or resolve_connection(args.provider, args.credentials_file)
                     adapter = connection.create_adapter()
                     route = connection.descriptor.model_route(args.model)
                 route["reasoning_history"] = args.reasoning_history
@@ -240,6 +249,8 @@ def parser():
     p.add_argument("--reasoning-history", choices=("all", "current_tool_chain"), default="all",
                    help="OpenAI-compatible history policy; Anthropic messages are unchanged")
     p.add_argument("--credentials-file", type=Path, help="read only this provider credentials file; required for GLM subscription")
+    p.add_argument("--chatgpt-auth-dir", type=Path,
+                   help="independent ChatGPT subscription login directory; defaults to the app's private user directory")
     p.add_argument("--model-calls", type=int, default=6)
     p.add_argument("--tool-calls", type=int, default=12)
     p.add_argument("--seconds", type=float, default=180.0)
@@ -271,11 +282,11 @@ def parser():
     p.add_argument("--keep-view-id", action="append", default=[])
     p.add_argument("--retrieve-image", nargs=2, action="append", default=[], metavar=("VIEW_ID", "SHA256"))
     p.add_argument("--summary-every", type=int, default=0, help="optional constrained model summary after N tool calls; shares the root budget")
-    p.add_argument("--output-tokens", type=int, help="defaults to the reviewed model recommendation")
+    p.add_argument("--output-tokens", type=int, help="reviewed output cap; ChatGPT subscription: local reservation allowance, not a service-enforced cap")
     p.add_argument("--low-output-limit-reason", help="explicit reason for an output cap below the recommendation")
     p.add_argument("--temperature", type=float, help="default: Paratera 0.0; subscription service default")
     p.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
-    p.add_argument("--reasoning-effort", choices=("low", "medium", "high", "max"),
+    p.add_argument("--reasoning-effort", choices=("none", "minimal", "low", "medium", "high", "xhigh", "max"),
                    help="provider-native reasoning level; when set, omit enable_thinking")
     p.add_argument("--max-candidates", type=int, default=4)
     p.add_argument("--attach-image", action="append", default=[])

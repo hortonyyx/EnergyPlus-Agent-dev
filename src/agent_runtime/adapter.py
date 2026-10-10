@@ -37,7 +37,8 @@ class PreparedRequest:
 
     @property
     def output_token_limit(self) -> int:
-        return self.body.get("max_tokens", self.body.get("max_completion_tokens"))
+        return self.body.get("max_tokens", self.body.get("max_completion_tokens",
+            self.token_estimate.output_token_limit))
 
     @property
     def input_token_upper_bound(self) -> int:
@@ -107,6 +108,13 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
                     model_profile: ModelProfile | None = None,
                     strict_model_profile: bool = False,
                     reasoning_history: str = "all"):
+    if versions.remote_model.route_id == "chatgpt-subscription":
+        from .responses import prepare_responses_request
+        return prepare_responses_request(store=store, model=model, messages=messages,
+            message_sources=message_sources, tools=tools, tool_source=tool_source,
+            parameters=parameters, versions=versions, image_originals=image_originals,
+            model_profile=model_profile, strict_model_profile=strict_model_profile,
+            reasoning_history=reasoning_history)
     if versions.remote_model.route_id == "glm-subscription-anthropic":
         from .anthropic import prepare_anthropic_request
         return prepare_anthropic_request(store=store, model=model, messages=messages,
@@ -247,6 +255,9 @@ def reported_tokens(usage) -> int | None:
 
 def parse_response(raw: Any, request_event_id: str, store: EventStore,
                    *, echo_fields=("reasoning_content",)) -> ParsedResponse:
+    if isinstance(raw, dict) and raw.get("object") == "response":
+        from .responses import parse_responses_response
+        return parse_responses_response(raw, request_event_id, store)
     if isinstance(raw, dict) and raw.get("type") == "message":
         from .anthropic import parse_anthropic_response
         return parse_anthropic_response(raw, request_event_id, store)

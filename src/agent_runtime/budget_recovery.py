@@ -104,7 +104,9 @@ def reconcile_missing_usage(store: EventStore,
                 pricing = CnyPriceSchedule(**schedule)
                 break
     calculated = account_request_usage(receipt.settlement.usage,
-        image_tokens_estimate=receipt.settlement.image_tokens_estimate, pricing=pricing)
+        image_tokens_estimate=receipt.settlement.image_tokens_estimate, pricing=pricing,
+        billing_mode="subscription" if identity.route_id == "chatgpt-subscription" else "metered_or_unknown",
+        input_includes_images=identity.route_id == "chatgpt-subscription")
     if reservation.payload.reservation.amounts.money_cny is not None:
         if (calculated.estimated_cost_cny is None
                 or calculated.estimated_cost_cny != receipt.settlement.estimated_cost_cny):

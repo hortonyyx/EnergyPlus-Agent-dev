@@ -1,4 +1,4 @@
-# 轻量 BIM 项目文档
+# Sim BIM Agent 项目文档
 
 项目按信息充分程度组织还原建模、部分推理建模、完全推理建模，共同将图纸、带贴图体量、图片、文字和 CAD 等资料转成可用轻量 BIM。每次会话从 [Agent.md](Agent.md) 开始。
 
@@ -22,6 +22,7 @@
 | 怎样开发、维护文档和收工 | [工作方式](workflow/development.md) |
 | 用什么模型、哪些调用需要同意 | [模型与费用](workflow/models.md) |
 | 怎样启动和检查一个 case | [运行 case](workflow/run_case.md) |
+| 怎样让自有 runtime 直接使用 ChatGPT 订阅 | [ChatGPT 订阅接入](workflow/chatgpt_subscription_runtime.md) |
 | 课题汇报可嵌入的展示资产 | [showcase 入口](../showcase/index.html) · [本轮范围与证据](logs/worklog/2026-09-10_research_showcase_assets.md) |
 | 怎样让每次会话加载同一上下文 | [会话设置](workflow/session_setup.md) |
 | 怎样清理 Docker 缓存并回收 Windows 磁盘空间 | [磁盘清理](workflow/disk_cleanup.md) |

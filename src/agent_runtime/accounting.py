@@ -169,6 +169,7 @@ def account_request_usage(
     image_tokens_estimate: int,
     pricing: CnyPriceSchedule | None,
     billing_mode: str = "metered_or_unknown",
+    input_includes_images: bool = False,
 ) -> RequestUsageAccounting:
     """Reconcile one receipt while preserving reported and estimated quantities."""
 
@@ -180,7 +181,7 @@ def account_request_usage(
     reported_image, _, image_in_total_attested = (
         _reported_image_tokens(raw)
     )
-    includes_images = image_tokens_estimate > 0 and image_in_total_attested
+    includes_images = image_tokens_estimate > 0 and (image_in_total_attested or input_includes_images)
     separate_images = bills_images_separately(pricing)
     image_charge = reported_image if reported_image is not None else image_tokens_estimate
     additional_images = 0 if rejected else image_charge if separate_images else (0 if includes_images else image_tokens_estimate)
@@ -220,7 +221,7 @@ def account_request_usage(
         )
     elif includes_images:
         note = (
-            "Provider usage exposes an image-token breakdown, so the image estimate "
+            "Provider usage includes image input by its breakdown or protocol definition, so the image estimate "
             "is reported separately and is not added again to the token charge."
         )
     elif image_tokens_estimate:
@@ -251,7 +252,7 @@ def account_request_usage(
         price_source=None if pricing is None else pricing.source,
         note=note,
         reported_input_tokens=_usage_counter(raw, "input_tokens", "prompt_tokens"),
-        reported_cache_read_tokens=_usage_counter(raw, "cache_read_input_tokens"),
+        reported_cache_read_tokens=_cache_read_counter(raw),
         reported_cache_write_tokens=_usage_counter(raw, "cache_creation_input_tokens"),
         reported_output_tokens=_usage_counter(raw, "output_tokens", "completion_tokens"),
         usage_basis="rejected_before_processing" if rejected else "provider_reported" if raw is not None else "missing",
@@ -263,6 +264,19 @@ def _usage_counter(raw, *keys):
         value = (raw or {}).get(key)
         if type(value) is int and value >= 0:
             return value
+    return None
+
+
+def _cache_read_counter(raw):
+    direct = _usage_counter(raw, "cache_read_input_tokens")
+    if direct is not None:
+        return direct
+    for name in ("input_tokens_details", "prompt_tokens_details"):
+        details = (raw or {}).get(name)
+        if isinstance(details, dict):
+            value = _usage_counter(details, "cached_tokens")
+            if value is not None:
+                return value
     return None
 
 
@@ -294,6 +308,12 @@ def request_accounting_from_store(
             width, height = image.size
         if profile.image_estimator in {"qwen_vl_patch32_v1", "glm_vl_patch28_v1"}:
             tokens, _, _ = qwen_image_tokens(width, height, profile)
+        elif profile.image_estimator in {"openai_patch32_v1", "openai_patch32_proxy_v1"}:
+            from .estimation import openai_image_tokens
+            from src.harness_contracts.events import _resolve_json_pointer
+            body = store.resolve(request.payload.final_request_body)
+            block = _resolve_json_pointer(body, transmission.request_reference.rsplit("/", 1)[0])
+            tokens, _, _ = openai_image_tokens(width, height, profile, detail=block.get("detail", "auto"))
         elif profile.image_estimator == "decoded_pixels_v0":
             tokens = width * height
         else:
@@ -344,7 +364,8 @@ def request_accounting_from_store(
     )
     accounting = account_request_usage(
         usage, image_tokens_estimate=image_tokens, pricing=pricing,
-        billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic"} else "metered_or_unknown")
+        billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic", "chatgpt-subscription"} else "metered_or_unknown",
+        input_includes_images=identity.route_id == "chatgpt-subscription")
     if reconciliation is not None:
         receipt = reconciliation.payload.reconciliation
         settled = receipt.settlement

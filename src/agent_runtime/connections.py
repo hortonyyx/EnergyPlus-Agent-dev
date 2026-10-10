@@ -10,6 +10,8 @@ from urllib.parse import parse_qsl, urlsplit
 from pydantic import BaseModel, ConfigDict
 
 from .providers import (
+    CHATGPT_SUBSCRIPTION,
+    CHATGPT_BASE_URL,
     GLM_SUBSCRIPTION_ANTHROPIC,
     SUBSCRIPTION_PROVIDERS,
     subscription_credentials,
@@ -76,9 +78,13 @@ class ResolvedConnection:
     """A private credential paired with its serializable public identity."""
 
     descriptor: ConnectionDescriptor
-    api_key: str = field(repr=False)
+    api_key: str = field(default="", repr=False)
+    subscription: object | None = field(default=None, repr=False, compare=False)
 
     def create_adapter(self):
+        if self.descriptor.route_id == CHATGPT_SUBSCRIPTION:
+            from .responses import HttpResponsesAdapter
+            return HttpResponsesAdapter(token_provider=self.subscription.get_access_token)
         from .adapter import HttpChatAdapter
         from .anthropic import HttpAnthropicAdapter
         adapter_type = (HttpAnthropicAdapter
@@ -87,8 +93,15 @@ class ResolvedConnection:
         return adapter_type(base_url=self.descriptor.base_url, api_key=self.api_key)
 
 
-def resolve_connection(provider: str, credentials_file: Path | None) -> ResolvedConnection:
+def resolve_connection(provider: str, credentials_file: Path | None,
+                       *, chatgpt_auth_dir: Path | None = None) -> ResolvedConnection:
     """Resolve one reviewed live route without exposing its credential."""
+    if provider == CHATGPT_SUBSCRIPTION:
+        from .openai_subscription import SubscriptionCredentials
+        return ResolvedConnection(descriptor=ConnectionDescriptor(
+            route_id=provider, base_url=CHATGPT_BASE_URL,
+            billing_mode="subscription", adapter_kind="openai_responses"),
+            subscription=SubscriptionCredentials(chatgpt_auth_dir))
     if provider in SUBSCRIPTION_PROVIDERS:
         base_url, key = subscription_credentials(credentials_file, provider=provider)
         billing_mode = "subscription"
@@ -107,3 +120,12 @@ def resolve_connection(provider: str, credentials_file: Path | None) -> Resolved
                       else "openai_chat_completions"),
     )
     return ResolvedConnection(descriptor=descriptor, api_key=key)
+
+
+async def validate_connection_model(connection: ResolvedConnection, model: str) -> None:
+    """Check the selected subscription's actual catalog before any model request."""
+    if connection.descriptor.route_id != CHATGPT_SUBSCRIPTION:
+        return
+    models = await connection.subscription.list_models()
+    if model not in {item.slug for item in models}:
+        raise ValueError("selected model is not available in this ChatGPT subscription catalog; run the models command")

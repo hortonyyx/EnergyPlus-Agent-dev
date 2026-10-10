@@ -1,4 +1,4 @@
-"""Explicit route parameters and read-only GLM subscription credentials."""
+"""Explicit provider parameters; subscription routes never fall back to billing."""
 
 from pathlib import Path
 
@@ -8,7 +8,10 @@ GLM_SUBSCRIPTION_MODEL = "glm-5.3-flash"
 GLM_SUBSCRIPTION_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4"
 GLM_SUBSCRIPTION_ANTHROPIC = "glm-subscription-anthropic"
 GLM_ANTHROPIC_BASE_URL = "https://open.bigmodel.cn/api/anthropic"
-SUBSCRIPTION_PROVIDERS = (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC)
+CHATGPT_SUBSCRIPTION = "chatgpt-subscription"
+CHATGPT_BASE_URL = "https://api.openai.com/v1"
+GLM_SUBSCRIPTION_PROVIDERS = (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC)
+SUBSCRIPTION_PROVIDERS = (*GLM_SUBSCRIPTION_PROVIDERS, CHATGPT_SUBSCRIPTION)
 LIVE_PROVIDERS = ("paratera", *SUBSCRIPTION_PROVIDERS)
 # Verified 10-03 on the Coding Plan endpoint: omitted behaves like the top level, low/medium cut
 # thinking 2-4x (migration_comparison/subscription_effort_calibration.json). Claude Code sends
@@ -17,8 +20,10 @@ SUBSCRIPTION_REASONING_EFFORTS = ("low", "medium", "high", "max")
 
 
 def validate_provider_model(provider: str, model: str) -> None:
-    if provider in SUBSCRIPTION_PROVIDERS and model != GLM_SUBSCRIPTION_MODEL:
+    if provider in GLM_SUBSCRIPTION_PROVIDERS and model != GLM_SUBSCRIPTION_MODEL:
         raise ValueError(f"{provider} requires model glm-5.3-flash")
+    if provider == CHATGPT_SUBSCRIPTION and (not isinstance(model, str) or not model.strip()):
+        raise ValueError("ChatGPT subscription requires an explicit account-available model slug")
 
 
 def subscription_credentials(path: Path | None = None, *, provider=GLM_SUBSCRIPTION) -> tuple[str, str]:
@@ -30,7 +35,7 @@ def subscription_credentials(path: Path | None = None, *, provider=GLM_SUBSCRIPT
         raise ValueError("GLM subscription credentials file does not exist")
     from dotenv import dotenv_values
     private = dotenv_values(path, interpolate=False)
-    if provider not in SUBSCRIPTION_PROVIDERS:
+    if provider not in GLM_SUBSCRIPTION_PROVIDERS:
         raise ValueError("not a reviewed GLM subscription provider")
     variable, expected = (("GLM_ANTHROPIC_BASE_URL", GLM_ANTHROPIC_BASE_URL)
         if provider == GLM_SUBSCRIPTION_ANTHROPIC else ("GLM_BASE_URL", GLM_SUBSCRIPTION_BASE_URL))
@@ -46,6 +51,16 @@ def provider_parameters(provider: str, *, output_tokens: int,
                         temperature: float | None = None,
                         thinking: bool = True, reasoning_effort: str | None = None) -> dict:
     parameters = {"max_tokens": output_tokens}
+    if provider == CHATGPT_SUBSCRIPTION:
+        if temperature is not None or thinking is not True:
+            raise ValueError("ChatGPT subscription uses service sampling defaults; select reasoning_effort instead")
+        if reasoning_effort is not None:
+            if reasoning_effort not in {"low", "medium", "high", "xhigh", "max"}:
+                raise ValueError("reviewed ChatGPT models require reasoning_effort low/medium/high/xhigh/max")
+            parameters["reasoning_effort"] = reasoning_effort
+        # SIWC does not accept max_output_tokens. This is a local reservation
+        # allowance only; the Responses adapter must not transmit it as a cap.
+        return parameters
     if provider == GLM_SUBSCRIPTION_ANTHROPIC:
         if thinking is not True:
             raise ValueError("GLM-5.3-Flash thinking cannot be disabled")

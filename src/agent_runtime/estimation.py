@@ -236,6 +236,58 @@ def _data_image_size(url: str) -> tuple[int, int]:
         return image.size
 
 
+def openai_image_tokens(width: int, height: int, profile: ModelProfile,
+                        *, detail: str = "high") -> tuple[int, int, int]:
+    """Astra's documented patch32 estimate; Sol is an explicit 2x proxy.
+
+    https://developers.openai.com/api/docs/guides/images-vision
+    The Sol proxy is a local reservation policy, not a provider upper bound.
+    """
+    if type(width) is not int or type(height) is not int or width <= 0 or height <= 0:
+        raise ValueError("image dimensions must be positive integers")
+    if profile.image_estimator not in {"openai_patch32_v1", "openai_patch32_proxy_v1"}:
+        raise ValueError("not an OpenAI patch32 estimation profile")
+    if detail not in {"low", "high", "original", "auto"}:
+        raise ValueError("unsupported OpenAI image detail")
+    maximum = 512 if detail == "low" else 65535
+    scale = min(1.0, maximum / max(width, height))
+    resized_w, resized_h = max(1, math.floor(width * scale)), max(1, math.floor(height * scale))
+    patches = lambda w, h: math.ceil(w / 32) * math.ceil(h / 32)
+    if detail == "high" and patches(resized_w, resized_h) > 2500:
+        shrink = math.sqrt((32 ** 2 * 2500) / (resized_w * resized_h))
+        grids = (resized_w * shrink / 32, resized_h * shrink / 32)
+        adjustment = min(math.floor(value) / value for value in grids)
+        if adjustment > 0:
+            resized_w, resized_h = (max(1, math.floor(value * shrink * adjustment))
+                                    for value in (resized_w, resized_h))
+        else:
+            # A sub-patch short dimension still occupies one patch. Find a
+            # proportional scale that respects coverage without making it zero.
+            before_w, before_h = resized_w, resized_h
+            lower, upper = 0.0, 1.0
+            for _ in range(64):
+                middle = (lower + upper) / 2
+                if patches(max(1, math.floor(before_w * middle)),
+                           max(1, math.floor(before_h * middle))) <= 2500:
+                    lower = middle
+                else:
+                    upper = middle
+            resized_w, resized_h = (max(1, math.floor(value * lower))
+                                    for value in (before_w, before_h))
+    count = patches(resized_w, resized_h)
+    if count > 30000:
+        raise ValueError("OpenAI image exceeds the 30000 patch limit for this detail")
+    multiplier = 2.4 if profile.image_estimator == "openai_patch32_proxy_v1" else 1.2
+    return math.ceil(count * multiplier), resized_w, resized_h
+
+
+def _image_detail(body: Mapping[str, Any], reference: str) -> str:
+    value = body
+    for part in reference.rsplit("/url", 1)[0].strip("/").split("/"):
+        value = value[int(part)] if isinstance(value, list) else value[part]
+    return value.get("detail", "auto")
+
+
 def _text_payload(body: Mapping[str, Any]) -> tuple[str, list[tuple[str, str]]]:
     """Build the tokenizer input approximation without counting base64 bytes."""
     fragments: list[str] = []
@@ -298,6 +350,9 @@ def estimate_chat_request(body: Mapping[str, Any], *, profile: ModelProfile | No
         width, height = _data_image_size(url)
         if selected.image_estimator in {"qwen_vl_patch32_v1", "glm_vl_patch28_v1"}:
             tokens, resized_w, resized_h = qwen_image_tokens(width, height, selected)
+        elif selected.image_estimator in {"openai_patch32_v1", "openai_patch32_proxy_v1"}:
+            tokens, resized_w, resized_h = openai_image_tokens(width, height, selected,
+                detail=_image_detail(body, reference))
         elif selected.image_estimator == "decoded_pixels_v0":
             tokens, resized_w, resized_h = width * height, width, height
         else:
