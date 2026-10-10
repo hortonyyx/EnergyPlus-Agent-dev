@@ -26,16 +26,42 @@ T1 = importlib.import_module("AI_agent.logs.experiments.2026-10-03_tool_package_
 # run_bim_agent.py also hosts the Claude Code route, which changes for reasons unrelated to
 # the first request (N1 display, 10-07 Windows env and worker option); the request bytes
 # themselves are pinned by test_three_single_cases_prepare_identical_shared_first_request_bytes.
-FIRST_REQUEST_SOURCES = (
-    "src/agent/runtime_entry.py",
+FIRST_REQUEST_BYTE_SOURCES = (
     "scripts/tool_scripts/bim_agent_guidance.py",
     "src/agent/bim_inputs.py",
-    "src/agent/runtime_tools.py",
     "src/agent/runtime_context.py",
     "src/agent/runtime_delivery.py",
-    "src/agent_runtime/adapter.py",
-    "src/agent_runtime/anthropic.py",
 )
+
+# These files now also contain authorized connection, recovery and HTTP timing
+# work. Pin only the definitions that turn the frozen inputs into the first
+# request; the behavioral parity test below independently executes that path.
+FIRST_REQUEST_AST_DEFINITIONS = {
+    "src/agent/runtime_entry.py": (
+        "prepare_inputs",
+    ),
+    "src/agent/runtime_tools.py": (
+        "frozen_bim_client",
+        "_catalog_mode",
+        "_catalog_names",
+        "validate_frozen_catalog",
+        "coordinator_role",
+        "local_observer_role",
+        "FrozenBimTools.__init__",
+        "FrozenBimTools.list_tools",
+    ),
+    "src/agent_runtime/adapter.py": (
+        "PreparedRequest",
+        "decode_image_url",
+        "reasoning_history_messages",
+        "prepare_request",
+    ),
+    "src/agent_runtime/anthropic.py": (
+        "native_blocks",
+        "convert_messages",
+        "prepare_anthropic_request",
+    ),
+}
 
 
 def canonical(value) -> bytes:
@@ -56,6 +82,20 @@ def baseline_configuration_module():
     return module
 
 
+def definition_ast(source: bytes, qualified_name: str) -> str:
+    """Return a definition subtree without location-only AST attributes."""
+    body = ast.parse(source).body
+    node = None
+    for part in qualified_name.split("."):
+        node = next((candidate for candidate in body
+                     if isinstance(candidate, (ast.ClassDef, ast.FunctionDef,
+                                                ast.AsyncFunctionDef))
+                     and candidate.name == part), None)
+        assert node is not None, qualified_name
+        body = node.body
+    return ast.dump(node, include_attributes=False)
+
+
 def test_single_configuration_loading_and_argv_match_the_dispatch_baseline():
     baseline = baseline_configuration_module()
     for name in ("sm21", "sm24", "sm25"):
@@ -68,15 +108,22 @@ def test_single_configuration_loading_and_argv_match_the_dispatch_baseline():
 
 
 def test_first_request_sources_are_byte_identical_to_the_dispatch_baseline():
+    """Pin stable files bytewise and request-building definitions structurally."""
     permitted = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/intentional_model_text_changes.json").read_text(encoding="utf-8"))
     junction_wording = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-08_quality_q1b/intentional_model_text_changes.json").read_text(encoding="utf-8"))
-    for relative in FIRST_REQUEST_SOURCES:
+    for relative in FIRST_REQUEST_BYTE_SOURCES:
         expected = git_bytes(relative)
         for replacement in [*permitted.get(relative, []), *junction_wording.get(relative, [])]:
             before, after = replacement["before"].encode(), replacement["after"].encode()
             assert expected.count(before) == 1, relative
             expected = expected.replace(before, after, 1)
         assert (ROOT / relative).read_bytes() == expected, relative
+    for relative, definitions in FIRST_REQUEST_AST_DEFINITIONS.items():
+        expected = git_bytes(relative)
+        actual = (ROOT / relative).read_bytes()
+        for qualified_name in definitions:
+            assert definition_ast(actual, qualified_name) == definition_ast(
+                expected, qualified_name), f"{relative}:{qualified_name}"
 
 
 def test_only_authorized_tool_descriptions_change_since_q1_dispatch():

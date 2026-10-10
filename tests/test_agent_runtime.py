@@ -351,7 +351,11 @@ def test_small_positive_root_time_remainder_is_used_as_request_timeout(tmp_path)
                 parameters={"max_tokens": 256, "temperature": 0.0}, versions=versions(),
                 limits=child_limits, request_timeout_seconds=5)
             receipt = await engine.run(MESSAGES)
-            assert receipt["status"] == "completed"
+            # Admission must use the positive remainder. Durable response
+            # capture can exceed 1 ms on Windows, in which case the real full
+            # elapsed charge correctly stops the run after this one request.
+            assert receipt["status"] in {"completed", "root_time_budget_exhausted"}
+            assert receipt["model_calls"] == 1
             assert len(adapter.timeouts) == 1
             assert 0 < adapter.timeouts[0] <= 0.001
 
