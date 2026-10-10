@@ -98,11 +98,12 @@ def _role_task(role):
                 _execute(node, env)
         return {"plain": "<scope>", "declared": env["content"]}
     # Uses the exact JSON payload construction in run_reader, including the
-    # coordinate instructions. Input/previous-artifact values remain symbolic.
+    # coordinate instructions. The projected previous-artifact context remains
+    # symbolic; its production projection implementation is in the domain scope.
     env = {"json": json, "base64": base64, "raw_image": b"<image-bytes>",
            "task": {"role_id": role, "task_id": "<task>", "image": "<image>",
                     "target": "<target>", "instructions": "<instructions>"},
-           "previous": "<previous-artifact-or-null>",
+           "previous_context": "<previous-artifact-context-or-null>",
            "ELEVATION_COORDINATES": ELEVATION_COORDINATES, "READER_COORDINATES": READER_COORDINATES}
     return _evaluate(_assignment(RoleSession.run_reader, "content"), env)
 
