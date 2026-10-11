@@ -371,7 +371,8 @@ def test_real_profile_is_resolved_to_recoverable_independent_numeric_plan(tmp_pa
         assert built["source_geometry_ready"] and not (independent / "pixel_profiles").exists()
 
         # A new task edits the verified prior declaration without retyping its
-        # profile-based coordinates; a failed edit must not advance its baseline.
+        # profile-based coordinates. Failed edits remain the repair baseline;
+        # the last passed geometry remains separately verifiable.
         next_reader = tmp_path / "next_reader"
         (next_reader / "images").mkdir(parents=True)
         (next_reader / "images/plan.png").write_bytes((reader / "images/plan.png").read_bytes())
@@ -390,11 +391,23 @@ def test_real_profile_is_resolved_to_recoverable_independent_numeric_plan(tmp_pa
             assert not failed["source_geometry_ready"]
         async with PlanTrialSession(next_reader, "plan.png", root=ROOT) as rework:
             rework.inherit_reference(prior, receipt["plan_sha256"], ["plan.openings:D1"])
-            assert rework.baseline()[1] == edited["plan_sha256"]
-            repaired = await rework.run(operations=[{**op, "changes": {"z": [0, 2.3]}}])
+            draft, draft_sha256 = rework.baseline()
+            assert draft_sha256 == failed["plan_sha256"]
+            assert draft["openings"][0]["p2"] == [7, 4.5]
+            assert draft["openings"][0]["z"] == [0, 2.2]
+            assert rework.read_draft()["last_passed_plan_sha256"] == edited["plan_sha256"]
+            accepted, validation = rework.verified_plan(edited["plan_sha256"])
+            assert validation["validation_passed"] is True
+            assert accepted["openings"][0]["p2"] == plan["openings"][0]["p2"]
+            with pytest.raises(ValueError, match="successful isolated trial"):
+                rework.verified_plan(failed["plan_sha256"])
+            repaired = await rework.run(operations=[{**op, "changes": {
+                "p2": plan["openings"][0]["p2"], "z": [0, 2.3],
+            }}])
             assert repaired["source_geometry_ready"]
-            assert repaired["base_plan_sha256"] == edited["plan_sha256"]
-            assert repaired["changes"][0]["before"]["p2"] == plan["openings"][0]["p2"]
+            assert repaired["base_plan_sha256"] == failed["plan_sha256"]
+            assert repaired["changes"][0]["before"]["p2"] == [7, 4.5]
+            assert rework.verified_plan(repaired["plan_sha256"])[0]["openings"][0]["p2"] == plan["openings"][0]["p2"]
 
         # Resume reuses the verified receipt. Both derived products are tamper-evident.
         async with PlanTrialSession(reader, "plan.png", root=ROOT) as resumed:
