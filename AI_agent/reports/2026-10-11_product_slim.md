@@ -1,11 +1,11 @@
 # 2026-10-11 项目精简与独立发布
 
-状态：程序与测试精简已完成，审阅发现已修复。新版产品验收收尾中。原C目录删除被工具自动审批拒绝，仍保留，并已写退役转向D的说明。以下只记录已取得证据，不把历史整案质量算作通过。
+状态：程序与测试精简已完成，审阅发现已修复。新版产品隔离验收和独立审阅均通过。原C目录删除被工具自动审批拒绝，仍保留，并已写退役转向D的说明。以下只记录已取得证据，不把历史整案质量算作通过。
 
 ## 当前入口
 
 - 开发主库：`D:\Sim-BIM-Agent\repo`；桌面产品：`C:\Users\Horton\Desktop\Sim BIM Agent`。
-- 产品提交 `0049976dc472dc7f6b7dbca31e968d0bc26ba3df`，runtime-v7-20261011 / domain-v63-20261011。496个payload文件18,000,456 bytes；环境独立重建，不含Git/历史案例/凭据。
+- 产品提交 `8d336e2156389eabcda76b7cb2297c09ec4c3104`，runtime-v7-20261011 / domain-v64-20261011。496个payload文件18,076,192 bytes；环境独立重建，不含Git/历史案例/凭据。
 - 产品的 `Start.cmd doctor`、`demo`、`check/run`、`auth` 为用户入口。真实账号未登录，真实模型调用0。
 - 当前测试400模块：54 fast、195 targeted、13 node、138 historical。最新默认收集636项；node含fast共67模块。并非历史全集通过。
 
@@ -19,7 +19,7 @@
 | 当前节点原批 | 745通过、2跳过、1失败 | 1100.41s，cache/pytest/test-slim/f2ee3f0d3d70/results.xml |
 | 节点失败单项复验 | 1通过，恢复版本保护不变 | 140.61s，cache/pytest/test-slim/75dc028965b6/results.xml |
 | 输入预检定向 | 36通过 | 3.47s，cache/pytest/release-preflight-001/results.xml |
-| 桌面独立产品 | 通过 | 32.765s，D cache/product-smoke-002/report.json |
+| 桌面独立产品最终版 | 通过 | 26.907s，D cache/product-smoke-003/report.json |
 | 资料11根保全 | 424586文件SHA一致，0错误；1155链接仅记元数据 | archive/migration-verify-summary.json |
 | 其余源文件保全 | 1034文件；863与D副本一致，171差异另存并回读；0错误 | archive/source-before-slim/_audit/summary.json |
 | Git引用保全 | 57分支、117标签的126目标对象及剥离对象可在D解析 | source-before-slim/_audit/git-summary.json |
@@ -42,7 +42,11 @@
 
 全新审阅者未发现P1，产品独立性可接受。发现并修复：5项当前runtime纯合成性质误归历史；节点fallback错误自称全仓。代码静态复核与21项定向复验通过。另发现公开check对错误图片文件仍ready的旧预检弱点，已补PNG目录/有效PNG/精确文件名白名单及GLB文件边界，36项通过并经独立复核；不涉及真实模型。
 
-桌面安装含独立依赖环境共478,338,315 bytes（约456.2MiB），其中payload约17.2MiB。开发/source历史不会进入新发布包。
+桌面安装含独立依赖环境共478,414,051 bytes（约456.3MiB），其中payload约17.24MiB。开发/source历史不会进入新发布包。
+
+独立审阅最终无未解决P1/P2，产品与测试范围通过。审阅者还实际检查了桌面合法外部配置ready、错误图片输入退出1，以及1,034个补保全目标全部SHA再核验。详见 [独立审阅记录](2026-10-11_independent_review.md)。
+
+本轮正常保留Git历史，没有强推/历史重写。当前版本1093个已跟踪文件约29.6MiB（最后交接补充前），冻结历史退出32832个跟踪路径；本地D物理保全副本仍在，不能把Git退出说成磁盘已释放。C剩余35.92GiB，D剩余168.63GiB（2026-10-11收尾读数）。
 
 ## 产品边界与下一步
 
