@@ -5,6 +5,7 @@
 - **验证与证据：** 最终登记代码的18文件286项离线检查全部通过（48.67秒）；独立Python进程完成两轮SSE夹具与一次本地工具调用（0.188秒），无Codex子进程。虚构100 token只作夹具计数。见[本轮报告](../logs/experiments/2026-10-11_chatgpt_subscription_runtime/README.md)。
 - **当前交接：** [订阅直连与命名交接](../logs/worklog/2026-10-11_chatgpt_subscription_runtime_close.md)；[独立登录与运行说明](../workflow/chatgpt_subscription_runtime.md)。用户明确先不登录、之后换另一个账号；已取消授权等待并确认本程序无账号，真实OpenAI模型请求0，订阅可用性未验。无付费回退或新sm25整案。
 - **下一入口：** 用户选号后登录 Sim BIM Agent、读取真实模型目录，再做有界订阅协议小测；domain 下一步仍按此前安排先讨论。runtime v5 的定向消息、恢复和性能工作继续有效，详见下方前轮记录。
+- **同日清理：** 用户授权后已移除35个可再生测试临时目录（18.281 GiB），主仓库文件体积降至16.889 GiB；正式证据、案例、备份和旧工作树保留，runtime/domain不变。见[清理记录](../logs/experiments/2026-10-11_test_cache_cleanup/README.md)。
 
 **10-10 前轮节点：runtime 可控续跑与开销迭代已完成，登记 runtime v5 / domain v60；domain 下一轮设计按用户安排留待讨论。** 在独立审阅后，用户授权先迭代runtime并优先用GLM订阅测试。已接通定向消息、安全边界暂停/继续、未发送预留释放、真实usage补账、工具恢复分类与原task ID委派恢复；追加事件改增量校验，预算投影按相关变更缓存，实际连接与角色上下文配置同源。必要domain改动限于接线、配置和UTF-8持久文件读取，未改规整或识读方法。
 

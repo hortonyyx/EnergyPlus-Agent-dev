@@ -17,3 +17,7 @@
 本轮 `openai-subscription-20261011`、`openai-responses-20261011` 两棵 D 盘工作树已在确认路径、干净状态和提交全部合入后由 `git worktree remove` 收回；两棵旧 evidence/role-kernel 工作树及旧受限目录按原交接保留，没有处理。认证代理一次空状态 CLI 检查在 `%TEMP%/EnergyPlus-Agent-cli-empty-test/credentials.lock` 留下0字节文件，不含凭据；自动审批拒绝清理，已保留，不换途径重试。
 
 版本记录与本轮源码、测试、证据、交接均正常 commit/push；最终远端哈希核验由主线程收工确认，不强推。C/D盘剩余空间在收工对话报告。
+
+## 同日磁盘清理补记
+
+用户授权清理可再生文件后，已删除35个pytest临时目录、414,365个普通文件（18.281 GiB），全部目标无残留；9份关键保留文件哈希一致，没有原有tracked文件删除。主仓库按不跟随链接的文件长度统计降至16.889 GiB，C盘可用35.360 GiB、D盘177.242 GiB。正式实验、源案例、迁移备份、Git和旧工作树保留，历史审批拒绝范围未重试。未改runtime/domain、未追加测试或产品模型请求。详见[清理记录](../experiments/2026-10-11_test_cache_cleanup/README.md)。
