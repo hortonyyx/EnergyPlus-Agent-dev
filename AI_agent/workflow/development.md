@@ -17,7 +17,7 @@
 | D:/Sim-BIM-Agent/archive | 迁移核验、精简前文档及旧树独有证据 |
 | D:/Sim-BIM-Agent/cache | pytest、临时工具和可再生产物 |
 | D:/Sim-BIM-Agent/releases | 固定提交生成的发布包 |
-| 桌面/Sim BIM Agent | 经验证的独立产品，禁止积累研发历史 |
+| 桌面/Sim BIM Agent v65 | 当前经验证的独立产品，禁止积累研发历史；原无版本后缀目录保留 v64 |
 
 历史 `AI_agent/logs`、`AI_agent/archive`、`case_tests`、`backup`、`showcase`、`output` 保留在 D repo 实体目录，已退出当前 Git 树、默认测试和产品。该布局是批量移位遭自动审批拒绝后的保守处理；实际映射见 [归档索引](../reports/archive-index.md)。新记录放 `AI_agent/reports`，原始大输出放外部 runs/cache。
 

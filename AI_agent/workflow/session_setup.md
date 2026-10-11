@@ -1,6 +1,6 @@
 # 会话与环境
 
-开发仓库：`D:\Sim-BIM-Agent\repo`。桌面`Sim BIM Agent`为发布目录，开发助手不在其中编辑。
+开发仓库：`D:\Sim-BIM-Agent\repo`。当前桌面发布目录为 `Sim BIM Agent v65`，原 `Sim BIM Agent` 仍是保留的 v64；开发助手不在发布目录中编辑。
 
 每次读取 [Agent.md](../Agent.md)、[roadmap](../project/roadmap.md)及唯一最新交接，再按任务查设计/约束。历史按问题搜索，不自动加载全部旧节点。
 

@@ -6,10 +6,11 @@
 - 当前 domain 按 BIM rules / kernel / tools / methods / roles / guidance 组织，见 [源码入口](../../src/agent/README.md) 和 [继承关系](../design/domain_lineage.md)。三条研究线描述信息充分程度；图纸仍为主验证输入，textured mesh 先原型收敛，再整合与尝试混合。
 - 旧 pipeline、graph 及顶层阶段资源已迁入 `src/agent/legacy`，加载、诊断、测试和发布引用同步调整。历史 stage ID/产物保留；当前工作模型的工具、guidance 与任务模板指纹均未改变。
 - 当前版本为 **runtime v7 / domain v65**。已通过 68 项定向检查和 29 项显式历史资源/隔离检查；真实模型调用 0。清理前 74 个文档/资源已逐项哈希保全。
+- 桌面已新增独立验证的 **Sim BIM Agent v65**，发布提交 `671c815d`；500 个程序文件哈希正确、独立工具/恢复验收通过，并可读取原 ChatGPT 登录状态。原 `Sim BIM Agent` 保留 v64：原位替换操作被自动审批拒绝，未执行，也未换途径重试该替换。
 - **待讨论**：照片 → 生成 textured mesh → 源 BIM 的方法，以及按层成块和建模细度政策；本轮未将它们设为默认或实现。
 - **待安排**：GPT-6 Sol 自有 harness 独立标杆和候选调研/实测。具体配置、案例、预算仍待讨论，未运行。
 
-**当前交接：** [domain 整理与验证](../reports/2026-10-11_domain_cleanup.md)。
+**当前交接：** [桌面 domain v65 发布与验证](../reports/2026-10-11_desktop_domain65.md)；代码整理过程见 [domain 整理与验证](../reports/2026-10-11_domain_cleanup.md)。
 
 ## 2026-10-11：work model、多模态架构与参考文献讨论
 

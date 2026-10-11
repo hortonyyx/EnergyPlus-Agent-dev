@@ -2,7 +2,7 @@
 
 从图纸、文字和带贴图三维网格生成可查看、可修改、可供下游分析使用的轻量 BIM。当前主线是自有 runtime 的图纸分工建模；EnergyPlus 是可选下游。稳定识读质量、完整编辑界面与真实 ChatGPT 订阅推理仍有独立验收边界。
 
-本仓库位于 `D:\Sim-BIM-Agent\repo`，GitHub 主库为 [hortonyyx/Sim-BIM-Agent](https://github.com/hortonyyx/Sim-BIM-Agent)。桌面 `Sim BIM Agent` 是从固定提交生成的独立发布目录。日常在本仓库开发，验证后发布；不在桌面交付目录累计开发历史。
+本仓库位于 `D:\Sim-BIM-Agent\repo`，GitHub 主库为 [hortonyyx/Sim-BIM-Agent](https://github.com/hortonyyx/Sim-BIM-Agent)。当前桌面入口是 `Sim BIM Agent v65`，从固定提交生成并独立验证；原 `Sim BIM Agent` 仍保留 v64，详见 [发布记录](AI_agent/reports/2026-10-11_desktop_domain65.md)。日常在本仓库开发，验证后发布；不在桌面交付目录累计开发历史。
 
 ## 开始开发
 
