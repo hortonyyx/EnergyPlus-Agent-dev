@@ -22,11 +22,11 @@ function Write-Record($Path, $Value) {
     else { [IO.File]::Move($temporary, $Path) }
 }
 
-function Full-Path([string]$Path) {
+function Full-Path([string]$Path, [string]$CheckedRoot = '') {
     $full = [IO.Path]::GetFullPath($Path).TrimEnd('\')
     if ($full.Length -le [IO.Path]::GetPathRoot($full).Length) { throw 'A filesystem root is not a product directory' }
     $cursor = $full
-    while ($cursor) {
+    while ($cursor -and $cursor -ne $CheckedRoot) {
         if ((Test-Path -LiteralPath $cursor) -and ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
             throw "Reparse points are not permitted: $cursor"
         }
@@ -43,7 +43,7 @@ function Payload-Path([string]$Root, [string]$Relative) {
     if ($Relative -match '[\\:*?"<>|]' -or $Relative.StartsWith('/') -or $Relative -match '(^|/)(\.|\.\.|\.venv|\.git)(/|$)' -or $Relative -match '(^|/)(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])(\.|/|$)' -or $Relative -match '[. ](/|$)' -or $Relative.Contains('//')) {
         throw "Unsafe payload path: $Relative"
     }
-    $path = Full-Path (Join-Path $Root $Relative)
+    $path = Full-Path (Join-Path $Root $Relative) $Root
     if (-not (Within $path $Root)) { throw 'Payload path escapes installation' }
     return $path
 }
@@ -174,6 +174,7 @@ function Set-Payload($From, $To) {
     # Each replacement is atomic on the install volume. Only manifest-owned files are removed.
     foreach ($name in @($To.Files.Keys) + @('release-manifest.json')) {
         $target = Payload-Path $script:Install $name
+        if ($name -ne 'release-manifest.json' -and $From.Files[$name] -eq $To.Files[$name] -and (Test-Path -LiteralPath $target -PathType Leaf)) { continue }
         New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
         $temporary = $target + '.sim-bim-update.tmp'
         if (Test-Path -LiteralPath $temporary) { throw "Unexpected temporary file: $temporary" }

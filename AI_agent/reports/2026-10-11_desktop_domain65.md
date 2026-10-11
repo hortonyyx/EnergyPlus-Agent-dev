@@ -2,6 +2,8 @@
 
 用户指出桌面尚未更新。本轮将已完成的 [domain 整理](2026-10-11_domain_cleanup.md) 交付到桌面独立安装，没有追加真实模型测试或改变建模方法。
 
+后续状态：2026-10-12 已将原 `Sim BIM Agent` 原位升级并完成真实回滚验证，现在使用无版本后缀的固定入口；本页记载的是前次临时交付。额外旧目录删除再次被工具拒绝，详见 [最新交接](2026-10-12_desktop_update.md)。
+
 ## 当前入口
 
 - 新版：`C:/Users/Horton/Desktop/Sim BIM Agent v65/Start.cmd`，同目录 README 提供 domain 导航。

@@ -1,6 +1,6 @@
 # 会话与环境
 
-开发仓库：`D:\Sim-BIM-Agent\repo`。当前桌面发布目录为 `Sim BIM Agent v65`，原 `Sim BIM Agent` 仍是保留的 v64；开发助手不在发布目录中编辑。
+开发仓库：`D:\Sim-BIM-Agent\repo`。桌面发布目录固定为 `Sim BIM Agent`，版本以自身 `release-manifest.json` 为准；开发助手不在发布目录中编辑。更新/回滚使用 [发布工具](../../scripts/release/update_product.ps1)，不再创建桌面版本目录。
 
 每次读取 [Agent.md](../Agent.md)、[roadmap](../project/roadmap.md)及唯一最新交接，再按任务查设计/约束。历史按问题搜索，不自动加载全部旧节点。
 
