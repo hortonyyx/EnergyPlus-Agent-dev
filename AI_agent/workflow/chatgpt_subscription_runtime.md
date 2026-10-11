@@ -34,10 +34,14 @@ provider 名称固定为 `chatgpt-subscription`。这条通道不读取 `OPENAI_
 
 登录后先运行 `models`。它使用当前账号的 OAuth access token 请求 `GET https://api.openai.com/v1/models`，只显示 `visibility: "list"` 的模型，并保留服务端顺序。运行配置里的 `model` 必须使用这里实际返回的 `slug`；账号、workspace 或目录改变后要重新读取。模型名字出现在本地 profile 中，并不证明当前订阅账号有权使用它。
 
-目前严格本地 profile 只收录：
+目前严格本地 profile 收录：
 
 - `gpt-6-astra`
 - `gpt-6.1-sol`
+- `gpt-6-sol`
+- `gpt-6-luna`
+
+后两款于 2026-10-12 为 sm25 混合分工测试补齐，均保留独立型号，不作别名替换。官方 API 上下文与订阅部署边界分开；图片 token 暂沿已标注的未校准代理作本地预留，不能当供应商实报或硬上界。实际接入/整案状态见[本轮记录](../reports/2026-10-12_sm25_gpt_mix/README.md)。
 
 模型必须同时满足“本地严格 profile 已收录”和“当前账号 `/v1/models` 实际列出”两个条件。缺一项就会在推理请求之前停止，不会换模型。
 
@@ -107,7 +111,7 @@ SIWC preview 的 Responses 请求固定使用 `store: false` 和 `stream: true`�
 
 当前 ChatGPT 订阅路由只允许 `reasoning_history: "all"`。`current_tool_chain` 会在发送请求前拒绝：Responses 返回的 reasoning、函数调用及其他 output item 可能是下一轮必须原样重放的 opaque 状态，不能沿用 Chat Completions 的历史裁剪方式删除。
 
-`output_tokens: 32000` 是本地预算预留，用来做上下文和发送前预算判断。当前 preview 不接受把它作为 `max_output_tokens` 发到 wire，因此 32k 不是服务端输出上限，也不是已经观测到的最小输出；实际用量可能超过预留。ChatGPT 订阅路由强制采用 near-limit `stop`：预算不足时停止新请求，不临时缩小输出预留继续发送。当前登记的两款模型只接受 low/medium/high/xhigh/max 推理档位。
+`output_tokens: 32000` 是本地预算预留，用来做上下文和发送前预算判断。当前 preview 不接受把它作为 `max_output_tokens` 发到 wire，因此 32k 不是服务端输出上限，也不是已经观测到的最小输出；实际用量可能超过预留。ChatGPT 订阅路由强制采用 near-limit `stop`：预算不足时停止新请求，不临时缩小输出预留继续发送。当前本地订阅参数入口接受 low/medium/high/xhigh/max；具体模型仍须同时通过本地 profile 与账号目录检查。
 
 每次请求保存实际 wire、来源、耗时和终态。服务返回 usage 时记录真实 input、output、total 和 cached token 字段；缺 usage 时保留 unknown，不填零。图片原件与实际发送内容分别留证，本地 profile 给出图片 token 估计；订阅响应的 input usage 已包含图片时不再重复加入 provider total。缓存命中与图片估算都不能冒充订阅账单或剩余额度。
 
