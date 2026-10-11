@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-11T18:09:37.381183+00:00",
+  "batch_id": "sm25-gpt-mix-20261012-high",
+  "run": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-mix-20261012-high",
+  "launch": {
+    "recorded_at": "2026-10-11T17:54:21.502656+00:00",
+    "source_commit": "8971771754d463378ed78cad6d542f6890fb5896",
+    "runtime_version": "runtime-v8-20261012",
+    "domain_version": "domain-v65-20261011",
+    "configuration_sha256": "113d875913e39a40f88a14c741c97d323073eae1c47a66fea0ba48743c7e0c56",
+    "input_manifest_sha256": "796557260bf938ba613aa33bc4c08b53dde790a64b3cd91966cf58c42097cf9e",
+    "run": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-high",
+    "developer_interventions": 0,
+    "smoke": {
+      "sol": {
+        "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\sol-vision-live\\smoke_result.json",
+        "sha256": "883ff2d014f0072ba47d6cb3dca62818460be76f9f6cf0371d20dc6a0df7cb04",
+        "passed": true,
+        "requests": 2,
+        "tokens": 667,
+        "elapsed_seconds": 6.75,
+        "provider_reported_models": [
+          "gpt-6-sol",
+          "gpt-6-sol"
+        ]
+      },
+      "luna": {
+        "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\luna-vision-live\\smoke_result.json",
+        "sha256": "463c659a8b85486aa0bf8472d1c1d9ddbe4bbdfc180d65f57d6ebd58f55b19e8",
+        "passed": true,
+        "requests": 2,
+        "tokens": 665,
+        "elapsed_seconds": 6.5,
+        "provider_reported_models": [
+          "gpt-6-luna",
+          "gpt-6-luna"
+        ]
+      }
+    }
+  },
+  "status": "configured_context_limit_exhausted",
+  "elapsed_seconds": 572.2993775100622,
+  "counts": {
+    "requests": 53,
+    "responses": 53,
+    "failed_requests": 0,
+    "pending_requests": 0,
+    "model_retry_events": 0,
+    "other_retry_events": 0
+  },
+  "peak_in_flight_requests": 6,
+  "tool_calls": 47,
+  "roles": [
+    {
+      "task": "coordinator",
+      "role": "coordinator",
+      "status": "configured_context_limit_exhausted",
+      "requests": 4,
+      "responses": 4,
+      "tool_calls": 6,
+      "tools": {
+        "inputs": 1,
+        "delegate_readers": 2,
+        "view_image": 2,
+        "role_state": 1
+      },
+      "runtime_tool_errors": 0,
+      "elapsed_seconds": 572.2993774414062,
+      "provider_usage": {
+        "input_tokens": 33506,
+        "output_tokens": 678,
+        "total_tokens": 34184,
+        "cached_input_tokens": 2304,
+        "reasoning_tokens": 75
+      },
+      "provider_identity": {
+        "responses": 4,
+        "models": {
+          "gpt-6-sol": 4
+        },
+        "efforts": {
+          "high": 4
+        },
+        "requests": 4,
+        "image_requests": 0,
+        "image_records": 0
+      }
+    },
+    {
+      "task": "ee",
+      "role": "elevation_reader",
+      "status": "completed",
+      "requests": 4,
+      "responses": 4,
+      "tool_calls": 3,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "runtime_tool_errors": 0,
+      "elapsed_seconds": 81.77271604537964,
+      "provider_usage": {
+        "input_tokens": 32767,
+        "output_tokens": 2254,
+        "total_tokens": 35021,
+        "cached_input_tokens": 0,
+        "reasoning_tokens": 1163
+      },
+      "provider_identity": {
+        "responses": 4,
+        "models": {
+          "gpt-6-luna": 4
+        },
+        "efforts": {
+          "high": 4
+        },
+        "requests": 4,
+        "image_requests": 4,
+        "image_records": 6
+      }
+    },
+    {
+      "task": "en",
+      "role": "elevation_reader",
+      "status": "completed",
+      "requests": 5,
+      "responses": 5,
+      "tool_calls": 4,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 2
+      },
+      "runtime_tool_errors": 1,
+      "elapsed_seconds": 87.12240529060364,
+      "provider_usage": {
+        "input_tokens": 42691,
+        "output_tokens": 2188,
+        "total_tokens": 44879,
+        "cached_input_tokens": 1536,
+        "reasoning_tokens": 1088
+      },
+      "provider_identity": {
+        "responses": 5,
+        "models": {
+          "gpt-6-luna": 5
+        },
+        "efforts": {
+          "high": 5
+        },
+        "requests": 5,
+        "image_requests": 5,
+        "image_records": 8
+      }
+    },
+    {
+      "task": "ew",
+      "role": "elevation_reader",
+      "status": "completed",
+      "requests": 4,
+      "responses": 4,
+      "tool_calls": 3,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "runtime_tool_errors": 0,
+      "elapsed_seconds": 83.55692911148071,
+      "provider_usage": {
+        "input_tokens": 33266,
+        "output_tokens": 2265,
+        "total_tokens": 35531,
+        "cached_input_tokens": 6144,
+        "reasoning_tokens": 1520
+      },
+      "provider_identity": {
+        "responses": 4,
+        "models": {
+          "gpt-6-luna": 4
+        },
+        "efforts": {
+          "high": 4
+        },
+        "requests": 4,
+        "image_requests": 4,
+        "image_records": 6
+      }
+    },
+    {
+      "task": "es",
+      "role": "elevation_reader",
+      "status": "completed",
+      "requests": 4,
+      "responses": 4,
+      "tool_calls": 3,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "runtime_tool_errors": 0,
+      "elapsed_seconds": 75.63942456245422,
+      "provider_usage": {
+        "input_tokens": 32433,
+        "output_tokens": 2082,
+        "total_tokens": 34515,
+        "cached_input_tokens": 1536,
+        "reasoning_tokens": 1244
+      },
+      "provider_identity": {
+        "responses": 4,
+        "models": {
+          "gpt-6-luna": 4
+        },
+        "efforts": {
+          "high": 4
+        },
+        "requests": 4,
+        "image_requests": 4,
+        "image_records": 6
+      }
+    },
+    {
+      "task": "p2",
+      "role": "plan_reader",
+      "status": "configured_context_limit_exhausted",
+      "requests": 8,
+      "responses": 8,
+      "tool_calls": 8,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 5
+      },
+      "runtime_tool_errors": 5,
+      "elapsed_seconds": 311.7122094631195,
+      "provider_usage": {
+        "input_tokens": 287692,
+        "output_tokens": 13615,
+        "total_tokens": 301307,
+        "cached_input_tokens": 15872,
+        "reasoning_tokens": 1956
+      },
+      "provider_identity": {
+        "responses": 8,
+        "models": {
+          "gpt-6-luna": 8
+        },
+        "efforts": {
+          "high": 8
+        },
+        "requests": 8,
+        "image_requests": 8,
+        "image_records": 54
+      }
+    },
+    {
+      "task": "p1",
+      "role": "plan_reader",
+      "status": "configured_context_limit_exhausted",
+      "requests": 8,
+      "responses": 8,
+      "tool_calls": 8,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 5
+      },
+      "runtime_tool_errors": 5,
+      "elapsed_seconds": 269.11681032180786,
+      "provider_usage": {
+        "input_tokens": 279395,
+        "output_tokens": 10373,
+        "total_tokens": 289768,
+        "cached_input_tokens": 9216,
+        "reasoning_tokens": 1946
+      },
+      "provider_identity": {
+        "responses": 8,
+        "models": {
+          "gpt-6-luna": 8
+        },
+        "efforts": {
+          "high": 8
+        },
+        "requests": 8,
+        "image_requests": 8,
+        "image_records": 54
+      }
+    },
+    {
+      "task": "p1r",
+      "role": "plan_reader",
+      "status": "answer_validation_failed",
+      "requests": 8,
+      "responses": 8,
+      "tool_calls": 6,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "runtime_tool_errors": 3,
+      "elapsed_seconds": 189.64840865135193,
+      "provider_usage": {
+        "input_tokens": 291189,
+        "output_tokens": 7060,
+        "total_tokens": 298249,
+        "cached_input_tokens": 66816,
+        "reasoning_tokens": 951
+      },
+      "provider_identity": {
+        "responses": 8,
+        "models": {
+          "gpt-6-luna": 8
+        },
+        "efforts": {
+          "high": 8
+        },
+        "requests": 8,
+        "image_requests": 8,
+        "image_records": 54
+      }
+    },
+    {
+      "task": "p2r",
+      "role": "plan_reader",
+      "status": "answer_validation_failed",
+      "requests": 8,
+      "responses": 8,
+      "tool_calls": 6,
+      "tools": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "runtime_tool_errors": 3,
+      "elapsed_seconds": 202.7397792339325,
+      "provider_usage": {
+        "input_tokens": 278767,
+        "output_tokens": 7331,
+        "total_tokens": 286098,
+        "cached_input_tokens": 23040,
+        "reasoning_tokens": 1917
+      },
+      "provider_identity": {
+        "responses": 8,
+        "models": {
+          "gpt-6-luna": 8
+        },
+        "efforts": {
+          "high": 8
+        },
+        "requests": 8,
+        "image_requests": 8,
+        "image_records": 54
+      }
+    }
+  ],
+  "provider_usage": {
+    "input_tokens": {
+      "known_sum": 1311706,
+      "reported_requests": 53,
+      "unreported_requests": 0,
+      "complete_total": 1311706
+    },
+    "output_tokens": {
+      "known_sum": 47846,
+      "reported_requests": 53,
+      "unreported_requests": 0,
+      "complete_total": 47846
+    },
+    "total_tokens": {
+      "known_sum": 1359552,
+      "reported_requests": 53,
+      "unreported_requests": 0,
+      "complete_total": 1359552
+    },
+    "cached_input_tokens": {
+      "known_sum": 126464,
+      "reported_requests": 53,
+      "unreported_requests": 0,
+      "complete_total": 126464
+    },
+    "reasoning_tokens": {
+      "known_sum": 11860,
+      "reported_requests": 53,
+      "unreported_requests": 0,
+      "complete_total": 11860
+    },
+    "cache_fraction": 0.0964118483867574
+  },
+  "finalization": {
+    "delivery": null,
+    "status": "no_saved_candidate"
+  },
+  "quality": {
+    "status": "not_evaluated_no_candidate",
+    "geometry_bands_cm": null,
+    "viewer": null,
+    "reason": "No valid plan draft, building candidate, source model or delivery. Four accepted elevation artifacts do not establish independent quality."
+  },
+  "developer_interventions": 0,
+  "run_time_harness_edits": 0,
+  "second_run": {
+    "launched": false,
+    "reason": "First run did not meet frozen acceptance gate"
+  },
+  "postprocessing_error": {
+    "stage": "write_behaviour_report_after_saved_terminal_state",
+    "exception": "ValueError: tool presentation event-000017 differs from prepared result event-000009",
+    "process_exit_code": 1
+  },
+  "billing_mode": "subscription",
+  "money_cost": null,
+  "paid_api_fallback_requests": 0,
+  "batch_inference_requests_including_smoke": 57,
+  "batch_tokens_including_smoke": 1360884,
+  "evidence": [
+    {
+      "path": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-mix-20261012-high\\receipt.json",
+      "bytes": 333150,
+      "sha256": "fa92ae71a110a6afb08f545614e561a3bbd03fd2cbb945d173d77ee35251f02b"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-mix-20261012-high\\events.jsonl",
+      "bytes": 2722923,
+      "sha256": "12c69a79dcf7919bd4b603323d3d799b83a9949a86a79ae088d5603c03e2765e"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-mix-20261012-high\\bim\\summary.json",
+      "bytes": 685,
+      "sha256": "ba0a48fc3fa49cd6e87fec9206dbf892ec2914c1afd72547be5570a14ecef307"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\launch-record.json",
+      "bytes": 1306,
+      "sha256": "d331b40ddb400fe1cd18f94c5ea73ef8711400fd8a00a98f72bdfa0cea6cafee"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\final-observation.json",
+      "bytes": 14071,
+      "sha256": "f11c76d54f5bed85e827b9ea48b1699e0c66f5142efeea7b3ed757a5f1cd2ad8"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\wire-identity-audit.json",
+      "bytes": 2397,
+      "sha256": "d439fac2aaa73a50160c9a23b68e58231cdb64a58ae5db7a2aa3daff50f26bdd"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\artifact-audit.json",
+      "bytes": 57135,
+      "sha256": "6d602251bbbe575c61c17180e4820469a793f3971f0ab80cc5f0054226ad8810"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\behavior-audit.json",
+      "bytes": 27401,
+      "sha256": "2d52fc03f73e4ae08c0dee5aea3bbffe2c481ba60ab21815f79e219410786e66"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\context-audit.json",
+      "bytes": 57621,
+      "sha256": "a9e08c4d2d4cdc0064ac894f73ac134980ce6d1b7918993adaeb357737b2ea12"
+    },
+    {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-20261012\\high-console.log",
+      "bytes": 1707,
+      "sha256": "47a22a5c2a4417d1aca2326452284234d3007545241841031abd01e8f89780f7"
+    }
+  ],
+  "disk_free_gib": {
+    "C": 51.64,
+    "D": 170.01
+  },
+  "preservation_note": "Full run/cache evidence remains local on D; Git contains the compact result and hashes, not a remote backup of full blobs."
+}
