@@ -27,6 +27,22 @@
 
 ChatGPT 订阅通过 `auth login` 使用用户自己的账号授权。凭据由本机专用存储保护，不打包进程序；默认存储位置保留 `%LOCALAPPDATA%/EnergyPlus-Agent/openai-subscription`。已有授权不需随版本更新重新登录。GLM 订阅和 Paratera 通过运行配置指定独立凭据文件，不能把密钥写入发布文件。
 
+## 更新与回滚
+
+桌面安装目录固定为 `Sim BIM Agent`。新版本先在 D 盘从 Git 构建，再使用开发库的发布工具更新这个目录；不再创建带版本号的桌面目录。更新前结束当前运行，维护期间不要启动另一个实例。
+
+```powershell
+# 在 D:/Sim-BIM-Agent/repo 执行；release-dir 是 build_product.py 生成的发布目录。
+./scripts/release/update_product.ps1 -Action plan -Release D:/Sim-BIM-Agent/releases/release-dir
+./scripts/release/update_product.ps1 -Action update -Release D:/Sim-BIM-Agent/releases/release-dir
+./scripts/release/update_product.ps1 -Action rollback
+./scripts/release/update_product.ps1 -Action status
+```
+
+工具只替换清单管理的程序文件，拒绝覆盖本地修改或冲突的个人文件。成功前使用安装自身环境完成离线验收；验证失败会恢复上一版，意外中断后也使用 `rollback`。依赖未变时保留 `.venv`；有变化时按锁文件同步，可加 `-Offline` 限制为已有依赖缓存。若依赖恢复也失败，会明确保留待恢复状态，不报告成功。
+
+D 盘 `archive/product-backup` 只保留一个 `previous.zip`、一份状态记录和更新锁，不打包虚拟环境、案例、结果或凭据。临时副本成功后清理；更早版本从 Git 恢复后重新构建。更新和回滚都不调用模型，也不要求重新登录。
+
 ## 当前能力边界
 
 当前 domain 按 BIM rules、kernel、tools、methods、roles、guidance 组织，实际文件见 [domain 导航](src/agent/README.md)。旧阶段流程及参考资源集中在 `src/agent/legacy`，不作为当前任务的固定步骤或 skills 入口。
