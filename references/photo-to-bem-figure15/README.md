@@ -1,15 +1,33 @@
 # 单张照片到 BEM：Fig. 15 截图记录
 
-记录日期：2026-10-11。证据范围：用户提供的截图；未取得截图对应论文全文。此图不在同次提供的 [Lee & Yoon PDF](../lee-yoon-2026-agentic-bem/README.md) 中。
+记录日期：2026-10-11。证据范围：用户截图、作者官方网站摘要与公开配图、官方配套仓库。已确认截图对应的研究，尚未取得论文全文。此图不在同次提供的 [Lee & Yoon PDF](../lee-yoon-2026-agentic-bem/README.md) 中。
 
 ## 原件与出处核实程度
 
 - 本地图片：[figure-15.png](figure-15.png)，1,320,952 bytes，逐字节保存用户附件；只在本地保留。
 - SHA-256：`4f24dd51e949bcd24596468c4fbcec9b8c63fb18fff6aaa67241be58bff5b597`。
-- 根据检索线索，候选论文为 Shikang Wen; Qingyan Chen，**An AI-assisted workflow for generative building design and energy modeling: Converting natural language design intent and images into 3D building energy model inputs**。
+- 对应论文为 Shikang Wen; Qingyan Chen，**An AI-assisted workflow for generative building design and energy modeling: Converting natural language design intent and images into 3D building energy model inputs**。
 - [DOI：10.1016/j.aei.2026.105313](https://doi.org/10.1016/j.aei.2026.105313)；[出版社页面](https://www.sciencedirect.com/science/article/pii/S1474034626010050)。
 - 已从 [Crossref 元数据](https://api.crossref.org/works/10.1016%2Fj.aei.2026.105313) 核实题名、作者和 DOI；[Elsevier 元数据](https://api.elsevier.com/content/article/PII:S1474034626010050?httpAccept=text/xml) 核实题名、期刊 *Advanced Engineering Informatics*、PII 和标注刊期 January 2027。刊期不等于在线发表日期，当前未核实后者。
-- 出版社网页读取返回 403，公开 API 只返回书目字段，无正文。因此“截图确为该文 Fig. 15”尚未经原文核对，不将候选书目当作完整来源确认，也不引用二手摘要作为方法细节证据。
+- [作者论文页面](https://shikangwen2000.github.io/publication/2026-ai-generative-building-design)已直接读取，题名、作者、DOI 及摘要对应；其引用信息为 *Advanced Engineering Informatics*, 77 (2027), 105313。网站源文件的记录日期为 2026-09-22，不能单独代替出版社在线发表日期。
+- 已通过浏览器查看[作者公开的校园建筑重建图](https://shikangwen2000.github.io/images/projects/ai-generative-design/campus-reconstruction.png)：建筑、步骤、颜色标注及两侧 WWR/GFA/EUI 与用户截图一致，确认研究身份。作者公开图不带底部 Fig. 15 图注，正文图号及页码仍待 PDF 核对。
+- [官方配套仓库 AI-BEM-Workflow](https://github.com/ShikangWen2000/AI-BEM-Workflow)明确列出该论文题名与作者。本轮通过 GitHub API 核验 main 文件树，只有 `Readme.md`，没有代码、数据或 PDF，不能称为已取得可复现实现。
+
+## 全文查找状态
+
+2026-10-11 已检查出版社文章/PDF 入口、作者网站与公开文件树、官方仓库、OpenAlex 和 Semantic Scholar。两种学术索引提供的开放获取链接均指向出版社，没有独立 PDF 地址；作者网站只提供摘要与 DOI 链接。尚未发现可直接下载的作者稿。
+
+ScienceDirect 的普通请求返回 403，浏览器实际页面显示“Are you a robot?”及人机验证提示，未显示论文正文。没有操作验证挑战、登录、购买或联系作者。公开 Elsevier API 的 PDF 请求返回 406，先前书目读取不含正文。ResearchGate 与 PolyU 检索入口本轮也未成功读取，不能据此断言其中不存在全文。
+
+**当前结果：已确认论文身份与官方入口，尚未下载全文。** 原始 PDF 文件没有创建。下一步可以由用户在[出版社页面](https://www.sciencedirect.com/science/article/pii/S1474034626010050)完成网站验证后获取 PDF，或提供已持有的对应全文。
+
+## 作者摘要与仓库可确认的新增信息
+
+- 摘要确认使用 ChatGPT-image、Hunyuan3D-2.1 及 mesh-to-EnergyPlus 转换；仓库具体提到 GraphSAGE 构件分割。
+- 摘要提到用 13,000 栋合成建筑训练网格面分类器，并在多种轮廓、三种尺度及五个中国气候区评估。
+- 摘要明确提到通过确定性标定使 GFA/WWR 接近预设目标，但没有给出足以核实 Fig. 15 案例全部输入和标定细节的信息。
+
+上述信息来自作者摘要和仓库说明，不能替代方法、实验与局限章节的全文阅读。
 
 ## 截图本身能确认的内容
 
