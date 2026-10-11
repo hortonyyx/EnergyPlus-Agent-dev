@@ -1,5 +1,13 @@
 # 当前任务
 
+## 2026-10-11：GitHub 仓库改名与 ChatGPT 授权
+
+- GitHub 主库已改为 `hortonyyx/Sim-BIM-Agent`，本地 `origin` 已同步更新；仓库 ID 不变，远程 main 读取正常。
+- 用户已在浏览器完成 Sim BIM Agent 独立 SIWC 授权；开发入口和桌面独立产品均可读取同一账号的 7 个可用模型。
+- 当前本地严格 profile 与账号目录的交集包含 `gpt-6.1-sol`、`gpt-6-astra`。本轮模型推理请求 0；真实 Responses 推理、工具循环与 BIM 案例未运行。
+
+**当前交接：** [仓库改名与订阅授权核验](../reports/2026-10-11_repository_subscription_auth.md)。
+
 ## 2026-10-11：项目精简与独立交付
 
 用户已批准：桌面保留精简可独立运行产品，研发/案例/运行/归档/缓存迁至D盘；历史测试按当前产品要求重新筛选。追加授权清理D盘已完成旧开发树。完成后另启独立审阅。
@@ -11,11 +19,11 @@
 - 精简当前管理文档；完整旧文档已保存在 `D:\Sim-BIM-Agent\archive\documentation-before-slim`。
 - 发布8d336e21、runtime v7 / domain v64已通过最终实际隔离验收；节点检查、预检修复与独立审阅均已完成（无未解决P1/P2）。最终结果与清理余项见交接。
 
-**当前交接：** [本轮实施与验证](../reports/2026-10-11_product_slim.md)。
+**迁移交接：** [项目精简实施与验证](../reports/2026-10-11_product_slim.md)。
 
 ## 延续状态
 
-- 开工基准为 `9f5332ae`，runtime v6 / domain v61。ChatGPT订阅原生接入已实现，用户暂不登录、以后换号，真实服务可用性未验。
+- 迁移开工基准为 `9f5332ae`，runtime v6 / domain v61；迁移交付为 runtime v7 / domain v64。ChatGPT授权与模型目录现已实测，真实推理仍待按用户批准范围验证。
 - sm25最新规整整案仍失败冻结：四立面完成、两平面失败，无整楼候选；缺usage和旧费用未知不追改。
 - 下一轮domain方案仍待讨论：声明保存/局改、近轴接头与尺寸链一致、按角色减少参考和机械负担。自动OCR选择步长未实现。
 - Voimatalo既有精细档验收与两组开发模型结果继续保留，不自动追加实测。

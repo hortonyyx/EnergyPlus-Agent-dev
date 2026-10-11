@@ -28,7 +28,7 @@ provider 名称固定为 `chatgpt-subscription`。这条通道不读取 `OPENAI_
 
 同一主机保留稳定的 `ext_agent_host_id`。再次登录默认复用当前账号已签发的 client ID；`login --new-account` 可注册另一个账号或 workspace，`status` 列出安全的账号标签，再用 `login --client-id <已保存的client_id>` 切换。`logout` 尝试撤销当前 refresh token，然后清除本地 token；若远端撤销未确认，命令会明确报告，不能把本地清除当成远端已成功。
 
-当前交接状态下，真实登录仍待用户选择用于本应用的 ChatGPT 账号并在系统浏览器内完成授权。文档不记录候选账号或任何账号内容；在用户完成选择前只运行离线检查，不应加 `--live`。
+2026-10-11，用户已在系统浏览器内完成本应用的独立授权。开发入口和桌面独立产品均已读取同一账号模型目录，具有 `chatgpt.tokens.use.direct` 权限；文档不记录账号标识或凭据。此次仅核验授权与目录，真实推理和工具循环未执行；`--live` 仍按用户批准的实测范围使用。详见[本次核验](../reports/2026-10-11_repository_subscription_auth.md)。
 
 ## 模型目录与资格边界
 
