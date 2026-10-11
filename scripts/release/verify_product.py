@@ -156,8 +156,12 @@ def _all_module_specs(product):
         if name not in specs:
             parent = name.rpartition(".")[0]
             paths = find(parent).submodule_search_locations if parent else [str(product)]
-            spec = importlib.machinery.PathFinder.find_spec(name, paths)
+            # Resolve one path component without importing its parent. A full
+            # dotted namespace name assumes that parent is in sys.modules.
+            spec = importlib.machinery.PathFinder.find_spec(name.rsplit(".", 1)[-1], paths)
             _require(spec is not None, f"Missing payload module: {name}")
+            if spec.submodule_search_locations is not None:
+                spec.submodule_search_locations = list(spec.submodule_search_locations)
             specs[name] = spec
         return specs[name]
 
@@ -321,15 +325,17 @@ async def _runtime_probe(product, output):
 
 def _worker(args):
     product, output = args.product.resolve(), args.output.resolve()
-    _guard_network(output / "blocked-network.jsonl")
-    _guard_imports(product, output / (f"mcp-{args.phase}-imports.jsonl" if args.mcp_server else "worker-imports.jsonl"))
     if args.mcp_server:
+        _guard_network(output / "blocked-network.jsonl")
+        _guard_imports(product, output / f"mcp-{args.phase}-imports.jsonl")
         sys.argv = [str(product / "scripts/tool_scripts/run_bim_agent.py"), "serve", str(output / "demo")]
         runpy.run_path(sys.argv[0], run_name="__main__")
         return 0
     report = {"passed": False, "product": str(product), "python": sys.executable,
               "cwd": str(Path.cwd()), "pythonpath": os.environ.get("PYTHONPATH"), "live_model_requests": 0}
     try:
+        _guard_network(output / "blocked-network.jsonl")
+        _guard_imports(product, output / "worker-imports.jsonl")
         _require(not (product / ".git").exists(), "Product still contains Git metadata")
         _require(Path(sys.prefix).resolve() == product / ".venv", "Worker is not using product Python")
         _require(Path.cwd().resolve() == output / "isolated-cwd", "Worker cwd is not isolated")
@@ -368,7 +374,8 @@ def main():
     (output / "isolated-cwd").mkdir()
     started = time.monotonic()
     report = {"schema_version": "sim-bim-product-verification.v1", "passed": False, "product": str(product),
-              "output": str(output), "live_model_requests": 0, "paid_api_requests": 0}
+              "output": str(output), "live_model_requests": 0, "paid_api_requests": 0,
+              "stdout": str(output / "stdout.txt"), "stderr": str(output / "stderr.txt")}
     try:
         python = product / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
         _require(python.is_file(), f"Product Python missing: {python}")

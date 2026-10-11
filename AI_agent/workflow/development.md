@@ -12,12 +12,14 @@
 |---|---|
 | D:/Sim-BIM-Agent/repo | 唯一开发Git主库，当前文档、必要测试与产品代码 |
 | D:/Sim-BIM-Agent/worktrees | 短期开发检出，完成后收回 |
-| D:/Sim-BIM-Agent/cases | 案例原件与独立GT，逻辑/权限保持隔离 |
+| D:/Sim-BIM-Agent/cases | 新案例原件与独立GT，逻辑/权限保持隔离 |
 | D:/Sim-BIM-Agent/runs | 模型运行、检查点与结果，不复制回主树 |
-| D:/Sim-BIM-Agent/archive | 冻结证据、旧文档、备份和迁移清单 |
+| D:/Sim-BIM-Agent/archive | 迁移核验、精简前文档及旧树独有证据 |
 | D:/Sim-BIM-Agent/cache | pytest、临时工具和可再生产物 |
 | D:/Sim-BIM-Agent/releases | 固定提交生成的发布包 |
 | 桌面/Sim BIM Agent | 经验证的独立产品，禁止积累研发历史 |
+
+历史 `AI_agent/logs`、`AI_agent/archive`、`case_tests`、`backup`、`showcase`、`output` 保留在 D repo 实体目录，已退出当前 Git 树、默认测试和产品。该布局是批量移位遭自动审批拒绝后的保守处理；实际映射见 [归档索引](../reports/archive-index.md)。新记录放 `AI_agent/reports`，原始大输出放外部 runs/cache。
 
 主线只保留必要小夹具、短报告、run/case ID、版本及哈希索引。较大正式证据保存可校验副本后再归档；本地存在、远端已备份、可独立恢复分别报告。不将凭据、完整GT或旧模型答案放入产品。
 

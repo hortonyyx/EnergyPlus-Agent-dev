@@ -38,13 +38,19 @@ def pytest_configure(config):
 
 
 def _explicit_file(config, path):
-    for argument in config.args:
-        candidate = Path(str(argument).split("::", 1)[0])
-        if not candidate.is_absolute():
-            candidate = Path(config.invocation_params.dir) / candidate
-        if candidate.suffix == ".py" and candidate.resolve() == path.resolve():
-            return True
-    return False
+    key = (str(config.invocation_params.dir), tuple(str(arg) for arg in config.args))
+    cached = getattr(config, "_sim_bim_explicit_files", None)
+    if cached is None or cached[0] != key:
+        selected = set()
+        for argument in config.args:
+            candidate = Path(str(argument).split("::", 1)[0])
+            if not candidate.is_absolute():
+                candidate = Path(config.invocation_params.dir) / candidate
+            if candidate.suffix == ".py":
+                selected.add(candidate.resolve())
+        cached = (key, selected)
+        config._sim_bim_explicit_files = cached
+    return path.resolve() in cached[1]
 
 
 def pytest_sessionstart(session):

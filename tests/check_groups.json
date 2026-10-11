@@ -1290,6 +1290,10 @@
       "group": "fast",
       "reason": "Current offline contract: src.agent_runtime.budget, src.agent_runtime.budget_recovery, src.agent_runtime.store"
     },
+    "tests/test_runtime_journal_incremental_history.py": {
+      "group": "historical",
+      "reason": "Optional original 1269-event frozen trace parity requires explicit RUNTIME_JOURNAL_FROZEN_RUN"
+    },
     "tests/test_runtime_long_task.py": {
       "group": "historical",
       "reason": "Optional archived evidence/case verification: explicit external archive"
@@ -1355,8 +1359,12 @@
       "reason": "Optional archived evidence/case verification: explicit external archive"
     },
     "tests/test_runtime_stage2_integration.py": {
+      "group": "fast",
+      "reason": "Current synthetic image retrieval across summaries, exact tool envelopes and candidate state separation"
+    },
+    "tests/test_runtime_stage2_integration_history.py": {
       "group": "historical",
-      "reason": "Optional archived evidence/case verification: explicit external archive"
+      "reason": "Optional archived stage1 scripted transport and saved material replay"
     },
     "tests/test_runtime_stage3_evidence.py": {
       "group": "historical",
@@ -1369,6 +1377,10 @@
     "tests/test_runtime_time_settlement.py": {
       "group": "fast",
       "reason": "Current offline contract: src.agent_runtime.adapter, src.agent_runtime.loop, src.agent_runtime.store"
+    },
+    "tests/test_runtime_tool_image_evidence.py": {
+      "group": "fast",
+      "reason": "Current synthetic source/crop identity and durable view indexing, split from archived long trace"
     },
     "tests/test_schedule_completeness.py": {
       "group": "targeted",

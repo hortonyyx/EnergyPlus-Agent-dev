@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from PIL import Image
 
 from src.agent_runtime.agent_registry import (
     AgentVersionMismatch, REGISTRY_RELATIVE_PATH, discover_files,
@@ -191,7 +192,7 @@ def test_both_modes_route_external_inputs_and_shared_run_root(tmp_path, monkeypa
     monkeypatch.setattr(configuration, "ROOT", root)
     inputs, runs = tmp_path / "inputs", tmp_path / "runs"
     (inputs / "one").mkdir(parents=True)
-    (inputs / "one/1f.png").write_bytes(b"admitted image filename; no rendering")
+    Image.new("RGB", (2, 2), "white").save(inputs / "one/1f.png")
     data = _configuration(inputs, runs)
     path = tmp_path / "config.json"
     _write_json(path, data)
@@ -234,7 +235,7 @@ def test_legacy_configuration_keeps_repository_relative_paths(tmp_path, monkeypa
     root = tmp_path / "checkout"
     (root / "one").mkdir(parents=True)
     (root / ".git").write_text("fixture", encoding="utf-8")
-    (root / "one/1f.png").write_bytes(b"offline filename")
+    Image.new("RGB", (2, 2), "white").save(root / "one/1f.png")
     monkeypatch.setattr(configuration, "ROOT", root)
     data = _configuration(root, root / "runs")
     data.pop("input_root")
@@ -248,3 +249,50 @@ def test_legacy_configuration_keeps_repository_relative_paths(tmp_path, monkeypa
         assert argv[argv.index("--images") + 1] == str(root / "one")
         assert argv[argv.index("--out") + 1] == str(root / "single")
         assert "--run-root" not in argv
+
+
+@pytest.mark.parametrize("contents,expected", [
+    ("json_file", "must be a directory"),
+    ("empty_directory", "at least one PNG"),
+    ("corrupt_png", "valid readable PNG"),
+    ("jpeg_named_png", "valid readable PNG"),
+    ("directory_named_png", "regular file"),
+])
+def test_image_admission_rejects_inputs_the_runtime_cannot_open(tmp_path, contents, expected):
+    from src.agent.runtime_configuration import resolve_case_input
+
+    target = tmp_path / "input"
+    if contents == "json_file":
+        target.write_text("{}", encoding="utf-8")
+    else:
+        target.mkdir()
+        image = target / "plan.png"
+        if contents == "corrupt_png":
+            image.write_bytes(b"not a PNG")
+        elif contents == "jpeg_named_png":
+            Image.new("RGB", (2, 2), "white").save(image, format="JPEG")
+        elif contents == "directory_named_png":
+            image.mkdir()
+    with pytest.raises(ValueError, match=expected):
+        resolve_case_input({"input_root": str(tmp_path), "input": target.name, "input_kind": "images"})
+
+
+@pytest.mark.parametrize("name,is_directory,accepted", [
+    ("model.glb", False, True), ("model.GLB", False, True),
+    ("model.obj", False, False), ("model.glb", True, False),
+])
+def test_mesh_preflight_checks_file_and_extension_only(tmp_path, name, is_directory, accepted):
+    from src.agent.runtime_configuration import resolve_case_input
+
+    target = tmp_path / name
+    if is_directory:
+        target.mkdir()
+    else:
+        # Geometry parsing remains freeze_mesh's responsibility at execution.
+        target.write_bytes(b"offline filename/availability fixture")
+    case = {"input_root": str(tmp_path), "input": name, "input_kind": "mesh"}
+    if accepted:
+        assert resolve_case_input(case) == target
+    else:
+        with pytest.raises(ValueError, match=r"regular \.glb file"):
+            resolve_case_input(case)

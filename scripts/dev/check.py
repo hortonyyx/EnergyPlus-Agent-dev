@@ -5,7 +5,7 @@ Examples:
   python scripts/dev/check.py targeted tests/test_role_configuration.py
   python scripts/dev/check.py targeted --changed src/agent_runtime/budget.py
   python scripts/dev/check.py node
-  python scripts/dev/check.py historical --archive-root D:/Sim-BIM-Agent/archive --cases-root D:/Sim-BIM-Agent/cases
+  python scripts/dev/check.py historical --archive-root D:/Sim-BIM-Agent/repo --cases-root D:/Sim-BIM-Agent/repo/case_tests
 """
 
 from __future__ import annotations

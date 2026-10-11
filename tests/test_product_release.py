@@ -5,6 +5,9 @@ from pathlib import Path
 import subprocess
 import sys
 
+import pytest
+from PIL import Image
+
 from scripts.release.build_product import selected_payload
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,6 +40,7 @@ def test_example_configuration_has_explicit_external_storage(tmp_path):
     value = json.loads((ROOT / "product/config.example.json").read_bytes())
     inputs = tmp_path / "input"
     (inputs / "my-building").mkdir(parents=True)
+    Image.new("RGB", (2, 2), "white").save(inputs / "my-building/plan.png")
     value["input_root"] = str(inputs)
     value["run_root"] = str(tmp_path / "runs")
     config = tmp_path / "run.json"
@@ -46,3 +50,32 @@ def test_example_configuration_has_explicit_external_storage(tmp_path):
     assert command[command.index("--images") + 1] == str(inputs / "my-building")
     assert command[command.index("--run-root") + 1] == str(tmp_path / "runs")
     assert "src.agent.runtime_roles.entry" in command
+
+
+@pytest.mark.parametrize("input_case,expected", [
+    ("json_file", "must be a directory"),
+    ("empty_directory", "at least one PNG"),
+    ("text_floor", "admitted input filenames"),
+])
+def test_product_configuration_check_rejects_unusable_image_inputs(tmp_path, input_case, expected):
+    from src.agent.runtime_configuration import load_configuration
+
+    value = json.loads((ROOT / "product/config.example.json").read_bytes())
+    inputs = tmp_path / "inputs"
+    inputs.mkdir()
+    value.update(input_root=str(inputs), run_root=str(tmp_path / "runs"))
+    case = value["cases"][0]
+    if input_case == "json_file":
+        (inputs / "demo-result.json").write_text("{}", encoding="utf-8")
+        case["input"] = "demo-result.json"
+    else:
+        target = inputs / case["input"]
+        target.mkdir()
+        if input_case == "text_floor":
+            Image.new("RGB", (2, 2), "white").save(target / "plan.png")
+            (target / "notes.txt").write_text("not an admitted image", encoding="utf-8")
+            case["floor_plan_images"] = ["notes.txt"]
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match=expected):
+        load_configuration(path)

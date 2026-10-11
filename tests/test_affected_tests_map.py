@@ -26,7 +26,7 @@ def test_deterministic_output_and_cli_contract(monkeypatch):
     second = affected.render(_result(*path.split("/")), "test", explain=True)
     assert first == second
     assert first.startswith("SCOPE: SUBSET\npython scripts/dev/check.py ")
-    assert "跑测声明：受影响子集 = " in first
+    assert "跑测声明：实际选择 = " in first
     assert "EXPLAIN: " in first
 
     completed = subprocess.run(
@@ -159,6 +159,13 @@ def test_fail_closed_for_full_scope_trigger():
     result = affected.affected_tests(["pyproject.toml"])
     assert result.scope == "FULL"
     assert "full-scope trigger matched" in result.reasons[0]
+
+
+def test_incomplete_mapping_reports_node_selection_without_full_coverage_claim():
+    rendered = affected.render(affected.MappingResult("FULL", (), ("unknown interface",), {}), "test", False)
+    assert rendered.startswith("SCOPE: NODE\npython scripts/dev/check.py node\nMAPPING: INCOMPLETE\n")
+    assert "不覆盖未映射接口、可选定向检查或历史证据" in rendered
+    assert "全仓" not in rendered and "SCOPE: FULL" not in rendered
 
 
 def test_fail_closed_for_deleted_file():

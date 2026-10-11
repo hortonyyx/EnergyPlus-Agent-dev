@@ -28,4 +28,4 @@ python scripts/release/build_product.py D:/Sim-BIM-Agent/releases/<版本名>
 | product、scripts/release | 用户说明、配置、启动入口与发布生成 |
 | AI_agent | 当前目标、设计、操作规则和本轮简短记录 |
 
-完整案例在 `D:\Sim-BIM-Agent\cases`，运行在 `runs`，历史证据在 `archive`，临时产物在 `cache`。GT 只供独立评价，不能作为 work model 的输入。Git 保留旧提交；历史资料迁移清单在 archive，不将完整运行目录复制回主线。
+新案例、运行和缓存分别在 D 盘同级的 `cases`、`runs`、`cache`。历史资料留在已核验 D 副本原位并退出当前 Git 版本，准确位置见 [归档索引](AI_agent/reports/archive-index.md)。GT 只供独立评价，不能作为 work model 的输入。Git 保留旧提交；迁移核验与独有证据在同级 `archive`。

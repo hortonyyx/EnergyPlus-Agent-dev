@@ -305,11 +305,11 @@ def changed_since(ref: str) -> list[str]:
 
 
 def render(result: MappingResult, provenance: str, explain: bool) -> str:
-    lines = [f"SCOPE: {result.scope}"]
     if result.scope == "FULL":
-        lines.append("python scripts/dev/check.py node")
         reason = "; ".join(result.reasons)
-        lines.append(f"跑测声明：受影响子集 = 全仓（依据 {provenance}；原因：{reason}）")
+        lines = ["SCOPE: NODE", "python scripts/dev/check.py node", "MAPPING: INCOMPLETE"]
+        lines.append(f"跑测声明：静态映射不完整，回退当前节点集合（依据 {provenance}；原因：{reason}）；"
+                     "不覆盖未映射接口、可选定向检查或历史证据。")
         return "\n".join(lines)
     # Keep dependency discovery lossless, but execute current checks through the
     # classified offline entry. Historical evidence remains explicitly opt-in.
@@ -318,9 +318,10 @@ def render(result: MappingResult, provenance: str, explain: bool) -> str:
                     if inventory().get(path, {}).get("group") != "historical")
     command = ("python scripts/dev/check.py targeted " + " ".join(current)
                if current else "python scripts/dev/check.py node")
-    lines.append(command)
-    subset = " ".join(result.tests)
-    lines.append(f"跑测声明：受影响子集 = {subset}（依据 {provenance}）")
+    lines = ["SCOPE: SUBSET" if current else "SCOPE: NODE", command, "MAPPING: SUBSET"]
+    subset = " ".join(current) if current else "当前节点集合（映射仅包含历史模块）"
+    lines.append(f"跑测声明：实际选择 = {subset}（依据 {provenance}）；"
+                 "不覆盖未选择的可选定向检查或历史证据。")
     historical = tuple(path for path in result.tests if path not in current)
     if historical:
         lines.append("历史证据检查按需运行，默认命令不导入：" + " ".join(historical))

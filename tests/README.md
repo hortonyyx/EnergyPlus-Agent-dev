@@ -10,7 +10,7 @@ workers. `--list` prints the static selection without collecting tests.
 - `node`: fast checks plus explicitly classified current integration acceptance.
   Optional module checks remain targeted; this does not cover every historical or
   legacy feature. Add relevant targeted files when their interfaces change.
-- `historical --archive-root D:/Sim-BIM-Agent/archive --cases-root D:/Sim-BIM-Agent/cases`:
+- `historical --archive-root D:/Sim-BIM-Agent/repo --cases-root D:/Sim-BIM-Agent/repo/case_tests`:
   optional archived experiments and case compatibility. This is not a promise that
   every superseded experiment remains compatible with today's implementation.
 

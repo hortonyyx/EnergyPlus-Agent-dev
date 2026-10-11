@@ -47,9 +47,32 @@ def resolve_case_input(case: dict) -> Path:
                          else "input escapes its configured input_root")
     if not target.exists():
         raise ValueError(f"input does not exist: {target}")
-    if case.get("input_kind") == "images" and any(
-            not image.resolve().is_relative_to(target) for image in target.glob("*.png")):
-        raise ValueError("input image escapes its admitted case directory")
+    kind = case.get("input_kind")
+    if kind == "images":
+        from PIL import Image
+
+        if not target.is_dir():
+            raise ValueError("images input must be a directory containing PNG files")
+        images = sorted(target.glob("*.png"))
+        if not images:
+            raise ValueError("images input directory must contain at least one PNG file")
+        for image in images:
+            if not image.resolve().is_relative_to(target):
+                raise ValueError("input image escapes its admitted case directory")
+            if not image.is_file():
+                raise ValueError(f"input PNG must be a regular file: {image.name}")
+            try:
+                with Image.open(image) as picture:
+                    if picture.format != "PNG":
+                        raise ValueError("file content is not PNG")
+                    picture.verify()
+            except (OSError, SyntaxError, ValueError, Image.DecompressionBombError) as error:
+                raise ValueError(f"input image is not a valid readable PNG: {image.name}") from error
+    elif kind == "mesh":
+        if not target.is_file() or target.suffix.lower() != ".glb":
+            raise ValueError("mesh input must be a regular .glb file")
+    else:
+        raise ValueError("input_kind must be images or mesh")
     return target
 
 
@@ -128,9 +151,10 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
                            run_root=case.get("run_root"))
         floors = case.get("floor_plan_images")
+        admitted_images = {image.name for image in target.glob("*.png")} if case["input_kind"] == "images" else set()
         if floors is not None and (not isinstance(floors, list) or any(
                 not isinstance(name, str) or Path(name).name != name
-                or not (target / name).is_file() for name in floors)):
+                or name not in admitted_images for name in floors)):
             raise ValueError("floor_plan_images must use admitted input filenames")
         providers = ({role.provider for role in role_configurations.values()}
                      if role_configurations is not None else {case["provider"]})
