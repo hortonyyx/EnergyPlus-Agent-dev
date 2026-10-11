@@ -27,5 +27,6 @@ python scripts/release/build_product.py D:/Sim-BIM-Agent/releases/<版本名>
 | tests | 当前有效检查、小夹具及显式选择的历史检查源码 |
 | product、scripts/release | 用户说明、配置、启动入口与发布生成 |
 | AI_agent | 当前目标、设计、操作规则和本轮简短记录 |
+| references | 文献索引、阅读笔记与仅保存在本地的原始参考附件 |
 
 新案例、运行和缓存分别在 D 盘同级的 `cases`、`runs`、`cache`。历史资料留在已核验 D 副本原位并退出当前 Git 版本，准确位置见 [归档索引](AI_agent/reports/archive-index.md)。GT 只供独立评价，不能作为 work model 的输入。Git 保留旧提交；迁移核验与独有证据在同级 `archive`。
