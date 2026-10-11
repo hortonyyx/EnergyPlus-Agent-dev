@@ -21,9 +21,10 @@ def _image_url(width: int, height: int) -> str:
     return "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode("ascii")
 
 
-@pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6.1-sol"])
+@pytest.mark.parametrize("model", ["gpt-6-astra", "gpt-6-sol", "gpt-6-luna", "gpt-6.1-sol"])
 def test_official_context_and_local_output_reservation_are_distinguished(model):
     profile = get_model_profile(model, strict=True)
+    assert profile.canonical_name == model
     assert profile.context_window_tokens == 1_050_000
     assert profile.native_context_window_tokens == 1_050_000
     assert profile.endpoint_context_window_tokens is None
@@ -78,12 +79,15 @@ def test_maximum_dimension_and_narrow_images_keep_positive_dimensions(detail):
         assert (width, height) == (65535, 33)
 
 
-def test_sol_image_formula_is_explicitly_an_uncalibrated_proxy():
-    profile = get_model_profile("gpt-6.1-sol", strict=True)
+@pytest.mark.parametrize("model,family", [("gpt-6-sol", "Sol"),
+                                        ("gpt-6-luna", "Luna"),
+                                        ("gpt-6.1-sol", "Sol")])
+def test_sol_and_luna_image_formula_is_explicitly_an_uncalibrated_proxy(model, family):
+    profile = get_model_profile(model, strict=True)
     assert openai_image_tokens(2048, 2048, profile, detail="high") == (6000, 1600, 1600)
     assert "unverified_image_proxy" in profile.profile_status
     assert "UNVERIFIED PROXY" in profile.image_uncertainty
-    assert "not a Sol formula" in profile.image_uncertainty
+    assert f"not a {family} formula" in profile.image_uncertainty
     assert "provider hard upper bound" in profile.image_uncertainty
     with pytest.raises(ValueError, match="no reviewed estimation profile"):
         get_model_profile("gpt-6.1-astra", strict=True)
@@ -108,10 +112,11 @@ def test_request_uses_explicit_image_detail_and_retains_official_auto_default():
     assert auto.reservation_tokens - high.reservation_tokens == 1916
 
 
-def test_two_plan_images_fit_sol_local_context_and_smaller_local_limit_is_honored():
-    profile = get_model_profile("gpt-6.1-sol", strict=True)
+@pytest.mark.parametrize("model", ["gpt-6-sol", "gpt-6-luna", "gpt-6.1-sol"])
+def test_two_plan_images_fit_local_context_and_smaller_local_limit_is_honored(model):
+    profile = get_model_profile(model, strict=True)
     body = {
-        "model": "gpt-6.1-sol",
+        "model": model,
         "messages": [{"role": "user", "content": [
             {"type": "text", "text": "Inspect the two plans 图纸."},
             *[{"type": "image_url", "image_url": {
@@ -128,6 +133,29 @@ def test_two_plan_images_fit_sol_local_context_and_smaller_local_limit_is_honore
     assert estimate_chat_request(body, profile=replace(
         profile, context_window_tokens=estimate.reservation_tokens - 1
     )).fits_context is False
+
+
+@pytest.mark.parametrize("model", ["gpt-6-sol", "gpt-6-luna"])
+def test_new_model_responses_keep_identity_and_image_bytes_with_a_local_reservation(model):
+    from src.agent_runtime.providers import CHATGPT_SUBSCRIPTION, provider_parameters
+    from src.agent_runtime.responses import build_responses_body, estimate_responses_request
+
+    original = _image_url(3200, 2400)
+    parameters = provider_parameters(CHATGPT_SUBSCRIPTION, output_tokens=32_000,
+                                     reasoning_effort="high")
+    body = build_responses_body(model=model, messages=[{"role": "user", "content": [
+        {"type": "image_url", "image_url": {"url": original}},
+    ]}], tools=[], parameters=parameters)
+    assert body["model"] == model
+    assert body["reasoning"] == {"effort": "high"}
+    assert body["input"][0]["content"][0] == {
+        "type": "input_image", "image_url": original, "detail": "high"}
+    assert not {"max_tokens", "max_completion_tokens", "max_output_tokens"} & body.keys()
+    estimate = estimate_responses_request(body, output_token_limit=32_000, strict=True)
+    assert estimate.model == model
+    assert 0 < estimate.image_tokens <= 6000
+    assert estimate.reservation_tokens == estimate.input_tokens_upper_bound + 32_000
+    assert "UNVERIFIED PROXY" in estimate.uncertainty
 
 
 @pytest.mark.parametrize("width,height,detail", [(0, 1, "high"), (1, -1, "high"),

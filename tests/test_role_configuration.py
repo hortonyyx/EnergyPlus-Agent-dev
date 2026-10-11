@@ -114,6 +114,29 @@ def test_existing_anthropic_and_openai_compatible_routes_are_accepted(
     assert parsed["elevation_reader"].model == model
 
 
+def test_sol_coordinator_and_luna_readers_survive_configuration_and_cli(tmp_path):
+    selected = case()
+    selected.update(provider="chatgpt-subscription", model="gpt-6-sol",
+                    reasoning_effort="high", max_concurrent_readers=6)
+    selected.pop("credentials_file")
+    selected["roles"] = {
+        name: role("chatgpt-subscription", "gpt-6-sol" if name == "coordinator"
+                   else "gpt-6-luna", "high") for name in ROLE_NAMES}
+    parsed = load(tmp_path, selected)["cases"][0]
+    argv = argv_for(parsed)
+    from src.agent.runtime_roles.entry import parser
+    command = parser().parse_args(argv[3:])
+    routes = load_roles(json.loads(command.roles_json))
+    assert command.model == routes["coordinator"].model == "gpt-6-sol"
+    assert routes["plan_reader"].model == routes["elevation_reader"].model == "gpt-6-luna"
+    assert all(route.reasoning_effort == "high" for route in routes.values())
+    assert command.max_concurrent_readers == 6
+    assert command.credentials_file is None
+    selected["roles"]["plan_reader"]["model"] = "gpt-6.1-luna"
+    with pytest.raises(ValidationError, match="no reviewed estimation profile"):
+        load(tmp_path, selected)
+
+
 def test_role_context_overrides_are_explicit_and_strict():
     configured = roles()
     configured["plan_reader"]["context"] = {
