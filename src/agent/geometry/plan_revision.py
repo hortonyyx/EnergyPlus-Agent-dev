@@ -7,7 +7,7 @@ import json
 from src.agent.geometry.plan_partition import _fields, _strings, _text, _PLAN_FIELDS
 
 COLLECTIONS = frozenset({'partitions', 'openings', 'space_seeds'})
-SCALARS = _PLAN_FIELDS - COLLECTIONS - {'floor_id'}
+SCALARS = (_PLAN_FIELDS | {'dimension_chains'}) - COLLECTIONS - {'floor_id'}
 
 
 def apply_plan_revision(plan: dict, operations: list) -> tuple[dict, dict]:

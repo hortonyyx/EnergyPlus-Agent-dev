@@ -210,6 +210,34 @@ def format_failure(errors):
                             "note": "Complete minimum format (plan_partition example at image scale); synthetic values are not observations."}}
 
 
+def declaration_editability(plan):
+    """Local editing needs stable object identities, not valid compiled geometry.
+
+    Missing/invalid values remain compiler errors. Ambiguous identities or
+    contradictory aliases require a complete replacement; never guess a row.
+    """
+    from src.agent.geometry.plan_input import normalize_plan_fields
+
+    try:
+        normalized, _ = normalize_plan_fields(dict(plan))
+        json.dumps(normalized, allow_nan=False)
+    except (ValueError, TypeError, KeyError):
+        return {"editable": False, "reason": "Declaration is not unambiguous finite JSON; supply a corrected complete plan."}
+    if not isinstance(normalized.get("floor_id"), str) or not normalized["floor_id"].strip():
+        return {"editable": False, "reason": "A stable floor_id is required before local edits."}
+    if set(normalized) - set(PLAN_FORMAT["properties"]):
+        return {"editable": False, "reason": "Unknown top-level fields require a corrected complete plan."}
+    for field in ("partitions", "openings", "space_seeds"):
+        rows = normalized.get(field, [])
+        if not isinstance(rows, list) or any(not isinstance(row, dict)
+                or not isinstance(row.get("id"), str) or not row["id"].strip() for row in rows):
+            return {"editable": False, "reason": f"{field} needs a list of objects with stable IDs."}
+        if len({row["id"] for row in rows}) != len(rows):
+            return {"editable": False, "reason": f"{field} has duplicate IDs; local edits would be ambiguous."}
+    return {"editable": True,
+            "reason": "Saved declaration supports explicit local edits; geometry and submission still require a passed trial."}
+
+
 PLAN_NOTE_FIELDS = frozenset({"basis", "assumptions", "unresolved"})
 ROW_NOTE_FIELDS = frozenset({"source_refs", "assumptions"})
 

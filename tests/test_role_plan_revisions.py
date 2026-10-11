@@ -106,7 +106,7 @@ def test_all_alias_conflicts_and_bad_quantities_are_listed_together():
     assert {row["path"] for row in errors} >= {"plan.z_floor", "plan.openings[0].z[0]", "plan.openings[0].z[1]"}
 
 
-def test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_last_success():
+def test_failed_revision_remains_latest_editable_base_without_invalidating_last_success():
     async def scenario():
         tools = Tools(ready=False)
         trial = PlanTrial(tools, image_name="plan.png")
@@ -130,11 +130,13 @@ def test_compile_failures_allow_full_redrafting_then_failed_revision_preserves_l
         tools.ready = False
         bad = await trial.run(operations=[operation(p2=[10, 42])])
         assert bad["status"] == "failed" and bad["phase"] == "operations"
-        assert trial.baseline() == (third_plan, good["plan_sha256"])
+        assert trial.baseline()[1] == bad["plan_sha256"]
+        assert trial.verified_plan(good["plan_sha256"])[0] == third_plan
+        assert trial.read_draft()["last_passed_plan_sha256"] == good["plan_sha256"]
         tools.ready = True
         repaired = await trial.run(operations=[operation(p2=[10, 41])])
-        assert repaired["base_plan_sha256"] == good["plan_sha256"]
-        assert repaired["changes"][0]["before"]["p2"] == [10, 40]
+        assert repaired["base_plan_sha256"] == bad["plan_sha256"]
+        assert repaired["changes"][0]["before"]["p2"] == [10, 42]
         assert repaired["plan_revision"]["unchanged_ids"]["partitions"] == ["P1"]
     asyncio.run(scenario())
 

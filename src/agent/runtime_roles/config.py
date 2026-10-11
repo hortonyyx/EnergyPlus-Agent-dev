@@ -32,7 +32,11 @@ class RoleContextOverrides(BaseModel):
 
     @model_serializer(mode="wrap")
     def serialize_overrides(self, handler):
-        return {key: value for key, value in handler(self).items() if value is not None}
+        # Explicit null on these fields restores automatic capacity management;
+        # an omitted field still inherits the case-wide setting.
+        automatic = {"context_tokens", "compact_at_tokens"}
+        return {key: value for key, value in handler(self).items()
+                if value is not None or (key in automatic and key in self.model_fields_set)}
 
 
 class RoleConfiguration(BaseModel):

@@ -271,10 +271,10 @@ def parser():
     p.add_argument("--max-total-truncations", type=int, default=3,
                    help="maximum output-limit recoveries across this root run, including children and summaries")
     p.add_argument("--context", action=argparse.BooleanOptionalAction, default=True)
-    p.add_argument("--context-tokens", type=int, help="optional local context ceiling; the runtime also enforces the model profile limit and uses the smaller value")
+    p.add_argument("--context-tokens", type=int, help="optional explicit local capacity; omit to adapt to the model window with recoverable context compaction")
     p.add_argument("--context-window", type=int, help="explicit legacy message-window replay; production defaults to token compaction")
     p.add_argument("--compact-at-tokens", type=int,
-                   help="compact only when estimated input tokens reach this threshold")
+                   help="optional explicit compaction threshold; omit for adaptive model-window pressure management")
     p.add_argument("--large-result-bytes", type=int)
     p.add_argument("--max-images", type=int, help="optional image count target at compaction; unset by default")
     p.add_argument("--max-image-bytes", type=int)

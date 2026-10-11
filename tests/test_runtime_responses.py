@@ -180,6 +180,79 @@ def test_estimate_real_history_tools_and_image_references(store):
         estimate_responses_messages(model="unregistered-very-specific-model", messages=messages, tools=TOOLS, parameters=PARAMETERS, strict=True)
 
 
+def test_usage_anchor_keeps_cached_input_and_accounts_only_new_items():
+    from src.agent_runtime.responses import ResponsesUsageCalibration
+    body = build_responses_body(model="gpt-6-sol", messages=[
+        {"role": "system", "content": "stable rules"},
+        {"role": "user", "content": "long source evidence " * 3000}], tools=TOOLS,
+        parameters={"max_tokens": 32000, "reasoning_effort": "high"})
+    calibration = ResponsesUsageCalibration("gpt-6-sol")
+    raw = {"usage": {"input_tokens": 8000, "output_tokens": 20,
+        "input_tokens_details": {"cached_tokens": 7900}}, "output": []}
+    calibration.observe(body, raw, response_event_id="event-observed")
+    base = estimate_responses_request(body, output_token_limit=32000, strict=True)
+    actual = calibration.estimate(body, base, strict=True)
+    assert actual.input_tokens_estimate == 8000  # not 100 uncached tokens
+    assert actual.input_tokens_upper_bound >= 8000
+    assert "event-observed" in actual.source and actual.input_tokens_upper_bound < base.input_tokens_upper_bound
+    changed = copy.deepcopy(body)
+    changed["input"].append({"role": "user", "content": [{"type": "input_text", "text": "new evidence"}]})
+    newer = calibration.estimate(changed, estimate_responses_request(changed, output_token_limit=32000))
+    assert 8000 < newer.input_tokens_estimate < 8500
+    wrong_model = ResponsesUsageCalibration("gpt-6-luna")
+    wrong_model.observe(body, raw, response_event_id="wrong-model")
+    assert wrong_model.estimate(body, base) == base
+    changed_tools = {**body, "tools": []}
+    uncalibrated = estimate_responses_request(changed_tools, output_token_limit=32000)
+    assert calibration.estimate(changed_tools, uncalibrated) == uncalibrated
+
+
+def test_reasoning_ciphertext_length_never_becomes_context_tokens():
+    from src.agent_runtime.responses import ResponsesUsageCalibration
+    original = build_responses_body(model="gpt-6-luna", messages=[{"role": "user", "content": "read"}],
+        tools=[], parameters={"max_tokens": 32000, "reasoning_effort": "high"})
+    estimates, calibrated = [], []
+    for length in (20, 100000):
+        opaque = {"type": "reasoning", "id": "rs_opaque", "summary": [],
+                  "encrypted_content": "encrypted-state-" * length}
+        body = {**original, "input": [*original["input"], opaque]}
+        base = estimate_responses_request(body, output_token_limit=32000, strict=True)
+        estimates.append(base.reservation_tokens)
+        calibration = ResponsesUsageCalibration("gpt-6-luna")
+        calibration.observe(original, {"usage": {"input_tokens": 1000, "output_tokens": 750,
+            "output_tokens_details": {"reasoning_tokens": 700}}, "output": [opaque]},
+            response_event_id="reasoning-observed")
+        result = calibration.estimate(body, base, strict=True)
+        calibrated.append(result.reservation_tokens)
+        assert result.input_tokens_estimate == 1700
+        assert body["input"][-1] == opaque
+    assert estimates[0] == estimates[1] and calibrated[0] == calibrated[1]
+
+
+@pytest.mark.parametrize("code,expected", [("context_length_exceeded", "context_length_exceeded"),
+    ("context_window_exceeded", "context_length_exceeded"), ("invalid_parameter", "invalid_request")])
+def test_context_error_uses_machine_code_without_inventing_usage(code, expected):
+    from src.agent_runtime.failures import http_failure
+    failure = http_failure(httpx.Response(400, json={"error": {"code": code,
+        "message": "context length mentioned in arbitrary prose"}}), secret="")
+    assert failure.details["category"] == expected
+    assert failure.details["retryable"] is False and failure.usage.kind == "missing"
+
+
+@pytest.mark.parametrize("kind", ["response.failed", "error"])
+def test_stream_context_error_is_classified_without_inventing_usage(store, kind):
+    error = {"type": "invalid_request_error", "code": "context_length_exceeded"}
+    event = ({"type": kind, "response": {"error": error}} if kind == "response.failed"
+             else {"type": kind, "error": error})
+    adapter = HttpResponsesAdapter(token_provider=provider(), transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, headers={"content-type": "text/event-stream"},
+                                       content=sse(event))))
+    with pytest.raises(ModelServiceError) as caught:
+        send(adapter, prepare(store))
+    assert caught.value.details["category"] == "context_length_exceeded"
+    assert caught.value.details["retryable"] is False and caught.value.usage.kind == "missing"
+
+
 def test_unsupported_preview_fields_are_local_only_and_overrides_rejected():
     omitted = {"max_tokens": 10, "temperature": 1, "top_p": .5, "background": True,
         "previous_response_id": "forbidden-server-history", "max_output_tokens": 99, "metadata": {"test": 1}}

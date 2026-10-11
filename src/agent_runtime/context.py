@@ -69,7 +69,9 @@ class ContextPolicy(ContractModel):
     # Message windows exist only for explicit historical replay. Production
     # defaults preserve an append-only prefix until this input-token threshold.
     active_window_messages: int | None = Field(default=None, ge=1)
-    compact_at_tokens: int = Field(default=150_000, ge=1)
+    # None delegates pressure/retention to the runtime's model window and
+    # observed request growth. Explicit thresholds remain useful for tests.
+    compact_at_tokens: int | None = Field(default=None, ge=1)
     compact_to_ratio: float = Field(default=0.6, gt=0, lt=1)
     large_result_bytes: int = Field(default=8_192, ge=1)
     pinned_tags: tuple[NonEmptyStr, ...] = ()
@@ -657,11 +659,15 @@ class ContextManager:
         consume_retrievals: bool = True,
         token_estimator: Callable[[list[dict]], int] | None = None,
         request_token_estimator: Callable[[list[dict], list[SourceRef]], int] | None = None,
+        pressure_tokens: int | None = None,
+        target_tokens: int | None = None,
+        force_compact: bool = False,
     ) -> ContextProjection:
         if self.policy.active_window_messages is None:
             return self._project_by_tokens(required_tags=required_tags,
                 required_view_ids=required_view_ids, consume_retrievals=consume_retrievals,
-                token_estimator=token_estimator, request_token_estimator=request_token_estimator)
+                token_estimator=token_estimator, request_token_estimator=request_token_estimator,
+                pressure_tokens=pressure_tokens, target_tokens=target_tokens, force_compact=force_compact)
         required = set(required_tags) | set(self.policy.pinned_tags)
         exact_retrievals = set(self._retrieval_pins)
         selected, omitted = self._select_history(
@@ -820,7 +826,8 @@ class ContextManager:
                 "can be inspected through the retrieval entries in the current runtime state.")
 
     def _project_by_tokens(self, *, required_tags, required_view_ids, consume_retrievals, token_estimator,
-                           request_token_estimator=None):
+                           request_token_estimator=None, pressure_tokens=None, target_tokens=None,
+                           force_compact=False):
         from .estimation import approximate_text_tokens, _text_payload
 
         def estimate(messages, sources):
@@ -859,7 +866,8 @@ class ContextManager:
 
         messages, sources = assemble(selected, self._last_compaction)
         events = []
-        if estimate(messages, sources) >= self.policy.compact_at_tokens:
+        threshold = pressure_tokens if pressure_tokens is not None else self.policy.compact_at_tokens
+        if force_compact or (threshold is not None and estimate(messages, sources) >= threshold):
             protected = {r.history_id for r in self._history[:self.policy.preserve_initial_messages]}
             protected.update(r.history_id for r in selected if required & set(r.tags) or any(
                 key in self._retrieval_pins or self._images[key].view_id in views
@@ -867,7 +875,8 @@ class ContextManager:
             groups = _interaction_groups(selected)
             if groups:
                 protected.update(r.history_id for r in groups[-1])
-            target = int(self.policy.compact_at_tokens * self.policy.compact_to_ratio)
+            target = (target_tokens if target_tokens is not None else
+                      int((threshold or estimate(messages, sources)) * self.policy.compact_to_ratio))
             image_bytes = {r.history_id: sum(len(self.store.get_bytes(self._images[k].image))
                 for k in r.image_keys) for r in selected}
 

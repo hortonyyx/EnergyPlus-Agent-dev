@@ -21,7 +21,7 @@ from src.agent.geometry.plan_ink_alignment import align_plan_to_ink, _set_readin
 from src.agent.geometry.plan_regularization import prepare_plan_junctions
 from src.agent.geometry.lite_bim_regularization import DEFAULT_LITE_GRID_M, regularize_lite_plan
 from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
-from .plan_format import audit_plan_replacement, format_failure, plan_format_errors
+from .plan_format import audit_plan_replacement, declaration_editability, format_failure, plan_format_errors
 from .plan_review import loose_partition_ends, revise_operations, topology_issues, unhosted_openings
 
 
@@ -475,6 +475,10 @@ def _corridor_review(workspace: Path | None, result: Mapping[str, Any],
     return review
 
 
+class DraftRevisionRejected(ValueError):
+    """A declaration edit rejected before any draft or compiler write."""
+
+
 class PlanTrial:
     """Run the existing compiler/check/overlay stack in a child task service.
 
@@ -504,6 +508,7 @@ class PlanTrial:
         self.allowed_rework_targets = None
         self.inherited_topology_issues = []
         self._memory_images: dict[str, list[dict[str, Any]]] = {}
+        self._draft_profile_records = []
         self._load_receipts()
 
     def _relative_to_workspace(self, path: Path) -> str:
@@ -634,6 +639,15 @@ class PlanTrial:
             if inherited and digest != inherited["sha256"]:
                 raise ValueError(f"inherited profile changed or collides with a new reader profile: {profile_id}")
             used_profiles[profile_id] = (raw, digest)
+            # Save selected source evidence before alignment/compilation, which
+            # can fail while leaving a useful editable declaration.
+            if self.receipt_directory is not None:
+                target = self.receipt_directory / f"trial_{number:03d}_profiles" / f"{profile_id}.json"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(raw)
+                row = {"profile_id": profile_id, "file": self._relative_to_workspace(target), "sha256": digest}
+                if row not in self._draft_profile_records:
+                    self._draft_profile_records.append(row)
             return {"record": json.loads(raw), "sha256": digest}
 
         numeric, measurement_bindings = resolve_plan_pixels(
@@ -804,25 +818,55 @@ class PlanTrial:
         return blocks
 
     def baseline(self):
-        """Prefer a verified plan; before one exists, allow repairing a resolved draft.
-
-        A failed compiler result is editable, never submit-ready. Format/profile
-        failures have no resolved draft. Later failures do not replace a verified
-        baseline or an inherited plan with a narrower rework scope.
-        """
-        prior = self._successful()
-        if prior:
-            return self.load_plan(prior), prior["plan_sha256"]
-        if self.reference_plan is not None and self.reference_validation_passed is not False:
-            return copy.deepcopy(self.reference_plan), canonical_plan_sha256(self.reference_plan)
-        draft = next((row for row in reversed(self.receipts)
-                      if row.get("compiled_numeric_plan_sha256")), None)
-        if draft:
-            self.numeric_plan(draft)  # A resumed draft must retain its verified numeric product.
-            return self.load_plan(draft), draft["plan_sha256"]
+        """Continue the latest editable declaration; accepted geometry stays separate."""
+        for receipt in reversed(self.receipts):
+            plan = self.load_plan(receipt)
+            if declaration_editability(plan)["editable"]:
+                return plan, receipt["plan_sha256"]
         if self.reference_plan is not None:
             return copy.deepcopy(self.reference_plan), canonical_plan_sha256(self.reference_plan)
         return None, None
+
+    def read_draft(self, *, trial_id=None, field=None, object_id=None):
+        """Read the saved declaration, including rejected formats, without compiling."""
+        receipt = (self.receipts[-1] if trial_id in (None, "latest") and self.receipts else
+                   next((row for row in self.receipts if row["trial_id"] == trial_id), None))
+        if receipt is not None:
+            plan = self.load_plan(receipt)
+            identity = {key: receipt.get(key) for key in ("trial_id", "plan_sha256", "status", "receipt_file", "input_plan_file")}
+        elif trial_id in (None, "latest") and self.reference_plan is not None:
+            plan = copy.deepcopy(self.reference_plan)
+            identity = {**(self.reference_receipt or {}), "inherited": True}
+        else:
+            raise ValueError("No saved declaration for this trial_id")
+        _, baseline_sha = self.baseline()
+        passed = self._successful()
+        result = {**identity, **declaration_editability(plan),
+                  "operations_base_sha256": baseline_sha,
+                  "last_passed_plan_sha256": passed["plan_sha256"] if passed else
+                      (self.reference_receipt or {}).get("plan_sha256") if self.reference_validation_passed else None,
+                  "submission_requires_passed_trial": True}
+        if field is None:
+            result["fields"] = sorted(plan)
+            result["object_ids"] = {key: [row.get("id") for row in value if isinstance(row, dict)]
+                                    for key, value in plan.items()
+                                    if key in {"partitions", "openings", "space_seeds"} and isinstance(value, list)}
+        elif field == "plan":
+            if object_id is not None:
+                raise ValueError("object_id requires an object collection")
+            result["plan"] = plan
+        elif field not in plan:
+            raise ValueError(f"Saved declaration has no field {field!r}")
+        elif object_id is None:
+            result["value"] = copy.deepcopy(plan[field])
+        else:
+            if field not in {"partitions", "openings", "space_seeds"} or not isinstance(plan[field], list):
+                raise ValueError("object_id requires an object collection")
+            matches = [row for row in plan[field] if isinstance(row, dict) and row.get("id") == object_id]
+            if len(matches) != 1:
+                raise ValueError("object_id must identify exactly one saved object")
+            result["value"] = copy.deepcopy(matches[0])
+        return result
 
     def _verified_original_image(self, expected_sha256: str) -> None:
         if self.workspace is None or not isinstance(expected_sha256, str) or not expected_sha256:
@@ -875,8 +919,8 @@ class PlanTrial:
             raise ValueError("known failed trial event does not match a saved receipt")
         if (receipt.get("status") != "failed"
                 or not isinstance(receipt.get("input_plan_file"), str)
-                or not isinstance(receipt.get("compiled_numeric_plan_sha256"), str)):
-            raise ValueError("known failed trial has no complete editable declaration")
+                or not declaration_editability(self.load_plan(receipt))["editable"]):
+            raise ValueError("known failed trial has no unambiguous editable declaration")
         if (compiled_numeric_plan_sha256 is not None
                 and receipt["compiled_numeric_plan_sha256"] != compiled_numeric_plan_sha256):
             raise ValueError("known failed trial numeric plan differs from its event result")
@@ -889,11 +933,13 @@ class PlanTrial:
         plan = self.load_plan(receipt)
         if canonical_plan_sha256(plan) != receipt["plan_sha256"]:
             raise ValueError("failed trial declaration hash mismatch")
-        self.numeric_plan(receipt)
+        if receipt.get("compiled_numeric_plan_sha256") is not None:
+            self.numeric_plan(receipt)
         return plan, {"validation_passed": False, "editable_draft": True, **receipt}
 
     def inherit_failed_reference(self, prior, expected_image_sha256: str, *, receipt_file: str,
-                                 plan_sha256: str, compiled_numeric_plan_sha256: str | None = None):
+                                 plan_sha256: str, compiled_numeric_plan_sha256: str | None = None,
+                                 allowed_targets=None):
         """Use a same-image failed declaration as an editable, non-submit-ready base."""
         selected = prior.verified_failed_draft(
             expected_image_sha256, receipt_file=receipt_file, plan_sha256=plan_sha256,
@@ -906,9 +952,9 @@ class PlanTrial:
             "status": "failed", "validation_passed": False,
             "plan_sha256": receipt["plan_sha256"],
             "receipt_file": receipt["receipt_file"],
-            "compiled_numeric_plan_sha256": receipt["compiled_numeric_plan_sha256"],
+            "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
         }
-        self.allowed_rework_targets = None
+        self.allowed_rework_targets = normalize_rework_targets(allowed_targets) if allowed_targets else None
         self._inherit_profiles(prior, receipt)
         return copy.deepcopy(self.reference_receipt)
 
@@ -950,8 +996,11 @@ class PlanTrial:
             manifest_path = self.workspace / "inputs.json" if self.workspace else None
             image_size = (json.loads(manifest_path.read_bytes()).get("images", {}).get(self.image_name, {}).get("size")
                           if manifest_path and manifest_path.is_file() else None)
-            plan, preservation = revise_operations(previous_plan, operations, image_size=image_size,
-                                                   allowed_targets=None)
+            try:
+                plan, preservation = revise_operations(previous_plan, operations, image_size=image_size,
+                                                       allowed_targets=None)
+            except ValueError as error:
+                raise DraftRevisionRejected(str(error)) from error
         if not isinstance(plan, Mapping):
             raise ValueError("trial plan must be an object")
         errors = plan_format_errors(plan)
@@ -959,10 +1008,13 @@ class PlanTrial:
             normalized, _ = normalize_plan_fields(dict(plan))
         except (ValueError, TypeError, KeyError):
             normalized = copy.deepcopy(dict(plan))
-        if previous_plan is not None and not errors:
-            audit = audit_plan_replacement(previous_plan, normalized,
-                                          allowed_targets=_expanded_rework_targets(
-                                              self.allowed_rework_targets, previous_plan, normalized))
+        if previous_plan is not None and declaration_editability(normalized)["editable"]:
+            try:
+                audit = audit_plan_replacement(previous_plan, normalized,
+                                              allowed_targets=_expanded_rework_targets(
+                                                  self.allowed_rework_targets, previous_plan, normalized))
+            except ValueError as error:
+                raise DraftRevisionRejected(str(error)) from error
             preservation = {**(preservation or {}), **audit}
         try:
             plan_bytes = _plan_bytes(normalized)
@@ -972,11 +1024,12 @@ class PlanTrial:
             raise
         plan_hash = hashlib.sha256(plan_bytes).hexdigest()
         existing = self._existing(plan_hash)
-        if existing is not None and operations is None:
+        if existing is not None and existing is self.receipts[-1] and operations is None:
             return existing
         change_report = preservation["actual_changes"] if preservation else []
         number = len(self.receipts) + 1
         self._memory_plans[plan_hash] = normalized
+        self._draft_profile_records = []
         input_plan_file = None
         if self.receipt_directory is not None:
             self.receipt_directory.mkdir(parents=True, exist_ok=True)
@@ -1026,7 +1079,7 @@ class PlanTrial:
                 "field_aliases": [],
                 "length_bindings": [],
                 "measurement_bindings": [],
-                "measurement_profiles": [],
+                "measurement_profiles": copy.deepcopy(self._draft_profile_records),
                 "reading_alignment": {
                     "status": "unavailable",
                     "reason": "numeric plan resolution failed before reader alignment",
@@ -1062,6 +1115,9 @@ class PlanTrial:
                 "regularization_failure": copy.deepcopy(getattr(error, "report", None)),
                 **(format_failure(errors) if errors else {}),
             }
+            receipt["editable_draft"] = {**declaration_editability(normalized),
+                "plan_sha256": plan_hash, "input_plan_file": receipt["input_plan_file"],
+                "validation_passed": False}
             if self.receipt_directory is not None:
                 path = self.receipt_directory / f"trial_{number:03d}.json"
                 receipt["receipt_file"] = self._relative_to_workspace(path)
@@ -1226,6 +1282,9 @@ class PlanTrial:
         receipt["topology_dividers"] = {row["id"]: row["points"] for row in effective_plan.get("partitions", [])
                                        if isinstance(row, Mapping) and row.get("id") and row.get("id") in flagged_dividers}
         receipt["topology_issues"] = [*self.inherited_topology_issues, *topology_issues([*self.receipts, receipt])]
+        receipt["editable_draft"] = {**declaration_editability(normalized),
+            "plan_sha256": plan_hash, "input_plan_file": receipt["input_plan_file"],
+            "validation_passed": ready}
         if self.receipt_directory is not None:
             path = self.receipt_directory / f"trial_{number:03d}.json"
             receipt["receipt_file"] = self._relative_to_workspace(path)

@@ -152,6 +152,100 @@ def _relative_times(steps: list[dict[str, Any]], origin: float | None) -> None:
         step["t_call"] = None if absolute is None else round(absolute - origin, 3)
 
 
+def _verify_responses_presentation(execution, presentation, visible, prepared,
+                                   events_by_id, log_root: Path) -> None:
+    """Verify native wire evidence separately from its logical tool result."""
+    from src.agent_runtime.responses import _content
+
+    request = events_by_id.get(presentation.request_event_id)
+    if (request is None or request.payload.event_type != "adapter_request"
+            or request.payload.adapter != "openai-responses-http-v1"
+            or request.task_id != execution.task_id or request.sequence <= execution.sequence):
+        raise ValueError("Responses presentation lacks its native request")
+    sent = _captured(request.payload.final_request_body, log_root)
+    if not isinstance(sent, dict) or not isinstance(sent.get("input"), list):
+        raise ValueError("Responses presentation lacks native input items")
+    if not isinstance(visible, dict) or not isinstance(prepared, dict):
+        raise ValueError("Responses presentation lacks its logical tool result")
+    tool_result = visible.get("wire_tool_result")
+    logical = visible.get("tool_message")
+    call_id = execution.payload.call_id
+    results = [item for item in sent["input"] if isinstance(item, dict)
+               and item.get("type") == "function_call_output" and item.get("call_id") == call_id]
+    if (not isinstance(tool_result, dict) or results != [tool_result]
+            or not isinstance(logical, dict) or logical.get("role") != "tool"
+            or logical.get("tool_call_id") != call_id):
+        raise ValueError("Responses tool presentation is absent from the actual request")
+    output = tool_result.get("output")
+    if isinstance(output, str):
+        output = [{"type": "input_text", "text": output}]
+    if _content(logical.get("content")) != output:
+        raise ValueError("logical Responses tool result differs from native content")
+    images = visible.get("image_blocks", [])
+    wire_images = visible.get("wire_image_blocks")
+    # image_blocks also carries the text label associating a picture with its call.
+    if (not isinstance(images, list) or not isinstance(wire_images, list)
+            or _content(images) != wire_images):
+        raise ValueError("logical Responses images differ from native content")
+    blocks = [block for item in sent["input"] if isinstance(item, dict)
+              for field in ("content", "output") if isinstance(item.get(field), list)
+              for block in item[field] if isinstance(block, dict)]
+    # Count occurrences: one wire image cannot substantiate two reported images.
+    canonical = lambda value: json.dumps(value, sort_keys=True, separators=(",", ":"))
+    available = Counter(canonical(block) for block in blocks)
+    if Counter(canonical(image) for image in wire_images) - available:
+        raise ValueError("Responses images are absent from the actual request")
+    if logical != prepared.get("tool_message") or images != prepared.get("image_blocks", []):
+        context = events_by_id.get(presentation.context_event_id)
+        if (context is None or context.payload.event_type != "context"
+                or context.task_id != execution.task_id
+                or not execution.sequence < context.sequence < request.sequence):
+            raise ValueError("changed logical Responses presentation lacks its prior context decision")
+        # A projection can emit several decisions; its recorded context ID is
+        # the last one. Validate the actual transformations in that interval,
+        # rather than accepting any unrelated context event as authorization.
+        decisions = [event.payload for event in events_by_id.values()
+                     if event.task_id == execution.task_id
+                     and execution.sequence < event.sequence <= context.sequence
+                     and event.payload.event_type == "context"]
+        original = prepared.get("tool_message")
+        if logical != original:
+            from src.agent_runtime.context import _message_content_sha
+            allowed = []
+            for decision in decisions:
+                if decision.action != "compact" or execution.event_id not in decision.replaced_event_ids:
+                    continue
+                summary = _captured({"kind": "blob", "blob": decision.summary.model_dump(mode="json")}, log_root)
+                if not isinstance(summary, dict) or summary.get("kind") != "large_result_references":
+                    continue
+                for replacement in summary.get("replacements", []):
+                    if (replacement.get("event_id") == execution.event_id
+                            and replacement.get("content_sha256") == _message_content_sha(original)):
+                        allowed.append({**original, "content": canonical({"context_reference": {
+                            "content_sha256": replacement["content_sha256"],
+                            "full_result_history_id": replacement["full_result_history_id"],
+                            "reason": "exact repeated large tool result"}})})
+            if logical not in allowed:
+                raise ValueError("changed logical Responses text is not explained by its context decisions")
+        original_images = prepared.get("image_blocks", [])
+        remaining = list(images)
+        removed = []
+        for block in original_images:
+            if remaining and block == remaining[0]:
+                remaining.pop(0)
+            else:
+                removed.append(block)
+        if remaining:
+            raise ValueError("changed Responses images are not a retained subset")
+        from src.agent_runtime.context import _image_block_hash
+        removed_hashes = [_image_block_hash(block) for block in removed]
+        authorized = {decision.image.sha256 for decision in decisions
+                      if decision.action == "remove_image" and decision.image.kind == "sha256"}
+        if (any(sha not in authorized for sha in removed_hashes if sha is not None)
+                or (removed and not any(sha is not None for sha in removed_hashes))):
+            raise ValueError("changed Responses images are not explained by their context decisions")
+
+
 def _read_event_log(path: Path) -> dict[str, Any]:
     events: list[EventEnvelope] = []
     with path.open(encoding="utf-8") as stream:
@@ -249,8 +343,12 @@ def _read_event_log(path: Path) -> dict[str, Any]:
             elif presentation is not None:
                 presentation_event, presentation_payload = presentation
                 visible = _captured(presentation_payload.shown_result, path.parent)
-                converted = presentation_payload.protocol_conversion == "anthropic_messages_v1"
-                if converted:
+                conversion = presentation_payload.protocol_conversion
+                converted = conversion in {"anthropic_messages_v1", "responses_v1"}
+                if conversion == "responses_v1":
+                    _verify_responses_presentation(event, presentation_payload, visible, prepared,
+                                                   events_by_id, path.parent)
+                elif conversion == "anthropic_messages_v1":
                     from src.agent_runtime.anthropic import native_blocks, without_cache
                     request_event = events_by_id.get(presentation_payload.request_event_id)
                     if request_event is None or request_event.payload.adapter != "anthropic-messages-http-v1":

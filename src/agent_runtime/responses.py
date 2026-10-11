@@ -11,6 +11,7 @@ import copy
 import hashlib
 import json
 import math
+from collections import Counter
 from dataclasses import replace
 from time import perf_counter
 
@@ -23,7 +24,7 @@ from src.harness_contracts import (AdapterRequestPayload, ImageTransmission,
 from .adapter import ParsedResponse, PreparedRequest, decode_image_url
 from .estimation import (RequestTokenEstimate, approximate_text_tokens,
     estimate_chat_request, get_model_profile)
-from .failures import ModelServiceError, _sanitize, http_failure
+from .failures import ModelServiceError, _sanitize, http_failure, is_context_length_error
 from .store import json_bytes
 
 
@@ -153,6 +154,116 @@ def _walk_images(value, pointer=""):
             yield from _walk_images(child, pointer + f"/{index}")
 
 
+def _item_key(item):
+    return hashlib.sha256(json_bytes(item)).hexdigest()
+
+
+def _mutable_runtime_state(item):
+    content = item.get("content")
+    return (item.get("role") == "user" and isinstance(content, list)
+            and any(isinstance(block.get("text"), str)
+                    and block["text"].startswith("Current runtime state (machine generated;")
+                    for block in content if isinstance(block, dict)))
+
+
+class ResponsesUsageCalibration:
+    """Per-role/model admission estimates backed by retained usage receipts.
+
+    A compatible anchor's *entire* actual input is charged when all immutable
+    input items are still present. Its former mutable state is not subtracted:
+    charging it again is conservative. Newly added items get separate estimates.
+    Removing old interactions falls back to an older compatible anchor. No
+    cached tokens are subtracted, and no ciphertext is interpreted as text.
+    """
+
+    def __init__(self, model):
+        self.model = model
+        self.anchors = []
+        self.item_tokens = {}
+        self.item_estimates = {}
+        self.last_input_tokens = None
+        self.largest_growth = 0
+
+    @staticmethod
+    def scope(body):
+        return _item_key({key: value for key, value in body.items() if key != "input"})
+
+    def observe(self, body, raw, *, response_event_id):
+        usage = raw.get("usage") or {}
+        actual = usage.get("input_tokens")
+        if body.get("model") != self.model or type(actual) is not int or actual < 0:
+            return
+        if self.last_input_tokens is not None:
+            self.largest_growth = max(self.largest_growth, actual - self.last_input_tokens)
+        self.last_input_tokens = actual
+        attribution = (usage.get("attribution") or {}).get("items") or {}
+        for item in body.get("input", []):
+            value = (attribution.get(item.get("id")) or {}).get("input_tokens")
+            if type(value) is int and value >= 0:
+                self.item_tokens[_item_key(item)] = value
+        output = raw.get("output") or []
+        reasoning = (usage.get("output_tokens_details") or {}).get("reasoning_tokens",
+                                                                      usage.get("output_tokens"))
+        for item in output:
+            value = (attribution.get(item.get("id")) or {}).get("output_tokens")
+            # Without item attribution charge each opaque item the *whole*
+            # reported reasoning count, rather than guessing a split.
+            if value is None and item.get("type") == "reasoning":
+                value = reasoning
+            if type(value) is int and value >= 0:
+                self.item_tokens[_item_key(item)] = value
+        self.anchors.append({"scope": self.scope(body), "input_tokens": actual,
+            "items": Counter(_item_key(item) for item in body.get("input", [])
+                             if not _mutable_runtime_state(item)), "event": response_event_id})
+        # Keep the initial anchor for post-compaction recovery, plus recent
+        # receipts. These are hashes/counts, never duplicate image payloads.
+        if len(self.anchors) > 32:
+            self.anchors = [self.anchors[0], *self.anchors[-31:]]
+
+    def estimate(self, body, base, *, profile=None, strict=False):
+        if body.get("model") != self.model:
+            return base
+        items = body.get("input", [])
+        keys = Counter(_item_key(item) for item in items)
+        scope = self.scope(body)
+        candidates = [a for a in self.anchors if a["scope"] == scope
+                      and not (a["items"] - keys)]
+        if not candidates:
+            return base
+        # Most recent compatible receipt, not a best-case minimum from another
+        # role, model, request schema or materially different history.
+        anchor = candidates[-1]
+        covered = anchor["items"].copy()
+        point = anchor["input_tokens"]
+        upper = math.ceil(point * 1.10) + 256
+        new_items = 0
+        for item in items:
+            key = _item_key(item)
+            if covered[key]:
+                covered[key] -= 1
+                continue
+            new_items += 1
+            if key in self.item_tokens:
+                count = self.item_tokens[key]
+                point += count
+                upper += math.ceil(count * 1.10) + 32
+            else:
+                cache_key = (key, base.output_token_limit)
+                if cache_key not in self.item_estimates:
+                    self.item_estimates[cache_key] = estimate_responses_request(
+                        {"model": self.model, "input": [item]},
+                        output_token_limit=base.output_token_limit, profile=profile, strict=strict)
+                estimate = self.item_estimates[cache_key]
+                point += estimate.input_tokens_estimate
+                upper += estimate.input_tokens_upper_bound
+        return replace(base, input_tokens_estimate=point, input_tokens_upper_bound=upper,
+            fits_context=(None if base.context_window_tokens is None else
+                upper + base.output_token_limit + base.reasoning_token_allowance <= base.context_window_tokens),
+            source=base.source + f"; observed_input_anchor={anchor['event']}; incremental_items={new_items}",
+            uncertainty=base.uncertainty + " Actual input anchor includes cached tokens; local 10%+256 "
+                "history margin and separately estimated increments are not provider guarantees.")
+
+
 def estimate_responses_request(body, *, output_token_limit, profile=None, strict=False):
     """Estimate actual Responses history/schema; output allowance is local only."""
     if type(output_token_limit) is not int or output_token_limit <= 0:
@@ -162,6 +273,13 @@ def estimate_responses_request(body, *, output_token_limit, profile=None, strict
         raise ValueError("request body needs a model")
     selected = profile or get_model_profile(model, strict=strict)
     text_body = copy.deepcopy(body)
+    opaque_allowance = 0
+    for item in text_body.get("input", []):
+        if item.get("type") == "reasoning" and item.get("encrypted_content"):
+            item["encrypted_content"] = "[opaque reasoning; token count unavailable]"
+            # A standalone estimator has no receipt. Runtime calibration uses
+            # observed reasoning tokens instead; never tokenize ciphertext.
+            opaque_allowance += output_token_limit
     images = []
     from src.harness_contracts.events import _resolve_json_pointer
     for reference, block in _walk_images(body):
@@ -173,11 +291,11 @@ def estimate_responses_request(body, *, output_token_limit, profile=None, strict
         _resolve_json_pointer(text_body, reference.rsplit("/", 1)[0])["image_url"] = "[captured image]"
     text_tokens = approximate_text_tokens(json_bytes(text_body).decode("utf-8")) + selected.text_estimate_offset
     image_tokens = sum(image.tokens for image in images)
-    upper = math.ceil(text_tokens * selected.text_safety_factor) + selected.text_fixed_margin + image_tokens
+    upper = math.ceil(text_tokens * selected.text_safety_factor) + selected.text_fixed_margin + image_tokens + opaque_allowance
     allowance = selected.reasoning_token_allowance
     fits = None if selected.context_window_tokens is None else upper + output_token_limit + allowance <= selected.context_window_tokens
     return RequestTokenEstimate(model, selected.canonical_name, text_tokens, image_tokens,
-        text_tokens + image_tokens, upper, output_token_limit, allowance,
+        text_tokens + image_tokens + opaque_allowance, upper, output_token_limit, allowance,
         selected.context_window_tokens, fits,
         f"responses_json_v1; profile={selected.canonical_name}; text={selected.text_estimator}; image={selected.image_estimator}; safety_margin={selected.safety_margin_source}",
         f"{selected.context_uncertainty} {selected.image_uncertainty} Local output allowance is not a provider cap. {selected.reasoning_allowance_source}", tuple(images))
@@ -373,7 +491,7 @@ returns failure evidence for the parser/truncation journal, never executable cal
                         done_items[index] = copy.deepcopy(item)
                     if kind in {"response.failed", "error"}:
                         reason = (value or event_raw).get("error") or (value or {}).get("incomplete_details") or {}
-                        raise failure("service_error",
+                        raise failure("context_length_exceeded" if is_context_length_error(reason) else "service_error",
                             json.dumps(reason), value if isinstance(value, dict) else event_raw,
                             error_type=reason.get("type", reason.get("code")) if isinstance(reason, dict) else None)
                     if kind in {"response.completed", "response.incomplete"}:

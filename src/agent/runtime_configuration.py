@@ -32,6 +32,19 @@ ALLOWED_ENTRYPOINTS = {
 }
 
 
+def context_arguments(case: dict) -> list[str]:
+    """Omitted/null values use adaptive capacity, never a made-up large cap."""
+    result = []
+    for name in ("context_tokens", "compact_at_tokens"):
+        value = case.get(name)
+        if value is None:
+            continue
+        if type(value) is not int or value <= 0:
+            raise ValueError(f"{name} must be a positive integer or null for automatic context management")
+        result += ["--" + name.replace("_", "-"), str(value)]
+    return result
+
+
 def resolve_case_input(case: dict) -> Path:
     """Resolve one admitted case; an external input root must be explicit."""
     configured = case.get("input_root")
@@ -95,6 +108,7 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
+        context_arguments(case)
         role_configurations = None
         if mode == "role_division":
             if case.get("input_kind") != "images" or case.get("image_kind") != "drawings":
@@ -225,10 +239,9 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     if case["mode"] == "single_model":
         argv += ["--reasoning-history", case.get("reasoning_history", "all"),
                  "--max-candidates", str(case["max_candidates"]),
-                 "--context-tokens", str(case["context_tokens"]),
-                 "--compact-at-tokens", str(case.get("compact_at_tokens", 150_000)),
                  "--model-retries", str(limits.get("model_retries", 2)),
                  "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
+        argv += context_arguments(case)
         for name in ("temperature", "reasoning_effort"):
             if case.get(name) is not None:
                 argv += ["--" + name.replace("_", "-"), str(case[name])]
@@ -246,10 +259,9 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                     ensure_ascii=False, sort_keys=True, separators=(",", ":")),
                  "--max-concurrent-readers", str(case.get("max_concurrent_readers", 8)),
                  "--max-candidates", str(case["max_candidates"]),
-                 "--context-tokens", str(case["context_tokens"]),
-                 "--compact-at-tokens", str(case.get("compact_at_tokens", 150_000)),
                  "--model-retries", str(limits.get("model_retries", 2)),
                  "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
+        argv += context_arguments(case)
     if resume:
         argv.append("--resume")
     return argv

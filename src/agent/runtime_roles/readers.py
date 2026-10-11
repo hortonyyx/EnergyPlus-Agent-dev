@@ -28,10 +28,11 @@ PLAN_READER_TOOL_NAMES = (
     "map_dimension_chain",
     "get_bim_reference",
     "trial_plan_bim",
+    "read_plan_draft",
     "submit_plan_reading",
 )
 ELEVATION_READER_TOOL_NAMES = tuple(
-    name for name in PLAN_READER_TOOL_NAMES if name not in {"view_plan_blocks", "trial_plan_bim", "submit_plan_reading"}
+    name for name in PLAN_READER_TOOL_NAMES if name not in {"view_plan_blocks", "trial_plan_bim", "read_plan_draft", "submit_plan_reading"}
 ) + ("submit_elevation_reading",)
 READER_TOOL_NAMES = {
     "plan_reader": PLAN_READER_TOOL_NAMES,
@@ -45,7 +46,7 @@ _REFERENCE_KEYS = {"view_id", "profile", "profile_id", "overview_id", "region_id
 # image, the block batch and a few targeted looks, without forbidding further reads.
 PRETRIAL_REMINDER_THRESHOLD = 6
 PLAN_OBSERVATION_TOOLS = frozenset(PLAN_READER_TOOL_NAMES) - {
-    "inputs", "get_bim_reference", "trial_plan_bim", "submit_plan_reading",
+    "inputs", "get_bim_reference", "trial_plan_bim", "read_plan_draft", "submit_plan_reading",
 }
 
 
@@ -462,7 +463,7 @@ class ReaderTools:
                 schema["properties"].pop("include_image", None)
             by_name["pixel_profile"] = alias
         from .submission import SUBMISSION_TOOLS, OPERATION_SCHEMA
-        local = {"view_plan_blocks", "trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
+        local = {"view_plan_blocks", "trial_plan_bim", "read_plan_draft", "submit_plan_reading", "submit_elevation_reading"}
         missing = [name for name in wanted if name not in local and name not in by_name]
         if missing:
             raise ValueError(f"frozen reader catalog missing tools: {missing}")
@@ -470,6 +471,15 @@ class ReaderTools:
         if self.role_id == "plan_reader":
             from .plan_views import PLAN_VIEWS_TOOL
             tools.append(copy.deepcopy(PLAN_VIEWS_TOOL))
+            tools.append({"name": "read_plan_draft", "description": (
+                "Read a saved declaration without rebuilding it, including failed drafts and inherited drafts. "
+                "No arguments returns fields, object IDs, editability, operations base and last passed hash. "
+                "Use field plus optional object_id for a small local read; field='plan' explicitly reads the full declaration. "
+                "trial_id defaults to latest; an editable draft is not necessarily submit-ready."),
+                "inputSchema": {"type": "object", "properties": {
+                    "trial_id": {"type": "string", "pattern": "^(latest|trial_[0-9]{3,})$"},
+                    "field": {"type": "string"}, "object_id": {"type": "string"}},
+                    "additionalProperties": False}})
             tools.append({
                 "name": "trial_plan_bim",
                 "description": (
@@ -499,7 +509,7 @@ class ReaderTools:
         return tools
 
     def repeatability(self, name: str):
-        if name == "view_plan_blocks" and self.role_id == "plan_reader":
+        if name in {"view_plan_blocks", "read_plan_draft"} and self.role_id == "plan_reader":
             return "read_only"
         if name == "trial_plan_bim":
             return "non_idempotent_write"
@@ -510,7 +520,7 @@ class ReaderTools:
         return self.frozen.repeatability(name)
 
     def recovery_policy(self, name: str) -> str:
-        if name == "view_plan_blocks" and self.role_id == "plan_reader":
+        if name in {"view_plan_blocks", "read_plan_draft"} and self.role_id == "plan_reader":
             return "retry_read"
         if self.repeatability(name) != "read_only":
             return "manual"
@@ -583,10 +593,18 @@ class ReaderTools:
             if "Minimum correct example" not in reason:
                 reason += ". Minimum correct example: " + json.dumps({"image": self.image_name,
                     "reference": "use only a profile/view returned by this task"})
-            value = {"status": "rejected", "reason": reason,
+            value = {"status": "rejected", "reason": reason, "draft_unchanged": True,
                      "next_action": "Correct the named field and retry within this task budget; no trial was executed."}
             return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
                     "structuredContent": value, "isError": True}
+        if name == "read_plan_draft":
+            try:
+                result = self.trial.read_draft(**arguments)
+                error = False
+            except (ValueError, TypeError) as exc:
+                result, error = {"status": "rejected", "reason": str(exc)}, True
+            return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
+                    "structuredContent": result, "isError": error}
         if name in {"submit_plan_reading", "submit_elevation_reading"}:
             try:
                 result = self.submission.submit(dict(arguments))
@@ -612,8 +630,11 @@ class ReaderTools:
                 else:
                     result = await self.trial.call(operations=arguments["operations"])
             except ValueError as error:
+                from .trial import DraftRevisionRejected
                 value = {"status": "rejected", "reason": str(error),
                          "next_action": "Correct the cited object or field in a complete plan, then retry; no trial was accepted."}
+                if isinstance(error, DraftRevisionRejected):
+                    value["draft_unchanged"] = True
                 return {"content": [{"type": "text", "text": json.dumps(value, ensure_ascii=False)}],
                         "structuredContent": value, "isError": True}
         else:

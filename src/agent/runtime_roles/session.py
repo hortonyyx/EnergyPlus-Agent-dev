@@ -21,6 +21,7 @@ from PIL import Image
 from src.agent.runtime_context import update_building_context
 from src.agent.runtime_tools import local_observer_role
 from src.agent_runtime.context import StateEntry
+from src.agent_runtime.budget import RuntimeBudget
 from .context_policy import context_policy_from_effective, effective_role_context
 from src.agent_runtime.loop import RunLimits, Runtime
 from src.agent_runtime.providers import LIVE_PROVIDERS, provider_parameters
@@ -285,9 +286,29 @@ class RoleSession:
     def _failed_plan_trial_event(self, task_id):
         """Select a failed draft only from the latest durable trial event."""
         child = self.registry.child(task_id)
-        latest = next((event for event in reversed(child.events)
-                       if event.payload.event_type in {"tool_invocation", "tool_execution"}
-                       and event.payload.tool_name == "trial_plan_bim"), None)
+        latest = None
+        rejected_calls = set()
+        for event in reversed(child.events):
+            payload = event.payload
+            if (payload.event_type not in {"tool_invocation", "tool_execution"}
+                    or payload.tool_name != "trial_plan_bim"):
+                continue
+            if payload.event_type == "tool_invocation" and payload.call_id in rejected_calls:
+                continue
+            if payload.event_type == "tool_execution" and payload.outcome == "failed":
+                try:
+                    raw = child.resolve(payload.raw_result)
+                    structured = raw.get("structuredContent", raw) if isinstance(raw, Mapping) else {}
+                except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+                    structured = {}
+                if (isinstance(structured, Mapping) and structured.get("status") == "rejected"
+                        and structured.get("draft_unchanged") is True):
+                    # Only an explicit prewrite rejection can be crossed. An
+                    # unknown write or missing durable outcome below still blocks recovery.
+                    rejected_calls.add(payload.call_id)
+                    continue
+            latest = event
+            break
         if latest is None:
             return None
         payload = latest.payload
@@ -322,17 +343,21 @@ class RoleSession:
         structured = raw.get("structuredContent") if isinstance(raw, Mapping) else None
         if not isinstance(structured, Mapping):
             structured = raw if isinstance(raw, Mapping) else {}
-        required = ("receipt_file", "plan_sha256", "compiled_numeric_plan_sha256")
+        required = ("receipt_file", "plan_sha256")
         if structured.get("status") != "failed" or any(
                 not isinstance(structured.get(key), str) for key in required):
             return {
                 "status": "unavailable", "event_id": latest.event_id,
-                "reason": "The known-failed trial event has no complete receipt and numeric draft identity.",
+                "reason": "The known-failed trial event has no saved declaration receipt identity.",
             }
+        if structured.get("editable_draft", {}).get("editable") is False:
+            return {"status": "unavailable", "event_id": latest.event_id,
+                    "reason": structured["editable_draft"].get("reason", "Saved format needs a complete replacement.")}
         return {
             "status": "available", "event_id": latest.event_id,
             "raw_result": payload.raw_result.model_dump(mode="json"),
             **{key: structured[key] for key in required},
+            "compiled_numeric_plan_sha256": structured.get("compiled_numeric_plan_sha256"),
         }
 
     def _failure_handoff(self, task_id):
@@ -371,7 +396,7 @@ class RoleSession:
                     "raw_result": trial_event["raw_result"],
                     "plan_sha256": receipt["plan_sha256"],
                     "receipt_file": receipt["receipt_file"],
-                    "compiled_numeric_plan_sha256": receipt["compiled_numeric_plan_sha256"],
+                    "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
                     "instruction": (
                         "This hash-verified complete failed declaration is the operations baseline in the new task. "
                         "Revise the located objects; unchanged objects and their source descriptions remain in place."
@@ -511,7 +536,7 @@ class RoleSession:
                 return envelope(self.assembly.acknowledge(**arguments))
             if arguments.get("position_decision_id"):
                 return await self.position_evidence(arguments["position_decision_id"])
-            return envelope(self.state(position_details=arguments.get("position_details", False)))
+            return envelope(self.model_state(position_details=arguments.get("position_details", False)))
         except (ValueError, KeyError, jsonschema.ValidationError) as error:
             if name == "edit_bim":
                 detail = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
@@ -672,6 +697,38 @@ class RoleSession:
         return {"readers": self.registry.state(), "max_concurrent_readers": self.max_concurrent_readers,
                 "usage": role_accounting(self.store, self.registry), "assembly_review": self.assembly.current(),
                 "position_review": self.positions.current() if position_details else self.positions.summary()}
+
+    def reader_progress(self):
+        """The model sees task identities and outcomes, not repeated validation audits."""
+        readers = []
+        for _, record in sorted(self.registry.records.items()):
+            artifact = record.get("artifact") or {}
+            row = {key: record.get(key) for key in ("task_id", "role_id", "target", "image", "status", "runtime_status")}
+            reason = record.get("reason")
+            row["reason"] = reason[:500] if isinstance(reason, str) else reason
+            row["artifact"] = {key: artifact[key] for key in ("path", "sha256") if key in artifact} or None
+            row["summary"] = copy.deepcopy(record.get("summary"))
+            if isinstance(row["summary"], dict):
+                unresolved = row["summary"].get("unresolved", [])
+                row["summary"]["unresolved_count"] = len(unresolved)
+                row["summary"]["unresolved"] = [str(item)[:300] for item in unresolved[:4]]
+            readers.append(row)
+        return readers
+
+    def model_state(self, *, position_details=False):
+        """Keep the complete audit on disk; send only actionable progress to the model."""
+        state = self.state(position_details=position_details)
+        usage = state["usage"]
+        self.store.write_json("role_accounting.json", usage)
+        audit_ref = self.store.put_json(usage).model_dump(mode="json")
+        budget = RuntimeBudget.from_events(self.store.budget_limit, self.store.all_events)
+        return {"readers": self.reader_progress(), "max_concurrent_readers": self.max_concurrent_readers,
+                "usage": {key: usage.get(key) for key in ("requests", "provider_reported_tokens", "usage_complete")},
+                "budget": {"available": budget.available.model_dump(mode="json"),
+                           "fatal": budget.fatal_reason},
+                "audit": {"file": "role_accounting.json", "blob": audit_ref,
+                          "instruction": "Complete usage/ledger saved here. Use read_role_artifact(task_id) for one reader's details."},
+                "assembly_review": state["assembly_review"], "position_review": state["position_review"]}
 
     async def position_evidence(self, decision_id):
         """Show the two original crops through the existing view tool in one call."""
@@ -964,6 +1021,7 @@ class RoleSession:
                             prior, task["input_sha256"], receipt_file=editable["receipt_file"],
                             plan_sha256=editable["plan_sha256"],
                             compiled_numeric_plan_sha256=editable["compiled_numeric_plan_sha256"],
+                            allowed_targets=task.get("rework_targets"),
                         )
                 # The accepted review also covers warnings from trials made
                 # after the selected successful geometry receipt.
@@ -1247,7 +1305,7 @@ class RoleSession:
 
 def update_role_context(engine, event, raw):
     update_building_context(engine, event, raw)
-    value = engine.tools.registry.state()
+    value = engine.tools.reader_progress()
     previous = next((row for row in engine.context.state if row.key == "reader-artifacts"), None)
     engine.context.set_state(StateEntry(key="reader-artifacts", category="artifact_version", value=value,
         epistemic_status="computed", revision=1 if previous is None else previous.revision + 1,

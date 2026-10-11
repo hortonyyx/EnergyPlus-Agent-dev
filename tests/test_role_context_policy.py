@@ -1,12 +1,8 @@
-"""B1: reference-only state remains lossless, and default wire bytes do not move."""
+"""Role context remains lossless across capacity policies and restoration."""
 
 import base64
 import io
 import json
-import subprocess
-import sys
-import types
-from pathlib import Path
 
 from PIL import Image
 import pytest
@@ -18,9 +14,6 @@ from src.agent_runtime.anthropic import convert_messages
 from src.agent_runtime.context import ContextManager, ContextPolicy, StateEntry
 from src.agent_runtime.store import json_bytes
 from test_runtime_context import _event_source, _store
-
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def _image_message():
@@ -45,38 +38,29 @@ def _wire(projection):
     return json_bytes({"system": system, "messages": messages})
 
 
-def test_single_model_projection_and_policy_bytes_match_pre_b1_including_compaction(tmp_path):
-    name = "src.agent_runtime._b1_context_baseline"
-    module = types.ModuleType(name)
-    module.__file__ = str(ROOT / "src/agent_runtime/context.py")
-    code = subprocess.check_output(["git", "show", "5927bb5f:src/agent_runtime/context.py"], cwd=ROOT)
-    sys.modules[name] = module
-    try:
-        exec(compile(code, module.__file__, "exec"), module.__dict__)
-        old_policy = module.ContextPolicy(compact_at_tokens=550)
-        policy = ContextPolicy(compact_at_tokens=550)
-        assert json_bytes(policy.model_dump(mode="json")) == json_bytes(old_policy.model_dump(mode="json"))
-        with _store(tmp_path / "old") as old_store, _store(tmp_path / "new") as new_store:
-            old = module.ContextManager(old_store, policy=old_policy)
-            new = ContextManager(new_store, policy=policy)
-            for manager in (old, new):
-                source = _event_source(manager.store, "original input")
-                manager.append({"role": "system", "content": "guide"}, source)
-                manager.append({"role": "user", "content": "task"}, source)
-                state_type = module.StateEntry if manager is old else StateEntry
-                manager.set_state(state_type(key="reader-artifacts", category="artifact_version",
-                    value=[{"task_id": "reader", "runtime": {"result": "full original record"}}],
-                    epistemic_status="computed", source_refs=(source,)))
-            picture = _image_message()[1]
-            for index in range(9):
-                for manager in (old, new):
-                    _interaction(manager, manager.history[0].source, index, picture if index % 3 == 0 else None)
-                assert _wire(new.project()) == _wire(old.project())
-            assert any(e.payload.event_type == "context" and e.payload.action == "compact" for e in new_store.events)
-            restored = ContextManager.load(new_store, old.dump())
-            assert _wire(restored.project()) == _wire(new.project())
-    finally:
-        sys.modules.pop(name, None)
+def test_explicit_compaction_preserves_exact_history_and_restores_projection(tmp_path):
+    with _store(tmp_path) as store:
+        manager = ContextManager(store, policy=ContextPolicy(compact_at_tokens=550))
+        source = _event_source(store, "original input")
+        manager.append({"role": "system", "content": "guide"}, source)
+        manager.append({"role": "user", "content": "task"}, source)
+        full_record = [{"task_id": "reader", "runtime": {"result": "full original record"}}]
+        manager.set_state(StateEntry(key="reader-artifacts", category="artifact_version",
+            value=full_record, epistemic_status="computed", source_refs=(source,)))
+        picture = _image_message()[1]
+        for index in range(9):
+            _interaction(manager, source, index, picture if index % 3 == 0 else None)
+            manager.project()
+        assert manager._archived_history_ids
+        assert len(manager.history) == 23
+        projected = manager.project()
+        assert projected.messages[:2] == [
+            {"role": "system", "content": "guide"}, {"role": "user", "content": "task"}]
+        restored = ContextManager.load(store, manager.dump())
+        assert restored.full_history() == manager.full_history()
+        assert restored.state[0].value == full_record
+        assert _wire(restored.project()) == _wire(projected)
+        store.validate()
 
 
 @pytest.mark.parametrize("role", ["coordinator", "plan_reader", "elevation_reader"])
@@ -119,17 +103,17 @@ def test_role_compaction_preserves_full_records_references_images_and_checkpoint
         store.validate()
 
 
-def test_reader_policies_keep_existing_projection_and_explicit_overrides():
+def test_reader_policies_default_to_automatic_capacity_and_allow_explicit_overrides():
     for role in ("plan_reader", "elevation_reader"):
-        assert role_context_policy(role) == ContextPolicy(compact_at_tokens=100_000, compact_to_ratio=0.3)
+        assert role_context_policy(role) == ContextPolicy(compact_at_tokens=None, compact_to_ratio=0.3)
     policy = role_context_policy("coordinator", compact_at_tokens=75_000, max_images=3)
     assert policy.compact_at_tokens == 75_000 and policy.max_images == 3
     assert policy.compact_to_ratio == 0.3
 
 
 def test_effective_context_uses_role_defaults_then_global_and_role_overrides():
-    assert effective_role_context("coordinator").compact_at_tokens == 150_000
-    assert effective_role_context("plan_reader").compact_at_tokens == 100_000
+    assert effective_role_context("coordinator").compact_at_tokens is None
+    assert effective_role_context("plan_reader").compact_at_tokens is None
     value = effective_role_context("plan_reader", global_defaults={
         "context_tokens": 220_000, "compact_at_tokens": 120_000,
         "active_window_messages": 18, "max_images": 5, "max_image_bytes": 9_000_000,
@@ -143,3 +127,13 @@ def test_effective_context_uses_role_defaults_then_global_and_role_overrides():
     policy = context_policy_from_effective("plan_reader", value)
     assert policy.compact_at_tokens == 90_000 and policy.active_window_messages == 18
     assert policy.max_images == 2 and policy.max_image_bytes == 9_000_000
+
+
+def test_explicit_role_null_restores_auto_but_omission_inherits_global():
+    global_defaults = {"context_tokens": 220_000, "compact_at_tokens": 120_000}
+    automatic = effective_role_context("plan_reader", global_defaults=global_defaults,
+        role_overrides=RoleContextOverrides(context_tokens=None, compact_at_tokens=None))
+    assert automatic.context_tokens is None and automatic.compact_at_tokens is None
+    inherited = effective_role_context("plan_reader", global_defaults=global_defaults,
+        role_overrides=RoleContextOverrides(max_images=2))
+    assert inherited.context_tokens == 220_000 and inherited.compact_at_tokens == 120_000

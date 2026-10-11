@@ -87,6 +87,14 @@ def is_unprocessed_rejection(failure):
             and not failure.usage_received)
 
 
+def is_context_length_error(error):
+    """Only explicit machine-readable codes establish a context rejection."""
+    return isinstance(error, dict) and any(
+        str(error.get(key, "")).casefold() in {"context_length_exceeded", "context_window_exceeded",
+                                                "max_context_length_exceeded"}
+        for key in ("code", "type"))
+
+
 def http_failure(response: httpx.Response, *, secret: str, provider: str | None = None) -> ModelServiceError:
     try:
         body = response.json()
@@ -114,10 +122,15 @@ def http_failure(response: httpx.Response, *, secret: str, provider: str | None 
     transient_rate = any(word in diagnostic for word in (
         "rate_limit", "rate limit", "too many requests", "concurrency", "frequency",
         "temporar", "限流", "频率", "并发"))
+    context_rejection = status in {400, 413, 422} and is_context_length_error(error)
     if status in {401, 403} or permission:
         category, retryable = "permission_denied", False
     elif quota:
         category, retryable = "quota_exhausted", False
+    elif context_rejection:
+        # Runtime may reorganize context once; resending identical input is not
+        # a transient retry. Do not infer zero usage or match arbitrary prose.
+        category, retryable = "context_length_exceeded", False
     elif status == 429:
         if glm_code in {"1302", "1305"}:
             category, retryable = "temporary_rate_limit", True

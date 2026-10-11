@@ -16,7 +16,7 @@ class EffectiveRoleContext(BaseModel):
 
     context_tokens: int | None = Field(default=None, ge=1)
     active_window_messages: int | None = Field(default=None, ge=1)
-    compact_at_tokens: int = Field(ge=1)
+    compact_at_tokens: int | None = Field(default=None, ge=1)
     compact_to_ratio: float = Field(gt=0, lt=1)
     large_result_bytes: int = Field(ge=1)
     max_images: int | None = Field(default=None, ge=1)
@@ -30,10 +30,11 @@ def effective_role_context(role_id: str, *, global_defaults: Mapping[str, object
     values = {"context_tokens": None, **{key: value for key, value in base.model_dump().items()
         if key in EffectiveRoleContext.model_fields}}
     for source in (global_defaults or {},
-                   role_overrides.model_dump(mode="json", exclude_none=True)
+                   role_overrides.model_dump(mode="json", exclude_unset=True)
                    if hasattr(role_overrides, "model_dump") else (role_overrides or {})):
         values.update({key: value for key, value in source.items()
-                       if key in EffectiveRoleContext.model_fields and value is not None})
+                       if key in EffectiveRoleContext.model_fields and (value is not None
+                           or key in {"context_tokens", "compact_at_tokens"})})
     return EffectiveRoleContext(**values)
 
 
@@ -53,7 +54,7 @@ def role_context_policy(role_id: str, *, base: ContextPolicy | None = None, **ov
     """
     if role_id not in {"coordinator", "plan_reader", "elevation_reader"}:
         raise ValueError(f"unknown context role: {role_id}")
-    values = (base or ContextPolicy(compact_at_tokens=150_000 if role_id == "coordinator" else 100_000)).model_dump()
+    values = (base or ContextPolicy(compact_at_tokens=None)).model_dump()
     values["compact_to_ratio"] = 0.3
     if role_id == "coordinator":
         values["state_item_fields"] = {**values.get("state_item_fields", {}), "reader-artifacts": (

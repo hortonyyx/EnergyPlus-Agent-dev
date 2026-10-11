@@ -9,7 +9,7 @@ import time
 import weakref
 from collections import deque
 from contextlib import asynccontextmanager, contextmanager
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from decimal import Decimal
 from pathlib import Path
 from typing import Literal
@@ -192,6 +192,9 @@ class Runtime:
         self._control_applied = set()
         self._control_paused = False
         self._phase_seconds = {}
+        self._context_calibration = None
+        self._context_calibration_cursor = 0
+        self._context_calibration_requests = {}
         self._budget_capacity = _shared_budget_capacity_signal(self.store)
         # Checkpoints reuse the last observed tool state. Every actual tool
         # still gets fresh before/after snapshots, and resume re-reads disk.
@@ -456,36 +459,111 @@ class Runtime:
         return {"schema_version": 1, "scope": "runtime_managed_requests_only",
                 "external_coordinator_usage": "unavailable", "dimensions": dimensions}
 
-    def _project(self):
+    def _project(self, *, force_compact=False, target_tokens=None):
         with self._measure("context_projection"):
-            return self._project_unmeasured()
+            return self._project_unmeasured(force_compact=force_compact, target_tokens=target_tokens)
 
-    def _project_unmeasured(self):
+    def _project_unmeasured(self, *, force_compact=False, target_tokens=None):
         if self.context is None:
             return self.messages, self.sources, None
+        pressure, target = self._context_pressure()
         p = self.context.project(required_tags=self.required_context_tags,
             required_view_ids=self.required_view_ids, consume_retrievals=False,
-            request_token_estimator=self._estimate_context_tokens)
+            request_token_estimator=self._estimate_context_tokens,
+            pressure_tokens=pressure, target_tokens=target if target_tokens is None else target_tokens,
+            force_compact=force_compact)
         last = p.decision_event_ids[-1] if p.decision_event_ids else next((
             e.event_id for e in reversed(self.store.events) if e.payload.event_type == "context"), None)
         return list(p.messages), list(p.sources), last
 
+    def _refresh_context_calibration(self):
+        if self.versions.remote_model.route_id != "chatgpt-subscription":
+            return None
+        if self._context_calibration is None:
+            from .responses import ResponsesUsageCalibration
+            self._context_calibration = ResponsesUsageCalibration(self.model)
+        # The role-local event projection is the persistence mechanism. Resume
+        # rebuilds from the same receipts; sibling models never calibrate us.
+        for event in self.store.events:
+            if event.sequence <= self._context_calibration_cursor:
+                continue
+            payload = event.payload
+            if payload.event_type == "adapter_request":
+                self._context_calibration_requests[event.event_id] = payload.final_request_body
+            elif (payload.event_type == "model_response"
+                  and payload.request_event_id in self._context_calibration_requests):
+                body = self.store.resolve(self._context_calibration_requests[payload.request_event_id])
+                raw = self.store.resolve(payload.raw_response)
+                self._context_calibration.observe(body, raw, response_event_id=event.event_id)
+            self._context_calibration_cursor = event.sequence
+        return self._context_calibration
+
+    def _context_pressure(self):
+        profile = get_model_profile(self.model, strict=self.strict_model_profile)
+        windows = [n for n in (profile.context_window_tokens, self.limits.context_tokens) if n is not None]
+        window = min(windows) if windows else None
+        explicit = self.context.policy.compact_at_tokens
+        output = self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens", 1))
+        calibration = self._refresh_context_calibration()
+        growth = calibration.largest_growth if calibration else 0
+        # Leave room for another output and a recently observed large input
+        # increment. Window-relative uncertainty replaces a universal cutoff.
+        headroom = max(output, growth, (window or 0) // 50)
+        automatic = max(1, window - headroom) if window else None
+        pressure = (min(explicit, automatic) if explicit is not None and automatic is not None
+                    else explicit if explicit is not None else automatic)
+        target = (int(pressure * self.context.policy.compact_to_ratio) if explicit is not None
+                  else max(output + 1, pressure - 2 * headroom) if pressure is not None else None)
+        return pressure, target
+
+    def _calibrate_prepared(self, prepared):
+        calibration = self._refresh_context_calibration()
+        if calibration is None:
+            return prepared
+        return replace(prepared, token_estimate=calibration.estimate(
+            prepared.body, prepared.token_estimate, strict=self.strict_model_profile))
+
     def _estimate_context_tokens(self, messages, sources):
         if self.versions.remote_model.route_id == "chatgpt-subscription":
-            from .responses import estimate_responses_messages
-            return estimate_responses_messages(model=self.model, messages=messages,
-                tools=self.specs, parameters=self.parameters,
-                strict=self.strict_model_profile).input_tokens_estimate
+            from .responses import build_responses_body, estimate_responses_request
+            body = build_responses_body(model=self.model, messages=messages,
+                tools=self.specs, parameters=self.parameters)
+            estimate = estimate_responses_request(body, output_token_limit=self.parameters.get(
+                "max_tokens", self.parameters.get("max_completion_tokens")),
+                strict=self.strict_model_profile)
+            calibration = self._refresh_context_calibration()
+            return calibration.estimate(body, estimate, strict=self.strict_model_profile).reservation_tokens
         return estimate_chat_request({"model": self.model,
                 "messages": (messages if self.versions.remote_model.route_id == "glm-subscription-anthropic"
                     else reasoning_history_messages(messages, self.reasoning_history, sources)),
                 "tools": self.specs, **self.parameters},
-                strict=self.strict_model_profile).input_tokens_estimate
+                strict=self.strict_model_profile).reservation_tokens
+
+    def _compact_before_retry(self, messages, sources):
+        if self.context is None:
+            return None
+        before = self._estimate_context_tokens(messages, sources)
+        projection = self._project(force_compact=True, target_tokens=max(1, int(before * 0.6)))
+        after = self._estimate_context_tokens(projection[0], projection[1])
+        self._checkpoint()
+        return projection if after < before else None
+
+    def _context_recovery_stop(self, *, reason, prepared=None):
+        evidence = {"reason": reason, "recoverable": True,
+            "next_action": "Resume from the saved task state with a smaller required working set or corrected window evidence; do not replay completed tools.",
+            "checkpoint": str(self.store.task_directory / "checkpoint.json"),
+            "configured_context_limit": self.limits.context_tokens,
+            "estimate": asdict(prepared.token_estimate) if prepared is not None else None}
+        self.store.append(RunLifecyclePayload(action="failure", failure_stage="context_management",
+            reason="context_recovery_required"), source_refs=(self.store.source("context-recovery", evidence),))
+        self._checkpoint()
+        return "context_recovery_required"
 
     async def _model_call(self, messages, sources, *, purpose, tools, context_event_id=None):
         parameters = dict(self.parameters)
         degradation = None
         logical_purpose = "context_summary" if purpose == "context_summary" else "primary_task"
+        local_context_recoveries = 0
         while True:
             async with self._dispatch_slot() as lease:
                 self.stage = "prepare_request"
@@ -496,6 +574,7 @@ class Runtime:
                         image_originals=self.originals,
                         reasoning_history=self.reasoning_history,
                         strict_model_profile=self.strict_model_profile)
+                    prepared = self._calibrate_prepared(prepared)
                 profile_limit = prepared.context_window_tokens
                 configured_limit = self.limits.context_tokens
                 available_limits = tuple(limit for limit in (profile_limit, configured_limit)
@@ -503,9 +582,14 @@ class Runtime:
                 effective_context_limit = min(available_limits) if available_limits else None
                 if (effective_context_limit is not None
                         and prepared.token_reservation_estimate > effective_context_limit):
-                    if profile_limit is not None and profile_limit <= effective_context_limit:
-                        return None, "model_profile_context_limit_exhausted"
-                    return None, "configured_context_limit_exhausted"
+                    projection = (self._compact_before_retry(messages, sources)
+                        if local_context_recoveries < 2 and logical_purpose == "primary_task" else None)
+                    if projection is not None:
+                        local_context_recoveries += 1
+                        messages, sources, context_event_id = projection
+                        continue
+                    return None, self._context_recovery_stop(reason="required_context_cannot_fit_after_compaction",
+                                                             prepared=prepared)
                 budget_revision = self._budget_capacity.revision
                 self._load_budget()
                 remaining = self._remaining()
@@ -534,9 +618,14 @@ class Runtime:
                     if purpose == "primary_task" and not self.store.is_root_task
                     else purpose
                 )
+                # The calibrated total includes images, but a usage receipt
+                # need not provide their split. Preserve the original proxy in
+                # token_estimate; its budget subset cannot exceed the total.
+                image_budget_subset = min(prepared.token_estimate.image_tokens,
+                                          prepared.input_token_upper_bound)
                 estimate = RequestEstimate.for_model_call(purpose=budget_purpose, task_id=self.store.task_id,
                     input_token_upper_bound=prepared.input_token_upper_bound,
-                    image_input_tokens_estimate=prepared.token_estimate.image_tokens,
+                    image_input_tokens_estimate=image_budget_subset,
                     additional_image_tokens_estimate=(prepared.token_estimate.image_tokens
                         if bills_images_separately(get_cny_price_schedule(self.model,
                             route_id=self.versions.remote_model.route_id)) else 0),
@@ -588,6 +677,10 @@ class Runtime:
                         "near_limit_action": "reduce_output" if degradation else "allow",
                         "degradation": degradation,
                         "token_estimate": asdict(prepared.token_estimate),
+                        "image_budget_estimate": {
+                            "raw_image_proxy_tokens": prepared.token_estimate.image_tokens,
+                            "included_image_subset_tokens": image_budget_subset,
+                            "basis": "Image proxy capped by the whole-input upper bound; an estimated subset, not provider-reported image usage."},
                         "cny_reservation": ({
                             "price_schedule": {k: str(v) if isinstance(v, Decimal) else v
                                                for k, v in asdict(self.cny_pricing).items()},
@@ -635,13 +728,28 @@ class Runtime:
                     usage = exc.usage if isinstance(exc, ModelServiceError) else UsageMissing(reason="request ended without a service usage receipt")
                     try:
                         settlement_stop = self._settle(reservation.reservation_id, usage,
-                                     seconds=elapsed)
+                                     seconds=elapsed, context_rejection=failure.category == "context_length_exceeded")
                     finally:
                         self._budget_capacity.complete(reservation.reservation_id)
                     await self._yield_budget_waiters()
                     self._refresh_counts()
                     if settlement_stop:
                         return None, settlement_stop
+                    if failure.category == "context_length_exceeded":
+                        rejected = sum(e.payload.event_type == "run_lifecycle"
+                            and e.payload.model_failure is not None
+                            and e.payload.model_failure.category == "context_length_exceeded"
+                            for e in self.store.events)
+                        projection = (self._compact_before_retry(messages, sources)
+                            if rejected == 1 and logical_purpose == "primary_task"
+                            and self.answer_repair_request_id is None else None)
+                        if projection is None:
+                            return None, self._context_recovery_stop(reason="provider_context_rejected_without_further_safe_reduction",
+                                                                     prepared=prepared)
+                        messages, sources, context_event_id = projection
+                        self.retry_of, purpose = request.event_id, "retry"
+                        self._checkpoint()
+                        continue
                     if redispatch and await self._retry_budget_available():
                         self.redispatch_of, self.retry_of = request.event_id, None
                         purpose = logical_purpose
@@ -811,7 +919,7 @@ class Runtime:
             action="stop" if reason else "continue",
             reason=reason or "discard truncated output and request a concise continuation"))
 
-    def _settle(self, reservation_id, usage, *, seconds):
+    def _settle(self, reservation_id, usage, *, seconds, context_rejection=False):
         # Other children may reserve or settle root budget while this request is
         # in flight. Rebuild both ledgers from the shared durable journal.
         self._load_budget()
@@ -824,6 +932,11 @@ class Runtime:
         image_charge = {"image_tokens_estimate": accounting.image_tokens_estimate,
             "additional_image_tokens": accounting.additional_image_tokens,
             "reported_usage_includes_image_tokens": accounting.reported_usage_includes_image_tokens}
+        if context_rejection and usage.kind == "missing":
+            # A length rejection is known; its usage is not. Settle only the
+            # observed call/time and retain the full token reservation. Missing
+            # usage cannot attest that image tokens were included in a receipt.
+            image_charge["reported_usage_includes_image_tokens"] = False
         reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
         if accounting.usage_basis == "rejected_before_processing" and reservation.amounts.money_usd is not None:
             image_charge["cost"] = EstimatedCostUpperBound(usd=Decimal(0),
@@ -1489,8 +1602,12 @@ class Runtime:
         if dangling:
             request = dangling[-1]
             failure = failures.get(request.event_id)
-            if failure and not failure.retryable:
-                return failure.category
+            context_retry_ready = (failure is not None and failure.category == "context_length_exceeded"
+                and self.retry_of == request.event_id
+                and sum(f.category == "context_length_exceeded" for f in failures.values()) == 1)
+            if failure and not failure.retryable and not context_retry_ready:
+                return ("context_recovery_required" if failure.category == "context_length_exceeded"
+                        else failure.category)
             if request.payload.reservation_id:
                 rejected = failure and is_unprocessed_rejection(failure)
                 failure_event = next((e for e in self.store.events
@@ -1501,8 +1618,12 @@ class Runtime:
                 elapsed = json.loads(self.store.get_bytes(timing))["elapsed_seconds"] if timing else None
                 self._settle(request.payload.reservation_id,
                     rejected_request_usage() if rejected else UsageMissing(reason="process interrupted with request outcome unknown"),
-                    seconds=elapsed)
-            if (failure and failure.category == "temporary_rate_limit"
+                    seconds=elapsed, context_rejection=bool(failure and failure.category == "context_length_exceeded"))
+            if context_retry_ready:
+                # A checkpoint after a strictly smaller projection authorized
+                # exactly this context retry before the process interruption.
+                self.redispatch_of, self.retry_of = None, request.event_id
+            elif (failure and failure.category == "temporary_rate_limit"
                     and self.versions.remote_model.route_id in route_policies()):
                 # Resume explicit rate-limit refusals through admission, without
                 # consuming transport-failure retries. Usage may still be

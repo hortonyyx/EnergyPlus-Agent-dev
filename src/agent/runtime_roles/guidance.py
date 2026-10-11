@@ -45,10 +45,15 @@ Do not duplicate footprint as partitions. Exterior doors/windows lie on footprin
 interior doors/open passages lie on partitions continuing through apertures. Only exterior
 windows are supported. Label assumed heights. Never remove an observed object or change
 room topology merely to make a trial pass.
-For corrections use operations against the latest passed plan (or last resolved draft
-before any passes). Each needs reason, source_refs, original-pixel bbox and:
+Failed geometry remains a saved declaration, not a passed BIM. Use read_plan_draft()
+to see editability, the current operations base and the last passed plan separately.
+Read field plus optional object_id for one object; field="plan" reads the complete
+declaration. A format failure with ambiguous IDs needs a complete replacement;
+its original declaration remains readable by trial_id. For corrections use operations
+against the latest editable declaration, including failed revisions, to keep earlier fixes.
+Each needs reason, source_refs, original-pixel bbox and:
 update: collection,id,changes (no id); add: collection,value (complete row);
-remove: collection,id; set: field,value (top-level except floor_id/collections).
+remove: collection,id; set: field,value (including dimension_chains, except floor_id/collections).
 Collections=partitions/openings/space_seeds; 1-100 operations, each row/field once.
 Full plans remain accepted. Audit actual changes; cross-task rework preserves unpointed
 objects. Notes may change freely but cannot authorize geometry or room-use changes.""".format(

@@ -158,6 +158,44 @@ def test_role_context_overrides_survive_configuration_cli(tmp_path):
     assert encoded["elevation_reader"]["context"] == selected["roles"]["elevation_reader"]["context"]
 
 
+@pytest.mark.parametrize("mode", ["single_model", "role_division"])
+@pytest.mark.parametrize("explicit_null", [False, True])
+def test_automatic_context_configuration_does_not_invent_a_ceiling(tmp_path, mode, explicit_null):
+    selected = case(mode)
+    for key in ("context_tokens", "compact_at_tokens"):
+        selected.pop(key)
+        if explicit_null:
+            selected[key] = None
+    argv = argv_for(load(tmp_path, selected)["cases"][0])
+    assert "--context-tokens" not in argv and "--compact-at-tokens" not in argv
+    from src.agent.runtime_entry import parser as single_parser
+    from src.agent.runtime_roles.entry import parser as role_parser
+    parsed = (role_parser if mode == "role_division" else single_parser)().parse_args(argv[3:])
+    assert parsed.context_tokens is None and parsed.compact_at_tokens is None
+
+
+@pytest.mark.parametrize("key", ["context_tokens", "compact_at_tokens"])
+@pytest.mark.parametrize("value", [0, -1, True, 1.5, "200000"])
+def test_invalid_context_setting_fails_before_launch(tmp_path, key, value):
+    selected = case()
+    selected[key] = value
+    with pytest.raises(ValueError, match="positive integer or null"):
+        load(tmp_path, selected)
+
+
+def test_explicit_role_auto_survives_serialization_and_cli(tmp_path):
+    selected = case()
+    selected["roles"]["plan_reader"]["context"] = {
+        "context_tokens": None, "compact_at_tokens": None}
+    argv = argv_for(load(tmp_path, selected)["cases"][0])
+    parsed_roles = load_roles(json.loads(argv[argv.index("--roles-json") + 1]))
+    from src.agent.runtime_roles.context_policy import effective_role_context
+    resolved = effective_role_context("plan_reader", global_defaults={
+        "context_tokens": selected["context_tokens"], "compact_at_tokens": selected["compact_at_tokens"]},
+        role_overrides=parsed_roles["plan_reader"].context)
+    assert resolved.context_tokens is None and resolved.compact_at_tokens is None
+
+
 def test_unreviewed_route_deepseek_and_low_output_are_rejected():
     with pytest.raises(ValidationError, match="reviewed live provider"):
         load_roles(roles(coordinator=role("unknown-route")))

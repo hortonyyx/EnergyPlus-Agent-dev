@@ -1038,6 +1038,10 @@
       "group": "fast",
       "reason": "Current offline contract: src.agent.runtime_configuration, src.agent.runtime_roles.config, src.agent.runtime_roles.entry"
     },
+    "tests/test_prompt_reuse_report.py": {
+      "group": "targeted",
+      "reason": "Offline request-prefix diagnostics separate cache usage, parallel task history and missing evidence"
+    },
     "tests/test_role_context_policy.py": {
       "group": "targeted",
       "reason": "Offline module checks selected when changing src.agent.runtime_roles.config, src.agent.runtime_roles.context_policy, src.agent_runtime.anthropic"
@@ -1073,6 +1077,10 @@
     "tests/test_role_end_to_end.py": {
       "group": "node",
       "reason": "Current integration or subprocess/mutation acceptance; run at a relevant node"
+    },
+    "tests/test_role_failed_drafts.py": {
+      "group": "targeted",
+      "reason": "Offline failed draft recovery, editable identities, source binding and compact model state"
     },
     "tests/test_role_g1_session.py": {
       "group": "targeted",

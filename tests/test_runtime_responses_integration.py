@@ -1,13 +1,16 @@
 """Offline full runtime, native Responses history, controls and billing isolation."""
 
 import asyncio
+import base64
 import copy
+import io
 import json
 from decimal import Decimal
 from types import SimpleNamespace
 
 import httpx
 import pytest
+from PIL import Image
 
 from src.agent.runtime_entry import parser, runtime_model_profile
 from src.agent.runtime_roles.config import load_roles
@@ -103,6 +106,144 @@ def test_missing_usage_stops_without_executing_write_or_fallback(tmp_path):
         assert result["status"] == "token_usage_unavailable"
         assert result["model_calls"] == 1 and result["tool_calls"] == 0
         assert result["fallback"] is False and not result["usage_complete"]
+
+
+def metered_native(*calls, input_tokens=1000, text=None):
+    raw = native(*calls, text=text)
+    raw["usage"].update(input_tokens=input_tokens, total_tokens=input_tokens + 10)
+    return raw
+
+
+@pytest.mark.parametrize("reject_again", [False, True])
+def test_context_rejection_compacts_once_retains_unknown_usage_and_never_repeats_tools(tmp_path, reject_again):
+    from src.agent_runtime.responses import HttpResponsesAdapter
+    limits = RunLimits(model_calls=5, tool_calls=2, seconds=90, tokens=500000)
+    engine = engine_for(tmp_path, [], limits=limits)
+    seen = []
+
+    async def token():
+        return "offline-context-token"
+
+    def handler(request):
+        seen.append(json.loads(request.content))
+        number = len(seen)
+        if number in ({3, 4} if reject_again else {3}):
+            return httpx.Response(400, json={"error": {"code": "context_length_exceeded"}})
+        raw = (metered_native(("saved_once", "save", {"value": 8}), input_tokens=1000)
+               if number == 1 else metered_native(("last_view", "view", {}), input_tokens=5000)
+               if number == 2 else metered_native(text="Recovered", input_tokens=2000))
+        return httpx.Response(200, headers={"content-type": "text/event-stream"},
+            text="data: " + json.dumps({"type": "response.completed", "response": raw}) + "\n\n")
+
+    engine.adapter = HttpResponsesAdapter(token_provider=token, transport=httpx.MockTransport(handler))
+
+    async def run():
+        try:
+            return await engine.run(MESSAGES)
+        finally:
+            await engine.adapter.close()
+
+    with engine.store:
+        result = asyncio.run(run())
+        assert result["status"] == ("context_recovery_required" if reject_again else "completed")
+        assert len(seen) == 4 and result["model_calls"] == 4
+        assert result["tool_calls"] == 2 and len(engine.tools.calls) == 2
+        assert result["usage_complete"] is False and result["fallback"] is False
+        assert len([e for e in engine.store.events if e.payload.event_type == "context"
+                    and e.payload.action == "compact"]) == 1
+        kept_calls = {item["call_id"] for item in seen[3]["input"] if item.get("type") == "function_call"}
+        kept_results = {item["call_id"] for item in seen[3]["input"] if item.get("type") == "function_call_output"}
+        assert kept_calls == kept_results == {"last_view"}
+        assert any(item.get("type") == "reasoning" for item in seen[3]["input"])
+        assert any(block.get("type") == "input_image" for item in seen[3]["input"]
+                   for block in item.get("content", []))
+        settlements = [e.payload.settlement for e in engine.store.events
+                       if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        missing = [s for s in settlements if s.usage.kind == "missing"]
+        assert len(missing) == (2 if reject_again else 1)
+        assert all(s.actual.tokens is None for s in missing)
+        held = sum(r.amounts.tokens for r in engine.task_budget.ledger.reservations
+                   if r.reservation_id in {s.reservation_id for s in missing})
+        known = sum(s.actual.tokens or 0 for s in settlements)
+        assert engine.task_budget.ledger.committed.tokens >= held + known
+        assert (tmp_path / "tools/saved.json").read_text() == '{"value": 8}'
+        engine.store.validate()
+
+
+def test_oversized_required_context_stops_recoverably_without_dispatch(tmp_path):
+    limits = RunLimits(model_calls=2, tool_calls=0, seconds=90, tokens=500000, context_tokens=32001)
+    engine = engine_for(tmp_path, [], limits=limits)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "context_recovery_required" and result["model_calls"] == 0
+        evidence = [s for e in engine.store.events for s in e.source_refs
+                    if s.source_id == "context-recovery"]
+        assert len(evidence) == 1
+        saved = json.loads(engine.store.get_bytes(evidence[0].blob))
+        assert saved["recoverable"] is True and saved["estimate"]["output_token_limit"] == 32000
+        assert len(engine.context.full_history()[0]) == 2
+        engine.store.validate()
+
+
+def test_auto_pressure_compacts_complete_old_groups_before_admission(tmp_path):
+    limits = RunLimits(model_calls=3, tool_calls=2, seconds=90, tokens=None, context_tokens=100000)
+    engine = engine_for(tmp_path, [metered_native(("old_save", "save", {"value": 2}), input_tokens=1000),
+        metered_native(("recent_view", "view", {}), input_tokens=50000),
+        metered_native(text="Done", input_tokens=2000)], limits=limits)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed" and result["model_calls"] == 3
+        third = json.loads(engine.adapter.requests[-1])
+        calls = {i["call_id"] for i in third["input"] if i.get("type") == "function_call"}
+        replies = {i["call_id"] for i in third["input"] if i.get("type") == "function_call_output"}
+        assert calls == replies == {"recent_view"}
+        assert len(engine.tools.calls) == 2
+        assert any(e.payload.event_type == "context" and e.payload.action == "compact"
+                   for e in engine.store.events)
+        engine.store.validate()
+
+
+def test_auto_has_no_200k_cutoff_and_uses_usage_anchor(tmp_path):
+    limits = RunLimits(model_calls=2, tool_calls=1, seconds=90, tokens=None)
+    engine = engine_for(tmp_path, [metered_native(("see", "view", {}), input_tokens=220000),
+                                 metered_native(text="Done", input_tokens=225000)], limits=limits)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed" and result["model_calls"] == 2
+        decisions = [json.loads(engine.store.get_bytes(s.blob)) for e in engine.store.events
+                     for s in e.source_refs if s.source_id == "request-budget-decision"]
+        second = decisions[1]["token_estimate"]
+        assert second["input_tokens_estimate"] >= 220000
+        assert "observed_input_anchor=" in second["source"]
+        assert not any(e.payload.event_type == "context" and e.payload.action == "compact" for e in engine.store.events)
+        engine.store.validate()
+
+
+def test_multiround_image_usage_lower_than_proxy_has_valid_budget_subset(tmp_path):
+    image = io.BytesIO()
+    Image.new("RGB", (1024, 1024), (20, 80, 120)).save(image, format="PNG")
+    url = "data:image/png;base64," + base64.b64encode(image.getvalue()).decode()
+    messages = [*MESSAGES, {"role": "user", "content": [
+        {"type": "image_url", "image_url": {"url": url, "detail": "high"}} for _ in range(4)]}]
+    engine = engine_for(tmp_path, [metered_native(("view1", "view", {}), input_tokens=1000),
+        metered_native(("view2", "view", {}), input_tokens=1100),
+        metered_native(text="Done", input_tokens=1200)],
+        limits=RunLimits(model_calls=3, tool_calls=2, seconds=90, tokens=None))
+    with engine.store:
+        result = asyncio.run(engine.run(messages))
+        assert result["status"] == "completed" and result["model_calls"] == 3
+        decisions = [json.loads(engine.store.get_bytes(s.blob)) for e in engine.store.events
+                     for s in e.source_refs if s.source_id == "request-budget-decision"]
+        for decision in decisions[1:]:
+            token = decision["token_estimate"]
+            image_budget = decision["image_budget_estimate"]
+            assert token["input_tokens_upper_bound"] < token["image_tokens"]
+            assert image_budget["raw_image_proxy_tokens"] == token["image_tokens"]
+            assert image_budget["included_image_subset_tokens"] == token["input_tokens_upper_bound"]
+            assert "not provider-reported" in image_budget["basis"]
+            assert sum(item["tokens"] for item in token["images"]) == token["image_tokens"]
+        assert result["reported_tokens"] == 3330 and result["usage_complete"] is True
+        engine.store.validate()
 
 
 def test_local_output_allowance_does_not_claim_server_enforcement(tmp_path):
