@@ -29,7 +29,7 @@ def _geom(**opening_updates):
 
 
 def test_door_roundtrip_two_sides_and_one_connection(tmp_path):
-    from src.agent.pipeline import materialize_kernel_geometry
+    from src.agent.legacy.pipeline import materialize_kernel_geometry
 
     geom = _geom()
     decoded = CorrectedGeometry.model_validate_json(geom.model_dump_json())

@@ -1,3 +1,4 @@
+"""Optional historical EnergyPlus graph; current BIM runs use their own runtime."""
 import pickle
 from typing import Any
 

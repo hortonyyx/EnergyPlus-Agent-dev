@@ -91,7 +91,7 @@ def test_duplicate_or_moved_window_cannot_pass_source_mapping():
 
 def test_source_failure_stops_pipeline_but_preserves_viewable_candidate(tmp_path, monkeypatch):
     import src.agent.geometry as kernel
-    from src.agent.pipeline import materialize_kernel_geometry
+    from src.agent.legacy.pipeline import materialize_kernel_geometry
 
     geom = _source()
     broken = build_geometry(geom, capability_profile="orthogonal_polygon")

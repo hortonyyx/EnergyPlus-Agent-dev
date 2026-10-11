@@ -49,7 +49,7 @@ from pathlib import Path
 
 import pytest
 
-import src.agent.pipeline as pipeline
+import src.agent.legacy.pipeline as pipeline
 from src.agent.correction.evidence_adapters import (
     adapt_as_drawn_elevation,
     adapt_as_drawn_plan,
@@ -213,7 +213,7 @@ def pipeline_b2_source() -> str:
     """The B2 region of pipeline.py (run_multifloor_correction + its
     NamedTuple), sliced by its banner comments so this lock reads only the
     code this dispatch added."""
-    text = (REPO / "src/agent/pipeline.py").read_text("utf-8")
+    text = (REPO / "src/agent/legacy/pipeline.py").read_text("utf-8")
     start = text.index("# B2 multi-floor assembly")
     end = text.index("# 4_mep — physical-information authoring", start)
     return text[start:end]

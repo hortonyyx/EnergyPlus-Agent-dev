@@ -403,7 +403,7 @@ def test_b4b_fusion_and_trusted_negative_are_judge_only_va_consumers():
 def test_b4b_judge_only_source_scan_and_seven_claim_contract():
     import pathlib
     forbidden = ("src.agent.judge.opening_claim_score", "src.agent.judge.segment_score")
-    for root in (pathlib.Path("src/agent/correction"), pathlib.Path("src/agent/reading"), pathlib.Path("src/agent/pipeline.py")):
+    for root in (pathlib.Path("src/agent/correction"), pathlib.Path("src/agent/reading"), pathlib.Path("src/agent/legacy/pipeline.py")):
         paths = root.rglob("*.py") if root.is_dir() else (root,)
         for path in paths:
             text = path.read_text(encoding="utf-8")

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import src.agent.pipeline as pipeline
+import src.agent.legacy.pipeline as pipeline
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.evidence_preflight import EvidenceDebt
 

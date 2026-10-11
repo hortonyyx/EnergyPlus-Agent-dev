@@ -53,7 +53,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-import src.agent.pipeline as pipeline
+import src.agent.legacy.pipeline as pipeline
 import src.agent.reading.vector_contract as vc
 from src.agent.correction.decision_executor import (
     DecisionLoopError,

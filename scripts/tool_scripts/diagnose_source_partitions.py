@@ -26,7 +26,7 @@ from src.agent.correction.schema import CorrectedGeometry
 from src.agent.geometry.modelling import _cell_polygon
 from src.agent.geometry.source_model import _ring
 from src.agent.judge.source_partition import compare_partitions
-from src.agent.pipeline import materialize_kernel_geometry
+from src.agent.legacy.pipeline import materialize_kernel_geometry
 from scripts.tool_scripts.render_geometry_viewer import build_viewer_html
 
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 
 from src.agent.correction.schema import CorrectedGeometry
-from src.agent.pipeline import materialize_kernel_geometry
+from src.agent.legacy.pipeline import materialize_kernel_geometry
 
 
 def _clean_two_floor() -> CorrectedGeometry:

@@ -41,13 +41,12 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
        seeded config here.
     2. **Pipeline** — `state.reading_vector_dir` set (the half-manual flow:
        `--reading-from`): run the staged intake pipeline (vector JSON ->
-       IntakeOutput) via `src.agent.pipeline.run_pipeline_artifacts`,
-       image-blind. This is the mainline; the pipeline returns the
+       IntakeOutput) via `src.agent.legacy.pipeline.run_pipeline_artifacts`,
+       image-blind. This is the legacy graph's input path; the pipeline returns the
        output-coordinate bundle alongside the IntakeOutput.
 
-    The legacy single-step (one multimodal image -> IntakeOutput) path is retired
-    (its skill library `skills/energyplus_mcp/` was archived to backup/Skill_history on
-    2026-06-10); the staged pipeline is the only supported flow.
+    Current Sim BIM Agent uses source BIM and its own runtime, outside this graph.
+    The earlier image-to-IntakeOutput prompt library is retired.
     """
     if state.intake_output is not None and not state.validation_errors:
         config = state.config_state.model_copy(deep=True)
@@ -75,7 +74,7 @@ def intake_node(state: AgentState) -> AgentStateUpdate:
         # validate->intake repair): feed the errors in as repair context.
         # Imported lazily so callers/tests that never touch the pipeline don't
         # pull in the OpenAI client.
-        from src.agent.pipeline import run_pipeline_artifacts
+        from src.agent.legacy.pipeline import run_pipeline_artifacts
 
         vector_dir = Path(state.reading_vector_dir)
         testdata_text = state.testdata_text or state.user_input

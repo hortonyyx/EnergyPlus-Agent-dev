@@ -17,11 +17,12 @@ def test_payload_keeps_runtime_resources_and_excludes_development_evidence():
     files = ["src/agent_runtime/agent_versions.json", "src/agent/data/room_types.json",
              "scripts/tool_scripts/vendor/three.min.js", "scripts/tool_scripts/affected_tests.py",
              "AI_agent/logs/old.json", "case_tests/gt.json", "tests/test_x.py", ".env",
-             "product/README.md", "product/config.example.json", "product/Start.cmd", "sim_bim.py"]
+             "product/README.md", "product/config.example.json", "product/Start.cmd", "sim_bim.py",
+             "src/agent/legacy/intake/reading/guide.md", "skills/unused/guide.md"]
     selected = selected_payload(files)
     assert set(selected) == {"src/agent_runtime/agent_versions.json", "src/agent/data/room_types.json",
                              "scripts/tool_scripts/vendor/three.min.js", "README.md", "config.example.json",
-                             "Start.cmd", "sim_bim.py"}
+                             "Start.cmd", "sim_bim.py", "src/agent/legacy/intake/reading/guide.md"}
 
 
 def test_cli_help_does_not_import_old_pipeline_or_need_git():
@@ -30,7 +31,7 @@ def test_cli_help_does_not_import_old_pipeline_or_need_git():
                             capture_output=True, text=True, check=True)
     assert "doctor" in result.stdout and "demo" in result.stdout
     probe = subprocess.run([sys.executable, "-B", "-c",
-        "import sys; import src.agent.product_cli; assert 'src.agent.graph' not in sys.modules; assert 'langgraph' not in sys.modules"],
+        "import sys; import src.agent.product_cli; assert 'src.agent.legacy.graph' not in sys.modules; assert 'langgraph' not in sys.modules"],
         cwd=ROOT, env={**os.environ, "PYTHONPATH": str(ROOT)}, capture_output=True, text=True)
     assert probe.returncode == 0, probe.stderr
 

@@ -19,13 +19,13 @@ Canonical worked-example file: `src/agent/execution/isolation_templates/worked_e
 This is a synthetic, deliberately asymmetric format example, not a target-case precedent. Read it
 for JSON shape and evidence-field style only; **never copy its coordinates or rewrite it**.
 
-- `skills/intake_pipeline/0_reading/guide.md` — error budget, global constraints, JSON schema,
+- `src/agent/legacy/intake/reading/guide.md` — error budget, global constraints, JSON schema,
   door-healing, self-check, downstream contract; this is the master rule container
-- `skills/intake_pipeline/0_reading/reading_guide.md` — how to *recognize* each element across drawing styles;
+- `src/agent/legacy/intake/reading/reading_guide.md` — how to *recognize* each element across drawing styles;
   it outputs only semantic-category labels
-- `skills/intake_pipeline/0_reading/pen_library.md` — what to *do* with each recognized category:
+- `src/agent/legacy/intake/reading/pen_library.md` — what to *do* with each recognized category:
   which pen to use, what to keep/log, and when door-healing applies
-- CV evidence tools: `skills/intake_pipeline/0_reading/cv_toolbox.md` — deterministic pixel probes required before drawing on clean vector CAD PNGs; for noisy scans, hand drawings, or other degraded inputs, see that file's robustness-profile exception
+- CV evidence tools: `src/agent/legacy/intake/reading/cv_toolbox.md` — deterministic pixel probes required before drawing on clean vector CAD PNGs; for noisy scans, hand drawings, or other degraded inputs, see that file's robustness-profile exception
 
 ## Non-negotiables — a checklist of WHAT to read, not a second copy of the rules
 

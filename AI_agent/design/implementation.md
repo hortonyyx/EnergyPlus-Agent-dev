@@ -8,6 +8,8 @@
 - 分工：`src/agent/runtime_roles/entry.py`
 - runtime：`src/agent_runtime`
 - BIM工具：`scripts/tool_scripts/run_bim_agent.py`
+- 当前 domain 职责与资源：[源码导航](../../src/agent/README.md)、[继承关系](domain_lineage.md)
+- 显式历史流程：`src/agent/legacy/pipeline.py`、`graph.py`、`intake/`；当前 BIM 入口不执行其编号步骤
 - 发布：`scripts/release/build_product.py`
 - 检查选择：`scripts/dev/check.py`、`tests/check_groups.json`
 

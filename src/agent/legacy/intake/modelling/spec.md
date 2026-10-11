@@ -4,9 +4,9 @@ Stage **建模·几何** of the pipeline. Deterministic code, no LLM, no physics
 corrected room cells into a building geometry model: one thermal zone per cell, plus
 the vocabulary to realize each face's vertices with correct outward orientation. It
 makes **no** topology decision about which faces exist or how they pair — that is
-[3_split_pairing](../3_split_pairing/spec.md).
+[3_split_pairing](../split_pairing/spec.md).
 
-Implementation: [`src/agent/geometry/modelling.py`](../../../src/agent/geometry/modelling.py).
+Implementation: [`src/agent/geometry/modelling.py`](../../../../../src/agent/geometry/modelling.py).
 
 ## Input
 
@@ -50,4 +50,4 @@ authoritative** — modelling never re-derives, re-snaps, or "improves" them.
 Modelling owns geometry realization only. Which faces are interior vs exterior, how
 interzone faces are cut and paired, and reciprocal boundary conditions all belong to
 3_split_pairing. Materials / constructions / loads / schedules belong to
-[4_mep](../4_mep/mep.md) and the assembly stage.
+[4_mep](../mep/mep.md) and the assembly stage.

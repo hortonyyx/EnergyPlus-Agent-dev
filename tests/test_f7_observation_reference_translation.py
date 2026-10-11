@@ -263,7 +263,7 @@ def test_f7_model_draw_error_is_archived_as_a_failed_attempt_and_blind_resampled
     through the real `run_one_stage` stochastic loop (not asserted only on a
     helper's return value) — attempt count, both attempt files on disk, and
     the exact FAIL check_id are all locked."""
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     import src.agent.correction.finalize as finalize_mod
     import src.agent.correction.window_sources as ws
     import src.validator.checks.correction as corr_checks
@@ -332,7 +332,7 @@ def test_f7_input_integrity_error_still_hard_crashes_no_resample(tmp_path, monke
     view — an input-integrity fault per the F-7 ruling, not a model mistake):
     `_draw_correction` must RAISE, not swallow it into a failing CheckReport —
     resampling the correction draw cannot fix a broken reading artifact."""
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     import src.agent.correction.window_sources as ws
 
     manifest, raw_manifest, artifacts, fact = _base()
@@ -421,7 +421,7 @@ def test_f7_floor_count_mismatch_archived_as_failed_attempt_and_resampled(tmp_pa
     attempt and blind-resample — NOT hard-crash (which the old compound
     input_integrity classification did). Lock pins the actual path: the bad
     attempt's check record carries the exact code, and a second draw is issued."""
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     import src.agent.correction.finalize as finalize_mod
     import src.agent.correction.window_sources as ws
     import src.validator.checks.correction as corr_checks
@@ -555,7 +555,7 @@ def test_f7_parse_prefilled_raises_in_inner_validator_not_outer_classifier():
     the inner blind-retry trigger, not the outer classifier. If someone removes
     these raises thinking classification covers prefill elsewhere, this goes red
     (the inner self-correction chance is lost)."""
-    from src.agent.pipeline import _schema_only_correction_validator
+    from src.agent.legacy.pipeline import _schema_only_correction_validator
     target = correction_target("orthogonal_polygon")
 
     payload_seg = _geom().model_dump(mode="json")

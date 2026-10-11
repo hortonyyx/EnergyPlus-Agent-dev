@@ -54,7 +54,7 @@ sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 import scripts.tool_scripts.run_stage as rs  # noqa: E402
 
 import src.agent.correction.window_position as wp  # noqa: E402
-import src.agent.pipeline as pipeline_mod  # noqa: E402
+import src.agent.legacy.pipeline as pipeline_mod  # noqa: E402
 from src.agent.correction.config import load_core_tolerances  # noqa: E402
 from src.agent.correction.deterministic import apply_deterministic_core  # noqa: E402
 from src.agent.correction.envelope import extract_authoritative_envelope  # noqa: E402

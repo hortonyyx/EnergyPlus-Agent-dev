@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from src.agent.pipeline import _build_correction_messages, discover_vector_files
+from src.agent.legacy.pipeline import _build_correction_messages, discover_vector_files
 from src.agent.reading.as_drawn.as_drawn_v2 import SCHEMA as PRODUCER_AS_DRAWN_SCHEMA
 from src.agent.reading.vector_contract import (
     CONTRACT_AS_DRAWN_ELEVATION_V0,
@@ -336,7 +336,7 @@ def test_b3_excluded_sidecar_is_named_in_the_ledger(tmp_path):
 
 
 def test_b3_ledger_is_written_into_the_run_meta_dir(tmp_path):
-    from src.agent.pipeline import _write_vector_contract_ledger
+    from src.agent.legacy.pipeline import _write_vector_contract_ledger
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _legacy_view())
@@ -352,7 +352,7 @@ def test_b3_ledger_is_written_into_the_run_meta_dir(tmp_path):
 
 def test_b3_ledger_is_filed_even_when_classification_fails(tmp_path):
     """A run that fails classification must still leave a readable record."""
-    from src.agent.pipeline import _write_vector_contract_ledger
+    from src.agent.legacy.pipeline import _write_vector_contract_ledger
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "mystery.json", {"hello": 1})
@@ -674,7 +674,7 @@ def test_r4_real_run_correction_names_the_file_and_files_the_ledger(
     non-object with a bare AttributeError. Classification + ledger must come
     FIRST, so the failure is named and the ledger is on disk either way.
     ⛔ Goes through real `run_correction`, not the `_write_..._ledger` helper."""
-    from src.agent.pipeline import run_correction
+    from src.agent.legacy.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
     vdir.mkdir(parents=True)
@@ -701,7 +701,7 @@ def test_r4_real_run_correction_names_the_file_and_files_the_ledger(
 def test_r4_ledger_precedes_the_reading_evidence_preflight(tmp_path):
     """⭐ Ordering is the fix. Before it, this raised `AttributeError: 'list'
     object has no attribute 'get'` from the preflight with no ledger written."""
-    from src.agent.pipeline import run_correction
+    from src.agent.legacy.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
     vdir.mkdir(parents=True)
@@ -835,7 +835,7 @@ def test_r5_complete_declaration_plus_legacy_is_still_ambiguous(
 
 
 def test_r5_registered_but_malformed_through_run_correction_leaves_a_ledger(tmp_path):
-    from src.agent.pipeline import run_correction
+    from src.agent.legacy.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _malformed_declared_view(PRODUCER_AS_DRAWN_SCHEMA, {}))
@@ -884,7 +884,7 @@ def test_r6_run_pipeline_artifacts_names_the_file_and_files_the_ledger(
     and that claim was the load-bearing part: entry LEVEL is part of 'any', not
     a detail below it. Same fixture, one entry point out, and neither F-b nor
     F-c existed."""
-    from src.agent.pipeline import run_pipeline_artifacts
+    from src.agent.legacy.pipeline import run_pipeline_artifacts
 
     vdir, out_dir = _poisoned_run(tmp_path, payload)
     with pytest.raises(UnconsumableVectorFile) as exc:
@@ -902,7 +902,7 @@ def test_r6_run_pipeline_artifacts_names_the_file_and_files_the_ledger(
 def test_r6_run_pipeline_wrapper_covers_the_same_ground(tmp_path):
     """`run_pipeline` is a thin wrapper, but 'thin' is an assumption; the whole
     blocker was an entry point nobody had exercised."""
-    from src.agent.pipeline import run_pipeline
+    from src.agent.legacy.pipeline import run_pipeline
 
     vdir, out_dir = _poisoned_run(tmp_path, b"[1, 2, 3]")
     with pytest.raises(UnconsumableVectorFile) as exc:
@@ -925,7 +925,7 @@ def test_r6_filesystem_shapes_also_stop_at_the_composite_entry(tmp_path, label, 
     JSON, they are ordinary directory entries, and on the composite entry each
     one died inside `load_reading_view` / the ledger writer with a bare
     `IsADirectoryError` -- no name, no ledger."""
-    from src.agent.pipeline import run_pipeline_artifacts
+    from src.agent.legacy.pipeline import run_pipeline_artifacts
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _legacy_view())
@@ -966,7 +966,7 @@ def test_r6_ledger_is_on_disk_before_every_view_consumer(tmp_path, monkeypatch):
     which is fine -- the ordering assertions have already fired, and F-c says
     even that failure owes a ledger."""
     import src.agent.correction.window_sources as window_sources
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     import src.agent.reading as reading
 
     vdir = tmp_path / "0_reading"
@@ -1154,7 +1154,7 @@ def test_r7_real_run_correction_names_them_and_files_the_ledger(
     tmp_path, label, payload, expect_reason
 ):
     from src.agent.reading.vector_contract import UNEXPECTED_FAILURE_PREFIX
-    from src.agent.pipeline import run_correction
+    from src.agent.legacy.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
     vdir.mkdir(parents=True)
@@ -1178,7 +1178,7 @@ def test_r7_real_run_correction_names_them_and_files_the_ledger(
 
 
 def test_r7_directory_named_json_reaches_run_correction_with_a_ledger(tmp_path):
-    from src.agent.pipeline import run_correction
+    from src.agent.legacy.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _legacy_view())
@@ -1208,7 +1208,7 @@ def test_r7_a_hostile_run_dir_does_not_eat_the_named_refusal(tmp_path):
     F-c. Losing the ledger to an unusable run dir is unavoidable; losing the
     named refusal too is a strict regression, so the write failure is logged and
     the classification verdict still lands."""
-    from src.agent.pipeline import run_correction
+    from src.agent.legacy.pipeline import run_correction
 
     vdir = tmp_path / "0_reading"
     vdir.mkdir(parents=True)
@@ -1224,7 +1224,7 @@ def test_r7_a_hostile_run_dir_does_not_eat_the_named_refusal(tmp_path):
 
 
 def test_r7_ledger_writer_itself_never_raises_on_a_hostile_run_dir(tmp_path):
-    from src.agent.pipeline import _write_vector_contract_ledger
+    from src.agent.legacy.pipeline import _write_vector_contract_ledger
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _legacy_view())
@@ -1252,7 +1252,7 @@ def test_r6_no_reading_file_is_read_before_the_ledger_is_on_disk(tmp_path, monke
     """
     import sys
 
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
 
     vdir = tmp_path / "0_reading"
     _write(vdir, "1f_view.json", _legacy_view())

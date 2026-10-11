@@ -241,7 +241,7 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
     population went live: every opening fell outside the box and the
     resolver refused, by design.)
     """
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
 
     real_run_correction = pipeline.run_correction
 
@@ -308,7 +308,7 @@ def test_new_leg_draw_runs_through_the_flow_shape(tmp_path, monkeypatch):
 
 
 def test_strict_run_profile_rides_the_chain_strict_side(tmp_path, monkeypatch):
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
 
     seen: dict = {}
 

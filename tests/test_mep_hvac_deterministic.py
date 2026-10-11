@@ -34,7 +34,7 @@ from pathlib import Path
 import pytest
 
 import scripts.tool_scripts.run_stage as rs
-import src.agent.pipeline as pipeline
+import src.agent.legacy.pipeline as pipeline
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.policy import RunPolicy
 from src.validator.checks.mep import check_mep
@@ -294,7 +294,7 @@ def test_a3_flow_and_run_stage_paths_render_identical_hvac_specs(tmp_path, monke
     )
 
     # Path A: the flow entry point -- the real call site in
-    # run_pipeline_artifacts (src/agent/pipeline.py).
+    # run_pipeline_artifacts (src/agent/legacy/pipeline.py).
     out_dir_a = tmp_path / "flow_out"
     pipeline.run_pipeline_artifacts(
         vector_dir, "{}", out_dir=out_dir_a, run_profile="exploratory"

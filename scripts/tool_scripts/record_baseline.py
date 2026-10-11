@@ -120,12 +120,15 @@ def _collect_git_provenance() -> tuple[dict, str | None]:
 
 
 def _collect_provenance() -> dict:
+    from src.agent.legacy.resources import INTAKE_RESOURCE_RELATIVE
+
     # Future golden exact re-record comparisons must normalize/exclude
     # environment-dependent provenance fields such as git dirtiness.
     provenance, git_error = _collect_git_provenance()
     errors = [git_error] if git_error else []
     targets = {
-        "skills_intake_hash": PROJECT_ROOT / "skills" / "intake_pipeline",
+        # Historical report key; hash the relocated resources actually in use.
+        "skills_intake_hash": PROJECT_ROOT / INTAKE_RESOURCE_RELATIVE,
         "reading_src_hash": PROJECT_ROOT / "src" / "agent" / "reading",
         "correction_src_hash": PROJECT_ROOT / "src" / "agent" / "correction",
     }

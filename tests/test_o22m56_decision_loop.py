@@ -1185,7 +1185,7 @@ def _probe_modules(target: str, extra_path: str | None = None) -> set[str]:
         ) +
         "import " + target + "; "
         "print(sorted(m for m in sys.modules if "
-        "m == 'src.agent.pipeline' or m.startswith('src.agent.judge')))"
+        "m == 'src.agent.legacy.pipeline' or m.startswith('src.agent.judge')))"
     )
     result = subprocess.run(
         [sys.executable, "-c", probe],
@@ -1264,12 +1264,12 @@ def test_difference_lock_turns_red_on_a_real_new_edge():
     import tempfile as _tf
     with _tf.TemporaryDirectory() as tmp:
         bad = Path(tmp) / "bad_wiring_probe.py"
-        bad.write_text("import src.agent.pipeline\n", encoding="utf-8")
+        bad.write_text("import src.agent.legacy.pipeline\n", encoding="utf-8")
         baseline = _probe_modules("src.agent.correction.evidence_contract")
         reached = _probe_modules("bad_wiring_probe", extra_path=tmp)
         added = reached - baseline
         assert added, "premise broke: the probe found no new edge"
-        assert "src.agent.pipeline" in added
+        assert "src.agent.legacy.pipeline" in added
 
 
 # =========================================================================== #

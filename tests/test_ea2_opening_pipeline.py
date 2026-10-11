@@ -8,7 +8,7 @@ import subprocess
 
 import pytest
 
-from src.agent import pipeline
+from src.agent.legacy import pipeline
 from src.agent.correction.evidence_adapters import adapt_as_drawn_plan, adapt_as_drawn_elevation
 from src.agent.correction.opening_adjudication import (
     OpeningReview, PlanBinding, FacadeInput, PlanCandidateChoice, OpeningChoice, SpatialResponse,

@@ -1,6 +1,6 @@
 """Standalone CLI for the staged intake pipeline (vector JSON -> IntakeOutput).
 
-Thin wrapper over `src.agent.pipeline` — the same code path intake_node uses, so
+Thin wrapper over `src.agent.legacy.pipeline` — the same code path intake_node uses, so
 the script and the pipeline can never drift. Use it to run the pipeline against a
 case dir without spinning up the whole graph (e.g. to iterate on the stage rule
 docs or to produce an artifact for comparison).
@@ -12,7 +12,7 @@ Usage:
 Reads:
     <case>/0_reading/*.json + reading_summary.md
     <case>/testdata_prompt.json
-    skills/intake_pipeline/{0_reading, 1_correction, 2_modelling, 3_split_pairing, 4_mep}
+    src/agent/legacy/intake/{reading, correction, modelling, split_pairing, mep}
 
 Writes (to <case>/pipeline_out/):
     1_correction/ 2_modelling/ 3_split_pairing/ 4_mep/ 5_intakeoutput/
@@ -33,7 +33,7 @@ from dotenv import load_dotenv  # noqa: E402
 from loguru import logger  # noqa: E402
 
 from src.agent._share import ensure_schema_initialized  # noqa: E402
-from src.agent.pipeline import run_pipeline  # noqa: E402
+from src.agent.legacy.pipeline import run_pipeline  # noqa: E402
 
 # Load the EnergyPlus IDD so IntakeOutput.model_validate() can run its custom
 # field validators (e.g. validate_terrain reads cls._idf_field...).
@@ -47,7 +47,7 @@ def main() -> None:
         "--case",
         required=True,
         help="case directory containing 0_reading/ + testdata_prompt.json "
-        "(rule docs are read from skills/intake_pipeline/)",
+        "(rule docs are read from src/agent/legacy/intake/)",
     )
     args = ap.parse_args()
 

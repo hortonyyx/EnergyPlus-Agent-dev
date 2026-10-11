@@ -104,7 +104,7 @@ def _draw_correction_with_debt(run_dir: Path, run_profile: str, finalize_spy: li
     """Drive the REAL `_draw_correction` with the LLM + unrelated heavy steps
     stubbed, but keep `check_evidence_debt_coverage` + the F-3a early-exit line
     + the routing REAL. Isolates exactly the debt early-exit decision."""
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     import src.agent.correction.finalize as finalize_mod
     import src.agent.correction.window_sources as ws
     import src.validator.checks.correction as corr_checks
@@ -125,7 +125,7 @@ def _draw_correction_with_debt(run_dir: Path, run_profile: str, finalize_spy: li
     # LLM -> real geom; the OTHER early-exit (draw_quality) + post-finalize check
     # + reading-root verifier are stubbed so they never mask the debt decision.
     # run_correction/correction_draw_issues are local imports in _draw_correction
-    # (read from src.agent.pipeline at call time); dimensioned_view_names is a
+    # (read from src.agent.legacy.pipeline at call time); dimensioned_view_names is a
     # module-level import in run_stage (read from case_metadata), so patch rs.
     monkeypatch.setattr(pipeline, "run_correction", lambda *a, **k: geom)
     monkeypatch.setattr(pipeline, "correction_draw_issues", lambda *a, **k: [])
@@ -288,7 +288,7 @@ def test_f2b_correction_entry_names_missing_summary(tmp_path):
     path (flat reader that forgot the summary), `_build_correction_messages`
     raises a named FileNotFoundError pointing at the reading-stage contract —
     not a bare OSError from `read_text`."""
-    from src.agent.pipeline import _build_correction_messages
+    from src.agent.legacy.pipeline import _build_correction_messages
 
     vector_dir = tmp_path / "0_reading"
     vector_dir.mkdir()

@@ -8,7 +8,7 @@ was derived from, and `renders/`. The answer key is read ONLY by the gate② jud
   - gate① deterministic checks (`src/validator/checks/*`) — they ship to
     production, which has no answer key; depending on gt would make dev and prod
     behave differently;
-  - stage executors (`src/agent/pipeline.py` run_correction / run_mep) — feeding
+  - stage executors (`src/agent/legacy/pipeline.py` run_correction / run_mep) — feeding
     the answer would collapse the error budget.
 
 `tests/test_gt_discipline.py` mechanically enforces that those modules do not

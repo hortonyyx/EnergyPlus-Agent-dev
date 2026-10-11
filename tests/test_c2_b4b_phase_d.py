@@ -510,7 +510,7 @@ def test_d5_va_source_has_no_tautological_noop_assertion_and_d6_new_judge_module
     source = Path("src/agent/correction/facade_applicability.py").read_text(encoding="utf-8")
     assert "assert flip == flip" not in source and "assert result == result" not in source
     production = [*Path("src/agent/execution").glob("*.py"), *Path("src/agent/correction").glob("*.py"),
-                  *Path("src/agent/reading").glob("*.py"), Path("src/agent/pipeline.py")]
+                  *Path("src/agent/reading").glob("*.py"), Path("src/agent/legacy/pipeline.py")]
     forbidden = ("score_schema", "score_config", "score_inputs", "segment_score", "opening_claim_score", "score_policy", "elevation_score", "score_service")
     assert all(not any(f"src.agent.judge.{name}" in path.read_text(encoding="utf-8") for name in forbidden)
                for path in production if path.exists())

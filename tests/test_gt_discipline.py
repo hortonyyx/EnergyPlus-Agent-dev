@@ -53,7 +53,7 @@ def test_gate1_checks_do_not_reference_gt():
 
 
 def test_executors_do_not_reference_gt():
-    executors = [Path("src/agent/pipeline.py")]
+    executors = [Path("src/agent/legacy/pipeline.py")]
     executors.extend(sorted(Path("src/agent/execution").rglob("*.py")))
     executors.extend(sorted(Path("src/agent/correction").rglob("*.py")))
     executors.extend(sorted(Path("src/agent/reading").rglob("*.py")))
@@ -77,7 +77,7 @@ def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
     the reader for the gt RAW layer (per-edge basis/thickness inside
     review/conversion_report.json).  All must stay judge-side only: gate① / the
     executor must never import any of them, mirroring the gt iron law
-    (CLAUDE.md §1.5#4).  This actually imports src.agent.pipeline in a FRESH
+    (CLAUDE.md §1.5#4).  This actually imports src.agent.legacy.pipeline in a FRESH
     subprocess (so an already-populated sys.modules from an earlier test in the
     same session cannot hide a real gap, and a genuinely absent one cannot
     produce a false positive either) and inspects sys.modules for what really
@@ -90,7 +90,7 @@ def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
     repo_root = Path(__file__).resolve().parents[1]
     probe = (
         "import sys, json\n"
-        "import src.agent.pipeline\nimport src.agent.runtime_entry\nimport src.agent.runtime_roles.entry\n"
+        "import src.agent.legacy.pipeline\nimport src.agent.runtime_entry\nimport src.agent.runtime_roles.entry\n"
         "hits = sorted(m for m in sys.modules "
         "if m in ('src.agent.judge.gt', 'src.agent.judge.gt_raw_layer') "
         "or m.startswith('src.agent.judge.as_drawn'))\n"

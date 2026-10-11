@@ -1,6 +1,6 @@
 # 统一 Agent：长任务、上下文与恢复
 
-阶段 2 实现说明。验收口径由 Opus 维护的[验收文件](../project/unified_agent_acceptance.md)决定；本文不代替验收结论，也不证明工作模型能完成整案。
+长任务能力的早期实现说明；后续运行控制见 [runtime_controls](../workflow/runtime_controls.md)，当前状态见 [roadmap](../project/roadmap.md)。本页不代替实际验收，也不规定建模任务的执行阶段。
 
 ## 保存什么，发送什么
 
@@ -63,6 +63,6 @@ CLI 的 `--keep-view-id` 固定某视图，`--retrieve-image VIEW_ID SHA256` 精
 
 ## 入口与范围
 
-新增选项见 `python -m src.agent.runtime_entry --help`。继续使用阶段 1 的冻结工具服务、工具名单和指引；建筑回调只索引已保存产物。`review_detail` 内部会调用其他模型，仍由既有阶段限制阻止，不绕过总账启动。
+新增选项见 `python -m src.agent.runtime_entry --help`。该早期实现复用当时冻结的工具服务、工具名单和指引；建筑回调只索引已保存产物。`review_detail` 内部会调用其他模型，该早期运行范围没有启用，不绕过总账启动。
 
-可复验材料位于[阶段 2 交付目录](../logs/experiments/2026-10-02_harness_stage2/README.md)。长任务来自 run99 的实际工具调用和原图片，使用离线脚本回放，并将历史成功写映射到隔离的保存副本。它验证运行机制、来源保存和故障边界，不能代表新的建筑方案生成或模型质量。
+可复验材料位于[早期长任务验证目录](../logs/experiments/2026-10-02_harness_stage2/README.md)。长任务来自 run99 的实际工具调用和原图片，使用离线脚本回放，并将历史成功写映射到隔离的保存副本。它验证运行机制、来源保存和故障边界，不能代表新的建筑方案生成或模型质量。

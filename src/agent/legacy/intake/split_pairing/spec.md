@@ -10,14 +10,14 @@ modeling alone produces one-to-many adjacencies.
 floor membership) and is indifferent to how zonification produced them — faithful rooms
 or re-topologized thermal blocks only change the input count, never the algorithm.
 
-Implementation: [`src/agent/geometry/split_pairing.py`](../../../src/agent/geometry/split_pairing.py).
+Implementation: [`src/agent/geometry/split_pairing.py`](../../../../../src/agent/geometry/split_pairing.py).
 Spec of "correct" = the InterZone gate
-([`src/validator/interzone.py`](../../../src/validator/interzone.py)), which judges this
+([`src/validator/interzone.py`](../../../../../src/validator/interzone.py)), which judges this
 stage's output post-hoc.
 
 ## Input / Output
 
-- **In**: `list[ZoneVolume]` from [2_modelling](../2_modelling/spec.md).
+- **In**: `list[ZoneVolume]` from [2_modelling](../modelling/spec.md).
 - **Out**: `list[Surface]` — each with type (Wall / Floor / Ceiling / Roof), oriented
   vertices, OBC (`Outdoors` / `Ground` / `Surface`), and for interzone faces a reciprocal
   `obc_obj` pointing at its exact partner.

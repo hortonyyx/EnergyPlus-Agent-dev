@@ -1,6 +1,6 @@
 """intake_node pipeline dispatch wiring (no network / no LLM).
 
-Monkeypatches `src.agent.pipeline.run_pipeline` to capture how `intake_node` calls
+Monkeypatches `src.agent.legacy.pipeline.run_pipeline` to capture how `intake_node` calls
 it, asserting the fixes from the 2026-05-29 intake-switch review:
   - the pipeline receives the RAW `testdata_text`, not the human-readable `user_input`
     summary (finding #1);
@@ -17,7 +17,7 @@ from tests.archive_paths import archive_path
 import json
 from pathlib import Path
 
-import src.agent.pipeline as pipeline_mod
+import src.agent.legacy.pipeline as pipeline_mod
 from src.agent._share import ensure_schema_initialized
 from src.agent.nodes.intake import intake_node
 from src.agent.state import AgentState, IntakeOutput

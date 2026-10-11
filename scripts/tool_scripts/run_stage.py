@@ -568,7 +568,7 @@ def _draw_correction_as_drawn(
     from src.agent.execution.evidence_preflight import load_evidence_debt
     from src.agent.execution.run_meta import run_meta_path
     from src.agent.execution.view_manifest import ViewManifest
-    from src.agent.pipeline import MultiFloorPlanRun, run_multifloor_correction
+    from src.agent.legacy.pipeline import MultiFloorPlanRun, run_multifloor_correction
     from src.validator.checks.correction import check_correction
 
     s1 = run_dir / "1_correction"
@@ -754,7 +754,7 @@ def _draw_correction(
     from src.agent.correction.finalize import finalize_correction_draw
     from src.agent.correction.parse import correction_target
     from src.agent.execution.evidence_preflight import load_evidence_debt
-    from src.agent.pipeline import (
+    from src.agent.legacy.pipeline import (
         _reading_window_stroke_count,
         _schema_only_correction_validator,
         correction_draw_issues,
@@ -981,7 +981,7 @@ def _load_snapped_with_proof(run_dir: Path):
 
 def _draw_modelling(run_dir: Path, policy: RunPolicy):
     from src.agent.geometry.specs import building_geometry_dict
-    from src.agent.pipeline import materialize_kernel_geometry
+    from src.agent.legacy.pipeline import materialize_kernel_geometry
     from src.validator.checks.kernel import check_kernel
 
     geom, window_host_proof = _load_snapped_with_proof(run_dir)
@@ -1076,7 +1076,7 @@ def _geometry_zone_meta(run_dir: Path, policy: RunPolicy):
 
 
 def _draw_mep(run_dir: Path, testdata_text: str, policy: RunPolicy):
-    from src.agent.pipeline import run_mep
+    from src.agent.legacy.pipeline import run_mep
     from src.validator.checks.mep import check_mep
 
     zone_specs, _, _, used, zone_names = _geometry_zone_meta(run_dir, policy)
@@ -2676,10 +2676,12 @@ def _judge_packet(stage: str, case: str, case_dir: Path, run_dir: Path,
         if gt is not None
         else {"score_vs_gt": None, "grade": None, "score_criteria": []}
         )
+    from src.agent.legacy.resources import rubric_relative_path
+
     pkt = {
         "stage": stage,
         "rubric_id": rubric_id,
-        "rubric_doc": f"skills/intake_pipeline/{stage}/judge_rubric.md",
+        "rubric_doc": rubric_relative_path(stage),
         "accepted_attempt_dir": str(attempt_dir),
         "source_images": _source_images(case_dir),
         "renders": renders,

@@ -584,7 +584,7 @@ def test_the_adapters_import_no_pipeline():
     adapter layer is never allowed to grow an orchestration import."""
     probe = (
         "import sys; import src.agent.correction.evidence_adapters; "
-        "print(any(m == 'src.agent.pipeline' for m in sys.modules))"
+        "print(any(m == 'src.agent.legacy.pipeline' for m in sys.modules))"
     )
     result = subprocess.run(
         [sys.executable, "-c", probe],

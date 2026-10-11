@@ -26,7 +26,7 @@ from src.agent.geometry.openings import visible_wall_parts
 from src.agent.geometry.to_idf import building_to_idf
 from src.agent.judge.source_connections import compare_connections
 from src.agent.judge.source_partition import compare_partitions
-from src.agent.pipeline import materialize_kernel_geometry
+from src.agent.legacy.pipeline import materialize_kernel_geometry
 
 
 def run(out: Path) -> dict:

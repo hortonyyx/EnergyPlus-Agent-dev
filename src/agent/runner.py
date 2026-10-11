@@ -160,7 +160,7 @@ def run_downstream_ep(
     graph/session/SimContext wiring so CLI and flow use the same EP execution
     path.
     """
-    from src.agent.graph import build_graph
+    from src.agent.legacy.graph import build_graph
 
     graph = build_graph()
     context = SimContext(

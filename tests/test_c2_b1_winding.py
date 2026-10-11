@@ -15,7 +15,7 @@ import pytest
 
 from src.agent.correction import CorrectedGeometry, apply_deterministic_core
 from src.agent.correction.cell_geometry import normalized_ccw_polygon
-from src.agent.pipeline import correction_draw_issues
+from src.agent.legacy.pipeline import correction_draw_issues
 
 CCW_L_RING = [
     [0.0, 0.0],

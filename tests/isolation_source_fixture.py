@@ -30,7 +30,7 @@ def isolation_source_copy(tmp_path_factory):
     root = tmp_path_factory.mktemp("cleanroom-source")
     paths = [Path("src/agent/execution/isolation.py"),
              Path("src/agent/reading/cv_toolbox"),
-             Path("skills/intake_pipeline/0_reading"),
+             Path("src/agent/legacy/intake/reading"),
              Path("case_tests/e2e_tests/sm21_anchor/case_data"),
              Path("scripts/tool_scripts/cv_probe.py"),
              Path(isolation.WORKED_EXAMPLE_SOURCE)]

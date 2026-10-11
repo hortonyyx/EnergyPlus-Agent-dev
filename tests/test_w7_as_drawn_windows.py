@@ -129,7 +129,7 @@ def staged(tmp_path_factory):
     """
     from run_stage import _w1_cross_check_elevation_ladders
     from src.agent.execution.view_manifest import ViewManifest
-    from src.agent.pipeline import MultiFloorPlanRun, run_multifloor_correction
+    from src.agent.legacy.pipeline import MultiFloorPlanRun, run_multifloor_correction
 
     run_dir = tmp_path_factory.mktemp("w7_chain")
     rdir = run_dir / "0_reading"

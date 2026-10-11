@@ -1,4 +1,4 @@
-"""Unit tests for 1_correction stability hardening in src.agent.pipeline:
+"""Unit tests for 1_correction stability hardening in src.agent.legacy.pipeline:
 JSON-parse / semantic retry in `_call_json_llm`, plus the composite correction
 validator (_make_correction_validator) that catches the sm21 0-window class,
 duplicate cell ids, z-stack gaps, and illegal facade values. OpenAI is
@@ -10,7 +10,7 @@ import json
 
 import pytest
 
-from src.agent import pipeline
+from src.agent.legacy import pipeline
 
 SECTION = {"api_key": "x", "model_name": "m"}
 
@@ -156,7 +156,7 @@ def test_transport_error_consumed_as_attempt(patch_openai):
                 raise ConnectionError("simulated 5xx / timeout")
             return _resp('{"ok": 1}')
 
-    import src.agent.pipeline as pl_mod
+    import src.agent.legacy.pipeline as pl_mod
     from unittest.mock import patch as _patch
 
     client = _ErrorThenOk()
@@ -181,7 +181,7 @@ def test_transport_error_exhausts_all_attempts(patch_openai):
             self.calls += 1
             raise ConnectionError("always broken")
 
-    import src.agent.pipeline as pl_mod
+    import src.agent.legacy.pipeline as pl_mod
     from unittest.mock import patch as _patch
 
     client = _AlwaysError()

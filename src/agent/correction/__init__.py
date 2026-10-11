@@ -5,7 +5,7 @@ correction stage (LLM correction) -> CorrectedGeometry  (materialized intermedia
    -> the modeling/MEP stages (LLM modeling) -> IntakeOutput
 
 Decoupling the stages makes each model swappable and the correction checkpoint
-verifiable / diffable for evaluation. Spec: skills/intake_pipeline/ (1_correction + 4_mep)
+verifiable / diffable for evaluation. Legacy reference: src/agent/legacy/intake/correction/.
 PartA-correction/.
 """
 

@@ -568,7 +568,7 @@ def _booby_trap_the_model_seat(monkeypatch):
     that proof must not depend on the refusal happening before the seat is
     even built: if a future route change ever seats a provider under these
     locks, the trap fires instead of a billed network call."""
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
 
     def _trapped(*, section, out_dir):
         def _never(packet):
@@ -600,7 +600,7 @@ def test_real_entry_point_takes_real_elevation_bytes(monkeypatch, tmp_path):
     from src.agent.correction.decision_executor import run_decision_loop  # noqa: F401  (proves the import path the chain drives)
     from src.agent.correction.decision_schema import CorrectionDecisionResponseV1
 
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
 
     _booby_trap_the_model_seat(monkeypatch)
     vector_dir, out_dir = _stage_real_east(tmp_path)
@@ -652,7 +652,7 @@ def test_real_entry_point_without_the_branch_goes_red_unwired(
     carries ``fixed_responses``, so deleting that argument is a red; and
     (b) the model seat is booby-trapped, so a future route that seats a
     model before refusing detonates here instead of on the network."""
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     import src.agent.reading.vector_contract as vector_contract
 
     _booby_trap_the_model_seat(monkeypatch)

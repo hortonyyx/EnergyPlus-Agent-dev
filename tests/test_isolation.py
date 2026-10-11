@@ -133,8 +133,8 @@ def test_build_isolation_workspace_copies_whitelist_and_manifest(tmp_path: Path)
 
     assert (staging / "case_data" / "1f_view.png").exists()
     assert (staging / "case_data" / "testdata_prompt.json").exists()
-    assert (staging / "skills/intake_pipeline/0_reading/session_kickoff.md").exists()
-    assert not (staging / "skills/intake_pipeline/0_reading/judge_rubric.md").exists()
+    assert (staging / "src/agent/legacy/intake/reading/session_kickoff.md").exists()
+    assert not (staging / "src/agent/legacy/intake/reading/judge_rubric.md").exists()
     assert (staging / "src/agent/reading/cv_toolbox/__init__.py").exists()
     assert (staging / "tools/cv_probe.py").exists()
     assert (staging / "tools/run_cv_probe.py").exists()
@@ -155,7 +155,7 @@ def test_build_isolation_workspace_copies_whitelist_and_manifest(tmp_path: Path)
         "case_tests/test_baseline/gt/sm21/gt.json",
         "case_tests/e2e_tests/sm21_anchor/run_foo/0_reading/output.json",
         "case_tests/e2e_tests/sm21_anchor/0_reading/attempts/001/output.json",
-        "skills/intake_pipeline/0_reading/judge_rubric.md",
+        "src/agent/legacy/intake/reading/judge_rubric.md",
         "case_tests/e2e_tests/sm21_anchor/report/verdict.json",
         "case_tests/e2e_tests/sm21_anchor/report/grade.json",
     ],
@@ -988,7 +988,7 @@ def test_build_kickoff_points_at_staged_worked_example_path(tmp_path: Path):
     This version PARSES the path the kickoff actually names out of its syntactic
     slot and stats *that*, so a pointer-only drift is caught."""
     staging = _build(tmp_path).staging_root
-    kickoff = (staging / "skills/intake_pipeline/0_reading/session_kickoff.md").read_text(encoding="utf-8")
+    kickoff = (staging / "src/agent/legacy/intake/reading/session_kickoff.md").read_text(encoding="utf-8")
     assert str(WORKED_EXAMPLE_SOURCE) not in kickoff, "kickoff still names the denied repo path"
 
     match = _KICKOFF_POINTER_RE.search(kickoff)
@@ -1040,7 +1040,7 @@ def test_build_precreates_requests_dir_and_kickoff_mentions_it(tmp_path: Path):
         "isolation_settings.json",
         "MANIFEST.json",
         "binding.json",
-        "skills/intake_pipeline/0_reading/guide.md",
+        "src/agent/legacy/intake/reading/guide.md",
         "src/agent/reading/cv_toolbox/tools.py",
         "case_data/1f_view.png",
         "prescan/cv_evidence/1f_view/prescan/candidates.json",
@@ -3516,7 +3516,7 @@ def test_spawn_defaults_to_cold_start_and_asks_for_the_session_id(tmp_path: Path
     argv = _spawn_argv(staging)
     assert "-r" not in argv
     assert argv[argv.index("--output-format") + 1] == "json"
-    assert "Read skills/intake_pipeline/0_reading/session_kickoff.md" in argv[argv.index("-p") + 1]
+    assert "Read src/agent/legacy/intake/reading/session_kickoff.md" in argv[argv.index("-p") + 1]
 
 
 def test_spawn_resume_refuses_when_no_session_was_recorded(tmp_path: Path):

@@ -67,7 +67,7 @@ from typing import Any
 
 import pytest
 
-from src.agent import pipeline
+from src.agent.legacy import pipeline
 from src.agent.correction.parse import correction_target, parse_correction_draw
 from src.agent.correction.schema import (
     CORRECTION_DRAW_FORBIDDEN,

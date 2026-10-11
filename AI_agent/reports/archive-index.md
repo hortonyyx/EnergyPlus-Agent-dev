@@ -1,5 +1,13 @@
 # 历史资料位置
 
+## 2026-10-11：domain 清理前快照
+
+Git 基准 `3e917b8ecb0c3c8757edf590fcf9cc41a44c9999` 保留本轮清理前的跟踪文件。另有本机独立副本 `D:/Sim-BIM-Agent/archive/architecture-cleanup-20261011-3e917b8e`，74 个管理文档及旧阶段资源、720,489 字节，全部复制后 SHA-256 相符；逐项路径/大小/哈希在该目录 `manifest.json`。此副本不是新增远端备份，跨机器可从上述 Git 提交恢复跟踪原文。
+
+其中 `AI_agent/workflow/models.md`、`run_case.md`、`design/reading_correction.md`、`role_division.md`、`model_configuration.md` 保留完整历史方法、提示、用量和旧方案。当前同名文件只维护现行职责和操作；历史批次授权不自动生效。仍被执行的旧资源及管线入口已归入 `src/agent/legacy`，详见 [legacy 索引](../../src/agent/legacy/README.md)。
+
+## 迁移时保全的历史资料
+
 当前开发唯一主库为 `D:\Sim-BIM-Agent\repo`。2026-10-11 复制自桌面后，424,586 个资料文件逐项 SHA-256 核验，零差异；1155 个链接只记录、不跟随。
 
 批量移位操作被工具自动审批拒绝（仅返回 blocked by policy）。采用保守布局：完整历史资料留在核验过的 D 副本原位，并退出当前 Git 版本、默认测试及发布包。没有重试该移位。

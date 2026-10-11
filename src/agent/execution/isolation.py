@@ -1,4 +1,4 @@
-"""Clean-room workspace support for isolated 0_reading reruns."""
+"""Clean-room workspace support for the optional legacy reading workflow."""
 
 from __future__ import annotations
 
@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from importlib import resources
 from pathlib import Path
+
+from src.agent.legacy.resources import READING_RESOURCE_RELATIVE
 
 from src.agent.execution.manifest import (
     RunManifestV2,
@@ -297,7 +299,7 @@ def build_isolation_workspace(
     scope = verification.exam_scope if run_dir is not None else None
     resolved_vision_tier = vision_resize_tier or DEFAULT_VISION_RESIZE_TIER
     _copy_case_data(case_dir, staging_root, manifest, view_manifest, scope, resolved_vision_tier)
-    _copy_reading_skill(staging_root, manifest)
+    _copy_reading_guidance(staging_root, manifest)
     _copy_worked_example(staging_root, manifest)
     _copy_cv_toolbox(staging_root, manifest)
     _write_kickoff(case_dir, staging_root, manifest, pilot_review_gate=pilot_review_gate)
@@ -1547,27 +1549,27 @@ def _load_isolated_views(
     return payload, json.dumps(payload, ensure_ascii=False)
 
 
-def _copy_reading_skill(staging_root: Path, manifest: WorkspaceManifest) -> None:
-    skill_root = _repo_root() / "skills" / "intake_pipeline" / "0_reading"
-    dest_root = staging_root / "skills" / "intake_pipeline" / "0_reading"
-    for path in sorted(skill_root.rglob("*")):
+def _copy_reading_guidance(staging_root: Path, manifest: WorkspaceManifest) -> None:
+    resource_root = _repo_root() / READING_RESOURCE_RELATIVE
+    dest_root = staging_root / READING_RESOURCE_RELATIVE
+    for path in sorted(resource_root.rglob("*")):
         if not path.is_file():
             continue
         if path.name == "judge_rubric.md":
             continue
         _assert_source_allowed(path)
-        rel = path.relative_to(skill_root)
+        rel = path.relative_to(resource_root)
         if path.name == "session_kickoff.md":
             # F-2: the kickoff names the repository source of the worked example.
             # Rewrite the pointer to the staged copy so the reader only sees files
             # present in the isolation manifest. Both sides agree on
             # WORKED_EXAMPLE_STAGED (the consistency lock stats this path in staging).
-            _copy_skill_kickoff(path, dest_root / rel, manifest)
+            _copy_reading_kickoff(path, dest_root / rel, manifest)
             continue
         _copy_file(path, dest_root / rel, "skill", manifest)
 
 
-def _copy_skill_kickoff(src: Path, dest: Path, manifest: WorkspaceManifest) -> None:
+def _copy_reading_kickoff(src: Path, dest: Path, manifest: WorkspaceManifest) -> None:
     text = src.read_text(encoding="utf-8")
     if WORKED_EXAMPLE_SOURCE in text:
         text = text.replace(WORKED_EXAMPLE_SOURCE, WORKED_EXAMPLE_STAGED)
@@ -1611,7 +1613,7 @@ def _write_kickoff(
     *, pilot_review_gate: bool = True,
 ) -> None:
     text = (
-        "Read skills/intake_pipeline/0_reading/session_kickoff.md and follow it "
+        f"Read {READING_RESOURCE_RELATIVE.as_posix()}/session_kickoff.md and follow it "
         f"for case {case_dir.name}.\n"
         "The drawings are at case_data/. Write reading outputs under out/ — one "
         "file per source image named exactly `<expected_output_id>.json` (each "

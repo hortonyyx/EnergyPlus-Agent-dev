@@ -72,7 +72,7 @@ from src.agent.execution.manifest import (  # noqa: E402
 )
 from src.agent.execution.stage_runner import StageRunner  # noqa: E402
 from src.agent.execution.view_manifest import ViewManifest  # noqa: E402
-from src.agent.pipeline import MultiFloorPlanRun, run_multifloor_correction  # noqa: E402
+from src.agent.legacy.pipeline import MultiFloorPlanRun, run_multifloor_correction  # noqa: E402
 from src.validator.checks.schema import CheckLayer, CheckReport  # noqa: E402
 
 _AS_DRAWN_OUT = (

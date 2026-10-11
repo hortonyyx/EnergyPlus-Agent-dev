@@ -52,7 +52,7 @@ def test_no_schema_version_three_mode_dispatch_outside_owners():
         # PRODUCER step (enrichment is definitionally v3-only); the resulting
         # coordinate MODE is still derived exclusively by
         # derive_output_coordinate_contract from the verified ref.
-        "src/agent/pipeline.py",
+        "src/agent/legacy/pipeline.py",
     }
     pattern = re.compile(r'schema_version\s*==\s*["\']3["\']')
     offenders = []

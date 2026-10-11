@@ -1746,7 +1746,7 @@ def test_the_type_layer_imports_no_pipeline():
 
     probe = (
         "import sys; import src.agent.correction.evidence_contract; "
-        "print(any(m == 'src.agent.pipeline' for m in sys.modules))"
+        "print(any(m == 'src.agent.legacy.pipeline' for m in sys.modules))"
     )
     result = subprocess.run(
         [sys.executable, "-c", probe],

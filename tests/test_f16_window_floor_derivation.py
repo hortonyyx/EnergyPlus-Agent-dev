@@ -301,7 +301,7 @@ def test_e2e_real_floor_populated_draw_gets_guided_then_recovers(monkeypatch):
     that fills `floor` must be rejected via the real validator chain,
     receive corrective guidance naming `floor`/`floor_id`, and recover on
     the very next attempt instead of repeating the mistake blind."""
-    from src.agent import pipeline
+    from src.agent.legacy import pipeline
 
     outcomes_payloads = [_v3_payload_with_window(floor_value="F1"), _v3_payload_with_window()]
 

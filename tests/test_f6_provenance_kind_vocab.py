@@ -27,7 +27,7 @@ from typing import get_args
 import pytest
 from pydantic import ValidationError
 
-from src.agent import pipeline
+from src.agent.legacy import pipeline
 from src.agent.correction.parse import correction_target
 from src.agent.correction.schema import CorrectedGeometryV3, FieldProvenance, NorthAxisEvidence
 from src.agent.correction.vocab import (

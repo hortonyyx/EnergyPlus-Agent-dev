@@ -28,7 +28,7 @@ from src.agent.correction.window_sources import (
 from src.agent.execution.manifest import RunInputs, RunManifestV2, load_run_manifest, new_run_id
 from src.agent.execution.stage_runner import StageRunner
 from src.agent.output_coordinates import _verify_b5_bundle, load_verified_accepted_correction
-from src.agent.pipeline import materialize_kernel_geometry
+from src.agent.legacy.pipeline import materialize_kernel_geometry
 from src.validator.checks.correction import check_correction
 
 DEFAULT_ARCHIVE = ROOT / "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e"

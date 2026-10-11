@@ -50,7 +50,7 @@ def test_env_override_missing_file_raises(monkeypatch):
 # back to `intake_correction`, but a missing `intake_correction` must RAISE
 # rather than silently inherit the downstream `default` ReAct config.
 
-from src.agent import pipeline as pipeline_mod  # noqa: E402
+from src.agent.legacy import pipeline as pipeline_mod  # noqa: E402
 
 
 def _write_cfg(tmp_path, body: str):

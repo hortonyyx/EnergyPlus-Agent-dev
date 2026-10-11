@@ -60,7 +60,7 @@ def _pass_report(stage: str) -> CheckReport:
 
 def test_flow_configuration_reaches_correction_and_restores_callers_environment(tmp_path, monkeypatch):
     import os
-    from src.agent.pipeline import _section
+    from src.agent.legacy.pipeline import _section
 
     config = tmp_path / "subscription.yaml"
     config.write_text("intake_correction:\n  provider: claude_subscription\n  model_name: sonnet\n")

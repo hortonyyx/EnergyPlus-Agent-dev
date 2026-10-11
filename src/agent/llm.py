@@ -47,7 +47,7 @@ def load_llm_section(node_name: str | None) -> dict[str, Any]:
         unknown `node_name` falls back to `default`.
 
     Config file = `resolve_llm_config_path()` (per-case override or global
-    default). Public so non-langchain callers (e.g. src/agent/pipeline.py, which
+    default). Public so non-langchain callers (e.g. src/agent/legacy/pipeline.py, which
     uses a raw OpenAI client) read the same config home.
     """
     raw = OmegaConf.load(resolve_llm_config_path())

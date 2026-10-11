@@ -8,7 +8,7 @@ from src.agent.geometry.source_model import materialize_source_model
 
 
 def test_sm21_pipeline_writes_source_sidecar_without_changing_legacy_payload(tmp_path):
-    from src.agent.pipeline import materialize_kernel_geometry
+    from src.agent.legacy.pipeline import materialize_kernel_geometry
     from src.agent.geometry.specs import building_geometry_dict
 
     root = Path(__file__).resolve().parents[1]

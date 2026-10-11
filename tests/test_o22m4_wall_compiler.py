@@ -621,7 +621,7 @@ def _probe_modules(target: str) -> set[str]:
     probe = (
         "import sys; import " + target + "; "
         "print(sorted(m for m in sys.modules if "
-        "m == 'src.agent.pipeline' or m.startswith('src.agent.judge')))"
+        "m == 'src.agent.legacy.pipeline' or m.startswith('src.agent.judge')))"
     )
     result = subprocess.run(
         [sys.executable, "-c", probe],

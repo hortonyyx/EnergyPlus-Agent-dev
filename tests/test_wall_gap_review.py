@@ -88,7 +88,7 @@ def test_review_of_other_image_cannot_replay(inputs):
 
 
 def test_normal_flow_consumes_review_sidecar_and_freezes_it(inputs, tmp_path, monkeypatch):
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     from scripts.tool_scripts.run_stage import _draw_correction_as_drawn, _make_policy
     from src.agent.correction.parse import ensure_corrected_geometry
     from src.agent.execution.evidence_preflight import EvidenceDebt

@@ -9,7 +9,7 @@
 > **Scope now = de-mixing, not expansion.** The project focus is geometry-modeling
 > correctness; this is left intentionally thin. Expand into a proper prior library
 > (typed by space type, tagged `national_code` vs `convention`, sourced like
-> [`../1_correction/A4_priors.md`](../1_correction/A4_priors.md)) **after
+> [`../1_correction/A4_priors.md`](../correction/A4_priors.md)) **after
 > geometry stabilizes**. Geometry priors currently live in `A4_priors.md`; the two
 > are expected to consolidate into this `priors/` directory later.
 >

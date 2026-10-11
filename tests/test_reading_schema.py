@@ -83,9 +83,9 @@ def test_plan_scale_origin_is_an_optional_not_mandatory_reader_instruction_contr
     THIS contract.
     """
 
-    guide = Path("skills/intake_pipeline/0_reading/guide.md").read_text(encoding="utf-8")
-    pens = Path("skills/intake_pipeline/0_reading/pen_library.md").read_text(encoding="utf-8")
-    kickoff = Path("skills/intake_pipeline/0_reading/session_kickoff.md").read_text(encoding="utf-8")
+    guide = Path("src/agent/legacy/intake/reading/guide.md").read_text(encoding="utf-8")
+    pens = Path("src/agent/legacy/intake/reading/pen_library.md").read_text(encoding="utf-8")
+    kickoff = Path("src/agent/legacy/intake/reading/session_kickoff.md").read_text(encoding="utf-8")
 
     # --- scale_origin is still a documented, legal field (not deleted) ---
     assert '"scale_origin"' in guide

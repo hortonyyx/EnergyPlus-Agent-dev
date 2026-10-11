@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-import src.agent.pipeline as pipeline
+import src.agent.legacy.pipeline as pipeline
 from src.agent.intakeoutput import MepOutput
 from src.agent.correction.schema import CorrectedGeometry
 from src.agent.execution.evidence_preflight import (

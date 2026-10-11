@@ -7,7 +7,7 @@ from src.agent.state import AgentState
 
 
 def test_run_downstream_ep_wires_context_and_thread_id(monkeypatch, tmp_path):
-    import src.agent.graph as graph_mod
+    import src.agent.legacy.graph as graph_mod
     import src.agent.runner as runner_mod
 
     fake_graph = object()

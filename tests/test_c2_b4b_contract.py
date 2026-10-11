@@ -63,7 +63,7 @@ def test_strict_wire_rejects_extra_missing_type_and_nonfinite():
 def test_config_hash_relationships_and_a0_registration():
     config = load_judge_score_config("src/configs/judge_score.yaml")
     assert judge_score_config_sha256(config) == "ac2c14705bbfc285b489f7eeb593baf712cdc46de57a5457317103f36a3c4a06"
-    assert judge_score_config_sha256(config) in Path("skills/intake_pipeline/1_correction/A0_contract.md").read_text(encoding="utf-8")
+    assert judge_score_config_sha256(config) in Path("src/agent/legacy/intake/correction/A0_contract.md").read_text(encoding="utf-8")
     with pytest.raises(ValidationError):
         type(config).model_validate({**config.model_dump(), "opening_assignment_tie_epsilon": 0.4})
 

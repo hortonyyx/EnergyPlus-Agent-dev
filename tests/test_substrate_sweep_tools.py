@@ -302,7 +302,7 @@ def test_grid_overlay_logger(staging: Path, form: str) -> None:
 
 
 # ===========================================================================
-# S-1b: every ```bash example in skills/intake_pipeline/0_reading/cv_toolbox.md,
+# S-1b: every ```bash example in src/agent/legacy/intake/reading/cv_toolbox.md,
 # run byte-for-byte (extracted by hand from the doc immediately before this
 # file was written) through the real shell in a real staging, exactly as a
 # reading agent copy-pasting the doc into a Bash tool call would experience

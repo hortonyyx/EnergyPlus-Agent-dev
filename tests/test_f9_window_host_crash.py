@@ -81,7 +81,7 @@ def test_real_crash_run_no_longer_hard_crashes(tmp_path, monkeypatch):
     run_dir = _copy_fixture_run(tmp_path)
     fixed_geom = _crashing_draw_geom(run_dir)
 
-    import src.agent.pipeline as pipeline_mod
+    import src.agent.legacy.pipeline as pipeline_mod
 
     monkeypatch.setattr(pipeline_mod, "run_correction", lambda *a, **k: fixed_geom.model_copy(deep=True))
 
@@ -111,7 +111,7 @@ def test_real_crash_run_neuter_run_stage_wiring_removed_restores_crash(tmp_path,
     run_dir = _copy_fixture_run(tmp_path)
     fixed_geom = _crashing_draw_geom(run_dir)
 
-    import src.agent.pipeline as pipeline_mod
+    import src.agent.legacy.pipeline as pipeline_mod
 
     monkeypatch.setattr(pipeline_mod, "run_correction", lambda *a, **k: fixed_geom.model_copy(deep=True))
 

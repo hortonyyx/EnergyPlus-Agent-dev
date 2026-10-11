@@ -34,7 +34,7 @@ from typing import Any
 
 import pytest
 
-from src.agent import pipeline
+from src.agent.legacy import pipeline
 from src.agent.correction.parse import correction_target
 from src.agent.correction.vocab import (
     north_axis_allowed_fields,

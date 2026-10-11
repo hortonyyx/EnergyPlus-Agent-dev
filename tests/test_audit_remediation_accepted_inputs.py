@@ -63,7 +63,7 @@ def test_draw_correction_rejects_nonaccepted_reading_before_llm_consumes_it(
         called["run_correction"] = True
         raise AssertionError("run_correction consumed untrusted reading bytes")
 
-    monkeypatch.setattr("src.agent.pipeline.run_correction", must_not_run)
+    monkeypatch.setattr("src.agent.legacy.pipeline.run_correction", must_not_run)
 
     with pytest.raises(WindowResolverInputError) as exc:
         run_stage._draw_correction(
@@ -120,7 +120,7 @@ def test_draw_correction_without_accepted_reading_preserves_standalone_path(
         reached["value"] = True
         raise ReachedRunCorrection
 
-    monkeypatch.setattr("src.agent.pipeline.run_correction", probe)
+    monkeypatch.setattr("src.agent.legacy.pipeline.run_correction", probe)
 
     with pytest.raises(ReachedRunCorrection):
         run_stage._draw_correction(run_dir, "{}", None, False, RunPolicy())
@@ -164,7 +164,7 @@ def test_real_draw_reading_archive_is_accepted_by_correction_guard(tmp_path, mon
     def probe(*args, **kwargs):
         raise ReachedRunCorrection
 
-    monkeypatch.setattr("src.agent.pipeline.run_correction", probe)
+    monkeypatch.setattr("src.agent.legacy.pipeline.run_correction", probe)
 
     with pytest.raises(ReachedRunCorrection):
         run_stage._draw_correction(run_dir, "{}", None, False, RunPolicy())

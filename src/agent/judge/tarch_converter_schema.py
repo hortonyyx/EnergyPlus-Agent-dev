@@ -29,7 +29,7 @@ Hard disciplines enforced structurally here (dispatch §2 + plan §2):
      :func:`~src.agent.judge.gt_manifest.load_gt_tooling_config`); quantization
      step is a *derived* value (node tolerance / 10), not a new config field.
   4. gt isolation: this module is judge-side and never imported by gate①
-     (``src/validator/checks/*``) or executors (``src/agent/pipeline.py`` etc.);
+     (``src/validator/checks/*``) or executors (``src/agent/legacy/pipeline.py`` etc.);
      Tianzheng-specific rules (WALL/WINDOW layer names, block-name prefixes)
      live ONLY inside :class:`TarchDialectRulesV1` in the request.
 """

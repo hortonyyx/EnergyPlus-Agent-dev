@@ -1,34 +1,44 @@
 # 当前架构
 
-Sim BIM Agent = work model + harness；harness = runtime + domain。单模型与分工共用源BIM、几何能力与工具。当前版本/验证状态只在 [roadmap](../project/roadmap.md) 维护。
+Sim BIM Agent = work model + harness；harness = runtime + domain。单模型与分工共用源 BIM、几何能力和工具。模型与输入策略见 [讨论结论](../project/model_and_input_strategy.md)，版本与实际验证状态见 [roadmap](../project/roadmap.md)。
 
-## runtime
+## Runtime
 
-`src/agent_runtime`负责模型适配、请求/工具循环、上下文、事件/产物、用量与预算、暂停/恢复、委派和连接。公共类型在`src/harness_contracts`。支持GLM订阅、Paratera等已登记线路及ChatGPT原生Responses订阅接入；真实服务状态独立验收。
+`src/agent_runtime` 负责模型适配、请求与工具循环、上下文、事件/产物、用量/预算、暂停/恢复、委派与连接；公共类型在 `src/harness_contracts`。它不定义建筑判断，也不要求任务经过固定编号阶段。
 
-按运行记录模型配置、runtime/domain版本与提交。保存声明/候选、事件账本和恢复点，按工具可重复性恢复；缺真实usage不凭估算补成供应商事实。源码版本检查保留，发布目录通过不可变文件清单识别来源。
+每次运行记录模型配置、runtime/domain 版本及提交，持久化事件、产物与恢复点。服务连接、目录访问和真实推理分别验收；缺失 usage 不由估算补成供应商实报。
 
-## domain
+## Domain
 
-- `src/agent/geometry`：源模型、平面编译、规整、装配、开口与空间关系。
-- `src/agent/runtime_roles`：调度员、平面读图员、立面读图员；工具范围、指引和产物契约。
-- `scripts/tool_scripts/run_bim_agent.py`及`bim_agent_*.py`：看图/量测/试建/编辑/检查/交付工具。
-- 输入方式对应独立methods和指引，共用源BIM；图纸分工路径已接入，网格/照片按现有单模型能力使用。
-- `render_geometry_viewer.py`及随包JS：离线HTML查看页。
-- 旧固定阶段管线、判断/诊断、EnergyPlus适配仍有源码与可选检查，不作为新产品必经工作流。旧graph按显式API需要加载。
+| 组成 | 职责 | 当前主要实现 |
+|---|---|---|
+| BIM rules | 源 BIM、依据、声明、检查与修改约束 | `src/agent/contracts`、`geometry/source_bim.py` |
+| kernel | 编译、空间关系、规整、装配和开口宿主计算 | `src/agent/geometry` |
+| tools | 看图、量测、试建、编辑、检查和交付 | `scripts/tool_scripts/run_bim_agent.py`、`bim_agent_*.py` |
+| methods | 按输入及任务组合的处理方法 | 图纸方法、mesh 观察工具及输入专用 guidance |
+| roles | 职责、可见工具、上下文与产物契约 | `src/agent/runtime_roles` |
+| guidance | 系统指引、任务说明、参考资料、工具说明和反馈 | `bim_agent_guidance.py`、`runtime_roles/guidance.py` |
 
-当前产品重点为正确空间划分与关系，而非逐点复刻。10cm规整已在分工路径接入，自动读全图标注选步长尚未实现。声明持久/局改、近轴与尺寸链门槛仍是后续讨论项。
+Methods 是可复用方法，不是固定阶段；roles 是任务分工，不与三条研究线一一对应。三条线描述相对于交付目标的信息充分程度，同一项目可以组合不同输入和能力。
 
-## 程序、输入与数据
+现有分工实现为调度员、平面读图员和立面读图员；单模型使用同一套源 BIM 与工具。网格/照片方法先独立收敛，再按证据接入 domain。混合输入与通用任务规划仍是发展方向，当前图纸角色未实现全模态调度。
 
-D盘开发仓库含代码、必要测试和当前文档；桌面是无Git发布目录。发布清单含程序、资源、版本登记及锁文件；环境和用户数据独立。发布入口为`sim_bim.py`/`Start.cmd`，配置入口仍复用`runtime_configuration`。
+## 输入与交付
 
-配置的`input_root`只授权本案输入所在范围，`run_root`只授权独立运行产物。两模式共用外部目录。GT、历史答案、归档和其他检出不能因为根目录迁移而暴露给work model。产品不依赖D盘开发源码或Git元数据。
+平立面图纸是当前 harness 的主验证输入。单模型接收图像或 GLB，图像可声明 drawings/mesh_views/photos/unknown；分工入口仅支持图纸。接收输入不等于已达到稳定建模质量。照片生成 mesh 与细度自动选择均未实施。
 
-## 交付与限制
+核心交付为源 BIM：空间、边界、门窗、相邻/连通与依据；查看页由 `render_geometry_viewer.py` 及随包资源生成。源空间简化与后端热区划分分开，EnergyPlus 是可选下游。
 
-源BIM保存空间、边界、门窗、相邻/连通及依据；后端热区为显式派生，不改源空间语义。EnergyPlus为独立可选下游；通过离线几何或工具验收不等于仿真或图纸保真验收。
+图纸分工采用 10 cm 规整。整图标注自动选步长、照片/混合输入细度政策仍待讨论；正确空间关系优先于逐点吻合。离线通过不证明图纸保真或推断合理。
 
-产品具有局部工具修改与查看能力，完整持久交互编辑界面尚未交付。ChatGPT真实订阅连接等待用户独立授权；当前sm25规整失败结果保持冻结。本次发布组织调整不改变这些质量结论。
+## 当前与历史入口
 
-旧架构沿革和原文在`D:\Sim-BIM-Agent\archive\documentation-before-slim`及Git基准`9f5332ae`，按问题查证。
+用户入口为 `sim_bim.py` / `Start.cmd` → `product_cli` → `runtime_configuration` → 单模型或分工入口。当前模型实际接收的 guidance 由 domain 模块生成，源码导航见 [domain 入口](../../src/agent/README.md)。
+
+旧 EnergyPlus intake 顺序管线与阶段资源集中到 [legacy](../../src/agent/legacy/README.md)，不作为顶层 skills 或当前 BIM Agent 的步骤说明。历史 stage ID、产物目录与字段保留原含义；共享的几何、校验和下游适配按能力保留，不因历史命名批量删除。继承与新增关系见 [domain 沿革](domain_lineage.md)。
+
+## 程序与数据
+
+D 盘开发仓库含代码、必要测试和当前文档；桌面为固定提交生成的独立产品。`input_root` 只授权本案材料，`run_root` 指向独立产物。GT、历史答案和归档不得暴露给 work model。
+
+完整持久交互编辑界面、各输入的稳定质量、真实模型推理和下游仿真仍需独立验收。历史资料位置见 [归档索引](../reports/archive-index.md)。

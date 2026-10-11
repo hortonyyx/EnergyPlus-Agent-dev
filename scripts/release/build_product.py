@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 def selected_payload(tracked):
     selected = {}
     for name in tracked:
-        if name.startswith(("src/", "scripts/tool_scripts/", "data/", "skills/")) or name in {
+        if name.startswith(("src/", "scripts/tool_scripts/", "data/")) or name in {
                 "pyproject.toml", "uv.lock", ".python-version", "sim_bim.py",
                 "scripts/glm_code.py", "scripts/glm_code.sh"}:
             if Path(name).name in {"affected_tests.py", "affected_tests_rules.yaml"}:

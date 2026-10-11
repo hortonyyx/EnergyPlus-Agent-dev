@@ -772,7 +772,7 @@ def test_draw_mep_real_path_no_typeerror_and_wires_run_profile(tmp_path, monkeyp
       TypeError: check_mep() got an unexpected keyword argument 'run_profile'
     """
     import scripts.tool_scripts.run_stage as rs
-    import src.agent.pipeline as pipeline
+    import src.agent.legacy.pipeline as pipeline
     from src.agent.execution.policy import RunPolicy
 
     monkeypatch.setattr(

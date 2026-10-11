@@ -104,7 +104,7 @@ def test_frame_preimage_all_sign_mirror_localx_states(mirrored, local):
     binding = elevation_binding(mirrored=mirrored, local=local)
     assert binding.frame_transform_sha256 == FRAME_VECTORS[(mirrored, local)]
     assert frame_transform_sha256(binding) == FRAME_VECTORS[(mirrored, local)]
-    assert FRAME_VECTORS[(mirrored, local)] in Path("skills/intake_pipeline/1_correction/A0_contract.md").read_text(encoding="utf-8")
+    assert FRAME_VECTORS[(mirrored, local)] in Path("src/agent/legacy/intake/correction/A0_contract.md").read_text(encoding="utf-8")
     preimage = frame_transform_preimage(binding)
     for key in preimage:
         with pytest.raises(ScoreContractError):

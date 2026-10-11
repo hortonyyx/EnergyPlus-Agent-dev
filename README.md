@@ -24,6 +24,7 @@ python scripts/release/build_product.py D:/Sim-BIM-Agent/releases/<版本名>
 |---|---|
 | src/agent_runtime、src/harness_contracts | runtime 和公共运行契约 |
 | src/agent、scripts/tool_scripts | domain、BIM 工具、指引和查看器 |
+| src/agent/legacy | 显式历史流程及其资源，与当前 domain 入口分开 |
 | tests | 当前有效检查、小夹具及显式选择的历史检查源码 |
 | product、scripts/release | 用户说明、配置、启动入口与发布生成 |
 | AI_agent | 当前目标、设计、操作规则和本轮简短记录 |

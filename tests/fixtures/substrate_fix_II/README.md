@@ -17,7 +17,7 @@ ordinary "back up before editing" local safety copies, per `AI_agent/Agent.md` Â
 | `f52_cv_probe_pre_fix.py` | `_bbox()`'s argparse type callable before F-52 | `scripts/tool_scripts/cv_probe.py` |
 | `f54_run_cv_probe_pre_fix.py` | `main()` before F-54's try/except backstop | `src/agent/execution/isolation_templates/run_cv_probe.py` |
 | `f58_tools_pre_fix.py` | `overlay_logger()` before F-58's shape validation | `src/agent/reading/cv_toolbox/tools.py` |
-| `f53_cv_toolbox_pre_fix.md` | the doc's `--batch` example before F-53's placeholder fix | `skills/intake_pipeline/0_reading/cv_toolbox.md` |
+| `f53_cv_toolbox_pre_fix.md` | the doc's `--batch` example before F-53's placeholder fix | `src/agent/legacy/intake/reading/cv_toolbox.md` |
 
 Each is an untouched copy of the corresponding `backup/.../2026-08-16_substrate_fix_II/`
 file captured by that batch before it edited anything â€” diffed byte-for-byte against

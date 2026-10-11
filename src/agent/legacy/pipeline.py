@@ -1,4 +1,8 @@
-"""Staged intake pipeline: reading-stage vector JSON -> IntakeOutput.
+"""Legacy EnergyPlus intake: reading-stage vector JSON -> IntakeOutput.
+
+This is an explicitly selected historical workflow. Current Sim BIM Agent
+entrypoints use runtime_entry/runtime_roles and do not execute this sequence.
+Resource documents live under src.agent.legacy; persisted stage IDs stay stable.
 
 The reading stage (0_reading: image -> semantic vector JSON) is image-bound and
 half-manual; this module runs everything after it, image-blind, as ordered
@@ -18,7 +22,7 @@ builds + serializes it); the LLM does only correction judgment (1_correction) an
 physics semantics (4_mep).
 
 This module is the single implementation. It is called from:
-  - `intake_node` (the main graph), and
+  - `intake_node` (the optional EnergyPlus graph), and
   - `scripts/run_pipeline_deepseek.py` (thin standalone CLI wrapper).
 
 Per-stage model config: `intake_correction` / `intake_mep` in llm.yaml if present,
@@ -79,8 +83,9 @@ if TYPE_CHECKING:
     from src.agent.geometry.modelling import BuildingGeometry
     from src.agent.output_coordinates import IntakeArtifactBundle
 
-_SKILL_DIR = Path(__file__).resolve().parents[2] / "skills" / "intake_pipeline"
-_CORRECTION_DIR = _SKILL_DIR / "1_correction"
+from src.agent.legacy.resources import INTAKE_RESOURCES
+
+_CORRECTION_DIR = INTAKE_RESOURCES / "correction"
 _CORRECTION_DOCS = [
     "README.md",
     "A0_contract.md",
@@ -392,8 +397,8 @@ def _build_correction_messages(
     observation_reference_catalog: str | None = None,
 ) -> tuple[str, str]:
     correction_docs = _load_correction_docs()
-    reading_guide = _read(_SKILL_DIR / "0_reading" / "guide.md")
-    reading_pens = _read(_SKILL_DIR / "0_reading" / "pen_library.md")
+    reading_guide = _read(INTAKE_RESOURCES / "reading" / "guide.md")
+    reading_pens = _read(INTAKE_RESOURCES / "reading" / "pen_library.md")
     # F-2b: the reading summary is a hard dependency (it carries the
     # cross-image narrative correction assembles its prompt around). A missing
     # summary is a named, localizable failure pointing at the reading stage's
@@ -2173,8 +2178,8 @@ def _build_mep_messages(
 ):
     from src.agent.intakeoutput import MepOutput
 
-    authoring = _read(_SKILL_DIR / "4_mep" / "authoring.md")
-    mep = _read(_SKILL_DIR / "4_mep" / "mep.md")
+    authoring = _read(INTAKE_RESOURCES / "mep" / "authoring.md")
+    mep = _read(INTAKE_RESOURCES / "mep" / "mep.md")
     mep_schema = json.dumps(
         MepOutput.model_json_schema(), indent=2, ensure_ascii=False
     )

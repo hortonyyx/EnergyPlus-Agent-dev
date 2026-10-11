@@ -1,5 +1,16 @@
 # 当前任务
 
+## 2026-10-11：整理当前 domain
+
+- 本轮讨论结论已写入 [模型与输入策略](model_and_input_strategy.md)：国模优先、允许组合，先稳定交付，再优化成本与本地部署；模型按任务表现选择，不强求固定档位。
+- 当前 domain 按 BIM rules / kernel / tools / methods / roles / guidance 组织，见 [源码入口](../../src/agent/README.md) 和 [继承关系](../design/domain_lineage.md)。三条研究线描述信息充分程度；图纸仍为主验证输入，textured mesh 先原型收敛，再整合与尝试混合。
+- 旧 pipeline、graph 及顶层阶段资源已迁入 `src/agent/legacy`，加载、诊断、测试和发布引用同步调整。历史 stage ID/产物保留；当前工作模型的工具、guidance 与任务模板指纹均未改变。
+- 当前版本为 **runtime v7 / domain v65**。已通过 68 项定向检查和 29 项显式历史资源/隔离检查；真实模型调用 0。清理前 74 个文档/资源已逐项哈希保全。
+- **待讨论**：照片 → 生成 textured mesh → 源 BIM 的方法，以及按层成块和建模细度政策；本轮未将它们设为默认或实现。
+- **待安排**：GPT-6 Sol 自有 harness 独立标杆和候选调研/实测。具体配置、案例、预算仍待讨论，未运行。
+
+**当前交接：** [domain 整理与验证](../reports/2026-10-11_domain_cleanup.md)。
+
 ## 2026-10-11：work model、多模态架构与参考文献讨论
 
 - work model 以国模为主，允许按任务组合。先达到稳定输出和可控时间，再优化费用与本地部署；不强求某个固化版本或小模型完成任务。
@@ -7,7 +18,7 @@
 - 三条研究线描述相对于交付目标的信息充分程度；内部按可复用任务能力组织，共用源 BIM。后续使用专业术语，具体命名待定。
 - 图纸继续作为当前 harness 主验证输入；textured mesh 先通过独立原型收敛，再并入并尝试混合输入。照片路线本轮先结合文献讨论。
 - 已建立 [references](../../references/README.md)，读完用户提供的 Lee & Yoon 多智能体 BEM 论文。另附 Fig. 15 已通过作者官方配图确认对应 Wen & Chen 的照片/设计意图到 BEM 研究；摘要与官方仓库已定位，出版社入口停在人机验证，尚无对应全文。用户目前重点关注此照片推断路线。
-- 本轮仅保存资料、阅读笔记和讨论共识；旧 0–5 阶段/skills 表述的清理尚未实施，runtime/domain 版本不变，真实模型调用 0。
+- 上述研究阶段只保存资料和讨论共识；随后按用户要求执行的 domain 整理见本页顶部，未因此追加模型实测。
 
 ## 2026-10-11：GitHub 仓库改名与 ChatGPT 授权
 
@@ -15,7 +26,7 @@
 - 用户已在浏览器完成 Sim BIM Agent 独立 SIWC 授权；开发入口和桌面独立产品均可读取同一账号的 7 个可用模型。
 - 当前本地严格 profile 与账号目录的交集包含 `gpt-6.1-sol`、`gpt-6-astra`。本轮模型推理请求 0；真实 Responses 推理、工具循环与 BIM 案例未运行。
 
-**当前交接：** [仓库改名与订阅授权核验](../reports/2026-10-11_repository_subscription_auth.md)。
+**授权记录：** [仓库改名与订阅授权核验](../reports/2026-10-11_repository_subscription_auth.md)。
 
 ## 2026-10-11：项目精简与独立交付
 

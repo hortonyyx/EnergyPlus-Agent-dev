@@ -69,7 +69,7 @@ REAL_IMAGE = "case_data/1f_view.png"  # 2133 x 1345 (W x H), staged by every bui
 F52_REAL = REPO_ROOT / "scripts" / "tool_scripts" / "cv_probe.py"
 F54_REAL = REPO_ROOT / "src" / "agent" / "execution" / "isolation_templates" / "run_cv_probe.py"
 F58_REAL = REPO_ROOT / "src" / "agent" / "reading" / "cv_toolbox" / "tools.py"
-F53_REAL = REPO_ROOT / "skills" / "intake_pipeline" / "0_reading" / "cv_toolbox.md"
+F53_REAL = REPO_ROOT / "src" / "agent" / "legacy" / "intake" / "reading" / "cv_toolbox.md"
 
 # Pre-fix content for each -- git-tracked fixtures (M-2, 2026-08-17
 # cross-review: the previous ``backup/...`` paths are gitignored by
