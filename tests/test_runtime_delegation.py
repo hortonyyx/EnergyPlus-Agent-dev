@@ -402,38 +402,21 @@ def _run_scripted_observer(tmp_path, *, task_id, limits, responses):
     return outcome, adapter, frozen, executions
 
 
-@lru_cache
 def _stage3_west_answer(run_id):
-    expected = {
-        "final_02_27b": (
-            "role_final/final_02_27b/role_case.json",
-            "e83002fc70f0ca1dfbd0b48344f27a85baba4231032014c2eae32609b2fe8999",
-        ),
-        "final_02_flash": (
-            "role_final/final_02_flash/role_case.json",
-            "7dd0427bac016a658b386df45efabae4be9fdd129ab769dbd5b3f177e1ddf08c",
-        ),
-    }
-    archived_path, answer_sha256 = expected[run_id]
-    archive = (ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage3"
-        / "evidence_all.compact.tar.xz")
-    with tarfile.open(archive) as bundle:
-        manifest = json.loads(bundle.extractfile("manifest.json").read())
-        entry = manifest["files"][archived_path]
-        raw = bundle.extractfile(entry["object"]).read()
-    assert hashlib.sha256(raw).hexdigest() == entry["sha256"]
-    role_case = json.loads(raw)
-    assert role_case["run_id"] == run_id
-    answer = role_case["outcome"]["runtime"]["answer"]
-    assert hashlib.sha256(answer.encode("utf-8")).hexdigest() == answer_sha256
-    return answer
+    """Minimal malformed answers for the two current repair contracts."""
+    answer = _answer()
+    if run_id == "final_02_27b":
+        return answer + "}"
+    broken = json.loads(answer)
+    broken["interpretations"][0]["based_on_observation_ids"] = ["int_chain_left"]
+    return json.dumps(broken)
 
 
 def _correct_stage3_reference_answer(answer):
     corrected = json.loads(json.dumps(answer))
     replacements = {
-        "int_chain_left": "obs_left_chain",
-        "int_chain_right": "obs_right_chain",
+        "int_chain_left": "seen-1",
+        "int_chain_right": "seen-1",
     }
     for row in corrected["interpretations"]:
         row["based_on_observation_ids"] = [

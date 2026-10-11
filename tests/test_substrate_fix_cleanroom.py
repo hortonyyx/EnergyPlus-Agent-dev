@@ -14,6 +14,8 @@ internals, no direct `import` of cv_toolbox/cv_probe (摊 II's territory).
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import os
 import shutil
@@ -34,7 +36,7 @@ from src.agent.execution.isolation import (  # noqa: E402
 )
 from src.agent.execution.view_manifest import provision_view_manifest  # noqa: E402
 
-CASE_DIR = REPO / "case_tests" / "e2e_tests" / "sm21_anchor"
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
 IMG = "case_data/1f_view.png"
 
 

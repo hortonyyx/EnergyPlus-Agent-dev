@@ -8,6 +8,8 @@ every gate ① check over its on-disk products must pass. A case = materials
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from pathlib import Path
 
 import pytest
@@ -20,7 +22,7 @@ from src.agent.execution import (
 )
 from src.agent.execution.policy import ConfirmationPolicy, ValidationScope
 
-_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_ANCHOR = archive_path('case_tests/e2e_tests/sm20_anchor')
 _RUN_NAME = "run_2026-06-15_baseline"
 _RUN = _ANCHOR / _RUN_NAME
 _RERECORD_XFAIL = pytest.mark.xfail(
@@ -209,7 +211,7 @@ def test_downstream_only_scope_skips_geometry():
 # A 2-storey office with a differing F1 (3 N offices + corridor + 3 S) vs F2
 # (2 N meeting + corridor + 4 S). Fresh cold-agent reading (no reuse), gate① all
 # green, EP 0 severe. Counts are the regression anchor; gt is judge-only.
-_ANCHOR_21 = Path("case_tests/e2e_tests/sm21_anchor")
+_ANCHOR_21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 _RUN_21 = _ANCHOR_21 / "run_2026-06-16_opus_e2e"
 _F13_VERIFY_RUN = _ANCHOR_21 / "run_2026-08-07_f13_e2e_verify"
 # Frozen by F-20 MAJOR-1 from validate_case(..., policy=RunPolicy()) at the

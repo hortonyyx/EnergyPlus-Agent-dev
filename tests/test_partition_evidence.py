@@ -1,4 +1,6 @@
 """Independent source references reach J1 without inventing room identities."""
+
+from tests.archive_paths import archive_path
 import copy
 import json
 import shutil
@@ -9,9 +11,9 @@ import pytest
 from src.agent.judge.gt import load_gt_document
 from src.agent.judge.partition_evidence import attempt_partition_evidence, partition_evidence
 
-SM24 = Path("case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading")
-SM21 = Path("case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e")
-SM25 = Path("AI_agent/logs/experiments/2026-09-09_m0_endpoint_connections_run01")
+SM24 = archive_path('case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading')
+SM21 = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e')
+SM25 = archive_path('AI_agent/logs/experiments/2026-09-09_m0_endpoint_connections_run01')
 
 
 def test_reading_alone_finds_known_sm24_extra_seams_without_room_groups():

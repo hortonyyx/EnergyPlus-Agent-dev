@@ -12,6 +12,8 @@ it, asserting the fixes from the 2026-05-29 intake-switch review:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -22,9 +24,7 @@ from src.agent.state import AgentState, IntakeOutput
 
 ensure_schema_initialized()
 
-_ANCHOR = Path(
-    "backup/tests_history/SmallOffice/smalloffice_20/output_new/intake_output.json"
-)
+_ANCHOR = archive_path('backup/tests_history/SmallOffice/smalloffice_20/output_new/intake_output.json')
 
 
 def _load_anchor_intake() -> IntakeOutput:

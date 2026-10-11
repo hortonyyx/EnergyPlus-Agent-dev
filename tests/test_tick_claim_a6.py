@@ -1,3 +1,4 @@
+from tests.archive_paths import archive_path
 from dataclasses import replace
 from pathlib import Path
 import json
@@ -10,7 +11,7 @@ from src.agent.correction.tick_claim import (
     TickSession, digest, evaluate, freeze, freeze_prototype_supplement, require_chain,
 )
 
-BASE = Path(__file__).resolve().parents[1] / 'AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype'
+BASE = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype')
 
 
 def fixture(values=(1600, 2700, 3200), pixels=(1.59, 4.31)):

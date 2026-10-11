@@ -6,6 +6,8 @@ JSON of any contract reached the model as untyped text past every reading gate.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -27,9 +29,7 @@ from src.agent.reading.vector_contract import (
     ledger_for,
 )
 
-_SM25_R0 = Path(
-    "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-25_c2_rescore_R0/0_reading"
-)
+_SM25_R0 = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_2026-08-25_c2_rescore_R0/0_reading')
 
 
 def _legacy_view(**extra) -> dict:
@@ -426,9 +426,7 @@ def test_legacy_view_without_dimensions_is_still_legacy():
 @pytest.mark.parametrize(
     "path",
     sorted(
-        Path(
-            "case_tests/e2e_tests/sm21_anchor/run_2026-06-20_gpt54_reading/0_reading"
-        ).glob("*_view.json")
+        archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-06-20_gpt54_reading/0_reading').glob("*_view.json")
     ),
 )
 def test_real_historical_views_lacking_dimensions_are_recognized(path):

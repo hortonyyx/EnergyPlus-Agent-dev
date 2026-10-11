@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import importlib.util
 import json
@@ -16,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_DIR = ROOT / "tests/fixtures/harness_stage0/sources"
 HISTORY_DIR = ROOT / "tests/fixtures/harness_stage0/history"
 MAPPER_PATH = (
-    ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage0/map_history.py"
+    archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage0/map_history.py')
 )
 
 

@@ -1,4 +1,5 @@
 """Negative controls keep the platform-only ring normalization discriminating."""
+from tests.archive_paths import archive_path
 import copy
 import json
 from pathlib import Path
@@ -11,7 +12,7 @@ from tests.facts_equivalence import canonical_ring_origins
 @pytest.fixture
 def facts():
     root = Path(__file__).resolve().parents[1]
-    return json.loads((root / "case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json").read_text(encoding="utf-8"))
+    return json.loads((archive_path('case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json')).read_text(encoding="utf-8"))
 
 
 @pytest.mark.parametrize("change", ["coordinate", "witness", "classification", "source_hash", "cavity_group_order"])

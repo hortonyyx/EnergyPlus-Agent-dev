@@ -17,6 +17,8 @@ The fixtures are the real shipped gt bundle and the real prototype products.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -32,9 +34,9 @@ from src.agent.judge.as_drawn.flow_wiring import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-GT = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json").read_text())
-GT_SOURCES = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
-PROTOTYPE = REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+GT = json.loads((archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')).read_text())
+GT_SOURCES = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
+PROTOTYPE = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 
 
 def _doc(name: str) -> dict:

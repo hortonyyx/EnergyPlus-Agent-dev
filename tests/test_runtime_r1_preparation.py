@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 import pytest
@@ -8,7 +10,7 @@ from src.agent.runtime_configuration import argv_for, load_configuration
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIGS = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r1/configs"
+CONFIGS = archive_path('AI_agent/logs/experiments/2026-10-03_runtime_r1/configs')
 HISTORICAL_REASON = "Offline check of historical R1 routing; preserve the original small cap as evidence."
 
 

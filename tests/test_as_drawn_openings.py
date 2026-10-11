@@ -1,6 +1,8 @@
 """Offline observation-to-source openings, including the saved two-floor plan."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import json
 from pathlib import Path
@@ -221,7 +223,7 @@ def test_manifest_slot_can_differ_from_compiled_product_name():
 
 
 def test_saved_sm25_structured_observations_are_fully_accounted_without_gt_or_manual_groups():
-    root = Path("case_tests/e2e_tests/sm25-L_anchor/run_win_e2e")
+    root = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_win_e2e')
     geom = CorrectedGeometryV3.model_validate_json((root / "1_correction/correction_geometry_snapped.json").read_bytes())
     inputs = {"raw_view_manifest_bytes": (root / "_run/view_manifest.json").read_bytes(),
               "raw_reading_artifacts": {f"{i}f_view": (root / f"0_reading/{i}f_view.json").read_bytes() for i in (1, 2)},

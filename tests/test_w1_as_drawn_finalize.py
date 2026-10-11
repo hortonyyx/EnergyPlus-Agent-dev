@@ -20,6 +20,8 @@ That is a chain-product finding, ⛔ not an empty-proof finding.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -43,13 +45,12 @@ from src.validator.checks.correction import check_correction
 
 REPO = Path(__file__).resolve().parents[1]
 _AS_DRAWN_OUT = (
-    REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+    archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 )
 # the frozen sm25 view manifest (case provision output) — REAL bytes, so the
 # direction-fact derivation runs the production path, not a synthetic stub
 _MANIFEST = (
-    REPO
-    / "case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2/_run/view_manifest.json"
+    archive_path('case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2/_run/view_manifest.json')
 )
 _PRODUCTS = {
     "1f_view": "sm25_1f_v2.json",

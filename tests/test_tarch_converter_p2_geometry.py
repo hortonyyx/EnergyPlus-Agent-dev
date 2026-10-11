@@ -25,6 +25,8 @@ this file owns the P2-introduced gates G4/G6/G7/G8/G9/G10.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 from types import SimpleNamespace
@@ -46,9 +48,9 @@ from src.agent.judge.tarch_converter_schema import (
 REPO = Path(__file__).resolve().parents[1]
 GT_CONFIG = REPO / "src/configs/judge_gt.yaml"
 VG_CONFIG = REPO / "src/configs/correction.yaml"
-SM24_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
-SM25_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf"
-SM25_REQUEST = REPO / "AI_agent/logs/experiments/2026-08-20_sm25_conversion_request/request_v3.json"
+SM24_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf')
+SM25_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf')
+SM25_REQUEST = archive_path('AI_agent/logs/experiments/2026-08-20_sm25_conversion_request/request_v3.json')
 
 WINDOW_BLOCK = "$TCHSYS$WIN2D"
 

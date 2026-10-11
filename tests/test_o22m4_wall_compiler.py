@@ -65,6 +65,8 @@ never carry a story opposite to its own candidate set.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import ast
 import hashlib
 import inspect
@@ -106,9 +108,7 @@ from src.agent.correction.window_sources import (
 )
 from src.agent.reading.as_drawn.schema import SCHEMA, AsDrawnPlanV2
 
-_PRODUCTS = Path(
-    "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
-)
+_PRODUCTS = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 _F9 = Path("tests/fixtures/f9_window_host_crash/0_reading/1f_view.json")
 
 

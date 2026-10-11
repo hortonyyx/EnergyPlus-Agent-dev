@@ -248,8 +248,8 @@ def test_external_coordinator_also_finalizes_saved_work(tmp_path, monkeypatch):
 
 
 def test_floor_scope_configuration_and_input_rejection(tmp_path):
-    original = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r2/r2bc/configs/migration_sm24_glm_subscription.json"
-    value = json.loads(original.read_bytes())
+    from tests.current_runtime_fixtures import configuration
+    value = configuration()
     value["cases"][0]["floor_plan_images"] = ["1f_view.png"]
     config = tmp_path / "configuration.json"
     config.write_text(json.dumps(value))

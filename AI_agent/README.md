@@ -1,31 +1,10 @@
-# Sim BIM Agent 项目文档
+# 项目资料
 
-项目按信息充分程度组织还原建模、部分推理建模、完全推理建模，共同将图纸、带贴图体量、图片、文字和 CAD 等资料转成可用轻量 BIM。每次会话从 [Agent.md](Agent.md) 开始。
+- [项目入口](Agent.md)：有效约定和加载范围。
+- [当前任务](project/roadmap.md)：当前状态与唯一交接。
+- [产品目标](project/goal.md)、[当前架构](design/architecture.md)、[实现入口](design/implementation.md)。
+- [开发与发布](workflow/development.md)、[环境](workflow/session_setup.md)、[模型约定](workflow/models.md)。
+- [术语](project/terminology.md)：按需查阅。
+- [历史索引](archive/README.md)：D盘归档与旧提交。
 
-| 要找什么 | 文档 |
-|---|---|
-| 做什么、做到什么程度 | [产品目标](project/goal.md) |
-| 现在做到哪里、下一步做什么 | [路线与当前任务](project/roadmap.md) |
-| 还原建模主线的工作包、能力递进与自动验收 | [还原建模执行计划](project/drawing_reconstruction_plan.md) |
-| 与主线并行的案例、缺信息推断与补信息研究 | [部分推理建模研究计划](project/partial_inference_research_plan.md) |
-| 已经确定的选择和原因 | [关键决策](project/decisions.md) |
-| 三类建模任务如何共用同一个产品底座 | [系统设计](design/architecture.md) |
-| 部分推理建模首个入口：带贴图体量的案例与调研 | [体量输入调研](design/textured_mass_route.md) |
-| 香港15例的转换修复、四视图与当前可读性 | [素材新旧对照](../case_tests/textured_mass/hongkong/repaired_buildings/index.html) · [本程交接](logs/worklog/2026-09-20_hongkong_material_takeover.md) |
-| 去哪里找带贴图的单体建筑模型、怎么取、先测哪一类 | [来源](design/textured_mass/sources.md) · [获取路线](design/textured_mass/acquisition.md) · [案例梯度](design/textured_mass/case_ladder.md) |
-| 三维模型输入能支持到哪些格式、各自成本 | [输入格式路线图](design/textured_mass/input_formats.md) |
-| 历史好读图如何复用、reading/correction 如何接线 | [读图与校正设计依据](design/reading_correction.md) |
-| 所有可点击对象如何命名、房间功能如何选和着色 | [全构件命名](design/bim_naming.md) · [功能类型表](design/room_types.md) |
-| 共同模型、单位、坐标和编辑对象 | [轻量建筑模型](design/model.md) |
-| 已有代码、接口和真实能力缺口 | [现有实现](design/implementation.md) |
-| 怎样判断输出有用、完整和可信 | [验证与评价](design/evaluation.md) |
-| 怎样开发、维护文档和收工 | [工作方式](workflow/development.md) |
-| 用什么模型、哪些调用需要同意 | [模型与费用](workflow/models.md) |
-| 怎样启动和检查一个 case | [运行 case](workflow/run_case.md) |
-| 怎样让自有 runtime 直接使用 ChatGPT 订阅 | [ChatGPT 订阅接入](workflow/chatgpt_subscription_runtime.md) |
-| 课题汇报可嵌入的展示资产 | [showcase 入口](../showcase/index.html) · [本轮范围与证据](logs/worklog/2026-09-10_research_showcase_assets.md) |
-| 怎样让每次会话加载同一上下文 | [会话设置](workflow/session_setup.md) |
-| 怎样清理 Docker 缓存并回收 Windows 磁盘空间 | [磁盘清理](workflow/disk_cleanup.md) |
-
-`project/` 管目标和推进，`design/` 管系统与实现，`workflow/` 管操作方法。
-[logs/](logs/README.md) 保存工作交接、实验和实际运行证据；[archive/](archive/README.md) 集中保存历史原稿、记忆和旧资产。历史资料不参与当前排期。
+技术专题文档按相关任务读取；其中具体历史实验是证据，不自动构成当前工作前置。新变化更新当前事实，执行经过写简短日志，不追加到长期目标和架构正文。

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "batch_id": "my-building",
+  "approval_required_before_launch": true,
+  "maximum_seconds_per_case": 7200,
+  "input_root": "D:/Sim-BIM-Agent/user-inputs",
+  "run_root": "D:/Sim-BIM-Agent/runs",
+  "cases": [
+    {
+      "case_id": "my-building",
+      "mode": "role_division",
+      "input": "my-building",
+      "output": "my-building-001",
+      "input_kind": "images",
+      "image_kind": "drawings",
+      "scope": "Build a lightweight BIM of this building. Preserve physical spaces, partitions and opening relationships; use 0.1 m regularisation.",
+      "provider": "chatgpt-subscription",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "high",
+      "output_tokens": 32000,
+      "roles": {
+        "coordinator": {"provider": "chatgpt-subscription", "model": "gpt-6.1-sol", "reasoning_effort": "high", "output_tokens": 32000},
+        "plan_reader": {"provider": "chatgpt-subscription", "model": "gpt-6.1-sol", "reasoning_effort": "high", "output_tokens": 32000},
+        "elevation_reader": {"provider": "chatgpt-subscription", "model": "gpt-6.1-sol", "reasoning_effort": "high", "output_tokens": 32000}
+      },
+      "max_concurrent_readers": 4,
+      "max_candidates": 24,
+      "context_tokens": 200000,
+      "compact_at_tokens": 150000,
+      "limits": {"model_calls": 150, "tool_calls": 500, "seconds": 7200, "tokens": null, "model_retries": 2, "retry_backoff_seconds": 2}
+    }
+  ]
+}

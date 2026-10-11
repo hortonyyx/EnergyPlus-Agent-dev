@@ -1,4 +1,6 @@
 """Offline boundary tests: the EP branch must consume the frozen BIM itself."""
+
+from tests.archive_paths import archive_path
 import json
 from pathlib import Path
 
@@ -7,8 +9,8 @@ import pytest
 from src.agent.execution.ep_branch import assemble_idf, derive_ep_geometry, export_ep_branch
 from src.agent.geometry.source_model import _digest
 
-SOURCE = Path("AI_agent/logs/experiments/2026-09-09_source_bim_run04/flow_sm21_bim/source_model.json")
-INPUTS = Path("AI_agent/logs/experiments/2026-09-09_ep_branch_sm21/inputs")
+SOURCE = archive_path('AI_agent/logs/experiments/2026-09-09_source_bim_run04/flow_sm21_bim/source_model.json')
+INPUTS = archive_path('AI_agent/logs/experiments/2026-09-09_ep_branch_sm21/inputs')
 
 
 @pytest.fixture

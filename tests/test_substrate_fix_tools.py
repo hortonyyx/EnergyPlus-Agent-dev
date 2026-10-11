@@ -42,6 +42,8 @@ Each of the four defects gets three kinds of test here:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import re
 import stat
@@ -56,7 +58,7 @@ from tests.native_shell import run_bash
 from src.agent.execution.isolation import build_isolation_workspace
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
 REAL_IMAGE = "case_data/1f_view.png"  # 2133 x 1345 (W x H), staged by every build
 
 # The REAL, tracked source each neuter test targets -- read-only from here on

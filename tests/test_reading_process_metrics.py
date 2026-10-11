@@ -11,6 +11,8 @@ observed firing is indistinguishable from one that is wired up wrong.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -19,7 +21,7 @@ import pytest
 from scripts.tool_scripts import reading_process_metrics as rpm
 
 REPO = Path(__file__).resolve().parents[1]
-FIXTURES = REPO / "case_tests" / "test_baseline" / "reading_fixtures.json"
+FIXTURES = archive_path('case_tests/test_baseline/reading_fixtures.json')
 
 
 def _fixtures() -> list[dict]:

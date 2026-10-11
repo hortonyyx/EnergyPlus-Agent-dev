@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import gzip
 import hashlib
 import importlib.util
@@ -14,7 +16,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests/fixtures/harness_stage0/sources"
-EXTRACTOR = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage0/extract_sources.py"
+EXTRACTOR = archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage0/extract_sources.py')
 
 
 def load(path: Path) -> Any:

@@ -1,7 +1,7 @@
 [project]
 name = "energyplus-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Sim BIM Agent: lightweight BIM generation with independent model runtime"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -36,20 +36,25 @@ dependencies = [
 
 [project.scripts]
 energyplus-mcp = "src.mcp.server:mcp.run"
+sim-bim-agent = "src.agent.product_cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src", "scripts"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-addopts = ["-n", "auto", "--dist", "load", "-p", "ep_no_billed_gate"]
+addopts = ["-n", "0", "-p", "ep_no_billed_gate"]
 markers = [
     "mutation: fresh-process source-mutation matrix; excluded from child pytest runs",
+    "fast: current product checks suitable for everyday development",
+    "targeted: current checks selected for the affected capability",
+    "node: current end-to-end and integration acceptance",
+    "historical: explicitly requested historical evidence or compatibility replay",
 ]
 
 [tool.ruff]

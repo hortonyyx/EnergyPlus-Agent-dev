@@ -37,6 +37,8 @@ byte-compare anchors are exercised against genuine chain bytes.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 import sys
@@ -74,9 +76,9 @@ from src.agent.pipeline import MultiFloorPlanRun, run_multifloor_correction  # n
 from src.validator.checks.schema import CheckLayer, CheckReport  # noqa: E402
 
 _AS_DRAWN_OUT = (
-    REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+    archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 )
-_LEGACY_RUN = REPO / "case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2"
+_LEGACY_RUN = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2')
 _MANIFEST_SRC = _LEGACY_RUN / "_run" / "view_manifest.json"
 
 # manifest input_id -> as_drawn product file in the 08-23 prototype dir

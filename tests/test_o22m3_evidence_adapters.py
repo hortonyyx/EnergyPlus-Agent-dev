@@ -38,6 +38,8 @@ spots re-measure "today still says yes" instead of trusting the older report.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 import subprocess
@@ -68,15 +70,11 @@ from src.agent.reading.vector_contract import (
     classify_vector_json,
 )
 
-_PRODUCTS = Path(
-    "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
-)
+_PRODUCTS = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 _TRACKED = ("sm25_1f_v2.json", "sm25_2f_v2.json", "sm24_1f_v2.json")
 _LEGACY = {
     "f9": Path("tests/fixtures/f9_window_host_crash/0_reading/1f_view.json"),
-    "sm22": Path(
-        "case_tests/e2e_tests/smalloffice_22/0_reading/1f_view.json"
-    ),
+    "sm22": archive_path('case_tests/e2e_tests/smalloffice_22/0_reading/1f_view.json'),
 }
 
 

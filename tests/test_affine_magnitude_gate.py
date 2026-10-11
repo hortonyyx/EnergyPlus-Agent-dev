@@ -21,6 +21,8 @@ Every discriminating fixture below is a REAL signed anchor.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import ast
 import copy
 import json
@@ -49,7 +51,7 @@ from src.agent.judge.gt_manifest import (
 from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
 
 REPO = Path(__file__).resolve().parents[1]
-GT_SOURCES = REPO / "case_tests" / "test_baseline" / "gt_sources"
+GT_SOURCES = archive_path('case_tests/test_baseline/gt_sources')
 
 #: Listed, not globbed, so a fixture that disappears turns the suite RED instead
 #: of quietly reducing the lock to nothing.  sm25-L has NO manifest -- that

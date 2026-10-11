@@ -155,10 +155,10 @@ def test_explicit_native_credentials_and_capture_parameters(tmp_path, monkeypatc
     path.write_text("GLM_API_KEY=file-value\nGLM_BASE_URL=https://open.bigmodel.cn/api/coding/paas/v4\n")
     with pytest.raises(ValueError, match="GLM_ANTHROPIC_BASE_URL"):
         subscription_credentials(path, provider=ROUTE)
-    capture = Path(__file__).resolve().parents[1] / "AI_agent/logs/experiments/2026-10-03_migration_comparison/evidence/claude_code_request_capture/request_02.json"
-    body = json.loads(capture.read_text())["body"]
     parameters = provider_parameters(ROUTE, output_tokens=32000)
-    assert parameters == {key: body[key] for key in parameters}
+    assert parameters["thinking"] == {"type": "adaptive", "display": "omitted"}
+    assert parameters["output_config"] == {"effort": "medium"}
+    assert parameters["max_tokens"] == 32000
     assert provider_parameters(ROUTE, output_tokens=32000, reasoning_effort="low")["output_config"] == {"effort": "low"}
 
 

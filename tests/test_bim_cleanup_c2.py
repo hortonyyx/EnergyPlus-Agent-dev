@@ -1,4 +1,5 @@
 """Counterexamples from the first full review; all model boundaries stay offline."""
+from tests.archive_paths import archive_path
 import asyncio
 import gzip
 import json
@@ -14,7 +15,7 @@ from scripts.tool_scripts.run_bim_agent import Toolkit, serve
 from tests.test_bim_agent_tools import _run_with_one_image
 
 
-RECORDS = Path(__file__).resolve().parents[1] / "AI_agent/logs/experiments/2026-10-01_behaviour_records/records"
+RECORDS = archive_path('AI_agent/logs/experiments/2026-10-01_behaviour_records/records')
 
 
 @pytest.mark.parametrize("index", [63, 65])

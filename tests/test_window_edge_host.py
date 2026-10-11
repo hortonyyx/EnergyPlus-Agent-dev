@@ -1,5 +1,6 @@
 """Legacy windows may touch a proven host edge without moving or losing them."""
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 import copy
 from pathlib import Path
@@ -104,7 +105,7 @@ def test_window_crossing_into_other_room_is_not_rescued_by_pairing_buffer(overru
 
 def test_sm24_rebuild_keeps_all_eleven_source_windows_and_mapping():
     root = Path(__file__).resolve().parents[1]
-    path = root / "case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/1_correction/correction_geometry_snapped.json"
+    path = archive_path('case_tests/e2e_tests/sm24_anchor/run_2026-06-24_opus_reading/1_correction/correction_geometry_snapped.json')
     geom = CorrectedGeometry.model_validate_json(path.read_text())
     before = geom.model_dump()
     bg = build_geometry(geom)

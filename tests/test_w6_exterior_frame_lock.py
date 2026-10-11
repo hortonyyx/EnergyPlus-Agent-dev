@@ -27,6 +27,8 @@ beat — ⛔ zero mocked geometry):
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import sys
 from pathlib import Path
 
@@ -45,7 +47,7 @@ from src.agent.correction.projection_bridge import (  # noqa: E402
     snap_exterior_walls_to_declared_frame,
 )
 
-_SRC = REPO / "case_tests/e2e_tests/sm25-L_anchor/run_wallhunt/0_reading"
+_SRC = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_wallhunt/0_reading')
 
 
 def _declared(floor: str):

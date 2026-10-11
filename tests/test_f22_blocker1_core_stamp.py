@@ -84,6 +84,8 @@ reach `trusted`) -- the scorer-side analogue of the writer-side
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -108,7 +110,7 @@ from src.agent.judge.correction_score import score_correction_geometry
 from src.agent.judge.gt import load_gt
 from src.agent.judge.score_policy import reading_score_criteria
 
-_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 _PRE_FLIP_OUTPUT = _SM21 / "run_2026-08-09_f17_e2e_verify/1_correction/attempts/001/output.json"
 _POST_FLIP_PRE_STAMP_OUTPUT = _SM21 / "run_2026-08-11_continuous_e2e/1_correction/attempts/001/output.json"
 

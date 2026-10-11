@@ -1,6 +1,8 @@
 """WP-1 byte-reproducibility locks for converter-produced augmented DXFs."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import ast
 import hashlib
 import json
@@ -21,10 +23,10 @@ from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, res
 
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
+SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf')
 REQUEST = REPO / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json"
 ANNOTATIONS = REPO / "tests/fixtures/sm24_review/bundle_07_25/review_annotations.json"
-RASTER_ROOT = REPO / "case_tests/e2e_tests/sm24_anchor/case_data"
+RASTER_ROOT = archive_path('case_tests/e2e_tests/sm24_anchor/case_data')
 
 
 def _run(tmp_path: Path, label: str):
@@ -235,11 +237,9 @@ def test_f_d_d_known_pre_fix_values_are_pinned_not_recomputed():
     docstring; that behaviour is untouched by this rework (changing it needs
     a re-sign, not a test).
     """
-    sm25_report = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor"
-                              "/review/conversion_report.json").read_text(encoding="utf-8"))
+    sm25_report = json.loads((archive_path('case_tests/test_baseline/gt/sm25-L_anchor/review/conversion_report.json')).read_text(encoding="utf-8"))
     assert tn.KNOWN_PRE_F_D_CONVERTER_SHA256 == frozenset({sm25_report["converter_sha256"]})
-    sm24_report = json.loads((REPO / "case_tests/test_baseline/gt/sm24_anchor"
-                              "/review/conversion_report.json").read_text(encoding="utf-8"))
+    sm24_report = json.loads((archive_path('case_tests/test_baseline/gt/sm24_anchor/review/conversion_report.json')).read_text(encoding="utf-8"))
     assert sm24_report["converter_sha256"] not in tn.KNOWN_PRE_F_D_CONVERTER_SHA256
 
     # ⭐ Second layer (GLM N-1's "加强"): anchor the pinned value to an
@@ -261,8 +261,7 @@ def test_f_d_d2_the_exact_equality_assertion_actually_has_teeth():
     power, independent of whether anyone remembers to run it against a
     mutated module.
     """
-    sm25_report = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor"
-                              "/review/conversion_report.json").read_text(encoding="utf-8"))
+    sm25_report = json.loads((archive_path('case_tests/test_baseline/gt/sm25-L_anchor/review/conversion_report.json')).read_text(encoding="utf-8"))
     padded = frozenset(tn.KNOWN_PRE_F_D_CONVERTER_SHA256 | {"f" * 64})
     with pytest.raises(AssertionError):
         assert padded == frozenset({sm25_report["converter_sha256"]})

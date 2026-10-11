@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import hashlib
-import runpy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -23,17 +22,8 @@ from src.agent_runtime.adapter import ScriptedAdapter
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPERIMENT = ROOT / "AI_agent/logs/experiments/2026-10-06_role_division_d1"
-VERIFY = runpy.run_path(str(EXPERIMENT / "verify_elevations.py"))
-CASES = {
-    "sm21": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm21",
-    "sm24": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm24",
-    "sm25": ROOT / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25",
-}
-DIMENSION_INPUTS = ROOT / "AI_agent/logs/experiments/2026-10-07_quality_q1/role_fixture_dimension_inputs.json"
-DIMENSION_CHAIN_FIELDS = (
-    "id", "axis", "segments_mm", "total_mm", "tick_pixels", "start_world_m", "source_refs",
-)
+FIXTURES = ROOT / "tests/fixtures/role_current"
+CASES = {name: FIXTURES / name for name in ("sm21", "sm24", "sm25")}
 ELEVATION_SUBMISSION_FIELDS = (
     "orientation",
     "view_direction",
@@ -84,51 +74,8 @@ def _plan_targets(plan):
     return sorted(targets)
 
 
-def _dimension_record(case_name: str, floor_id: str):
-    if case_name not in {"sm21", "sm25"}:
-        return None
-    manifest = json.loads(DIMENSION_INPUTS.read_bytes())
-    matches = [row for row in manifest["records"]
-               if row["case"] == case_name and row["floor_id"] == floor_id]
-    if len(matches) != 1:
-        raise AssertionError(f"expected one dimension input for {case_name} {floor_id}")
-    return matches[0]
 
 
-def _plan_artifact(plan_path: Path, image_path: Path, dimension_record=None):
-    plan_bytes = plan_path.read_bytes()
-    plan = json.loads(plan_bytes)
-    with Image.open(image_path) as picture:
-        width, height = picture.size
-    if dimension_record is not None:
-        if (ROOT / dimension_record["source_plan_path"]).resolve() != plan_path.resolve():
-            raise AssertionError("dimension input points at a different source plan")
-        if (ROOT / dimension_record["image_path"]).resolve() != image_path.resolve():
-            raise AssertionError("dimension input points at a different source image")
-        if hashlib.sha256(plan_bytes).hexdigest() != dimension_record["source_plan_sha256"]:
-            raise AssertionError("dimension input source plan hash does not match")
-        if hashlib.sha256(image_path.read_bytes()).hexdigest() != dimension_record["image_sha256"]:
-            raise AssertionError("dimension input source image hash does not match")
-        if [width, height] != dimension_record["image_size"]:
-            raise AssertionError("dimension input source image size does not match")
-        plan["dimension_chains"] = [
-            {key: json.loads(json.dumps(chain[key])) for key in DIMENSION_CHAIN_FIELDS if key in chain}
-            for chain in dimension_record["chains"]
-        ]
-    artifact = {
-        "plan": plan,
-        "evidence": [
-            {
-                "item": item,
-                "source": image_path.name,
-                "bbox": [0, 0, width, height],
-                "basis": "accepted 10-01 plan replay; full original retained",
-            }
-            for item in _plan_targets(plan)
-        ],
-        "unresolved": plan["unresolved"],
-    }
-    return validate_plan_artifact(artifact, image_name=image_path.name)
 
 
 def plan_submission(artifact: dict[str, Any]) -> dict[str, Any]:
@@ -154,24 +101,8 @@ def elevation_submission(artifact: dict[str, Any]) -> dict[str, Any]:
     return {key: artifact[key] for key in ELEVATION_SUBMISSION_FIELDS}
 
 
-def _selected_source(case_root: Path):
-    selected = json.loads((case_root / "delivery_selection.json").read_bytes())["candidate"]
-    source = json.loads((case_root / selected / "source_model.json").read_bytes())
-    return selected, source
 
 
-def _elevation_artifacts(case_name: str, case_root: Path):
-    _, source = _selected_source(case_root)
-    references = VERIFY["claim_references"](case_root)
-    result = {}
-    for orientation in ("North", "South", "East", "West"):
-        rows, _ = VERIFY["_source_rows"](source, orientation)
-        if rows:
-            artifact, _ = VERIFY["source_artifact"](
-                case_name, case_root, source, orientation, references
-            )
-            result[orientation] = artifact
-    return result
 
 
 def _reader_tasks(case_name: str, plan_artifacts, elevation_artifacts):
@@ -411,16 +342,9 @@ class D1Fixture:
 
 def make_fixture(case_name: str, base: Path) -> D1Fixture:
     case_root = CASES[case_name]
-    plan_paths = sorted((case_root / "plan_drafts").glob("draft_*/plan.json"))
-    plan_artifacts = {}
-    for path in plan_paths:
-        plan = json.loads(path.read_bytes())
-        image_name = "1f_view.png" if plan["floor_id"] == "F1" else "2f_view.png"
-        plan_artifacts[plan["floor_id"]] = _plan_artifact(
-            path, case_root / "images" / image_name,
-            _dimension_record(case_name, plan["floor_id"]),
-        )
-    elevation_artifacts = _elevation_artifacts(case_name, case_root)
+    artifacts = json.loads((case_root / "artifacts.json").read_bytes())
+    plan_artifacts = artifacts["plan_artifacts"]
+    elevation_artifacts = artifacts["elevation_artifacts"]
     tasks = _reader_tasks(case_name, plan_artifacts, elevation_artifacts)
     output = base / f"{case_name}-role-run"
     marker = base / f"{case_name}-script-marker.json"

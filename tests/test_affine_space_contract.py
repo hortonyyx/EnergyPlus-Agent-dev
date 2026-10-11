@@ -8,6 +8,7 @@ the same type ``Affine2D``, and on every anchor they differ by exactly
 them was a prose comment in ``tarch_normalize._build_manifest``.
 """
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 import copy
 import hashlib
@@ -41,7 +42,7 @@ from src.agent.judge.tarch_converter_schema import (
     compute_request_sha256,
 )
 
-GT_SOURCES = Path(__file__).resolve().parents[1] / "case_tests" / "test_baseline" / "gt_sources"
+GT_SOURCES = archive_path('case_tests') / "test_baseline" / "gt_sources"
 
 #: The signed inventory this file locks.  Listed explicitly rather than globbed
 #: so a fixture that disappears turns the suite RED instead of quietly reducing

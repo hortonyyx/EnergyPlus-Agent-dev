@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 from pathlib import Path
@@ -22,7 +24,7 @@ from src.agent.execution.policy import RunPolicy
 from src.agent.execution.view_manifest import provision_view_manifest
 from src.validator.checks.schema import CheckLayer, CheckReport, CheckStatus
 
-_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 
 
 def _args(tmp_path, **overrides):

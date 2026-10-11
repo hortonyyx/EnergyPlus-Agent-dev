@@ -5,13 +5,11 @@ from pathlib import Path
 from src.agent.geometry.bim_delivery import summarize_delivery
 from src.agent.geometry.opening_review import facade_inventory, review_openings
 from tests.test_opening_review import _digest, _facade_review, _images, _source
+from tests.test_source_bim import build_source_bim, three_rooms
 
 
-RUN06 = Path(__file__).resolve().parents[1] / "AI_agent/logs/experiments/2026-09-10_bim_agent_sm21_run06"
 
 
-def _json(relative):
-    return json.loads((RUN06 / relative).read_text())
 
 
 def _scope(summary, floor_id, kind):
@@ -19,39 +17,25 @@ def _scope(summary, floor_id, kind):
                 if row["floor_id"] == floor_id and row["kind"] == kind)
 
 
-def test_run06_candidate02_reports_two_follow_up_reviews_and_unreviewed_windows():
-    source = _json("candidate_02/source_model.json")
-    reviews = [_json("opening_reviews/review_001.json"), _json("opening_reviews/review_002.json")]
-
-    summary = summarize_delivery(source, reviews)
-
-    assert summary["source_validation"] == source["validation"]
-    assert summary["counts"] == {"spaces": 14, "boundaries": 84, "openings": 28,
-                                 "connections": 14, "unbuilt_openings": 0, "unsupported": 0}
-    assert summary["generation"]["unresolved"] == source["generation"]["unresolved"]
-    assert [row["review_ref"] for row in summary["current_reviews"]] == [
-        "opening_reviews/review_001.json", "opening_reviews/review_002.json"]
-    assert summary["stale_reviews"] == []
-    assert _scope(summary, "F1", "door")["review_status"] == "observations_require_follow_up"
-    assert _scope(summary, "F2", "door")["review_status"] == "observations_require_follow_up"
-    assert _scope(summary, "F1", "window")["review_status"] == "not_reviewed"
-    assert summary["drawing_fidelity"] == "not_evaluated"
 
 
-def test_run06_candidate03_does_not_inherit_candidate02_reviews_after_notes_change():
-    source = _json("candidate_03/source_model.json")
-    reviews = [_json("opening_reviews/review_001.json"), _json("opening_reviews/review_002.json")]
 
-    summary = summarize_delivery(source, reviews)
 
-    assert summary["current_reviews"] == []
-    assert [row["stale_reason"] for row in summary["stale_reviews"]] == [
-        "source_model_sha256_mismatch", "source_model_sha256_mismatch"]
-    assert all(row["review_status"] == "not_reviewed" for row in summary["opening_review_scopes"])
+def _two_floor_source():
+    geometry = three_rooms()
+    upper = geometry.floors[0].model_copy(deep=True)
+    upper.name, upper.z_floor = "F2", 3
+    for cell in upper.cells:
+        cell.id += "_up"
+    geometry.floors.append(upper)
+    window = geometry.windows[0].model_copy(deep=True)
+    window.id, window.floor, window.room, window.z = "w_up", "F2", "hall_up", [4, 5]
+    geometry.windows.append(window)
+    return build_source_bim(geometry, capability_profile="orthogonal_polygon")
 
 
 def test_partial_or_uncertain_evidence_cannot_become_a_consistency_pass():
-    source = _json("candidate_02/source_model.json")
+    source = _two_floor_source()
     source_hash = source["source_model_sha256"]
     partial = {
         "source_model_sha256": source_hash,
@@ -77,7 +61,7 @@ def test_partial_or_uncertain_evidence_cannot_become_a_consistency_pass():
 
 
 def test_later_complete_same_image_replaces_old_risk_but_other_image_risk_remains():
-    source = _json("candidate_02/source_model.json")
+    source = _two_floor_source()
     source_hash = source["source_model_sha256"]
     base = {
         "source_model_sha256": source_hash,
@@ -100,7 +84,7 @@ def test_later_complete_same_image_replaces_old_risk_but_other_image_risk_remain
 
 
 def test_complete_consistency_is_not_downgraded_by_partial_coverage_notice_alone():
-    source = _json("candidate_02/source_model.json")
+    source = _two_floor_source()
     source_hash = source["source_model_sha256"]
     complete = {
         "source_model_sha256": source_hash,

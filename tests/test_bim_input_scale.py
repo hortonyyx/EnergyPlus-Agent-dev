@@ -1,6 +1,7 @@
 """Mixed mm/m declarations stop before geometry; metre inputs keep their values."""
 from __future__ import annotations
 
+
 import copy
 import json
 from pathlib import Path
@@ -60,19 +61,6 @@ def test_plan_rejects_before_polygonization_and_keeps_raw_declaration(monkeypatc
     assert plan == before
 
 
-@pytest.mark.parametrize("name,draft", [
-    ("2026-09-27_sm21_guidance_ablation_run72", "draft_001"),
-    ("2026-09-27_sm21_guidance_ablation_run72", "draft_002"),
-    ("2026-09-27_sm21_guidance_ablation_run72", "draft_003"),
-    ("2026-09-28_sm21_method_control_run85", "draft_001"),
-])
-def test_original_millimetre_inputs_are_rejected(name, draft):
-    run = ROOT / "AI_agent/logs/experiments" / name
-    value = json.loads((run / "plan_drafts" / draft / "plan.json").read_bytes())
-    image = json.loads((run / "plan_drafts" / draft / "input.json").read_bytes())["image"]
-    size = tuple(json.loads((run / "inputs.json").read_bytes())["images"][image]["size"])
-    with pytest.raises(ScaleMismatchError, match="15000"):
-        compile_plan_partition(value, image_size=size, image_name=image)
 
 
 def test_tool_rejects_plan_revision_and_restored_draft_assembly_without_new_source(tmp_path):

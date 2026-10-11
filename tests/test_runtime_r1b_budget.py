@@ -26,15 +26,11 @@ from test_agent_runtime import Tools, role, versions
 
 
 ROOT = Path(__file__).resolve().parents[1]
-GLM_RESPONSES = (
-    ROOT
-    / "AI_agent/logs/experiments/2026-10-03_runtime_r1/glm_calibration/responses.json"
-)
-
+GLM_RESPONSES = ROOT / "tests/fixtures/runtime_overrun.json"
 
 def _glm_row() -> dict:
     evidence = json.loads(GLM_RESPONSES.read_text(encoding="utf-8"))
-    row = evidence["rows"][0]
+    row = evidence
     assert row["case"] == "text_control"
     assert row["request"]["model"] == "GLM-5.3-Flash"
     assert row["request"]["max_tokens"] == 8

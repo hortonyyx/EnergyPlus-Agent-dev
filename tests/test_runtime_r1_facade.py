@@ -1,3 +1,5 @@
+
+from tests.archive_paths import archive_path
 import json
 from pathlib import Path
 
@@ -13,7 +15,7 @@ validate_run_manifest = _support.validate_run_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-HERE = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r1"
+HERE = archive_path('AI_agent/logs/experiments/2026-10-03_runtime_r1')
 
 
 def _outcome(mode, facade, windows, count, *, status="completed"):

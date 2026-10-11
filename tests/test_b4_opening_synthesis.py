@@ -39,6 +39,8 @@ completeness invariant (paired + refused == every opening, both sides).
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import ast
 import inspect
 import json
@@ -69,12 +71,8 @@ from src.agent.reading.vector_contract import (
     classify_vector_json,
 )
 
-_PRODUCTS = Path(
-    "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
-)
-_FACTS = Path(
-    "case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json"
-)
+_PRODUCTS = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
+_FACTS = archive_path('case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json')
 _FACADES = ("east", "west", "north", "south")
 
 

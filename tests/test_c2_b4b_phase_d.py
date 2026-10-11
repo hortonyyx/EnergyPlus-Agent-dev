@@ -1,6 +1,8 @@
 """B4b Phase D closure: cache, artifact pair, typed grade, and boundaries."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 import os
@@ -43,7 +45,7 @@ def _scandir_files(root):
                 yield entry
 
 
-def _case_tests_metadata_fingerprint(root: Path = Path("case_tests")) -> str:
+def _case_tests_metadata_fingerprint(root: Path = archive_path('case_tests')) -> str:
     """Path + size + mtime_ns fingerprint of every file under ``root``
     (F-23 fix, 2026-08-12 -- see AI_agent/logs/reviews/request/
     2026-08-12_c_annotation_observable_and_f23_dispatch_claude.md §D).

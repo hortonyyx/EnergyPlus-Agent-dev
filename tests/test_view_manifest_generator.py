@@ -9,6 +9,8 @@ that must never touch the real fixtures)."""
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import io
 import json
 from pathlib import Path
@@ -30,9 +32,9 @@ from src.agent.execution.view_manifest import (
     verify_view_manifest,
 )
 
-SM21 = Path("case_tests/e2e_tests/sm21_anchor")
-SM20 = Path("case_tests/e2e_tests/sm20_anchor")
-SM24 = Path("case_tests/e2e_tests/sm24_anchor")
+SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
+SM20 = archive_path('case_tests/e2e_tests/sm20_anchor')
+SM24 = archive_path('case_tests/e2e_tests/sm24_anchor')
 
 
 def _tiny_png() -> bytes:

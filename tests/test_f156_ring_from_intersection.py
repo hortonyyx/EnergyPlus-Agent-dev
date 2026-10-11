@@ -25,6 +25,8 @@ is asserted here instead:
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 
 import pytest
@@ -42,7 +44,7 @@ from src.agent.judge.gt_schema import REPO_ROOT
 
 CASE = "sm25-L_anchor"
 CONVERSION_REPORT = (
-    REPO_ROOT / "case_tests/test_baseline/gt" / CASE / "review/conversion_report.json")
+    archive_path('case_tests/test_baseline/gt') / CASE / "review/conversion_report.json")
 MIN_ROOM_AREA_M2 = 5.0
 
 # ⭐ A-11 rework-1 root cause B: the deferred-projection adjudication is

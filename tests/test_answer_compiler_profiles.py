@@ -1,6 +1,8 @@
 """②-1c: signed-fixture, real-sm25, profile, and 6a/6b/6c locks."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -23,8 +25,8 @@ from src.agent.judge.tarch_converter_schema import ConversionReportV1, TarchConv
 from tests.answer_compiler_fixtures import synthetic_signed_facts
 
 REPO = Path(__file__).resolve().parents[1]
-SM25_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
-SM25_GT = REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json"
+SM25_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
+SM25_GT = archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')
 UNITS = 10_000
 
 

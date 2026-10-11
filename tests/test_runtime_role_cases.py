@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import importlib.util
 import json
 from collections import Counter
@@ -8,8 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ROLE_CASES = (
-    ROOT
-    / "AI_agent/logs/experiments/2026-10-02_harness_stage3/role_cases"
+    archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage3/role_cases')
 )
 
 

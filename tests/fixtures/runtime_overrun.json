@@ -1,0 +1,50 @@
+{
+  "case": "text_control",
+  "request": {
+    "model": "GLM-5.3-Flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply only OK. Token calibration uses a short English sentence and 中文字符 12345."
+      }
+    ],
+    "stream": false,
+    "n": 1,
+    "max_tokens": 8,
+    "temperature": 0.0,
+    "reasoning_effort": "medium"
+  },
+  "response": {
+    "id": "synthetic-overrun",
+    "model": "GLM-5.3-Flash",
+    "object": "chat.completion",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "OK",
+          "role": "assistant",
+          "reasoning_content": "The user asks to reply only \"OK\". The rest is calibration text. I should just reply \"OK\".",
+          "provider_specific_fields": {
+            "refusal": null,
+            "reasoning_content": "The user asks to reply only \"OK\". The rest is calibration text. I should just reply \"OK\"."
+          }
+        },
+        "provider_specific_fields": {}
+      }
+    ],
+    "usage": {
+      "completion_tokens": 24,
+      "prompt_tokens": 31,
+      "total_tokens": 55,
+      "completion_tokens_details": {
+        "reasoning_tokens": 22
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "service_tier": "default"
+  }
+}

@@ -21,6 +21,8 @@ These locks pin the class, not the example:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from pathlib import Path
 
 import pytest
@@ -35,7 +37,7 @@ from src.agent.correction.projection_bridge import (
 
 REPO = Path(__file__).resolve().parents[1]
 PROBE = (
-    REPO / "AI_agent/logs/experiments/2026-09-07h_w1_t1_probe/newleg_probe"
+    archive_path('AI_agent/logs/experiments/2026-09-07h_w1_t1_probe/newleg_probe')
 )
 #: gate①'s ``_MIN_EXTENT`` family (parse._ring_checks refuses shorter
 #: edges); the finalize gate is 0.10 m — the stricter floor here is 0.05.

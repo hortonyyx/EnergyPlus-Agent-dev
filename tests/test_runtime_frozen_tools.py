@@ -34,7 +34,6 @@ from src.harness_contracts.budget import BudgetAmounts
 
 ROOT = Path(__file__).resolve().parents[1]
 SERVER = ROOT / "scripts/tool_scripts/run_bim_agent.py"
-MATERIALS = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage1/frozen_materials"
 
 
 def _prepared_run(tmp_path: Path, *, mesh: bool = False) -> Path:
@@ -201,15 +200,6 @@ def test_disabled_capability_returns_known_block_before_execution(tmp_path):
     asyncio.run(scenario())
 
 
-def test_historical_stage1_material_subset_matches_its_registered_version():
-    material = json.loads((MATERIALS / "material_manifest.json").read_text())
-    historical = agent_version_record(ROOT, FROZEN_BASELINE_COMMIT, verify=False)
-    assert material["baseline_commit"] == historical["source_commit"]
-    assert material["source_sha256"] == {
-        path: historical["files"][path]["sha256"] for path in material["source_sha256"]
-    }
-    for name, metadata in material["prompts"].items():
-        assert hashlib.sha256((MATERIALS / name).read_bytes()).hexdigest() == metadata["sha256"]
 
 
 def test_artifacts_include_partial_viewer_and_source_bim_but_not_transport_scratch(tmp_path):

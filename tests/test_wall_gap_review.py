@@ -1,4 +1,6 @@
 """A reviewed continuous corridor must not acquire a physical cross-wall."""
+
+from tests.archive_paths import archive_path
 import json
 from pathlib import Path
 
@@ -15,8 +17,8 @@ from src.agent.correction.wall_gap_review import (
 from src.agent.correction.window_sources import verify_window_resolver_inputs_artifact
 
 ROOT = Path(__file__).resolve().parents[1]
-REVIEWS = ROOT / "AI_agent/logs/experiments/2026-09-09_m0_wall_gap_review_inputs/reviews.json"
-ARCHIVE = ROOT / "case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001"
+REVIEWS = archive_path('AI_agent/logs/experiments/2026-09-09_m0_wall_gap_review_inputs/reviews.json')
+ARCHIVE = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001')
 
 
 @pytest.fixture(scope="module")

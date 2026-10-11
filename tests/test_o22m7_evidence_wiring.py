@@ -44,6 +44,8 @@ strict evidence-chain profile before its geometry can reach the judge.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import inspect
 import json
 from pathlib import Path
@@ -78,13 +80,8 @@ from src.agent.reading.as_drawn.schema import SCHEMA
 
 from tests.test_b3_elevation_leg import _synthetic_bytes
 
-_V2_OUT = Path(
-    "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
-)
-_LEGACY_VIEW = Path(
-    "case_tests/e2e_tests/sm25-L_anchor/"
-    "run_2026-08-25_c2_rescore_R0/0_reading/1f_view.json"
-)
+_V2_OUT = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
+_LEGACY_VIEW = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_2026-08-25_c2_rescore_R0/0_reading/1f_view.json')
 
 
 # ── shared fixtures ---------------------------------------------------------- #

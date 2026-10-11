@@ -25,6 +25,8 @@ built in ``tmp_path``.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import collections
 import copy
 import dataclasses
@@ -58,12 +60,12 @@ from src.agent.judge.tarch_converter_schema import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-ANCHOR = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
+ANCHOR = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
 SIGNED_DXF = ANCHOR / "sm25-L_t3.dxf"
 AS_RECEIVED_DXF = ANCHOR / "sm25-L_t3_as_received.dxf"
 SIGNED_REQUEST = ANCHOR / "request.json"
 AS_MEASURED_REQUEST = ANCHOR / "request_as_measured.json"
-SM24 = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor"
+SM24 = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor')
 
 #: The signatures this unit promised not to move.  ⭐ Both halves are pinned:
 #: the CANONICAL hash (what the converter checks) and the FILE hash (what the

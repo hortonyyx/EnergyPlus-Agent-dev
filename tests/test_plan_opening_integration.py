@@ -1,6 +1,8 @@
 """Source openings survive the real correction writer and completeness gate."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import dataclasses
 
@@ -67,7 +69,7 @@ def test_opening_recipe_changes_replay_hash_without_changing_historical_recipe_b
         AsDrawnChainProvenanceV1, PlanWallOpeningPolicyV1, build_chain_provenance,
     )
 
-    path = Path("case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001/chain_provenance.json")
+    path = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001/chain_provenance.json')
     old = AsDrawnChainProvenanceV1.model_validate_json(path.read_bytes())
     rows = [{"input_id": r.input_id, "product_filename": r.product_filename, "floor_ref": r.floor_ref,
              "compilation_bytes": r.compilation_bytes, "source_bytes_sha256": r.source_bytes_sha256}

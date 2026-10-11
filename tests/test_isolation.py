@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import io
 import json
@@ -32,10 +34,8 @@ from src.agent.execution.manifest import (
 from src.agent.execution.view_manifest import provision_view_manifest
 
 
-CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
-_REAL_VIEWS_PATH = Path(
-    "case_tests/e2e_tests/sm21_anchor/run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json"
-)
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
+_REAL_VIEWS_PATH = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json')
 
 
 def _real_views() -> dict:
@@ -930,7 +930,7 @@ def test_worked_example_is_synthetic_and_not_the_sm21_shaped_case_artifact():
     inspect it before the sm21 exam. Keep examples out of case artifacts and
     ensure the replacement cannot silently drift back to that exact wall prior.
     """
-    contaminated = Path("case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json")
+    contaminated = archive_path('case_tests/e2e_tests/smalloffice_20/0_reading/1f_view.json')
 
     assert "case_tests" not in WORKED_EXAMPLE_SOURCE.parts
     assert WORKED_EXAMPLE_SOURCE.is_file()

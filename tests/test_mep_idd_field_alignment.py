@@ -18,6 +18,8 @@ Acceptance coverage:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import subprocess
 import warnings
@@ -365,7 +367,7 @@ _PRESCAN_GREEN = {
 }
 
 
-_E2E_BASE = _ROOT / "case_tests" / "e2e_tests"
+_E2E_BASE = archive_path('case_tests/e2e_tests')
 
 
 def _artifact_runs():

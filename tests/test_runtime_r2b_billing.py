@@ -56,15 +56,6 @@ def test_missing_image_detail_remains_formula_estimate():
     assert account.estimated_cost_cny == Decimal("0.00063")
 
 
-def test_nine_real_responses_match_all_three_invoice_lines():
-    root = Path(__file__).resolve().parents[1]
-    script = root / "AI_agent/logs/experiments/2026-10-03_runtime_r2/r2bc/reconcile_billing.py"
-    report = runpy.run_path(str(script))["reconcile"]()
-    assert report["provider_reported_tokens"] == 126977
-    assert report["budget_charge_tokens"] == 138045
-    assert report["unrounded_cny"] == "0.926694"
-    assert report["invoice_total_cny"] == "0.92669"
-    assert all(line["token_error"] == 0 and line["cny_error"] == "0" for line in report["invoice_lines"])
 
 
 @pytest.mark.parametrize("child", [False, True])

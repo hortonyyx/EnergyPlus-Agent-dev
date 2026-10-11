@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import importlib.util
 import json
@@ -9,8 +11,8 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BRIDGE_PATH = ROOT / "AI_agent/logs/experiments/2026-10-06_role_division_d1b/scoring_bridge.py"
-REFERENCE = ROOT / "AI_agent/logs/experiments/2026-10-06_role_division_analysis/references/sm24_anchor.json"
+BRIDGE_PATH = archive_path('AI_agent/logs/experiments/2026-10-06_role_division_d1b/scoring_bridge.py')
+REFERENCE = archive_path('AI_agent/logs/experiments/2026-10-06_role_division_analysis/references/sm24_anchor.json')
 SPEC = importlib.util.spec_from_file_location("role_scoring_bridge_tested", BRIDGE_PATH)
 assert SPEC is not None and SPEC.loader is not None
 BRIDGE = importlib.util.module_from_spec(SPEC)

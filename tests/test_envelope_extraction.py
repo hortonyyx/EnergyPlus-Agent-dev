@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from pathlib import Path
 
 from src.agent.correction.envelope import (
@@ -12,7 +14,7 @@ from src.agent.correction.envelope import (
 from src.agent.reading import load_reading_view
 
 
-_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 _SONNET = _SM21 / "run_2026-06-20_sonnet_reading" / "0_reading"
 _GPT54 = _SM21 / "run_2026-06-20_gpt54_reading" / "0_reading"
 

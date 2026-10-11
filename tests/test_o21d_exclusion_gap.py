@@ -57,6 +57,8 @@ Real sm25 substrate throughout (⛔ not a hand-built world).
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import inspect
 
 import pytest
@@ -84,8 +86,8 @@ from src.agent.judge.tarch_converter_schema import (
 from src.agent.judge.gt_schema import REPO_ROOT
 
 CASE = "sm25-L_anchor"
-SM25_GT = REPO_ROOT / "case_tests/test_baseline/gt" / CASE
-SM25_SOURCE = REPO_ROOT / "case_tests/test_baseline/gt_sources" / CASE
+SM25_GT = archive_path('case_tests/test_baseline/gt') / CASE
+SM25_SOURCE = archive_path('case_tests/test_baseline/gt_sources') / CASE
 
 #: The named producer-written-ring-loss fail-loud code (task ②): a loss a
 #: converter zone CONSUMES (forward pass).

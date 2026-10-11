@@ -25,7 +25,7 @@ def test_deterministic_output_and_cli_contract(monkeypatch):
     monkeypatch.setattr(affected, "first_class_files", lambda: tuple(reversed(original_files)))
     second = affected.render(_result(*path.split("/")), "test", explain=True)
     assert first == second
-    assert first.startswith("SCOPE: SUBSET\npython -m pytest ")
+    assert first.startswith("SCOPE: SUBSET\npython scripts/dev/check.py ")
     assert "跑测声明：受影响子集 = " in first
     assert "EXPLAIN: " in first
 
@@ -207,3 +207,20 @@ def test_since_uses_committed_range_only(tmp_path, monkeypatch):
 
     monkeypatch.setattr(affected, "REPO_ROOT", tmp_path)
     assert affected.changed_since(base) == ["committed.py"]
+
+
+def test_graph_snapshot_cache_invalidates_when_a_source_changes(tmp_path, monkeypatch):
+    monkeypatch.setattr(affected, "REPO_ROOT", tmp_path)
+    (tmp_path / "src").mkdir()
+    consumer = tmp_path / "src/consumer.py"
+    consumer.write_text("import src.first\n", encoding="utf-8")
+    (tmp_path / "src/first.py").write_text("", encoding="utf-8")
+    (tmp_path / "src/second.py").write_text("", encoding="utf-8")
+    files = ("src/consumer.py", "src/first.py", "src/second.py")
+    first = affected.build_edges(files)
+    assert affected.build_edges(tuple(reversed(files))) is first
+    assert affected.Edge("src/consumer.py", "src/first.py", "import") in first
+    consumer.write_text("import src.second\n", encoding="utf-8")
+    changed = affected.build_edges(files)
+    assert affected.Edge("src/consumer.py", "src/second.py", "import") in changed
+    assert affected.Edge("src/consumer.py", "src/first.py", "import") not in changed

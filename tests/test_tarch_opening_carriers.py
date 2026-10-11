@@ -1,6 +1,8 @@
 """Contract and skeleton tests for request-declared elevation opening carriers."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 from pathlib import Path
 from types import SimpleNamespace
@@ -23,8 +25,8 @@ REPO = Path(__file__).resolve().parents[1]
 SM24_REQUEST = (
     REPO / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json"
 )
-SM24_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
-SM25_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf"
+SM24_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf')
+SM25_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3.dxf')
 TOOLING = resolve_converter_tooling(
     REPO / "src/configs/judge_gt.yaml", REPO / "src/configs/correction.yaml")
 

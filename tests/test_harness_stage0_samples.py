@@ -1,6 +1,8 @@
 """Connected, real-backed acceptance examples; no model or BIM tool execution."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import base64
 import copy
 import hashlib
@@ -207,7 +209,7 @@ def test_photo_and_mixed_inputs_keep_inference_and_provenance_honest():
 
 
 def test_native_sol_view_ids_match_later_saved_view_records_and_original_pixels():
-    prefix = ROOT / "AI_agent/logs/experiments/2026-10-01_partial_inference_developer_tests/run_61sol"
+    prefix = archive_path('AI_agent/logs/experiments/2026-10-01_partial_inference_developer_tests/run_61sol')
     mixed = examples("mixed_inputs")[0]["building"]
     for reference in mixed["evidence_packages"][0]["image_refs"]:
         assert reference["run_id"] == "run_61sol"
@@ -220,7 +222,7 @@ def test_native_sol_view_ids_match_later_saved_view_records_and_original_pixels(
 
 
 def test_sample_generator_is_byte_deterministic_without_touching_history(tmp_path):
-    path = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage0/build_samples.py"
+    path = archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage0/build_samples.py')
     spec = importlib.util.spec_from_file_location("stage0_samples_builder",path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

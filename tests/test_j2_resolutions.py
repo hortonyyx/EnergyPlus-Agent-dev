@@ -13,6 +13,7 @@ grader read a declaration.  These locks hold the shape the dispatch asked for:
 Every lock here has a concrete way to go red, named in its own comment.
 """
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 import json
 from pathlib import Path
@@ -30,8 +31,7 @@ from src.agent.judge.as_drawn.resolutions import (
     snap_to_resolution,
 )
 
-REAL_GT = (Path(__file__).resolve().parents[1]
-           / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json")
+REAL_GT = (archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json'))
 
 
 def _gt_with_tolerance(value: float | None) -> dict:

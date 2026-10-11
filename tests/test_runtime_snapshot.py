@@ -1,6 +1,8 @@
 """Saved-source snapshot extraction, including a real BIM mutation counterexample."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import hashlib
 import json
@@ -24,8 +26,7 @@ snapshot_source_bim = _support.snapshot_source_bim
 
 ROOT = Path(__file__).resolve().parents[1]
 REAL_SOURCE = (
-    ROOT
-    / "AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/candidate_04/source_model.json"
+    archive_path('AI_agent/logs/experiments/2026-10-01_opus_dev_sm25/candidate_04/source_model.json')
 )
 
 

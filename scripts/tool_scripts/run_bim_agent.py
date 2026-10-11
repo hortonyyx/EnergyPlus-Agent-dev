@@ -1339,7 +1339,8 @@ class Toolkit:
         candidate = f"candidate_{index:02d}"
         provenance = {"input_manifest_sha256": digest(self.run/"inputs.json"),
                       "mode": self.manifest.get("input_mode", "original_images_agent_experiment"),
-                      "generator": f"{self.manifest.get('provider', 'claude')} subscription tool loop"}
+                      "generator": self.manifest.get("generator") or
+                                   f"{self.manifest.get('provider', 'claude')} subscription tool loop"}
         if parent is not None:
             provenance.update(parent_candidate=parent,
                               parent_proposal_sha256=digest(self.candidate_path(parent)/"proposal.json"))

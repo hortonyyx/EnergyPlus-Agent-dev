@@ -1,6 +1,8 @@
 """F-67 locks: support ambiguity is per observation, never per component."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import hashlib
 import json
@@ -19,15 +21,13 @@ from tests.test_reading_typed_scoring_slice0 import _grade_payload, _real_payloa
 
 REPO = Path(__file__).resolve().parents[1]
 SM25_RUN = (
-    REPO
-    / "case_tests/e2e_tests/sm25-L_anchor"
-    / "run_2026-08-21_c2_first_sonnet_T1"
+    archive_path('case_tests/e2e_tests/sm25-L_anchor/run_2026-08-21_c2_first_sonnet_T1')
 )
 SM25_OUTPUT = SM25_RUN / "0_reading/attempts/001/output.json"
 SM25_OUTPUT_SHA256 = (
     "6b4aa33c2c01b838eaef027e016cbb7688399a118b7658ffe3a3b45fa3bc1f94"
 )
-SM25_GT = REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json"
+SM25_GT = archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')
 SM24_PRE_F67_SCORE_SHA256 = (
     "9e121932806c4f1582408975f166346eebe029baf1ed59ec9e9fc21a99eee7cc"
 )

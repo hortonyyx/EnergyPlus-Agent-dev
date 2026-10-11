@@ -1,6 +1,8 @@
 """R4/F-130: reading questions come from facts with unchanged scores."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 import tempfile
@@ -24,8 +26,8 @@ from src.agent.judge.gt_schema import REPO_ROOT
 from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1
 from src.agent.judge.tarch_normalize import run_p1_plan_view
 
-SM25 = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
-SM24 = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm24_anchor"
+SM25 = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
+SM24 = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor')
 GT_CFG = REPO_ROOT / "src/configs/judge_gt.yaml"
 VG_CFG = REPO_ROOT / "src/configs/correction.yaml"
 

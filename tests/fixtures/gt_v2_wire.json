@@ -1,0 +1,358 @@
+{
+  "case": "sm21_anchor",
+  "schema_version": 2,
+  "_source": "cad_dxf",
+  "_cad_file": "source.dxf",
+  "_cad_sha256": "b02e0574a05b0e982dd74f8ed4bc0287a042cd57a0cbf623ab7952f7b61d79e0",
+  "_extractor": "gt_from_dxf v2 (DXF primary builder; roles from auxiliary map)",
+  "_note": "Geometry (footprint/zones/windows/doors/heights) extracted from source.dxf; zone roles from the auxiliary map (DXF carries no room labels). Verify via the overlay onto the original drawings.",
+  "_verified": true,
+  "_verified_by": "user (hortonyyx)",
+  "_verified_on": "2026-06-23",
+  "_verified_method": "dimensioned direct-output render + gt-overlay-on-original-drawings, reviewed against the source drawings; confirmed correct = the human-ratified standard answer key",
+  "wall_thickness_m": 0.24,
+  "_wall_thickness_note": "CAD 240mm wall ticks confirmed in 2026-07-02 audit C1; correction geometry is centerline, so boundary scoring expands correction footprint by wall_thickness_m/2 while interior wall axes remain unchanged.",
+  "footprint": {
+    "W_m": 15.0,
+    "D_m": 8.0
+  },
+  "floors": [
+    {
+      "name": "Floor 1",
+      "z_floor": 0.0,
+      "ceiling_height": 3.0,
+      "zone_count": 7,
+      "zones": [
+        {
+          "id": "F1_S1",
+          "role": "office",
+          "rect_m": [
+            0.0,
+            0.0,
+            5.0,
+            3.0
+          ]
+        },
+        {
+          "id": "F1_S2",
+          "role": "office",
+          "rect_m": [
+            5.0,
+            0.0,
+            10.0,
+            3.0
+          ]
+        },
+        {
+          "id": "F1_S3",
+          "role": "meeting",
+          "rect_m": [
+            10.0,
+            0.0,
+            15.0,
+            3.0
+          ]
+        },
+        {
+          "id": "F1_COR",
+          "role": "corridor",
+          "rect_m": [
+            0.0,
+            3.0,
+            15.0,
+            5.0
+          ]
+        },
+        {
+          "id": "F1_N1",
+          "role": "office",
+          "rect_m": [
+            0.0,
+            5.0,
+            5.0,
+            8.0
+          ]
+        },
+        {
+          "id": "F1_N2",
+          "role": "office",
+          "rect_m": [
+            5.0,
+            5.0,
+            10.0,
+            8.0
+          ]
+        },
+        {
+          "id": "F1_N3",
+          "role": "office",
+          "rect_m": [
+            10.0,
+            5.0,
+            15.0,
+            8.0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Floor 2",
+      "z_floor": 3.0,
+      "ceiling_height": 3.6,
+      "zone_count": 7,
+      "zones": [
+        {
+          "id": "F2_S1",
+          "role": "office",
+          "rect_m": [
+            0.0,
+            0.0,
+            3.75,
+            3.0
+          ]
+        },
+        {
+          "id": "F2_S2",
+          "role": "office",
+          "rect_m": [
+            3.75,
+            0.0,
+            7.5,
+            3.0
+          ]
+        },
+        {
+          "id": "F2_S3",
+          "role": "office",
+          "rect_m": [
+            7.5,
+            0.0,
+            11.25,
+            3.0
+          ]
+        },
+        {
+          "id": "F2_S4",
+          "role": "office",
+          "rect_m": [
+            11.25,
+            0.0,
+            15.0,
+            3.0
+          ]
+        },
+        {
+          "id": "F2_COR",
+          "role": "corridor",
+          "rect_m": [
+            0.0,
+            3.0,
+            15.0,
+            5.0
+          ]
+        },
+        {
+          "id": "F2_N1",
+          "role": "meeting",
+          "rect_m": [
+            0.0,
+            5.0,
+            7.5,
+            8.0
+          ]
+        },
+        {
+          "id": "F2_N2",
+          "role": "meeting",
+          "rect_m": [
+            7.5,
+            5.0,
+            15.0,
+            8.0
+          ]
+        }
+      ]
+    }
+  ],
+  "windows": [
+    {
+      "facade": "North",
+      "floor": "Floor 1",
+      "count": 3,
+      "sill_m": 1.0,
+      "head_m": 2.6,
+      "openings": [
+        {
+          "x_m": 1.24,
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
+        },
+        {
+          "x_m": 6.3,
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
+        },
+        {
+          "x_m": 11.36,
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
+        }
+      ]
+    },
+    {
+      "facade": "North",
+      "floor": "Floor 2",
+      "count": 2,
+      "sill_m": 4.0,
+      "head_m": 5.8,
+      "openings": [
+        {
+          "x_m": 1.95,
+          "width_m": 3.6,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        },
+        {
+          "x_m": 9.45,
+          "width_m": 3.6,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        }
+      ]
+    },
+    {
+      "facade": "South",
+      "floor": "Floor 1",
+      "count": 3,
+      "sill_m": 1.0,
+      "head_m": 2.6,
+      "openings": [
+        {
+          "x_m": 3.44,
+          "width_m": 1.2,
+          "sill_m": 1.5,
+          "head_m": 2.1
+        },
+        {
+          "x_m": 6.3,
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
+        },
+        {
+          "x_m": 11.36,
+          "width_m": 2.4,
+          "sill_m": 1.0,
+          "head_m": 2.6
+        }
+      ]
+    },
+    {
+      "facade": "South",
+      "floor": "Floor 2",
+      "count": 4,
+      "sill_m": 4.0,
+      "head_m": 5.8,
+      "openings": [
+        {
+          "x_m": 2.19,
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        },
+        {
+          "x_m": 4.11,
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        },
+        {
+          "x_m": 9.69,
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        },
+        {
+          "x_m": 11.61,
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        }
+      ]
+    },
+    {
+      "facade": "East",
+      "floor": "Floor 1",
+      "count": 1,
+      "sill_m": 1.0,
+      "head_m": 2.8,
+      "openings": [
+        {
+          "x_m": 3.4,
+          "width_m": 1.2,
+          "sill_m": 1.0,
+          "head_m": 2.8
+        }
+      ]
+    },
+    {
+      "facade": "East",
+      "floor": "Floor 2",
+      "count": 1,
+      "sill_m": 4.0,
+      "head_m": 5.8,
+      "openings": [
+        {
+          "x_m": 3.4,
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        }
+      ]
+    },
+    {
+      "facade": "West",
+      "floor": "Floor 1",
+      "count": 0,
+      "sill_m": null,
+      "head_m": null,
+      "openings": []
+    },
+    {
+      "facade": "West",
+      "floor": "Floor 2",
+      "count": 1,
+      "sill_m": 4.0,
+      "head_m": 5.8,
+      "openings": [
+        {
+          "x_m": 3.4,
+          "width_m": 1.2,
+          "sill_m": 4.0,
+          "head_m": 5.8
+        }
+      ]
+    }
+  ],
+  "doors": [
+    {
+      "facade": "West",
+      "floor": "Floor 1",
+      "x_m": 3.25,
+      "width_m": 1.5,
+      "sill_m": 0.0,
+      "head_m": 2.1
+    },
+    {
+      "facade": "South",
+      "floor": "Floor 1",
+      "x_m": 0.54,
+      "width_m": 0.9,
+      "sill_m": 0.0,
+      "head_m": 2.1
+    }
+  ]
+}

@@ -32,6 +32,27 @@ ALLOWED_ENTRYPOINTS = {
 }
 
 
+def resolve_case_input(case: dict) -> Path:
+    """Resolve one admitted case; an external input root must be explicit."""
+    configured = case.get("input_root")
+    root = ROOT.resolve() if configured is None else Path(configured).expanduser()
+    if not root.is_absolute():
+        raise ValueError("input_root must be an absolute path")
+    root = root.resolve()
+    if root == Path(root.anchor):
+        raise ValueError("input_root must be a dedicated directory, not a filesystem root")
+    target = (root / case["input"]).resolve()
+    if not target.is_relative_to(root):
+        raise ValueError("input escapes the worktree" if configured is None
+                         else "input escapes its configured input_root")
+    if not target.exists():
+        raise ValueError(f"input does not exist: {target}")
+    if case.get("input_kind") == "images" and any(
+            not image.resolve().is_relative_to(target) for image in target.glob("*.png")):
+        raise ValueError("input image escapes its admitted case directory")
+    return target
+
+
 def load_configuration(path: Path, *, low_output_limit_reason: str | None = None) -> dict:
     value = json.loads(path.read_bytes())
     if value.get("schema_version") != 1:
@@ -45,6 +66,9 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
     if len(set(identities)) != len(identities) or not all(identities):
         raise ValueError("case IDs must be present and unique")
     for case in cases:
+        for name in ("input_root", "run_root"):
+            if name not in case and value.get(name) is not None:
+                case[name] = value[name]
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
@@ -96,13 +120,9 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         if seconds > value["maximum_seconds_per_case"]:
             raise ValueError("case exceeds the configuration's time ceiling")
         validate_budget(case)
-        target = (ROOT / case["input"]).resolve()
-        if not target.is_relative_to(ROOT):
-            raise ValueError("input escapes the worktree")
-        if not target.exists():
-            raise ValueError(f"input does not exist: {target}")
-        if case.get("run_root") is not None and mode != "single_model":
-            raise ValueError("explicit run_root currently supports single_model only")
+        target = resolve_case_input(case)
+        if case.get("run_root") is not None and mode not in {"single_model", "role_division"}:
+            raise ValueError("explicit run_root supports single_model and role_division only")
         if case.get("run_root") is not None:
             case["run_root"] = str(Path(case["run_root"]).expanduser())
         resolve_run_output(ROOT / case["output"] if case.get("run_root") is None else Path(case["output"]), repository_root=ROOT,
@@ -110,7 +130,7 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         floors = case.get("floor_plan_images")
         if floors is not None and (not isinstance(floors, list) or any(
                 not isinstance(name, str) or Path(name).name != name
-                or not (ROOT / case["input"] / name).is_file() for name in floors)):
+                or not (target / name).is_file() for name in floors)):
             raise ValueError("floor_plan_images must use admitted input filenames")
         providers = ({role.provider for role in role_configurations.values()}
                      if role_configurations is not None else {case["provider"]})
@@ -163,8 +183,8 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     if case.get("chatgpt_auth_dir"):
         argv += ["--chatgpt-auth-dir", str(Path(case["chatgpt_auth_dir"]).expanduser().resolve())]
     if case.get("run_root") is not None:
-        if case["mode"] != "single_model":
-            raise ValueError("explicit run_root currently supports single_model only")
+        if case["mode"] not in {"single_model", "role_division"}:
+            raise ValueError("explicit run_root supports single_model and role_division only")
         argv += ["--run-root", str(case["run_root"])]
     argv += ["--no-token-limit"] if budget.tokens is None else ["--tokens", str(budget.tokens)]
     if budget.money_cny is not None:
@@ -175,7 +195,7 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     for name in ("max_consecutive_truncations", "max_total_truncations"):
         if name in limits:
             argv += ["--" + name.replace("_", "-"), str(limits[name])]
-    argv += [source_flag, str(ROOT / case["input"])]
+    argv += [source_flag, str(resolve_case_input(case))]
     for name in case.get("floor_plan_images", []):
         argv += ["--floor-plan-image", name]
     if case["mode"] == "single_model":

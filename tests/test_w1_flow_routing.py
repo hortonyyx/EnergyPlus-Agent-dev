@@ -17,6 +17,8 @@ WHAT THIS FILE LOCKS (dispatch 2026-09-07p S4 / wip-review BLK-C):
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import sys
 from pathlib import Path
@@ -34,9 +36,9 @@ from run_stage import (  # noqa: E402
 from src.agent.correction.schema import CorrectedGeometryV3  # noqa: E402
 
 _AS_DRAWN_OUT = (
-    REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+    archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 )
-_LEGACY_RUN = REPO / "case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2"
+_LEGACY_RUN = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_t1_probe2')
 _MANIFEST_SRC = _LEGACY_RUN / "_run" / "view_manifest.json"
 
 # manifest input_id -> as_drawn product file in the 08-23 prototype dir

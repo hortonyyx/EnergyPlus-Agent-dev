@@ -11,10 +11,12 @@ from __future__ import annotations
 import argparse
 import ast
 import fnmatch
+import re
 import subprocess
 import sys
 from collections import deque
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path, PurePosixPath
 
 import yaml
@@ -167,11 +169,29 @@ def import_targets(node: ast.Import | ast.ImportFrom, source: str, modules: dict
 
 
 def build_edges(files: tuple[str, ...]) -> tuple[Edge, ...]:
+    files = tuple(sorted(set(files)))
+    try:
+        snapshot = tuple((source, (REPO_ROOT / source).stat().st_size,
+                          (REPO_ROOT / source).stat().st_mtime_ns) for source in files)
+    except OSError as exc:
+        raise MappingError(f"import graph cannot read snapshot: {exc}") from exc
+    return _build_edges_snapshot(str(REPO_ROOT), snapshot)
+
+
+@lru_cache(maxsize=2)
+def _build_edges_snapshot(root: str, snapshot: tuple[tuple[str, int, int], ...]) -> tuple[Edge, ...]:
+    # Process-local only; file additions, edits and repository changes invalidate
+    # the snapshot. Repeated affected selections do not reparse the same tree.
+    files = tuple(source for source, _, _ in snapshot)
     modules = module_paths(files)
     edges: set[Edge] = set()
+    # Overlapping lookahead preserves substring semantics (including a root
+    # entrypoint name inside a longer path) without rescanning every repository
+    # filename for every string constant.
+    paths = re.compile("(?=(" + "|".join(re.escape(path) for path in sorted(set(files), key=lambda p: (-len(p), p))) + "))") if files else None
     for source in files:
         try:
-            tree = ast.parse((REPO_ROOT / source).read_text(encoding="utf-8"), filename=source)
+            tree = ast.parse((Path(root) / source).read_text(encoding="utf-8"), filename=source)
         except (OSError, SyntaxError, UnicodeDecodeError) as exc:
             raise MappingError(f"import graph cannot parse {source}: {exc}") from exc
         for node in ast.walk(tree):
@@ -179,11 +199,9 @@ def build_edges(files: tuple[str, ...]) -> tuple[Edge, ...]:
                 for target in import_targets(node, source, modules):
                     edges.add(Edge(source, target, "import"))
             elif isinstance(node, ast.Constant) and isinstance(node.value, str):
-                for target in files:
-                    if (
-                        target in node.value
-                        and not (target.startswith("tests/") and not source.startswith("tests/"))
-                    ):
+                for match in paths.finditer(node.value) if paths is not None else ():
+                    target = match.group(1)
+                    if not (target.startswith("tests/") and not source.startswith("tests/")):
                         edges.add(Edge(source, target, "string-path"))
     return tuple(sorted(edges))
 
@@ -192,10 +210,16 @@ def is_full_scope_path(path: str, rules: dict[str, tuple[str, ...]]) -> bool:
     return any(fnmatch.fnmatchcase(path, pattern) for pattern in rules["full_scope"])
 
 
-def find_path(edges: tuple[Edge, ...], start: str, goal: str) -> tuple[Edge, ...] | None:
+@lru_cache(maxsize=2)
+def _outgoing(edges: tuple[Edge, ...]) -> dict[str, tuple[Edge, ...]]:
     outgoing: dict[str, list[Edge]] = {}
     for edge in edges:
         outgoing.setdefault(edge.source, []).append(edge)
+    return {source: tuple(rows) for source, rows in outgoing.items()}
+
+
+def find_path(edges: tuple[Edge, ...], start: str, goal: str) -> tuple[Edge, ...] | None:
+    outgoing = _outgoing(edges)
     queue: deque[tuple[str, tuple[Edge, ...]]] = deque([(start, ())])
     visited = {start}
     while queue:
@@ -283,14 +307,23 @@ def changed_since(ref: str) -> list[str]:
 def render(result: MappingResult, provenance: str, explain: bool) -> str:
     lines = [f"SCOPE: {result.scope}"]
     if result.scope == "FULL":
-        lines.append("python -m pytest -p no:cacheprovider -q")
+        lines.append("python scripts/dev/check.py node")
         reason = "; ".join(result.reasons)
         lines.append(f"跑测声明：受影响子集 = 全仓（依据 {provenance}；原因：{reason}）")
         return "\n".join(lines)
-    command = "python -m pytest -p no:cacheprovider -q " + " ".join(result.tests)
+    # Keep dependency discovery lossless, but execute current checks through the
+    # classified offline entry. Historical evidence remains explicitly opt-in.
+    from tests.check_selection import inventory
+    current = tuple(path for path in result.tests
+                    if inventory().get(path, {}).get("group") != "historical")
+    command = ("python scripts/dev/check.py targeted " + " ".join(current)
+               if current else "python scripts/dev/check.py node")
     lines.append(command)
     subset = " ".join(result.tests)
     lines.append(f"跑测声明：受影响子集 = {subset}（依据 {provenance}）")
+    historical = tuple(path for path in result.tests if path not in current)
+    if historical:
+        lines.append("历史证据检查按需运行，默认命令不导入：" + " ".join(historical))
     if explain:
         for test in result.tests:
             for detail in result.explanations[test]:

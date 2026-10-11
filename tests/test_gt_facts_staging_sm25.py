@@ -6,6 +6,8 @@ artefacts remain untouched; mutations still exercise the production read path.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -27,7 +29,7 @@ from src.agent.judge.gt_revisions import (AsSignedReproductionError, AsSignedV1,
                                           verify_as_signed_reproduction)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ANCHOR = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
+ANCHOR = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
 CASE = "sm25-L_anchor"
 CHANGED_HANDLES = ("13AD", "13AC", "13AF", "160A", "13AE")
 

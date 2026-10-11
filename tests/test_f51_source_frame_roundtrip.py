@@ -28,6 +28,8 @@ staged entrypoint or not at all.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import subprocess
 import sys
@@ -39,7 +41,7 @@ from PIL import Image, ImageDraw
 
 from src.agent.execution.isolation import build_isolation_workspace
 
-CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
 
 # The synthesized source image: 1200x600, two vertical gray lines whose centers
 # sit at x=100 and x=700.  600 px between them representing 15.0 m makes the

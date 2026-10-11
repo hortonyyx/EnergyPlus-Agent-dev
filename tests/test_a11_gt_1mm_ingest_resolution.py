@@ -40,6 +40,8 @@ agree as well as the readout buckets.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from collections import Counter
 from copy import deepcopy
 from pathlib import Path
@@ -62,8 +64,8 @@ from src.agent.judge.as_measured import (
 from src.agent.judge.gt_facts_staging import read_facts_candidate
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SM25 = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
-SM24 = REPO_ROOT / "case_tests/test_baseline/gt_sources/sm24_anchor"
+SM25 = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
+SM24 = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor')
 
 #: G-c inventory, derived from facts fields by _unsnapped_coordinate_inventory:
 #: face fields: F1 (12 const + 15 min + 15 max) + F2 (2 + 2 + 2) = 48;

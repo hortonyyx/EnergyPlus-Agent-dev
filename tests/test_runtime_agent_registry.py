@@ -39,17 +39,6 @@ def _scratch(tmp_path):
     return root, path, fingerprints
 
 
-def test_migration_preserves_every_legacy_snapshot_and_real_registration_order():
-    original = json.loads(subprocess.check_output(["git", "show", "e030b6b0:src/agent_runtime/agent_versions.json"], cwd=ROOT))
-    registry = load_agent_registry(ROOT)
-    order = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-07_version_management_v1/migration_order.json").read_bytes())["legacy_order"]
-    assert len(order) == 43
-    for number, alias in enumerate(order, 1):
-        record = agent_version_record(ROOT, alias, verify=False)
-        assert record["version_id"].startswith(f"domain-v{number}-")
-        assert all(record[key] == value for key, value in original["versions"][alias].items())
-        assert record["mode_fingerprints"] is None
-    assert registry["aliases"]["t1-20261007-cc1.1"] == "domain-v43-20261007"
 
 
 def test_automatic_membership_verification_and_independent_version_lines(tmp_path, monkeypatch):

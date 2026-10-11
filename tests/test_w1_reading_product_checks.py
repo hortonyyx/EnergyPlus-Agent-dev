@@ -1,4 +1,6 @@
 """W#1: all reading check entrances dispatch before legacy defaults apply."""
+
+from tests.archive_paths import archive_path
 import json
 from pathlib import Path
 
@@ -14,8 +16,8 @@ from src.validator.checks.schema import CheckStatus
 from src.validator.checks.view_manifest import check_reading_stage
 
 ROOT = Path(__file__).resolve().parents[1]
-CASE = ROOT / "case_tests/e2e_tests/sm25-L_anchor"
-PRODUCTS = ROOT / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+CASE = archive_path('case_tests/e2e_tests/sm25-L_anchor')
+PRODUCTS = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 FILES = {"1f_view": "sm25_1f_v2.json", "2f_view": "sm25_2f_v2.json",
          **{f"{v.title()}_view": f"sm25_{v}_as_drawn.json" for v in ("east", "north", "south", "west")}}
 

@@ -34,6 +34,8 @@ measured from the image after the fact):
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import subprocess
 import sys
@@ -48,7 +50,7 @@ from PIL import Image
 
 from src.agent.execution.isolation import build_isolation_workspace
 
-CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
 
 # ---------------------------------------------------------------------------
 # Synthetic fixture geometry

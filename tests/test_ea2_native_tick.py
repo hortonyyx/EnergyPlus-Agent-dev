@@ -1,4 +1,6 @@
 """E-a′: the production source is consumed without a v0 intermediate."""
+
+from tests.archive_paths import archive_path
 from copy import deepcopy
 from pathlib import Path
 import json
@@ -13,7 +15,7 @@ from src.agent.reading.vector_contract import classify_vector_json
 from test_tick_claim_a6 import response, assert_code
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / 'AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out'
+OUT = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 
 
 def plan_doc(name='sm25_1f_v2'):

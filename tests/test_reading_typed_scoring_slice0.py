@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import hashlib
 import inspect
@@ -13,12 +15,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REAL_RUN = (
-    REPO_ROOT
-    / "case_tests/e2e_tests/sm24_anchor"
-    / "run_2026-07-27_haiku_e2e"
+    archive_path('case_tests/e2e_tests/sm24_anchor/run_2026-07-27_haiku_e2e')
 )
 REAL_OUTPUT = REAL_RUN / "0_reading/attempts/003/output.json"
-GT_FILE = REPO_ROOT / "case_tests/test_baseline/gt/sm24_anchor/gt.json"
+GT_FILE = archive_path('case_tests/test_baseline/gt/sm24_anchor/gt.json')
 PUBLIC_ROWS_SHA256 = (
     "ee2a4d0d3de034417acd76420a9222899d2585d23bbff6f390ebe0ce09b6635b"
 )

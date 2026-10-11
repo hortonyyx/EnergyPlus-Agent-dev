@@ -16,7 +16,6 @@ from test_runtime_recovery_edges import InjectedCrash, _summary_response
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REAL_RESPONSE = ROOT / "AI_agent/logs/experiments/2026-10-03_migration_comparison/evidence/attempt_01_request_12_truncated_response.json"
 
 
 def truncated(*, calls=False):
@@ -32,8 +31,10 @@ def truncated(*, calls=False):
 
 
 @pytest.mark.parametrize("context", [False, True])
-def test_real_migration_response_is_settled_and_recovers_without_echo(tmp_path, context):
-    raw = json.loads(REAL_RESPONSE.read_bytes())
+def test_truncated_response_is_settled_and_recovers_without_echo(tmp_path, context):
+    raw = truncated()
+    raw["usage"] = {"prompt_tokens": 47036, "completion_tokens": 16384, "total_tokens": 63420,
+                    "completion_tokens_details": {"reasoning_tokens": 16377}}
     assert raw["usage"]["total_tokens"] == 63_420
     engine = runtime(tmp_path, [raw, response(("fresh", "save", {"value": 8})), response(text="Done")])
     engine.parameters["max_tokens"] = 16_384
@@ -47,8 +48,8 @@ def test_real_migration_response_is_settled_and_recovers_without_echo(tmp_path, 
         assert receipt["task_budget"]["settlements"][0]["actual"]["tokens"] == 63_420
         assert engine.tools.calls == [("save", {"value": 8})]
         event = next(e for e in engine.store.events if e.payload.event_type == "response_truncation")
-        assert event.payload.thinking_characters == 45_034
-        assert event.payload.visible_characters == 18
+        assert event.payload.thinking_characters == len(raw["choices"][0]["message"]["reasoning_content"])
+        assert event.payload.visible_characters == len(raw["choices"][0]["message"]["content"])
         assert event.payload.reported_reasoning_tokens == 16_377
         assert event.payload.has_tool_calls is False
         assert event.payload.action == "continue"

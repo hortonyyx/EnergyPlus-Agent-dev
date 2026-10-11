@@ -6,6 +6,8 @@ gate + EP are blind to)."""
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 from pathlib import Path
 
@@ -14,7 +16,7 @@ from src.agent.geometry import build_geometry
 from src.validator.checks.kernel import check_kernel
 from src.validator.checks.schema import CheckStatus
 
-_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_ANCHOR = archive_path('case_tests/e2e_tests/sm20_anchor')
 _RUN = _ANCHOR / "run_2026-06-15_baseline"
 
 

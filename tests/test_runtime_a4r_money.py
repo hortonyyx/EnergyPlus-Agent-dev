@@ -235,7 +235,8 @@ def test_incomplete_prices_or_subscription_are_rejected_before_credentials(provi
 
 @pytest.mark.parametrize("tokens", ["omitted", None, 6_000_000])
 def test_configuration_supports_explicit_cny_and_optional_tokens(tokens):
-    case = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-04_qwen27b_after_a2/configs/sm24_qwen27b_after_a2.json").read_bytes())["cases"][0]
+    from tests.current_runtime_fixtures import configuration
+    case = configuration(provider="paratera", model="Qwen3.8-27B")["cases"][0]
     case["limits"]["money_cny"] = "12.5"
     if tokens == "omitted":
         del case["limits"]["tokens"]

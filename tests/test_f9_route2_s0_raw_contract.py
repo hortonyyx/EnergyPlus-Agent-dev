@@ -17,6 +17,8 @@ file does not exercise any of them.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import hashlib
 import json
@@ -296,9 +298,9 @@ def test_neuter_passing_arbitrary_placeholder_object_fails_structurally():
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
-V1_SAMPLE = _REPO_ROOT / "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/1_correction/attempts/001/output.json"
-V2_SAMPLE = _REPO_ROOT / "case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe/1_correction/attempts/001/output.json"
-HISTORICAL_V3_ARTIFACT_V1_SAMPLE = _REPO_ROOT / "case_tests/e2e_tests/sm21_anchor/run_2026-08-09_f18_e2e_verify/1_correction/attempts/001/window_resolver_inputs.json"
+V1_SAMPLE = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/1_correction/attempts/001/output.json')
+V2_SAMPLE = archive_path('case_tests/e2e_tests/sm24_anchor/run_2026-07-07_haiku_cv_probe/1_correction/attempts/001/output.json')
+HISTORICAL_V3_ARTIFACT_V1_SAMPLE = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-08-09_f18_e2e_verify/1_correction/attempts/001/window_resolver_inputs.json')
 
 
 @pytest.mark.parametrize("path", [V1_SAMPLE, V2_SAMPLE, HISTORICAL_V3_ARTIFACT_V1_SAMPLE], ids=lambda p: p.name)

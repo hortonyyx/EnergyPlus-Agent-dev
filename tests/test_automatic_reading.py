@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 import subprocess
@@ -18,7 +20,7 @@ from src.agent.execution.manifest import RunManifestV2, load_run_manifest
 from src.agent.execution.run_provision import provision_run
 
 
-CASE = Path("case_tests/e2e_tests/sm21_anchor")
+CASE = archive_path('case_tests/e2e_tests/sm21_anchor')
 REAL_OUTPUT = CASE / "run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json"
 
 

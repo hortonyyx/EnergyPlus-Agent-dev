@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import subprocess
 import sys
@@ -295,7 +297,7 @@ def test_transparent_gray_rgba_is_not_clean_vector_mask():
 
 
 def test_real_sm21_case_data_plan_smoke():
-    image = Path("case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png")
+    image = archive_path('case_tests/e2e_tests/sm21_anchor/case_data/1f_view.png')
     assert image.exists()
     payload, _ = wall_line_profiler(image, axis="col", source_name=image.name)
     assert len(payload["results"]) >= 5

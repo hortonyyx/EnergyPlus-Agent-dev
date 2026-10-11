@@ -21,6 +21,8 @@ scale and real shape, per the project's "no degenerate 2x2 fixture" discipline.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import json
 from pathlib import Path
@@ -39,9 +41,7 @@ from scripts.tool_scripts.run_stage import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GOOD_ARTIFACT = (
-    REPO_ROOT
-    / "case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest"
-    / "0_reading/attempts/001/output.json"
+    archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-07-07_haiku_cv_retest/0_reading/attempts/001/output.json')
 )
 
 # The four headline criteria that the empty-scores guard (F-1b) owns.

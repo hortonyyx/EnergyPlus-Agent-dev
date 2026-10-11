@@ -1,6 +1,8 @@
 """Small signed facts fixtures shared by AnswerCompiler acceptance tests."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from pathlib import Path
 
 from src.agent.judge.as_measured import (
@@ -30,7 +32,7 @@ from src.agent.judge.tarch_converter_schema import (
 
 REPO = Path(__file__).resolve().parents[1]
 BASE_REQUEST = (
-    REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json")
+    archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json'))
 
 
 def _request() -> TarchConversionRequestV1:

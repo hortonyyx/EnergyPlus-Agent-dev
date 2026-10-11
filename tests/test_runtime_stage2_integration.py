@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import asyncio
 import json
 import tempfile
@@ -20,7 +22,7 @@ from test_runtime_recovery_edges import _summary_response
 
 
 ROOT = Path(__file__).resolve().parents[1]
-STAGE1 = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage1"
+STAGE1 = archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage1')
 
 
 def test_exact_image_retrieval_survives_paid_summary_and_multiple_preflights(tmp_path):

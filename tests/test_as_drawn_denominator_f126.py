@@ -22,6 +22,7 @@ and could not exercise this downstream list.  The original answer roots are
 only read; the new DXF and hash-declaring request live in ``tmp_path``.
 """
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 from copy import deepcopy
 import hashlib
@@ -43,8 +44,7 @@ from src.agent.judge.tarch_converter_schema import (
     resolve_converter_tooling,
 )
 
-ANCHOR = Path(__file__).resolve().parents[1] / (
-    "case_tests/test_baseline/gt_sources/sm25-L_anchor")
+ANCHOR = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
 SIGNED_DXF = ANCHOR / "sm25-L_t3.dxf"
 AS_RECEIVED_DXF = ANCHOR / "sm25-L_t3_as_received.dxf"
 REQUEST = ANCHOR / "request.json"

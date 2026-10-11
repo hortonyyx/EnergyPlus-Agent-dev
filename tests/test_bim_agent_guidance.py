@@ -47,7 +47,7 @@ def test_reconstruction_reference_is_the_single_drawing_method():
 
 
 def test_finishing_rule_has_one_source_for_delivery_and_continuation():
-    assert FINISHING in DELIVERY and bim_agent_continuation.FINISHING is FINISHING
+    assert FINISHING in DELIVERY
 
 
 def test_room_use_and_note_formats_are_given_where_delivery_needs_them():

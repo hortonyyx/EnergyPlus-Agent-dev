@@ -18,6 +18,8 @@ inventory for that defect is maximal, not marginal.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -31,8 +33,8 @@ from src.agent.judge.as_drawn.elevation_grade import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-GT = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json").read_text())
-PROTOTYPE = REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+GT = json.loads((archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')).read_text())
+PROTOTYPE = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 
 VIEWS = {"East_view": 13, "North_view": 8, "South_view": 7, "West_view": 6}
 

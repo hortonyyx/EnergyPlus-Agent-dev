@@ -6,6 +6,8 @@ source fixture and sibling staging satisfy both requirements. We copy the exact
 files the builder consumes and substitute only its source-root dependency;
 the production boundary check, manifest verification and mutations stay intact.
 """
+
+from tests.archive_paths import archive_path
 import hashlib
 from pathlib import Path
 import shutil
@@ -33,12 +35,14 @@ def isolation_source_copy(tmp_path_factory):
              Path("scripts/tool_scripts/cv_probe.py"),
              Path(isolation.WORKED_EXAMPLE_SOURCE)]
     for relative in paths:
-        source = original / relative
+        archived = relative.parts[0] == "case_tests"
+        source = archive_path(relative) if archived else original / relative
         files = sorted(source.rglob("*")) if source.is_dir() else [source]
         for file in files:
             if not file.is_file() or "__pycache__" in file.parts:
                 continue
-            target = root / file.relative_to(original)
+            destination = relative / file.relative_to(source) if source.is_dir() else relative
+            target = root / destination
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(file, target)
             assert hashlib.sha256(target.read_bytes()).digest() == hashlib.sha256(file.read_bytes()).digest()

@@ -24,6 +24,8 @@ Covers the five required locks for
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import subprocess
 import sys
@@ -32,14 +34,12 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SM24_RUN = REPO_ROOT / "case_tests/e2e_tests/sm24_anchor/run_2026-08-02_sonnet_full_unsup"
-SM24_GT = REPO_ROOT / "case_tests/test_baseline/gt/sm24_anchor/gt.json"
+SM24_RUN = archive_path('case_tests/e2e_tests/sm24_anchor/run_2026-08-02_sonnet_full_unsup')
+SM24_GT = archive_path('case_tests/test_baseline/gt/sm24_anchor/gt.json')
 SM25_RUN = (
-    REPO_ROOT
-    / "case_tests/e2e_tests/sm25-L_anchor"
-    / "run_2026-08-22_orchestrator_handson_H2_fullcase"
+    archive_path('case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H2_fullcase')
 )
-SM25_GT = REPO_ROOT / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json"
+SM25_GT = archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')
 BUILDER = REPO_ROOT / "scripts/tool_scripts/build_score_view_bindings.py"
 
 MIRROR_CRITERION = "reading.elevation_mirror_visible"

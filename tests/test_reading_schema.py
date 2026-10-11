@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import re
 from pathlib import Path
 
@@ -16,7 +18,7 @@ from src.agent.reading import (
     parse_value_m,
 )
 
-_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor/run_2026-06-15_baseline/0_reading")
+_ANCHOR = archive_path('case_tests/e2e_tests/sm20_anchor/run_2026-06-15_baseline/0_reading')
 
 
 def test_plan_scale_origin_is_an_optional_not_mandatory_reader_instruction_contract():

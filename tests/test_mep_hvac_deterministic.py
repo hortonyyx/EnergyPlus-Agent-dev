@@ -25,6 +25,8 @@ not that the real code path renders hvac_specs deterministically.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import re
 from pathlib import Path
@@ -40,7 +42,7 @@ from src.validator.checks.schema import CheckStatus
 from src.validator.idf_fragments import parse_idf_text
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-_SM21 = _REPO_ROOT / "case_tests" / "e2e_tests" / "sm21_anchor"
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 
 _SITE = {"latitude": 22.5, "longitude": 114.0, "time_zone": 8.0, "elevation": 5.0}
 _ZONES = ["Z01_F1_Office_NW", "Z02_F1_Office_N", "Z03_F1_Corridor_C"]

@@ -27,6 +27,8 @@ judgment) a discriminating two-/four-cell matrix on REAL-scale payloads:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 import sys
@@ -63,7 +65,7 @@ sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 # --------------------------------------------------------------------------- #
 # Real-scale payloads (committed artifacts only — never the untracked orchestrator runs).
 # --------------------------------------------------------------------------- #
-_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 _REAL_SNAPPED = _SM21 / "run_2026-07-07_haiku_cv_retest" / "1_correction" / "correction_geometry_snapped.json"
 _REAL_VIEWS_PATH = _SM21 / "run_2026-06-20_gpt54_reading" / "0_reading" / "attempts" / "002" / "output.json"
 

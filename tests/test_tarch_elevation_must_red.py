@@ -6,6 +6,8 @@ happened to make the fixture red.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import hashlib
 import math
@@ -21,7 +23,7 @@ from src.agent.judge.tarch_converter_schema import TarchConversionRequestV1, com
 
 
 ROOT = Path("tests/fixtures/sm24_review/bundle_07_24")
-SOURCE = Path("case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf")
+SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf')
 TOOLING = resolve_converter_tooling(Path("src/configs/judge_gt.yaml"), Path("src/configs/correction.yaml"))
 
 
@@ -254,7 +256,7 @@ def test_multifloor_signed_rerun_and_promotion_have_no_single_floor_assumption(t
     annotations.update({f"f2_{key}": value for key, value in list(annotations.items())})
     bundle = tarch_review_bundle.build_review_bundle(
         source, request, output_dir=tmp_path / "bundle",
-        raster_root=Path("case_tests/e2e_tests/sm24_anchor/case_data"),
+        raster_root=archive_path('case_tests/e2e_tests/sm24_anchor/case_data'),
         review_annotations=annotations, tooling=TOOLING)
     tarch_review_bundle.sign_review_bundle(
         bundle, reviewer="multifloor_reviewer", signed_at="2026-08-20T00:00:00Z",
@@ -478,7 +480,7 @@ def test_raster_horizontal_mirror_in_bounds_makes_g10_calibration_red(tmp_path):
     # projected corners remain in the same image rectangle; only the directed
     # lo/hi controls expose the wrong handedness.
     from PIL import Image
-    image_width = Image.open(Path("case_tests/e2e_tests/sm24_anchor/case_data/South_view.png")).width
+    image_width = Image.open(archive_path('case_tests/e2e_tests/sm24_anchor/case_data/South_view.png')).width
     affine = binding.pixel_to_source_m.model_copy(update={
         "m00": -binding.pixel_to_source_m.m00,
         "m01": -binding.pixel_to_source_m.m01,

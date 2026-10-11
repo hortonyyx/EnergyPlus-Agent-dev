@@ -22,6 +22,8 @@ What is locked, each against the defect it guards:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -54,10 +56,9 @@ from src.agent.correction.evidence_contract import (
 
 REPO = Path(__file__).resolve().parents[1]
 SRC = (
-    REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype"
-    / "out/sm25_2f_v2.json"
+    archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out/sm25_2f_v2.json')
 )
-GT = REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json"
+GT = archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')
 
 
 # ── synthetic walls (the loader's consumed surface, real model types) ─────── #

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import asyncio
 import base64
 import gzip
@@ -31,7 +33,7 @@ from src.harness_contracts import (
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 STAGE2_DIRECTORY = (
-    REPOSITORY_ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage2"
+    archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage2')
 )
 FIXTURE_PATH = STAGE2_DIRECTORY / "run99_long_fixture.json"
 SOURCE_MANIFEST_PATH = STAGE2_DIRECTORY / "source_manifest.json"
@@ -64,10 +66,7 @@ class Run99Sequence:
         self.steps = [self._load_step(item) for item in self.fixture["steps"]]
 
     def _path(self, relative: str) -> Path:
-        path = (REPOSITORY_ROOT / relative).resolve()
-        if not path.is_relative_to(REPOSITORY_ROOT):
-            raise ValueError("historical fixture path escapes repository")
-        return path
+        return archive_path(relative)
 
     def _verify_source_files(self) -> None:
         for item in self.source_manifest["sources"].values():

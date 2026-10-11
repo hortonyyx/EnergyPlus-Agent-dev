@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import gzip
 import hashlib
 import importlib.util
@@ -13,8 +15,7 @@ from src.agent.runtime_behaviour import load_behaviour, render_timeline, write_b
 
 ROOT = Path(__file__).resolve().parents[1]
 REPLAY_PATH = (
-    ROOT
-    / "AI_agent/logs/experiments/2026-10-02_harness_stage1/replay_history.py"
+    archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage1/replay_history.py')
 )
 
 

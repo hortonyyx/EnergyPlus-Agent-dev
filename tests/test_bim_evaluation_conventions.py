@@ -1,4 +1,6 @@
 """Documented offsets are separate; real geometry/reading defects remain visible."""
+
+from tests.archive_paths import archive_path
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -13,7 +15,7 @@ from src.agent.judge.plan_inventory import compare_plan_inventory, compare_exter
 from scripts.tool_scripts.evaluate_bim_agent import evaluate
 
 ROOT = Path(__file__).resolve().parents[1]
-EXP = ROOT/'AI_agent/logs/experiments'
+EXP = archive_path('AI_agent/logs/experiments')
 
 
 def fixture(case):

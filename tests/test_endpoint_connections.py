@@ -1,4 +1,6 @@
 """Dimension correction must not discard already evidenced wall connections."""
+
+from tests.archive_paths import archive_path
 from dataclasses import replace
 import json
 from pathlib import Path
@@ -70,7 +72,7 @@ def test_real_sm25_original_partition_survives_frame_snap():
     )
     from src.agent.correction.multifloor import read_declared_exterior_frame
 
-    archive = Path("case_tests/e2e_tests/sm25-L_anchor/run_win_e2e")
+    archive = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_win_e2e')
     provenance = AsDrawnChainProvenanceV1.model_validate_json(
         (archive / "1_correction/attempts/001/chain_provenance.json").read_bytes())
     row = next(r for r in provenance.floors if r.floor_ref == "2f")
@@ -108,7 +110,7 @@ def test_historical_producer_replays_exactly_and_new_recipe_is_distinct():
     from src.agent.correction.parse import correction_target
     from src.agent.correction.window_sources import verify_window_resolver_inputs_artifact
 
-    attempt = Path("case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001")
+    attempt = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_win_e2e/1_correction/attempts/001')
     old = AsDrawnChainProvenanceV1.model_validate_json((attempt / "chain_provenance.json").read_bytes())
     marker = verify_window_resolver_inputs_artifact((attempt / "window_resolver_inputs.json").read_bytes())
     assert derive_as_drawn_chain_producer(marker, old).producer_draw_canonical_bytes == marker.producer_draw_canonical_bytes

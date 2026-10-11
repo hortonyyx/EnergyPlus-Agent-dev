@@ -18,6 +18,8 @@ DISCRIMINATING POWER, not merely that it runs:
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 from pathlib import Path
@@ -30,7 +32,7 @@ from src.agent.judge.gt_raw_layer import (load_gt_raw_layer,
                                           verify_raw_layer_reproduction as _verify)
 
 CASE = "sm25-L_anchor"
-GT_ROOT = Path("case_tests/test_baseline/gt")
+GT_ROOT = archive_path('case_tests/test_baseline/gt')
 ARCHIVED_GT_ROOT = GT_ROOT
 
 
@@ -300,7 +302,7 @@ def test_tampered_signed_chain_is_rejected_before_reproduction(tmp_path):
 # the change is that it buys NOTHING.  Location moved; authority did not.
 # --------------------------------------------------------------------------- #
 SM24 = "sm24_anchor"
-SOURCES_ROOT = Path("case_tests/test_baseline/gt_sources")
+SOURCES_ROOT = archive_path('case_tests/test_baseline/gt_sources')
 # A byte-identical copy of sm24's signed request also lives here -- this is
 # where it was recovered from on 2026-08-27.  It is a tracked test fixture, not
 # a log, so the path is a stable anchor, and its mere existence is what gives
@@ -472,7 +474,7 @@ def test_f111_f_a_malformed_sibling_does_not_hide_the_real_request(monkeypatch, 
 # all: it asserts the search touches no directory but the one case-owned root,
 # which is true or false independent of what happens to be lying around.
 # --------------------------------------------------------------------------- #
-LOGS_EXPERIMENTS_ROOT = Path("AI_agent/logs")
+LOGS_EXPERIMENTS_ROOT = archive_path('AI_agent/logs')
 
 
 def _count_matching_requests(root: Path, expected_sha256: str) -> int:

@@ -34,8 +34,8 @@ def test_override_requires_a_written_reason(reason):
 
 
 def test_cli_rejects_low_cap_before_creating_output_or_reading_credentials(tmp_path):
-    out = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r2/rejected-start"
-    args = parser().parse_args(["--out", str(out), "--provider", "paratera",
+    out = tmp_path / "rejected-start"
+    args = parser().parse_args(["--out", str(out), "--run-root", str(tmp_path), "--provider", "paratera",
         "--model", "GLM-5.3-Flash", "--output-tokens", "8", "--credentials-file", "/does/not/exist"])
     with pytest.raises(ValueError, match="recommended minimum 32000"):
         asyncio.run(execute(args))
@@ -70,12 +70,18 @@ def test_budget_output_reduction_does_not_silently_drop_below_recommendation(tmp
         assert result["model_calls"] == 0
 
 
-def test_historical_r1_config_stays_unchanged_and_explicit_override_reaches_command():
-    path = ROOT / "AI_agent/logs/experiments/2026-10-03_runtime_r1/configs/migration_sm24_glm_paratera.json"
+
+
+def test_explicit_output_override_reaches_command_without_mutating_configuration(tmp_path):
+    from tests.current_runtime_fixtures import configuration
+    value = configuration(provider="paratera", model="GLM-5.3-Flash")
+    value["cases"][0]["output_tokens"] = 16384
+    path = tmp_path / "configuration.json"
+    path.write_text(json.dumps(value), encoding="utf-8")
     original = path.read_bytes()
     with pytest.raises(ValueError, match="recommended minimum 32000"):
         load_configuration(path)
-    reason = "Read-only historical reproduction configuration check."
+    reason = "Text-only protocol test with a deliberately small allowance."
     loaded = load_configuration(path, low_output_limit_reason=reason)
     argv = argv_for(loaded["cases"][0])
     assert argv[argv.index("--low-output-limit-reason") + 1] == reason

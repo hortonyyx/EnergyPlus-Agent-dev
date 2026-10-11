@@ -1,6 +1,8 @@
 """Slice 1 locks for source-preserving judge identity (C-L2..C-L13)."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import ast
 
 import copy
@@ -472,10 +474,7 @@ def test_c_l15_sm21_score_pixels_and_dispatch_do_not_instantiate_new_adapter(
     from src.agent.judge.gt import load_gt
     from src.agent.judge import identity_provenance
 
-    source = Path(
-        "case_tests/e2e_tests/sm21_anchor/"
-        "run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json"
-    )
+    source = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-06-20_gpt54_reading/0_reading/attempts/002/output.json')
     baseline_dir = tmp_path / "baseline" / "002"
     bombed_dir = tmp_path / "bombed" / "002"
     baseline_dir.mkdir(parents=True)

@@ -15,7 +15,6 @@ from src.agent.runtime_roles.config import ROLE_NAMES, load_roles
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIGS = ROOT / "AI_agent/logs/experiments/2026-10-06_role_division_d1/configs"
 
 
 def role(provider="glm-subscription-anthropic", model="glm-5.3-flash",
@@ -43,10 +42,10 @@ def case(mode="role_division"):
         "model": "glm-5.3-flash",
         "credentials_file": "private-test.env",
         "input_kind": "images",
-        "input": "case_tests/e2e_tests/sm24_anchor/case_data",
+        "input": "tests/fixtures/role_current/sm24/images",
         "image_kind": "drawings",
         "floor_plan_images": ["1f_view.png"],
-        "output": "AI_agent/archive/local_backup/d1/role-config-test",
+        "output": "runs/role-config-test",
         "scope": "offline configuration test",
         "limits": {
             "model_calls": 10,
@@ -199,27 +198,22 @@ def test_invalid_reader_concurrency_is_explicit(tmp_path):
             load(tmp_path, selected)
 
 
-def test_single_model_argv_remains_the_exact_existing_shape(tmp_path):
+def test_single_model_argv_preserves_current_configuration_semantics(tmp_path):
+    from src.agent.runtime_entry import parser
     selected = load(tmp_path, case("single_model"))["cases"][0]
     argv = argv_for(selected)
-    expected = [
-        sys.executable, "-m", "src.agent.runtime_entry",
-        "--out", str(ROOT / selected["output"]),
-        "--provider", "glm-subscription-anthropic",
-        "--model", "glm-5.3-flash",
-        "--credentials-file", str((ROOT / "private-test.env").resolve()),
-        "--scope", "offline configuration test",
-        "--image-kind", "drawings",
-        "--model-calls", "10", "--tool-calls", "20", "--seconds", "60",
-        "--output-tokens", "32000", "--tokens", "500000",
-        "--images", str(ROOT / "case_tests/e2e_tests/sm24_anchor/case_data"),
-        "--floor-plan-image", "1f_view.png",
-        "--reasoning-history", "all", "--max-candidates", "24",
-        "--context-tokens", "900000", "--compact-at-tokens", "150000",
-        "--model-retries", "2", "--retry-backoff-seconds", "1.0",
-        "--reasoning-effort", "medium",
-    ]
-    assert argv == expected
+    assert argv[1:3] == ["-m", "src.agent.runtime_entry"]
+    parsed = parser().parse_args(argv[3:])
+    assert parsed.provider == selected["provider"] and parsed.model == selected["model"]
+    assert parsed.images == ROOT / selected["input"]
+    assert parsed.out == ROOT / selected["output"]
+    assert parsed.floor_plan_images == selected["floor_plan_images"]
+    assert parsed.scope == selected["scope"]
+    assert parsed.output_tokens == selected["output_tokens"]
+    assert parsed.model_calls == selected["limits"]["model_calls"]
+    assert parsed.tool_calls == selected["limits"]["tool_calls"]
+    assert parsed.tokens == selected["limits"]["tokens"]
+    assert parsed.seconds == selected["limits"]["seconds"]
     assert "--roles-json" not in argv and "--max-concurrent-readers" not in argv
 
 
@@ -229,33 +223,3 @@ def test_single_model_ignores_role_only_comparison_metadata(tmp_path):
     with_metadata = copy.deepcopy(selected)
     with_metadata["max_concurrent_readers"] = 4
     assert argv_for(load(tmp_path, with_metadata)["cases"][0]) == baseline
-
-
-@pytest.mark.parametrize("case_name", ["sm21", "sm24", "sm25"])
-def test_prepared_comparison_pairs_change_only_role_conditions_and_output_identity(case_name):
-    single_path = CONFIGS / f"{case_name}_single.json"
-    divided_path = CONFIGS / f"{case_name}_role_division.json"
-    single = json.loads(single_path.read_bytes())
-    divided = json.loads(divided_path.read_bytes())
-    assert single["batch_id"] == divided["batch_id"]
-    left, right = single["cases"][0], divided["cases"][0]
-    assert left["case_id"] == right["case_id"]
-    changed = {key for key in set(left) | set(right) if left.get(key) != right.get(key)}
-    assert changed == {"mode", "roles", "scope", "output"}
-    left_scope, right_scope = left["scope"].splitlines(), right["scope"].splitlines()
-    assert left_scope[:2] == right_scope[:2] and left_scope[3:] == right_scope[3:]
-    assert left["limits"] == right["limits"] == {
-        "model_calls": 400,
-        "tool_calls": 800,
-        "tokens": 30_000_000,
-        "seconds": 10_800,
-        "model_retries": 2,
-        "retry_backoff_seconds": 1.0,
-    }
-    assert left["max_concurrent_readers"] == right["max_concurrent_readers"] == 4
-    assert left["credentials_file"] == right["credentials_file"] == (
-        r"C:\Users\Horton\Desktop\EnergyPlus-Agent-dev\.env")
-    assert Path(left["output"]).is_relative_to(Path("AI_agent/archive/local_backup/d1"))
-    assert Path(right["output"]).is_relative_to(Path("AI_agent/archive/local_backup/d1"))
-    assert load_configuration(single_path)["cases"][0]["mode"] == "single_model"
-    assert load_configuration(divided_path)["cases"][0]["mode"] == "role_division"

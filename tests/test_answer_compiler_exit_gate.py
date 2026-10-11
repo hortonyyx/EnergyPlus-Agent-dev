@@ -1,5 +1,6 @@
 """F-146: promoted answer-root facts are reverified at their consumer exit."""
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 import pytest
 
@@ -14,7 +15,7 @@ from tests.answer_compiler_fixtures import synthetic_signed_facts
 
 
 def _write_answer_root(root, measured, ledger, signed):
-    facts = root / "case_tests/test_baseline/gt" / measured.case / "facts"
+    facts = archive_path('case_tests/test_baseline/gt') / measured.case / "facts"
     facts.mkdir(parents=True)
     (facts / "as_measured.json").write_bytes(canonical_bytes(measured))
     (facts / "revisions.json").write_bytes(canonical_revisions_bytes(ledger))

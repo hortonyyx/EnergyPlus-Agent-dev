@@ -3,6 +3,8 @@ explicit migration + commit protocol, and the artifact-contract negatives."""
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -99,7 +101,7 @@ def test_v1_run_blocks_new_reading_attempts(tmp_path: Path):
 
 
 def test_migrate_then_reading_attempts_allowed(tmp_path: Path, monkeypatch):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)
@@ -113,7 +115,7 @@ def test_migrate_then_reading_attempts_allowed(tmp_path: Path, monkeypatch):
 # 3. migration backfill: real pointer validation + legal sidecar omission
 # --------------------------------------------------------------------------- #
 def test_migration_backfills_real_hashes_and_legal_omissions(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir, stage="0_reading", attempt=1)
@@ -129,7 +131,7 @@ def test_migration_backfills_real_hashes_and_legal_omissions(tmp_path: Path):
 
 
 def test_migration_rejects_pointer_whose_output_changed_since_accept(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)
@@ -147,7 +149,7 @@ def test_migration_missing_output_fails_before_any_write(tmp_path: Path):
     """CR-03 negative: a v1 accepted pointer whose output.json is gone cannot
     be migrated — the failure happens during the in-memory backfill, so
     view_manifest.json is never written either."""
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)
@@ -163,7 +165,7 @@ def test_migration_missing_checks_fails_before_any_write(tmp_path: Path):
     """CR-03: checks.json is equally mandatory (M0 discipline — an accepted
     attempt always filed its gate① report; only audit/feature_states-class
     version-specific sidecars are legal omissions)."""
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)
@@ -179,7 +181,7 @@ def test_backfill_failure_leaves_run_semantics_v1(tmp_path: Path):
     """CR-03 negative: after a failed migration the run is still, in every
     observable way, a V1 run — V1 loader semantics and the grandfather block
     both unchanged."""
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)
@@ -194,7 +196,7 @@ def test_backfill_failure_leaves_run_semantics_v1(tmp_path: Path):
 
 
 def test_migration_of_run_with_no_accepted_stages_is_legal(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     v1 = RunManifest(case="run")
@@ -207,7 +209,7 @@ def test_migration_of_run_with_no_accepted_stages_is_legal(tmp_path: Path):
 # 4. orphan view_manifest handling: V1 loader ignores it; retry reuses/overwrites
 # --------------------------------------------------------------------------- #
 def test_v1_loader_ignores_orphan_view_manifest(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     provision_view_manifest(case_dir, run_dir)  # orphan: no run_manifest.json at all
@@ -218,7 +220,7 @@ def test_v1_loader_ignores_orphan_view_manifest(tmp_path: Path):
 
 
 def test_migration_reuses_consistent_orphan_view_manifest(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     provision_view_manifest(case_dir, run_dir)
@@ -231,7 +233,7 @@ def test_migration_reuses_consistent_orphan_view_manifest(tmp_path: Path):
 
 
 def test_migration_overwrites_inconsistent_orphan_view_manifest(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     provision_view_manifest(case_dir, run_dir)
@@ -248,7 +250,7 @@ def test_migration_overwrites_inconsistent_orphan_view_manifest(tmp_path: Path):
 
 
 def test_migration_idempotent_crash_recovery(tmp_path: Path):
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)
@@ -370,7 +372,7 @@ def test_migration_second_temp_failure_leaves_vm_unreplaced(tmp_path: Path, monk
     remains."""
     import src.agent.execution.manifest as mf
 
-    case_dir = Path("case_tests/e2e_tests/sm21_anchor")
+    case_dir = archive_path('case_tests/e2e_tests/sm21_anchor')
     run_dir = tmp_path / "run"
     run_dir.mkdir()
     _seed_v1_run(run_dir)

@@ -19,6 +19,8 @@ out of ``grade["detail"]``.  The locks here hold exactly that:
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import sys
 from pathlib import Path
@@ -32,9 +34,9 @@ import render_elevation_grade  # noqa: E402
 from src.agent.judge.as_drawn.elevation_grade import elevation_targets, grade
 
 REPO = Path(__file__).resolve().parents[1]
-GT = json.loads((REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json").read_text())
-PROTOTYPE = REPO / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
-IMAGE = REPO / "case_tests/e2e_tests/sm25-L_anchor/case_data/East_view.png"
+GT = json.loads((archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')).read_text())
+PROTOTYPE = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
+IMAGE = archive_path('case_tests/e2e_tests/sm25-L_anchor/case_data/East_view.png')
 
 
 def _render(tmp_path, *, doc, graded, name="grade.png"):
@@ -63,8 +65,7 @@ def test_renders_under_the_mirror_hypothesis(tmp_path):
     non-empty.  Goes red if the renderer ignores the axis report and draws
     answer boxes off-image / at wrong ends."""
     doc = json.loads((PROTOTYPE / "sm25_north_as_drawn.json").read_text())
-    doc = {**doc, "image": str(REPO / "case_tests/e2e_tests/sm25-L_anchor"
-                               "/case_data/North_view.png")}
+    doc = {**doc, "image": str(archive_path('case_tests/e2e_tests/sm25-L_anchor/case_data/North_view.png'))}
     graded = grade(doc, elevation_targets(GT, "North_view"), gt=GT)
     assert graded["along_axis"]["assumed"] == "mirror"    # premise, asserted
     readout, out = _render(tmp_path, doc=doc, graded=graded)

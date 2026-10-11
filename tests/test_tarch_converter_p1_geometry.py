@@ -20,6 +20,8 @@ continuation witness codes are P2 — see delivery note.)
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import dataclasses
 import hashlib
 import math
@@ -40,7 +42,7 @@ from src.agent.judge.tarch_converter_schema import (
 REPO = Path(__file__).resolve().parents[1]
 GT_CONFIG = REPO / "src/configs/judge_gt.yaml"
 VG_CONFIG = REPO / "src/configs/correction.yaml"
-SM24_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
+SM24_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf')
 
 WINDOW_BLOCK = "$TCHSYS$WIN2D"
 DOOR_BLOCK = "$DorLib2D$00000001"
@@ -717,10 +719,8 @@ def test_gc_lock3_cap_is_derived_per_request_not_baked_in():
 # 1 degenerate / 262 exact / 314 float-noise / 3 skew / 0 real slants across
 # all three plan views of both cases).
 # =========================================================================== #
-SM25_AS_RECEIVED = (REPO /
-    "case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3_as_received.dxf")
-SM25_AS_MEASURED_REQUEST = (REPO /
-    "case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json")
+SM25_AS_RECEIVED = (archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor/sm25-L_t3_as_received.dxf'))
+SM25_AS_MEASURED_REQUEST = (archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor/request_as_measured.json'))
 
 
 def _sm25_as_received_geometry(tmp_path):

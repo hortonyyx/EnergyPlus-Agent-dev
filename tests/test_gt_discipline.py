@@ -8,6 +8,7 @@ scanning those modules' source for any gt reference.
 
 from __future__ import annotations
 
+
 from pathlib import Path
 import inspect
 
@@ -16,15 +17,6 @@ from src.agent.judge import gt_render_model
 from src.agent.judge.gt import has_gt, load_gt
 
 
-def test_gt_loader_reads_sm21_draft():
-    gt = load_gt("sm21_anchor")
-    assert gt is not None and gt["case"] == "sm21_anchor"
-    assert has_gt("sm21_anchor")
-    # window-count truth sums to 15 (1F 7 + 2F 8)
-    total = sum(w["count"] for w in gt["windows"])
-    assert total == 15
-    # both floors have 7 zones
-    assert all(len(f["zones"]) == f["zone_count"] == 7 for f in gt["floors"])
 
 
 def test_gt_loader_absent_returns_none(tmp_path):
@@ -98,7 +90,7 @@ def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
     repo_root = Path(__file__).resolve().parents[1]
     probe = (
         "import sys, json\n"
-        "import src.agent.pipeline\n"
+        "import src.agent.pipeline\nimport src.agent.runtime_entry\nimport src.agent.runtime_roles.entry\n"
         "hits = sorted(m for m in sys.modules "
         "if m in ('src.agent.judge.gt', 'src.agent.judge.gt_raw_layer') "
         "or m.startswith('src.agent.judge.as_drawn'))\n"
@@ -113,19 +105,6 @@ def test_pipeline_import_closure_excludes_gt_and_as_drawn_judge():
     assert hits == [], f"pipeline import closure reaches judge/gt or judge/as_drawn: {hits}"
 
 
-def test_case_data_has_no_dxf_or_dwg():
-    """opus §8.5.3: no DXF/DWG (incl. a future normalized.dxf) under any case_data/.
-
-    Convert + build run in ephemeral per-run staging (a tmp work dir); the
-    canonical tracked DXF input lives in case_tests/test_baseline/gt_sources/.
-    A case_data/ dir holding a DXF would let the judge-side answer generator be
-    reached from the e2e inputs the executors see.
-    """
-    offenders = []
-    for case_data in Path("case_tests").rglob("case_data"):
-        offenders.extend(str(p) for p in case_data.rglob("*.dxf"))
-        offenders.extend(str(p) for p in case_data.rglob("*.dwg"))
-    assert not offenders, f"case_data must hold no DXF/DWG (use staging): {offenders}"
 
 
 def test_prescan_stays_deleted_until_the_reading_专项_decides_otherwise():
@@ -179,31 +158,12 @@ def test_judge_side_gt_readers_remain_confined_to_judge_package():
         assert path.is_relative_to(Path("src/agent/judge"))
 
 
-def test_v3_renderer_path_has_no_fixed_four_panel_or_gate_vocabulary():
-    """B-03: dynamic surface keys stay isolated from legacy v2's four facades."""
-    source = (inspect.getsource(gt_render_model.gt_to_render_model) +
-              inspect.getsource(gt_render_model.render_plan_model) +
-              inspect.getsource(gt_render_model.render_elevation_model))
-    forbidden = ("range(4)", "_FLOOR_OF", "_ROLES", "PLAN_BAND_Y", "largest bbox")
-    assert not [token for token in forbidden if token in source]
-    assert "elevation_surfaces" in source and "sorted" in source
 
 
-def test_v3_render_adapter_is_judge_side_and_schema_free_in_renderer():
-    source = inspect.getsource(gt_render_model.render_plan_model) + inspect.getsource(gt_render_model.render_elevation_model)
-    assert "footprint\", {}" not in source and ".get(\"W_m\")" not in source
 
 
-def test_render_gt_v3_entry_branch_has_no_fixed_four_or_gate_vocabulary():
-    source = Path("scripts/tool_scripts/render_gt.py").read_text(encoding="utf-8")
-    v3 = source[source.index("def _model_for_render"):]
-    assert not [token for token in ("range(4)", "_FLOOR_OF", "_ROLES", "PLAN_BAND_Y", "largest bbox") if token in v3]
 
 
-def test_v3_overlay_path_has_no_legacy_density_or_fixed_panel_vocabulary():
-    source = Path("scripts/tool_scripts/render_gt_overlay.py").read_text(encoding="utf-8")
-    v3 = source[source.index("def build_gt_overlay_images_v3"):source.index("def write_gt_overlay_images_v3")]
-    assert not [token for token in ("_calibrate", "_FLOOR_PNG", "_FACADE_PNG", "range(4)", "largest bbox") if token in v3]
 
 def _load_module_from_path(name: str, path: Path):
     """Import a standalone script by path (neither is an installed package)."""

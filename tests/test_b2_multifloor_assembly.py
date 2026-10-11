@@ -40,6 +40,8 @@ tests — and it keeps the whole file gt-free.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 import re
@@ -65,8 +67,7 @@ from tests.test_b3_elevation_leg import _synthetic_bytes
 
 REPO = Path(__file__).resolve().parents[1]
 _PLAN_PRODUCTS = (
-    REPO
-    / "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
+    archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 )
 
 

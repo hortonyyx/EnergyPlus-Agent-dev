@@ -18,6 +18,8 @@ imports it; the reconciliation helper is test tooling, not production code.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -38,8 +40,8 @@ from tests.b1_gt_reconciliation import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-FACTS = REPO / "case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json"
-GT = REPO / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json"
+FACTS = archive_path('case_tests/test_baseline/gt_staging/sm25-L_anchor/facts/as_measured.json')
+GT = archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')
 
 #: the two views the dispatch pins (F1 once, F2 once — ⛔ no two-floor
 #: assembly here, that is B2)

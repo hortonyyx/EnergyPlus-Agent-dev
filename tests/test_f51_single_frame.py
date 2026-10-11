@@ -37,6 +37,8 @@ comparison are kept).
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 import subprocess
@@ -55,7 +57,7 @@ from src.agent.execution.vision_resize import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
 CASE_DATA = CASE_DIR / "case_data"
 
 PLAN_VIEWS = ["1f_view.png", "2f_view.png"]

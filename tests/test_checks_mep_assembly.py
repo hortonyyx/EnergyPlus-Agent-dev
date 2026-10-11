@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 from pathlib import Path
 
@@ -10,7 +12,7 @@ from src.validator.checks.assembly import check_assembly, check_ep_baseline
 from src.validator.checks.mep import check_mep
 from src.validator.checks.schema import CheckStatus
 
-_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_ANCHOR = archive_path('case_tests/e2e_tests/sm20_anchor')
 _RUN = _ANCHOR / "run_2026-06-15_baseline"
 _FIX = Path("tests/fixtures/validation")
 

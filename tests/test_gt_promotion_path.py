@@ -1,6 +1,8 @@
 """WP-2--WP-4 fail-closed locks for the candidate-to-baseline path."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import re
 import shutil
@@ -22,10 +24,10 @@ from src.agent.judge.tarch_converter_schema import (GT_SOURCES_ROOT,
 
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf"
+SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf')
 REQUEST = REPO / "tests/fixtures/sm24_review/bundle_07_25/request_v3_calibrated.json"
 ANNOTATIONS = REPO / "tests/fixtures/sm24_review/bundle_07_25/review_annotations.json"
-RASTERS = REPO / "case_tests/e2e_tests/sm24_anchor/case_data"
+RASTERS = archive_path('case_tests/e2e_tests/sm24_anchor/case_data')
 FROZEN_GT = REPO / "tests/fixtures/sm24_review/bundle_07_25/gt/gt.json"
 
 

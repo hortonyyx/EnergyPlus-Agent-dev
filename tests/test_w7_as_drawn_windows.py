@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import sys
 from pathlib import Path
@@ -34,7 +36,7 @@ from src.agent.correction.window_sources import (
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts" / "tool_scripts"))
 
-RUN = Path("case_tests/e2e_tests/sm25-L_anchor/run_wallhunt")
+RUN = archive_path('case_tests/e2e_tests/sm25-L_anchor/run_wallhunt')
 
 
 @pytest.fixture(scope="module")

@@ -1,6 +1,7 @@
 """Phase-A strict GT schema, dual-read and frozen-profile regressions."""
 from __future__ import annotations
 
+
 import copy
 import hashlib
 import json
@@ -182,10 +183,12 @@ def test_candidate_writer_recomputes_tampered_content_hash(tmp_path):
 
 
 def test_dual_read_v2_raw_equality_and_v3_compatibility_gate(tmp_path):
-    sm21_path = Path("case_tests/test_baseline/gt/sm21_anchor/gt.json")
-    assert hashlib.sha256(sm21_path.read_bytes()).hexdigest() == "a9be379b1735163528396c36d96653cdf71a67ffe54dde6f942c7c86f53f3f8a"
+    sm21_path = Path(__file__).resolve().parent / "fixtures/gt_v2_wire.json"
     raw = json.loads(sm21_path.read_text())
-    assert load_gt("sm21_anchor") == raw
+    fixture_root = tmp_path / "legacy"
+    (fixture_root / "sm21_anchor").mkdir(parents=True)
+    (fixture_root / "sm21_anchor/gt.json").write_bytes(sm21_path.read_bytes())
+    assert load_gt("sm21_anchor", gt_dir=fixture_root) == raw
     path = tmp_path / "gt" / "synthetic" / "gt.json"
     path.parent.mkdir(parents=True)
     path.write_bytes(canonical_gt_v3_bytes(_document()))
@@ -247,13 +250,13 @@ def test_tampered_archived_tolerance_without_hash_is_rejected(tmp_path):
 
 
 def test_candidate_writer_rejects_protected_roots_cwd_and_symlink_escape(monkeypatch, tmp_path):
-    gt_sources = REPO_ROOT / "case_tests/test_baseline/gt_sources"
-    brand_new_case_data = REPO_ROOT / "case_tests/e2e_tests/brand_new_case/case_data"
+    gt_sources = REPO_ROOT / 'case_tests/test_baseline/gt_sources'
+    brand_new_case_data = REPO_ROOT / 'case_tests/e2e_tests/brand_new_case/case_data'
     # gt_sources/ legitimately exists (sm21_anchor source.dxf lives there); the
     # no-side-effect probe pins the not-yet-existing subpaths instead.
     assert not (gt_sources / "synthetic").exists()
     assert not brand_new_case_data.exists()
-    for out in (REPO_ROOT / "case_tests/test_baseline/gt/nope.json", gt_sources / "synthetic" / "gt.json", brand_new_case_data / "candidate.json"):
+    for out in (REPO_ROOT / 'case_tests/test_baseline/gt/nope.json', gt_sources / "synthetic" / "gt.json", brand_new_case_data / "candidate.json"):
         with pytest.raises(GtValidationError) as exc:
             write_gt_v3_candidate(_document(), out)
         assert _issue(exc) == "gt_candidate_protected_path"
@@ -261,9 +264,9 @@ def test_candidate_writer_rejects_protected_roots_cwd_and_symlink_escape(monkeyp
     assert not brand_new_case_data.exists()
     monkeypatch.chdir(tmp_path)
     with pytest.raises(GtValidationError):
-        write_gt_v3_candidate(_document(), REPO_ROOT / "case_tests/test_baseline/gt/nope.json")
+        write_gt_v3_candidate(_document(), REPO_ROOT / 'case_tests/test_baseline/gt/nope.json')
     escape = tmp_path / "escape"
-    escape.symlink_to(REPO_ROOT / "case_tests/test_baseline", target_is_directory=True)
+    escape.symlink_to(REPO_ROOT / 'case_tests/test_baseline', target_is_directory=True)
     with pytest.raises(GtValidationError):
         write_gt_v3_candidate(_document(), escape / "gt" / "nope.json")
 

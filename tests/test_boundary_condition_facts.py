@@ -1,6 +1,8 @@
 """②-1d: pre-projection boundary facts and independent basis reconciliation."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from collections import Counter
 from copy import deepcopy
 from pathlib import Path
@@ -55,9 +57,9 @@ from tests.deferred_projection_ledger import (
 )
 
 REPO = Path(__file__).resolve().parents[1]
-SM25_SOURCE = REPO / "case_tests/test_baseline/gt_sources/sm25-L_anchor"
+SM25_SOURCE = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
 SM25_REPORT = (
-    REPO / "case_tests/test_baseline/gt/sm25-L_anchor/review/conversion_report.json")
+    archive_path('case_tests/test_baseline/gt/sm25-L_anchor/review/conversion_report.json'))
 
 
 def _real_inputs():

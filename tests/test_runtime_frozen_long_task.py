@@ -8,6 +8,8 @@ allowed only insofar as every existing semantic assertion still holds.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import asyncio
 import base64
 from collections import Counter
@@ -40,8 +42,8 @@ from test_runtime_long_task import Run99Sequence
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DELIVERY = ROOT / "AI_agent/logs/experiments/2026-10-02_harness_stage2"
-HISTORY = ROOT / "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99"
+DELIVERY = archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage2')
+HISTORY = archive_path('AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99')
 SAMPLE_STEPS = (20, 40, 75)
 HISTORICAL_CLAIM_TOOLS = frozenset({"record_claim", "decide_claim", "confirm_claims"})
 

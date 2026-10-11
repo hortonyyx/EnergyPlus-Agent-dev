@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import re
 import shutil
@@ -24,9 +26,9 @@ sys.path.insert(0, str(Path("scripts/tool_scripts").resolve()))
 import record_baseline  # noqa: E402
 import report_assembly  # noqa: E402
 
-_ANCHOR = Path("case_tests/e2e_tests/sm20_anchor")
+_ANCHOR = archive_path('case_tests/e2e_tests/sm20_anchor')
 _RUN_NAME = "run_2026-06-15_baseline"
-_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 _GPT54_RUN = "run_2026-06-20_gpt54_reading"
 _SONNET_RUN = "run_2026-06-20_sonnet_reading"
 _RERECORD_XFAIL = pytest.mark.xfail(

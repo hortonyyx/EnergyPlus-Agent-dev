@@ -13,6 +13,8 @@ applicability fail-closed）.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import io
 import json
 import shutil
@@ -39,8 +41,8 @@ from src.agent.execution.view_manifest import (
 from src.validator.checks.schema import CheckReport
 from src.validator.checks.view_manifest import check_reading_stage
 
-SM24 = Path("case_tests/e2e_tests/sm24_anchor")
-SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+SM24 = archive_path('case_tests/e2e_tests/sm24_anchor')
+SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 SM24_MANIFEST_SHA = "459513f1377496c2cf79c81f5ecc6860d90408e99053e609f46a977159847b8a"
 SM21_MANIFEST_SHA = "f52ca79c1bcacaf8fccc9436e165b4bfdc08814ec770370dd1acefd76b6e493e"
 

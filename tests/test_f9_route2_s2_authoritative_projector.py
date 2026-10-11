@@ -40,6 +40,8 @@ the committed fixture/case directory itself.
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 import sys
@@ -72,7 +74,7 @@ from src.validator.checks.correction import check_correction  # noqa: E402
 from src.validator.checks.schema import CheckStatus, disposition  # noqa: E402
 
 _F9_FIXTURE = Path("tests/fixtures/f9_window_host_crash")
-_CLEAN_RUN = Path("case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e")
+_CLEAN_RUN = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-08-11_continuous_e2e')
 _CLEAN_RUN_ACCEPTED_READING_ATTEMPT = "002"
 _CHECK_ID = "correction.window_position_evidence_shadow"
 

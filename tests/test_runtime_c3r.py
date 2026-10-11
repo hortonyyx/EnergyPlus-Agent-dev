@@ -65,21 +65,24 @@ def test_explicit_storage_root_cannot_authorize_another_checkout_or_symlink(tmp_
 
 
 def test_default_cli_output_keeps_cwd_semantics_and_still_refuses_foreign_cwd(tmp_path, monkeypatch):
-    # The positive default-root case must actually be inside this checkout;
-    # native Windows puts pytest's default tmp_path outside it.
-    with tempfile.TemporaryDirectory(prefix=".test-run-cwd-", dir=ROOT) as directory:
-        local = Path(directory)
-        monkeypatch.chdir(local)
-        assert resolve_run_output(Path("relative"), repository_root=ROOT) == local / "relative"
-        monkeypatch.chdir(ROOT)
-    monkeypatch.chdir(ROOT.parent)
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / ".git").mkdir()
+    monkeypatch.setattr("src.agent_runtime.run_paths.subprocess.check_output",
+                        lambda *args, **kwargs: f"worktree {repository}\n\n")
+    local = repository / "local"
+    local.mkdir()
+    monkeypatch.chdir(local)
+    assert resolve_run_output(Path("relative"), repository_root=repository) == local / "relative"
+    monkeypatch.chdir(tmp_path)
     with pytest.raises(ValueError, match="escapes"):
-        resolve_run_output(Path("relative"), repository_root=ROOT)
+        resolve_run_output(Path("relative"), repository_root=repository)
 
 
 def test_configuration_output_keeps_repository_semantics_from_foreign_cwd(tmp_path, monkeypatch):
     from src.agent.runtime_configuration import load_configuration, argv_for
-    configuration = json.loads((ROOT / "AI_agent/logs/experiments/2026-10-05_cleanup_c3r/configs/qwen27b.json").read_text())
+    from tests.current_runtime_fixtures import configuration as fixture_configuration
+    configuration = fixture_configuration(provider="paratera", model="Qwen3.8-27B")
     case = configuration["cases"][0]
     case.pop("run_root")
     case["output"] = "runs/relative-config-output"

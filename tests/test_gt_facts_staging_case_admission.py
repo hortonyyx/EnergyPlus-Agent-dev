@@ -31,6 +31,7 @@ rework -- i.e. this test suite would have been RED against the pre-rework
 module for every one of these inputs.
 """
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 import pathlib
 import tempfile
@@ -231,7 +232,7 @@ def test_r1_the_named_attacks_never_touch_the_real_answer_root(monkeypatch):
     and confirm the real answer root (``case_tests/test_baseline/gt/``) is
     untouched -- the actual scenario the rework dispatch is worried about,
     not just an isolated tmp_path stand-in."""
-    real_root = pathlib.Path(__file__).resolve().parents[1] / "case_tests/test_baseline/gt"
+    real_root = archive_path('case_tests/test_baseline/gt')
     before = {p for p in real_root.rglob("facts") if p.is_dir()} if real_root.is_dir() else set()
 
     with pytest.raises(FactsStagingCaseError):

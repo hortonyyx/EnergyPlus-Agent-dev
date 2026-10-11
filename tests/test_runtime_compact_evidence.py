@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import base64
 import gzip
 import importlib.util
@@ -18,8 +20,7 @@ from test_runtime_long_task import Run99Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = (
-    ROOT
-    / "AI_agent/logs/experiments/2026-10-02_harness_stage2/compact_evidence.py"
+    archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage2/compact_evidence.py')
 )
 SPEC = importlib.util.spec_from_file_location("stage2_compact_evidence", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
@@ -85,7 +86,7 @@ def test_compact_archive_restores_duplicate_and_historical_images_exactly():
         for image in step["result"]["images"]
     }
     inputs_path = (
-        ROOT / "AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99/inputs.json"
+        archive_path('AI_agent/logs/experiments/2026-09-30_sm21_instruction_fix_run99/inputs.json')
     )
     inputs = json.loads(inputs_path.read_bytes())
     input_name, input_identity = next(

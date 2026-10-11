@@ -6,6 +6,8 @@ relies on) on every real view, and that both overlay views render without crashi
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import sys
 from pathlib import Path
 
@@ -19,7 +21,7 @@ import render_gt_overlay as ov  # noqa: E402
 from src.agent.judge.gt_manifest import Affine2D, GtExtractionManifestV1, compute_manifest_sha256
 from src.agent.judge.gt_schema import GroundTruthV3
 
-_CD = Path("case_tests/e2e_tests/sm21_anchor/case_data")
+_CD = archive_path('case_tests/e2e_tests/sm21_anchor/case_data')
 _HAS = (_CD / "1f_view.png").exists() and (ov.GT_DIR / "sm21_anchor" / "gt.json").exists()
 
 
@@ -160,7 +162,7 @@ def test_sm24_v3_plan_and_elevation_overlays_normalise_y_down_rectangle_corners(
     # run_p2_conversion's ``assert_staging_input`` refuses protected inputs (§6.1),
     # so stage a byte-identical copy into the per-test tmp dir first.
     staged_source = tmp_path / "source.dxf"
-    staged_source.write_bytes(Path("case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf").read_bytes())
+    staged_source.write_bytes(archive_path('case_tests/test_baseline/gt_sources/sm24_anchor/source.dxf').read_bytes())
     conversion = run_p2_conversion(staged_source, request, request.plan_views[0], tooling, tmp_path)
     document = extract_gt_v3(ExtractionInputs(conversion.augmented_dxf_path, conversion.manifest, tooling,
                                                compute_gt_implementation_hashes(REPO_ROOT)))
@@ -182,7 +184,7 @@ def test_sm24_v3_plan_and_elevation_overlays_normalise_y_down_rectangle_corners(
     monkeypatch.setattr(ImageDraw.ImageDraw, "polygon", capture_polygon)
     monkeypatch.setattr(ImageDraw.ImageDraw, "text", capture_text)
     images = ov.build_gt_overlay_images_v3(document, conversion.manifest,
-                                            raster_root=Path("case_tests/e2e_tests/sm24_anchor/case_data"))
+                                            raster_root=archive_path('case_tests/e2e_tests/sm24_anchor/case_data'))
     assert list(images) == ["East_view", "North_view", "South_view", "West_view", "plan-F1"]
     assert all(image.mode == "RGB" and image.width > 0 and image.height > 0 for image in images.values())
     # Each of the four facade envelopes is drawn as FOUR explicit equal-width edges
@@ -242,7 +244,7 @@ def test_v3_overlay_rejects_competing_binding_empty_view_id_and_singular_affine(
 # on elevations, fat strokes on the small plan, and gt drawn in the same cyan as the
 # drawing's own opening ink over a base dimmed to 0.38).
 # --------------------------------------------------------------------------- #
-_SM24_CD = Path("case_tests/e2e_tests/sm24_anchor/case_data")
+_SM24_CD = archive_path('case_tests/e2e_tests/sm24_anchor/case_data')
 
 
 def test_v3_review_base_keeps_drawing_ink_readable_and_hue_free():

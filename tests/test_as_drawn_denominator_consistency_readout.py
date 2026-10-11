@@ -49,6 +49,7 @@ segment``), each moving exactly ONE gate so the locks stay attributable.
 Label numbering L5.. continues ``test_as_drawn_denominator_f126.py`` (L1..L4b).
 """
 from __future__ import annotations
+from tests.archive_paths import archive_path
 
 import hashlib
 import json
@@ -67,8 +68,7 @@ from src.agent.judge.tarch_converter_schema import (
     compute_request_sha256,
 )
 
-ANCHOR = Path(__file__).resolve().parents[1] / (
-    "case_tests/test_baseline/gt_sources/sm25-L_anchor")
+ANCHOR = archive_path('case_tests/test_baseline/gt_sources/sm25-L_anchor')
 SIGNED_DXF = ANCHOR / "sm25-L_t3.dxf"
 AS_RECEIVED_DXF = ANCHOR / "sm25-L_t3_as_received.dxf"
 REQUEST = ANCHOR / "request.json"

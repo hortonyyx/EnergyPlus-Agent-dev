@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import json
 from pathlib import Path
@@ -10,7 +12,7 @@ from src.agent.judge.gt import load_gt
 from src.agent.judge.score_policy import elevation_windows_placed_criterion
 
 
-_SM21_RUN = Path("case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e")
+_SM21_RUN = archive_path('case_tests/e2e_tests/sm21_anchor/run_2026-07-02_sonnet_flow_e2e')
 
 
 def _tiny_gt() -> dict:

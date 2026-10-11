@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import base64
 from src.utils import file_lock
 import hashlib
@@ -15,8 +17,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = (
-    ROOT
-    / "AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_pack.py"
+    archive_path('AI_agent/logs/experiments/2026-10-02_harness_stage3/evidence_pack.py')
 )
 SPEC = importlib.util.spec_from_file_location("stage3_evidence_pack", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None

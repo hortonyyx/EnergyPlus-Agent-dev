@@ -29,6 +29,8 @@ kind ([[regression-case-must-prove-its-own-premise]],
 """
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import hashlib
 import json
 import typing
@@ -83,9 +85,7 @@ from src.agent.reading.vector_contract import (
     classify_vector_json,
 )
 
-_PRODUCTS = Path(
-    "AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out"
-)
+_PRODUCTS = archive_path('AI_agent/logs/experiments/2026-08-23_as_drawn_reading_prototype/out')
 _TRACKED = ("sm25_1f_v2.json", "sm25_2f_v2.json", "sm24_1f_v2.json")
 
 _ABSENT_CHANNELS = (

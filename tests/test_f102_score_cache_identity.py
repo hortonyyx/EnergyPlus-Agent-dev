@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 from copy import deepcopy
@@ -10,10 +12,9 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _REAL_R0 = (
-    _REPO_ROOT
-    / "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-25_c2_rescore_R0"
+    archive_path('case_tests/e2e_tests/sm25-L_anchor/run_2026-08-25_c2_rescore_R0')
 )
-_REAL_GT = _REPO_ROOT / "case_tests/test_baseline/gt/sm25-L_anchor/gt.json"
+_REAL_GT = archive_path('case_tests/test_baseline/gt/sm25-L_anchor/gt.json')
 _PRE_F102_HELPER = "reading_opening_global_assignment_v1"
 
 

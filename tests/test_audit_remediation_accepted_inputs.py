@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 from pathlib import Path
@@ -130,7 +132,7 @@ def test_real_draw_reading_archive_is_accepted_by_correction_guard(tmp_path, mon
     """Happy-path parity lock: _draw_reading's exact output reaches correction."""
     from src.agent.execution.case_metadata import dimensioned_view_names
 
-    source_case = Path("case_tests/e2e_tests/sm21_anchor")
+    source_case = archive_path('case_tests/e2e_tests/sm21_anchor')
     source_reading = source_case / "run_2026-06-20_gpt54_reading" / "0_reading"
     case_dir = tmp_path / "sm21_anchor"
     run_dir = case_dir / "run"

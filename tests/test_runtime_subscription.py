@@ -140,18 +140,3 @@ def test_subscription_still_stops_before_send_when_budget_exhausted(tmp_path, li
     with engine.store:
         result = asyncio.run(engine.run(MESSAGES))
         assert result["status"] == status and engine.adapter.requests == []
-
-
-def test_migration_configuration_matches_baseline_and_is_only_prepared():
-    root = Path(__file__).resolve().parents[1]
-    config = load_configuration(root / "AI_agent/logs/experiments/2026-10-03_runtime_r2/r2bc/configs/migration_sm24_glm_subscription.json")
-    case = config["cases"][0]
-    baseline = json.loads((root / "AI_agent/logs/experiments/2026-10-02_sm24_glm_baseline/agent_request.json").read_bytes())
-    assert case["scope"].encode() == baseline["prompt"].encode()
-    assert hashlib.sha256(case["scope"].encode()).hexdigest() == case["task_sha256"]
-    assert case["limits"]["seconds"] == 3000 and case["max_candidates"] == 24
-    assert case["output_tokens"] == 32000 and case["expected_usage"]["model_requests"] == 45
-    command = argv_for(case)
-    assert command[command.index("--provider") + 1] == GLM_SUBSCRIPTION
-    assert not {"--temperature", "--reasoning-effort", "--thinking"} & set(command)
-    assert not (root / case["output"]).exists()

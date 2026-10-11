@@ -1,6 +1,8 @@
 """Tests for the coordinate-level reading↔gt scorer (judge-side metric)."""
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 from pathlib import Path
 
 from src.agent.judge.gt import load_gt
@@ -273,7 +275,7 @@ def test_floor_name_mapping():
 def test_sm21_phase1_reading_score_regression_floor():
     gt = load_gt("sm21_anchor")
     scores = rs.score_reading_dir(
-        Path("case_tests/e2e_tests/smalloffice_21_pre/phase1"),
+        archive_path('case_tests/e2e_tests/smalloffice_21_pre/phase1'),
         "sm21_anchor",
     )
     assert scores

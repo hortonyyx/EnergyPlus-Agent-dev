@@ -16,6 +16,8 @@ EnergyPlus 25.1 is not executable in the environment.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import math
 import shutil
 import subprocess
@@ -24,7 +26,7 @@ from pathlib import Path
 import pytest
 
 _REPO = Path(__file__).resolve().parents[1]
-_PROBE = _REPO / "AI_agent" / "logs" / "experiments" / "2026-07-10_e4_relative_north_axis_probe"
+_PROBE = archive_path('AI_agent/logs/experiments/2026-07-10_e4_relative_north_axis_probe')
 _EPW = _REPO / "data" / "weather" / "Shenzhen.epw"
 _VARIANTS = ("world_000", "rel_000", "rel_090", "rel_270")
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import shutil
 import sys
@@ -21,7 +23,7 @@ import render_grade  # noqa: E402
 from _grade_transform import plan_transform  # noqa: E402
 
 
-_SM21 = Path("case_tests/e2e_tests/sm21_anchor")
+_SM21 = archive_path('case_tests/e2e_tests/sm21_anchor')
 _DEFAULT_TOLERANCES = {
     "wall_tol_m": 0.3,
     "window_centre_tol_m": 0.4,

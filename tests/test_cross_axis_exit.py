@@ -40,6 +40,8 @@ the full rationale.
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import json
 import stat
 import subprocess
@@ -51,7 +53,7 @@ import pytest
 from src.agent.execution.isolation import build_isolation_workspace
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CASE_DIR = Path("case_tests/e2e_tests/sm21_anchor")
+CASE_DIR = archive_path('case_tests/e2e_tests/sm21_anchor')
 REAL_IMAGE = "case_data/1f_view.png"  # 2133x1345 (W x H), staged by every build
 
 # The REAL, tracked source the neuter test targets -- read-only from here on

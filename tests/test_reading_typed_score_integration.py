@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from tests.archive_paths import archive_path
+
 import copy
 import subprocess
 import sys
@@ -327,9 +329,7 @@ def test_v3_gt_refusal_is_reported_as_itself_not_as_a_floor_mapping_hint(tmp_pat
     cannot read a v3 gt at all. Combined with F-75 that produced "no working
     command scores this product" while every message pointed somewhere else."""
     view = (
-        REPO_ROOT
-        / "case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1"
-        / "0_reading/1f_view.json"
+        archive_path('case_tests/e2e_tests/sm25-L_anchor/run_2026-08-22_orchestrator_handson_H1/0_reading/1f_view.json')
     )
     if not view.exists():                       # run artifacts are not a test dependency
         import pytest
