@@ -1,0 +1,3228 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-11T19:32:26.546169+00:00",
+  "batch_id": "sm25-gpt-mix-20261012-context-high",
+  "run": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-context-high",
+  "launch": {
+    "real_model_calls_during_iteration": 0,
+    "run": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-context-high",
+    "runtime_version": "runtime-v9-20261012",
+    "independent_review": "Passed; two P2 repaired and reviewed; stable-HEAD node repairs 2/2 passed",
+    "input_hashes_verified": true,
+    "implementation_commit": "630dd06b19224a030e30c392e61a4eb825101c39",
+    "input_manifest_sha256": "796557260bf938ba613aa33bc4c08b53dde790a64b3cd91966cf58c42097cf9e",
+    "input_manifest": "AI_agent/reports/2026-10-12_sm25_gpt_mix/input_manifest.json",
+    "developer_interventions": 0,
+    "source_commit": "45d7dd73e0a561a1cbc53d1a79c9252c9e3bc570",
+    "configuration_sha256": "3815e87ff16fc877c9b8d472f2cc031b6a6a6954e9919d8e29fbec1ebb5fcc4f",
+    "recorded_at": "2026-10-11T18:46:35.6929679Z",
+    "domain_version": "domain-v66-20261012",
+    "offline_node_evidence": "D:/Sim-BIM-Agent/cache/pytest/context-iteration-node-repair-20261012/08992656dd4c/results.xml"
+  },
+  "status": "model_budget_exhausted",
+  "elapsed_seconds": 2171.631237131136,
+  "counts": {
+    "requests": 180,
+    "responses": 180,
+    "failed_requests": 0,
+    "pending_requests": 0,
+    "model_retry_events": 0,
+    "other_retry_events": 0
+  },
+  "semantic_empty_responses": 5,
+  "peak_in_flight_requests": 6,
+  "provider_usage": {
+    "input_tokens": 6028229,
+    "output_tokens": 98360,
+    "total_tokens": 6126589,
+    "cached_input_tokens": 1028608,
+    "reasoning_tokens": 41186,
+    "uncached_input_tokens": 4999621,
+    "cache_fraction": 0.17063187214686104
+  },
+  "roles": [
+    {
+      "task_id": "coordinator",
+      "role_id": "coordinator",
+      "target": null,
+      "image": null,
+      "status": "model_budget_exhausted",
+      "record_status": null,
+      "record_reason": null,
+      "start_event": "event-000000",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "model_budget_exhausted"
+      },
+      "requests": 15,
+      "responses": 15,
+      "receipt_model_calls": 15,
+      "elapsed_seconds": 2171.631237131136,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 15
+        }
+      ],
+      "tool_invocations": 17,
+      "tool_executions": 17,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "delegate_readers": 11,
+        "view_image": 2,
+        "role_state": 2,
+        "assemble_from_readers": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "saved_trial_receipts": 0,
+      "passed_trials": 0,
+      "primary_reason_categories": {},
+      "observed_tag_call_counts_nonexclusive": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 0,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8136.2270000002172353",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 374452,
+          "reported_requests": 15,
+          "unreported_requests": 0,
+          "complete_total": 374452
+        },
+        "output_tokens": {
+          "known_sum": 4148,
+          "reported_requests": 15,
+          "unreported_requests": 0,
+          "complete_total": 4148
+        },
+        "total_tokens": {
+          "known_sum": 378600,
+          "reported_requests": 15,
+          "unreported_requests": 0,
+          "complete_total": 378600
+        },
+        "cached_input_tokens": {
+          "known_sum": 13952,
+          "reported_requests": 15,
+          "unreported_requests": 0,
+          "complete_total": 13952
+        },
+        "reasoning_tokens": {
+          "known_sum": 885,
+          "reported_requests": 15,
+          "unreported_requests": 0,
+          "complete_total": 885
+        },
+        "cache_fraction": 0.03725978229519404
+      }
+    },
+    {
+      "task_id": "west_initial",
+      "role_id": "elevation_reader",
+      "target": "West/F1,F2",
+      "image": "West_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "start_event": "event-000020",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "completed"
+      },
+      "requests": 4,
+      "responses": 4,
+      "receipt_model_calls": 4,
+      "elapsed_seconds": 83.54481196403503,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "saved_trial_receipts": 0,
+      "passed_trials": 0,
+      "primary_reason_categories": {},
+      "observed_tag_call_counts_nonexclusive": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": {
+        "blob": {
+          "kind": "sha256",
+          "media_type": "application/json",
+          "sha256": "c960cdb9a3538dea93cb220d44c3b7a757ea146c559cedb583b1fb27361cd7a1",
+          "uri": "blobs/c960cdb9a3538dea93cb220d44c3b7a757ea146c559cedb583b1fb27361cd7a1"
+        },
+        "path": "tasks/ecf104cf3a1f0a2967482106d377923b12d433edf5efd7ad4f6b73b17a2c8026/reader_artifact.json",
+        "sha256": "c960cdb9a3538dea93cb220d44c3b7a757ea146c559cedb583b1fb27361cd7a1"
+      },
+      "domain_validation": {
+        "validation_passed": true
+      },
+      "summary": {
+        "counts": [
+          {
+            "door_count": 2,
+            "floor_id": "F1",
+            "window_count": 2
+          },
+          {
+            "door_count": 0,
+            "floor_id": "F2",
+            "window_count": 2
+          }
+        ],
+        "openings": 6,
+        "orientation": "West",
+        "unresolved": []
+      },
+      "root_budget_available": {
+        "calls": 154,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "5929.3485714287002195",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 32588,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 32588
+        },
+        "output_tokens": {
+          "known_sum": 2249,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 2249
+        },
+        "total_tokens": {
+          "known_sum": 34837,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 34837
+        },
+        "cached_input_tokens": {
+          "known_sum": 3072,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 3072
+        },
+        "reasoning_tokens": {
+          "known_sum": 1492,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 1492
+        },
+        "cache_fraction": 0.0942678286485823
+      }
+    },
+    {
+      "task_id": "east_initial",
+      "role_id": "elevation_reader",
+      "target": "East/F1,F2",
+      "image": "East_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "start_event": "event-000025",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "completed"
+      },
+      "requests": 4,
+      "responses": 4,
+      "receipt_model_calls": 4,
+      "elapsed_seconds": 69.87010935210856,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "saved_trial_receipts": 0,
+      "passed_trials": 0,
+      "primary_reason_categories": {},
+      "observed_tag_call_counts_nonexclusive": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": {
+        "blob": {
+          "kind": "sha256",
+          "media_type": "application/json",
+          "sha256": "ba8c82995972f8e7576d02e574495688c79176c7fc46c8934d1da4602a8223bb",
+          "uri": "blobs/ba8c82995972f8e7576d02e574495688c79176c7fc46c8934d1da4602a8223bb"
+        },
+        "path": "tasks/57cb4bdc76d113568f9937b9cdfe78c21f2ce902c4ecfa89c3618b27352a5260/reader_artifact.json",
+        "sha256": "ba8c82995972f8e7576d02e574495688c79176c7fc46c8934d1da4602a8223bb"
+      },
+      "domain_validation": {
+        "validation_passed": true
+      },
+      "summary": {
+        "counts": [
+          {
+            "door_count": 1,
+            "floor_id": "F1",
+            "window_count": 7
+          },
+          {
+            "door_count": 0,
+            "floor_id": "F2",
+            "window_count": 5
+          }
+        ],
+        "openings": 13,
+        "orientation": "East",
+        "unresolved": []
+      },
+      "root_budget_available": {
+        "calls": 156,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "4470.7584285715497695",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 32596,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 32596
+        },
+        "output_tokens": {
+          "known_sum": 1699,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 1699
+        },
+        "total_tokens": {
+          "known_sum": 34295,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 34295
+        },
+        "cached_input_tokens": {
+          "known_sum": 3072,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 3072
+        },
+        "reasoning_tokens": {
+          "known_sum": 975,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 975
+        },
+        "cache_fraction": 0.09424469260031906
+      }
+    },
+    {
+      "task_id": "south_initial",
+      "role_id": "elevation_reader",
+      "target": "South/F1,F2",
+      "image": "South_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "start_event": "event-000030",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "completed"
+      },
+      "requests": 4,
+      "responses": 4,
+      "receipt_model_calls": 4,
+      "elapsed_seconds": 53.11635313607985,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "saved_trial_receipts": 0,
+      "passed_trials": 0,
+      "primary_reason_categories": {},
+      "observed_tag_call_counts_nonexclusive": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": {
+        "blob": {
+          "kind": "sha256",
+          "media_type": "application/json",
+          "sha256": "abd8ea553796a5d5150489d262c7265caf9a157e9ab4988ff06a6be2d43e9c83",
+          "uri": "blobs/abd8ea553796a5d5150489d262c7265caf9a157e9ab4988ff06a6be2d43e9c83"
+        },
+        "path": "tasks/2046d968ab27f9309b4019de2c97228872819e76c9d035258b5bf0071e3c72ed/reader_artifact.json",
+        "sha256": "abd8ea553796a5d5150489d262c7265caf9a157e9ab4988ff06a6be2d43e9c83"
+      },
+      "domain_validation": {
+        "validation_passed": true
+      },
+      "summary": {
+        "counts": [
+          {
+            "door_count": 0,
+            "floor_id": "F1",
+            "window_count": 2
+          },
+          {
+            "door_count": 0,
+            "floor_id": "F2",
+            "window_count": 5
+          }
+        ],
+        "openings": 7,
+        "orientation": "South",
+        "unresolved": []
+      },
+      "root_budget_available": {
+        "calls": 157,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "2957.9322857143948945",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 30562,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 30562
+        },
+        "output_tokens": {
+          "known_sum": 959,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 959
+        },
+        "total_tokens": {
+          "known_sum": 31521,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 31521
+        },
+        "cached_input_tokens": {
+          "known_sum": 4608,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 4608
+        },
+        "reasoning_tokens": {
+          "known_sum": 382,
+          "reported_requests": 4,
+          "unreported_requests": 0,
+          "complete_total": 382
+        },
+        "cache_fraction": 0.15077547280937112
+      }
+    },
+    {
+      "task_id": "north_initial",
+      "role_id": "elevation_reader",
+      "target": "North/F1,F2",
+      "image": "North_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "start_event": "event-000035",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "completed"
+      },
+      "requests": 5,
+      "responses": 5,
+      "receipt_model_calls": 5,
+      "elapsed_seconds": 94.82750551987556,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 5
+        }
+      ],
+      "tool_invocations": 4,
+      "tool_executions": 4,
+      "tool_failures": 1,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 2
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "saved_trial_receipts": 0,
+      "passed_trials": 0,
+      "primary_reason_categories": {},
+      "observed_tag_call_counts_nonexclusive": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": {
+        "blob": {
+          "kind": "sha256",
+          "media_type": "application/json",
+          "sha256": "602df0c0299d03d0cb42f40ad8c5817581ab0920aa65a09d5f120c9e41cbbce8",
+          "uri": "blobs/602df0c0299d03d0cb42f40ad8c5817581ab0920aa65a09d5f120c9e41cbbce8"
+        },
+        "path": "tasks/fffc9b441b7ef05394c5835546aad2c581dae045fc8ea528aa9692997f73efa8/reader_artifact.json",
+        "sha256": "602df0c0299d03d0cb42f40ad8c5817581ab0920aa65a09d5f120c9e41cbbce8"
+      },
+      "domain_validation": {
+        "validation_passed": true
+      },
+      "summary": {
+        "counts": [
+          {
+            "door_count": 0,
+            "floor_id": "F1",
+            "window_count": 4
+          },
+          {
+            "door_count": 0,
+            "floor_id": "F2",
+            "window_count": 4
+          }
+        ],
+        "openings": 8,
+        "orientation": "North",
+        "unresolved": []
+      },
+      "root_budget_available": {
+        "calls": 153,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "7452.0647142858690635",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 43500,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 43500
+        },
+        "output_tokens": {
+          "known_sum": 2585,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 2585
+        },
+        "total_tokens": {
+          "known_sum": 46085,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 46085
+        },
+        "cached_input_tokens": {
+          "known_sum": 1536,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 1536
+        },
+        "reasoning_tokens": {
+          "known_sum": 1003,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 1003
+        },
+        "cache_fraction": 0.03531034482758621
+      }
+    },
+    {
+      "task_id": "plan_f1_initial",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-000040",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 11,
+      "responses": 11,
+      "receipt_model_calls": 11,
+      "elapsed_seconds": 273.54744611360366,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 11
+        }
+      ],
+      "tool_invocations": 9,
+      "tool_executions": 9,
+      "tool_failures": 6,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 6
+      },
+      "trial_calls": 6,
+      "full_plan_calls": 1,
+      "operations_calls": 5,
+      "saved_trial_receipts": 5,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_declaration": 1,
+        "schema_operation_bbox": 1,
+        "geometry_dimension_chain": 2,
+        "geometry_partition_boundary_overlap": 2
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 5,
+        "diagnostic_unhosted_openings": 2,
+        "schema": 2,
+        "schema_declaration": 1,
+        "schema_operation_bbox": 1,
+        "geometry": 4,
+        "geometry_dimension_chain": 2,
+        "geometry_partition_boundary_overlap": 2
+      },
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 139,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "10125.8580000001529685",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 508704,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 508704
+        },
+        "output_tokens": {
+          "known_sum": 9837,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 9837
+        },
+        "total_tokens": {
+          "known_sum": 518541,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 518541
+        },
+        "cached_input_tokens": {
+          "known_sum": 131584,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 131584
+        },
+        "reasoning_tokens": {
+          "known_sum": 2319,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 2319
+        },
+        "cache_fraction": 0.2586651569478518
+      }
+    },
+    {
+      "task_id": "plan_f2_initial",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "empty_response",
+      "record_status": "failed",
+      "record_reason": "empty_response",
+      "start_event": "event-000045",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "empty_response"
+      },
+      "requests": 11,
+      "responses": 11,
+      "receipt_model_calls": 11,
+      "elapsed_seconds": 250.17393265341525,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 11
+        }
+      ],
+      "tool_invocations": 9,
+      "tool_executions": 9,
+      "tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 5,
+        "read_plan_draft": 1
+      },
+      "trial_calls": 5,
+      "full_plan_calls": 1,
+      "operations_calls": 4,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_declaration": 2,
+        "schema_call_envelope": 1,
+        "schema_operation_bbox": 1,
+        "geometry_dimension_chain": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 3,
+        "diagnostic_unhosted_openings": 3,
+        "schema": 4,
+        "schema_declaration": 2,
+        "schema_call_envelope": 1,
+        "schema_operation_bbox": 1,
+        "geometry": 1,
+        "geometry_dimension_chain": 1
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 140,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8603.3598571430067085",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 491197,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 491197
+        },
+        "output_tokens": {
+          "known_sum": 9251,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 9251
+        },
+        "total_tokens": {
+          "known_sum": 500448,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 500448
+        },
+        "cached_input_tokens": {
+          "known_sum": 20480,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 20480
+        },
+        "reasoning_tokens": {
+          "known_sum": 1081,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 1081
+        },
+        "cache_fraction": 0.04169406572108543
+      }
+    },
+    {
+      "task_id": "plan_f1_repair1",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-000446",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 8,
+      "responses": 8,
+      "receipt_model_calls": 8,
+      "elapsed_seconds": 107.69850482369657,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 8
+        }
+      ],
+      "tool_invocations": 8,
+      "tool_executions": 8,
+      "tool_failures": 4,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 2,
+        "view_plan_blocks": 1,
+        "view_image": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 0,
+      "operations_calls": 3,
+      "saved_trial_receipts": 1,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_nonorthogonal_partition": 1,
+        "permission_rework_scope": 1,
+        "draft_object_missing": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 1,
+        "geometry": 1,
+        "geometry_nonorthogonal_partition": 1,
+        "permission": 1,
+        "permission_rework_scope": 1,
+        "draft_object_missing": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 1,
+      "previous_task_id": "plan_f1_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000411",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "03bb911e151ddb73a0d2f4c2a6a9f7e3b77fdb643ecf0c2782131564913827dd",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b",
+            "uri": "blobs/cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b"
+          },
+          "kind": "json_references",
+          "wire_sha256": "3eaced294a48efd85f4fdece0d93758271192b87962f0889350acf0d4abae89a"
+        },
+        "receipt_file": "trial_receipts/trial_005.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_top_east_return"
+      ],
+      "inherited_read_events": [
+        "event-000467"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 125,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8429.4528571430292941",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 348773,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 348773
+        },
+        "output_tokens": {
+          "known_sum": 2442,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 2442
+        },
+        "total_tokens": {
+          "known_sum": 351215,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 351215
+        },
+        "cached_input_tokens": {
+          "known_sum": 9216,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 9216
+        },
+        "reasoning_tokens": {
+          "known_sum": 1751,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 1751
+        },
+        "cache_fraction": 0.026424063789341493
+      }
+    },
+    {
+      "task_id": "plan_f2_repair1",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-000451",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 9,
+      "responses": 9,
+      "receipt_model_calls": 9,
+      "elapsed_seconds": 183.30448995591723,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 9
+        }
+      ],
+      "tool_invocations": 9,
+      "tool_executions": 9,
+      "tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 1,
+        "trial_plan_bim": 5
+      },
+      "trial_calls": 5,
+      "full_plan_calls": 0,
+      "operations_calls": 5,
+      "saved_trial_receipts": 1,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_duplicate_operation_target": 1,
+        "permission_rework_scope": 3,
+        "geometry_dimension_chain": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "schema": 1,
+        "schema_duplicate_operation_target": 1,
+        "permission": 3,
+        "permission_rework_scope": 3,
+        "diagnostic_loose_partition_ends": 1,
+        "diagnostic_unhosted_openings": 1,
+        "geometry": 1,
+        "geometry_dimension_chain": 1
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f2_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000381",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "658538005bb4180a5d7d492d91a9fea33a5505fe8479a62b20a53a80b5ed80fb",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "abcd7154f3f4e747ca5a0dcd1c0a10c84b057055c7fceaeaa1fb3fca190101a1",
+            "uri": "blobs/abcd7154f3f4e747ca5a0dcd1c0a10c84b057055c7fceaeaa1fb3fca190101a1"
+          },
+          "kind": "json_references",
+          "wire_sha256": "2a082d01453fa18239829dff13b5919e279cbf27121c56fc0487b2b424e97c92"
+        },
+        "receipt_file": "trial_receipts/trial_003.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.basis",
+        "plan.openings:d-top1",
+        "plan.openings:d-top2",
+        "plan.openings:d-top-right",
+        "plan.openings:d-meet"
+      ],
+      "inherited_read_events": [
+        "event-000493"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 121,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "9901.0120000001916206",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 389680,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 389680
+        },
+        "output_tokens": {
+          "known_sum": 5746,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 5746
+        },
+        "total_tokens": {
+          "known_sum": 395426,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 395426
+        },
+        "cached_input_tokens": {
+          "known_sum": 29440,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 29440
+        },
+        "reasoning_tokens": {
+          "known_sum": 3082,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 3082
+        },
+        "cache_fraction": 0.07554916854855266
+      }
+    },
+    {
+      "task_id": "plan_f1_repair2",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-000693",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 9,
+      "responses": 9,
+      "receipt_model_calls": 9,
+      "elapsed_seconds": 192.72792175677023,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 9
+        }
+      ],
+      "tool_invocations": 8,
+      "tool_executions": 8,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 2,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 1,
+      "operations_calls": 2,
+      "saved_trial_receipts": 1,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_nonorthogonal_partition": 1,
+        "permission_rework_scope": 2
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 1,
+        "geometry": 1,
+        "geometry_nonorthogonal_partition": 1,
+        "permission": 2,
+        "permission_rework_scope": 2
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_succeeded": 2,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f1_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000411",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "03bb911e151ddb73a0d2f4c2a6a9f7e3b77fdb643ecf0c2782131564913827dd",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b",
+            "uri": "blobs/cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b"
+          },
+          "kind": "json_references",
+          "wire_sha256": "3eaced294a48efd85f4fdece0d93758271192b87962f0889350acf0d4abae89a"
+        },
+        "receipt_file": "trial_receipts/trial_005.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_top_east_return"
+      ],
+      "inherited_read_events": [
+        "event-000714"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [
+        "plan_f1_repair1"
+      ],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 97,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8032.6378571429687603",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 369068,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 369068
+        },
+        "output_tokens": {
+          "known_sum": 6178,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 6178
+        },
+        "total_tokens": {
+          "known_sum": 375246,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 375246
+        },
+        "cached_input_tokens": {
+          "known_sum": 40960,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 40960
+        },
+        "reasoning_tokens": {
+          "known_sum": 2596,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 2596
+        },
+        "cache_fraction": 0.11098225801207366
+      }
+    },
+    {
+      "task_id": "plan_f2_repair2",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-000698",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 12,
+      "responses": 12,
+      "receipt_model_calls": 12,
+      "elapsed_seconds": 224.96027132606832,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 12
+        }
+      ],
+      "tool_invocations": 10,
+      "tool_executions": 10,
+      "tool_failures": 6,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 1,
+        "view_image": 2,
+        "trial_plan_bim": 6
+      },
+      "trial_calls": 6,
+      "full_plan_calls": 0,
+      "operations_calls": 6,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_operation_bbox": 1,
+        "permission_rework_scope": 2,
+        "geometry_dimension_chain": 3
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "schema": 1,
+        "schema_operation_bbox": 1,
+        "permission": 2,
+        "permission_rework_scope": 2,
+        "diagnostic_loose_partition_ends": 3,
+        "diagnostic_unhosted_openings": 3,
+        "geometry": 3,
+        "geometry_dimension_chain": 3
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f2_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000381",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "658538005bb4180a5d7d492d91a9fea33a5505fe8479a62b20a53a80b5ed80fb",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "abcd7154f3f4e747ca5a0dcd1c0a10c84b057055c7fceaeaa1fb3fca190101a1",
+            "uri": "blobs/abcd7154f3f4e747ca5a0dcd1c0a10c84b057055c7fceaeaa1fb3fca190101a1"
+          },
+          "kind": "json_references",
+          "wire_sha256": "2a082d01453fa18239829dff13b5919e279cbf27121c56fc0487b2b424e97c92"
+        },
+        "receipt_file": "trial_receipts/trial_003.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.basis",
+        "plan.x_anchors",
+        "plan.openings"
+      ],
+      "inherited_read_events": [
+        "event-000731"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [
+        "plan_f2_repair1"
+      ],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 96,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "9542.6830000001064048",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 262987,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 262987
+        },
+        "output_tokens": {
+          "known_sum": 6698,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 6698
+        },
+        "total_tokens": {
+          "known_sum": 269685,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 269685
+        },
+        "cached_input_tokens": {
+          "known_sum": 50176,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 50176
+        },
+        "reasoning_tokens": {
+          "known_sum": 2763,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 2763
+        },
+        "cache_fraction": 0.19079270077988647
+      }
+    },
+    {
+      "task_id": "plan_f2_repair3",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "empty_response",
+      "record_status": "failed",
+      "record_reason": "empty_response",
+      "start_event": "event-000931",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "empty_response"
+      },
+      "requests": 12,
+      "responses": 12,
+      "receipt_model_calls": 12,
+      "elapsed_seconds": 268.7189750309044,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 12
+        }
+      ],
+      "tool_invocations": 10,
+      "tool_executions": 10,
+      "tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 1,
+        "view_image": 1,
+        "trial_plan_bim": 5,
+        "get_bim_reference": 1
+      },
+      "trial_calls": 5,
+      "full_plan_calls": 0,
+      "operations_calls": 5,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "permission_rework_scope": 2,
+        "geometry_dimension_chain": 3
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "permission": 2,
+        "permission_rework_scope": 2,
+        "diagnostic_loose_partition_ends": 3,
+        "diagnostic_unhosted_openings": 3,
+        "geometry": 3,
+        "geometry_dimension_chain": 3
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f2_repair2",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000894",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "536fe638e48c241f6fc6c9aef7059188dd57e3cebb280555e9f9c9e6d7271089",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "fd39aa47986c58c36ce62445438ba589d440f1ac90be8bd2902bc6796da3c863",
+            "uri": "blobs/fd39aa47986c58c36ce62445438ba589d440f1ac90be8bd2902bc6796da3c863"
+          },
+          "kind": "json_references",
+          "wire_sha256": "bde1240ff74ae72104b014b0e32c0309048213c06190eb0169d80ca6bbbf163a"
+        },
+        "receipt_file": "trial_receipts/trial_003.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.basis",
+        "plan.x_anchors",
+        "plan.dimension_chains",
+        "plan.openings:d-top1",
+        "plan.openings:d-top2"
+      ],
+      "inherited_read_events": [
+        "event-000988"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 72,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "9197.2920000001031442",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 569218,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 569218
+        },
+        "output_tokens": {
+          "known_sum": 8297,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 8297
+        },
+        "total_tokens": {
+          "known_sum": 577515,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 577515
+        },
+        "cached_input_tokens": {
+          "known_sum": 132736,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 132736
+        },
+        "reasoning_tokens": {
+          "known_sum": 4694,
+          "reported_requests": 12,
+          "unreported_requests": 0,
+          "complete_total": 4694
+        },
+        "cache_fraction": 0.23319009588593473
+      }
+    },
+    {
+      "task_id": "plan_f1_repair3",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-000936",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 11,
+      "responses": 11,
+      "receipt_model_calls": 11,
+      "elapsed_seconds": 174.75622987747192,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 11
+        }
+      ],
+      "tool_invocations": 9,
+      "tool_executions": 9,
+      "tool_failures": 4,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 2,
+        "view_image": 2,
+        "trial_plan_bim": 4
+      },
+      "trial_calls": 4,
+      "full_plan_calls": 0,
+      "operations_calls": 4,
+      "saved_trial_receipts": 2,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_operation_bbox": 1,
+        "geometry_dimension_chain": 1,
+        "geometry_nonorthogonal_partition": 1,
+        "permission_rework_scope": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "schema": 1,
+        "schema_operation_bbox": 1,
+        "diagnostic_loose_partition_ends": 2,
+        "geometry": 2,
+        "geometry_dimension_chain": 1,
+        "geometry_nonorthogonal_partition": 1,
+        "permission": 1,
+        "permission_rework_scope": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_succeeded": 2,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f1_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000411",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "03bb911e151ddb73a0d2f4c2a6a9f7e3b77fdb643ecf0c2782131564913827dd",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b",
+            "uri": "blobs/cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b"
+          },
+          "kind": "json_references",
+          "wire_sha256": "3eaced294a48efd85f4fdece0d93758271192b87962f0889350acf0d4abae89a"
+        },
+        "receipt_file": "trial_receipts/trial_005.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_top_east_return",
+        "plan.dimension_chains"
+      ],
+      "inherited_read_events": [
+        "event-000977"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [
+        "plan_f1_repair1",
+        "plan_f1_repair2"
+      ],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 77,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "7755.7468571429654996",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 234957,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 234957
+        },
+        "output_tokens": {
+          "known_sum": 4987,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 4987
+        },
+        "total_tokens": {
+          "known_sum": 239944,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 239944
+        },
+        "cached_input_tokens": {
+          "known_sum": 53760,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 53760
+        },
+        "reasoning_tokens": {
+          "known_sum": 2812,
+          "reported_requests": 11,
+          "unreported_requests": 0,
+          "complete_total": 2812
+        },
+        "cache_fraction": 0.22880782441042405
+      }
+    },
+    {
+      "task_id": "plan_f1_fresh",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-001185",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 8,
+      "responses": 8,
+      "receipt_model_calls": 8,
+      "elapsed_seconds": 242.58723534585442,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 8
+        }
+      ],
+      "tool_invocations": 6,
+      "tool_executions": 6,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 1,
+      "operations_calls": 2,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_partition_partition_overlap": 1,
+        "geometry_dangling_partition_network": 2
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 3,
+        "diagnostic_unhosted_openings": 3,
+        "geometry": 3,
+        "geometry_partition_partition_overlap": 1,
+        "geometry_dangling_partition_network": 2
+      },
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 55,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8874.6340000000491367",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 304486,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 304486
+        },
+        "output_tokens": {
+          "known_sum": 6606,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 6606
+        },
+        "total_tokens": {
+          "known_sum": 311092,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 311092
+        },
+        "cached_input_tokens": {
+          "known_sum": 34048,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 34048
+        },
+        "reasoning_tokens": {
+          "known_sum": 2648,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 2648
+        },
+        "cache_fraction": 0.11182123316014529
+      }
+    },
+    {
+      "task_id": "plan_f2_fresh",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-001190",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 8,
+      "responses": 8,
+      "receipt_model_calls": 8,
+      "elapsed_seconds": 188.29696089937352,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 8
+        }
+      ],
+      "tool_invocations": 6,
+      "tool_executions": 6,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 1,
+      "operations_calls": 2,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_partition_partition_overlap": 1,
+        "geometry_dangling_partition_network": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 3,
+        "diagnostic_unhosted_openings": 3,
+        "geometry": 3,
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_partition_partition_overlap": 1,
+        "geometry_dangling_partition_network": 1
+      },
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 57,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "7404.5268571428770327",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 292505,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 292505
+        },
+        "output_tokens": {
+          "known_sum": 5354,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 5354
+        },
+        "total_tokens": {
+          "known_sum": 297859,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 297859
+        },
+        "cached_input_tokens": {
+          "known_sum": 69504,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 69504
+        },
+        "reasoning_tokens": {
+          "known_sum": 1517,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 1517
+        },
+        "cache_fraction": 0.2376164510008376
+      }
+    },
+    {
+      "task_id": "plan_f2_targeted_final",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "empty_response",
+      "record_status": "failed",
+      "record_reason": "empty_response",
+      "start_event": "event-001364",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "empty_response"
+      },
+      "requests": 8,
+      "responses": 8,
+      "receipt_model_calls": 8,
+      "elapsed_seconds": 209.36465406417847,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 8
+        }
+      ],
+      "tool_invocations": 7,
+      "tool_executions": 7,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 0,
+      "operations_calls": 3,
+      "saved_trial_receipts": 2,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 1,
+        "permission_rework_scope": 1,
+        "geometry_invalid_outer_ring": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 2,
+        "diagnostic_unhosted_openings": 2,
+        "geometry": 2,
+        "geometry_dimension_chain": 1,
+        "permission": 1,
+        "permission_rework_scope": 1,
+        "geometry_invalid_outer_ring": 1
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f2_repair2",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000894",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "536fe638e48c241f6fc6c9aef7059188dd57e3cebb280555e9f9c9e6d7271089",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "fd39aa47986c58c36ce62445438ba589d440f1ac90be8bd2902bc6796da3c863",
+            "uri": "blobs/fd39aa47986c58c36ce62445438ba589d440f1ac90be8bd2902bc6796da3c863"
+          },
+          "kind": "json_references",
+          "wire_sha256": "bde1240ff74ae72104b014b0e32c0309048213c06190eb0169d80ca6bbbf163a"
+        },
+        "receipt_file": "trial_receipts/trial_003.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.dimension_chains",
+        "plan.basis",
+        "plan.x_anchors",
+        "plan.openings:d-top1",
+        "plan.openings:d-top2"
+      ],
+      "inherited_read_events": [
+        "event-001435"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 36,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8630.7880000000877853",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 308023,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 308023
+        },
+        "output_tokens": {
+          "known_sum": 4569,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 4569
+        },
+        "total_tokens": {
+          "known_sum": 312592,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 312592
+        },
+        "cached_input_tokens": {
+          "known_sum": 44032,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 44032
+        },
+        "reasoning_tokens": {
+          "known_sum": 2218,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 2218
+        },
+        "cache_fraction": 0.1429503640961876
+      }
+    },
+    {
+      "task_id": "plan_f1_targeted_final",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-001369",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 10,
+      "responses": 10,
+      "receipt_model_calls": 10,
+      "elapsed_seconds": 164.23839367865003,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 10
+        }
+      ],
+      "tool_invocations": 8,
+      "tool_executions": 8,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 1,
+        "view_image": 2,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 0,
+      "operations_calls": 3,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_nonorthogonal_partition": 1,
+        "geometry_partition_partition_overlap": 2
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 3,
+        "geometry": 3,
+        "geometry_nonorthogonal_partition": 1,
+        "geometry_partition_partition_overlap": 2
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f1_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000411",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "03bb911e151ddb73a0d2f4c2a6a9f7e3b77fdb643ecf0c2782131564913827dd",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b",
+            "uri": "blobs/cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b"
+          },
+          "kind": "json_references",
+          "wire_sha256": "3eaced294a48efd85f4fdece0d93758271192b87962f0889350acf0d4abae89a"
+        },
+        "receipt_file": "trial_receipts/trial_005.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_top_east_return",
+        "plan.partitions:p_south_small_return",
+        "plan.dimension_chains"
+      ],
+      "inherited_read_events": [
+        "event-001399"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [
+        "plan_f1_repair1",
+        "plan_f1_fresh",
+        "plan_f1_repair2",
+        "plan_f1_repair3"
+      ],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 37,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "7150.0248571429275549",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 368644,
+          "reported_requests": 10,
+          "unreported_requests": 0,
+          "complete_total": 368644
+        },
+        "output_tokens": {
+          "known_sum": 2889,
+          "reported_requests": 10,
+          "unreported_requests": 0,
+          "complete_total": 2889
+        },
+        "total_tokens": {
+          "known_sum": 371533,
+          "reported_requests": 10,
+          "unreported_requests": 0,
+          "complete_total": 371533
+        },
+        "cached_input_tokens": {
+          "known_sum": 86272,
+          "reported_requests": 10,
+          "unreported_requests": 0,
+          "complete_total": 86272
+        },
+        "reasoning_tokens": {
+          "known_sum": 2247,
+          "reported_requests": 10,
+          "unreported_requests": 0,
+          "complete_total": 2247
+        },
+        "cache_fraction": 0.23402523844142317
+      }
+    },
+    {
+      "task_id": "f1_overlap_repair",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-001567",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 5,
+      "responses": 5,
+      "receipt_model_calls": 5,
+      "elapsed_seconds": 104.6999532127229,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 5
+        }
+      ],
+      "tool_invocations": 4,
+      "tool_executions": 4,
+      "tool_failures": 1,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 1,
+        "view_image": 1,
+        "trial_plan_bim": 1
+      },
+      "trial_calls": 1,
+      "full_plan_calls": 0,
+      "operations_calls": 1,
+      "saved_trial_receipts": 1,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "geometry_dangling_partition_network": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 1,
+        "geometry": 1,
+        "geometry_dangling_partition_network": 1
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f1_targeted_final",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-001524",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "7ddc2f8d84bbb90b28823c808c1ad77c5a14c26da3d05296eb5f101ae642e058",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "08e7575bcd50e1445d79e7107fe0a0153a6b21e46810e8eaadb50112176f9b35",
+            "uri": "blobs/08e7575bcd50e1445d79e7107fe0a0153a6b21e46810e8eaadb50112176f9b35"
+          },
+          "kind": "json_references",
+          "wire_sha256": "f4b6c9b695016dd6b4ee61e2e7e0e429a338153e84f9d755834801426d6e78eb"
+        },
+        "receipt_file": "trial_receipts/trial_003.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_left_main_sep",
+        "plan.partitions:p_middle_room_n"
+      ],
+      "inherited_read_events": [
+        "event-001594"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 25,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "7017.6018571429468811",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 79259,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 79259
+        },
+        "output_tokens": {
+          "known_sum": 1611,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 1611
+        },
+        "total_tokens": {
+          "known_sum": 80870,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 80870
+        },
+        "cached_input_tokens": {
+          "known_sum": 20224,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 20224
+        },
+        "reasoning_tokens": {
+          "known_sum": 1281,
+          "reported_requests": 5,
+          "unreported_requests": 0,
+          "complete_total": 1281
+        },
+        "cache_fraction": 0.2551634514692338
+      }
+    },
+    {
+      "task_id": "f2_outline_repair",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "empty_response",
+      "record_status": "failed",
+      "record_reason": "empty_response",
+      "start_event": "event-001572",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "empty_response"
+      },
+      "requests": 9,
+      "responses": 9,
+      "receipt_model_calls": 9,
+      "elapsed_seconds": 193.35653352737427,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 9
+        }
+      ],
+      "tool_invocations": 7,
+      "tool_executions": 7,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 0,
+      "operations_calls": 3,
+      "saved_trial_receipts": 1,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "permission_rework_scope": 2,
+        "geometry_partition_boundary_overlap": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "permission": 2,
+        "permission_rework_scope": 2,
+        "diagnostic_loose_partition_ends": 1,
+        "diagnostic_unhosted_openings": 1,
+        "geometry": 1,
+        "geometry_partition_boundary_overlap": 1
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_succeeded": 1,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f2_targeted_final",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-001513",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "2576a4d2f1e8f7645a3afa4cc40e6990b8c3ee14a0b20ca80ecbda05cc0af2f5",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "4c4d80a337ed07e31656816ffafe71f973243c19df51c3161753ff1af7f8726d",
+            "uri": "blobs/4c4d80a337ed07e31656816ffafe71f973243c19df51c3161753ff1af7f8726d"
+          },
+          "kind": "json_references",
+          "wire_sha256": "b4f8248ed7db5a1dd85f287a4def30fd71eb635dc2563dc7c5e467ff001d7d24"
+        },
+        "receipt_file": "trial_receipts/trial_002.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.footprint_pixels",
+        "plan.openings:d-top1",
+        "plan.openings:d-top2",
+        "plan.partitions:north-south-wall-west"
+      ],
+      "inherited_read_events": [
+        "event-001639"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 21,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8455.1160000001255048",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 329896,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 329896
+        },
+        "output_tokens": {
+          "known_sum": 2577,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 2577
+        },
+        "total_tokens": {
+          "known_sum": 332473,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 332473
+        },
+        "cached_input_tokens": {
+          "known_sum": 79232,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 79232
+        },
+        "reasoning_tokens": {
+          "known_sum": 1338,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 1338
+        },
+        "cache_fraction": 0.2401726604748163
+      }
+    },
+    {
+      "task_id": "f2_last_attempt",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "start_event": "event-001748",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "answer_validation_failed"
+      },
+      "requests": 8,
+      "responses": 8,
+      "receipt_model_calls": 8,
+      "elapsed_seconds": 258.0309077682614,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 8
+        }
+      ],
+      "tool_invocations": 6,
+      "tool_executions": 6,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 1,
+      "operations_calls": 2,
+      "saved_trial_receipts": 3,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_declaration": 1,
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_dangling_partition_network": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "diagnostic_loose_partition_ends": 3,
+        "diagnostic_unhosted_openings": 3,
+        "schema": 1,
+        "schema_declaration": 1,
+        "geometry": 2,
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_dangling_partition_network": 1
+      },
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "rework_targets": null,
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 1,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8142.5550000002258503",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 285714,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 285714
+        },
+        "output_tokens": {
+          "known_sum": 5148,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 5148
+        },
+        "total_tokens": {
+          "known_sum": 290862,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 290862
+        },
+        "cached_input_tokens": {
+          "known_sum": 37120,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 37120
+        },
+        "reasoning_tokens": {
+          "known_sum": 1627,
+          "reported_requests": 8,
+          "unreported_requests": 0,
+          "complete_total": 1627
+        },
+        "cache_fraction": 0.1299201299201299
+      }
+    },
+    {
+      "task_id": "f1_last_attempt",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "empty_response",
+      "record_status": "failed",
+      "record_reason": "empty_response",
+      "start_event": "event-001753",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "empty_response"
+      },
+      "requests": 9,
+      "responses": 9,
+      "receipt_model_calls": 9,
+      "elapsed_seconds": 207.41511607170105,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 9
+        }
+      ],
+      "tool_invocations": 13,
+      "tool_executions": 13,
+      "tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "read_plan_draft": 7,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 3
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 0,
+      "operations_calls": 3,
+      "saved_trial_receipts": 2,
+      "passed_trials": 0,
+      "primary_reason_categories": {
+        "schema_operation_required_fields": 1,
+        "geometry_dimension_chain": 1,
+        "geometry_nonorthogonal_partition": 1
+      },
+      "observed_tag_call_counts_nonexclusive": {
+        "schema": 1,
+        "schema_operation_required_fields": 1,
+        "diagnostic_loose_partition_ends": 2,
+        "geometry": 2,
+        "geometry_dimension_chain": 1,
+        "geometry_nonorthogonal_partition": 1
+      },
+      "read_plan_draft_calls": 7,
+      "read_plan_draft_succeeded": 7,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_f1_initial",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000411",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "03bb911e151ddb73a0d2f4c2a6a9f7e3b77fdb643ecf0c2782131564913827dd",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b",
+            "uri": "blobs/cbc25bf9411abdfd302f19183688a42264f6dbfd1e32b885204bd30efd62eb9b"
+          },
+          "kind": "json_references",
+          "wire_sha256": "3eaced294a48efd85f4fdece0d93758271192b87962f0889350acf0d4abae89a"
+        },
+        "receipt_file": "trial_receipts/trial_005.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_top_east_return",
+        "plan.partitions:p_left_main_sep",
+        "plan.partitions:p_middle_room_n",
+        "plan.dimension_chains"
+      ],
+      "inherited_read_events": [
+        "event-001788",
+        "event-001824",
+        "event-001827",
+        "event-001830",
+        "event-001833",
+        "event-001836",
+        "event-001851"
+      ],
+      "other_attempts_already_stopped_when_returning_to_initial": [
+        "plan_f1_repair1",
+        "plan_f1_fresh",
+        "f1_overlap_repair",
+        "plan_f1_repair2",
+        "plan_f1_repair3",
+        "plan_f1_targeted_final"
+      ],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 1,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "6653.9168571430947243",
+        "tokens": null
+      },
+      "zero_request_budget_stop": false,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 371420,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 371420
+        },
+        "output_tokens": {
+          "known_sum": 4530,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 4530
+        },
+        "total_tokens": {
+          "known_sum": 375950,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 375950
+        },
+        "cached_input_tokens": {
+          "known_sum": 163584,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 163584
+        },
+        "reasoning_tokens": {
+          "known_sum": 2475,
+          "reported_requests": 9,
+          "unreported_requests": 0,
+          "complete_total": 2475
+        },
+        "cache_fraction": 0.44042862527596793
+      }
+    },
+    {
+      "task_id": "f1_orthogonal_fix",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "root_model_budget_exhausted",
+      "record_status": "failed",
+      "record_reason": "root_model_budget_exhausted",
+      "start_event": "event-001960",
+      "last_lifecycle": {
+        "action": "stop",
+        "reason": "root_model_budget_exhausted"
+      },
+      "requests": 0,
+      "responses": 0,
+      "receipt_model_calls": 0,
+      "elapsed_seconds": 54.038757699978305,
+      "actual_request_model_configs": [],
+      "tool_invocations": 0,
+      "tool_executions": 0,
+      "tool_failures": 0,
+      "tool_call_counts": {},
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "saved_trial_receipts": 0,
+      "passed_trials": 0,
+      "primary_reason_categories": {},
+      "observed_tag_call_counts_nonexclusive": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_succeeded": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "f1_last_attempt",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-001906",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "c2da867a7bb42d8114eca90ee2e3befcc21576638cca53631f5033777542db6f",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "d1e5b89968bf18e8fee5afc3ca13ea509b8d976b85ce85b9fa8017ffda953eb6",
+            "uri": "blobs/d1e5b89968bf18e8fee5afc3ca13ea509b8d976b85ce85b9fa8017ffda953eb6"
+          },
+          "kind": "json_references",
+          "wire_sha256": "cbee74e1f8f1c881961f404f39cd82d8aa6470269e619f681a654ab77b071511"
+        },
+        "receipt_file": "trial_receipts/trial_002.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "rework_targets": [
+        "plan.partitions:p_south_small_return"
+      ],
+      "inherited_read_events": [],
+      "other_attempts_already_stopped_when_returning_to_initial": [],
+      "domain_artifact": null,
+      "domain_validation": null,
+      "summary": null,
+      "root_budget_available": {
+        "calls": 0,
+        "money_cny": null,
+        "money_usd": null,
+        "seconds": "8136.2270000002172353",
+        "tokens": null
+      },
+      "zero_request_budget_stop": true,
+      "provider_usage": {
+        "input_tokens": {
+          "known_sum": 0,
+          "reported_requests": 0,
+          "unreported_requests": 0,
+          "complete_total": 0
+        },
+        "output_tokens": {
+          "known_sum": 0,
+          "reported_requests": 0,
+          "unreported_requests": 0,
+          "complete_total": 0
+        },
+        "total_tokens": {
+          "known_sum": 0,
+          "reported_requests": 0,
+          "unreported_requests": 0,
+          "complete_total": 0
+        },
+        "cached_input_tokens": {
+          "known_sum": 0,
+          "reported_requests": 0,
+          "unreported_requests": 0,
+          "complete_total": 0
+        },
+        "reasoning_tokens": {
+          "known_sum": 0,
+          "reported_requests": 0,
+          "unreported_requests": 0,
+          "complete_total": 0
+        },
+        "cache_fraction": null
+      }
+    }
+  ],
+  "behavior_summary": {
+    "terminal_status": "model_budget_exhausted",
+    "elapsed_seconds": 2171.631237131136,
+    "requests": 180,
+    "responses": 180,
+    "root_model_request_limit": 180,
+    "root_available_model_calls": 0,
+    "plan_tasks": 17,
+    "elevation_tasks": 4,
+    "trial_tool_calls": 59,
+    "full_plan_calls": 6,
+    "operations_calls": 53,
+    "saved_trial_receipts": 37,
+    "passed_trial_receipts": 0,
+    "read_plan_draft_calls": 21,
+    "read_plan_draft_succeeded": 20,
+    "read_plan_draft_failed": 1,
+    "coordinator_delegate_calls": 11,
+    "coordinator_delegate_failures": 2,
+    "zero_request_budget_tasks": [
+      "f1_orthogonal_fix"
+    ],
+    "rework_tasks_with_previous": 12,
+    "rework_tasks_using_initial": 7,
+    "return_to_initial_after_other_attempts_stopped": 5,
+    "root_finalization": {
+      "delivery": null,
+      "status": "no_saved_candidate"
+    },
+    "root_or_child_candidate_directories": 0,
+    "root_or_child_source_bim_files": 0,
+    "root_or_child_compiled_numeric_trial_files": 0,
+    "domain_accepted_plan_artifacts": 0,
+    "domain_accepted_elevation_artifacts": 4
+  },
+  "trial_failure_classification": {
+    "denominator_trial_tool_calls": 59,
+    "denominator_failed_trial_tool_calls": 59,
+    "primary_reason_categories_mutually_exclusive": {
+      "schema_declaration": 4,
+      "schema_call_envelope": 1,
+      "schema_operation_bbox": 4,
+      "geometry_dimension_chain": 13,
+      "geometry_partition_boundary_overlap": 5,
+      "geometry_nonorthogonal_partition": 5,
+      "permission_rework_scope": 14,
+      "draft_object_missing": 1,
+      "schema_duplicate_operation_target": 1,
+      "geometry_partition_partition_overlap": 4,
+      "geometry_dangling_partition_network": 5,
+      "geometry_invalid_outer_ring": 1,
+      "schema_operation_required_fields": 1
+    },
+    "primary_category_rule": "One category per trial tool execution using saved full receipt primary reason; prewrite rejections use captured structured result. Counts sum to completed trial calls, not all tool calls or geometry objects.",
+    "observed_tag_call_counts_nonexclusive": {
+      "diagnostic_loose_partition_ends": 37,
+      "diagnostic_unhosted_openings": 24,
+      "schema": 11,
+      "schema_declaration": 4,
+      "schema_call_envelope": 1,
+      "schema_operation_bbox": 4,
+      "geometry": 33,
+      "geometry_dimension_chain": 13,
+      "geometry_partition_boundary_overlap": 5,
+      "geometry_nonorthogonal_partition": 5,
+      "permission": 14,
+      "permission_rework_scope": 14,
+      "draft_object_missing": 1,
+      "schema_duplicate_operation_target": 1,
+      "geometry_partition_partition_overlap": 4,
+      "geometry_dangling_partition_network": 5,
+      "geometry_invalid_outer_ring": 1,
+      "schema_operation_required_fields": 1
+    },
+    "nonexclusive_rule": "Each tag counts a call at most once. A call may have multiple tags, including supplemental unhosted/loose-end diagnostics; do not sum tags or treat percentages as independent failure causes.",
+    "representative_events_by_primary_category": {
+      "schema_declaration": [
+        "event-000282",
+        "event-000304",
+        "event-000359",
+        "event-001873"
+      ],
+      "schema_call_envelope": [
+        "event-000315"
+      ],
+      "schema_operation_bbox": [
+        "event-000326",
+        "event-000337",
+        "event-000809",
+        "event-001032"
+      ],
+      "geometry_dimension_chain": [
+        "event-000348",
+        "event-000370",
+        "event-000381",
+        "event-000610"
+      ],
+      "geometry_partition_boundary_overlap": [
+        "event-000392",
+        "event-000411",
+        "event-001275",
+        "event-001686"
+      ],
+      "geometry_nonorthogonal_partition": [
+        "event-000517",
+        "event-000787",
+        "event-001065",
+        "event-001480"
+      ],
+      "permission_rework_scope": [
+        "event-000528",
+        "event-000582",
+        "event-000599",
+        "event-000621"
+      ],
+      "draft_object_missing": [
+        "event-000539"
+      ],
+      "schema_duplicate_operation_target": [
+        "event-000552"
+      ],
+      "geometry_partition_partition_overlap": [
+        "event-001264",
+        "event-001286",
+        "event-001491",
+        "event-001524"
+      ],
+      "geometry_dangling_partition_network": [
+        "event-001297",
+        "event-001308",
+        "event-001333",
+        "event-001650"
+      ],
+      "geometry_invalid_outer_ring": [
+        "event-001513"
+      ],
+      "schema_operation_required_fields": [
+        "event-001862"
+      ]
+    },
+    "all_tool_calls_denominator": 159,
+    "all_tool_call_failures": 64,
+    "all_tool_failure_breakdown": {
+      "trial_plan_bim": 59,
+      "read_plan_draft": 1,
+      "delegate_readers": 2,
+      "assemble_from_readers": 1,
+      "submit_elevation_reading": 1
+    }
+  },
+  "behavior_report_counters": {
+    "turns": 180,
+    "tool_calls": 159,
+    "call_errors": 64,
+    "domain_failures": 20,
+    "usable_source_drafts": 0,
+    "tool_capture_missing": false
+  },
+  "behavior_report_counter_semantics": {
+    "call_errors": "64 failed tool executions: 59 trial, 1 draft read, 2 delegate, 1 assemble, 1 elevation submission",
+    "domain_failures": "20 successful read_plan_draft calls returned a saved failed draft status; these are not additional failed operations."
+  },
+  "context_summary": {
+    "requests": 180,
+    "reported_responses": 180,
+    "anchor_requests": 143,
+    "actual_input_sum": 6028229,
+    "actual_output_sum": 98360,
+    "cached_input_sum": 1028608,
+    "max_actual_input": 69171,
+    "max_local_input_point": 520308,
+    "max_local_input_upper": 565828,
+    "max_local_reservation": 597828,
+    "input_upper_below_actual_count": 0,
+    "min_upper_minus_actual": 1582,
+    "max_upper_minus_actual": 501685,
+    "mean_upper_minus_actual": 39722.78333333333,
+    "median_upper_over_actual": 1.285474549665992,
+    "min_upper_over_actual": 1.1099340225819616,
+    "max_upper_over_actual": 11.601511508072827,
+    "actual_total_above_reservation_count": 0,
+    "max_ciphertext_characters": 76864,
+    "compactions": 0,
+    "explicit_context_rejections": 0,
+    "context_recovery_stops": 0,
+    "root_terminal_status": "model_budget_exhausted",
+    "root_elapsed_seconds": 2171.631237131136,
+    "final_root_ledger_json_bytes": 630766,
+    "anchor_rate": 0.7944444444444444,
+    "cache_fraction_of_actual_input": 0.17063187214686104,
+    "anchor_backed_median_upper_over_actual": 1.2325347066726378
+  },
+  "context_calibration_remaining_gap": {
+    "max_reservation_request_event_id": "event-001169",
+    "actual_input_tokens": 64143,
+    "local_input_upper": 565828,
+    "local_reservation_tokens": 597828,
+    "opaque_items": 13,
+    "reported_opaque_input_tokens": 4680,
+    "anchor": null,
+    "adjacent_request_scope_evidence": [
+      {
+        "event_id": "event-001161",
+        "top_level_keys": [
+          "include",
+          "input",
+          "model",
+          "reasoning",
+          "store",
+          "stream",
+          "tools"
+        ],
+        "request_scope_sha256": "104c82a76c45e48f07dab97df352321ff14bbd71dbd4d464ccb25bdb73465b1c",
+        "tool_names": [
+          "inputs",
+          "view_image",
+          "pixel_profile",
+          "view_pixel_profile",
+          "view_pixel_region_overview",
+          "view_pixel_region",
+          "map_pixels",
+          "map_dimension_chain",
+          "get_bim_reference",
+          "view_plan_blocks",
+          "read_plan_draft",
+          "trial_plan_bim",
+          "submit_plan_reading"
+        ],
+        "native_input_items": 36,
+        "wire_sha256": "b71a88d7190863ad77b880893dfdccf3ed829678503fbb3f2891314b627b77ee"
+      },
+      {
+        "event_id": "event-001169",
+        "top_level_keys": [
+          "include",
+          "input",
+          "model",
+          "reasoning",
+          "store",
+          "stream"
+        ],
+        "request_scope_sha256": "7d30519d0a77d44ede14b83f61fb7ecb4c16fb602d8e543e1ea2116751c87824",
+        "tool_names": [],
+        "native_input_items": 39,
+        "wire_sha256": "82cac1c0ad4fee09d22fe32019069a8f4b992add2486540d0149c4cea232e169"
+      }
+    ],
+    "observation": "The largest overestimate has no compatible usage anchor. The retained 13 opaque reasoning items use the uncalibrated per-item output allowance (13 * 32000 = 416000) in the fallback estimator, despite only 4680 provider-attributed replay input tokens for those items. This is reservation uncertainty, not ciphertext tokenization or observed model usage.",
+    "scope_change_confirmed": true,
+    "limit": "The runtime currently returns the base estimate if no compatible whole-request anchor exists; observed item attribution does not calibrate this fallback. Address only in a future authorized iteration."
+  },
+  "context_unexercised_boundaries": [
+    "No near-physical-window pressure was observed; automatic compaction triggers and tool-group preservation under actual large-window pressure remain offline-tested only.",
+    "No provider context-length rejection occurred; bounded recovery, missing-usage budget hold and retry/resume behavior remain offline-tested only.",
+    "Observed same-task usage calibration is evidence for this input mix, not a tokenizer guarantee or general bound for other models/images.",
+    "This audit does not evaluate BIM geometry, assembly quality, or model task success.",
+    "Long-history fallback without a compatible request-scope anchor can over-reserve opaque reasoning by one output allowance per item; this run reached 597828 reservation for 64143 actual input and did not reach the profile threshold. Larger histories remain at risk of premature pressure despite no ciphertext tokenization."
+  ],
+  "prompt_reuse_summary": {
+    "same_task_adjacent_request_pairs": 159,
+    "previous_native_input_is_complete_prefix": 146,
+    "same_tools_true": 143,
+    "same_tools_false": 0,
+    "same_tools_unknown_or_omitted": 16,
+    "same_model": 159,
+    "cache_guarantee": false
+  },
+  "wire_summary": {
+    "requests": 180,
+    "responses": 180,
+    "unanswered_requests": [],
+    "request_models": {
+      "gpt-6-sol": 15,
+      "gpt-6-luna": 165
+    },
+    "response_models": {
+      "gpt-6-sol": 15,
+      "gpt-6-luna": 165
+    },
+    "request_efforts": {
+      "high": 180
+    },
+    "response_efforts": {
+      "high": 180
+    },
+    "adapters": {
+      "openai-responses-http-v1": 180
+    },
+    "routes": {
+      "chatgpt-subscription": 180
+    },
+    "response_statuses": {
+      "completed": 180
+    },
+    "identity_violations": [],
+    "missing_counts": {
+      "request_model": 0,
+      "request_effort": 0,
+      "response_model": 0,
+      "response_effort": 0,
+      "response_usage": 0,
+      "response_usage_input_tokens": 0,
+      "response_usage_output_tokens": 0,
+      "response_usage_total_tokens": 0
+    },
+    "semantically_empty_response_count": 5,
+    "total_model_failure_records": 0,
+    "model_failure_categories": {},
+    "usage_totals": {
+      "input_tokens": 6028229,
+      "output_tokens": 98360,
+      "total_tokens": 6126589
+    },
+    "cached_input_tokens": 1028608,
+    "literal_raw_usage_structure_difference_count": 180,
+    "normalized_raw_usage_mismatch_count": 0,
+    "primary_usage_counter_mismatch_count": 0,
+    "usage_structure_note": "All raw usage counters are retained here. Runtime numeric projection deliberately drops nested list-valued attribution.content breakdowns, so literal raw/recorded structure differs in 180 responses. Its numeric projection and primary input/output/total/cache/reasoning counters are independently compared; this is not missing usage or lost billing totals.",
+    "protocol_stop_reasons": {
+      "empty_response": 5
+    },
+    "recorded_http_or_transport_failure_count": 0,
+    "recorded_http_status_boundary": "The journal does not expose a HTTP status for each successful response. Zero means no HTTP/transport model_failure events, not a separate packet-level HTTP audit. Completed native responses still include five semantically empty protocol outcomes.",
+    "all_request_output_cap_fields_absent": true
+  },
+  "quality": {
+    "status": "not_evaluated_no_source_bim",
+    "gt_read": false,
+    "evaluate_run_executed": false,
+    "topology": null,
+    "completeness": null,
+    "5cm": null,
+    "10cm": null,
+    "30cm": null,
+    "viewer": null
+  },
+  "finalization": {
+    "delivery": null,
+    "status": "no_saved_candidate"
+  },
+  "developer_interventions": 0,
+  "run_time_harness_edits": 0,
+  "gt_injected_or_read": false,
+  "billing_mode": "subscription",
+  "money_cost": null,
+  "paid_api_fallback_requests": 0,
+  "real_inference_requests_during_implementation_and_offline_validation": 0,
+  "real_inference_requests_in_authorized_rerun": 180,
+  "additional_run": {
+    "executed": false,
+    "reason": "Quality did not meet the condition for lowering reasoning; only the approved rerun was executed."
+  },
+  "baseline_comparison": {
+    "report": "../2026-10-12_sm25_gpt_mix/results.json",
+    "elapsed_ratio": 3.7945720762084076,
+    "request_ratio": 3.3962264150943398,
+    "total_token_ratio": 4.506329290825213,
+    "uncached_input_ratio": 4.2182280074448935,
+    "cache_fraction_delta_percentage_points": 7.422002376010364,
+    "causal_limit": "One run per version, different successful execution lengths and failure stop conditions; no causal cache or performance claim."
+  },
+  "cli": {
+    "exit_code": 1,
+    "console_valid_json": true,
+    "behavior_report_written": true,
+    "reason": "runtime_roles.entry returns 1 for any status other than completed; this was a recorded budget stop, not an unhandled traceback."
+  },
+  "evidence": [
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/launch-record.json",
+      "bytes": 963,
+      "sha256": "2c67f6bb7bc5824e69396d9a2837609ce4d5b2dc8a41498fb8cdc12be03ca61d"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/final-observation.json",
+      "bytes": 32181,
+      "sha256": "eb75e928f354eeecc2ac8e02a6d487c26100759ffb91b28c49b8d80c3488a76b"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/context-audit.json",
+      "bytes": 424817,
+      "sha256": "f8dac501113a4ee7e59c5ce008a65a15303564490a733c8873305ae232b461bf"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/wire-identity-audit.json",
+      "bytes": 3175848,
+      "sha256": "06278b5d55cefb44a8c9520c7921027cdf06c43e3ef35d51feca9624036d2085"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/behavior-audit.json",
+      "bytes": 584384,
+      "sha256": "c8470b8a1dc6826ff2b4fcfdbd1b3eed9353b96d513afe12e0d4af771e8f537a"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/artifact-audit.json",
+      "bytes": 357137,
+      "sha256": "2c70767a490cc8e5142d09bbd4c638bf637771267736e7c9c75a71e56eb09ce8"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/prompt-reuse-audit.json",
+      "bytes": 78470,
+      "sha256": "78c707112e85ec48d6fc172edff22b86506552d4dacc284324a5d7846db7ec25"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/baseline-prompt-reuse.json",
+      "bytes": 23394,
+      "sha256": "6d9038d912439857899f81d67ba16d8fb72915b33568dc2bf664b18f2052fa07"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-20261012-iteration/high-console.log",
+      "bytes": 711100,
+      "sha256": "fbee8bb7cc0c22a7346fb5ab35fc63c94b953cacdfd954bc43a6402d042067e4"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-context-high/events.jsonl",
+      "bytes": 10824603,
+      "sha256": "794e8898e6c526265a8ded44b4a92fc45b75c98f060c6f4e5fc9ebf41672eaf2"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-context-high/receipt.json",
+      "bytes": 1418121,
+      "sha256": "e56bceaa7fe1d9a37612cd4b3e7869bff6414b58f41a605be69e56ee13a64121"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-context-high/behaviour/summary.json",
+      "bytes": 920294,
+      "sha256": "47f95019f513a2a6308cb6b7c77a435e6837e5a685b8e1682c787d4db2a5928b"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-mix-20261012-context-high/behaviour/timeline.md",
+      "bytes": 54904,
+      "sha256": "bf80682251942fe7fddaf27aaa2ca1eb008bc751e9e605804d9b58f5c95ed029"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/repo/AI_agent/reports/2026-10-12_sm25_context_iteration/run_high.json",
+      "bytes": 2258,
+      "sha256": "3815e87ff16fc877c9b8d472f2cc031b6a6a6954e9919d8e29fbec1ebb5fcc4f"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/repo/AI_agent/reports/2026-10-12_sm25_gpt_mix/input_manifest.json",
+      "bytes": 1456,
+      "sha256": "796557260bf938ba613aa33bc4c08b53dde790a64b3cd91966cf58c42097cf9e"
+    }
+  ],
+  "disk_free_gib": {
+    "C": 51.55,
+    "D": 167.27
+  },
+  "preservation_note": "All run evidence remains outside Git on D. Terminal audits did not modify source runs. Desktop release unchanged."
+}
