@@ -1,8 +1,8 @@
 # sm25 harness 提交与恢复修复 — 2026-10-12
 
-状态：修复、定向离线验证及独立源码审阅通过，已登记runtime v10 / domain v67；启动前独立核对后运行唯一一轮。
+状态：修复、273项定向离线验证及独立源码审阅通过，已登记runtime v10 / domain v67；唯一一轮真实验证已结束。旧的成功回执上下文阻塞、缺usage结算错误未再出现；本轮因服务错误提前停止，尚未完成整楼交付。
 
-实现提交：`5e765337d970548be53c3610bb7f177aecad4c80`。正式登记与最终离线节点所用临时登记的生产文件/模式指纹完全一致；registry verify通过，CLI配置检查返回ready。实际启动HEAD、输入hash及独立预飞在外部cache的`launch-record.json`记录，不在运行中改源码或配置。
+实现提交：`5e765337d970548be53c3610bb7f177aecad4c80`；真实运行冻结提交：`47fbe805a9bdc8d5c01f22e897e441859b0bd32d`。正式登记与最终离线节点所用临时登记的生产文件/模式指纹完全一致；registry verify通过，CLI配置检查返回ready。启动与终态独立审计确认源码、配置、六图一致，运行中无开发者干预。
 
 用户要求先修好harness，至少让完整流程能跑起来。依据[上一轮冻结实验](../2026-10-12_sm25_plan_sol/README.md)，本次修复成功/失败trial大回执、passed但未submit稿件的接续空档、transport缺usage结算证据矛盾，并补齐协调员读取大reader_artifact的同类问题。保留原始证据、正式提交门槛、返工权限、缺usage未知口径；不修改几何质量门槛来制造通过。
 
@@ -32,6 +32,68 @@
 
 只读重投影上轮11份成功回执：原模型文本约1.95–3.33MB，当前13,854–16,310bytes；11份原文件哈希全不变。证据：`D:/Sim-BIM-Agent/cache/pytest/trial-feedback-20261012/projection-audit-final.json`。这只是确定性回执投影，不是恢复旧模型运行。
 
-修复后使用相同六图与原配置验证一轮：协调员Sol/high、平面Sol/high、立面Luna/high，6 reader slots、180模型请求/700工具/10800秒、无总token限额、自动上下文。配置只改变batch/case/output标识；实验变量为harness。版本和源码在启动前冻结。运行中只观察，不修稿、不发提示、不改预算、不恢复重跑；有整楼候选后才做独立评价。
+修复后使用相同六图与原配置验证一轮：协调员Sol/high、平面Sol/high、立面Luna/high，6 reader slots、180模型请求/700工具/10800秒、无总token限额、自动上下文。配置只改变batch/case/output标识；实验变量为harness。版本和源码在启动前冻结。运行中只观察，没有修稿、发提示、改预算、恢复或重跑；没有降档或换模型。
 
-配置：[run_high.json](run_high.json)。计划运行：`D:/Sim-BIM-Agent/runs/sm25-gpt-harness-recovery-20261012-high`；证据缓存：`D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012`。旧run/cache均保留。本轮不以启动成功或单层trial通过代替整楼交付及独立质量验收。
+| 真实验证 | 结果 |
+|---|---|
+| 运行耗时／终态 | 1283.899秒，约21分24秒；`service_error`，CLI退出1 |
+| 模型请求／完整响应／失败／待处理 | 66／37／29／0 |
+| 并发与重试 | 实际请求重叠峰值6；23次有界模型重试事件 |
+| 失败分类 | 26次流传输中断；3次服务明确报告`server_is_overloaded` |
+| 平面试建 | 5次，4次拒绝、1次通过；全部发生在二层第二次任务 |
+| 大回执后的执行 | 完整文件11,019,849字节；模型文本16,785字节；随后4次报告读取和1次看图成功 |
+| 本地上下文恢复停止 | 0；成功回执后的旧阻塞未复现 |
+| 缺usage结算 | 66/66结算合法，`invalid_settlement=0`；29次未知用量仍保留预留 |
+| 正式角色交付 | 4份立面，0份平面 |
+| 候选与最终交付 | 子任务局部候选1；根整楼候选0；整楼BIM及交付viewer未生成 |
+| 独立质量 | 空间／拓扑／宿主与连接／5、10、30cm均未评，GT未读 |
+
+成功回执的11.02 MB是磁盘缩进JSON；同份完整内容的规范JSON为3,244,202字节。模型收到的16,785字节为实际工具文本，不包含另外交付的图片、请求框架和token估算。完整回执及事件摘要一致。通过后共发出6个请求，前5个完整返回并执行上述工具，第6个遇到服务过载，尚未正式submit。
+
+| 角色／任务 | 模型 | 请求／完整响应／失败 | 耗时 | 行为及终态 |
+|---|---|---|---|---|
+| 协调员 | Sol/high | 6／3／3 | 1283.90秒，含等待子任务 | 两次委派，未进入装配；最终服务过载 |
+| 北立面 a | Luna/high | 6／4／2 | 156.95秒 | 读取、看图、正式提交完成 |
+| 东立面 a | Luna/high | 6／4／2 | 130.37秒 | 读取、看图、正式提交完成 |
+| 南立面 a | Luna/high | 6／4／2 | 162.83秒 | 读取、看图、正式提交完成 |
+| 西立面 a → b | Luna/high | 3／0／3 → 3／2／1 | 80.81 → 93.95秒 | 首次传输重试耗尽；协调员自主重派后正式提交 |
+| 一层平面 a → b | Sol/high | 5／1／4 → 7／4／3 | 148.77 → 315.33秒 | 首次传输重试耗尽；再次读取及看图后服务过载，未试建 |
+| 二层平面 a → b | Sol/high | 9／2／7 → 15／13／2 | 206.48 → 967.19秒 | 首次传输重试耗尽；再次5次试建、1次通过，读取报告后服务过载，未正式提交 |
+
+各任务并行执行，耗时不能相加为运行耗时；a/b是模型自主发起的不同任务，不是开发者恢复。二层4次试建拒绝依次为隔墙网络悬端、剩余悬端、两个空间种子落入同一区域、门的绝对高度不在本层范围。模型通过局改解决后，第5次试建通过；没有人工修正几何。
+
+| 修复项 | 离线验证 | 本轮真实验证的覆盖边界 |
+|---|---|---|
+| 大trial回执与按需浏览 | 成功后继续调用并显式提交；失败后读取完整报告 | 已观察到通过后继续5次工具操作，无上下文停止；尚未完成真实平面submit |
+| 通过但未提交稿的跨任务接续 | 原稿读取、重验、授权局改、提交及篡改拒绝通过 | 本轮通过后未发生再次委派，此项未在真实模型中触发 |
+| 协调员分页读取大artifact | 分页、完整装配源、篡改拒绝通过 | 无平面正式交付，未进入协调员读取及装配，未覆盖 |
+| 缺usage与有界重试 | 未知账目、有限额保护与原重试范围通过 | 29次缺usage均合法结算；实际发生23次重试，无非法结算 |
+
+26次传输失败的记录只保留“Responses stream transport interrupted”，没有原始httpx异常子类和HTTP状态，不能进一步判断是代理、链路、服务端断流或其他环节。3次服务错误分别发生于一层、二层及协调员，均包含`service_unavailable_error / server_is_overloaded`及`headers.x-retry-metadata=NO_MORE_RETRY`。
+
+源码把非上下文SSE错误统一分类为不可重试的`service_error`，没有按type/code/header细分；这是一项可继续改善的诊断与分类覆盖边界。当前停止不是代码显式解析`NO_MORE_RETRY`的结果，但这3份样本也不足以证明应忽略标记继续重试。本轮未临时扩大重试、补发请求或恢复旧任务。
+
+| 用量口径 | 数值 |
+|---|---|
+| 有最终usage的响应 | 37；另外29次缺失 |
+| 已知输入／输出／合计 | 883,395／19,388／902,783 tokens |
+| 已知缓存输入 | 258,048，已包含在输入中；已知输入的29.21% |
+| 已知推理输出 | 9,245，已包含在输出中 |
+| 缺usage的保守预算承诺 | 1,511,885 tokens；是预留，不是实际消耗 |
+| 全轮总用量与费用 | **未知**，不能将已知小计或预算预留当作总消耗 |
+
+启动前另有一次模型目录连接失败：尚未创建run、推理请求为0。保持原代理和全部配置不变，经过只读网络检查及目录重试恢复后，才启动上述唯一一轮推理。`high-console.log`属于启动失败；实际运行是`high-console-start2.log`，终态输出为完整JSON，无Traceback，行为报告正常生成。旧审计的console段曾取错日志，已保留原文件并用`behavior-audit-final.json`及`service-error-diagnosis.json`明确更正，其他行为／产物计数一致。
+
+本轮确认harness可以越过已定位的回执及记账阻塞，但没有证明整楼自主收敛或质量恢复。服务失败大量打断有效工作，不能拿21分钟与上一轮64分钟直接比较效率，也不能将本轮结论解释为Luna立面导致退步。不满足降低思考档位条件；未追加运行、GT评价或桌面发布。
+
+配置：[run_high.json](run_high.json)；结构化终态及证据摘要：[results.json](results.json)；离线索引：[verification.json](verification.json)。
+
+实际run：[sm25-gpt-harness-recovery-20261012-high](D:/Sim-BIM-Agent/runs/sm25-gpt-harness-recovery-20261012-high)；证据缓存：[sm25-gpt-harness-recovery-20261012](D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012)。旧run/cache均保留，无本轮新增工作树。
+
+| 证据 | 内容 |
+|---|---|
+| [wire身份审计](D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/wire-identity-audit.json) | 66次请求模型／档位／路由、源码、六图、配置及事件身份一致 |
+| [结算审计](D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/terminal-accounting-observation.json) | 缺usage、预留、失败明细及已知用量 |
+| [最终行为审计](D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/behavior-audit-final.json) | 逐任务调用、试建、提交、后续执行及实际console |
+| [最终产物审计](D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/artifact-audit-final.json) | 角色artifact哈希、局部候选、根交付缺项、独立质量边界 |
+| [服务错误诊断](D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/service-error-diagnosis.json) | 原服务错误、分类源码、成功试建后序列及日志更正 |

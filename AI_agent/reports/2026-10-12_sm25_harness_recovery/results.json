@@ -1,0 +1,940 @@
+{
+  "schema_version": "sm25_harness_recovery_terminal_v1",
+  "recorded_at_utc": "2026-10-12T07:25:00.057314+00:00",
+  "conclusion": "Harness fixes passed offline verification and the large-receipt and missing-usage fixes were exercised live. The single real run stopped on service_error before any formal plan submission or complete-building delivery. Autonomous convergence and independent geometry quality are not established.",
+  "source_commit": "47fbe805a9bdc8d5c01f22e897e441859b0bd32d",
+  "implementation_commit": "5e765337d970548be53c3610bb7f177aecad4c80",
+  "runtime_version": "runtime-v10-20261012",
+  "domain_version": "domain-v67-20261012",
+  "configuration": {
+    "path": "D:\\Sim-BIM-Agent\\repo\\AI_agent\\reports\\2026-10-12_sm25_harness_recovery\\run_high.json",
+    "sha256": "d13df59382cce6a058cdde8f3aa73ff65749d7d76739c04358bed291412ee764"
+  },
+  "input_manifest": {
+    "path": "D:\\Sim-BIM-Agent\\repo\\AI_agent\\reports\\2026-10-12_sm25_gpt_mix\\input_manifest.json",
+    "sha256": "796557260bf938ba613aa33bc4c08b53dde790a64b3cd91966cf58c42097cf9e"
+  },
+  "input_images": [
+    {
+      "file": "1f_view.png",
+      "sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "matches_launch": true
+    },
+    {
+      "file": "2f_view.png",
+      "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+      "matches_launch": true
+    },
+    {
+      "file": "East_view.png",
+      "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+      "matches_launch": true
+    },
+    {
+      "file": "North_view.png",
+      "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+      "matches_launch": true
+    },
+    {
+      "file": "South_view.png",
+      "sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+      "matches_launch": true
+    },
+    {
+      "file": "West_view.png",
+      "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+      "matches_launch": true
+    }
+  ],
+  "run": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-harness-recovery-20261012-high",
+  "terminal": {
+    "status": "service_error",
+    "exit_code": 1,
+    "cli_session_id": 58582,
+    "elapsed_seconds": 1283.899100849143,
+    "counts": {
+      "requests": 66,
+      "responses": 37,
+      "failed_requests": 29,
+      "pending_requests": 0,
+      "model_retry_events": 23,
+      "other_retry_events": 0
+    },
+    "peak_in_flight_requests": 6,
+    "failure_categories": {
+      "transport_error": 26,
+      "service_error": 3
+    },
+    "root_candidates": 0,
+    "child_candidates": 1,
+    "formal_plan_submissions": 0,
+    "formal_elevation_submissions": 4,
+    "root_delivery_present": false,
+    "context_recovery_stop_tasks": 0
+  },
+  "models": {
+    "requests": {
+      "gpt-6-sol": 42,
+      "gpt-6-luna": 24
+    },
+    "complete_responses": {
+      "gpt-6-sol": 23,
+      "gpt-6-luna": 14
+    },
+    "reasoning_effort": "high",
+    "route": "chatgpt_subscription_responses"
+  },
+  "offline": {
+    "unique_passed": 273,
+    "failed": 0,
+    "skipped": 0,
+    "real_model_requests": 0,
+    "full_identity_index": {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/offline-validation.json",
+      "sha256": "928aa5b7b4a498ec3af04ddfab703a0e57fc065373fdbbb18316d9f6ca5ceacd"
+    },
+    "repo_verification_index": "AI_agent/reports/2026-10-12_sm25_harness_recovery/verification.json"
+  },
+  "behavior_summary": {
+    "terminal_status": "service_error",
+    "elapsed_seconds": 1283.899100849143,
+    "requests": 66,
+    "responses": 37,
+    "all_tool_executions": 35,
+    "all_tool_runtime_failures": 4,
+    "trial_tool_calls": 5,
+    "full_plan_calls": 1,
+    "operations_calls": 4,
+    "runtime_succeeded_trial_calls": 1,
+    "domain_passed_trial_calls": 1,
+    "domain_rejected_trial_calls": 4,
+    "max_trial_shown_text_bytes": 16785,
+    "context_recovery_stop_tasks_unique": 0,
+    "accepted_plan_submission_events": 0,
+    "accepted_elevation_submission_events": 4,
+    "root_assembly_execution_counts": {},
+    "root_assembly_runtime_success_counts": {},
+    "root_finish_execution_count": 0,
+    "unique_saved_trial_receipts": 5,
+    "unique_passed_trial_receipts": 1,
+    "unique_trial_plan_hashes": 5,
+    "classified_rejected_trial_calls": 4,
+    "read_plan_draft_calls": 4,
+    "read_plan_draft_failed": 0,
+    "coordinator_delegate_invocations": 2,
+    "coordinator_delegate_failures": 0,
+    "rework_tasks_with_previous": 0,
+    "rework_tasks_using_initial": 0,
+    "return_to_initial_after_other_attempts_stopped": 0,
+    "formally_completed_plan_readers": 0,
+    "formally_completed_elevation_readers": 4,
+    "root_candidates": 0,
+    "root_source_files": 0,
+    "child_candidates": 1,
+    "child_source_files": 1,
+    "root_delivery_present": false,
+    "root_delivery_candidate": null,
+    "root_delivery_selection_origin": null,
+    "root_delivery_complete_building_reported": null,
+    "root_delivery_generation_status": null,
+    "expected_plan_targets_from_admitted_tasks": [
+      "F1",
+      "F2"
+    ],
+    "root_candidates_covering_admitted_plan_targets": [],
+    "root_summary_delivery": null,
+    "reworks_after_prior_pass": 0,
+    "reworks_after_passed_unsubmitted": 0,
+    "reworks_after_passed_unsubmitted_with_editable_handoff": 0,
+    "reworks_after_pass_without_editable_handoff": 0,
+    "reworks_referencing_failure_older_than_prior_pass": 0,
+    "zero_request_tasks": [],
+    "zero_request_budget_stops": []
+  },
+  "roles": [
+    {
+      "task_id": "coordinator",
+      "role_id": "coordinator",
+      "target": null,
+      "status": "service_error",
+      "elapsed_seconds": 1283.899100849143,
+      "requests": 6,
+      "responses": 3,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 6
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "delegate_readers": 2
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 0,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": false,
+      "failed_requests": 3
+    },
+    {
+      "task_id": "plan_F2_b",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "status": "service_error",
+      "elapsed_seconds": 967.1916295795236,
+      "requests": 15,
+      "responses": 13,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 15
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 2,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 5,
+        "read_plan_draft": 4
+      },
+      "trial_calls": 5,
+      "domain_passed_trials": 1,
+      "domain_rejected_trials": 4,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 0,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 4,
+      "previous_task_id": null,
+      "formally_completed_reader": false,
+      "failed_requests": 2
+    },
+    {
+      "task_id": "plan_F2_a",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "status": "model_retries_exhausted:transport_error",
+      "elapsed_seconds": 206.48474744224222,
+      "requests": 9,
+      "responses": 2,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 9
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 0,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": false,
+      "failed_requests": 7
+    },
+    {
+      "task_id": "elev_S_a",
+      "role_id": "elevation_reader",
+      "target": "South/F1,F2",
+      "status": "completed",
+      "elapsed_seconds": 162.83077788352966,
+      "requests": 6,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 6
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 1,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": true,
+      "failed_requests": 2
+    },
+    {
+      "task_id": "elev_E_a",
+      "role_id": "elevation_reader",
+      "target": "East/F1,F2",
+      "status": "completed",
+      "elapsed_seconds": 130.36899975204142,
+      "requests": 6,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 6
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 1,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": true,
+      "failed_requests": 2
+    },
+    {
+      "task_id": "elev_N_a",
+      "role_id": "elevation_reader",
+      "target": "North/F1,F2",
+      "status": "completed",
+      "elapsed_seconds": 156.9484185485926,
+      "requests": 6,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 6
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 1,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": true,
+      "failed_requests": 2
+    },
+    {
+      "task_id": "plan_F1_b",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "status": "service_error",
+      "elapsed_seconds": 315.33071681213914,
+      "requests": 7,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 7
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 4,
+        "view_plan_blocks": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 0,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": false,
+      "failed_requests": 3
+    },
+    {
+      "task_id": "elev_W_a",
+      "role_id": "elevation_reader",
+      "target": "West/F1,F2",
+      "status": "model_retries_exhausted:transport_error",
+      "elapsed_seconds": 80.81451535224915,
+      "requests": 3,
+      "responses": 0,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 3
+        }
+      ],
+      "tool_call_counts": {},
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 0,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": false,
+      "failed_requests": 3
+    },
+    {
+      "task_id": "plan_F1_a",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "status": "model_retries_exhausted:transport_error",
+      "elapsed_seconds": 148.7654175396019,
+      "requests": 5,
+      "responses": 1,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 5
+        }
+      ],
+      "tool_call_counts": {
+        "inputs": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 0,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": false,
+      "failed_requests": 4
+    },
+    {
+      "task_id": "elev_W_b",
+      "role_id": "elevation_reader",
+      "target": "West/F1,F2",
+      "status": "completed",
+      "elapsed_seconds": 93.95427496146294,
+      "requests": 3,
+      "responses": 2,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 3
+        }
+      ],
+      "tool_call_counts": {
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "domain_passed_trials": 0,
+      "domain_rejected_trials": 0,
+      "accepted_plan_submissions": 0,
+      "accepted_elevation_submissions": 1,
+      "assembly_executions": 0,
+      "read_plan_draft_calls": 0,
+      "previous_task_id": null,
+      "formally_completed_reader": true,
+      "failed_requests": 1
+    }
+  ],
+  "trial_rejections": {
+    "geometry_dangling_partition_network": 2,
+    "geometry_space_seeds_same_space": 1,
+    "geometry_opening_vertical_bounds": 1
+  },
+  "passed_trial_followthrough": {
+    "task_id": "plan_F2_b",
+    "passed_event": "event-000498",
+    "full_receipt_disk_bytes": 11019849,
+    "full_receipt_disk_sha256": "c706f1d98b98f6ae3e137f34b215c7c79677a5c17a451c27783467d243887ca6",
+    "full_receipt_canonical_bytes": 3244202,
+    "shown_text_bytes": 16785,
+    "event_bound_full_receipt_digest_matches": true,
+    "subsequent_requests": [
+      "event-000503",
+      "event-000514",
+      "event-000525",
+      "event-000536",
+      "event-000547",
+      "event-000558"
+    ],
+    "subsequent_complete_responses": [
+      "event-000504",
+      "event-000515",
+      "event-000526",
+      "event-000537",
+      "event-000548"
+    ],
+    "subsequent_successful_tool_executions": [
+      {
+        "event_id": "event-000509",
+        "tool": "read_plan_draft"
+      },
+      {
+        "event_id": "event-000520",
+        "tool": "read_plan_draft"
+      },
+      {
+        "event_id": "event-000531",
+        "tool": "view_image"
+      },
+      {
+        "event_id": "event-000542",
+        "tool": "read_plan_draft"
+      },
+      {
+        "event_id": "event-000553",
+        "tool": "read_plan_draft"
+      }
+    ],
+    "context_recovery_stop_tasks_unique": 0,
+    "accepted_plan_submissions": 0,
+    "conclusion": "The previous immediate context failure after a passed trial did not recur here: six additional requests produced five complete responses and four report reads plus one image view. The sixth request ended with the preserved overload error before submission."
+  },
+  "usage": {
+    "reported_complete_response_subtotal_only": {
+      "input_tokens": 883395,
+      "output_tokens": 19388,
+      "total_tokens": 902783,
+      "cached_input_tokens": 258048,
+      "reasoning_output_tokens": 9245
+    },
+    "cache_cohort": {
+      "complete_responses_with_known_input_and_cache": 37,
+      "reported_input_tokens": 883395,
+      "reported_cached_input_tokens": 258048,
+      "cached_fraction": 0.29210941877642504,
+      "definition": "Cache tokens are already contained in input_tokens. Ratio uses only paired known fields."
+    },
+    "requests_missing_final_usage": 29,
+    "complete_run_usage": null,
+    "complete_run_cost": null,
+    "cached_input_is_subset_of_input": true,
+    "reasoning_output_is_subset_of_output": true,
+    "missing_usage_is_not_zero": true
+  },
+  "accounting": {
+    "requests": 66,
+    "complete_responses": 37,
+    "failure_events": 29,
+    "failure_categories": {
+      "transport_error": 26,
+      "service_error": 3
+    },
+    "pending_requests": 0,
+    "all_requests_have_settlement": true,
+    "settlements": 66,
+    "missing_usage_settlements": 29,
+    "missing_usage_settlements_with_image_estimate": 26,
+    "missing_usage_effective_conservative_token_commitment": 1511885,
+    "all_missing_actual_tokens_null": true,
+    "all_missing_image_inclusion_false": true,
+    "all_missing_charge_keeps_reservation": true,
+    "invalid_settlement_events": 0,
+    "settlement_contract_errors": 0,
+    "failures_with_observed_partial_stream_usage": 0,
+    "complete_run_usage": null,
+    "complete_run_cost": null,
+    "reported_usage_subtotals_only": {
+      "input_tokens": 883395,
+      "output_tokens": 19388,
+      "total_tokens": 902783,
+      "cached_input_tokens": 258048,
+      "reasoning_output_tokens": 9245
+    },
+    "cache_cohort": {
+      "complete_responses_with_known_input_and_cache": 37,
+      "reported_input_tokens": 883395,
+      "reported_cached_input_tokens": 258048,
+      "cached_fraction": 0.29210941877642504,
+      "definition": "Cache tokens are already contained in input_tokens. Ratio uses only paired known fields."
+    }
+  },
+  "service_errors": [
+    {
+      "event_id": "event-000445",
+      "task_id": "plan_F1_b",
+      "request_event_id": "event-000444",
+      "classification": {
+        "request_event_id": "event-000444",
+        "category": "service_error",
+        "retryable": false,
+        "http_status": null,
+        "service_error_type": "service_unavailable_error",
+        "body_excerpt": "{\"type\": \"service_unavailable_error\", \"code\": \"server_is_overloaded\", \"headers\": {\"x-retry-metadata\": \"NO_MORE_RETRY\"}, \"message\": \"Our servers are currently overloaded. Please try again later.\", \"param\": null}",
+        "request_id": null,
+        "usage_received": false
+      },
+      "structured_error_from_preserved_excerpt": {
+        "type": "service_unavailable_error",
+        "code": "server_is_overloaded",
+        "headers": {
+          "x-retry-metadata": "NO_MORE_RETRY"
+        },
+        "message": "Our servers are currently overloaded. Please try again later.",
+        "param": null
+      },
+      "retry_events_for_this_failure": [],
+      "settlement": {
+        "event_id": "event-000446",
+        "usage_kind": "missing",
+        "actual_tokens": null,
+        "reported_usage_includes_image_tokens": false,
+        "additional_image_tokens": 0
+      }
+    },
+    {
+      "event_id": "event-000559",
+      "task_id": "plan_F2_b",
+      "request_event_id": "event-000558",
+      "classification": {
+        "request_event_id": "event-000558",
+        "category": "service_error",
+        "retryable": false,
+        "http_status": null,
+        "service_error_type": "service_unavailable_error",
+        "body_excerpt": "{\"type\": \"service_unavailable_error\", \"code\": \"server_is_overloaded\", \"headers\": {\"x-retry-metadata\": \"NO_MORE_RETRY\"}, \"message\": \"Our servers are currently overloaded. Please try again later.\", \"param\": null}",
+        "request_id": null,
+        "usage_received": false
+      },
+      "structured_error_from_preserved_excerpt": {
+        "type": "service_unavailable_error",
+        "code": "server_is_overloaded",
+        "headers": {
+          "x-retry-metadata": "NO_MORE_RETRY"
+        },
+        "message": "Our servers are currently overloaded. Please try again later.",
+        "param": null
+      },
+      "retry_events_for_this_failure": [],
+      "settlement": {
+        "event_id": "event-000560",
+        "usage_kind": "missing",
+        "actual_tokens": null,
+        "reported_usage_includes_image_tokens": false,
+        "additional_image_tokens": 0
+      }
+    },
+    {
+      "event_id": "event-000569",
+      "task_id": "coordinator",
+      "request_event_id": "event-000568",
+      "classification": {
+        "request_event_id": "event-000568",
+        "category": "service_error",
+        "retryable": false,
+        "http_status": null,
+        "service_error_type": "service_unavailable_error",
+        "body_excerpt": "{\"type\": \"service_unavailable_error\", \"code\": \"server_is_overloaded\", \"headers\": {\"x-retry-metadata\": \"NO_MORE_RETRY\"}, \"message\": \"Our servers are currently overloaded. Please try again later.\", \"param\": null}",
+        "request_id": null,
+        "usage_received": false
+      },
+      "structured_error_from_preserved_excerpt": {
+        "type": "service_unavailable_error",
+        "code": "server_is_overloaded",
+        "headers": {
+          "x-retry-metadata": "NO_MORE_RETRY"
+        },
+        "message": "Our servers are currently overloaded. Please try again later.",
+        "param": null
+      },
+      "retry_events_for_this_failure": [],
+      "settlement": {
+        "event_id": "event-000570",
+        "usage_kind": "missing",
+        "actual_tokens": null,
+        "reported_usage_includes_image_tokens": false,
+        "additional_image_tokens": 0
+      }
+    }
+  ],
+  "service_classification_diagnosis": {
+    "confirmed_mechanism": "The Responses SSE response.failed/error branch sets context_length_exceeded only for a context code; every other error uses service_error and the failure helper default retryable=False. Structured overload type/code and x-retry-metadata are not classified separately. classify_failure forwards those details, and Runtime._allow_model_retry returns False before budget/backoff checks.",
+    "confirmed_classifier_coverage_gap": true,
+    "observed_false_is_certainly_wrong": false,
+    "reason_for_qualification": "All three recorded overloads include headers.x-retry-metadata=NO_MORE_RETRY as well as code=server_is_overloaded. The code did not explicitly honor this marker; it stopped because of the generic false default. Without a verified protocol interpretation, these samples alone do not justify ignoring that retry marker or prove that another request would succeed.",
+    "not_a_regression_from_this_patch": true,
+    "contrast": "HTTP 5xx failures are classified service_unavailable with retryable=True, but an SSE error carried over a successful stream does not enter that HTTP classification branch.",
+    "future_design_boundary": "Use structured service types/codes and explicit retry hints with documented precedence; preserve nonretryable permission/quota/context boundaries, bounded retry count/backoff/shared budget, unknown usage holds, and never execute incomplete stream tool calls.",
+    "risks": [
+      "Blindly retrying every service_error can amplify provider overload or repeatedly retry permission/quota/invalid requests.",
+      "Ignoring NO_MORE_RETRY without confirming its semantics may conflict with provider retry control.",
+      "Missing usage remains unknown and holds reservations; new attempts incur additional requests/time and possibly unknown usage.",
+      "These failures do not prove model geometry quality, service recovery success, or passed-draft recovery behavior; no previous_task_id recovery was exercised in this run."
+    ]
+  },
+  "live_coverage": {
+    "large_passed_trial_continuation": "verified: four report reads and one image view succeeded after passed trial; no context stop",
+    "missing_usage_settlement_and_bounded_retry": "verified: 66 valid settlements; 29 unknown-usage reservations preserved; 23 retry events",
+    "passed_unsubmitted_cross_task_handoff": "not exercised live; offline tested",
+    "large_formal_reader_artifact_and_assembly": "not exercised live; offline tested",
+    "formal_plan_submission": "not reached in live run; offline tested",
+    "complete_building_delivery": "not reached"
+  },
+  "independent_evaluation": {
+    "status": "not_evaluated_no_root_source_candidate",
+    "eligible_candidate_paths_by_admitted_floor_coverage": [],
+    "eligibility_is_quality_approval": false,
+    "gt_read": false,
+    "evaluate_run_executed": false,
+    "topology": "not_evaluated",
+    "completeness": "not_evaluated",
+    "5cm": "not_evaluated",
+    "10cm": "not_evaluated",
+    "30cm": "not_evaluated",
+    "viewer_presence_is_quality_approval": false,
+    "boundary": "Child candidates and root single-floor builds are not complete-building proof. Root candidate readiness and coverage of admitted plan targets only identify candidates for a separately authorized evaluator; no quality evaluation or viewer is generated here."
+  },
+  "integrity": {
+    "wire_audit_passed": true,
+    "wire_checks": {
+      "all_request_wire_hashes_verified": true,
+      "all_request_high": true,
+      "only_approved_models": true,
+      "only_subscription_route": true,
+      "adapter_consistent": true,
+      "request_models_match_frozen_route_aliases": true,
+      "returned_models_match_requests_where_present": true,
+      "returned_effort_high_where_present": true,
+      "usage_numeric_projection_preserved": true,
+      "all_request_source_commit_expected": true,
+      "source_files_unchanged": true,
+      "runtime_release_unchanged": true,
+      "domain_release_unchanged": true,
+      "config_unchanged": true,
+      "input_manifest_unchanged": true,
+      "launch_record_stable": true,
+      "input_images_unchanged": true,
+      "no_operator_control_events": true,
+      "no_budget_reconciliation_events": true,
+      "no_resume_events": true,
+      "journal_stable": true,
+      "receipt_stable": true,
+      "reported_token_subsets_valid": true,
+      "at_most_one_complete_response_per_request": true,
+      "wire_model_matches_configured_role": true,
+      "wire_effort_matches_configured_role": true,
+      "route_matches_configured_role": true
+    },
+    "journal": {
+      "sha256": "5f0543e9b0b8507d2662e4fb21f4479b0f47b1610129f47215e457043245d973",
+      "bytes": 2658963,
+      "events": 573,
+      "last_event_id": "event-000572",
+      "last_sequence": 572,
+      "last_occurred_at": {
+        "kind": "known",
+        "value": "2026-10-12T07:13:32.488924Z"
+      },
+      "stable_before_after": true
+    },
+    "receipt": {
+      "sha256": "5d9b60fa7e2e9b74575170a5270406bf0f3b20748e9522fea2b8f333891e2e4b",
+      "bytes": 301918,
+      "status": "service_error",
+      "stop_reason": null,
+      "elapsed_seconds": 1283.899100849143
+    },
+    "production_source_frozen_during_run": true,
+    "developer_interventions": 0,
+    "old_run_resume": false,
+    "additional_real_run": false,
+    "thinking_reduction": false,
+    "model_replacement": false,
+    "ground_truth_reads": 0,
+    "desktop_release_changed": false
+  },
+  "startup_before_inference": {
+    "record": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-harness-recovery-20261012\\startup-network-failure.json",
+    "sha256": "b1030f855e61c1a2c137897f278e81ae04ff7a5dc2538652925f3f2d13f39528",
+    "cli_session_id": 63627,
+    "stage": "before EventStore and model inference; subscription model catalog connection timeout",
+    "inference_requests": 0,
+    "run_directory_existed": false,
+    "catalog_retries": 2,
+    "console_path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-harness-recovery-20261012\\high-console.log",
+    "console_sha256": "6c99406ac857a7db3c6a9c720607e74e0300fb1bf6fbf3fdbe0571b428fcd166",
+    "counted_in_current_run_model_requests": false
+  },
+  "actual_cli_console": {
+    "terminal_metadata_path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-harness-recovery-20261012\\cli-terminal.json",
+    "terminal_metadata_sha256": "db2095ce2c66a57f1299a1bcc23ff9e027da2d298dae275fba7a8bf823d2869f",
+    "console_selection": "Verified cli-terminal.json file reference, not an assumed filename",
+    "console_path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-harness-recovery-20261012\\high-console-start2.log",
+    "console_sha256": "19da3c912b16e72c93f7ee429baee04fc8a7c3909b17976daaf9c3c490860169",
+    "console_sha256_after": "19da3c912b16e72c93f7ee429baee04fc8a7c3909b17976daaf9c3c490860169",
+    "console_unchanged": true,
+    "complete_json_document": true,
+    "parse_error": null,
+    "console_status": "service_error",
+    "console_top_level_keys": [
+      "status",
+      "usage"
+    ],
+    "traceback_text_present": false,
+    "postprocessing_files": [
+      {
+        "path": "behaviour/summary.json",
+        "exists": true,
+        "bytes": 146463,
+        "sha256": "6806fa9e155bff0510845725c4838f5cf3dbf8aa1072dd906ccd477483b1e60b"
+      },
+      {
+        "path": "behaviour/timeline.md",
+        "exists": true,
+        "bytes": 10554,
+        "sha256": "71b5307f6934ac4d54caf1b2ea39c268e6f51172dc6613002d3a3a74bd5381c4"
+      },
+      {
+        "path": "behaviour/record.json.gz",
+        "exists": true,
+        "bytes": 181,
+        "sha256": "548406e61c2828dc65665576b69fbdd1404783af37c819b3e808087e63b33b67"
+      }
+    ],
+    "exit_code_evidence": {
+      "reported_process_exit_code": 1,
+      "source": "parent-supplied observed exit code after explicit terminal authorization",
+      "reported_cli_session_id": "58582",
+      "entry_path": "D:\\Sim-BIM-Agent\\repo\\src\\agent\\runtime_roles\\entry.py",
+      "entry_sha256": "a81020b8ad1a566463afc02ab01cc38cfda864814df3944af72eac48be189043",
+      "entry_source_lines": [
+        {
+          "line": 183,
+          "text": "    from src.agent.runtime_behaviour import write_behaviour_report"
+        },
+        {
+          "line": 184,
+          "text": "    write_behaviour_report(output / \"events.jsonl\", output / \"behaviour\")"
+        },
+        {
+          "line": 191,
+          "text": "    print(json.dumps({\"status\": result[\"status\"], \"usage\": result[\"role_accounting\"]}, ensure_ascii=False))"
+        },
+        {
+          "line": 192,
+          "text": "    raise SystemExit(0 if result[\"status\"] == \"completed\" else 1)"
+        }
+      ],
+      "interpretation": "Process exit is supplied by the parent, not inferred from status. Final JSON, traceback presence and postprocessing files are separate observations; no particular stop reason or clean postprocessing is assumed."
+    }
+  },
+  "audit_correction": {
+    "obsolete_console_section": "behavior-audit.json cli_completion only",
+    "use": "behavior-audit-final.json and service-error-diagnosis.json",
+    "reason": "high-console.log was the before-inference catalog failure; actual run used high-console-start2.log",
+    "old_audits_preserved": true
+  },
+  "evidence": [
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/launch-record.json",
+      "sha256": "f4b7c95580b5ada35c4fec47918a23273d9eaf2c7b2c7ef0fec161168b618092"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/preflight-audit.json",
+      "sha256": "cee795bcfa4eacf155f27cb27592c244a845d08492cae9af317711e80c83c340"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/independent-review.json",
+      "sha256": "575cf7005348d9035b4a444d2467c6525e525d55e66984ab73527abe18d57793"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/wire-identity-audit.json",
+      "sha256": "872718a1045440005d51821428532aa7173f12d4227ef9fdd366983b98f40dc1"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/terminal-accounting-observation.json",
+      "sha256": "a86e8159eedf66af31edc4a6e1bce6517256bf39f79eb7d5b15390c520f8f4af"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/behavior-audit-final.json",
+      "sha256": "2d7b6ef777580cee33d740af0e05afc0cbc7b68d9e2df22e03b0bf1e00bb5189"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/artifact-audit-final.json",
+      "sha256": "abd3a7343330f5b3044b8c5cfb4fe0c6b2ab2dc776caf0277f3ef48d85ea244d"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/service-error-diagnosis.json",
+      "sha256": "2a5947421601ae4c0ca4b3fd4b3a30c796e1429804c90a29a1acf0148a95d315"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/cli-terminal.json",
+      "sha256": "db2095ce2c66a57f1299a1bcc23ff9e027da2d298dae275fba7a8bf823d2869f"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/startup-network-failure.json",
+      "sha256": "b1030f855e61c1a2c137897f278e81ae04ff7a5dc2538652925f3f2d13f39528"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-harness-recovery-20261012/final-observation.json",
+      "sha256": "95f142e59a6367754e5e42dc58666166a4999ce5dbf6e7c0eef8ad381e459701"
+    }
+  ],
+  "boundaries": [
+    "No original run, input, or previous evidence was modified by observation or terminal audit.",
+    "A child floor candidate and accepted elevations are not proof of complete-building geometry quality.",
+    "26 transport failures do not identify the failing network or service component.",
+    "All three observed overload errors include NO_MORE_RETRY; the generic SSE classifier did not explicitly interpret that marker.",
+    "Reported token subtotals and conservative reservations cannot substitute for complete run usage.",
+    "Elapsed time and partial known usage cannot be compared as successful-run efficiency against the previous budget-exhausted run."
+  ]
+}
