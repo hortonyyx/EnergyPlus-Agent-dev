@@ -1,0 +1,442 @@
+{
+  "run": "D:/Sim-BIM-Agent/runs/sm25-gpt-same-config-rerun-20261012-high",
+  "frozen_commit": "7abd75ab8eb455cc097fec7a78f53e7ae49b4036",
+  "runtime": "v11",
+  "domain": "v68",
+  "status": "model_budget_exhausted",
+  "elapsed_seconds": 5267.6392869587,
+  "cli_terminal": {
+    "exit_code": 1,
+    "elapsed_seconds": 5723.696,
+    "ended_at_utc": "2026-10-12T11:12:58.400673+00:00",
+    "run_exists": true,
+    "receipt_exists": true,
+    "configuration_unchanged": true,
+    "image_hashes_unchanged": true,
+    "source_hashes_unchanged": true
+  },
+  "counts": {
+    "requests": 180,
+    "complete_responses": 169,
+    "failures": 11,
+    "failure_categories": {
+      "transport_error": 10,
+      "service_unavailable": 1
+    },
+    "failure_phases": {
+      "connect": 9,
+      "None": 1,
+      "awaiting_response_headers": 1
+    },
+    "peak_in_flight": 6,
+    "pending": [],
+    "retry_events": 8,
+    "settlements": 180,
+    "settlement_errors": [],
+    "event_schema_errors": [],
+    "all_retry_hints_respected": true,
+    "all_failed_usage_actual_tokens_null": true,
+    "tool_invocations": 245,
+    "tool_executions": 245
+  },
+  "known_usage": {
+    "input_tokens": 8198762,
+    "output_tokens": 94996,
+    "total_tokens": 8293758,
+    "cached_input_tokens": 2521728,
+    "reasoning_tokens": 44604,
+    "unknown_requests": 11,
+    "complete_total": null,
+    "fee": null
+  },
+  "trial_counts": {
+    "trial_tool_calls": 41,
+    "trial_passed": 8,
+    "trial_failed": 30,
+    "trial_rejected_before_receipt": 3,
+    "submission_accepted": 9,
+    "submission_rejected": 5
+  },
+  "roles": [
+    {
+      "task": "coordinator",
+      "role": "coordinator",
+      "requests": 27,
+      "responses": 27,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "model_budget_exhausted",
+      "stop_event": "event-002338"
+    },
+    {
+      "task": "elev_s",
+      "role": "elevation_reader",
+      "requests": 4,
+      "responses": 4,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 0,
+      "accepted_events": [
+        "event-000211"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000238"
+    },
+    {
+      "task": "elev_w",
+      "role": "elevation_reader",
+      "requests": 4,
+      "responses": 4,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 0,
+      "accepted_events": [
+        "event-000228"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000255"
+    },
+    {
+      "task": "elev_e",
+      "role": "elevation_reader",
+      "requests": 4,
+      "responses": 4,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 0,
+      "accepted_events": [
+        "event-000200"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000221"
+    },
+    {
+      "task": "elev_n",
+      "role": "elevation_reader",
+      "requests": 4,
+      "responses": 4,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 0,
+      "accepted_events": [
+        "event-000245"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000267"
+    },
+    {
+      "task": "plan_f1",
+      "role": "plan_reader",
+      "requests": 12,
+      "responses": 12,
+      "model_failures": 0,
+      "trial_tool_calls": 3,
+      "trial_passed": 1,
+      "trial_failed": 2,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 1,
+      "accepted_events": [
+        "event-000402"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000412"
+    },
+    {
+      "task": "plan_f2",
+      "role": "plan_reader",
+      "requests": 8,
+      "responses": 6,
+      "model_failures": 2,
+      "trial_tool_calls": 3,
+      "trial_passed": 1,
+      "trial_failed": 2,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "service_unavailable",
+      "stop_event": "event-000343"
+    },
+    {
+      "task": "plan_f2_retry",
+      "role": "plan_reader",
+      "requests": 6,
+      "responses": 3,
+      "model_failures": 3,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "model_retries_exhausted:transport_error",
+      "stop_event": "event-000474"
+    },
+    {
+      "task": "plan_f2_restore",
+      "role": "plan_reader",
+      "requests": 4,
+      "responses": 4,
+      "model_failures": 0,
+      "trial_tool_calls": 1,
+      "trial_passed": 1,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 0,
+      "accepted_events": [
+        "event-000534"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000544"
+    },
+    {
+      "task": "elev_s_levels",
+      "role": "elevation_reader",
+      "requests": 7,
+      "responses": 5,
+      "model_failures": 2,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 1,
+      "accepted_events": [
+        "event-000811"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-000821"
+    },
+    {
+      "task": "plan_f2_align",
+      "role": "plan_reader",
+      "requests": 10,
+      "responses": 10,
+      "model_failures": 0,
+      "trial_tool_calls": 7,
+      "trial_passed": 0,
+      "trial_failed": 6,
+      "trial_rejected_before_receipt": 1,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "context_recovery_required",
+      "stop_event": "event-000916"
+    },
+    {
+      "task": "plan_f2_align_fix",
+      "role": "plan_reader",
+      "requests": 5,
+      "responses": 5,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "context_recovery_required",
+      "stop_event": "event-001027"
+    },
+    {
+      "task": "plan_f1_align",
+      "role": "plan_reader",
+      "requests": 12,
+      "responses": 8,
+      "model_failures": 4,
+      "trial_tool_calls": 2,
+      "trial_passed": 0,
+      "trial_failed": 2,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 1,
+      "accepted_events": [],
+      "stop_reason": "model_retries_exhausted:transport_error",
+      "stop_event": "event-001177"
+    },
+    {
+      "task": "plan_f2_repair2",
+      "role": "plan_reader",
+      "requests": 3,
+      "responses": 3,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "context_recovery_required",
+      "stop_event": "event-001273"
+    },
+    {
+      "task": "plan_f2_precise",
+      "role": "plan_reader",
+      "requests": 14,
+      "responses": 14,
+      "model_failures": 0,
+      "trial_tool_calls": 9,
+      "trial_passed": 0,
+      "trial_failed": 8,
+      "trial_rejected_before_receipt": 1,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "answer_validation_failed",
+      "stop_event": "event-001481"
+    },
+    {
+      "task": "plan_f2_dn3",
+      "role": "plan_reader",
+      "requests": 8,
+      "responses": 8,
+      "model_failures": 0,
+      "trial_tool_calls": 2,
+      "trial_passed": 0,
+      "trial_failed": 1,
+      "trial_rejected_before_receipt": 1,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "context_recovery_required",
+      "stop_event": "event-001611"
+    },
+    {
+      "task": "plan_f2_doors",
+      "role": "plan_reader",
+      "requests": 3,
+      "responses": 3,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "context_recovery_required",
+      "stop_event": "event-001707"
+    },
+    {
+      "task": "plan_f2_fresh",
+      "role": "plan_reader",
+      "requests": 23,
+      "responses": 23,
+      "model_failures": 0,
+      "trial_tool_calls": 9,
+      "trial_passed": 3,
+      "trial_failed": 6,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 1,
+      "accepted_events": [
+        "event-001984"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-001994"
+    },
+    {
+      "task": "plan_f1_fresh",
+      "role": "plan_reader",
+      "requests": 21,
+      "responses": 21,
+      "model_failures": 0,
+      "trial_tool_calls": 5,
+      "trial_passed": 2,
+      "trial_failed": 3,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 1,
+      "submission_rejected": 1,
+      "accepted_events": [
+        "event-002270"
+      ],
+      "stop_reason": "completed",
+      "stop_event": "event-002280"
+    },
+    {
+      "task": "plan_f1_step_fix",
+      "role": "plan_reader",
+      "requests": 1,
+      "responses": 1,
+      "model_failures": 0,
+      "trial_tool_calls": 0,
+      "trial_passed": 0,
+      "trial_failed": 0,
+      "trial_rejected_before_receipt": 0,
+      "submission_accepted": 0,
+      "submission_rejected": 0,
+      "accepted_events": [],
+      "stop_reason": "root_model_budget_exhausted",
+      "stop_event": "event-002333"
+    }
+  ],
+  "whole_building_candidate": false,
+  "delivery": null,
+  "internal_gaps": [
+    "unbounded read_plan_draft full-field replies",
+    "failed draft inheritance missing bound report"
+  ],
+  "independent_geometry_quality": "not assessed",
+  "gt_read": false,
+  "new_offline_tests": 0,
+  "additional_model_probes": 0,
+  "journal_sha256": "553b8887426456d4f3b7b0a98c28b5cdcc614579a82b56362bb9f202e3fa1936",
+  "evidence": [
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/launch-record.json",
+      "sha256": "43c5366a38700af0d5934ae5dae0d049645a9465dcc85c02741f514dfab02d2a"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/preflight-audit.json",
+      "sha256": "5849965f955890d26174f90d37500bd4f92896697df8c7ba67ab026e565b71bd"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/request-audit-final.json",
+      "sha256": "1cf63dde7bc7f84205a03e4c1eed86caf955efaa8161820c3a8d85940c74b5e3"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/final-candidate-audit-terminal-2340.json",
+      "sha256": "77cc690663112e2f1b36f35d1dc81026d88a3c95b65386d8ab68b37084e6d8e1"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/f2-context-stops-summary.json",
+      "sha256": "7ec6b9c12c79b99a307f79d228439e1924678acaac08e8264679b0162a3d3b6e"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/f2-late-context-summary-event-001666.json",
+      "sha256": "fed55cafb77fde7e5aad57375a3d4e23957ac5072c6d81d0dd4b026f8cf20a39"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-same-config-rerun-20261012/terminal.json",
+      "sha256": "97a99e5e15cb29e2002739025b5e5d726e5e8c00d9622bd8a5571ffa671f14b3"
+    }
+  ],
+  "final_receipt_sha256": "7d07746476fac032a0573fa888f4943d303558a48c3145a18945cc5cb21087e7"
+}
