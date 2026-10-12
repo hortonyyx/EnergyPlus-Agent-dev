@@ -1,6 +1,8 @@
 # sm25 harness 提交与恢复修复 — 2026-10-12
 
-状态：修复、定向离线验证及独立源码审阅通过，正在冻结启动配置；尚未启动本轮真实模型。
+状态：修复、定向离线验证及独立源码审阅通过，已登记runtime v10 / domain v67；启动前独立核对后运行唯一一轮。
+
+实现提交：`5e765337d970548be53c3610bb7f177aecad4c80`。正式登记与最终离线节点所用临时登记的生产文件/模式指纹完全一致；registry verify通过，CLI配置检查返回ready。实际启动HEAD、输入hash及独立预飞在外部cache的`launch-record.json`记录，不在运行中改源码或配置。
 
 用户要求先修好harness，至少让完整流程能跑起来。依据[上一轮冻结实验](../2026-10-12_sm25_plan_sol/README.md)，本次修复成功/失败trial大回执、passed但未submit稿件的接续空档、transport缺usage结算证据矛盾，并补齐协调员读取大reader_artifact的同类问题。保留原始证据、正式提交门槛、返工权限、缺usage未知口径；不修改几何质量门槛来制造通过。
 
