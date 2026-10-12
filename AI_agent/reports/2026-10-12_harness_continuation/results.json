@@ -1,0 +1,172 @@
+{
+  "implementation_commit": "6f342adbf20b584eb3539c74deebb19e0a4aee54",
+  "frozen_commit": "be619524fe1214244f1e51e7a0827d362b986a24",
+  "runtime_version": "runtime-v11-20261012",
+  "domain_version": "domain-v68-20261012",
+  "offline_distinct_passed": 382,
+  "independent_review_passed": true,
+  "live_probe": {
+    "passed": false,
+    "purpose": "call-chain smoke only; no BIM benchmark or geometry evaluation",
+    "mode": "live",
+    "completed_stages": 1,
+    "live_model_dispatches": 2,
+    "fixture_dispatches": 0,
+    "peak_adapter_dispatches_in_flight": 1,
+    "hard_request_cap": 20,
+    "reported_tokens_subtotal": 3150,
+    "usage_complete": false,
+    "total_tokens": null,
+    "total_cost": null,
+    "stages": [
+      {
+        "stage": 1,
+        "configured_concurrency": 1,
+        "passed": false,
+        "sessions": [
+          {
+            "target": "F1",
+            "image": "1f_view.png",
+            "model": "gpt-6-sol",
+            "role": "plan_reader",
+            "session_id": "stage1_F1",
+            "status": "model_budget_exhausted",
+            "passed": false,
+            "requests": 2,
+            "responses": 1,
+            "adapter_dispatches": 2,
+            "tool_calls": 1,
+            "nonce_round_trip_passed": false,
+            "exact_original_images": true,
+            "identity": {
+              "expected_model": "gpt-6-sol",
+              "expected_reasoning_effort": "high",
+              "comparison": "exact identifiers; missing values and unverified dynamic suffixes fail",
+              "requests": [
+                {
+                  "event_id": "event-000004",
+                  "wire_model": "gpt-6-sol",
+                  "wire_reasoning_effort": "high",
+                  "matches_configuration": true
+                },
+                {
+                  "event_id": "event-000014",
+                  "wire_model": "gpt-6-sol",
+                  "wire_reasoning_effort": "high",
+                  "matches_configuration": true
+                }
+              ],
+              "responses": [
+                {
+                  "event_id": "event-000005",
+                  "request_event_id": "event-000004",
+                  "reported_model": "gpt-6-sol",
+                  "matches_configuration": true
+                }
+              ],
+              "passed": false
+            },
+            "raw_usage": [
+              {
+                "attribution": {
+                  "items": {
+                    "msg_0525d13c9eee79f5016acc99ae0ee087d089665806cc34f0ab": {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 76,
+                      "output_tokens": 0
+                    },
+                    "msg_0525d13c9eee79f5016acc99ae147887d0b386b3cb1edfbe66": {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 3000,
+                      "output_tokens": 0
+                    },
+                    "fc_0525d13c9eee79f5016acc99b196a087d09cf99dccdcfbbfaa": {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 2,
+                      "output_tokens": 21
+                    }
+                  },
+                  "request_fields": {
+                    "tools": {
+                      "cache_write_tokens": 0,
+                      "cached_tokens": 0,
+                      "input_tokens": 51,
+                      "output_tokens": 0
+                    }
+                  }
+                },
+                "input_tokens": 3129,
+                "input_tokens_details": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0
+                },
+                "output_tokens": 21,
+                "output_tokens_details": {
+                  "reasoning_tokens": 0
+                },
+                "total_tokens": 3150
+              }
+            ],
+            "usage_complete": false,
+            "reported_tokens_subtotal": 3150,
+            "total_tokens": null,
+            "safe_failures": [
+              {
+                "request_event_id": "event-000014",
+                "category": "transport_error",
+                "retryable": true,
+                "http_status": null,
+                "service_error_type": null,
+                "service_error_code": null,
+                "retry_hint": null,
+                "transport_phase": "awaiting_response_headers",
+                "exception_chain": [
+                  "httpx.RemoteProtocolError",
+                  "httpcore.RemoteProtocolError"
+                ],
+                "body_excerpt": "Responses stream transport interrupted",
+                "request_id": null,
+                "usage_received": false
+              }
+            ],
+            "elapsed_seconds": 52.969000000011874,
+            "events_sha256": "55368dbc6718cf1bd86531a343ccd1f584ab5f2f4a7324bd80ff234d79bc9121",
+            "fallback": false
+          }
+        ]
+      }
+    ],
+    "scope": "Same subscription route, models, original-image protocol and Runtime tool loop; single scoped read-only tool, not full readers/BIM benchmark."
+  },
+  "sm25_continuation": {
+    "launched": false,
+    "reason": "single-concurrency call-chain gate failed; later stages and whole-case launch were not attempted",
+    "remaining_model_calls": 114,
+    "remaining_tool_calls": 665,
+    "remaining_seconds": 8931.889000000112,
+    "source_journal_unchanged": true,
+    "continuation_claim_created": false
+  },
+  "new_gt_access": false,
+  "independent_quality_evaluation": "not_evaluated per user instruction",
+  "desktop_updated": false,
+  "model_switch": false,
+  "effort_reduced": false,
+  "extra_live_batches": 0,
+  "next_diagnostic_scope": "Isolate the single-concurrency image/tool-followup disconnect along client connection reuse, configured proxy and upstream. Preserve proxy; no claim of OpenAI attribution without response or transport evidence.",
+  "independent_live_audit": {
+    "path": "live_audit.json",
+    "sha256": "c36b88fd4d3ce46554a8a2bd40ed37eb8030609c53bc10ee9ba6c88f222f43bc",
+    "original_source_files_verified_unchanged": 233,
+    "pending_requests": 0,
+    "settlements": 2,
+    "additional_model_calls": 0
+  },
+  "disk_free_gib_at_close": {
+    "C": 51.18,
+    "D": 158.28
+  }
+}

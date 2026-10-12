@@ -1,0 +1,515 @@
+{
+  "audit": "independent read-only terminal audit; live-1",
+  "conclusion": "Smoke failed at the second request before response headers; stage 2/3 and formal BIM continuation did not start.",
+  "counts": {
+    "events": 19,
+    "last_event_id": "event-000018",
+    "requests": 2,
+    "responses": 1,
+    "failures": 1,
+    "successful_read_only_tools": 1,
+    "retries": 0,
+    "attempted_stages": 1,
+    "passed_stages": 0,
+    "peak_concurrency": 1,
+    "request_cap": 20
+  },
+  "timing": {
+    "run_seconds": 52.969000000011874,
+    "request_1_seconds": 25.89000000001397,
+    "request_2_seconds": 26.203000000008615,
+    "adapter_send_seconds": 52.093000000022585,
+    "request_timeout_seconds": 300,
+    "session_limit_seconds": 600
+  },
+  "requests": [
+    {
+      "event_id": "event-000004",
+      "reservation_id": "stage1_F1:request-1",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "wire_sha256": "f818dc4297ec49ce2484871535ebbaede6f17f59dcaae6b871a0c295ba6cc83c",
+      "images": [
+        {
+          "pointer": "/input/1/content/1/image_url",
+          "sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+          "bytes": 451136
+        }
+      ],
+      "tool_outputs": [],
+      "reservation": {
+        "reservation_id": "stage1_F1:request-1",
+        "purpose": "primary_task",
+        "amounts": {
+          "tokens": 38818,
+          "money_usd": null,
+          "money_cny": null,
+          "seconds": "300",
+          "calls": 1
+        },
+        "task_id": "stage1_F1"
+      },
+      "settlement": {
+        "reservation_id": "stage1_F1:request-1",
+        "actual": {
+          "tokens": 3150,
+          "money_usd": null,
+          "money_cny": null,
+          "seconds": "25.89000000001397",
+          "calls": 1
+        },
+        "usage": {
+          "kind": "reported",
+          "raw_usage": {
+            "attribution": {
+              "items": {
+                "msg_0525d13c9eee79f5016acc99ae0ee087d089665806cc34f0ab": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 76,
+                  "output_tokens": 0
+                },
+                "msg_0525d13c9eee79f5016acc99ae147887d0b386b3cb1edfbe66": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 3000,
+                  "output_tokens": 0
+                },
+                "fc_0525d13c9eee79f5016acc99b196a087d09cf99dccdcfbbfaa": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 2,
+                  "output_tokens": 21
+                }
+              },
+              "request_fields": {
+                "tools": {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 51,
+                  "output_tokens": 0
+                }
+              }
+            },
+            "input_tokens": 3129,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 21,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 3150
+          }
+        },
+        "cost": {
+          "kind": "unavailable",
+          "reason": "no configured price estimate or provider bill was supplied"
+        },
+        "image_tokens_estimate": 5962,
+        "reported_usage_includes_image_tokens": true,
+        "additional_image_tokens": 0,
+        "token_overrun": 0,
+        "estimated_cost_cny": null,
+        "money_cny_overrun": "0"
+      }
+    },
+    {
+      "event_id": "event-000014",
+      "reservation_id": "stage1_F1:request-2",
+      "model": "gpt-6-sol",
+      "effort": "high",
+      "wire_sha256": "4e95c928f4574e008ec9f2f55eb864767087fa3146132f951e28e51d466e3892",
+      "images": [
+        {
+          "pointer": "/input/1/content/1/image_url",
+          "sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+          "bytes": 451136
+        },
+        {
+          "pointer": "/input/4/content/1/image_url",
+          "sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+          "bytes": 451136
+        }
+      ],
+      "tool_outputs": [
+        {
+          "call_id": "call_IfOjBMJatlxRfQAIgEAJ5U7z",
+          "output": [
+            {
+              "text": "{\"image\": \"1f_view.png\", \"nonce\": \"aa29dd8b4b6ff4ab7ea99342b8d112bf\"}",
+              "type": "input_text"
+            }
+          ],
+          "type": "function_call_output"
+        }
+      ],
+      "reservation": {
+        "reservation_id": "stage1_F1:request-2",
+        "purpose": "primary_task",
+        "amounts": {
+          "tokens": 42212,
+          "money_usd": null,
+          "money_cny": null,
+          "seconds": "300",
+          "calls": 1
+        },
+        "task_id": "stage1_F1"
+      },
+      "settlement": {
+        "reservation_id": "stage1_F1:request-2",
+        "actual": {
+          "tokens": null,
+          "money_usd": null,
+          "money_cny": null,
+          "seconds": "26.203000000008615",
+          "calls": 1
+        },
+        "usage": {
+          "kind": "missing",
+          "reason": "service omitted per-request usage"
+        },
+        "cost": {
+          "kind": "unavailable",
+          "reason": "no configured price estimate or provider bill was supplied"
+        },
+        "image_tokens_estimate": 11924,
+        "reported_usage_includes_image_tokens": false,
+        "additional_image_tokens": 0,
+        "token_overrun": 0,
+        "estimated_cost_cny": null,
+        "money_cny_overrun": "0"
+      }
+    }
+  ],
+  "responses": [
+    {
+      "event_id": "event-000005",
+      "request_event_id": "event-000004",
+      "model": "gpt-6-sol",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "high",
+        "mode": "standard",
+        "summary": null
+      },
+      "raw_usage": {
+        "attribution": {
+          "items": {
+            "fc_0525d13c9eee79f5016acc99b196a087d09cf99dccdcfbbfaa": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 2,
+              "output_tokens": 21
+            },
+            "msg_0525d13c9eee79f5016acc99ae0ee087d089665806cc34f0ab": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 76,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 76,
+              "output_tokens": 0
+            },
+            "msg_0525d13c9eee79f5016acc99ae147887d0b386b3cb1edfbe66": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "content": [
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 18,
+                  "output_tokens": 0
+                },
+                {
+                  "cache_write_tokens": 0,
+                  "cached_tokens": 0,
+                  "input_tokens": 2982,
+                  "output_tokens": 0
+                }
+              ],
+              "input_tokens": 3000,
+              "output_tokens": 0
+            }
+          },
+          "request_fields": {
+            "tools": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0,
+              "input_tokens": 51,
+              "output_tokens": 0
+            }
+          }
+        },
+        "input_tokens": 3129,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 21,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3150
+      },
+      "output": [
+        {
+          "arguments": "{\"image\":\"1f_view.png\"}",
+          "call_id": "call_IfOjBMJatlxRfQAIgEAJ5U7z",
+          "id": "fc_0525d13c9eee79f5016acc99b196a087d09cf99dccdcfbbfaa",
+          "name": "view_image",
+          "namespace": "runtime",
+          "status": "completed",
+          "type": "function_call"
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "event_id": "event-000009",
+      "name": "view_image",
+      "call_id": "call_IfOjBMJatlxRfQAIgEAJ5U7z",
+      "outcome": "succeeded",
+      "repeatability": "read_only",
+      "nonce_result": {
+        "image": "1f_view.png",
+        "nonce": "aa29dd8b4b6ff4ab7ea99342b8d112bf"
+      },
+      "original_image_sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+      "raw_shown_conversion": "MCP image blocks moved to a user message after all tool-call replies; bytes unchanged",
+      "nonce_and_image_preserved_in_presentation": true
+    }
+  ],
+  "failures": [
+    {
+      "event_id": "event-000015",
+      "request_event_id": "event-000014",
+      "category": "transport_error",
+      "retryable": true,
+      "http_status": null,
+      "service_error_type": null,
+      "service_error_code": null,
+      "retry_hint": null,
+      "transport_phase": "awaiting_response_headers",
+      "exception_chain": [
+        "httpx.RemoteProtocolError",
+        "httpcore.RemoteProtocolError"
+      ],
+      "body_excerpt": "Responses stream transport interrupted",
+      "request_id": null,
+      "usage_received": false
+    }
+  ],
+  "usage": {
+    "reported_subtotal": {
+      "input": 3129,
+      "output": 21,
+      "total": 3150,
+      "cached": 0,
+      "reasoning": 0
+    },
+    "usage_complete": false,
+    "true_total_tokens": null,
+    "true_total_cost": null,
+    "unknown_request": "event-000014",
+    "unknown_request_actual_tokens": null,
+    "conservative_token_hold": 42212,
+    "reported_plus_hold": 45362,
+    "reported_plus_hold_is_not_actual_total": true,
+    "settled": 2,
+    "unsettled": 0,
+    "remaining_calls": 0,
+    "image_estimate_not_added_to_reported_usage": true,
+    "first_request_reported_image_attribution_tokens": 2982
+  },
+  "coverage": {
+    "both_wire_models_high_verified": true,
+    "first_response_model_verified": true,
+    "second_response_model_verified": false,
+    "all_wire_original_image_occurrences_exact": true,
+    "view_image_call_and_result_succeeded": true,
+    "raw_to_shown_preserves_nonce_and_image": true,
+    "second_wire_contains_matching_call_id_nonce_and_returned_image": true,
+    "server_received_second_request_body_proven": false,
+    "model_returned_nonce_proven": false,
+    "round_trip_passed": false,
+    "reasoning_internal_effectiveness_proven": false
+  },
+  "diagnosis": {
+    "observed": "RemoteProtocolError at awaiting_response_headers; no HTTP status, service code, request id or usage",
+    "phase_basis": "responses.py sets this phase before client.stream and changes it only after entering the response context.",
+    "reliable_scope": "Frozen code captured exception classes and phase at failure; these locate the observed failure but do not identify the failing external component.",
+    "not_proven": [
+      "service overload",
+      "provider versus proxy/network cause",
+      "a fixed local timeout",
+      "server-side execution or usage of request 2",
+      "drawing/BIM quality regression"
+    ],
+    "terminal_label": "loop._failure_stop_reason prioritizes exhausted two-call budget. Underlying transport_error remains event-000015; max_model_retries=0 also prevents automatic retry.",
+    "redaction": "Exception messages, credentials and arbitrary headers omitted; only sanitized class chain and phase retained."
+  },
+  "freeze": {
+    "head": "be619524fe1214244f1e51e7a0827d362b986a24",
+    "registered_versions": {
+      "runtime": "runtime-v11-20261012",
+      "domain": "domain-v68-20261012"
+    },
+    "version_file_checks": {
+      "code_commit": {
+        "identifier": "be619524fe1214244f1e51e7a0827d362b986a24",
+        "evidence_sha256": "e2c6c2f42ac51ba53492d39a5f7cd02089d5c6e1225d4a22281aff32b1502a7c",
+        "files_checked": 38,
+        "mismatches": [],
+        "record_source_commit": "be619524fe1214244f1e51e7a0827d362b986a24"
+      },
+      "runtime_version": {
+        "identifier": "runtime-v11-20261012",
+        "evidence_sha256": "7d54c18b802dfa8985e975389fa94184890bcbe5640981bcaf07be328460d94f",
+        "files_checked": 43,
+        "mismatches": [],
+        "record_source_commit": "6f342adbf20b584eb3539c74deebb19e0a4aee54"
+      },
+      "domain_version": {
+        "identifier": "domain-v68-20261012",
+        "evidence_sha256": "2958589ae74d9d3686ff55048cb518a8339c478c0100aa38c0a290ca17e68af6",
+        "files_checked": 429,
+        "mismatches": [],
+        "record_source_commit": "6f342adbf20b584eb3539c74deebb19e0a4aee54"
+      }
+    },
+    "both_request_versions_match_saved": true,
+    "script_sha256": "74852ad4596e663417fc15b813abf488647a89f516c9024b99476a951f88ec6b",
+    "config_sha256": "489adcd05f728e2014732d21395bd6f3be72c3caf9b7f755aa6be87a710bf161",
+    "events_sha256": "55368dbc6718cf1bd86531a343ccd1f584ab5f2f4a7324bd80ff234d79bc9121",
+    "audited_probe_files_unchanged": true
+  },
+  "original_source": {
+    "path": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-harness-recovery-20261012-high",
+    "approved_events_sha256": "5f0543e9b0b8507d2662e4fb21f4479b0f47b1610129f47215e457043245d973",
+    "preflight_baseline": "D:\\Sim-BIM-Agent\\cache\\harness-continuation-20261012\\preflight-import-final.json",
+    "files_checked": 233,
+    "mismatches": [],
+    "changed": false
+  },
+  "formal_continuation": {
+    "path": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-continuation-20261012-high",
+    "exists": false,
+    "claim_path": "D:\\Sim-BIM-Agent\\runs\\.continuation-claims\\5f0543e9b0b8507d2662e4fb21f4479b0f47b1610129f47215e457043245d973.json",
+    "claim_exists": false
+  },
+  "audit_boundaries": {
+    "new_model_calls": 0,
+    "new_network_calls": 0,
+    "gt_reads": 0,
+    "product_edits": 0,
+    "probe_run_edits": 0,
+    "source_run_edits": 0
+  },
+  "audited_probe_file_hashes": {
+    "batch_result.json": "433e0456c4f1cb0bfa976b910f0a1ed8fc20843ab986e519fac7fac9d8407d6f",
+    "launch.json": "12f0f8c6d825cafd073f2af8f53eff7d3f1eb343af26cad4fa336aa915f3e96c",
+    "stage-1.json": "f43acbe5dcc1feb483277e4016e6ddff46496e735db867771d5f30c2b7e2fec5",
+    "stage1_F1\\checkpoint.json": "74524b1226d5f32f5a022f3eeeb183aee1fd00b5406f9791cf653541badf2aa7",
+    "stage1_F1\\events.jsonl": "55368dbc6718cf1bd86531a343ccd1f584ab5f2f4a7324bd80ff234d79bc9121",
+    "stage1_F1\\journal.json": "9363f1d4b95ff593c8c0b7423aa6dbfdc8ad943286f07786b1838631c88f1d6b",
+    "stage1_F1\\probe_result.json": "39e34603a25241edd294596309ccda1e9928782ec6b6685d61c1b17dec395908",
+    "stage1_F1\\probe_source.json": "ddbf743783c05fd32a6056032181a4e73c647e26790c472ba0e989d876321459",
+    "stage1_F1\\receipt.json": "04c720ae0d1b78d4e64aeb1aac3de73373579644d1d98bdebdadb476f9db904c",
+    "stage1_F1\\versions.json": "c3f1145428d3a5268022e895e836f0c64dc4fd1b00fafbaf672d58b655c2667b",
+    "stage1_F1\\writer.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stage1_F1\\blobs\\04c720ae0d1b78d4e64aeb1aac3de73373579644d1d98bdebdadb476f9db904c": "04c720ae0d1b78d4e64aeb1aac3de73373579644d1d98bdebdadb476f9db904c",
+    "stage1_F1\\blobs\\09a13384feccb5603b6e52f75ab3a9667ba307a0ecda3961370b19f0892830cb": "09a13384feccb5603b6e52f75ab3a9667ba307a0ecda3961370b19f0892830cb",
+    "stage1_F1\\blobs\\0dc83a46eac1b5fc5fe26fc37d6f627aa5b7be1ea2ea9cf515679fab4b38b77c": "0dc83a46eac1b5fc5fe26fc37d6f627aa5b7be1ea2ea9cf515679fab4b38b77c",
+    "stage1_F1\\blobs\\0dc94fbfd93cc168ae69db3a80c9e9e8d5976b9cc8b52feead21bcd1b17b91d1": "0dc94fbfd93cc168ae69db3a80c9e9e8d5976b9cc8b52feead21bcd1b17b91d1",
+    "stage1_F1\\blobs\\0dcd5c71b185ebfe3b73d8d3eca1ff29d5410c213a2e6510cf057692f143135d": "0dcd5c71b185ebfe3b73d8d3eca1ff29d5410c213a2e6510cf057692f143135d",
+    "stage1_F1\\blobs\\11c4e9ac8fac2ee4cf21381280ac2ed2c93c55fb1440e08bf1e461763d74e01c": "11c4e9ac8fac2ee4cf21381280ac2ed2c93c55fb1440e08bf1e461763d74e01c",
+    "stage1_F1\\blobs\\12c9661b94ec39f36b5097cf2eec2fdaed517d4eec45d77d5319e15a0c6527a7": "12c9661b94ec39f36b5097cf2eec2fdaed517d4eec45d77d5319e15a0c6527a7",
+    "stage1_F1\\blobs\\132590e0309b5745dd2a414a45adeb2e184b35372850e5bd79dad70a9d6e5364": "132590e0309b5745dd2a414a45adeb2e184b35372850e5bd79dad70a9d6e5364",
+    "stage1_F1\\blobs\\141c9f16cf2b86876c675a6a55ec38ab4d5b3b436c1cba24fe9e853ced8fe673": "141c9f16cf2b86876c675a6a55ec38ab4d5b3b436c1cba24fe9e853ced8fe673",
+    "stage1_F1\\blobs\\168f79eca24fc26f838ed2b62b6e81425a336e6f1c6d9a32147a972ed58b0339": "168f79eca24fc26f838ed2b62b6e81425a336e6f1c6d9a32147a972ed58b0339",
+    "stage1_F1\\blobs\\18d9f86a3192158a5a27d52e04b4e999c2d2322a0159a66011fad4d7c89efd87": "18d9f86a3192158a5a27d52e04b4e999c2d2322a0159a66011fad4d7c89efd87",
+    "stage1_F1\\blobs\\1a159748d6d5edfc4ceb64df5133c2e01f3c6df67e0cd1b19080a85c4bea995a": "1a159748d6d5edfc4ceb64df5133c2e01f3c6df67e0cd1b19080a85c4bea995a",
+    "stage1_F1\\blobs\\1bd63ae10a4151652f320e2cb86514f0365358d6142661d22429819703da8188": "1bd63ae10a4151652f320e2cb86514f0365358d6142661d22429819703da8188",
+    "stage1_F1\\blobs\\1df893b5e207ff28d3c5dcb512a5c94719b085eb284835f4febe438a47f034ab": "1df893b5e207ff28d3c5dcb512a5c94719b085eb284835f4febe438a47f034ab",
+    "stage1_F1\\blobs\\1e68904feb4619ba15adea197f3d89f7fd5a9b34b0df7d9e365989a045e35b0b": "1e68904feb4619ba15adea197f3d89f7fd5a9b34b0df7d9e365989a045e35b0b",
+    "stage1_F1\\blobs\\206e2f8b05964e96c8f222c3a6cf3d22500e6968627d5ccad02724eeb90edd78": "206e2f8b05964e96c8f222c3a6cf3d22500e6968627d5ccad02724eeb90edd78",
+    "stage1_F1\\blobs\\22c867849eb64613a4217e30da357dde2c854c9e071c113af51b516b69156032": "22c867849eb64613a4217e30da357dde2c854c9e071c113af51b516b69156032",
+    "stage1_F1\\blobs\\24cd83772ebd223fd0b84984921d60d8932a11dd05c1093ab1cf1c38f7f01884": "24cd83772ebd223fd0b84984921d60d8932a11dd05c1093ab1cf1c38f7f01884",
+    "stage1_F1\\blobs\\25bba9357d5d0ff85ab68e1686fcea134b6afc8c7539778a8da7343bbb57e5ce": "25bba9357d5d0ff85ab68e1686fcea134b6afc8c7539778a8da7343bbb57e5ce",
+    "stage1_F1\\blobs\\25c33a207dd7396c0e9840624fdeee1c50f11756225a69f8eacdfecb8b89987b": "25c33a207dd7396c0e9840624fdeee1c50f11756225a69f8eacdfecb8b89987b",
+    "stage1_F1\\blobs\\2610693250c910b69fd6fabcb3e797094dce1d8d81946f2f4a91727b6c889c0c": "2610693250c910b69fd6fabcb3e797094dce1d8d81946f2f4a91727b6c889c0c",
+    "stage1_F1\\blobs\\2696a3ce817cceadf0823847869f4ef145c55c233fe18324fdb3a3853b43f801": "2696a3ce817cceadf0823847869f4ef145c55c233fe18324fdb3a3853b43f801",
+    "stage1_F1\\blobs\\26ea4a2f837dc23d3b2f32c9c148d6a2ba9a24ddfbf2b1a6bfa09551a9296e6f": "26ea4a2f837dc23d3b2f32c9c148d6a2ba9a24ddfbf2b1a6bfa09551a9296e6f",
+    "stage1_F1\\blobs\\28fdc6010c47dda146768b705700238d277f258a0353367785050503058ec4d9": "28fdc6010c47dda146768b705700238d277f258a0353367785050503058ec4d9",
+    "stage1_F1\\blobs\\2958589ae74d9d3686ff55048cb518a8339c478c0100aa38c0a290ca17e68af6": "2958589ae74d9d3686ff55048cb518a8339c478c0100aa38c0a290ca17e68af6",
+    "stage1_F1\\blobs\\2b5c3cdb239beeb994ae92aacaf2d97b393e93fc077ddf218b23471dba68d2d8": "2b5c3cdb239beeb994ae92aacaf2d97b393e93fc077ddf218b23471dba68d2d8",
+    "stage1_F1\\blobs\\2bb183fb86df2c7835511aebdcfff7ee87301a50c49a81b8c8733b095e4e2263": "2bb183fb86df2c7835511aebdcfff7ee87301a50c49a81b8c8733b095e4e2263",
+    "stage1_F1\\blobs\\30878bedf83c8ea4e93ce520199d7e54d5c4c093ff247623117be4192011a56a": "30878bedf83c8ea4e93ce520199d7e54d5c4c093ff247623117be4192011a56a",
+    "stage1_F1\\blobs\\314fd11a060417cf074f296281920fe810d029d04ba5c63d25eb3f2057e136e0": "314fd11a060417cf074f296281920fe810d029d04ba5c63d25eb3f2057e136e0",
+    "stage1_F1\\blobs\\35bf6fe449c9877f075e1ee32b12be96361f4868ad764b310fb9889edbb19001": "35bf6fe449c9877f075e1ee32b12be96361f4868ad764b310fb9889edbb19001",
+    "stage1_F1\\blobs\\37e1fb2e9a791892f2741e47c3ecde17fce849c12bd4d5e7a167b23575bd79a1": "37e1fb2e9a791892f2741e47c3ecde17fce849c12bd4d5e7a167b23575bd79a1",
+    "stage1_F1\\blobs\\3957c4ff0086c30c8c575abe1bf7aa76feece67feaf06bb1cc8a3bb51262741f": "3957c4ff0086c30c8c575abe1bf7aa76feece67feaf06bb1cc8a3bb51262741f",
+    "stage1_F1\\blobs\\399850933530958e89dacc1e48e920a6542f5db737b4c092430366b5627bc829": "399850933530958e89dacc1e48e920a6542f5db737b4c092430366b5627bc829",
+    "stage1_F1\\blobs\\3a5938ff636410f83169f664d40a6bdde7f8552712d8de69353b78d9cb4a18cc": "3a5938ff636410f83169f664d40a6bdde7f8552712d8de69353b78d9cb4a18cc",
+    "stage1_F1\\blobs\\3ae79baee8bf527ef850f0b36c0c81a5954987bdeb7eee143cc0b98534cffef9": "3ae79baee8bf527ef850f0b36c0c81a5954987bdeb7eee143cc0b98534cffef9",
+    "stage1_F1\\blobs\\3d1f8ab95eb9a4a7b7e296ca974e9d029d4ba748e6ecf50b066e6ac7e3d9c1da": "3d1f8ab95eb9a4a7b7e296ca974e9d029d4ba748e6ecf50b066e6ac7e3d9c1da",
+    "stage1_F1\\blobs\\3f37a08f530befe3270ef00113b8fba16de9e0280ee962b54bf1afc7aad7aacc": "3f37a08f530befe3270ef00113b8fba16de9e0280ee962b54bf1afc7aad7aacc",
+    "stage1_F1\\blobs\\3f83cd3064a5d85bc68326721b0e2e0d3e8d1feec98a5a74cdd8af054999660a": "3f83cd3064a5d85bc68326721b0e2e0d3e8d1feec98a5a74cdd8af054999660a",
+    "stage1_F1\\blobs\\4020ec48c9108a9c9c0d530cfc0784f98d57b55473f99f626e76dc5cb57fc9ee": "4020ec48c9108a9c9c0d530cfc0784f98d57b55473f99f626e76dc5cb57fc9ee",
+    "stage1_F1\\blobs\\4070206ffff36f68215d4ea9ac1f43f9e74b0bcee81670939bfea2c6aa9d4955": "4070206ffff36f68215d4ea9ac1f43f9e74b0bcee81670939bfea2c6aa9d4955",
+    "stage1_F1\\blobs\\426d7470324e15987161f8dffe6acb1a451e0832b1016e8c213b8979dea368aa": "426d7470324e15987161f8dffe6acb1a451e0832b1016e8c213b8979dea368aa",
+    "stage1_F1\\blobs\\431e7d149241fcb6649fdce9f332557813b1680c889a23f4952bcf518f3fff6c": "431e7d149241fcb6649fdce9f332557813b1680c889a23f4952bcf518f3fff6c",
+    "stage1_F1\\blobs\\44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "stage1_F1\\blobs\\5555cdfb63a589aa13be9c03ab6ca4975acec14b144a24ffb4c8ed0f4614db74": "5555cdfb63a589aa13be9c03ab6ca4975acec14b144a24ffb4c8ed0f4614db74",
+    "stage1_F1\\blobs\\595731b72d110244cbff567e9c9a29147dd93eafaf624b9312bd8b6aa60c5eb5": "595731b72d110244cbff567e9c9a29147dd93eafaf624b9312bd8b6aa60c5eb5",
+    "stage1_F1\\blobs\\5b7389006c3018f6ac9888cda2254ea44ceaf949e75a66e11760d425e157b9b1": "5b7389006c3018f6ac9888cda2254ea44ceaf949e75a66e11760d425e157b9b1",
+    "stage1_F1\\blobs\\5cfc69df80574e89e1533f70d8bc74b96e08c96b3678a9c1350190f4cf92384a": "5cfc69df80574e89e1533f70d8bc74b96e08c96b3678a9c1350190f4cf92384a",
+    "stage1_F1\\blobs\\5e07cd0d109bc7cbb1b5dd2863d8e150111a93be4774e3ce6c7080be90ee3120": "5e07cd0d109bc7cbb1b5dd2863d8e150111a93be4774e3ce6c7080be90ee3120",
+    "stage1_F1\\blobs\\6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+    "stage1_F1\\blobs\\6888ce87033b35e110a38f6cf6f46835d8dbfae6feae355a4eb5a180dc6e7450": "6888ce87033b35e110a38f6cf6f46835d8dbfae6feae355a4eb5a180dc6e7450",
+    "stage1_F1\\blobs\\69f9e459f64ef2ed3fee6bb36dc68cdbb837936c074f6366ea6dde22f9329042": "69f9e459f64ef2ed3fee6bb36dc68cdbb837936c074f6366ea6dde22f9329042",
+    "stage1_F1\\blobs\\6e922f5206704305d920db856a01b06ab9645465a1f9a4c626da7ebbb3b6321f": "6e922f5206704305d920db856a01b06ab9645465a1f9a4c626da7ebbb3b6321f",
+    "stage1_F1\\blobs\\7d54c18b802dfa8985e975389fa94184890bcbe5640981bcaf07be328460d94f": "7d54c18b802dfa8985e975389fa94184890bcbe5640981bcaf07be328460d94f",
+    "stage1_F1\\blobs\\7fe02f5a182cbb40ae8d99a34c7d86c5b83c0dc5c11a3507471201ed368d0e60": "7fe02f5a182cbb40ae8d99a34c7d86c5b83c0dc5c11a3507471201ed368d0e60",
+    "stage1_F1\\blobs\\8a837a0ccdd36747cc090125fcf7f226ec0153bc3e168f26e0a02cf4ea73acd2": "8a837a0ccdd36747cc090125fcf7f226ec0153bc3e168f26e0a02cf4ea73acd2",
+    "stage1_F1\\blobs\\90a834ec40b763c41072d56a94ef0b4c614f09f0a9c4af47112e1561e8892c24": "90a834ec40b763c41072d56a94ef0b4c614f09f0a9c4af47112e1561e8892c24",
+    "stage1_F1\\blobs\\95af8c02488a4cd11879cbc4681693465913b6d199243f4ce3c6ac52e6710127": "95af8c02488a4cd11879cbc4681693465913b6d199243f4ce3c6ac52e6710127",
+    "stage1_F1\\blobs\\966c62ae883ed8705081ea63dabd6a38dba33a1591f83f535890e1c6ae29e19e": "966c62ae883ed8705081ea63dabd6a38dba33a1591f83f535890e1c6ae29e19e",
+    "stage1_F1\\blobs\\9804f0de52f9af03ec0a317e4996387d89ee0223261467b50d37960e2c55dbab": "9804f0de52f9af03ec0a317e4996387d89ee0223261467b50d37960e2c55dbab",
+    "stage1_F1\\blobs\\9f60573140579de6d3cb4f3f89d6b9a9efa97e24b04dde4819996c587299fcb0": "9f60573140579de6d3cb4f3f89d6b9a9efa97e24b04dde4819996c587299fcb0",
+    "stage1_F1\\blobs\\a02a17f44a974d900bab4cbded764a1e606d73df223a0139d63251684eada0e8": "a02a17f44a974d900bab4cbded764a1e606d73df223a0139d63251684eada0e8",
+    "stage1_F1\\blobs\\a5c588e48750129eefd578e4627a65b173500cd68a7d4926d4dc090bf130b13b": "a5c588e48750129eefd578e4627a65b173500cd68a7d4926d4dc090bf130b13b",
+    "stage1_F1\\blobs\\a66337ae8b112b1764e2fe4a26c342c3cba15ddc5f17f969958f4ae827e7392b": "a66337ae8b112b1764e2fe4a26c342c3cba15ddc5f17f969958f4ae827e7392b",
+    "stage1_F1\\blobs\\a769c7fe793cf826bdab83decaeb70ec558168ccf49e2ced9d087c1fdcb8d60a": "a769c7fe793cf826bdab83decaeb70ec558168ccf49e2ced9d087c1fdcb8d60a",
+    "stage1_F1\\blobs\\acacf3b9cb3e9e8db7e814d4ab7fe8e5755a9a9579d6c21c229712b9b3c81e50": "acacf3b9cb3e9e8db7e814d4ab7fe8e5755a9a9579d6c21c229712b9b3c81e50",
+    "stage1_F1\\blobs\\adfbd92ba568ce9fa1d90c73c4a49f3cc485c63b2aa4d15acc078be9960a20ff": "adfbd92ba568ce9fa1d90c73c4a49f3cc485c63b2aa4d15acc078be9960a20ff",
+    "stage1_F1\\blobs\\b1862b6c1cf52ac5a68a78de3ec41027cf7f434559036de283ab59bdcb73677a": "b1862b6c1cf52ac5a68a78de3ec41027cf7f434559036de283ab59bdcb73677a",
+    "stage1_F1\\blobs\\b2c203daf013dfe96a82428bf964606ed8bdbac4f8bd282b9ada04394422132a": "b2c203daf013dfe96a82428bf964606ed8bdbac4f8bd282b9ada04394422132a",
+    "stage1_F1\\blobs\\b35edccc47803253088d021751e6b08f9a25453654fff28b513a445360fbc6ed": "b35edccc47803253088d021751e6b08f9a25453654fff28b513a445360fbc6ed",
+    "stage1_F1\\blobs\\b8fb6a2fc540c6f00ac5ee724c222b9a7ad45d2aa889692fcc267d382a17a233": "b8fb6a2fc540c6f00ac5ee724c222b9a7ad45d2aa889692fcc267d382a17a233",
+    "stage1_F1\\blobs\\b98d6e17f3a88ff43107cf32fce8ca22b2d796eb22e916cff2cb2a7babe31a5a": "b98d6e17f3a88ff43107cf32fce8ca22b2d796eb22e916cff2cb2a7babe31a5a",
+    "stage1_F1\\blobs\\ba00ef47869576e2b0e478ac62a7a5f76c825770da9512654367a9f665e72978": "ba00ef47869576e2b0e478ac62a7a5f76c825770da9512654367a9f665e72978",
+    "stage1_F1\\blobs\\bd03d127b2b06a431f34795a15015913d1067e8e0623177af37a79efc20b9968": "bd03d127b2b06a431f34795a15015913d1067e8e0623177af37a79efc20b9968",
+    "stage1_F1\\blobs\\c01cbc44a19e6aa928099f5f868a1b3b6e53c99c40c36ba3ff35f44f99676fcd": "c01cbc44a19e6aa928099f5f868a1b3b6e53c99c40c36ba3ff35f44f99676fcd",
+    "stage1_F1\\blobs\\cafdde6e7b7eec775cf4d195f655902a6c8414b1ab4c861aee748b0b7e876f2f": "cafdde6e7b7eec775cf4d195f655902a6c8414b1ab4c861aee748b0b7e876f2f",
+    "stage1_F1\\blobs\\cf2348aa8f427fca3eebd8e6cdbc85c746f0077353357f91b46399b8bd171657": "cf2348aa8f427fca3eebd8e6cdbc85c746f0077353357f91b46399b8bd171657",
+    "stage1_F1\\blobs\\d041fa2e420d7f73c9128c012a905029f42e59b1b9ea0c6a1f6f67fac5b3d891": "d041fa2e420d7f73c9128c012a905029f42e59b1b9ea0c6a1f6f67fac5b3d891",
+    "stage1_F1\\blobs\\d0c201ef4fb1f0efa68a28f3bd85fc88b6b0ef9c2cdc60e6474c995b19f114e9": "d0c201ef4fb1f0efa68a28f3bd85fc88b6b0ef9c2cdc60e6474c995b19f114e9",
+    "stage1_F1\\blobs\\d0ec69a82d933b670c79e2735fca7620517b4a8620aa58e4c20aba861e1b86b5": "d0ec69a82d933b670c79e2735fca7620517b4a8620aa58e4c20aba861e1b86b5",
+    "stage1_F1\\blobs\\d7f0579db773ad510664a014134976f3867c27fffc6c664d7839762eff84269e": "d7f0579db773ad510664a014134976f3867c27fffc6c664d7839762eff84269e",
+    "stage1_F1\\blobs\\df959df8d8558039b598181a71fc2ff96694fba60dbf7de37bc15e4d31b583f9": "df959df8d8558039b598181a71fc2ff96694fba60dbf7de37bc15e4d31b583f9",
+    "stage1_F1\\blobs\\e0d71ab283071a788f28fbe35df309af1d6ccad673ad095c9d2aefc87f678dc8": "e0d71ab283071a788f28fbe35df309af1d6ccad673ad095c9d2aefc87f678dc8",
+    "stage1_F1\\blobs\\e2c6c2f42ac51ba53492d39a5f7cd02089d5c6e1225d4a22281aff32b1502a7c": "e2c6c2f42ac51ba53492d39a5f7cd02089d5c6e1225d4a22281aff32b1502a7c",
+    "stage1_F1\\blobs\\ed0f2619d8e3c41494ff75e639779c74ee01c17875e2858fa8c4de6c187a0996": "ed0f2619d8e3c41494ff75e639779c74ee01c17875e2858fa8c4de6c187a0996",
+    "stage1_F1\\blobs\\f737f078db435cf547d48381e15a39053e8e181dfb87fe3236ab4f3a2ef1f8c9": "f737f078db435cf547d48381e15a39053e8e181dfb87fe3236ab4f3a2ef1f8c9",
+    "stage1_F1\\blobs\\f9482fd7d2c25732b662f4bc1f188348062419893c5225dd5a0ee0b7427bd6b7": "f9482fd7d2c25732b662f4bc1f188348062419893c5225dd5a0ee0b7427bd6b7"
+  }
+}
