@@ -1,7 +1,10 @@
-"""A rework task retains the accepted review, including later failed-trial warnings."""
+"""Rework preserves verified drafts, scoped permissions and required review."""
 
 import asyncio
+import base64
 import copy
+import hashlib
+import json
 from contextlib import asynccontextmanager
 
 import pytest
@@ -9,8 +12,12 @@ import pytest
 from src.agent.runtime_roles.plan_format import audit_plan_replacement
 from src.agent.runtime_roles.trial import PlanTrial
 from src.agent.runtime_roles.trial import _expanded_rework_targets, normalize_rework_targets
+from src.agent.runtime_roles.session import envelope
+from src.agent_runtime.adapter import ScriptedAdapter
+from src.harness_contracts import MissingCapture, ToolExecutionPayload, ToolInvocationPayload
 from tests.test_role_session import dispatch, environment  # noqa: F401
 from tests.test_role_trial import Tools, example
+from test_agent_runtime import response
 
 
 @pytest.mark.parametrize(("raw", "expected"), [
@@ -82,3 +89,323 @@ def test_rework_session_keeps_full_submission_review_before_any_adapter_request(
     }]))["results"][0]
     assert result["status"] == "failed" and "handoff checked" in result["reason"]
     assert not any(event.payload.event_type == "adapter_request" for event in store.all_events)
+
+
+class RecoveryTools(Tools):
+    """Deterministic compiler transport; actual declaration/scope checks stay live."""
+
+    async def call_tool(self, name, arguments):
+        result = await super().call_tool(name, arguments)
+        result["structuredContent"].update(drawing_differences={"total": 0, "items": []},
+                                            building_precision={"items": []})
+        if self.ready and self.workspace:
+            result["content"][0]["data"] = base64.b64encode(
+                (self.workspace / "images/north.png").read_bytes()).decode("ascii")
+            (self.workspace / "candidate_01/precision_report.json").write_text(
+                json.dumps({"status": "reported", "items": []}), encoding="utf-8")
+        return result
+
+    def image_origins(self, raw):
+        digest = hashlib.sha256(base64.b64decode(raw["content"][0]["data"])).hexdigest()
+        return {digest: {"sent_sha256": digest, "origin_status": "trial overlay"}}
+
+
+def _append_trial(child, receipt, *, outcome=None):
+    outcome = outcome or ("succeeded" if receipt["status"] == "passed" else "failed")
+    captured = child.capture(envelope(receipt, error=outcome != "succeeded"))
+    return child.append(ToolExecutionPayload(
+        call_id=f"trial-{len(child.events)}", tool_name="trial_plan_bim", full_arguments={"plan": {}},
+        raw_result=captured, shown_result=captured, repeatability="non_idempotent_write",
+        operation_key=f"trial-{len(child.events)}", outcome=outcome,
+        applied_write_id=f"write-{len(child.events)}" if outcome == "succeeded" else None))
+
+
+def _passed_unsubmitted(session, *, reason="context_recovery_required", profile=False, topology=False):
+    task = session._task(dispatch("prior", role_id="plan_reader", target="F1"))
+    child = session.registry.admit(task)
+    workspace = child.task_directory / "bim/trial_workspace"
+    (workspace / "images").mkdir(parents=True)
+    for relative in ("inputs.json", "images/north.png"):
+        (workspace / relative).write_bytes((session.run_directory / relative).read_bytes())
+    profiles = workspace / "profiles"
+    value = example()
+    if profile:
+        profiles.mkdir()
+        evidence = {"name": "north.png", "image_sha256": task["input_sha256"], "axis": "x",
+                    "candidates": [{"id": "C01", "pixels": [value["x_anchors"][0][0], 1], "peak": 1}]}
+        (profiles / "profile_001.json").write_text(json.dumps(evidence), encoding="utf-8")
+        value["x_anchors"][0][0] = {"profile": "profile_001", "candidate": "C01"}
+    prior = PlanTrial(RecoveryTools(workspace=workspace), image_name="north.png", workspace=workspace,
+                      receipt_directory=workspace / "trial_receipts", profile_directory=profiles)
+    failed = copy.deepcopy(value)
+    failed["openings"][0].update(p1=[4, 3], p2=[4, 4])
+    rejected = asyncio.run(prior.run(failed))
+    assert rejected["status"] == "failed"
+    earlier = _append_trial(child, rejected)
+    passed = asyncio.run(prior.run(value))
+    assert passed["status"] == "passed", passed
+    if topology:
+        passed["topology_issues"] = [{"issue_id": "retained-review", "divider": "wall-A", "opening": "D1",
+                                      "look_box": [5, 2, 7, 5], "kind": "unsupported_declared_divider"}]
+        (workspace / passed["receipt_file"]).write_text(json.dumps(passed), encoding="utf-8")
+    current = _append_trial(child, passed)
+    session.registry.save(task, status="failed", reason=reason, runtime={"status": reason})
+    return task, child, prior, value, passed, earlier, current
+
+
+def _rework_arguments(**extra):
+    return dispatch("next", role_id="plan_reader", target="F1", previous_task_id="prior",
+                    issues=["Continue from the saved passed draft; check D1 if needed."],
+                    rework_targets=["plan.openings:D1"], **extra)
+
+
+def _isolated_recovery_trials(monkeypatch, captured):
+    @asynccontextmanager
+    async def isolated_trial(directory, image_name, *, root):
+        workspace = directory / "trial_workspace"
+        (workspace / "images").mkdir(parents=True)
+        for relative in ("inputs.json", f"images/{image_name}"):
+            (workspace / relative).write_bytes((directory / relative).read_bytes())
+        trial = PlanTrial(RecoveryTools(workspace=workspace), image_name=image_name, workspace=workspace,
+                          receipt_directory=workspace / "trial_receipts", profile_directory=workspace / "profiles")
+        captured["trial"] = trial
+        yield trial
+    monkeypatch.setattr("src.agent.runtime_roles.trial.PlanTrialSession", isolated_trial)
+
+
+def _operation(collection="openings", identity="D1", **changes):
+    return {"op": "update", "collection": collection, "id": identity, "changes": changes,
+            "bbox": [0, 0, 20, 20], "reason": "Located current-task correction",
+            "source_refs": ["north.png: original"]}
+
+
+@pytest.mark.parametrize(("reason", "local_edit"), [
+    ("context_recovery_required", False), ("invalid_settlement_evidence", True),
+])
+def test_passed_unsubmitted_rework_reads_retrials_and_explicitly_submits(environment, monkeypatch,
+                                                                       reason, local_edit):
+    store, make = environment
+    session = make()
+    task, child, prior, original, passed, earlier, current = _passed_unsubmitted(
+        session, reason=reason, profile=True)
+    handoff = session._failure_handoff("prior")
+    assert handoff["editable_draft"]["status"] == "passed"
+    assert handoff["editable_draft"]["submission_accepted"] is False
+    assert handoff["editable_draft"]["event_id"] == current.event_id
+    assert handoff["editable_draft"]["compiled_numeric_plan_sha256"] == passed["compiled_numeric_plan_sha256"]
+    assert handoff["tool_failures"] == []  # The pre-pass host error is resolved.
+    assert handoff["runtime_status"] == reason
+    assert session.registry.records["prior"].get("artifact") is None
+    assert not (child.task_directory / "bim/reader_submission.json").exists()
+    captured = {}
+    _isolated_recovery_trials(monkeypatch, captured)
+    revised = copy.deepcopy(original)
+    if local_edit:
+        revised["openings"][0]["z"] = [0, 2.2]
+    trial_arguments = ({"operations": [_operation(z=[0, 2.2])]} if local_edit else {"plan": original})
+    adapter = ScriptedAdapter([
+        response(("read", "read_plan_draft", {"field": "plan"})),
+        response(("premature", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("trial", "trial_plan_bim", trial_arguments)),
+        response(("submit", "submit_plan_reading", {"trial_id": "latest"})),
+        response(text="Submission acknowledged."),
+    ])
+    session.adapter_factory = lambda *args: adapter
+    result = asyncio.run(session.delegate_many([_rework_arguments()]))["results"][0]
+    assert result["status"] == "completed", result
+    next_child = session.registry.child("next")
+    executions = {event.payload.call_id: event.payload for event in next_child.events
+                  if event.payload.event_type == "tool_execution"}
+    read = next_child.resolve(executions["read"].raw_result)["structuredContent"]
+    assert read["inherited"] and read["status"] == "passed" and read["plan"] == original
+    assert read["validation_passed"] and read["submission_accepted"] is False
+    assert "regularization" not in read["plan"]  # Keep the original declaration, not expanded numeric audit.
+    assert executions["premature"].outcome == "failed"
+    assert "successful isolated trial in this task" in str(next_child.resolve(executions["premature"].raw_result))
+    assert executions["trial"].outcome == executions["submit"].outcome == "succeeded"
+    trial = captured["trial"]
+    assert trial.reference_validation_passed and trial.allowed_rework_targets == ["plan.openings:D1"]
+    assert trial.inherited_reference_ids() == {"profile_001"}
+    assert trial.load_plan(trial.receipts[-1]) == revised
+    assert session.registry.read("next")["plan"] == trial.numeric_plan(trial.receipts[-1])
+    assert result["validation"]["validation_passed"]
+    assert (next_child.task_directory / "bim/reader_submission.json").is_file()
+    assert prior.load_plan(prior.receipts[-1]) == original
+    assert len(adapter.requests) == 5
+
+
+def test_passed_rework_rejects_out_of_scope_ops_then_preserves_unchanged_submit(environment, monkeypatch):
+    _, make = environment
+    session = make()
+    _, _, prior, original, passed, _, _ = _passed_unsubmitted(session)
+    captured = {}
+    _isolated_recovery_trials(monkeypatch, captured)
+    adapter = ScriptedAdapter([
+        response(("outside", "trial_plan_bim", {"operations": [
+            _operation("partitions", original["partitions"][0]["id"], points=[[1, 1], [2, 2]])]})),
+        response(("read", "read_plan_draft", {"field": "plan"})),
+        response(("trial", "trial_plan_bim", {"plan": original})),
+        response(("submit", "submit_plan_reading", {"trial_id": "latest"})),
+        response(text="Submission acknowledged."),
+    ])
+    session.adapter_factory = lambda *args: adapter
+    result = asyncio.run(session.delegate_many([_rework_arguments()]))["results"][0]
+    assert result["status"] == "completed", result
+    child = session.registry.child("next")
+    executions = {event.payload.call_id: event.payload for event in child.events
+                  if event.payload.event_type == "tool_execution"}
+    rejected = child.resolve(executions["outside"].raw_result)["structuredContent"]
+    assert rejected["draft_unchanged"] and "outside" in str(rejected)
+    assert child.resolve(executions["read"].raw_result)["structuredContent"]["plan"] == original
+    assert len(captured["trial"].receipts) == 1
+    assert captured["trial"].receipts[0]["plan_sha256"] == passed["plan_sha256"]
+    assert prior.verified_plan(passed["plan_sha256"])[0] == original
+
+
+@pytest.mark.parametrize("product", ["declaration", "numeric", "source", "profile", "image", "receipt", "event",
+                                     "topology", "orientation"])
+def test_passed_unsubmitted_recovery_rejects_changed_products(environment, product):
+    _, make = environment
+    session = make()
+    _, child, prior, _, passed, _, _ = _passed_unsubmitted(session, profile=True, topology=True)
+    if product == "event":
+        changed = {**passed, "candidate_source_sha256": "0" * 64}
+        _append_trial(child, changed)
+    elif product == "image":
+        path = prior.workspace / "images/north.png"
+        path.write_bytes(path.read_bytes() + b"tampered")
+        manifest = json.loads((prior.workspace / "inputs.json").read_bytes())
+        manifest["images"]["north.png"]["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        (prior.workspace / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+    else:
+        relative = {"declaration": passed["input_plan_file"], "numeric": passed["compiled_numeric_plan_file"],
+                    "source": f"{passed['candidate']}/source_model.json",
+                    "profile": passed["measurement_profiles"][0]["file"],
+                    "receipt": passed["receipt_file"], "topology": passed["receipt_file"],
+                    "orientation": passed["receipt_file"]}[product]
+        path = prior.workspace / relative
+        if product in {"receipt", "topology", "orientation"}:
+            changed = json.loads(path.read_bytes())
+            if product == "receipt":
+                changed["candidate_source_sha256"] = "0" * 64
+            elif product == "topology":
+                changed["topology_issues"] = []
+            else:
+                changed["axis_orientation"] = {"world_north_toward": "image_bottom",
+                                                "world_east_toward": "image_left"}
+            path.write_text(json.dumps(changed), encoding="utf-8")
+        else:
+            path.write_bytes(path.read_bytes() + b" ")
+    with pytest.raises(ValueError):
+        session._task(_rework_arguments())
+
+
+def test_compact_passed_event_binds_complete_receipt_and_rejects_incomplete_legacy(environment):
+    from src.agent.runtime_roles.trial_feedback import passed_receipt
+    _, make = environment
+    session = make()
+    _, child, _, _, passed, _, _ = _passed_unsubmitted(session)
+    compact = passed_receipt(passed)
+    _append_trial(child, compact)
+    admitted = session._task(_rework_arguments())
+    assert admitted["previous_task_handoff"]["editable_draft"]["expected_receipt_sha256"] == compact["receipt_audit"]["sha256"]
+    incomplete = {key: compact[key] for key in ("status", "source_geometry_ready", "receipt_file", "plan_sha256",
+                  "compiled_numeric_plan_sha256", "candidate", "candidate_source_sha256")}
+    _append_trial(child, incomplete)
+    with pytest.raises(ValueError, match="full receipt.*event result"):
+        session._task(_rework_arguments())
+
+
+def test_passed_receipt_is_reverified_after_admission_before_adapter(environment, monkeypatch):
+    store, make = environment
+    session = make()
+    _, _, prior, _, passed, _, _ = _passed_unsubmitted(session, topology=True)
+
+    @asynccontextmanager
+    async def tamper_after_admission(directory, image_name, *, root):
+        saved = prior.workspace / passed["receipt_file"]
+        changed = json.loads(saved.read_bytes())
+        changed["topology_issues"] = []
+        saved.write_text(json.dumps(changed), encoding="utf-8")
+        yield PlanTrial(RecoveryTools(), image_name=image_name)
+
+    monkeypatch.setattr("src.agent.runtime_roles.trial.PlanTrialSession", tamper_after_admission)
+    result = asyncio.run(session.delegate_many([_rework_arguments()]))["results"][0]
+    assert result["status"] == "failed" and "receipt" in result["reason"]
+    assert not any(event.payload.event_type == "adapter_request" for event in store.all_events)
+
+
+def test_inherited_validation_is_readable_and_still_requires_current_submission_decisions(environment, monkeypatch):
+    _, make = environment
+    session = make()
+    _, _, _, original, passed, _, _ = _passed_unsubmitted(session, topology=True)
+    handoff = session._failure_handoff("prior")
+    assert handoff["editable_draft"]["topology_decisions_required"] == 1
+    captured = {}
+    _isolated_recovery_trials(monkeypatch, captured)
+    decision = {"issue_id": "retained-review", "decision": "retain_opening", "bbox": [5, 2, 7, 5],
+                "basis": "The located original has a door within the same physical divider."}
+    adapter = ScriptedAdapter([
+        response(("review", "read_plan_draft", {"field": "report:/topology_issues"})),
+        response(("trial", "trial_plan_bim", {"plan": original})),
+        response(("missing-review", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("submit", "submit_plan_reading", {"trial_id": "latest", "topology_decisions": [decision]})),
+        response(text="Submission acknowledged."),
+    ])
+    session.adapter_factory = lambda *args: adapter
+    result = asyncio.run(session.delegate_many([_rework_arguments()]))["results"][0]
+    assert result["status"] == "completed", result
+    child = session.registry.child("next")
+    executions = {event.payload.call_id: event.payload for event in child.events
+                  if event.payload.event_type == "tool_execution"}
+    assert executions["review"].outcome == "succeeded"
+    report = child.resolve(executions["review"].raw_result)["structuredContent"]
+    assert report["value"] == passed["topology_issues"]
+    assert executions["missing-review"].outcome == "failed"
+    assert "retained-review" in str(child.resolve(executions["missing-review"].raw_result))
+    assert result["validation"]["topology_issues"] == passed["topology_issues"]
+    assert result["validation"]["topology_decisions"] == [decision]
+
+
+def test_passed_unsubmitted_requires_scope_and_matching_admitted_image(environment):
+    _, make = environment
+    session = make()
+    _passed_unsubmitted(session)
+    no_scope = _rework_arguments()
+    no_scope.pop("rework_targets")
+    with pytest.raises(ValueError, match="explicit rework_targets"):
+        session._task(no_scope)
+    with pytest.raises(ValueError, match="same role, original image and target"):
+        session._task({**_rework_arguments(), "target": "F2"})
+    session.registry.records["prior"]["input_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="same admitted original image hash"):
+        session._task(_rework_arguments())
+
+
+@pytest.mark.parametrize("unknown", ["invocation", "execution"])
+def test_latest_unknown_write_blocks_passed_draft_recovery(environment, unknown):
+    _, make = environment
+    session = make()
+    _, child, _, _, _, _, _ = _passed_unsubmitted(session)
+    fields = dict(call_id="unsettled", tool_name="trial_plan_bim", full_arguments={"plan": {}},
+                  repeatability="non_idempotent_write", operation_key="unsettled")
+    child.append(ToolInvocationPayload(**fields))
+    if unknown == "execution":
+        child.append(ToolExecutionPayload(**fields, raw_result=MissingCapture(reason="unknown"),
+                                          shown_result=MissingCapture(reason="unknown"), outcome="unknown"))
+    handoff = session._failure_handoff("prior")
+    assert "editable_draft" not in handoff
+    assert handoff["draft_recovery"]["status"] == "unavailable"
+
+
+def test_later_editable_failure_remains_baseline_after_earlier_pass(environment):
+    _, make = environment
+    session = make()
+    _, child, prior, original, passed, _, _ = _passed_unsubmitted(session)
+    changed = copy.deepcopy(original)
+    changed["openings"][0].update(p1=[4, 3], p2=[4, 4])
+    latest = asyncio.run(prior.run(changed))
+    _append_trial(child, latest)
+    handoff = session._failure_handoff("prior")
+    assert handoff["editable_draft"]["status"] == "failed"
+    assert handoff["editable_draft"]["plan_sha256"] == latest["plan_sha256"] != passed["plan_sha256"]

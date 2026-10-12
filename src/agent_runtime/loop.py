@@ -728,7 +728,7 @@ class Runtime:
                     usage = exc.usage if isinstance(exc, ModelServiceError) else UsageMissing(reason="request ended without a service usage receipt")
                     try:
                         settlement_stop = self._settle(reservation.reservation_id, usage,
-                                     seconds=elapsed, context_rejection=failure.category == "context_length_exceeded")
+                                     seconds=elapsed)
                     finally:
                         self._budget_capacity.complete(reservation.reservation_id)
                     await self._yield_budget_waiters()
@@ -919,7 +919,7 @@ class Runtime:
             action="stop" if reason else "continue",
             reason=reason or "discard truncated output and request a concise continuation"))
 
-    def _settle(self, reservation_id, usage, *, seconds, context_rejection=False):
+    def _settle(self, reservation_id, usage, *, seconds):
         # Other children may reserve or settle root budget while this request is
         # in flight. Rebuild both ledgers from the shared durable journal.
         self._load_budget()
@@ -932,11 +932,6 @@ class Runtime:
         image_charge = {"image_tokens_estimate": accounting.image_tokens_estimate,
             "additional_image_tokens": accounting.additional_image_tokens,
             "reported_usage_includes_image_tokens": accounting.reported_usage_includes_image_tokens}
-        if context_rejection and usage.kind == "missing":
-            # A length rejection is known; its usage is not. Settle only the
-            # observed call/time and retain the full token reservation. Missing
-            # usage cannot attest that image tokens were included in a receipt.
-            image_charge["reported_usage_includes_image_tokens"] = False
         reservation = next(r for r in self.budget.ledger.reservations if r.reservation_id == reservation_id)
         if accounting.usage_basis == "rejected_before_processing" and reservation.amounts.money_usd is not None:
             image_charge["cost"] = EstimatedCostUpperBound(usd=Decimal(0),
@@ -1618,7 +1613,7 @@ class Runtime:
                 elapsed = json.loads(self.store.get_bytes(timing))["elapsed_seconds"] if timing else None
                 self._settle(request.payload.reservation_id,
                     rejected_request_usage() if rejected else UsageMissing(reason="process interrupted with request outcome unknown"),
-                    seconds=elapsed, context_rejection=bool(failure and failure.category == "context_length_exceeded"))
+                    seconds=elapsed)
             if context_retry_ready:
                 # A checkpoint after a strictly smaller projection authorized
                 # exactly this context retry before the process interruption.

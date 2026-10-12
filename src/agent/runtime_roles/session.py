@@ -112,8 +112,9 @@ EXTRA_TOOLS = [
              ("action", "reason"))}}, ("candidate", "edits"))},
     {"name": "delegate_readers", "description": "Dispatch single-image readers concurrently and wait until every task in this call ends. On the first call, admitted plan and cardinal-elevation drawings omitted from tasks are added with default targets and origin; the result lists them. Give floor/facade target and common origin. Optional instructions (at most 400 characters) contain only drawing facts or a specific rework problem; method, units and coordinates come from the reader guide and runtime. Rework uses a new task_id, previous_task_id and explicit rework_targets; the runtime preserves every unpointed plan or elevation object and its original-reading audit. Completed IDs reuse deliveries; allowances come from the role.",
      "inputSchema": schema({"tasks": {"type": "array", "items": COORDINATOR_TASK_SCHEMA, "minItems": 1, "maxItems": 32}}, ("tasks",))},
-    {"name": "read_role_artifact", "description": "Read the complete immutable reader delivery after checking its hash; includes its original evidence and unresolved items.",
-     "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"}}, ("task_id",))},
+    {"name": "read_role_artifact", "description": "Read verified reader data; large fields are browsed by pointer/offset; the full artifact is retained.",
+     "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"},
+                            "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0}}, ("task_id",))},
     {"name": "build_from_artifact", "description": "Build a validated reader plan without retranscription. First read elevation levels: optional z_floor and ceiling_height in metres each require their *_evidence (delivered elevation task_id + elevation_id). z_floor equals its cited Z; ceiling_height equals cited top Z minus floor Z. Overrides change a compilation copy, keep evidence, and leave the reader artifact intact. Identical inputs reuse the build.",
      "inputSchema": schema({"task_id": {"type": "string"}, "sha256": {"type": "string"},
          "z_floor": {"type": "number"}, "z_floor_evidence": LEVEL_REFERENCE_SCHEMA,
@@ -283,8 +284,8 @@ class RoleSession:
     def image_origins(self, raw):
         return self.frozen.image_origins(raw)
 
-    def _failed_plan_trial_event(self, task_id):
-        """Select a failed draft only from the latest durable trial event."""
+    def _recoverable_plan_trial_event(self, task_id):
+        """Select the latest known trial outcome, without crossing an unknown write."""
         child = self.registry.child(task_id)
         latest = None
         rejected_calls = set()
@@ -316,7 +317,7 @@ class RoleSession:
             return {
                 "status": "unavailable", "event_id": latest.event_id,
                 "reason": (
-                    "The latest trial_plan_bim invocation has no durable execution outcome. Earlier failed drafts "
+                    "The latest trial_plan_bim invocation has no durable execution outcome. Earlier drafts "
                     "and workspace-only receipts are diagnostic evidence only and are not imported as a baseline."
                 ),
             }
@@ -324,41 +325,80 @@ class RoleSession:
             return {
                 "status": "unavailable", "event_id": latest.event_id,
                 "reason": (
-                    "The latest trial_plan_bim write outcome is unknown. Earlier failed drafts and workspace-only "
+                    "The latest trial_plan_bim write outcome is unknown. Earlier drafts and workspace-only "
                     "receipts are diagnostic evidence only and are not imported as an editable baseline."
                 ),
             }
-        if payload.outcome != "failed":
-            return None
         if payload.raw_result.kind == "missing":
             return {
                 "status": "unavailable", "event_id": latest.event_id,
-                "reason": "The known-failed trial event has no durable raw-result capture.",
+                "reason": "The latest trial event has no durable raw-result capture.",
             }
         try:
             raw = child.resolve(payload.raw_result)
         except (ValueError, TypeError, KeyError, json.JSONDecodeError) as error:
             return {"status": "unavailable", "event_id": latest.event_id,
-                    "reason": f"The known-failed trial result could not be hash-verified: {error}"}
+                    "reason": f"The latest trial result could not be hash-verified: {error}"}
         structured = raw.get("structuredContent") if isinstance(raw, Mapping) else None
         if not isinstance(structured, Mapping):
             structured = raw if isinstance(raw, Mapping) else {}
         required = ("receipt_file", "plan_sha256")
-        if structured.get("status") != "failed" or any(
-                not isinstance(structured.get(key), str) for key in required):
+        draft_status = "passed" if payload.outcome == "succeeded" else "failed"
+        if draft_status == "passed":
+            required += ("compiled_numeric_plan_sha256", "candidate", "candidate_source_sha256")
+        if (structured.get("status") != draft_status
+                or (draft_status == "passed" and structured.get("source_geometry_ready") is not True)
+                or any(not isinstance(structured.get(key), str) or not structured[key] for key in required)):
             return {
                 "status": "unavailable", "event_id": latest.event_id,
-                "reason": "The known-failed trial event has no saved declaration receipt identity.",
+                "reason": "The latest trial event has no matching saved declaration outcome and receipt identity.",
             }
         if structured.get("editable_draft", {}).get("editable") is False:
             return {"status": "unavailable", "event_id": latest.event_id,
                     "reason": structured["editable_draft"].get("reason", "Saved format needs a complete replacement.")}
+        receipt_hash = {}
+        if draft_status == "passed":
+            audit = structured.get("receipt_audit")
+            if audit is not None:
+                if (not isinstance(audit, Mapping) or audit.get("json_pointer") != ""
+                        or audit.get("receipt_file") != structured["receipt_file"]
+                        or audit.get("hash_encoding") != "utf-8-json-sort_keys-compact-ensure_ascii_false"
+                        or not isinstance(audit.get("sha256"), str)
+                        or not re.fullmatch(r"[0-9a-f]{64}", audit["sha256"])):
+                    return {"status": "unavailable", "event_id": latest.event_id,
+                            "reason": "The passed trial has no valid complete receipt audit identity."}
+                digest = audit["sha256"]
+            else:
+                # Legacy full captures can prove the entire receipt. A partial
+                # projection cannot match this digest and is rejected on load.
+                digest = hashlib.sha256(json.dumps(structured, ensure_ascii=False, sort_keys=True,
+                    separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
+            receipt_hash["expected_receipt_sha256"] = digest
         return {
-            "status": "available", "event_id": latest.event_id,
+            "status": "available", "draft_status": draft_status,
+            "event_id": latest.event_id, "sequence": latest.sequence,
             "raw_result": payload.raw_result.model_dump(mode="json"),
             **{key: structured[key] for key in required},
             "compiled_numeric_plan_sha256": structured.get("compiled_numeric_plan_sha256"),
+            **receipt_hash,
         }
+
+    def _verified_recovery_trial(self, task_id, selection, expected_image_sha256):
+        """Recheck event-selected products both at admission and at reader startup."""
+        from .trial import PlanTrial
+        record = self.registry.records[task_id]
+        workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
+        prior = PlanTrial(None, image_name=record["image"], workspace=workspace,
+                          receipt_directory=workspace / "trial_receipts")
+        identity = {key: selection[key] for key in
+                    ("receipt_file", "plan_sha256", "compiled_numeric_plan_sha256")}
+        if selection.get("draft_status", selection.get("status")) == "passed":
+            identity.update({key: selection[key] for key in
+                             ("candidate", "candidate_source_sha256", "expected_receipt_sha256")})
+            _, receipt = prior.verified_unsubmitted_draft(expected_image_sha256, **identity)
+        else:
+            _, receipt = prior.verified_failed_draft(expected_image_sha256, **identity)
+        return prior, receipt
 
     def _failure_handoff(self, task_id):
         """Reference prior evidence and carry its last actionable failures forward."""
@@ -377,27 +417,34 @@ class RoleSession:
                 "the prior delivery's earlier corrected failures are not current rework evidence."
             )
             return handoff
+        resolved_through = None
         if record.get("role_id") == "plan_reader":
-            trial_event = self._failed_plan_trial_event(task_id)
+            trial_event = self._recoverable_plan_trial_event(task_id)
             if trial_event and trial_event["status"] == "available":
-                from .trial import PlanTrial
-                workspace = self.registry.child(task_id).task_directory / "bim/trial_workspace"
-                prior = PlanTrial(None, image_name=record["image"], workspace=workspace,
-                                  receipt_directory=workspace / "trial_receipts")
-                selected = prior.verified_failed_draft(
-                    record.get("input_sha256"), receipt_file=trial_event["receipt_file"],
-                    plan_sha256=trial_event["plan_sha256"],
-                    compiled_numeric_plan_sha256=trial_event["compiled_numeric_plan_sha256"],
-                )
-                _, receipt = selected
+                _, receipt = self._verified_recovery_trial(task_id, trial_event, record.get("input_sha256"))
+                passed = trial_event["draft_status"] == "passed"
+                if passed:
+                    resolved_through = trial_event["sequence"]
                 handoff["editable_draft"] = {
-                    "status": "failed", "validation_passed": False, "editable": True,
+                    "status": trial_event["draft_status"], "validation_passed": passed, "editable": True,
+                    "submission_accepted": False,
                     "event_id": trial_event["event_id"],
                     "raw_result": trial_event["raw_result"],
                     "plan_sha256": receipt["plan_sha256"],
                     "receipt_file": receipt["receipt_file"],
                     "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
+                    **({**{key: receipt[key] for key in ("candidate", "candidate_source_sha256")},
+                        "expected_receipt_sha256": trial_event["expected_receipt_sha256"],
+                        "topology_decisions_required": len(receipt.get("topology_issues", []))} if passed else {}),
                     "instruction": (
+                        "This hash-verified declaration passed geometry but was not submitted. Read it with "
+                        "read_plan_draft(field='plan'). Preserve it unchanged unless the declared rework_targets "
+                        "require a correction. Run trial_plan_bim in this task (the complete unchanged declaration "
+                        "is allowed), then explicitly submit_plan_reading; the new task must establish its own "
+                        "verified trial before submission. Do not invent geometric changes or repeat corrected "
+                        "failures from before this passed trial. Read inherited validation with "
+                        "read_plan_draft(field='report:/topology_issues') when needed."
+                        if passed else
                         "This hash-verified complete failed declaration is the operations baseline in the new task. "
                         "Revise the located objects; unchanged objects and their source descriptions remain in place."
                     ),
@@ -407,6 +454,8 @@ class RoleSession:
         child = self.registry.child(task_id)
         known_failure = False
         for event in reversed(child.events):
+            if resolved_through is not None and event.sequence <= resolved_through:
+                break
             payload = event.payload
             if (payload.event_type != "tool_execution"
                     or payload.tool_name not in {"trial_plan_bim", "submit_plan_reading", "submit_elevation_reading"}
@@ -434,7 +483,7 @@ class RoleSession:
             handoff["tool_failures"].append(row)
             if len(handoff["tool_failures"]) >= 2 or (known_failure and payload.outcome != "unknown"):
                 break
-        handoff["instruction"] = (
+        handoff["instruction"] = handoff.get("editable_draft", {}).get("instruction") or (
             "Continue from this saved evidence. Correct the located failure while preserving all other observed "
             "walls, openings, rooms and connections; inspect the original wherever the handoff does not prove a change."
         )
@@ -514,12 +563,14 @@ class RoleSession:
                         row["failure_handoff"] = copy.deepcopy(handoff)
                 return envelope(reply)
             if name == "read_role_artifact":
+                from .feedback import reader_artifact_reply
                 record = self.registry.records[arguments["task_id"]]
                 self.registry._verify_record(record)
-                artifact = self.registry.read(**arguments) if record.get("artifact") else None
+                artifact = self.registry.read(arguments["task_id"], sha256=arguments.get("sha256")) if record.get("artifact") else None
                 if artifact is None and arguments.get("sha256") is not None:
                     raise ValueError("this reader has no artifact hash")
-                return envelope({"record": record, "artifact": artifact})
+                return envelope(reader_artifact_reply(record, artifact, pointer=arguments.get("pointer"),
+                                                      offset=arguments.get("offset", 0)))
             if name == "assemble_from_readers":
                 from .assembly import assemble_from_readers
                 async with self.write_lock:
@@ -795,6 +846,8 @@ class RoleSession:
             previous = self.registry.records[arguments["previous_task_id"]]
             if previous["image"] != image or previous["role_id"] != arguments["role_id"] or canonical_target(previous["role_id"], previous["target"]) != arguments["target"]:
                 raise ValueError("rework must keep the same role, original image and target")
+            if previous.get("input_sha256") != digest:
+                raise ValueError("rework must keep the same admitted original image hash")
             if previous.get("artifact") and not arguments.get("rework_targets"):
                 example = ("plan.openings:D1" if arguments["role_id"] == "plan_reader"
                            else "elevation.openings:W1.head_m")
@@ -804,6 +857,9 @@ class RoleSession:
                 )
             task["previous_artifact"] = previous.get("artifact")
             task["previous_task_handoff"] = self._failure_handoff(arguments["previous_task_id"])
+            recovered = task["previous_task_handoff"].get("editable_draft") or {}
+            if recovered.get("status") == "passed" and not arguments.get("rework_targets"):
+                raise ValueError("passed-draft continuation needs explicit rework_targets; unchanged retrial is allowed")
         parse_target(arguments["role_id"], arguments["target"])
         task["coordinate_contract"] = task_coordinates(arguments)
         if task["role_id"] == "elevation_reader":
@@ -1015,17 +1071,27 @@ class RoleSession:
                 elif prior_record.get("status") == "failed":
                     editable = (task.get("previous_task_handoff") or {}).get("editable_draft")
                     if editable:
-                        prior = PlanTrial(None, image_name=task["image"], workspace=workspace,
-                                          receipt_directory=workspace / "trial_receipts")
-                        trial.inherit_failed_reference(
-                            prior, task["input_sha256"], receipt_file=editable["receipt_file"],
-                            plan_sha256=editable["plan_sha256"],
-                            compiled_numeric_plan_sha256=editable["compiled_numeric_plan_sha256"],
-                            allowed_targets=task.get("rework_targets"),
-                        )
+                        prior, recovered = self._verified_recovery_trial(
+                            task["previous_task_id"], editable, task["input_sha256"])
+                        if editable["status"] == "passed":
+                            trial.inherit_reference(prior, editable["plan_sha256"], task["rework_targets"])
+                            trial.reference_receipt.update({
+                                "submission_accepted": False,
+                                "topology_decisions_required": len(recovered.get("topology_issues", [])),
+                                **{key: recovered[key] for key in
+                                   ("compiled_numeric_plan_sha256", "candidate", "candidate_source_sha256")},
+                            })
+                        else:
+                            trial.inherit_failed_reference(
+                                prior, task["input_sha256"], receipt_file=editable["receipt_file"],
+                                plan_sha256=editable["plan_sha256"],
+                                compiled_numeric_plan_sha256=editable["compiled_numeric_plan_sha256"],
+                                allowed_targets=task.get("rework_targets"),
+                            )
                 # The accepted review also covers warnings from trials made
                 # after the selected successful geometry receipt.
-                trial.inherited_topology_issues = validation.get("topology_issues", [])
+                if validation:
+                    trial.inherited_topology_issues = validation.get("topology_issues", [])
             from .elevation import ElevationReaderTools, ELEVATION_COORDINATES
             tool_class = ElevationReaderTools if task["role_id"] == "elevation_reader" else ReaderTools
             tool_kwargs = {"role_id": task["role_id"], "image_name": task["image"],

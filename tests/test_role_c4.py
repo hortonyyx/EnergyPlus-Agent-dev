@@ -54,6 +54,53 @@ def test_failed_dispatch_record_remains_readable(environment):
     assert value["structuredContent"]["artifact"] is None
 
 
+def test_large_reader_delivery_is_browsable_without_changing_assembly_source(environment):
+    """A passed floor's multi-MB audit cannot overflow the coordinator's next read."""
+    store, make = environment
+    session = make()
+    task = session._task({**dispatch("large-plan"), "role_id": "plan_reader", "target": "F1"})
+    detail = {"original": "saved-evidence:" + "x" * 100_000, "adopted_m": 0.1}
+    artifact = {"plan": {"floor_id": "F1", "partitions": [], "space_seeds": [],
+                         "openings": [{"id": "W1", "p1": [10, 20], "p2": [30, 20]}],
+                         "regularization": {"changes": [copy.deepcopy(detail) for _ in range(20)]}},
+                "evidence": [{"item": "W1", "bbox": [10, 15, 30, 25], "basis": "original drawing"}],
+                "unresolved": ["Door height is assumed."]}
+    record = session.registry.save(task, status="completed", artifact=artifact,
+        validation={"validation_passed": True, "source_geometry_ready": True,
+                    "regularization": artifact["plan"]["regularization"]})
+    path = store.directory / record["artifact"]["path"]
+    original_bytes = path.read_bytes()
+
+    def read(**kwargs):
+        result = asyncio.run(session.call_tool("read_role_artifact", {
+            "task_id": task["task_id"], "sha256": record["artifact"]["sha256"], **kwargs}))
+        assert not result["isError"], result
+        assert len(json.dumps(result["structuredContent"])) < 25_000
+        return result["structuredContent"]
+
+    brief = read()
+    assert "read_role_artifact" in json.dumps(brief)
+    opening = read(pointer="/artifact/plan/openings/0")
+    assert opening["value"] == artifact["plan"]["openings"][0]
+    assert read(pointer="/artifact/unresolved")["value"] == artifact["unresolved"]
+    page = read(pointer="/artifact/plan/regularization/changes")
+    assert page["total"] == 20 and len(page["entries"]) < 20
+    next_page = read(**page["next"]["arguments"])
+    assert next_page["entries"][0]["key"] == len(page["entries"])
+    text = read(pointer="/artifact/plan/regularization/changes/0/original")
+    assert text["text"].startswith("saved-evidence:")
+    assert session.registry.read(task["task_id"]) == artifact
+    assert path.read_bytes() == original_bytes
+
+    rejected = asyncio.run(session.call_tool("read_role_artifact", {
+        "task_id": task["task_id"], "pointer": "/../../outside"}))
+    assert rejected["isError"]
+    path.write_bytes(original_bytes + b" ")
+    tampered = asyncio.run(session.call_tool("read_role_artifact", {
+        "task_id": task["task_id"], "pointer": "/artifact/plan/openings/0"}))
+    assert tampered["isError"] and "hash" in tampered["structuredContent"]["reason"]
+
+
 def test_coordinator_catalog_and_ordinary_string_parameters(environment):
     _, make = environment
     session = make()

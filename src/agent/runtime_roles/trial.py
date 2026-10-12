@@ -251,6 +251,10 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
     characters without adding a repair target.
     """
 
+    if receipt.get("status") == "passed":
+        from .trial_feedback import passed_receipt
+        return passed_receipt(receipt)
+
     visible = copy.deepcopy(dict(receipt))
     visible["returned_images"] = [
         {key: image[key] for key in ("file", "sha256") if isinstance(image.get(key), str)}
@@ -360,6 +364,14 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
         visible["message"] = (
             "trial_plan_bim failed; revise the located objects below and keep the complete receipt as evidence."
         )
+    # A compiled candidate can fail a later check while still carrying the same
+    # enormous precision ledger as a passed trial. Preserve its failure actions.
+    from .trial_feedback import reference, report_summary
+    for field in ("building_precision", "drawing_differences", "corridor_review"):
+        if field in receipt and len(_plan_bytes({"value": receipt[field]})) > 8000:
+            visible[field] = report_summary(receipt, field)
+            visible.setdefault("audit_refs", {})[field] = reference(receipt, "/" + field, receipt[field])
+    visible["receipt_audit"] = reference(receipt, "", receipt)
     return visible
 
 
@@ -504,6 +516,7 @@ class PlanTrial:
         self.reference_plan = None
         self.reference_validation_passed = None
         self.reference_receipt = None
+        self._reference_report = None
         self._reference_profiles = {}
         self.allowed_rework_targets = None
         self.inherited_topology_issues = []
@@ -832,9 +845,31 @@ class PlanTrial:
         receipt = (self.receipts[-1] if trial_id in (None, "latest") and self.receipts else
                    next((row for row in self.receipts if row["trial_id"] == trial_id), None))
         if receipt is not None:
+            if isinstance(field, str) and field.startswith("report:"):
+                if self.workspace is not None:
+                    saved = _inside(self.workspace, receipt["receipt_file"])
+                    if not saved.is_file() or json.loads(saved.read_bytes()) != receipt:
+                        raise ValueError("trial receipt changed since execution")
+                from .trial_feedback import read_report
+                return read_report(receipt, field.removeprefix("report:"), page=object_id)
             plan = self.load_plan(receipt)
             identity = {key: receipt.get(key) for key in ("trial_id", "plan_sha256", "status", "receipt_file", "input_plan_file")}
         elif trial_id in (None, "latest") and self.reference_plan is not None:
+            if isinstance(field, str) and field.startswith("report:"):
+                if self._reference_report is None:
+                    raise ValueError("inherited draft has no bound full trial report")
+                prior, receipt_file, digest = self._reference_report
+                inherited = next((row for row in prior.receipts if row.get("receipt_file") == receipt_file), None)
+                if inherited is None or hashlib.sha256(_plan_bytes(inherited)).hexdigest() != digest:
+                    raise ValueError("inherited trial full receipt changed since admission")
+                if prior.workspace is None:
+                    raise ValueError("inherited trial report has no durable workspace")
+                path = _inside(prior.workspace, receipt_file)
+                if not path.is_file() or json.loads(path.read_bytes()) != inherited:
+                    raise ValueError("inherited trial receipt changed since execution")
+                from .trial_feedback import read_report
+                return {**read_report(inherited, field.removeprefix("report:"), page=object_id,
+                                      read_trial_id="latest"), "inherited": True}
             plan = copy.deepcopy(self.reference_plan)
             identity = {**(self.reference_receipt or {}), "inherited": True}
         else:
@@ -937,6 +972,32 @@ class PlanTrial:
             self.numeric_plan(receipt)
         return plan, {"validation_passed": False, "editable_draft": True, **receipt}
 
+    def verified_unsubmitted_draft(self, expected_image_sha256: str, *, receipt_file: str,
+                                  plan_sha256: str, compiled_numeric_plan_sha256: str,
+                                  candidate: str, candidate_source_sha256: str,
+                                  expected_receipt_sha256: str | None = None):
+        """Verify one event-bound passed draft without treating it as a submission."""
+        identities = {"receipt_file": receipt_file, "plan_sha256": plan_sha256,
+                      "compiled_numeric_plan_sha256": compiled_numeric_plan_sha256,
+                      "candidate": candidate, "candidate_source_sha256": candidate_source_sha256}
+        if any(not isinstance(value, str) or not value for value in identities.values()):
+            raise ValueError("known passed trial event requires complete product identities")
+        receipt = next((row for row in self.receipts
+                        if row.get("receipt_file") == receipt_file and row.get("plan_sha256") == plan_sha256), None)
+        if receipt is None or receipt.get("status") != "passed" or receipt.get("source_geometry_ready") is not True:
+            raise ValueError("known passed trial event does not match a saved successful receipt")
+        if any(receipt.get(key) != value for key, value in identities.items()):
+            raise ValueError("known passed trial products differ from the event result")
+        if not isinstance(expected_receipt_sha256, str) or not expected_receipt_sha256:
+            raise ValueError("known passed trial requires an event-bound full receipt digest")
+        if hashlib.sha256(_plan_bytes(receipt)).hexdigest() != expected_receipt_sha256:
+            raise ValueError("known passed trial full receipt differs from the event result")
+        self._verified_original_image(expected_image_sha256)
+        plan, verified = self.verified_plan(plan_sha256)
+        if any(verified.get(key) != value for key, value in identities.items()):
+            raise ValueError("verified successful trial differs from the event-selected receipt")
+        return plan, verified
+
     def inherit_failed_reference(self, prior, expected_image_sha256: str, *, receipt_file: str,
                                  plan_sha256: str, compiled_numeric_plan_sha256: str | None = None,
                                  allowed_targets=None):
@@ -973,6 +1034,11 @@ class PlanTrial:
             ):
                 raise ValueError(f"rework_targets must name an editable plan field or collection:id: {target}")
         plan, receipt = prior.verified_plan(plan_sha256)
+        # Keep the prior report privately accessible; the default declaration
+        # read stays small. Its admission digest also protects later local reads.
+        original = next(row for row in prior.receipts if row.get("receipt_file") == receipt.get("receipt_file")
+                        and row.get("plan_sha256") == plan_sha256)
+        self._reference_report = (prior, original.get("receipt_file"), hashlib.sha256(_plan_bytes(original)).hexdigest())
         self.reference_plan = copy.deepcopy(plan)
         self.reference_validation_passed = True
         self.reference_receipt = {

@@ -102,6 +102,27 @@ def test_missing_usage_keeps_reported_and_budget_charge_unknown():
     assert result.cost_estimate_complete is False
 
 
+@pytest.mark.parametrize("usage,total,includes_images", [
+    (None, None, False),
+    (UsageMissing(reason="stream interrupted"), None, False),
+    (UsageReported(raw_usage={"input_tokens": 100}), None, False),
+    (UsageReported(raw_usage={"output_tokens": 20}), None, False),
+    (UsageReported(raw_usage={"input_tokens": 100, "output_tokens": 20}), 120, True),
+    (UsageReported(raw_usage={"total_tokens": 120}), 120, True),
+])
+def test_subscription_image_accounting_requires_a_reported_total(usage, total, includes_images):
+    result = account_request_usage(usage, image_tokens_estimate=66,
+        pricing=None, billing_mode="subscription", input_includes_images=True)
+    assert result.provider_reported_tokens == result.budget_charge_tokens == total
+    assert result.reported_usage_includes_image_tokens is includes_images
+    # Protocol inclusion avoids a second image charge, even while the total
+    # remains unknown. Neither the estimate nor a partial receipt fills it in.
+    assert result.additional_image_tokens == 0
+    assert result.image_tokens_estimate == 66
+    assert result.estimated_cost_cny is None
+    assert result.reported_image_tokens is None
+
+
 def test_request_estimate_exposes_image_subset_without_double_reserving():
     estimate = RequestEstimate.for_model_call(
         purpose="primary_task",

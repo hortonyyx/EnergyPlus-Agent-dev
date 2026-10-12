@@ -108,6 +108,217 @@ def test_missing_usage_stops_without_executing_write_or_fallback(tmp_path):
         assert result["fallback"] is False and not result["usage_complete"]
 
 
+def test_image_response_without_usage_keeps_hold_and_does_not_execute_write(tmp_path):
+    engine = engine_for(tmp_path, [native(("view_once", "view", {})),
+        native(("must_not_execute", "save", {"value": 1}), usage=False)])
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "token_usage_unavailable"
+        assert result["model_calls"] == 2 and result["tool_calls"] == 1
+        assert not (tmp_path / "tools/saved.json").exists()
+        missing = [e.payload.settlement for e in engine.store.events
+            if e.payload.event_type == "budget" and e.payload.action == "settle"
+            and e.payload.settlement.usage.kind == "missing"]
+        assert len(missing) == 1 and missing[0].actual.tokens is None
+        assert missing[0].image_tokens_estimate > 0
+        assert missing[0].reported_usage_includes_image_tokens is False
+        assert missing[0].additional_image_tokens == 0
+        assert result["usage_complete"] is False and result["fallback"] is False
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("observed_usage", [None,
+    {"input_tokens": 500},
+    {"input_tokens": 500, "output_tokens": 50, "total_tokens": 550},
+])
+@pytest.mark.parametrize("token_limit", [None, 500000])
+def test_image_transport_retry_preserves_unknown_usage_and_executes_only_complete_tools(tmp_path, observed_usage, token_limit):
+    from src.agent_runtime.responses import HttpResponsesAdapter
+    from src.agent_runtime.budget import RuntimeBudget
+
+    class InterruptedStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            partial = native(("never_execute", "save", {"value": -1}), usage=False)
+            partial["status"] = "in_progress"
+            if observed_usage is not None:
+                partial["usage"] = observed_usage
+            yield ("data: " + json.dumps({"type": "response.in_progress", "response": partial}) + "\n\n").encode()
+            raise httpx.ReadError("offline interrupted stream")
+
+    async def token():
+        return "offline-token"
+
+    seen = []
+    def handler(request):
+        seen.append(json.loads(request.content))
+        if len(seen) == 2:
+            return httpx.Response(200, stream=InterruptedStream())
+        raw = (native(("view_once", "view", {})) if len(seen) == 1 else
+               native(("save_once", "save", {"value": 8})) if len(seen) == 3 else
+               native(text="Recovered"))
+        return httpx.Response(200, text="data: " + json.dumps({"type": "response.completed", "response": raw}) + "\n\n")
+
+    limits = RunLimits(model_calls=5, tool_calls=2, seconds=90, tokens=token_limit,
+        max_model_retries=1, retry_backoff_seconds=0.001)
+    engine = engine_for(tmp_path, [], limits=limits)
+    engine.adapter = HttpResponsesAdapter(token_provider=token, transport=httpx.MockTransport(handler))
+    async def scenario():
+        try:
+            return await engine.run(MESSAGES)
+        finally:
+            await engine.adapter.close()
+
+    with engine.store:
+        result = asyncio.run(scenario())
+        assert result["status"] == "completed"
+        assert result["model_calls"] == len(seen) == 4
+        assert result["tool_calls"] == len(engine.tools.calls) == 2
+        assert (tmp_path / "tools/saved.json").read_text() == '{"value": 8}'
+        assert result["reported_tokens"] == 90 and result["usage_complete"] is False
+        assert result["fallback"] is False
+        failures = [e for e in engine.store.events if e.payload.event_type == "run_lifecycle"
+                    and e.payload.model_failure]
+        assert len(failures) == 1 and failures[0].payload.reason == "transport_error"
+        assert failures[0].payload.model_failure.usage_received is False
+        retries = [e for e in engine.store.events if e.payload.event_type == "run_lifecycle"
+                   and e.payload.action == "retry"]
+        assert len(retries) == 1 and retries[0].payload.attempt == 2
+        settlements = [e.payload.settlement for e in engine.store.events
+                       if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        unknown = [s for s in settlements if s.usage.kind == "missing"]
+        assert len(settlements) == 4 and len(unknown) == 1
+        assert unknown[0].actual.tokens is None and unknown[0].actual.calls == 1
+        assert unknown[0].image_tokens_estimate > 0
+        assert unknown[0].reported_usage_includes_image_tokens is False
+        assert unknown[0].additional_image_tokens == 0
+        held = next(r.amounts.tokens for r in engine.budget.ledger.reservations
+                    if r.reservation_id == unknown[0].reservation_id)
+        assert engine.budget.ledger.committed.tokens == held + 90
+        restored = RuntimeBudget.from_events(limits.ledger_limit(), engine.store.events)
+        assert restored.ledger == engine.budget.ledger and restored.fatal_reason is None
+        evidence = [s for e in failures for s in e.source_refs if s.source_id == "observed-stream-usage"]
+        assert len(evidence) == int(observed_usage is not None)
+        if evidence:
+            saved = json.loads(engine.store.get_bytes(evidence[0].blob))
+            assert saved["completeness"] == "unknown"
+            assert saved["usage"]["raw_usage"] == observed_usage
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("token_limit,expected_status,expected_calls", [
+    (None, "model_retries_exhausted:transport_error", 3),
+    (50000, "token_budget_exhausted", 2),
+])
+def test_image_transport_unknown_hold_protects_limits_and_retries_are_bounded(
+    tmp_path, token_limit, expected_status, expected_calls,
+):
+    limits = RunLimits(model_calls=6, tool_calls=2, seconds=90, tokens=token_limit,
+        max_model_retries=1, retry_backoff_seconds=0.001)
+    engine = engine_for(tmp_path, [native(("view_once", "view", {})),
+        ConnectionError("offline failure 1"), ConnectionError("offline failure 2"),
+        native(text="must not be sent")], limits=limits)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == expected_status
+        assert len(engine.adapter.requests) == result["model_calls"] == expected_calls
+        assert result["tool_calls"] == 1 and result["usage_complete"] is False
+        ledger = engine.budget.ledger
+        unknown = [s for s in ledger.settlements if s.usage.kind == "missing"]
+        assert len(unknown) == expected_calls - 1
+        assert all(s.actual.tokens is None and not s.reported_usage_includes_image_tokens for s in unknown)
+        held = sum(r.amounts.tokens for r in ledger.reservations
+                   if r.reservation_id in {s.reservation_id for s in unknown})
+        assert ledger.committed.tokens == held + 30
+        assert not ledger.releases and not ledger.reconciliations
+        if token_limit is not None:
+            assert ledger.committed.tokens <= token_limit
+            assert engine.budget.available.tokens < engine.parameters["max_tokens"]
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("raw_usage,total", [
+    (None, None), ({"input_tokens": 100}, None),
+    ({"input_tokens": 100, "output_tokens": 20, "total_tokens": 120}, 120),
+])
+def test_image_http_failure_preserves_missing_partial_and_complete_usage(tmp_path, raw_usage, total):
+    from src.agent_runtime.responses import HttpResponsesAdapter
+    seen = []
+    async def token():
+        return "offline-token"
+    def handler(request):
+        seen.append(json.loads(request.content))
+        if len(seen) == 2:
+            body = {"error": {"type": "server_error"}}
+            if raw_usage is not None:
+                body["usage"] = raw_usage
+            return httpx.Response(503, json=body)
+        raw = native(("view_once", "view", {})) if len(seen) == 1 else native(text="Recovered")
+        return httpx.Response(200, text="data: " + json.dumps({"type": "response.completed", "response": raw}) + "\n\n")
+    limits = RunLimits(model_calls=4, tool_calls=1, seconds=90, tokens=500000,
+        max_model_retries=1, retry_backoff_seconds=0.001)
+    engine = engine_for(tmp_path, [], limits=limits)
+    engine.adapter = HttpResponsesAdapter(token_provider=token, transport=httpx.MockTransport(handler))
+    async def scenario():
+        try:
+            return await engine.run(MESSAGES)
+        finally:
+            await engine.adapter.close()
+    with engine.store:
+        result = asyncio.run(scenario())
+        assert result["status"] == "completed" and len(seen) == 3
+        settlements = [e for e in engine.store.events
+                       if e.payload.event_type == "budget" and e.payload.action == "settle"]
+        failed_settlement = settlements[1].payload.settlement
+        assert failed_settlement.actual.tokens == total
+        assert failed_settlement.image_tokens_estimate > 0
+        assert failed_settlement.additional_image_tokens == 0
+        assert failed_settlement.reported_usage_includes_image_tokens is (total is not None)
+        if raw_usage is None:
+            assert failed_settlement.usage.kind == "missing"
+        else:
+            assert failed_settlement.usage.raw_usage == raw_usage
+        accounting_source = next(s for s in settlements[1].source_refs
+                                 if s.source_id == "request-usage-accounting")
+        accounting = json.loads(engine.store.get_bytes(accounting_source.blob))
+        assert accounting["reported_usage_includes_image_tokens"] == failed_settlement.reported_usage_includes_image_tokens
+        assert accounting["budget_charge_tokens"] == total
+        assert accounting["estimated_cost_cny"] is None
+        engine.store.validate()
+
+
+def test_image_transport_resume_settles_unknown_once_without_repeating_tools(tmp_path):
+    limits = RunLimits(model_calls=4, tool_calls=2, seconds=90, tokens=None,
+        max_model_retries=1, retry_backoff_seconds=0.001)
+    engine = engine_for(tmp_path, [native(("view_once", "view", {})),
+        ConnectionError("offline failure")], limits=limits)
+    record_failure = engine._record_model_failure
+    def crash_after_failure(*args, **kwargs):
+        record_failure(*args, **kwargs)
+        raise InjectedCrash("after durable transport failure, before settlement")
+    engine._record_model_failure = crash_after_failure
+    with engine.store:
+        with pytest.raises(InjectedCrash):
+            asyncio.run(engine.run(MESSAGES))
+        requests = [e for e in engine.store.events if e.payload.event_type == "adapter_request"]
+        assert len(requests[-1].payload.images) == 1
+        interrupted_reservation = requests[-1].payload.reservation_id
+        before = engine.store.path.read_bytes()
+    resumed = engine_for(tmp_path, [native(text="Recovered")], limits=limits, tools=engine.tools)
+    with resumed.store:
+        result = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert result["status"] == "completed" and result["model_calls"] == 3
+        assert result["tool_calls"] == len(engine.tools.calls) == 1
+        assert len(resumed.adapter.requests) == 1 and result["usage_complete"] is False
+        unknown = [s for s in resumed.budget.ledger.settlements
+                   if s.reservation_id == interrupted_reservation]
+        assert len(unknown) == 1 and unknown[0].usage.kind == "missing"
+        assert unknown[0].actual.tokens is None
+        assert unknown[0].reported_usage_includes_image_tokens is False
+        assert unknown[0].additional_image_tokens == 0
+        assert resumed.store.path.read_bytes().startswith(before)
+        resumed.store.validate()
+
+
 def metered_native(*calls, input_tokens=1000, text=None):
     raw = native(*calls, text=text)
     raw["usage"].update(input_tokens=input_tokens, total_tokens=input_tokens + 10)
@@ -162,6 +373,7 @@ def test_context_rejection_compacts_once_retains_unknown_usage_and_never_repeats
         missing = [s for s in settlements if s.usage.kind == "missing"]
         assert len(missing) == (2 if reject_again else 1)
         assert all(s.actual.tokens is None for s in missing)
+        assert all(not s.reported_usage_includes_image_tokens and s.additional_image_tokens == 0 for s in missing)
         held = sum(r.amounts.tokens for r in engine.task_budget.ledger.reservations
                    if r.reservation_id in {s.reservation_id for s in missing})
         known = sum(s.actual.tokens or 0 for s in settlements)

@@ -181,10 +181,15 @@ def account_request_usage(
     reported_image, _, image_in_total_attested = (
         _reported_image_tokens(raw)
     )
-    includes_images = image_tokens_estimate > 0 and (image_in_total_attested or input_includes_images)
+    # Protocol inclusion prevents double charging; it is not a usage receipt.
+    # Missing/partial totals must keep their reservation and cannot attest to
+    # a reported image-inclusive total, even on a route that includes images.
+    images_in_input = image_in_total_attested or input_includes_images
+    includes_images = (image_tokens_estimate > 0 and reported_total is not None
+                       and not rejected and images_in_input)
     separate_images = bills_images_separately(pricing)
     image_charge = reported_image if reported_image is not None else image_tokens_estimate
-    additional_images = 0 if rejected else image_charge if separate_images else (0 if includes_images else image_tokens_estimate)
+    additional_images = 0 if rejected else image_charge if separate_images else (0 if images_in_input else image_tokens_estimate)
     budget_tokens = (
         None
         if reported_total is None
@@ -213,6 +218,11 @@ def account_request_usage(
         note = (
             "Provider usage is unavailable; the ledger retains the conservative "
             "reservation and the image estimate remains separate."
+        )
+    elif reported_total is None:
+        note = (
+            "Provider usage has no complete token total; partial counters remain "
+            "reported separately and the ledger retains the conservative reservation."
         )
     elif separate_images and image_charge:
         note = (
