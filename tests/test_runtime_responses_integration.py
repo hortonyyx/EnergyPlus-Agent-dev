@@ -590,6 +590,9 @@ def test_stream_partial_usage_retained_without_claiming_final_accounting(tmp_pat
         return "fake-oauth"
     engine = engine_for(tmp_path, [])
     engine.request_timeout_seconds = 0.1
+    # This checks partial-stream evidence, not retry policy. A 100 ms request
+    # can cross the reservation tolerance depending on scheduler overhead.
+    engine.limits = engine.limits.model_copy(update={"max_model_retries": 0})
     engine.adapter = HttpResponsesAdapter(token_provider=token, transport=httpx.MockTransport(
         lambda request: httpx.Response(200, headers={"content-type": "text/event-stream"}, stream=InterruptedStream())))
     async def scenario():
@@ -599,8 +602,12 @@ def test_stream_partial_usage_retained_without_claiming_final_accounting(tmp_pat
             await engine.adapter.close()
     with engine.store:
         result = asyncio.run(scenario())
-        assert result["status"] == ("time_budget_exhausted" if terminal == "timeout" else "service_error")
+        assert result["status"] in ({"model_retries_exhausted:timeout", "time_budget_exhausted"}
+                                    if terminal == "timeout" else {"service_error"})
         assert result["tool_calls"] == 0 and result["model_calls"] == 1
+        failure = next(e.payload.model_failure for e in engine.store.events
+                       if e.payload.event_type == "run_lifecycle" and e.payload.model_failure)
+        assert failure.category == ("timeout" if terminal == "timeout" else "service_error")
         assert result["usage_complete"] is False
         evidence = [source for event in engine.store.events for source in event.source_refs
                     if source.source_id == "observed-stream-usage"]

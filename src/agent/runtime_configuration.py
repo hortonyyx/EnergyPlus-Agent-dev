@@ -108,6 +108,16 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
+        continuation = case.get("continuation")
+        if continuation is not None:
+            import re
+            if (mode != "role_division" or not isinstance(continuation, dict)
+                    or set(continuation) != {"source_run", "source_events_sha256"}
+                    or not isinstance(continuation["source_run"], str)
+                    or not Path(continuation["source_run"]).is_absolute()
+                    or not isinstance(continuation["source_events_sha256"], str)
+                    or re.fullmatch(r"[0-9a-f]{64}", continuation["source_events_sha256"]) is None):
+                raise ValueError("continuation needs an absolute source_run and its exact journal SHA-256 in role_division")
         context_arguments(case)
         role_configurations = None
         if mode == "role_division":
@@ -262,6 +272,9 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                  "--model-retries", str(limits.get("model_retries", 2)),
                  "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
         argv += context_arguments(case)
+        if case.get("continuation") is not None:
+            argv += ["--continue-from", case["continuation"]["source_run"],
+                     "--source-events-sha256", case["continuation"]["source_events_sha256"]]
     if resume:
         argv.append("--resume")
     return argv

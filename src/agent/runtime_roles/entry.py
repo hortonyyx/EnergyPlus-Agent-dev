@@ -7,6 +7,7 @@ import hashlib
 import json
 import time
 from contextlib import AsyncExitStack
+from pathlib import Path
 
 from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_inputs, publish_tool_budget
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
@@ -32,6 +33,10 @@ def parser():
     result.description = __doc__
     result.add_argument("--roles-json", required=True, help="explicit JSON object with all three role routes")
     result.add_argument("--max-concurrent-readers", type=int, default=8)
+    result.add_argument("--continue-from", type=Path,
+                        help="explicit new-run continuation from a terminal run; source remains read-only")
+    result.add_argument("--source-events-sha256",
+                        help="approved SHA-256 of the continuation source events.jsonl")
     return result
 
 
@@ -64,6 +69,31 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
         max_consecutive_truncations=args.max_consecutive_truncations, max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
     output = resolve_run_output(args.out, repository_root=ROOT, run_root=args.run_root)
+    source = None
+    continuation = None
+    source_path = getattr(args, "continue_from", None)
+    source_digest = getattr(args, "source_events_sha256", None)
+    if bool(source_path) != bool(source_digest):
+        raise ValueError("continuation requires both source path and approved journal SHA-256")
+    if source_path:
+        from src.agent_runtime.continuation import ReadOnlyRun, continuation_allowance
+        source = ReadOnlyRun(source_path)
+        if output == source.directory or output.is_relative_to(source.directory) or source.directory.is_relative_to(output):
+            raise ValueError("continuation needs a separate new run directory")
+        limits, continuation = continuation_allowance(source, limits, expected_events_sha256=source_digest)
+        prior = source.verified_role_configuration()
+        for key, expected in {
+            "roles": {name: route.model_dump(mode="json") for name, route in routes.items()},
+            "global_context": global_context,
+            "effective_context": {name: value.model_dump(mode="json") for name, value in role_contexts.items()},
+            "max_concurrent_readers": args.max_concurrent_readers,
+        }.items():
+            if prior.get(key) != expected:
+                raise ValueError("continuation must preserve role routing, context, and concurrency")
+        from .continuation import verify_domain_compatibility
+        verify_domain_compatibility(source, ROOT)
+    elif (output / "runtime_continuation.json").is_file():
+        raise ValueError("resuming a continuation requires its original --continue-from identity")
     if args.repair_tail and not args.resume:
         raise ValueError("--repair-tail requires --resume")
     if args.provider == "scripted" and args.script is None:
@@ -87,6 +117,8 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                                            for key, value in role_contexts.items()},
                      "connections": connection_routes,
                      "max_concurrent_readers": args.max_concurrent_readers}
+    if source is not None and source.read_json("role_configuration.json").get("connections") != connection_routes:
+        raise ValueError("continuation must preserve the original provider routes")
     if args.resume:
         if json.loads((output / "role_configuration.json").read_bytes()) != configuration:
             raise ValueError("role configuration changed on resume")
@@ -126,6 +158,20 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 limits=limits, root=ROOT, max_concurrent_readers=args.max_concurrent_readers,
                 started_epoch=manifest["started_epoch"], reader_fault_hook=reader_fault_hook,
                 role_contexts=role_contexts, connection_routes=connection_routes)
+            continued_readers = None
+            if source is not None:
+                if args.resume:
+                    saved_continuation = json.loads((output / "runtime_continuation.json").read_bytes())
+                    if saved_continuation["allowance"] != continuation:
+                        raise ValueError("continuation source or allowance changed on resume")
+                    continued_readers = saved_continuation["readers"]
+                else:
+                    from .continuation import import_reader_evidence
+                    continued_readers = import_reader_evidence(source, tools)
+                    source.verify_unchanged()
+                    body = {"allowance": continuation, "readers": continued_readers,
+                            "source_file_hashes": source.evidence_hashes}
+                    store.write_json("runtime_continuation.json", body)
             catalog = await tools.list_tools()
             specs = [{"type": "function", "function": {"name": t["name"], "description": t.get("description", ""),
                        "parameters": t["inputSchema"]}} for t in catalog]
@@ -134,12 +180,19 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 for tool in catalog)})
             route = {**connection_routes["coordinator"], "model": primary["model"],
                      "context": coordinator_context.model_dump(mode="json"), "roles": configuration}
+            if continued_readers is not None:
+                route["reader_continuation"] = {"manifest_sha256": hashlib.sha256(
+                    (output / "reader_continuation.json").read_bytes()).hexdigest()}
             if args.script:
                 route["fixture_sha256"] = hashlib.sha256(args.script.read_bytes()).hexdigest()
             versions = make_versions(store, root=ROOT, prompt=guide, tools=specs, parameters=parameters,
                 route=route, code_paths=("src/agent/runtime_roles", "src/agent/runtime_tools.py", "src/agent/runtime_context.py",
                                         "src/agent/runtime_delivery.py", "src/agent/bim_inputs.py", "scripts/tool_scripts", "src/agent/geometry"))
             if args.resume:
+                if source is not None and any(event.payload.event_type == "adapter_request" for event in store.events):
+                    from src.agent_runtime.continuation import ReadOnlyRun
+                    if ReadOnlyRun(output).verified_versions() != versions.model_dump(mode="json"):
+                        raise ValueError("continuation identity changed; refusing recovery before any work")
                 saved = store.latest_checkpoint()
                 if saved and saved[1]["versions"] != versions.model_dump(mode="json"):
                     raise ValueError("runtime implementation or roles changed; refusing recovery before any work")
@@ -165,11 +218,33 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
             content = task
             if manifest.get("building_input"):
                 content += "\nUser-supplied declaration: " + json.dumps(manifest["building_input"], ensure_ascii=False)
+            if continued_readers is not None:
+                content += (
+                    "\nThis is an explicitly authorized continuation in a new run, using verified reader evidence. "
+                    "The previous run is immutable. Original service failures and usage remain recorded; "
+                    "the available allowance already deducts prior consumption. This is not a replay of a failed request. "
+                    "Inspect role_state for imported deliveries and draft handoffs. Reuse completed deliveries. "
+                    "Continue an unsubmitted draft using a NEW task_id and its previous_task_id, reread and retrial it "
+                    "in the new task, then submit explicitly. A passed draft is not a formal delivery. "
+                    "Complete all remaining admitted floor plans, assemble the complete building, and deliver its viewer. "
+                    "Imported reader summary: " + json.dumps(continued_readers, ensure_ascii=False)
+                )
+                from src.agent_runtime.continuation import claim_continuation
+                source.verify_unchanged()
+                store.write_json("continuation_claim.json", claim_continuation(source, output))
             result = await engine.run([{"role": "system", "content": guide}, {"role": "user", "content": content}], resume=args.resume)
             accounting = role_accounting(store, tools.registry)
             store.write_json("role_accounting.json", accounting)
             store.write_json("role_state.json", tools.state())
             result["role_accounting"] = accounting
+            if source is not None:
+                result["continuation"] = {
+                    "source_run_id": source.run_id,
+                    "source_events_sha256": source_digest,
+                    "allowance": continuation,
+                    "current_run_usage_only": True,
+                    "combined_usage_requires_source_receipts": True,
+                }
             store.write_json("receipt.json", result)
             from src.agent.bim_inputs import dump
             delivery = result.get("finalization", {}).get("delivery")

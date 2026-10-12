@@ -286,6 +286,10 @@ class RoleSession:
 
     def _recoverable_plan_trial_event(self, task_id):
         """Select the latest known trial outcome, without crossing an unknown write."""
+        from .continuation import imported_draft_selection
+        imported = imported_draft_selection(self, task_id)
+        if imported is not None:
+            return imported
         child = self.registry.child(task_id)
         latest = None
         rejected_calls = set()

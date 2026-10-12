@@ -95,6 +95,85 @@ def is_context_length_error(error):
         for key in ("code", "type"))
 
 
+def transport_diagnostics(exc: BaseException, *, phase: str = "unknown") -> dict:
+    """Record types and observable transport stage, never exception text/URLs."""
+    for classes, name in (
+        ((httpx.ConnectError, httpx.ConnectTimeout), "connect"),
+        ((httpx.ReadError, httpx.ReadTimeout), "read"),
+        ((httpx.WriteError, httpx.WriteTimeout), "write"),
+        ((httpx.PoolTimeout,), "pool"),
+    ):
+        if isinstance(exc, classes):
+            phase = name
+            break
+    chain, seen, current = [], set(), exc
+    while current is not None and id(current) not in seen and len(chain) < 8:
+        seen.add(id(current))
+        name = f"{type(current).__module__}.{type(current).__qualname__}"
+        # Runtime exception classes have identifier names. Reject arbitrary
+        # custom metadata instead of attempting to redact unknown credentials.
+        chain.append(name[:256] if re.fullmatch(r"[\w.]+", name, flags=re.ASCII) else "unknown.Exception")
+        current = current.__cause__ or (None if current.__suppress_context__ else current.__context__)
+    return {"transport_phase": phase, "exception_chain": tuple(chain)}
+
+
+def service_diagnostics(error, *, secret: str = "", headers=None, envelope=None) -> dict:
+    """Allowlisted machine fields; arbitrary bodies/messages can echo requests."""
+    error = error if isinstance(error, dict) else {}
+    envelope = envelope if isinstance(envelope, dict) else {}
+
+    def identifier(value):
+        if type(value) is int:
+            value = str(value)
+        if not isinstance(value, str) or not value:
+            return None
+        sanitized = _sanitize(value, secret)
+        return sanitized[:256] if re.fullmatch(r"[A-Za-z0-9_.:-]+", sanitized) else "[redacted]"
+
+    hints = []
+    for source in (headers, error.get("headers")):
+        if hasattr(source, "items"):
+            hints.extend(value for key, value in source.items()
+                         if str(key).casefold() == "x-retry-metadata")
+    if error.get("retry_hint") is not None:
+        hints.append(error["retry_hint"])
+    # Conflicting or unfamiliar hints never grant permission to retry.
+    hint = ("NO_MORE_RETRY" if any(isinstance(v, str) and v.strip().upper() == "NO_MORE_RETRY" for v in hints)
+            else identifier(hints[0]) if len(hints) == 1
+            else "UNRECOGNIZED_RETRY_HINT" if hints else None)
+    if hints and hint is None:
+        hint = "UNRECOGNIZED_RETRY_HINT"
+    header_id = None
+    if hasattr(headers, "items"):
+        header_id = next((value for key, value in headers.items()
+                          if str(key).casefold() in {"x-request-id", "request-id"}), None)
+    result = {
+        "service_error_type": identifier(error.get("type", error.get("code"))),
+        "service_error_code": identifier(error.get("code")),
+        "retry_hint": hint,
+        "request_id": identifier(header_id or error.get("request_id") or envelope.get("request_id")),
+    }
+    # No response body, headers, arbitrary message or echoed input enters the
+    # journal. These fields retain the signal used for the retry decision.
+    result["body_excerpt"] = json.dumps({**result, "message": "service message omitted; structured fields retained"})
+    return result
+
+
+def sse_failure_classification(error, *, retry_hint=None):
+    """Only explicit temporary overload without any retry hint is retryable."""
+    error = error if isinstance(error, dict) else {}
+    codes = {str(error.get(key, "")).casefold() for key in ("code", "type")}
+    if codes & {"authentication_error", "permission_error", "permission_denied", "unauthorized", "forbidden"}:
+        return "permission_denied", False
+    if codes & {"insufficient_quota", "quota_exhausted", "usage_limit_reached", "billing_hard_limit_reached"}:
+        return "quota_exhausted", False
+    if is_context_length_error(error):
+        return "context_length_exceeded", False
+    if "server_is_overloaded" in codes:
+        return "service_unavailable", retry_hint is None
+    return "service_error", False
+
+
 def http_failure(response: httpx.Response, *, secret: str, provider: str | None = None) -> ModelServiceError:
     try:
         body = response.json()
@@ -102,7 +181,6 @@ def http_failure(response: httpx.Response, *, secret: str, provider: str | None 
         body = None
     error = body.get("error", body) if isinstance(body, dict) else {"message": response.text}
     error = error if isinstance(error, dict) else {"message": str(error)}
-    error_type = error.get("type", error.get("code"))
     diagnostic = " ".join(str(error.get(k, "")) for k in ("type", "code", "message")).casefold()
     status = response.status_code
     # Provider-specific codes are meaningful only on the identified route.
@@ -156,14 +234,12 @@ def http_failure(response: httpx.Response, *, secret: str, provider: str | None 
     usage = UsageReported(raw_usage=usage_raw) if usage_raw else UsageMissing(reason="HTTP error omitted token usage")
     if not usage_received and status == 429 and category == "temporary_rate_limit":
         usage = rejected_request_usage()
-    request_id = response.headers.get("x-request-id", response.headers.get("request-id"))
-    if request_id is None and isinstance(body, dict):
-        request_id = body.get("request_id", body.get("id"))
+    details = service_diagnostics(error, secret=secret, headers=response.headers, envelope=body)
+    if details["retry_hint"] is not None:
+        retryable = False
     return ModelServiceError({
         "category": category, "retryable": retryable, "http_status": status,
-        "service_error_type": _sanitize(error_type, secret)[:256] if error_type is not None else None,
-        "body_excerpt": _sanitize(response.text, secret).encode("utf-8")[:2048].decode("utf-8", errors="ignore"),
-        "request_id": _sanitize(request_id, secret)[:256] if request_id is not None else None,
+        **details,
         "usage_received": usage_received,
     }, usage)
 
@@ -180,4 +256,5 @@ def classify_failure(exc: BaseException, request_event_id: str) -> ModelFailureD
     else:
         category, retryable = "unknown_error", False
     return ModelFailureDetails(request_event_id=request_event_id, category=category,
-        retryable=retryable, service_error_type=type(exc).__name__, usage_received=False)
+        retryable=retryable, service_error_type=type(exc).__name__, usage_received=False,
+        **transport_diagnostics(exc))

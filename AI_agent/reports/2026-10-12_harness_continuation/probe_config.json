@@ -1,0 +1,31 @@
+{
+  "purpose": "call-chain smoke only; no BIM benchmark or geometry evaluation",
+  "repo": "D:/Sim-BIM-Agent/repo",
+  "input_manifest": "D:/Sim-BIM-Agent/repo/AI_agent/reports/2026-10-12_sm25_gpt_mix/input_manifest.json",
+  "input_manifest_sha256": "796557260bf938ba613aa33bc4c08b53dde790a64b3cd91966cf58c42097cf9e",
+  "route": "chatgpt-subscription",
+  "reasoning_effort": "high",
+  "max_batch_requests": 20,
+  "max_session_requests": 2,
+  "max_model_retries": 0,
+  "max_tool_recovery_retries": 0,
+  "session_seconds": 600,
+  "request_timeout_seconds": 300,
+  "tokens": null,
+  "stages": [
+    {"concurrency": 1, "sessions": [{"target": "F1", "image": "1f_view.png", "model": "gpt-6-sol", "role": "plan_reader"}]},
+    {"concurrency": 3, "sessions": [
+      {"target": "F1", "image": "1f_view.png", "model": "gpt-6-sol", "role": "plan_reader"},
+      {"target": "F2", "image": "2f_view.png", "model": "gpt-6-sol", "role": "plan_reader"},
+      {"target": "North", "image": "North_view.png", "model": "gpt-6-luna", "role": "elevation_reader"}
+    ]},
+    {"concurrency": 6, "sessions": [
+      {"target": "F1", "image": "1f_view.png", "model": "gpt-6-sol", "role": "plan_reader"},
+      {"target": "F2", "image": "2f_view.png", "model": "gpt-6-sol", "role": "plan_reader"},
+      {"target": "North", "image": "North_view.png", "model": "gpt-6-luna", "role": "elevation_reader"},
+      {"target": "East", "image": "East_view.png", "model": "gpt-6-luna", "role": "elevation_reader"},
+      {"target": "South", "image": "South_view.png", "model": "gpt-6-luna", "role": "elevation_reader"},
+      {"target": "West", "image": "West_view.png", "model": "gpt-6-luna", "role": "elevation_reader"}
+    ]}
+  ]
+}

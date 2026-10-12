@@ -82,6 +82,38 @@ def load(tmp_path, one_case):
     return load_configuration(path)
 
 
+def test_continuation_identity_survives_configuration_and_cli(tmp_path):
+    selected = case()
+    source = str((tmp_path / "terminal-source").resolve())
+    selected["continuation"] = {"source_run": source, "source_events_sha256": "a" * 64}
+    from src.agent.runtime_roles.entry import parser
+    parsed = parser().parse_args(argv_for(load(tmp_path, selected)["cases"][0])[3:])
+    assert parsed.continue_from == Path(source)
+    assert parsed.source_events_sha256 == "a" * 64
+    assert not parsed.resume  # New run, not checkpoint recovery.
+
+
+@pytest.mark.parametrize("change", [
+    {"source_run": "relative/source"}, {"source_events_sha256": "not-a-hash"},
+    {"source_events_sha256": "A" * 64}, {"source_events_sha256": 123},
+    {"extra": True},
+])
+def test_invalid_continuation_identity_is_rejected_before_launch(tmp_path, change):
+    selected = case()
+    selected["continuation"] = {"source_run": str(tmp_path.resolve()),
+                                "source_events_sha256": "a" * 64, **change}
+    with pytest.raises(ValueError, match="continuation needs"):
+        load(tmp_path, selected)
+
+
+def test_single_model_cannot_silently_ignore_reader_continuation(tmp_path):
+    selected = case("single_model")
+    selected["continuation"] = {"source_run": str(tmp_path.resolve()),
+                                "source_events_sha256": "a" * 64}
+    with pytest.raises(ValueError, match="role_division"):
+        load(tmp_path, selected)
+
+
 def test_roles_require_all_fixed_identities_and_reject_unknown_identity():
     missing = roles()
     missing.pop("elevation_reader")

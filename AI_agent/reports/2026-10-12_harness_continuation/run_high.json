@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "batch_id": "sm25-gpt-continuation-20261012-high",
+  "approval_required_before_launch": true,
+  "maximum_seconds_per_case": 10800,
+  "input_root": "D:/Sim-BIM-Agent/cases/sm25-gpt-20261012",
+  "run_root": "D:/Sim-BIM-Agent/runs",
+  "cases": [
+    {
+      "case_id": "sm25-continuation-high",
+      "mode": "role_division",
+      "input": "input",
+      "output": "sm25-gpt-continuation-20261012-high",
+      "input_kind": "images",
+      "image_kind": "drawings",
+      "floor_plan_images": [
+        "1f_view.png",
+        "2f_view.png"
+      ],
+      "scope": "Build and deliver the complete lightweight source BIM from the supplied floor-plan and elevation images. Preserve physical spaces, partitions, opening hosts and connections; use the current 0.1 m regularisation policy and retain measurement evidence and explicit assumptions. Use the six available reader slots to process independent drawing tasks in parallel. Perform your own cross-view checks and any necessary rework, then deliver the selected BIM and its viewer. No developer assistance will be provided during this run.",
+      "provider": "chatgpt-subscription",
+      "model": "gpt-6-sol",
+      "reasoning_history": "all",
+      "reasoning_effort": "high",
+      "output_tokens": 32000,
+      "roles": {
+        "coordinator": {
+          "provider": "chatgpt-subscription",
+          "model": "gpt-6-sol",
+          "reasoning_effort": "high",
+          "output_tokens": 32000
+        },
+        "plan_reader": {
+          "provider": "chatgpt-subscription",
+          "model": "gpt-6-sol",
+          "reasoning_effort": "high",
+          "output_tokens": 32000
+        },
+        "elevation_reader": {
+          "provider": "chatgpt-subscription",
+          "model": "gpt-6-luna",
+          "reasoning_effort": "high",
+          "output_tokens": 32000
+        }
+      },
+      "max_concurrent_readers": 6,
+      "max_candidates": 24,
+      "context_tokens": null,
+      "compact_at_tokens": null,
+      "limits": {
+        "model_calls": 180,
+        "tool_calls": 700,
+        "seconds": 10800,
+        "tokens": null,
+        "model_retries": 2,
+        "retry_backoff_seconds": 2
+      },
+      "continuation": {
+        "source_run": "D:/Sim-BIM-Agent/runs/sm25-gpt-harness-recovery-20261012-high",
+        "source_events_sha256": "5f0543e9b0b8507d2662e4fb21f4479b0f47b1610129f47215e457043245d973"
+      }
+    }
+  ]
+}

@@ -91,12 +91,22 @@ def _single_tasks():
 def _role_task(role):
     if role == "coordinator":
         from src.agent.runtime_roles.entry import execute
-        env = {"task": "<scope>", "manifest": {"building_input": "<declaration>"}, "json": json}
-        env["content"] = _evaluate(_assignment(execute, "content"), env)
-        for node in ast.walk(_tree(execute)):
-            if isinstance(node, ast.AugAssign) and isinstance(node.target, ast.Name) and node.target.id == "content":
-                _execute(node, env)
-        return {"plain": "<scope>", "declared": env["content"]}
+        result = {}
+        for declared in (False, True):
+            for continued in (False, True):
+                env = {"task": "<scope>", "manifest": {"building_input": "<declaration>"},
+                       "json": json, "continued_readers": {"evidence": "<verified-reader-summary>"}}
+                env["content"] = _evaluate(_assignment(execute, "content"), env)
+                for node in ast.walk(_tree(execute)):
+                    if not (isinstance(node, ast.AugAssign) and isinstance(node.target, ast.Name)
+                            and node.target.id == "content"):
+                        continue
+                    names = {part.id for part in ast.walk(node.value) if isinstance(part, ast.Name)}
+                    if ("manifest" in names and not declared) or ("continued_readers" in names and not continued):
+                        continue
+                    _execute(node, env)
+                result[f"declaration={declared}/continuation={continued}"] = env["content"]
+        return result
     # Uses the exact JSON payload construction in run_reader, including the
     # coordinate instructions. The projected previous-artifact context remains
     # symbolic; its production projection implementation is in the domain scope.

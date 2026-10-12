@@ -402,9 +402,20 @@ class ModelFailureDetails(ContractModel):
     retryable: bool
     http_status: int | None = Field(default=None, ge=100, le=599)
     service_error_type: str | None = None
+    service_error_code: str | None = Field(default=None, max_length=256)
+    retry_hint: str | None = Field(default=None, max_length=256)
+    transport_phase: str | None = Field(default=None, max_length=64)
+    exception_chain: tuple[str, ...] = Field(default=(), max_length=8)
     body_excerpt: str | None = None
     request_id: str | None = None
     usage_received: bool
+
+    @field_validator("exception_chain")
+    @classmethod
+    def bounded_exception_types(cls, value):
+        if any(len(item) > 256 for item in value):
+            raise ValueError("model failure exception type exceeds 256 characters")
+        return value
 
     @field_validator("body_excerpt")
     @classmethod

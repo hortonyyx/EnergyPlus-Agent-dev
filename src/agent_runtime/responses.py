@@ -24,7 +24,8 @@ from src.harness_contracts import (AdapterRequestPayload, ImageTransmission,
 from .adapter import ParsedResponse, PreparedRequest, decode_image_url
 from .estimation import (RequestTokenEstimate, approximate_text_tokens,
     estimate_chat_request, get_model_profile)
-from .failures import ModelServiceError, _sanitize, http_failure, is_context_length_error
+from .failures import (ModelServiceError, _sanitize, http_failure, service_diagnostics,
+    sse_failure_classification, transport_diagnostics)
 from .store import json_bytes
 
 
@@ -439,13 +440,19 @@ returns failure evidence for the parser/truncation journal, never executable cal
         self.last_send_timing = {}
         self.last_received_usage = UsageMissing(reason="current request has not reported usage")
         started = perf_counter()
-        def failure(category, description, raw=None, retryable=False, error_type=None):
+        phase, response_headers = "awaiting_response_headers", None
+        def failure(category, description, raw=None, retryable=False, details=None):
             # Mid-stream observations do not establish the final total. A
             # missing terminal usage must keep the runtime's unknown hold.
             usage = _usage(raw)
+            diagnostics = service_diagnostics({}, secret=token, headers=response_headers)
+            diagnostics.pop("body_excerpt")
+            diagnostics.update(details or {})
+            if diagnostics.get("retry_hint") is not None:
+                retryable = False
             error = ModelServiceError({"category": category, "retryable": retryable,
-                "service_error_type": _sanitize(error_type, token)[:256] if error_type else None,
                 "body_excerpt": _sanitize(description, token)[:2048],
+                **diagnostics,
                 "usage_received": usage.kind == "reported"}, usage)
             error.observed_usage = self.last_received_usage
             return error
@@ -459,6 +466,8 @@ returns failure evidence for the parser/truncation journal, never executable cal
                 raise failure("permission_denied", "OAuth bearer token unavailable or invalid")
             async with self.client.stream("POST", ENDPOINT, content=request.wire_bytes,
                     headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "text/event-stream"}, timeout=timeout) as response:
+                response_headers = response.headers
+                phase = "reading_response_stream"
                 if not response.is_success:
                     await response.aread()
                     error = http_failure(response, secret=token)
@@ -490,10 +499,12 @@ returns failure evidence for the parser/truncation journal, never executable cal
                             raise ValueError("conflicting output item")
                         done_items[index] = copy.deepcopy(item)
                     if kind in {"response.failed", "error"}:
-                        reason = (value or event_raw).get("error") or (value or {}).get("incomplete_details") or {}
-                        raise failure("context_length_exceeded" if is_context_length_error(reason) else "service_error",
-                            json.dumps(reason), value if isinstance(value, dict) else event_raw,
-                            error_type=reason.get("type", reason.get("code")) if isinstance(reason, dict) else None)
+                        envelope = value if isinstance(value, dict) else event_raw
+                        reason = envelope.get("error") or envelope.get("incomplete_details") or (event_raw if kind == "error" else {})
+                        details = service_diagnostics(reason, secret=token, headers=response_headers, envelope=envelope)
+                        category, retryable = sse_failure_classification(reason, retry_hint=details["retry_hint"])
+                        raise failure(category, "Responses service failure", envelope,
+                            retryable=retryable, details=details)
                     if kind in {"response.completed", "response.incomplete"}:
                         expected = "completed" if kind == "response.completed" else "incomplete"
                         if not isinstance(value, dict) or value.get("object") != "response" or value.get("status") != expected or not isinstance(value.get("output"), list):
@@ -535,13 +546,16 @@ returns failure evidence for the parser/truncation journal, never executable cal
                     result = await event()
                     if result is not None:
                         return result
-                raise failure("transport_error", "Responses stream ended without response.completed", retryable=True)
+                raise failure("transport_error", "Responses stream ended without response.completed", retryable=True,
+                    details={"transport_phase": phase})
         except ModelServiceError:
             raise
-        except httpx.TimeoutException:
-            raise failure("timeout", "Responses stream timed out", retryable=True) from None
-        except httpx.TransportError:
-            raise failure("transport_error", "Responses stream transport interrupted", retryable=True) from None
+        except httpx.TimeoutException as exc:
+            raise failure("timeout", "Responses stream timed out", retryable=True,
+                details=transport_diagnostics(exc, phase=phase)) from None
+        except httpx.TransportError as exc:
+            raise failure("transport_error", "Responses stream transport interrupted", retryable=True,
+                details=transport_diagnostics(exc, phase=phase)) from None
         except (ValueError, TypeError, KeyError, AttributeError):
             raise failure("invalid_response", "Invalid Responses stream protocol") from None
         finally:

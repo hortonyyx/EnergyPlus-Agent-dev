@@ -1,0 +1,140 @@
+{
+  "reviewer": "independent /root/review_harness_recovery; no product implementation",
+  "decision": "APPROVED: no remaining P1/P2 within reviewed scope; required offline node/fingerprint gates are separately owned by root before launch",
+  "scope": [
+    "service classification and redacted diagnostics",
+    "retry hint veto across fresh, redispatch, context and checkpoint restore",
+    "read-only source and conserved remaining allowances",
+    "one continuation destination claim",
+    "version/role configuration binding to approved source journal",
+    "reader evidence migration, chained manifest provenance, same-version resume",
+    "probe 20-request cap, stage stop and exact wire/response model identity"
+  ],
+  "closed_findings": [
+    {
+      "id": "P2-retry-hint-veto",
+      "problem": "NO_MORE_RETRY/unknown hints bypassed through temporary-rate redispatch and context recovery, including checkpoints",
+      "fix": "hint None gate at every retry/reorganization/restore entry; retryable required for rate path; no-hint controls retained",
+      "evidence": "review-veto-fixed.xml"
+    },
+    {
+      "id": "P2-source-version-binding",
+      "problem": "versions.json sidecar could change with approved journal unchanged",
+      "fix": "verified_versions binds every durable root adapter_request; role configuration additionally binds model_route blob",
+      "evidence": "review-runtime-final.xml"
+    },
+    {
+      "id": "P2-probe-model-identity",
+      "problem": "probe nonce/image success could pass with wrong response model",
+      "fix": "exact wire model/effort and raw response model for each request/response; absence or unverified suffix fails phase",
+      "evidence": "review-probe-identity-final.xml"
+    },
+    {
+      "id": "P2-chained-manifest-binding",
+      "problem": "replacing reader continuation manifest and its self-declared blob could forge origin event with journal unchanged",
+      "fix": "complete manifest SHA anchored in root request model_route; read-only parent verifies anchor; resume compares durable request versions before adapter or pending-tool recovery, even without checkpoint",
+      "before": "review-manifest-rebind-dl6jkkoo/finding.json",
+      "after": "review-manifest-fixed-la8452ah/result.json",
+      "evidence": "review-domain-anchor-final.xml"
+    }
+  ],
+  "independent_offline_checks": [
+    {
+      "file": "review-veto-fixed.xml",
+      "passed": 15
+    },
+    {
+      "file": "review-runtime-final.xml",
+      "passed": 15
+    },
+    {
+      "file": "review-probe-identity-final.xml",
+      "passed": 6
+    },
+    {
+      "file": "review-domain-anchor-final.xml",
+      "passed": 5
+    }
+  ],
+  "independent_repro_after_fix": {
+    "forged_manifest_rejected": true,
+    "approved_journal_unchanged": true,
+    "destination_records": 0,
+    "destination_events": 0,
+    "pending_import": false
+  },
+  "configuration_comparison": {
+    "source": "AI_agent/reports/2026-10-12_sm25_harness_recovery/run_high.json",
+    "destination": "AI_agent/reports/2026-10-12_harness_continuation/run_high.json",
+    "differences_only": [
+      "batch_id",
+      "cases[0].case_id",
+      "cases[0].output",
+      "cases[0].continuation"
+    ],
+    "preserved": [
+      "models and roles",
+      "high reasoning effort",
+      "six reader concurrency",
+      "scope and images and floor scope",
+      "context configuration",
+      "all requested budgets/retry policy"
+    ]
+  },
+  "invariants_confirmed": [
+    "unknown source usage remains unknown and original holds constrain new capacity",
+    "remaining calls/tools/time/tokens/money cannot increase via requested caps",
+    "new authorized execution epoch subtracts prior active time; maintenance downtime is not new execution",
+    "source run accessed through read-only tracked dependency surface",
+    "completed submissions reusable; passed-unsubmitted drafts require a new task and retrial plus explicit submit",
+    "no model/tool execution events fabricated for import",
+    "child artifacts are partial reader evidence, not a complete building delivery"
+  ],
+  "residual_boundaries": [
+    "Review and listed validations are offline; no real service reliability, throughput or model quality claim",
+    "Final real-MCP offline node and version-fingerprint results are root-owned launch gates, not claimed as reviewer-executed",
+    "Evidence hash protection uses the approved journal and content-addressed dependencies; this review is not an OS filesystem access-control audit",
+    "Subscription usage may remain absent; no total fee inferred",
+    "The probe is call-chain smoke and does not establish BIM quality or complete-building delivery"
+  ],
+  "boundary_counts": {
+    "real_model_calls": 0,
+    "network_calls": 0,
+    "gt_reads": 0,
+    "product_file_edits": 0,
+    "historical_run_edits": 0
+  },
+  "git_head_at_review": "fea603b9751e0de35ea54bbd18451762f59fa17a",
+  "tracked_diff_sha256": "a7e935e51332c1910bafb7395473df24f770e98a2cf3e01276b24212b1bef6de",
+  "source_files": {
+    "src/agent_runtime/continuation.py": "ef9813d246f9796259d17cb5643cd4bf5a2fc162ad7a56c55f13f2c214a776b8",
+    "src/agent_runtime/failures.py": "567c18b5ddf6828b80c5311385ded800ef5abaf53af1d0557d29e32ebd4ead9b",
+    "src/agent_runtime/responses.py": "58341a2ef8452d7c9b62edf0fe454d582de67056decb01bf3641d7edcaef3781",
+    "src/agent_runtime/loop.py": "e0a23a59dc9a12d1d0d124392daaa42a7b1f7ea4b18df0b5bf3127d369706aed",
+    "src/harness_contracts/events.py": "c3cbfb734ea6a2af3f7f2fc4d902093471f316eec7046bea289d0613b8c18027",
+    "src/agent/runtime_roles/entry.py": "2867622dcfe60f3d3251f43690a051bccad9420b9ff6baaf7113d824bc6634b6",
+    "src/agent/runtime_roles/continuation.py": "10554a0d3c8a652eef965ad4ee2718976c409e9601fcb9f502e7bbde92dbbfa6",
+    "src/agent/runtime_roles/artifacts.py": "11b3a64ecd6ff8a2a9db5e654bd8bbfb175a32cadd39bbd92453c5e19f8102a4",
+    "src/agent/runtime_roles/session.py": "479217adbc6427ccb1feda81f6ccb17319e215bf7a699280091cb7d4c4257f97",
+    "src/agent/runtime_configuration.py": "72ae20f750f422a7135474fdcec1cd55b02c80a46c9a2596e796b41b2968bb8f",
+    "src/agent/version_fingerprints.py": "27eefb3f6789fb6d5c5141568ebc5bd3ed3f5ccc1136c0516c42f8043dc00903",
+    "tests/test_runtime_continuation.py": "50174792da9b36574441fc75fdb20952727a085ade47b3d8e779a43063a21b7c",
+    "tests/test_runtime_service_failures.py": "5652c44eeca58b47fbf565752b538a10c5af512f1c6c3309e6e9f048d5cee3b6",
+    "tests/test_runtime_responses_integration.py": "cdf660365e71d3efd3384a4a61f0b94b1796804238d8f6646dfbb77ca2e4aead",
+    "tests/test_role_continuation.py": "021aac30c96b36aa7fc8b5c5619aca87863c37c68a9a59ff833ca9085b03919e",
+    "tests/test_role_continuation_entry.py": "8568ecddbf8975ae20ad82b740ad8e461ea6f63fe826e4f4f5f0f9dc23361161",
+    "tests/test_role_configuration.py": "4b3411f0bc25bb04a6582e2c1c144c855eb5c3ebe63d6be94f442bcdfbe467c1",
+    "AI_agent/reports/2026-10-12_harness_continuation/run_high.json": "023a2002cf543e98cb1e7891f4f92bdca0a6909b29e0b6de2ba2225a174326b4"
+  },
+  "probe_files": {
+    "call_chain_probe.py": "74852ad4596e663417fc15b813abf488647a89f516c9024b99476a951f88ec6b",
+    "probe_config.json": "489adcd05f728e2014732d21395bd6f3be72c3caf9b7f755aa6be87a710bf161",
+    "test_call_chain_probe.py": "03d88066b50cd3b582fe5e2d7ac651a9934cfed7041c6d4cbdbf3a9da468f415"
+  },
+  "validation_files": {
+    "review-veto-fixed.xml": "c8607e6d5079e99f5007938d6f19e16caa73e2cb132c0309a5e6519a022583e7",
+    "review-runtime-final.xml": "7d437cf5d58b2bed2dbbe98c667d2fee037a6f7c5c67af57c9aad85a9b8a0834",
+    "review-probe-identity-final.xml": "4f48e9a974c41925980ce2203d55ca3d03ef1134043e3fd7ff68cbd7a184d01d",
+    "review-domain-anchor-final.xml": "743ce1835dad7057f67720ec3ef01f3ab171c5163a9b9e835f06c9c904bf8f5a"
+  }
+}

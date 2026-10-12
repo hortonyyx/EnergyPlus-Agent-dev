@@ -24,7 +24,7 @@ class ArtifactRegistry:
         self.store = store
         self.records = {}
         for path in sorted((store.directory / "tasks").glob("*/reader_record.json")):
-            record = json.loads(path.read_bytes())
+            record = json.loads(self._read_bytes(path))
             task_id = valid_task_id(record["task_id"])
             child = self.child(task_id)
             if path.resolve() != (child.task_directory / "reader_record.json").resolve():
@@ -33,6 +33,13 @@ class ArtifactRegistry:
             self._verify_record(record)
             if record.get("artifact"):
                 self.read(task_id)
+
+    def _read_bytes(self, path):
+        # A continuation source records every direct file dependency without
+        # acquiring an EventStore writer or changing the old run.
+        if hasattr(self.store, "read_bytes"):
+            return self.store.read_bytes(path.resolve().relative_to(self.store.directory.resolve()))
+        return path.read_bytes()
 
     def _verify_record(self, record):
         reference = record.get("record_blob")
@@ -64,7 +71,14 @@ class ArtifactRegistry:
             child.write_json("reader_task.json", task)
         return child
 
-    def save(self, task, *, status, artifact=None, validation=None, runtime=None, reason=None):
+    def save(self, task, *, status, artifact=None, validation=None, runtime=None, reason=None,
+             delivered_at_ns=None):
+        from types import SimpleNamespace
+        from .continuation import MANIFEST, imported_task
+        if (self.store.directory / MANIFEST).is_file():
+            imported = imported_task(SimpleNamespace(store=self.store, registry=self), task["task_id"])
+            if imported and self.records[task["task_id"]]["status"] != "completed":
+                raise ValueError("imported reader evidence is immutable; use a new task_id")
         child = self.admit(task)
         previous = self.records.get(task["task_id"])
         if previous and previous["status"] == "completed":
@@ -81,7 +95,9 @@ class ArtifactRegistry:
                   "runtime_elapsed_seconds": runtime.get("elapsed_seconds") if runtime else None,
                   "task_sha256": hashlib.sha256(json_bytes(task)).hexdigest()}
         if artifact is not None:
-            record["delivered_at_ns"] = time.time_ns()
+            if delivered_at_ns is not None and (type(delivered_at_ns) is not int or delivered_at_ns <= 0):
+                raise ValueError("delivery ordering requires a positive original timestamp")
+            record["delivered_at_ns"] = time.time_ns() if delivered_at_ns is None else delivered_at_ns
             raw = json_bytes(artifact)
             path = child.task_directory / "reader_artifact.json"
             if path.exists() and path.read_bytes() != raw:
@@ -120,7 +136,7 @@ class ArtifactRegistry:
         expected = self.child(task_id).task_directory / "reader_artifact.json"
         if path != expected.resolve():
             raise ValueError("artifact path does not belong to its reader task")
-        raw = path.read_bytes()
+        raw = self._read_bytes(path)
         if hashlib.sha256(raw).hexdigest() != ref["sha256"]:
             raise ValueError("reader artifact hash mismatch")
         if self.store.get_bytes(HashedBlobRef.model_validate(ref["blob"])) != raw:
@@ -128,7 +144,7 @@ class ArtifactRegistry:
         return json.loads(raw)
 
     def task(self, task_id):
-        return json.loads((self.child(task_id).task_directory / "reader_task.json").read_bytes())
+        return json.loads(self._read_bytes(self.child(task_id).task_directory / "reader_task.json"))
 
     def state(self):
         return [self.records[key] for key in sorted(self.records)]

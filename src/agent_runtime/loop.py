@@ -550,7 +550,9 @@ class Runtime:
 
     def _context_recovery_stop(self, *, reason, prepared=None):
         evidence = {"reason": reason, "recoverable": True,
-            "next_action": "Resume from the saved task state with a smaller required working set or corrected window evidence; do not replay completed tools.",
+            "next_action": ("A provider retry hint blocks automatic resend. Inspect the saved failure and preserve completed tools before explicitly planning any new request."
+                if reason == "provider_retry_hint_veto" else
+                "Resume from the saved task state with a smaller required working set or corrected window evidence; do not replay completed tools."),
             "checkpoint": str(self.store.task_directory / "checkpoint.json"),
             "configured_context_limit": self.limits.context_tokens,
             "estimate": asdict(prepared.token_estimate) if prepared is not None else None}
@@ -720,7 +722,8 @@ class Runtime:
                     failure = classify_failure(exc, request.event_id)
                     elapsed = time.monotonic() - sent_at
                     self._phase_seconds["adapter_send"] = self._phase_seconds.get("adapter_send", 0.0) + elapsed
-                    redispatch = lease is not None and failure.category == "temporary_rate_limit"
+                    redispatch = (lease is not None and failure.category == "temporary_rate_limit"
+                        and failure.retryable and failure.retry_hint is None)
                     adjustment = lease.rejected() if redispatch else None
                     if lease:
                         lease.release()
@@ -736,6 +739,11 @@ class Runtime:
                     if settlement_stop:
                         return None, settlement_stop
                     if failure.category == "context_length_exceeded":
+                        # Context repair is a separate, normally non-transient
+                        # retry path. Provider retry vetoes still take precedence.
+                        if failure.retry_hint is not None:
+                            return None, self._context_recovery_stop(
+                                reason="provider_retry_hint_veto", prepared=prepared)
                         rejected = sum(e.payload.event_type == "run_lifecycle"
                             and e.payload.model_failure is not None
                             and e.payload.model_failure.category == "context_length_exceeded"
@@ -1598,9 +1606,10 @@ class Runtime:
             request = dangling[-1]
             failure = failures.get(request.event_id)
             context_retry_ready = (failure is not None and failure.category == "context_length_exceeded"
+                and failure.retry_hint is None
                 and self.retry_of == request.event_id
                 and sum(f.category == "context_length_exceeded" for f in failures.values()) == 1)
-            if failure and not failure.retryable and not context_retry_ready:
+            if failure and (failure.retry_hint is not None or (not failure.retryable and not context_retry_ready)):
                 return ("context_recovery_required" if failure.category == "context_length_exceeded"
                         else failure.category)
             if request.payload.reservation_id:
@@ -1619,6 +1628,7 @@ class Runtime:
                 # exactly this context retry before the process interruption.
                 self.redispatch_of, self.retry_of = None, request.event_id
             elif (failure and failure.category == "temporary_rate_limit"
+                    and failure.retryable and failure.retry_hint is None
                     and self.versions.remote_model.route_id in route_policies()):
                 # Resume explicit rate-limit refusals through admission, without
                 # consuming transport-failure retries. Usage may still be
@@ -1918,7 +1928,7 @@ class Runtime:
 
     async def _allow_model_retry(self, failure):
         attempt = self._request_retry_count(failure.request_event_id)
-        if (not failure.retryable or self.answer_repair_request_id is not None
+        if (not failure.retryable or failure.retry_hint is not None or self.answer_repair_request_id is not None
                 or attempt >= self.limits.max_model_retries):
             return False
         if not await self._retry_budget_available():
