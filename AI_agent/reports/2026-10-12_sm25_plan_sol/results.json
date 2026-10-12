@@ -1,0 +1,1830 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-12T05:36:25.343976+00:00",
+  "batch_id": "sm25-gpt-plan-sol-20261012-high",
+  "run": "D:\\Sim-BIM-Agent\\runs\\sm25-gpt-plan-sol-20261012-high",
+  "launch": {
+    "recorded_at": "2026-10-12T04:20:11.778174+00:00",
+    "source_commit": "ddc1130812631af2c184774daacd21253ec9c987",
+    "baseline_source_commit": "45d7dd73e0a561a1cbc53d1a79c9252c9e3bc570",
+    "runtime_version": "runtime-v9-20261012",
+    "domain_version": "domain-v66-20261012",
+    "configuration": "D:\\Sim-BIM-Agent\\repo\\AI_agent\\reports\\2026-10-12_sm25_plan_sol\\run_high.json",
+    "configuration_sha256": "94b39763965726114066765a32c51ccf32e1daf2049672ce4214bbb2d8d4ce3d",
+    "baseline_configuration_sha256": "3815e87ff16fc877c9b8d472f2cc031b6a6a6954e9919d8e29fbec1ebb5fcc4f",
+    "input_manifest": "D:\\Sim-BIM-Agent\\repo\\AI_agent\\reports\\2026-10-12_sm25_gpt_mix\\input_manifest.json",
+    "input_manifest_sha256": "796557260bf938ba613aa33bc4c08b53dde790a64b3cd91966cf58c42097cf9e",
+    "harness_changes": [],
+    "changed_tracked_paths_since_baseline": [
+      "AI_agent/project/roadmap.md",
+      "AI_agent/reports/2026-10-12_sm25_context_iteration/README.md",
+      "AI_agent/reports/2026-10-12_sm25_context_iteration/results.json",
+      "AI_agent/reports/2026-10-12_sm25_plan_sol/README.md",
+      "AI_agent/reports/2026-10-12_sm25_plan_sol/run_high.json"
+    ],
+    "only_model_change": "roles.plan_reader.model: gpt-6-luna -> gpt-6-sol",
+    "worktree_clean": true,
+    "real_preflight_inference_requests": 0,
+    "developer_interventions": 0,
+    "run": "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high",
+    "input_hashes_verified": [
+      {
+        "file": "1f_view.png",
+        "sha256": "6512c86e46a0c9c2623abd4445a53cb8d12b8b4191436420a1b8ba6d94ab9644",
+        "match": true
+      },
+      {
+        "file": "2f_view.png",
+        "sha256": "bde78c1276b79d96ebbf6cea7f31cbbbf6d84bae70b5caa85b27331ce609b322",
+        "match": true
+      },
+      {
+        "file": "East_view.png",
+        "sha256": "87366d1a8afeb53961bdc10fc1f5ac2d7509a3c7d50e987394d545fff1a34d10",
+        "match": true
+      },
+      {
+        "file": "North_view.png",
+        "sha256": "c4c086262f242a3eb3f1fd19b9a160b0856234e9e69236b4762e3779388108a8",
+        "match": true
+      },
+      {
+        "file": "South_view.png",
+        "sha256": "ec78167e80743f790132c3734cb333ebd8c687cf605da940a8538cc2510e4b24",
+        "match": true
+      },
+      {
+        "file": "West_view.png",
+        "sha256": "5254313dbc27bc7964c539a66b6e08f6696c421c713e5c1e3e01391d2251c8ac",
+        "match": true
+      }
+    ],
+    "independent_preflight": {
+      "path": "D:\\Sim-BIM-Agent\\cache\\sm25-gpt-plan-sol-20261012\\preflight-audit.json",
+      "sha256": "da2ce79d0f4b6cc564e3247ca22e3313eb7f3d9c58d64d52bc74f24097d19388",
+      "status": "passed"
+    }
+  },
+  "status": "model_budget_exhausted",
+  "cli_exit_code": 1,
+  "cli_postprocessing": {
+    "console_valid_json": true,
+    "status": "model_budget_exhausted",
+    "bim_summary_present": true,
+    "behavior_report_present": true,
+    "unexpected_traceback_observed": false
+  },
+  "elapsed_seconds": 3846.8507628078514,
+  "counts": {
+    "requests": 180,
+    "responses": 178,
+    "failed_requests": 2,
+    "pending_requests": 0,
+    "model_retry_events": 0,
+    "other_retry_events": 0
+  },
+  "peak_in_flight_requests": 6,
+  "reported_provider_usage_subtotal": {
+    "input_tokens": 8460481,
+    "output_tokens": 155423,
+    "total_tokens": 8615904,
+    "cached_input_tokens": 3517056,
+    "reasoning_output_tokens": 69582,
+    "uncached_input_tokens": 4943425,
+    "cache_fraction_of_reported_input": 0.41570402439293935
+  },
+  "complete_run_provider_usage": null,
+  "usage_complete": false,
+  "unknown_usage_requests": 2,
+  "monetary_cost": null,
+  "wire_summary": {
+    "requests": 180,
+    "complete_model_responses": 178,
+    "requests_without_complete_response": 2,
+    "service_returned_model_missing_across_requests": 2,
+    "service_returned_effort_missing_across_requests": 2,
+    "final_usage_missing_across_requests": 2,
+    "model_failure_events": 2,
+    "failure_categories": {
+      "transport_error": 2
+    },
+    "http_statuses_reported": {},
+    "semantic_empty_responses": 0,
+    "request_models": {
+      "gpt-6-sol": 164,
+      "gpt-6-luna": 16
+    },
+    "response_models": {
+      "gpt-6-sol": 162,
+      "gpt-6-luna": 16
+    },
+    "response_statuses": {
+      "completed": 178
+    },
+    "reported_usage_totals_only": {
+      "input_tokens": 8460481,
+      "output_tokens": 155423,
+      "total_tokens": 8615904,
+      "cached_input_tokens": 3517056,
+      "reasoning_output_tokens": 69582
+    },
+    "missing_usage_fields_among_complete_responses": {},
+    "usage_totals_are_complete_run_totals": false
+  },
+  "behavior_summary": {
+    "terminal_status": "model_budget_exhausted",
+    "elapsed_seconds": 3846.8507628078514,
+    "requests": 180,
+    "responses": 178,
+    "all_tool_executions": 234,
+    "all_tool_runtime_failures": 84,
+    "trial_tool_calls": 75,
+    "full_plan_calls": 12,
+    "operations_calls": 63,
+    "runtime_succeeded_trial_calls": 11,
+    "domain_passed_trial_calls": 11,
+    "unique_saved_trial_receipts": 72,
+    "unique_passed_trial_receipts": 11,
+    "unique_trial_plan_hashes": 72,
+    "classified_rejected_trial_calls": 64,
+    "read_plan_draft_calls": 34,
+    "read_plan_draft_failed": 20,
+    "coordinator_delegate_invocations": 8,
+    "coordinator_delegate_failures": 0,
+    "rework_tasks_with_previous": 14,
+    "rework_tasks_using_initial": 2,
+    "return_to_initial_after_other_attempts_stopped": 0,
+    "formally_completed_plan_readers": 0,
+    "formally_completed_elevation_readers": 4,
+    "root_candidates": 0,
+    "root_source_files": 0,
+    "child_candidates": 11,
+    "child_source_files": 11,
+    "root_delivery_present": false,
+    "root_summary_delivery": null,
+    "reworks_after_prior_pass": 11,
+    "reworks_after_pass_without_editable_handoff": 11,
+    "reworks_referencing_failure_older_than_prior_pass": 10,
+    "zero_request_tasks": [],
+    "zero_request_budget_stops": []
+  },
+  "by_role": [
+    {
+      "role_id": "coordinator",
+      "task_count": 1,
+      "requests": 12,
+      "responses": 12,
+      "tool_invocations": 16,
+      "tool_executions": 16,
+      "runtime_tool_failures": 0,
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "formally_completed_readers": 0
+    },
+    {
+      "role_id": "elevation_reader",
+      "task_count": 4,
+      "requests": 16,
+      "responses": 16,
+      "tool_invocations": 12,
+      "tool_executions": 12,
+      "runtime_tool_failures": 0,
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "formally_completed_readers": 4
+    },
+    {
+      "role_id": "plan_reader",
+      "task_count": 16,
+      "requests": 152,
+      "responses": 150,
+      "tool_invocations": 206,
+      "tool_executions": 206,
+      "runtime_tool_failures": 84,
+      "trial_calls": 75,
+      "full_plan_calls": 12,
+      "operations_calls": 63,
+      "runtime_succeeded_trials": 11,
+      "domain_passed_trials": 11,
+      "read_plan_draft_calls": 34,
+      "read_plan_draft_failed": 20,
+      "formally_completed_readers": 0
+    }
+  ],
+  "by_floor": [
+    {
+      "floor": "F1",
+      "task_count": 8,
+      "requests": 75,
+      "responses": 73,
+      "trial_calls": 28,
+      "full_plan_calls": 4,
+      "operations_calls": 24,
+      "domain_passed_trials": 4,
+      "read_plan_draft_calls": 18,
+      "read_plan_draft_failed": 7
+    },
+    {
+      "floor": "F2",
+      "task_count": 8,
+      "requests": 77,
+      "responses": 77,
+      "trial_calls": 47,
+      "full_plan_calls": 8,
+      "operations_calls": 39,
+      "domain_passed_trials": 7,
+      "read_plan_draft_calls": 16,
+      "read_plan_draft_failed": 13
+    }
+  ],
+  "by_task": [
+    {
+      "task_id": "coordinator",
+      "role_id": "coordinator",
+      "target": null,
+      "image": null,
+      "status": "model_budget_exhausted",
+      "record_status": null,
+      "record_reason": null,
+      "elapsed_seconds": 3846.8507628078514,
+      "requests": 12,
+      "responses": 12,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 12
+        }
+      ],
+      "tool_invocations": 16,
+      "tool_executions": 16,
+      "runtime_tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "delegate_readers": 8,
+        "view_image": 6,
+        "role_state": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 0,
+      "unique_plan_hashes": 0,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-002435",
+        "action": "stop",
+        "reason": "model_budget_exhausted",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "east_v1",
+      "role_id": "elevation_reader",
+      "target": "East/F1,F2",
+      "image": "East_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "elapsed_seconds": 83.0549014301505,
+      "requests": 4,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "runtime_tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 0,
+      "unique_plan_hashes": 0,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": true,
+      "last_lifecycle": {
+        "event_id": "event-000261",
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "north_v1",
+      "role_id": "elevation_reader",
+      "target": "North/F1,F2",
+      "image": "North_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "elapsed_seconds": 77.56409590528347,
+      "requests": 4,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "runtime_tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 0,
+      "unique_plan_hashes": 0,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": true,
+      "last_lifecycle": {
+        "event_id": "event-000244",
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "south_v1",
+      "role_id": "elevation_reader",
+      "target": "South/F1,F2",
+      "image": "South_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "elapsed_seconds": 57.738496574398596,
+      "requests": 4,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "runtime_tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 0,
+      "unique_plan_hashes": 0,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": true,
+      "last_lifecycle": {
+        "event_id": "event-000210",
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "west_v1",
+      "role_id": "elevation_reader",
+      "target": "West/F1,F2",
+      "image": "West_view.png",
+      "status": "completed",
+      "record_status": "completed",
+      "record_reason": null,
+      "elapsed_seconds": 68.23755145072937,
+      "requests": 4,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-luna",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 3,
+      "tool_executions": 3,
+      "runtime_tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "submit_elevation_reading": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 0,
+      "unique_plan_hashes": 0,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": true,
+      "last_lifecycle": {
+        "event_id": "event-000238",
+        "action": "stop",
+        "reason": "completed",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v1",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "invalid_settlement_evidence",
+      "record_status": "failed",
+      "record_reason": "invalid_settlement_evidence",
+      "elapsed_seconds": 205.87443917084602,
+      "requests": 4,
+      "responses": 3,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 5,
+      "tool_executions": 5,
+      "runtime_tool_failures": 1,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 2,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 1
+      },
+      "trial_calls": 1,
+      "full_plan_calls": 1,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 1,
+      "unique_plan_hashes": 1,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 1
+      },
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000311",
+        "action": "stop",
+        "reason": "invalid_settlement_evidence",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v2",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "answer_validation_failed",
+      "record_status": "failed",
+      "record_reason": "answer_validation_failed",
+      "elapsed_seconds": 132.72666219138773,
+      "requests": 7,
+      "responses": 7,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 7
+        }
+      ],
+      "tool_invocations": 9,
+      "tool_executions": 9,
+      "runtime_tool_failures": 2,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 2,
+        "view_image": 3,
+        "trial_plan_bim": 2
+      },
+      "trial_calls": 2,
+      "full_plan_calls": 0,
+      "operations_calls": 2,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 1,
+      "unique_plan_hashes": 1,
+      "primary_reason_categories": {
+        "geometry_dangling_partition_network": 1,
+        "permission_rework_scope": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_F1_v1",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000284",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "a106efdfb51ad269179efb6cfb65be5982916f4dc18ff3ab219b54252eaa7cee",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "57d0eded606a56dd17dd25ef818139eac8d428a2b460bfa6553d74c801869434",
+            "uri": "blobs/57d0eded606a56dd17dd25ef818139eac8d428a2b460bfa6553d74c801869434"
+          },
+          "kind": "json_references",
+          "wire_sha256": "74e706165cc4dab59bd3623a31eb3df9b0827a49de8f47cd721caa268339557c"
+        },
+        "receipt_file": "trial_receipts/trial_001.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000449",
+        "action": "stop",
+        "reason": "answer_validation_failed",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v3",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "invalid_settlement_evidence",
+      "record_status": "failed",
+      "record_reason": "invalid_settlement_evidence",
+      "elapsed_seconds": 338.43854958724114,
+      "requests": 16,
+      "responses": 15,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 16
+        }
+      ],
+      "tool_invocations": 20,
+      "tool_executions": 20,
+      "runtime_tool_failures": 7,
+      "tool_call_counts": {
+        "inputs": 2,
+        "view_image": 4,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 4,
+        "trial_plan_bim": 7,
+        "get_bim_reference": 2
+      },
+      "trial_calls": 7,
+      "full_plan_calls": 0,
+      "operations_calls": 7,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 7,
+      "unique_plan_hashes": 7,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 1,
+        "geometry_dangling_partition_network": 5,
+        "geometry_space_seeds_same_space": 1
+      },
+      "read_plan_draft_calls": 4,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_F1_v2",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000409",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "d8c009c0d3ac8e18b3dc1df3b0420343ef0de26e41e2cf22bfe5ed9a206e911f",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "38e4ff8cf9f0daacad126a61a6bedfb26c5b1d24ae402a35b5fb7e16299173a3",
+            "uri": "blobs/38e4ff8cf9f0daacad126a61a6bedfb26c5b1d24ae402a35b5fb7e16299173a3"
+          },
+          "kind": "json_references",
+          "wire_sha256": "e7eeba75f11e715e5ac897674cc0bdef94d14fa2c2a845d8b99fe2fb9626c6df"
+        },
+        "receipt_file": "trial_receipts/trial_001.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000801",
+        "action": "stop",
+        "reason": "invalid_settlement_evidence",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v4",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 93.81032773209154,
+      "requests": 4,
+      "responses": 4,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 4
+        }
+      ],
+      "tool_invocations": 7,
+      "tool_executions": 7,
+      "runtime_tool_failures": 0,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 3,
+        "trial_plan_bim": 1
+      },
+      "trial_calls": 1,
+      "full_plan_calls": 0,
+      "operations_calls": 1,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 1,
+      "unique_plan_hashes": 1,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 3,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": "plan_F1_v3",
+      "inherited_draft_source": {
+        "compiled_numeric_plan_sha256": null,
+        "editable": true,
+        "event_id": "event-000774",
+        "instruction": "This hash-verified complete failed declaration is the operations baseline in the new task. Revise the located objects; unchanged objects and their source descriptions remain in place.",
+        "plan_sha256": "7c3e41311458276828f29691aa3ec280c921c6a658fa1f8304b1a8e20d4f9b53",
+        "raw_result": {
+          "blob": {
+            "kind": "sha256",
+            "media_type": "application/vnd.agent-runtime.json-tree+json",
+            "sha256": "545b674ad5b9c19166323e727eb952cea8ff282891de6220c4757ee28cf46884",
+            "uri": "blobs/545b674ad5b9c19166323e727eb952cea8ff282891de6220c4757ee28cf46884"
+          },
+          "kind": "json_references",
+          "wire_sha256": "b9c834a253fd72c8b00d038329aaa97913be2a9a565d8b4370fc2bccc180896a"
+        },
+        "receipt_file": "trial_receipts/trial_007.json",
+        "status": "failed",
+        "validation_passed": false
+      },
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000930",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v5",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 400.47755680658156,
+      "requests": 12,
+      "responses": 12,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 12
+        }
+      ],
+      "tool_invocations": 15,
+      "tool_executions": 15,
+      "runtime_tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 2,
+        "view_image": 5,
+        "trial_plan_bim": 5,
+        "get_bim_reference": 1
+      },
+      "trial_calls": 5,
+      "full_plan_calls": 1,
+      "operations_calls": 4,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 5,
+      "unique_plan_hashes": 5,
+      "primary_reason_categories": {
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_dangling_partition_network": 1,
+        "geometry_opening_host": 2
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_failed": 1,
+      "previous_task_id": "plan_F1_v4",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-001535",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v6",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 627.9547393970424,
+      "requests": 17,
+      "responses": 17,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 17
+        }
+      ],
+      "tool_invocations": 24,
+      "tool_executions": 24,
+      "runtime_tool_failures": 10,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 3,
+        "view_image": 6,
+        "trial_plan_bim": 9,
+        "get_bim_reference": 2,
+        "view_pixel_profile": 2
+      },
+      "trial_calls": 9,
+      "full_plan_calls": 1,
+      "operations_calls": 8,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 8,
+      "unique_plan_hashes": 8,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 1,
+        "schema_operation_required_fields": 1,
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_dangling_partition_network": 1,
+        "geometry_space_seeds_same_space": 2,
+        "geometry_opening_host": 2
+      },
+      "read_plan_draft_calls": 3,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F1_v5",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-001985",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v7",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 590.7037820453697,
+      "requests": 12,
+      "responses": 12,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 12
+        }
+      ],
+      "tool_invocations": 17,
+      "tool_executions": 17,
+      "runtime_tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 3,
+        "view_image": 6,
+        "get_bim_reference": 1,
+        "trial_plan_bim": 3,
+        "view_pixel_profile": 1,
+        "pixel_profile": 1
+      },
+      "trial_calls": 3,
+      "full_plan_calls": 1,
+      "operations_calls": 2,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 3,
+      "unique_plan_hashes": 3,
+      "primary_reason_categories": {
+        "geometry_dangling_partition_network": 1,
+        "geometry_opening_host": 1
+      },
+      "read_plan_draft_calls": 3,
+      "read_plan_draft_failed": 3,
+      "previous_task_id": "plan_F1_v6",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-002300",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F1_v8",
+      "role_id": "plan_reader",
+      "target": "F1",
+      "image": "1f_view.png",
+      "status": "root_model_budget_exhausted",
+      "record_status": "failed",
+      "record_reason": "root_model_budget_exhausted",
+      "elapsed_seconds": 167.34201042936184,
+      "requests": 3,
+      "responses": 3,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 3
+        }
+      ],
+      "tool_invocations": 8,
+      "tool_executions": 8,
+      "runtime_tool_failures": 1,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 4,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 1,
+        "get_bim_reference": 1
+      },
+      "trial_calls": 0,
+      "full_plan_calls": 0,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 0,
+      "unique_plan_hashes": 0,
+      "primary_reason_categories": {},
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_failed": 1,
+      "previous_task_id": "plan_F1_v7",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-002418",
+        "action": "stop",
+        "reason": "root_model_budget_exhausted",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v1",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 200.81643530083238,
+      "requests": 5,
+      "responses": 5,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 5
+        }
+      ],
+      "tool_invocations": 5,
+      "tool_executions": 5,
+      "runtime_tool_failures": 1,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "trial_plan_bim": 2
+      },
+      "trial_calls": 2,
+      "full_plan_calls": 1,
+      "operations_calls": 1,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 2,
+      "unique_plan_hashes": 2,
+      "primary_reason_categories": {
+        "geometry_dangling_partition_network": 1
+      },
+      "read_plan_draft_calls": 0,
+      "read_plan_draft_failed": 0,
+      "previous_task_id": null,
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000307",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v2",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 241.77082443237305,
+      "requests": 6,
+      "responses": 6,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 6
+        }
+      ],
+      "tool_invocations": 9,
+      "tool_executions": 9,
+      "runtime_tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 2,
+        "trial_plan_bim": 4
+      },
+      "trial_calls": 4,
+      "full_plan_calls": 1,
+      "operations_calls": 3,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 4,
+      "unique_plan_hashes": 4,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 2,
+        "geometry_space_seeds_same_space": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F2_v1",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000506",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v3",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 310.80626950834994,
+      "requests": 6,
+      "responses": 6,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 6
+        }
+      ],
+      "tool_invocations": 8,
+      "tool_executions": 8,
+      "runtime_tool_failures": 4,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 1,
+        "view_image": 1,
+        "trial_plan_bim": 4
+      },
+      "trial_calls": 4,
+      "full_plan_calls": 1,
+      "operations_calls": 3,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 4,
+      "unique_plan_hashes": 4,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 2,
+        "geometry_opening_vertical_bounds": 1
+      },
+      "read_plan_draft_calls": 1,
+      "read_plan_draft_failed": 1,
+      "previous_task_id": "plan_F2_v2",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-000797",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v4",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 665.490032810223,
+      "requests": 26,
+      "responses": 26,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 26
+        }
+      ],
+      "tool_invocations": 28,
+      "tool_executions": 28,
+      "runtime_tool_failures": 19,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 3,
+        "view_image": 4,
+        "trial_plan_bim": 18,
+        "get_bim_reference": 1
+      },
+      "trial_calls": 18,
+      "full_plan_calls": 1,
+      "operations_calls": 17,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 18,
+      "unique_plan_hashes": 18,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 5,
+        "geometry_space_seeds_same_space": 1,
+        "geometry_opening_host": 11
+      },
+      "read_plan_draft_calls": 3,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F2_v3",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-001199",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v5",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 587.3949826087919,
+      "requests": 15,
+      "responses": 15,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 15
+        }
+      ],
+      "tool_invocations": 19,
+      "tool_executions": 19,
+      "runtime_tool_failures": 10,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 2,
+        "view_image": 5,
+        "get_bim_reference": 1,
+        "trial_plan_bim": 9
+      },
+      "trial_calls": 9,
+      "full_plan_calls": 1,
+      "operations_calls": 8,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 8,
+      "unique_plan_hashes": 8,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 4,
+        "schema_operation_bbox": 1,
+        "geometry_partition_boundary_overlap": 1,
+        "geometry_space_seeds_same_space": 1,
+        "geometry_opening_vertical_bounds": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F2_v4",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-001596",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v6",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 421.4844595374889,
+      "requests": 9,
+      "responses": 9,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 9
+        }
+      ],
+      "tool_invocations": 14,
+      "tool_executions": 14,
+      "runtime_tool_failures": 5,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_image": 4,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 4,
+        "trial_plan_bim": 4
+      },
+      "trial_calls": 4,
+      "full_plan_calls": 1,
+      "operations_calls": 3,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 4,
+      "unique_plan_hashes": 4,
+      "primary_reason_categories": {
+        "geometry_dangling_partition_network": 1,
+        "geometry_opening_host": 2
+      },
+      "read_plan_draft_calls": 4,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F2_v5",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-001917",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v7",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "context_recovery_required",
+      "record_status": "failed",
+      "record_reason": "context_recovery_required",
+      "elapsed_seconds": 378.32374078943394,
+      "requests": 7,
+      "responses": 7,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 7
+        }
+      ],
+      "tool_invocations": 11,
+      "tool_executions": 11,
+      "runtime_tool_failures": 6,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 2,
+        "view_image": 2,
+        "trial_plan_bim": 5
+      },
+      "trial_calls": 5,
+      "full_plan_calls": 1,
+      "operations_calls": 4,
+      "runtime_succeeded_trials": 1,
+      "domain_passed_trials": 1,
+      "unique_saved_receipts": 5,
+      "unique_plan_hashes": 5,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 2,
+        "geometry_space_seeds_same_space": 1,
+        "geometry_opening_vertical_bounds": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F2_v6",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-002227",
+        "action": "stop",
+        "reason": "context_recovery_required",
+        "failure_stage": null
+      }
+    },
+    {
+      "task_id": "plan_F2_v8",
+      "role_id": "plan_reader",
+      "target": "F2",
+      "image": "2f_view.png",
+      "status": "root_model_budget_exhausted",
+      "record_status": "failed",
+      "record_reason": "root_model_budget_exhausted",
+      "elapsed_seconds": 280.7728242549929,
+      "requests": 3,
+      "responses": 3,
+      "actual_request_model_configs": [
+        {
+          "configuration": {
+            "model": "gpt-6-sol",
+            "reasoning": {
+              "effort": "high"
+            }
+          },
+          "request_count": 3
+        }
+      ],
+      "tool_invocations": 7,
+      "tool_executions": 7,
+      "runtime_tool_failures": 3,
+      "tool_call_counts": {
+        "inputs": 1,
+        "view_plan_blocks": 1,
+        "read_plan_draft": 2,
+        "view_image": 2,
+        "trial_plan_bim": 1
+      },
+      "trial_calls": 1,
+      "full_plan_calls": 1,
+      "operations_calls": 0,
+      "runtime_succeeded_trials": 0,
+      "domain_passed_trials": 0,
+      "unique_saved_receipts": 1,
+      "unique_plan_hashes": 1,
+      "primary_reason_categories": {
+        "geometry_dimension_chain": 1
+      },
+      "read_plan_draft_calls": 2,
+      "read_plan_draft_failed": 2,
+      "previous_task_id": "plan_F2_v7",
+      "inherited_draft_source": null,
+      "formally_completed_reader": false,
+      "last_lifecycle": {
+        "event_id": "event-002430",
+        "action": "stop",
+        "reason": "root_model_budget_exhausted",
+        "failure_stage": null
+      }
+    }
+  ],
+  "failure_classification": {
+    "denominator_completed_trial_calls": 75,
+    "denominator_primary_rejected_trial_calls": 64,
+    "primary_reason_categories_mutually_exclusive": {
+      "geometry_dangling_partition_network": 11,
+      "geometry_dimension_chain": 19,
+      "permission_rework_scope": 1,
+      "geometry_space_seeds_same_space": 7,
+      "geometry_opening_vertical_bounds": 3,
+      "geometry_opening_host": 18,
+      "geometry_partition_boundary_overlap": 3,
+      "schema_operation_bbox": 1,
+      "schema_operation_required_fields": 1
+    },
+    "representative_events_by_primary_category": {
+      "geometry_dangling_partition_network": [
+        "event-000268",
+        "event-000409",
+        "event-000626",
+        "event-000648"
+      ],
+      "geometry_dimension_chain": [
+        "event-000284",
+        "event-000456",
+        "event-000467",
+        "event-000604"
+      ],
+      "permission_rework_scope": [
+        "event-000431"
+      ],
+      "geometry_space_seeds_same_space": [
+        "event-000478",
+        "event-000774",
+        "event-000948",
+        "event-001553"
+      ],
+      "geometry_opening_vertical_bounds": [
+        "event-000736",
+        "event-001564",
+        "event-002186"
+      ],
+      "geometry_opening_host": [
+        "event-000959",
+        "event-000992",
+        "event-001069",
+        "event-001080"
+      ],
+      "geometry_partition_boundary_overlap": [
+        "event-001382",
+        "event-001448",
+        "event-001798"
+      ],
+      "schema_operation_bbox": [
+        "event-001415"
+      ],
+      "schema_operation_required_fields": [
+        "event-001757"
+      ]
+    },
+    "primary_category_rule": "One primary category per rejected/failed trial, not per passed trial or per diagnostic. Unknown runtime outcomes remain outside this denominator unless a domain rejection is recorded.",
+    "observed_tags_nonexclusive": {
+      "geometry_dangling_partition_network": 11,
+      "diagnostic_loose_partition_ends": 18,
+      "geometry_dimension_chain": 19,
+      "permission_rework_scope": 1,
+      "geometry_space_seeds_same_space": 7,
+      "geometry_opening_vertical_bounds": 3,
+      "geometry_opening_host": 18,
+      "diagnostic_unhosted_openings": 7,
+      "geometry_partition_boundary_overlap": 3,
+      "schema_operation_bbox": 1,
+      "schema_operation_required_fields": 1
+    },
+    "runtime_outcome_counts_all_trials": {
+      "failed": 64,
+      "succeeded": 11
+    },
+    "domain_status_counts_all_trials": {
+      "failed": 61,
+      "passed": 11,
+      "rejected": 3
+    },
+    "all_tool_execution_denominator": 234,
+    "all_tool_runtime_failure_breakdown": {
+      "trial_plan_bim": 64,
+      "read_plan_draft": 20
+    }
+  },
+  "context_summary": {
+    "requests": 180,
+    "reported_responses": 178,
+    "anchor_requests": 158,
+    "no_anchor_diagnostics": {
+      "no_prior_same_task_model_observation": 21,
+      "request_scope_not_previously_observed": 1
+    },
+    "actual_input_sum": 8460481,
+    "actual_output_sum": 155423,
+    "cached_input_sum": 3517056,
+    "cached_fraction_of_actual_input": 0.41570402439293935,
+    "requests_with_cache_hits": 136,
+    "max_actual_input": 106381,
+    "max_local_input_point": 319847,
+    "max_local_input_upper": 353732,
+    "max_local_reservation": 385732,
+    "input_upper_below_actual_count": 0,
+    "min_upper_minus_actual": 1573,
+    "max_upper_minus_actual": 297143,
+    "mean_upper_minus_actual": 14100.101123595505,
+    "median_upper_over_actual": 1.1682769143873322,
+    "anchor_median_upper_over_actual": 1.1609293041548754,
+    "actual_total_above_reservation_count": 0,
+    "max_ciphertext_characters": 157108,
+    "compactions": 11,
+    "explicit_context_rejections": 0,
+    "context_recovery_stops": 11,
+    "unique_context_stop_tasks": 11,
+    "context_recovery_failure_events": 11,
+    "context_stop_tasks": [
+      "plan_F1_v4",
+      "plan_F1_v5",
+      "plan_F1_v6",
+      "plan_F1_v7",
+      "plan_F2_v1",
+      "plan_F2_v2",
+      "plan_F2_v3",
+      "plan_F2_v4",
+      "plan_F2_v5",
+      "plan_F2_v6",
+      "plan_F2_v7"
+    ],
+    "max_undispatched_context_input_upper": 4026677,
+    "max_undispatched_context_reservation": 4058677,
+    "passed_trial_returns": 11,
+    "max_passed_trial_text_bytes": 3330519,
+    "failed_requests_with_missing_usage": 2,
+    "unknown_usage_held_tokens": 225508,
+    "root_terminal_status": "model_budget_exhausted",
+    "root_elapsed_seconds": 3846.8507628078514,
+    "final_root_ledger_json_bytes": 945781,
+    "actual_run_total_tokens": null,
+    "run_total_usage_complete": false,
+    "known_reported_response_tokens_sum": 8615904,
+    "passed_trials_immediately_followed_by_local_context_stop": 11,
+    "smallest_passed_trial_text_bytes": 1952245,
+    "min_undispatched_context_reservation": 2877891
+  },
+  "context_findings": [
+    {
+      "priority": 1,
+      "finding": "All 11 passed trial_plan_bim returns correspond one-to-one to the 11 tasks stopped after deterministic compaction and local context admission. Model-visible text was 1952245 to 3330519 UTF-8 bytes, with three identical large changes arrays per passed trial. Local post-compaction reservations were 2877891 to 4058677 against profile window 1050000. These preparations were not dispatched; no provider context-length rejection or actual usage for them exists."
+    },
+    {
+      "priority": 1,
+      "finding": "Two Responses stream transport failures (plan_F1_v1 and plan_F1_v3) lacked usage. Accounting still asserted reported_usage_includes_image_tokens=true, followed by invalid_settlement_evidence. Final root ledger retains the 96340 and 129168 token reservations with no settlements. Actual usage remains unknown, not zero; known response totals are incomplete run totals."
+    },
+    {
+      "priority": 2,
+      "finding": "Usage anchors were named on 158/180 dispatched requests; 178 responses reported usage, with no input-upper or whole-reservation underestimates observed. Reported input peaked at 106381. Anchor-backed upper/actual median was 1.1609293. Cache read tokens were 3517056, 41.57% of known reported input; usage-anchor reuse is distinct from provider cache hits."
+    },
+    {
+      "priority": 2,
+      "finding": "role_state text stayed at 4937 bytes while its contemporaneous full ledger remained separately retrievable at 463949 bytes. Its measured tool time was 46.032 seconds, versus 46.069891 seconds between invocation/execution events. No internal timer separates accounting, projection, or serialization; timings alone do not establish an internal cause."
+    }
+  ],
+  "artifact_summary": {
+    "terminal_status": "model_budget_exhausted",
+    "elapsed_seconds": 3846.8507628078514,
+    "requests": 180,
+    "responses": 178,
+    "all_tool_executions": 234,
+    "all_tool_runtime_failures": 84,
+    "trial_tool_calls": 75,
+    "full_plan_calls": 12,
+    "operations_calls": 63,
+    "runtime_succeeded_trial_calls": 11,
+    "domain_passed_trial_calls": 11,
+    "unique_saved_trial_receipts": 72,
+    "unique_passed_trial_receipts": 11,
+    "unique_trial_plan_hashes": 72,
+    "classified_rejected_trial_calls": 64,
+    "read_plan_draft_calls": 34,
+    "read_plan_draft_failed": 20,
+    "coordinator_delegate_invocations": 8,
+    "coordinator_delegate_failures": 0,
+    "rework_tasks_with_previous": 14,
+    "rework_tasks_using_initial": 2,
+    "return_to_initial_after_other_attempts_stopped": 0,
+    "formally_completed_plan_readers": 0,
+    "formally_completed_elevation_readers": 4,
+    "root_candidates": 0,
+    "root_source_files": 0,
+    "child_candidates": 11,
+    "child_source_files": 11,
+    "root_delivery_present": false,
+    "root_summary_delivery": null,
+    "reworks_after_prior_pass": 11,
+    "reworks_after_pass_without_editable_handoff": 11,
+    "reworks_referencing_failure_older_than_prior_pass": 10,
+    "zero_request_tasks": [],
+    "zero_request_budget_stops": []
+  },
+  "quality": {
+    "status": "not_evaluated_no_root_source_candidate",
+    "gt_read": false,
+    "evaluate_run_executed": false,
+    "topology": "not_evaluated",
+    "completeness": "not_evaluated",
+    "5cm": "not_evaluated",
+    "10cm": "not_evaluated",
+    "30cm": "not_evaluated",
+    "viewer_presence_is_quality_approval": false,
+    "boundary": "Existing child candidate/viewer files are listed by scope. No whole-case evaluation or viewer was generated by this audit."
+  },
+  "child_diagnostic_entrypoints": [
+    {
+      "task_id": "plan_F2_v1",
+      "quality_approved": false,
+      "scope": "child trial only",
+      "viewer_paths": [
+        "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/tasks/5311eb12c1dd0f79aa8936a593d28cd7a1f89bf07b63894e087883002df59b61/bim/trial_workspace/candidate_01/viewer.html"
+      ],
+      "source_paths": [
+        "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/tasks/5311eb12c1dd0f79aa8936a593d28cd7a1f89bf07b63894e087883002df59b61/bim/trial_workspace/candidate_01/source_model.json"
+      ]
+    },
+    {
+      "task_id": "plan_F1_v4",
+      "quality_approved": false,
+      "scope": "child trial only",
+      "viewer_paths": [
+        "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/tasks/61f556207624c57f5d114d552c6a4d0ceca24966ea89e5b0a82253bab3400db7/bim/trial_workspace/candidate_01/viewer.html"
+      ],
+      "source_paths": [
+        "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/tasks/61f556207624c57f5d114d552c6a4d0ceca24966ea89e5b0a82253bab3400db7/bim/trial_workspace/candidate_01/source_model.json"
+      ]
+    }
+  ],
+  "baseline": {
+    "result_file": "D:\\Sim-BIM-Agent\\repo\\AI_agent\\reports\\2026-10-12_sm25_context_iteration\\results.json",
+    "status": "model_budget_exhausted",
+    "elapsed_seconds": 2171.631237131136,
+    "counts": {
+      "requests": 180,
+      "responses": 180,
+      "failed_requests": 0,
+      "pending_requests": 0,
+      "model_retry_events": 0,
+      "other_retry_events": 0
+    },
+    "provider_usage": {
+      "input_tokens": 6028229,
+      "output_tokens": 98360,
+      "total_tokens": 6126589,
+      "cached_input_tokens": 1028608,
+      "reasoning_tokens": 41186,
+      "uncached_input_tokens": 4999621,
+      "cache_fraction": 0.17063187214686104
+    },
+    "semantic_empty_responses": 5,
+    "passed_trials": 0,
+    "trial_calls": 59,
+    "formally_completed_plan_readers": 0,
+    "formally_completed_elevation_readers": 4,
+    "root_candidates": 0,
+    "child_candidates": 0
+  },
+  "verification": {
+    "new_real_smoke_requests": 0,
+    "new_unit_test_runs": 0,
+    "preflight_check": "ready",
+    "registry_verification": "passed",
+    "source_hash_count": 178,
+    "source_frozen_through_terminal_audit": true,
+    "input_hashes_unchanged": 6,
+    "final_audits_readonly": true,
+    "gt_read": false,
+    "quality_evaluator_invocations": 0
+  },
+  "scope_controls": {
+    "developer_interventions": 0,
+    "harness_edits": 0,
+    "manual_budget_changes": 0,
+    "manual_artifact_repairs": 0,
+    "additional_runs": 0,
+    "fallbacks_observed": 0,
+    "desktop_release_changed": false
+  },
+  "conclusion": "Local plan trials can pass with Sol/high; end-to-end convergence remains unachieved. Every passed trial was followed by local context admission failure, and passed but unsubmitted drafts were not inherited by rework tasks. Domain pass is not independent drawing fidelity.",
+  "next_step_recommendation_not_executed": [
+    "Bound model-facing successful trial results while retaining complete evidence externally.",
+    "Preserve and inherit verified passed-but-unsubmitted drafts; avoid stale failure feedback.",
+    "Correct missing-usage transport settlement without inventing usage; preserve accounting integrity.",
+    "Keep this model mix fixed for a future explicitly authorized comparison after harness fixes; do not lower thinking yet."
+  ],
+  "evidence": [
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/launch-record.json",
+      "bytes": 2608,
+      "sha256": "04af1f3095b038096045b936c49391165abf8686fdc9c083a1af2b2c98e4473a"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/preflight-audit.json",
+      "bytes": 5477,
+      "sha256": "da2ce79d0f4b6cc564e3247ca22e3313eb7f3d9c58d64d52bc74f24097d19388"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/registry-verify.json",
+      "bytes": 210,
+      "sha256": "aa8519582f13c14916de0d82bb953191f1712cf936db94fda40b068c781b47c3"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/wire-identity-audit.json",
+      "bytes": 3105726,
+      "sha256": "38b4f87492dd4154ee04267021a697df6b8cdf9f0d4b09d0c2213eca79e913ce"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/context-audit.json",
+      "bytes": 906177,
+      "sha256": "e62ce34c11835d5a385f2e494daf1295d7b86726612a2f0501efcece227ec42a"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/behavior-audit.json",
+      "bytes": 2915140,
+      "sha256": "a9af1ce14fab3cbe0f99fb70fe3bd3904a18f89d40069c75bd8693b0a4afc96b"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/artifact-audit.json",
+      "bytes": 1178473,
+      "sha256": "e1b14836d9ef47a9053fc21bce676cbc27c52847b8ce6bb59041923639ee73e6"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/final-observation.json",
+      "bytes": 49010,
+      "sha256": "c3b62c61a6d726820e25d282943bc24498da6f471e642b28da680934785ce9c1"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/high-console.log",
+      "bytes": 1046538,
+      "sha256": "0f10cc6759c0c4b20db7d6a5a21bf03f48fd3af0d40acc921ce8b01b721413c6"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/audit_wire_terminal.py",
+      "bytes": 15963,
+      "sha256": "29c62f82eb08aff5b552073ed53a382fdc9a2fffbe02de072d495f22dd591e32"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/audit_context_readonly.py",
+      "bytes": 24670,
+      "sha256": "577f445b2839a997f5c2463a6f4053112452828b5d5b830c8812ab6e7c1b5e1f"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/cache/sm25-gpt-plan-sol-20261012/audit_behavior_artifacts.py",
+      "bytes": 47379,
+      "sha256": "144bbdda75fe671ad487c4998a3f140458928d88006720014f434514c01d2f55"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/events.jsonl",
+      "bytes": 19020597,
+      "sha256": "cbba3589e03dd615b4596cf818c2b8c9791d76d6e2a3543af4b8312c3d74c478"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/receipt.json",
+      "bytes": 2023192,
+      "sha256": "03db0973be8e712dbc364712a0f08775d448f897996cd856aebc6a566d53e28c"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/bim/summary.json",
+      "bytes": 674,
+      "sha256": "8613c369ed6978cccb970796569e5092499375ae7c928dc9dee907d6de6a71a5"
+    },
+    {
+      "path": "D:/Sim-BIM-Agent/runs/sm25-gpt-plan-sol-20261012-high/behaviour/summary.json",
+      "bytes": 1468475,
+      "sha256": "dd6819c1b040e97d211af52d9560da1a72a8c42d583b300661b4bfdda254fea8"
+    }
+  ],
+  "disk_free_gib_at_report": {
+    "C": 51.49908447265625,
+    "D": 163.26407623291016
+  }
+}
