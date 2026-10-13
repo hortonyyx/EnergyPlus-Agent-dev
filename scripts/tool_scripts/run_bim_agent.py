@@ -1272,7 +1272,7 @@ class Toolkit:
                 result = {"status": "error", "error": str(error), "error_stage": "regularization",
                           "source_geometry_ready": False, "remaining_seconds": self.remaining_seconds()}
                 if isinstance(rejected, dict):
-                    result["regularization"] = save_report(audit_folder, rejected, self.run, tool_report=True)
+                    result["regularization"] = save_report(audit_folder, rejected, self.run)
                 dump(path, {"floors": bindings, "status": "rejected", "error": str(error),
                             "regularization": rejected})
                 from scripts.tool_scripts.bim_agent_saved_result import saved_result
@@ -2442,7 +2442,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                              ambiguity_tolerance_m: float = 0.05) -> dict:
         """Compare complete independently observed opening lists in BOTH axis directions.
         Exact original image names and original pixel coordinates only. JSON has plan
-        and elevation, each with axis_anchors [[pixel,0],[pixel,L_metres]] and openings
+        and elevation, each with axis_anchors [[pixel,0],[pixel,L_metres]] in either
+        row order and openings
         [{"id":"observed_id","pixels":[start,end]}]. Retain types/evidence as extra fields.
         Any pixel slot may instead be {"profile":"profile_001","candidate":"C01",
         "at":"peak"}; at=peak/start/end, default peak. Uses saved measurement pixels

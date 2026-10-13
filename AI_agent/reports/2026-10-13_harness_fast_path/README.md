@@ -332,3 +332,39 @@ Domain后段检查不能整体删除：v75的27个空间关系样本与墙线检
 尚未启动v76真实模型，未证明可重复稳定；桌面未更新。
 
 实现`3f224ab1`已登记runtime v16/domain v76，registry verify通过。两个正式冻结入口节点（图片目录工具版本/完成后恢复、全部MCP角色catalog）通过15.87秒，证据`v76-registered-preflight.xml`。实测前完成配置、474源码/registry/config及原输入冻结，运行期间不改程序、配置或候选。
+
+## v76真实交付：状态摘要进入收尾路径，剩余负担有具体反例
+
+冻结`6530f4080843923309301c324e98b428165aa3ed`，runtime v16/domain v76，Astra/high、图片1批、自动文本策略、无整案时限。2026-10-13 17:37:55.590915 UTC启动，运行目录`D:/Sim-BIM-Agent/runs/sm25-harness-astra-v76-20261014-1`。474程序/登记/配置、HEAD与六原图全部不变；无开发者建模干预。
+
+| 项目 | 本轮结果 |
+|---|---|
+| 首次整楼 | 644.200秒，candidate07；必要局部修订后824.038秒生成candidate09 |
+| 当前状态与完成 | 1179.885秒实际读取current_checks；1257.924秒主动finish candidate09 |
+| 完整进程 | 1284.988秒（21分25秒），completed、CLI exit0；finish后0模型请求 |
+| 交付绑定 | agent_selected、completion_valid、复用handoff，六文件SHA与原finish/receipt全等 |
+| 模型/工具 | 28请求/28响应、130工具、0重试；finish回执不再送模型，符合终止设计 |
+| 用量 | provider实报input3,503,913/output31,295/total3,535,208，cache14,336；订阅费用未知 |
+| 耗时分解 | runtime1257.262秒：model1017.593、tool106.266、other133.403；外部另含27.725秒 |
+
+四次开口回查共61 marks，其中57项未带note，全部首次通过；34外部高度claim全部confirmed。当前摘要实际呈现楼层、当前回查、高度、claim及剩余说明，模型随后只做推断/claim状态核对和两条规整子项读取，下一响应即finish；没有尾部整稿重写或再次泛化看图。这证明功能进入真实路径，单次前后时长不能证明因果提速或重复稳定。原behaviour报告崩溃未复现，summary/timeline/record.gz全部生成。
+
+本轮仍有三类可避免负担，不能因已交付而忽略：
+
+1. 六次立面对照因同一0/L锚点对仅行顺序相反被拒绝，后续交换行即通过；像素、米值、区间和对应对象不变。错误还指向了不相干的plan_partition参考。
+2. 成功装配给了regularization文件/SHA，却漏了其直接read参数；模型据路径调用通用report reader被拒绝。v76已修草稿和失败装配，本次揭示成功分支遗漏，需要在共同保存入口统一。
+3. 实际请求中局部图、六原图、局部图互相替换，13次精确回读前对应图均不在可见工作集。保持真实行为的3批反事实使13/13可见；比较点图片峰值6→16、PNG字节1,147,278→2,730,732，不是节时承诺。整轮真实wire共135次图像引用、59种SHA，最多9图；目录action=list未用，不能称已实证目录减少回读。
+
+生命周期独审5982原run文件前后全等，证据在case cache的`independent-terminal-audit.json`（SHA e50455474ca99f30c176233117ee3bf2fb6ab9e0cfaf9c28dd8e636c2c8f5938）、`independent-terminal-freeze.json`、`independent-feedback-terminal-audit.json`与`image3-first13-counterfactual.json`。独立物理/谱系评价另存`sm25-harness-astra-v76-1-evaluation`，不可用以上执行成功替代质量结论。
+
+浏览器已实际加载delivery与candidate09整楼并切换F2，HTTP200。捕获一条未归因MutationObserver错误，不能称console全净；临时页面及服务已关闭，原run未写入。记录为case cache的`browser-viewer-audit.json`。
+
+独立物理评价：29空间、61开口及宿主、30门连接匹配，47邻接在原稿→grid→装配→交付保持；34外部高度均≤5cm。≤5／5–10／10–30／>30cm分档为房间15／8／6／0、开口沿墙35／26／0／0。raw strict的29房界及2整层内部线合计31 severe原样保留；按已登记墙面约定，原稿29房界残差均≤5cm（max4.294cm），初次grid每坐标最大F1 4.752/F2 4.842cm，另有三处跨层10cm联动对齐。07→09唯一物理变化为F2 W-S3宽1.7→1.8m，端点误差5.759→5.305cm，其余物理数组全等；这是标注/舍入边界的实质局部修复。六张回叠已实际目视，未发现额外实体错误；用途语义、未画出的竖向交通、内部高度及开关状态未独评。5982原文件及GT在独评前后不变；证据`independent-quality-attribution.json`与同目录独立评价。
+
+## v77：统一现有契约与补足图像工作集
+
+改动限现有接口：锚点保留每个pixel/metre绑定，只接受0/正L的两行等价排序，不自动重设基准或选择立面方向；反馈指向facade_correspondence。所有五处regularization保存调用共用读取规则：草稿仍用绑定的inspect_plan_draft，其余成功/失败装配和源约束拒绝都提供既有immutable tool_reports读取；移除易遗漏的分支布尔开关，不增加工具或reader。
+
+32项定向检查通过20.26秒，包括真实MCP成功/失败装配回执跟读、SHA篡改拒绝及总回执压缩后的跟读；原六次失败观测原样离线重放0.024秒，与其后真实成功的kernel字段相等。原日志未改，无GT或模型调用。证据：cache根`v77-feedback-targeted.xml`、`v77-feedback-implementation-audit.json`、`v77-facade-anchor-replay.json`。独审无剩余P1/P2，7文件及原事件/重放SHA独立吻合，未重复测试；审计`v77-feedback-independent-review.json`（SHA cc384c6fb1713539b5708b4ea0359f8c04bdd7ab4922879c5b2b0f6c0035b7bd）。下一步登记并检查正式冻结入口。
+
+[run_harness_v77.json](run_harness_v77.json)配置检查通过。相对v76只变批次/运行身份与图片1→3，Astra/high、自动文本、预算和原六图均保持；不启用先前搁置的Sol/128k组合。先冻结并完成首轮独立交付/质量验收，再按同版本配置重复冷启动，分别报告可重复性和时间。尚未启动v77，未更新桌面。

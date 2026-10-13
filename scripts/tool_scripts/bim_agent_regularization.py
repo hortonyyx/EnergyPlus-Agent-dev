@@ -287,7 +287,7 @@ def summary(report):
     }
 
 
-def save_report(folder, report, run, *, tool_report=False):
+def save_report(folder, report, run):
     path = folder / "regularization.json"
     payload = (json.dumps(report, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     path.write_bytes(payload)
@@ -298,7 +298,9 @@ def save_report(folder, report, run, *, tool_report=False):
         # The existing report reader verifies the sidecar's saved binding.
         result["read"] = {"tool": "inspect_plan_draft", "arguments": {
             "draft_id": folder.name, "field": "report:/regularization"}}
-    elif tool_report:
+    else:
+        # Assembly outcomes and source-level refusals have no draft reader.
+        # Every such report uses the same existing immutable report contract.
         from scripts.tool_scripts.bim_agent_replies import compact_reply, report_reference
         saved = compact_reply(run, "regularization_report", report, force=True)
         reference = report_reference(saved['details_file'], saved['details_sha256'], '', report)

@@ -61,12 +61,13 @@ def test_draft_regularization_reference_reads_exact_bound_report(tmp_path, rejec
     asyncio.run(scenario())
 
 
-def test_failed_assembly_regularization_reference_reads_full_immutable_report(tmp_path):
+@pytest.mark.parametrize('rejected', [False, True])
+def test_assembly_regularization_reference_reads_full_immutable_report(tmp_path, rejected):
     async def scenario():
         run = _run_with_one_image(tmp_path)
         toolkit = Toolkit(run)
         floors = []
-        for index, coordinates in enumerate(((6.4,), (6.0, 7.2))):
+        for index, coordinates in enumerate(((6.4,), (6.0, 7.2)) if rejected else ((6.0,), (6.2,))):
             plan = example()
             plan['partitions'] = [{'id': f'wall-{i}', 'points': [[x, 1], [x, 7]],
                                    'source_refs': ['plan.png: synthetic wall']}
@@ -83,7 +84,8 @@ def test_failed_assembly_regularization_reference_reads_full_immutable_report(tm
         async with _server_session(run, readonly=False) as session:
             result = _json_result(await session.call_tool('assemble_plan_bim', {
                 'floors_json': json.dumps(floors)}))
-            assert result['source_geometry_ready'] is False and result['saved_candidate'] is None
+            assert result['source_geometry_ready'] is not rejected
+            assert (result['saved_candidate'] is None) is rejected
             reference = result['regularization']
             raw = (run / reference['file']).read_bytes()
             assert reference['report_file'].startswith('tool_reports/')
@@ -96,10 +98,52 @@ def test_failed_assembly_regularization_reference_reads_full_immutable_report(tm
             assert reply['reference']['sha256'] == hashlib.sha256(canonical).hexdigest()
             status = _json_result(await session.call_tool(read['tool'], {
                 **read['arguments'], 'json_pointer': '/status'}))
-            assert status['value'] == 'rejected'
+            assert status['value'] == ('rejected' if rejected else 'pass')
+            if not rejected:
+                assert json.loads(raw)['changes']
+                changes = _json_result(await session.call_tool(read['tool'], {
+                    **read['arguments'], 'json_pointer': '/changes/0'}))
+                assert changes['reference']['json_pointer'] == '/changes/0'
             assert len(json.dumps(reply).encode()) < 24000
-        assert len(list(run.glob('candidate_*'))) == 2
+            # Immutable reader binds bytes, not merely a path under tool_reports.
+            report = run / reference['report_file']
+            report.write_bytes(raw + b' ')
+            altered = await session.call_tool(read['tool'], read['arguments'])
+            assert altered.isError and 'hash mismatch' in altered.structuredContent['error']
+            report.write_bytes(raw)
+        assert len(list(run.glob('candidate_*'))) == (2 if rejected else 3)
         assert all(path.read_bytes() == original for path, original in sources.items())
+    asyncio.run(scenario())
+
+
+def test_regularization_reference_is_readable_after_whole_reply_compaction(tmp_path):
+    from scripts.tool_scripts.bim_agent_regularization import save_report
+    from scripts.tool_scripts.bim_agent_replies import compact_reply
+
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        folder = run / 'plan_assemblies' / 'assembly_001'
+        folder.mkdir(parents=True)
+        full = {'status': 'pass', 'changes': [{'type': 'synthetic', 'distance_m': .2}]}
+        reference = save_report(folder, full, run)
+        # Exercise the same aggregate fallback that hid a large live reply's
+        # inline regularization field, without a full real-building fixture.
+        large = {f'field_{i}': [{'evidence': 'a' * 1100} for _ in range(8)] for i in range(12)}
+        compact = compact_reply(run, 'assemble_plan_bim', {
+            **large, 'source_geometry_ready': True, 'regularization': reference})
+        assert 'report_view' in compact and 'regularization' not in compact
+        assert len(json.dumps(compact).encode()) <= 24000
+        read = compact['report_view']['reference']['read']
+        async with _server_session(run, readonly=False) as session:
+            field = _json_result(await session.call_tool(read['tool'], {
+                **read['arguments'], 'json_pointer': '/regularization'}))
+            recovered = field['value']
+            assert recovered == reference
+            report_read = recovered['read']
+            report = _json_result(await session.call_tool(report_read['tool'], report_read['arguments']))
+            assert report['value'] == full
+            assert report['sha256'] == reference['sha256']
+        assert not list(run.glob('candidate_*'))
     asyncio.run(scenario())
 
 
@@ -360,6 +404,11 @@ def test_generic_build_and_revision_refuse_thin_spaces_without_allocating_candid
     assert rejected['saved_candidate'] is None
     assert proposal == before and not list(run.glob('candidate_*'))
     assert (run / rejected['regularization']['file']).is_file()
+    from scripts.tool_scripts.bim_agent_replies import read_report
+    reference = rejected['regularization']
+    assert reference['read']['arguments']['report_file'] == reference['report_file']
+    assert read_report(run, reference['report_file'], 0, 12000,
+                       json_pointer='/status')['value'] == 'rejected'
     built = toolkit.build(json.loads(_two_room_proposal()))
     assert built['source_geometry_ready'], built
     assert built['saved_candidate'] == 'candidate_01'

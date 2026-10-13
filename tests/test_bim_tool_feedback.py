@@ -99,3 +99,41 @@ def test_wall_position_failure_points_to_exact_field_and_correct_reference(tmp_p
         assert path.read_bytes() == original
         assert len(list(run.glob('candidate_*'))) == 1
     asyncio.run(scenario())
+
+
+def test_facade_anchor_row_order_is_accepted_without_changing_observation_or_bim(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        _add_image(run, 'elevation.png')
+        originals = {path: path.read_bytes() for path in (run / 'images').iterdir()}
+        raw = {
+            'plan': {'axis_anchors': [[1, 0], [11, 10]],
+                     'openings': [{'id': 'p', 'pixels': [2, 4], 'evidence': 'synthetic mark'}]},
+            'elevation': {'axis_anchors': [[11, 0], [1, 10]],
+                          'openings': [{'id': 'e', 'pixels': [2, 4]}]},
+        }
+        arguments = dict(plan_image='plan.png', elevation_image='elevation.png',
+                         plan_axis='x', elevation_axis='x')
+        async with _server_session(run, readonly=False) as session:
+            first = _json_result(await session.call_tool('compare_facade_spans',
+                {**arguments, 'observations_json': json.dumps(raw)}))
+            for view in raw.values():
+                view['axis_anchors'].reverse()
+            second = _json_result(await session.call_tool('compare_facade_spans',
+                {**arguments, 'observations_json': json.dumps(raw)}))
+            for key in ('normalized_inputs', 'directions', 'direction_separation', 'original_images'):
+                assert second[key] == first[key]
+            saved = json.loads((run / second['record']).read_bytes())
+            assert saved['observations'] == saved['submitted_observations'] == raw
+            assert saved['evidence_status'] == 'caller_observations_not_independently_verified'
+            raw['plan']['axis_anchors'] = [[1, 5], [11, 15]]
+            failed = await session.call_tool('compare_facade_spans',
+                {**arguments, 'observations_json': json.dumps(raw)})
+            assert failed.isError
+            assert 'plan.axis_anchors' in failed.structuredContent['error']
+            assert 'topic="facade_correspondence"' in failed.structuredContent['repair_hint']
+            assert 'plan_partition' not in failed.structuredContent['repair_hint']
+        assert len(list((run / 'facade_comparisons').glob('comparison_*.json'))) == 2
+        assert not list(run.glob('candidate_*'))
+        assert all(path.read_bytes() == original for path, original in originals.items())
+    asyncio.run(scenario())

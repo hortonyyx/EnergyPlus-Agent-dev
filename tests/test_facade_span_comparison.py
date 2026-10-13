@@ -26,6 +26,34 @@ def test_reverse_and_reversed_pixel_anchor_order():
     assert compare(raw)["direction_separation"]["lower_residual_direction"] == "elevation_forward"
 
 
+@pytest.mark.parametrize('views', [('plan',), ('elevation',), ('plan', 'elevation')])
+@pytest.mark.parametrize('descending_pixels', [False, True])
+def test_anchor_row_order_preserves_mapping_and_physical_direction(views, descending_pixels):
+    raw = observations()
+    if descending_pixels:
+        raw['elevation']['axis_anchors'] = [[400, 0], [200, 10]]
+    expected = compare(raw)
+    for view in views:
+        raw[view]['axis_anchors'].reverse()
+    before = copy.deepcopy(raw)
+    assert compare(raw) == expected
+    assert raw == before
+
+
+@pytest.mark.parametrize('anchors', [
+    [[0, 5], [100, 15]],  # No declared zero: do not silently rebase.
+    [[0, 0], [100, -10]], [[0, -10], [100, 0]],
+    [[0, 0], [100, 0]], [[0, 0], [0, 10]],
+])
+def test_anchor_row_normalization_does_not_invent_a_valid_axis(anchors):
+    raw = observations()
+    raw['plan']['axis_anchors'] = anchors
+    before = copy.deepcopy(raw)
+    with pytest.raises(ValueError, match='plan.axis_anchors'):
+        compare(raw)
+    assert raw == before
+
+
 def test_symmetric_empty_and_missing_openings_do_not_establish_direction():
     raw = observations()
     raw["plan"]["openings"][0]["pixels"] = [40, 60]

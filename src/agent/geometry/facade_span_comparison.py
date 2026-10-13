@@ -44,8 +44,14 @@ def parse_view(raw: object, label: str) -> dict:
     p1 = finite_number(anchors[1][0], f"{label}.axis_anchors[1].pixel")
     m0 = finite_number(anchors[0][1], f"{label}.axis_anchors[0].metres")
     length = finite_number(anchors[1][1], f"{label}.axis_anchors[1].metres")
-    if not math.isclose(m0, 0.0, abs_tol=1e-9) or length <= 0:
-        raise ValueError(f"{label}.axis_anchors must start at 0 m and end at positive L")
+    if math.isclose(m0, 0.0, abs_tol=1e-9) and length > 0:
+        pass
+    elif math.isclose(length, 0.0, abs_tol=1e-9) and m0 > 0:
+        # Row order is representational: retain each supplied pixel/metre pair.
+        # This neither chooses the physical axis direction nor rebases a datum.
+        p0, p1, m0, length = p1, p0, length, m0
+    else:
+        raise ValueError(f"{label}.axis_anchors must contain 0 m and positive L, in either row order")
     if math.isclose(p0, p1, rel_tol=0, abs_tol=1e-12):
         raise ValueError(f"{label}.axis_anchors pixel positions must differ")
     intervals = raw.get("openings")
