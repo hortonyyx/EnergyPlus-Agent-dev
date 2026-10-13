@@ -168,6 +168,11 @@ def prepare_bim_inputs(run: Path, *, images_path: Path | None, mesh_path: Path |
                                  "authorized original PNG images, user scope, and optional saved generated "
                                  "proposal; no building declaration and no GT/evaluation"
                              )}
+    if image_kind == "drawings":
+        from src.agent.geometry.lite_bim_regularization import DEFAULT_LITE_GRID_M
+        # This is a run policy, not a claim extracted from scope or model JSON.
+        # Historical manifests without it retain their original behaviour.
+        manifest["lite_bim_grid_step_m"] = DEFAULT_LITE_GRID_M
     if building_input:
         manifest["building_input"] = building_input
     if plan_recovery:
@@ -199,5 +204,18 @@ def prepare_bim_inputs(run: Path, *, images_path: Path | None, mesh_path: Path |
         report = export_source_proposal(proposal, run/"seed", provenance=manifest["seed"])
         if not (run/"seed"/"source_model.json").exists():
             raise ValueError(f"seed cannot be materialized: {report.get('error')}")
+        if "lite_bim_grid_step_m" in manifest:
+            from scripts.tool_scripts.bim_agent_regularization import source_grid_report
+            source = json.loads((run/"seed"/"source_model.json").read_bytes())
+            grid = source_grid_report(source, manifest["lite_bim_grid_step_m"])
+            grid_path = run/"seed"/"lite_grid.json"
+            dump(grid_path, grid)
+            if grid["violations"]:
+                raise ValueError("saved candidate is off the new drawing run's 0.1 m Lite BIM grid; "
+                                 "admission rejected without changing the seed. See seed/lite_grid.json")
+            manifest["seed"]["lite_grid"] = {
+                "file": "seed/lite_grid.json", "sha256": digest(grid_path),
+                "status": grid["status"], "grid_step_m": grid["grid_step_m"],
+            }
     dump(run/"inputs.json", manifest)
     return manifest

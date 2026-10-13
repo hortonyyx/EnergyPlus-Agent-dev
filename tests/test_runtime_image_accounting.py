@@ -261,3 +261,46 @@ def test_run_summary_keeps_models_and_child_tasks_separate():
     assert summary["budget_charge_tokens"] == 39
     assert set(summary["by_model"]) == {"Qwen3.8-27B", "GLM-5.3-Flash"}
     assert summary["by_task"]["child-1"]["provider_reported_tokens"] == 24
+
+
+def test_stored_multi_image_accounting_reuses_body_only_within_call(tmp_path, monkeypatch):
+    import asyncio
+    import base64
+    import io
+
+    from PIL import Image
+
+    from src.agent_runtime.accounting import request_accounting_from_store
+    from test_runtime_responses_integration import engine_for, native
+
+    blocks = []
+    for size, detail in [((2048, 1024), "low"), ((1024, 1536), "high")]:
+        image = io.BytesIO()
+        Image.new("RGB", size, (20, 80, 120)).save(image, format="PNG")
+        blocks.append({"type": "image_url", "image_url": {
+            "url": "data:image/png;base64," + base64.b64encode(image.getvalue()).decode(),
+            "detail": detail}})
+    engine = engine_for(tmp_path, [native(text="Done")])
+    with engine.store as store:
+        assert asyncio.run(engine.run([{"role": "user", "content": blocks}]))["status"] == "completed"
+        request = next(e for e in store.events if e.payload.event_type == "adapter_request")
+        resolve = store.resolve
+        resolved = []
+
+        def track(capture):
+            resolved.append(capture)
+            return resolve(capture)
+
+        monkeypatch.setattr(store, "resolve", track)
+        result = request_accounting_from_store(store, request.event_id)
+        # low scales to 512x256 (128 patches); high keeps 1024x1536 (1536 patches).
+        assert result.accounting.image_tokens_estimate == 154 + 1844
+        assert resolved == [request.payload.final_request_body]
+        assert request_accounting_from_store(store, request.event_id) == result
+        assert len(resolved) == 2
+
+        # There is no cross-call cache: a later audit must still reject a damaged capture.
+        (store.directory / request.payload.final_request_body.blob.uri).write_bytes(b"corrupt")
+        with pytest.raises(ValueError, match="hash mismatch"):
+            request_accounting_from_store(store, request.event_id)
+        assert len(resolved) == 3

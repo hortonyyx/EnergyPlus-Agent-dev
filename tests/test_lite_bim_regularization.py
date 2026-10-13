@@ -66,6 +66,32 @@ def test_explicit_fine_dimensions_hosts_xyz_and_idempotent_recompile():
     assert receipt["lite_bim"]["compiled_grid"]["status"] == "pass"
 
 
+def test_trusted_grid_parameter_overrides_plan_audit_and_keeps_original_readings():
+    from src.agent.geometry.plan_ink_alignment import _set_reading_alignment
+    original = plan()
+    _set_reading_alignment(original, "dimensions", {"status": "not_supplied"})
+    original["regularization_inputs"]["reading_alignment"]["lite_bim"] = {"grid_step_m": .2}
+    before = copy.deepcopy(original)
+    effective, report = regularize_plan(original, image_size=SIZE, image_name="plan", grid_step_m=.1)
+    assert original == before
+    assert report["method"]["grid_step_m"] == .1
+    assert effective["partitions"][0]["points"][0][0] == 490
+    row = next(row for row in report["lite_bim"]["items"] if row["path"] == "partitions:A.points[0].x")
+    assert row["original_m"] == pytest.approx(3.94) and row["adopted_m"] == 3.9
+    assert report["lite_bim"]["topology"]["status"] == "preserved"
+
+
+def test_trusted_stack_grid_applies_to_unmarked_plans_without_mutating_inputs():
+    items = [{"plan": plan(), "floor_id": f"F{i + 1}", "image_size": SIZE,
+              "image_name": "plan", "z_floor": i * 4., "source_ref": "drawing"} for i in range(2)]
+    before = copy.deepcopy(items)
+    result, report = regularize_plan_stack(items, grid_step_m=.1)
+    assert items == before and report["status"] == "pass"
+    for item in result:
+        assert compiled_grid_report(item["proposal"])["status"] == "pass"
+        assert report["floor_reports"][item["floor_id"]]["method"]["grid_step_m"] == .1
+
+
 def test_local_chain_uses_first_tick_calibration_and_small_tail_is_code_managed():
     value = plan()
     value["dimension_chains"] = [chain(segments_mm=[3940], tick_pixels=[494, 888], total_mm=3960)]

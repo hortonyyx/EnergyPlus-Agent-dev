@@ -990,7 +990,7 @@ class Toolkit:
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
         from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
         from scripts.tool_scripts.bim_agent_regularization import (
-            LEGACY_RULE, compact_plan_input, save_report, selected_rule,
+            LEGACY_RULE, compact_plan_input, save_report, selected_rule, selected_grid_step,
         )
         from scripts.tool_scripts.bim_agent_saved_result import saved_result
         image_path = self.image_path(image)
@@ -1031,7 +1031,8 @@ class Toolkit:
                 plan.pop("regularization", None)
                 with PILImage.open(image_path) as original:
                     plan, regularization = regularize_plan(
-                        plan, image_size=original.size, image_name=image)
+                        plan, image_size=original.size, image_name=image,
+                        grid_step_m=selected_grid_step(self.manifest))
                 record["regularization"] = regularization
                 record["regularization_report"] = save_report(draft, regularization, self.run)
         except (ValueError, TypeError, KeyError) as error:
@@ -1211,7 +1212,8 @@ class Toolkit:
         from src.agent.geometry.plan_assembly import assemble_plan_proposals
         from src.agent.geometry.plan_partition import compile_plan_partition
         from scripts.tool_scripts.bim_agent_regularization import (
-            LEGACY_RULE, save_report, selected_rule, selected_cross_storey_failure_policy, summary,
+            LEGACY_RULE, save_report, selected_rule, selected_cross_storey_failure_policy,
+            selected_grid_step, summary,
         )
         if self.readonly:
             raise ValueError("floor assembly is available only to the coordinator")
@@ -1251,7 +1253,8 @@ class Toolkit:
             dump(audit_folder / "submitted_plans.json", declared)
             try:
                 declared, regularization = regularize_plan_stack(declared,
-                    cross_storey_failure_policy=selected_cross_storey_failure_policy(self.manifest))
+                    cross_storey_failure_policy=selected_cross_storey_failure_policy(self.manifest),
+                    grid_step_m=selected_grid_step(self.manifest))
             except (ValueError, TypeError, KeyError) as error:
                 rejected = getattr(error, "report", None)
                 result = {"status": "error", "error": str(error), "error_stage": "regularization",
@@ -2908,8 +2911,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
             """Build one floor from observed original-pixel walls, openings and calibration.
             Read plan_partition for JSON. Orthogonal, possibly concave outer footprint
-            without holes. Before strict compilation, sub-0.30 m wall offsets are regularized;
-            remaining hard-rule violations reject the save. No inferred walls or trimmed openings.
+            without holes. New drawing runs apply their manifest's 0.1 m Lite BIM grid
+            automatically, preserving rooms, opening hosts and connections. Historical
+            manifests retain their policy. Remaining hard-rule violations reject the save.
             Returns actual source/overlay images, drawing_differences, IDs/heights and
             details_file (read_candidate_items collection=report). Declare omissions in
             unresolved. Each export consumes the shared candidate budget.
@@ -2922,6 +2926,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             Read get_bim_reference('plan_assembly'). floors_json is a JSON list; each item contains draft_id,
             expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,
             namespaces IDs and translates all opening z values by the floor-base change.
+            The manifest's Lite grid applies to all floors; target z_floor must be on grid.
             Near wall planes and stacked faces are regularized by editing drafts and recompiling.
             No height scaling, floor copying or inferred vertical connection.
             For layer height or aperture changes first revise that draft explicitly.

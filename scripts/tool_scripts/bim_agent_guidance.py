@@ -103,14 +103,20 @@ combine floors with assemble_plan_bim. A room count, seed or use never justifies
 adding or removing a divider.
 
 5. RESOLVE THE DIFFERENCES. drawing_differences compares ink with declared
-walls/openings; zero covers only its stated scope. Plan builds and assembly
-automatically connect endpoints within the reported tolerance (at most 0.30 m) before strict
-compilation and regularize eligible offsets below 0.30 m; if a junction still rejects,
-set its named endpoint to the exact original-pixel target in the error. Remaining near
-faces or any room part narrower than 0.60 m reject the draft. Read the
-regularization summary and saved full trace: same-floor merges keep the perimeter
-fixed; assembly also aligns near perimeter edges across floors. Openings follow
-their host. Repair rejected objects from evidence; check the source and overlay.
+walls/openings; zero covers only its stated scope. New drawing runs declare
+inputs.lite_bim_grid_step_m=0.1: builds, local plan revisions and assembly use the
+same 10 cm grid automatically, including XYZ and explicit fine dimensions. Submit
+original observations; code retains their original/adopted values. Do not add a
+Lite flag or rewrite coordinates just to request this policy. Shared coordinates
+and hosted openings move together; room, host or connectivity changes reject the
+operation. Narrow rooms are not deleted or merged to satisfy the grid.
+Endpoint preparation retains its reported tolerance (at most 0.30 m); assembly
+aligns eligible cross-floor offsets below 0.30 m. Remaining near faces or room
+parts narrower than 0.60 m reject. Read the regularization summary and saved
+trace, then repair rejected objects from evidence; check the source and overlay.
+Direct BIM geometry edits must remain on the run grid; use revise_plan_bim for
+automatic regularization. Historical manifests without the grid field retain
+their recorded earlier policy.
 
 6. HEIGHTS FROM ELEVATIONS. Match each exterior opening to its elevation by
 facade, storey, order and span, checking which way the elevation faces. Read
@@ -396,16 +402,16 @@ Nonorthogonal rings, holes and ambiguous hosts explicitly fail.
 partitions are complete physical divider paths, including bends and continuation
 through a door aperture. Put the aperture separately in openings. Shared path
 endpoints describe actual junctions. Before strict compilation, the build entry
-automatically joins endpoints within its reported tolerance (at most 0.30 m) and
-regularizes near parallel lines; a remaining junction error gives the named original-
-pixel endpoint and exact target to copy. It preserves the outer footprint and moves
-hosted openings with their wall.
-Targets prefer dimension references, then the perimeter, then the line shared
-by more walls/floors. Sub-0.30 m wall strips collapse even with named seeds:
-strip seeds are removed, hosted openings move to the retained line, overlapping
-opening spans merge and disjoint spans remain. The trace records removed IDs,
-survivors and connections; an unreconcilable connection rejects the merge.
-Remaining near faces or any room portion narrower than 0.60 m reject the save.
+joins endpoints within its reported tolerance (at most 0.30 m); a remaining
+junction error gives the named original-pixel endpoint and exact target to copy.
+For inputs.lite_bim_grid_step_m=0.1, the tool applies the shared 10 cm XYZ grid to
+the declaration, including explicit fine dimensions, and records original and
+adopted values. The manifest owns this policy: model-provided audit fields cannot
+disable it or select a different step. Hosted openings follow their wall; rooms,
+opening hosts and connectivity must survive. Narrow rooms and openings are never
+deleted or merged to make the grid pass. Remaining near faces or any room portion
+narrower than 0.60 m reject the save. Old manifests without that field retain the
+earlier opt-in/Q1 behaviour for historical replay.
 The compiler itself never snaps. The saved plan.regularization records version
 plan_regularization_v1 and the full trace; submitted_plan.json retains the input.
 The reply contains counts, largest move, rejections and a full-report file/hash.
@@ -483,12 +489,16 @@ assemble_plan_bim(floors_json) takes a JSON list of 2–32 explicit items:
 Use inspect_plan_draft for the exact hash; an explicitly supplied resume plan is
 also admitted as draft_id=resume. Every listed draft is recompiled against its
 bound original image. IDs become floor_id:original_id, including opening hosts.
-Drafts must use a common XY origin/direction. Assembly aligns corresponding
+Drafts must use a common XY origin/direction. When the input manifest declares
+lite_bim_grid_step_m=0.1, all drafts are regularized on that same 10 cm grid;
+floor z_floor placements must also be on it. Model audit metadata cannot change
+the run policy. Original inputs and the adopted values remain in the saved trace.
+Assembly aligns corresponding
 near wall planes strictly below 0.30 m by editing drafts and recompiling them;
 it never edits source polygons. Internal walls prefer dimensions, then the line
 shared by more floors, then the lower floor. Overlapping perimeter edges, including
 recesses, align upper to lower; reverse only when the upper edge alone has a
-dimension-chain reference. Same-floor merges keep the perimeter fixed. Hosted
+dimension-chain reference. Lite regularization preserves every room and opening. Hosted
 openings and connected partitions follow the moving edge; openings keep their size.
 Other wall separations may change if they stay at least 0.30 m; no new same-floor
 near parallel lines, sub-0.60 m room portions or changed hosts/connections may result.
@@ -611,7 +621,8 @@ To supersede obsolete text, include a local note replacement:
  "replacement":["Updated statement limited to the inspected objects; others remain assumptions"],
  "reason":"What observation superseded this statement", "source_refs":["claim_0001"]}.
 field can be assumptions or unresolved; replacement=[] explicitly withdraws that
-one note with a reason. Old text must match exactly once. Unrelated notes survive,
+note with a reason. Old text must match exactly; all identical copies in that
+field are replaced together, with replacement inserted once. Unrelated notes survive,
 the replacement enters source BIM and the old statement remains in audit history.
 Use this in the SAME revision as the geometry correction when possible. Do not
 leave a known false all-objects assumption in the saved source. Text associations

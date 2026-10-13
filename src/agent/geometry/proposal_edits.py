@@ -591,12 +591,18 @@ def _replace_note(proposal: dict, operation: dict) -> dict:
     replacement = _notes(operation.get("replacement"), field="replacement")
     reason = _nonblank_string(operation.get("reason"), field="reason", operation="replace_note")
     refs = _source_refs(operation.get("source_refs"), operation="replace_note")
-    if proposal[field].count(old) != 1:
-        raise ValueError("replace_note: old must exactly match one current note")
-    index = proposal[field].index(old)
-    proposal[field][index:index+1] = replacement
+    indices = [index for index, note in enumerate(proposal[field]) if note == old]
+    if not indices:
+        raise ValueError("replace_note: old must exactly match a current note")
+    # Assembly can retain the same global statement from several floors. It
+    # remains one textual claim: replace all exact copies, inserting the new
+    # statement once at the first position. Distinct notes keep their order.
+    first = indices[0]
+    proposal[field] = [*proposal[field][:first], *replacement,
+                       *(note for note in proposal[field][first + 1:] if note != old)]
     return {"operation": "replace_note", "field": field, "before": old,
-            "after": replacement, "reason": reason, "source_refs": refs}
+            "after": replacement, "matched_count": len(indices), "matched_indices": indices,
+            "reason": reason, "source_refs": refs}
 
 
 def _update_wall_evidence(proposal: dict, operation: dict) -> dict:

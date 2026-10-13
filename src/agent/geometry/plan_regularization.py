@@ -2107,14 +2107,17 @@ def prepare_plan_junctions(plan: dict, *, image_size: tuple[int, int],
 
 
 def regularize_plan(plan: dict, *, image_size: tuple[int, int], image_name: str,
-                    rule_version: str = RULE_VERSION) -> tuple[dict, dict]:
+                    rule_version: str = RULE_VERSION,
+                    grid_step_m: float | None = None) -> tuple[dict, dict]:
     """Regularise one floor draft and return it with a persistent full report."""
     if rule_version != RULE_VERSION:
         raise ValueError(f"unsupported regularization rule version {rule_version!r}")
     if not isinstance(plan, dict):
         raise TypeError("plan must be an object")
     from src.agent.geometry.lite_bim_regularization import lite_grid_step, regularize_lite_plan
-    lite_step = lite_grid_step(plan)
+    # A trusted run policy overrides model-supplied audit metadata. The default
+    # retains the existing opt-in contract for historical/offline callers.
+    lite_step = grid_step_m if grid_step_m is not None else lite_grid_step(plan)
     if lite_step is not None:
         result, lite_report = regularize_lite_plan(
             plan, image_size=image_size, image_name=image_name, grid_step_m=lite_step)
@@ -2715,6 +2718,7 @@ def enforce_regularized_plan_stack(items: list[dict], *, rule_version: str = RUL
 def regularize_plan_stack(
         items: list[dict], *, rule_version: str = RULE_VERSION,
         cross_storey_failure_policy: str = "reject_assembly",
+        grid_step_m: float | None = None,
 ) -> tuple[list[dict], dict]:
     """Regularise floor drafts, align adjacent storeys, and recompile each draft."""
     if cross_storey_failure_policy not in CROSS_STOREY_FAILURE_POLICIES:
@@ -2724,7 +2728,8 @@ def regularize_plan_stack(
     _validate_stack_items(items)
     result = copy.deepcopy(items)
     from src.agent.geometry.lite_bim_regularization import lite_grid_step
-    grid_steps = [lite_grid_step(item["plan"]) for item in result]
+    grid_steps = ([grid_step_m] * len(result) if grid_step_m is not None else
+                  [lite_grid_step(item["plan"]) for item in result])
     if any(step is not None for step in grid_steps) and (
             any(step is None for step in grid_steps) or len(set(grid_steps)) != 1):
         raise PlanRegularizationError(
@@ -2743,7 +2748,8 @@ def regularize_plan_stack(
             raise PlanRegularizationError(
                 "Lite BIM target floor placement/height is off grid; revise the resolved level explicitly",
                 report={"schema": "plan_stack_regularization_report_v1", "rule_version": rule_version,
-                        "status": "rejected", "rejections": invalid_placements})
+                        "status": "rejected", "grid_step_m": grid_steps[0],
+                        "rejections": invalid_placements})
     original_separations = _stack_separations(result)
     floor_reports = {}
     baseline_proposals = {}
@@ -2755,7 +2761,7 @@ def regularize_plan_stack(
         try:
             item["plan"], floor_reports[item["floor_id"]] = regularize_plan(
                 item["plan"], image_size=tuple(item["image_size"]), image_name=item["image_name"],
-                rule_version=rule_version,
+                rule_version=rule_version, grid_step_m=grid_step_m,
             )
         except PlanRegularizationError as exc:
             floor_reports[item["floor_id"]] = exc.report

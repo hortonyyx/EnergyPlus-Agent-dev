@@ -312,6 +312,7 @@ def request_accounting_from_store(
     identity = request.payload.versions.remote_model
     profile = get_model_profile(identity.remote_alias)
     image_tokens = 0
+    request_body = None
     for transmission in request.payload.images:
         image_bytes = store.get_bytes(transmission.sent)
         with Image.open(io.BytesIO(image_bytes)) as image:
@@ -321,8 +322,11 @@ def request_accounting_from_store(
         elif profile.image_estimator in {"openai_patch32_v1", "openai_patch32_proxy_v1"}:
             from .estimation import openai_image_tokens
             from src.harness_contracts.events import _resolve_json_pointer
-            body = store.resolve(request.payload.final_request_body)
-            block = _resolve_json_pointer(body, transmission.request_reference.rsplit("/", 1)[0])
+            # Verify/reconstruct once for this accounting call, not once per image.
+            # A later call must reread the capture so persisted corruption is detected.
+            if request_body is None:
+                request_body = store.resolve(request.payload.final_request_body)
+            block = _resolve_json_pointer(request_body, transmission.request_reference.rsplit("/", 1)[0])
             tokens, _, _ = openai_image_tokens(width, height, profile, detail=block.get("detail", "auto"))
         elif profile.image_estimator == "decoded_pixels_v0":
             tokens = width * height

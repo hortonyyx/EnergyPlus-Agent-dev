@@ -8,6 +8,7 @@ from scripts.tool_scripts.run_bim_agent import Toolkit
 from scripts.tool_scripts.bim_agent_regularization import (
     apply_cross_storey_skip_policy,
     selected_cross_storey_failure_policy,
+    selected_grid_step,
     summary,
 )
 from scripts.tool_scripts.bim_agent_delivery_display import render_regularization_html
@@ -65,6 +66,17 @@ def test_legacy_policy_is_owned_by_the_run_manifest(tmp_path):
     toolkit.manifest.pop('plan_regularization_rule')
     plan['regularization'] = {'rule_version': 'legacy', 'status': 'pass'}
     assert toolkit.build_plan('plan.png', json.dumps(plan))['source_geometry_ready'] is False
+
+
+def test_lite_grid_policy_is_explicit_and_trusted_not_inferred_for_history():
+    assert selected_grid_step({}) is None
+    assert selected_grid_step({'scope': 'use 0.1 m'}) is None
+    assert selected_grid_step({'lite_bim_grid_step_m': .1}) == .1
+    for value in (None, True, 0, .2, '0.1'):
+        with pytest.raises(ValueError, match='lite_bim_grid_step_m'):
+            selected_grid_step({'lite_bim_grid_step_m': value})
+    with pytest.raises(ValueError, match='legacy'):
+        selected_grid_step({'lite_bim_grid_step_m': .1, 'plan_regularization_rule': 'legacy'})
 
 
 def test_cross_storey_failure_policy_is_owned_by_the_run_manifest():

@@ -221,6 +221,44 @@ def test_updates_removal_and_notes_keep_full_audit_history():
     assert revised["assumptions"] == ["new orientation"] and revised["unresolved"] == []
 
 
+@pytest.mark.parametrize("field", ["assumptions", "unresolved"])
+@pytest.mark.parametrize("replacement", [[], ["Review completed for both floors"]])
+def test_duplicate_global_note_does_not_block_an_atomic_use_update(field, replacement):
+    proposal = _proposal()
+    old = "Plan overlays pending review"
+    proposal[field] = ["Keep first", old, "Keep middle", old, "Keep last"]
+    before = copy.deepcopy(proposal)
+    revised = apply_proposal_edits(proposal, [
+        {"op": "set_space_role", "space_id": "left", "role": "meeting", "basis": "inferred",
+         "assumptions": ["Use inferred from furniture"], "reason": "Review use",
+         "source_refs": ["plan: furniture"]},
+        {"op": "replace_note", "field": field, "old": old, "replacement": replacement,
+         "reason": "Reviewed both floor overlays", "source_refs": ["plan: both floors"]},
+    ])
+    assert revised[field] == ["Keep first", *replacement, "Keep middle", "Keep last"]
+    assert revised["geometry"]["floors"][0]["cells"][0]["role"] == "conference/meeting/multipurpose"
+    assert revised["geometry"]["windows"] == before["geometry"]["windows"]
+    assert revised["geometry"]["openings"] == before["geometry"]["openings"]
+    audit = revised["geometry"]["corrections"][-1]
+    assert audit["before"] == old and audit["after"] == replacement
+    assert audit["matched_count"] == 2 and audit["matched_indices"] == [1, 3]
+    assert proposal == before
+
+
+def test_note_replacement_still_rejects_a_rephrased_or_stale_target_without_mutation():
+    proposal = _proposal()
+    before = copy.deepcopy(proposal)
+    with pytest.raises(ValueError, match="old must exactly match"):
+        apply_proposal_edits(proposal, [
+            {"op": "set_space_role", "space_id": "left", "role": "meeting", "basis": "inferred",
+             "assumptions": ["Use inferred from furniture"], "reason": "Review use",
+             "source_refs": ["plan: furniture"]},
+            {"op": "replace_note", "field": "unresolved", "old": "Orientation needs review",
+             "replacement": [], "reason": "Reviewed orientation", "source_refs": ["plan: north arrow"]},
+        ])
+    assert proposal == before
+
+
 def test_remove_opening_removes_a_built_window_by_its_unique_aperture_id():
     proposal = _proposal()
     revised = apply_proposal_edits(proposal, [{

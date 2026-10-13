@@ -24,6 +24,20 @@ def selected_rule(manifest):
     return rule
 
 
+def selected_grid_step(manifest):
+    """Only newly admitted drawing runs declare the current whole-building grid."""
+    if "lite_bim_grid_step_m" not in manifest:
+        return None
+    from src.agent.geometry.lite_bim_regularization import DEFAULT_LITE_GRID_M
+    step = manifest["lite_bim_grid_step_m"]
+    if (isinstance(step, bool) or not isinstance(step, (int, float))
+            or step != DEFAULT_LITE_GRID_M):
+        raise ValueError("lite_bim_grid_step_m must be the current 0.1 m drawing policy")
+    if selected_rule(manifest) == LEGACY_RULE:
+        raise ValueError("a Lite BIM run cannot also select legacy regularization")
+    return float(step)
+
+
 def selected_cross_storey_failure_policy(manifest):
     """Return the trusted run-level policy for an unresolvable wall pair."""
     policy = manifest.get(
@@ -106,6 +120,30 @@ def apply_cross_storey_skip_policy(precision, regularization):
     return result
 
 
+def source_grid_report(source, grid_step_m):
+    """Check the same Lite grid on actual source geometry, without editing it."""
+    from src.agent.geometry.lite_bim_regularization import quantize_m
+    coordinates = []
+    for floor in source["floors"]:
+        coordinates.extend((f"floors:{floor['id']}.{field}", floor[field])
+                           for field in ("z_floor", "height"))
+        coordinates.extend((f"floors:{floor['id']}.footprint[{i}][{axis}]", value)
+                           for i, point in enumerate(floor["footprint"])
+                           for axis, value in enumerate(point))
+    # Generic proposals also support rectangles and facade/span windows. Source
+    # vertices cover those forms as well as the pixel compiler's polygons/p1/p2.
+    coordinates.extend((f"{collection}:{item['id']}.vertices[{i}][{axis}]", value)
+                       for collection in ("boundaries", "openings")
+                       for item in source[collection]
+                       for i, point in enumerate(item["vertices"])
+                       for axis, value in enumerate(point))
+    violations = [{"path": path, "adopted_m": value}
+                  for path, value in coordinates
+                  if abs(value - quantize_m(value, grid_step_m)) > 1e-7]
+    return {"status": "rejected" if violations else "pass", "grid_step_m": grid_step_m,
+            "coordinate_count": len(coordinates), "violations": violations}
+
+
 def reject_source_proposal(toolkit, proposal, *, plan_assembly=None, parent=None):
     """Prepare a source-only hard-rule refusal before allocating a candidate.
 
@@ -113,6 +151,7 @@ def reject_source_proposal(toolkit, proposal, *, plan_assembly=None, parent=None
     proposal. Ordinary malformed inputs still use the exporter's existing error
     path; only a successfully constructed source is checked here.
     """
+    grid_step = selected_grid_step(toolkit.manifest)
     if selected_rule(toolkit.manifest) == LEGACY_RULE:
         return None
     from src.agent.execution.source_proposal import _validate_proposal
@@ -141,6 +180,18 @@ def reject_source_proposal(toolkit, proposal, *, plan_assembly=None, parent=None
     if parent is not None:
         for regularization in candidate_reports(toolkit, parent):
             report = apply_cross_storey_skip_policy(report, regularization)
+    grid = None
+    if grid_step is not None:
+        grid = source_grid_report(source, grid_step)
+        if grid["violations"]:
+            report["items"].append({
+                "type": "source_lite_grid_violation", "grid_step_m": grid_step,
+                "coordinate_count": len(grid["violations"]),
+                "fix": "Revise the saved pixel plan with revise_plan_bim so code reapplies the run grid, "
+                       "or use grid-aligned values for direct BIM edits; source vertices are never silently rounded.",
+            })
+            report.update(status="rejected", total=len(report["items"]),
+                          counts=dict(Counter(row["type"] for row in report["items"])))
     if not report["items"]:
         return None
     folder = toolkit.run / "geometry_rejections"
@@ -149,12 +200,16 @@ def reject_source_proposal(toolkit, proposal, *, plan_assembly=None, parent=None
     attempt.mkdir(exist_ok=False)
     full = {"rule_version": CURRENT_RULE, "status": "rejected", "changes": [],
             "rejections": report["items"], "hard_constraints": report}
+    if grid is not None:
+        full["compiled_grid"] = grid
     reference = save_report(attempt, full, toolkit.run)
     (attempt / "proposal.json").write_text(
         json.dumps(proposal, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return {"status": "error", "source_geometry_ready": False,
             "error_stage": "source_hard_constraints",
-            "error": "Source geometry violates the 0.30 m alignment or 0.60 m room-width rules; repair the listed objects before saving.",
+            "error": ("Source geometry violates the run's 0.1 m Lite BIM grid; repair the listed coordinates before saving."
+                      if grid is not None and grid["violations"] else
+                      "Source geometry violates the 0.30 m alignment or 0.60 m room-width rules; repair the listed objects before saving."),
             "regularization": reference, "remaining_seconds": toolkit.remaining_seconds()}
 
 
@@ -189,8 +244,12 @@ def summary(report):
             value = row.get(key)
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 distances.append(abs(value))
+    grid_steps = [section.get("grid_step_m") or section.get("method", {}).get("grid_step_m")
+                  or section.get("compiled_grid", {}).get("grid_step_m")
+                  or section.get("lite_bim", {}).get("grid_step_m") for section in sections]
     return {
         "rule_version": report.get("rule_version", CURRENT_RULE),
+        "grid_step_m": next((step for step in grid_steps if step is not None), None),
         "status": report.get("status", "rejected" if rejected else "passed"),
         "moved_count": len(changes),
         "removed_strip_seed_count": sum(len(row.get("removed_space_seeds", [])) for row in changes),

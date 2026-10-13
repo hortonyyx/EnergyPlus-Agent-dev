@@ -121,8 +121,8 @@ def repair_hint(toolkit, tool, arguments, message):
                 example["value"] = op.get("value", {"id": "new-wall-id", "points": [[10, 20], [100, 20]]})
         return "Minimum operation format (replace evidence placeholders): " + json.dumps([example])
     if "replace_note" in message:
-        return ('Read inspect_candidate(candidate, include_geometry=false) for current notes; old must match one '
-                'exact saved note, once per batch. Minimum: [{"op":"replace_note","field":"unresolved",'
+        return ('Read inspect_candidate(candidate, include_geometry=false) for current notes; old must match an '
+                'exact saved note. One operation replaces all identical copies in that field. Minimum: [{"op":"replace_note","field":"unresolved",'
                 '"old":"exact current note","replacement":[],"reason":"why resolved",'
                 '"source_refs":["input filename: observed evidence"]}].')
     if "set_notes" in message:
