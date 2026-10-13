@@ -42,6 +42,36 @@ def edit(identity, target="door"):
             "changes": {"z": {"claim": identity, "value": "height"}}, "reason": "Apply recorded chain"}
 
 
+@pytest.mark.parametrize("missing", [("direction",), ("origin_m", "direction")])
+def test_chain_claim_errors_only_report_missing_chain_fields(missing):
+    from pydantic import ValidationError
+    from src.agent.execution.bim_claims import Claim
+
+    data = claim()
+    for name in missing:
+        del data["values"]["height"][name]
+    with pytest.raises(ValidationError) as caught:
+        Claim.model_validate(data)
+    errors = caught.value.errors()
+    assert {tuple(error["loc"]) for error in errors} == {
+        ("values", "height", "dimension_chain", name) for name in missing}
+    assert all(error["type"] == "missing" for error in errors)
+    assert len(str(caught.value).encode()) < 1000
+
+
+@pytest.mark.parametrize("change", [
+    {"type": "unknown"}, {"direction": 0}, {"origin_m": "0"}, {"invented": 1},
+])
+def test_claim_type_dispatch_keeps_strict_values_and_fields(change):
+    from pydantic import ValidationError
+    from src.agent.execution.bim_claims import Claim
+
+    data = claim()
+    data["values"]["height"].update(change)
+    with pytest.raises(ValidationError):
+        Claim.model_validate(data)
+
+
 def test_real_parameter_application_and_candidate_provenance_survive_reload(tmp_path):
     run, toolkit = setup_run(tmp_path)
     before = (run / "seed/proposal.json").read_bytes()

@@ -3,10 +3,75 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 from scripts.tool_scripts.bim_agent_budget import fallback_selection
 from scripts.tool_scripts.run_bim_agent import Toolkit
+
+
+def completed_building_handoff(engine) -> dict | None:
+    """Attest the last explicit finish against the exact files it handed off.
+
+    This hook belongs only to the single-model entrypoint. Other MCP clients
+    may keep working after finish_bim. A later write, failed/unknown finish,
+    incomplete building, or changed artifact never becomes task completion.
+    """
+    if engine.role.read_only:
+        return None
+    event = next((e for e in reversed(engine.store.events)
+        if e.payload.event_type == "tool_execution" and e.payload.repeatability != "read_only"), None)
+    if event is None or event.payload.tool_name != "finish_bim" or event.payload.outcome != "succeeded":
+        return None
+    from scripts.tool_scripts.bim_agent_saved_result import result_metadata
+    from src.agent.geometry.source_model import _digest
+    try:
+        raw = engine.store.resolve(event.payload.raw_result)
+        if raw.get("isError"):
+            return None
+        result = result_metadata(raw)
+        if "delivery_artifact_sha256" not in result:
+            # A very large handoff may be entirely projected by compact_reply.
+            # Its immutable full record remains the completion authority.
+            report = (engine.tools.run_directory / result["details_file"]).resolve()
+            if report.parent != (engine.tools.run_directory / "tool_reports").resolve():
+                return None
+            saved = report.read_bytes()
+            if hashlib.sha256(saved).hexdigest() != result["details_sha256"]:
+                return None
+            result = json.loads(saved)
+        candidate = result.get("candidate")
+        if (not isinstance(candidate, str) or Path(candidate).name != candidate
+                or event.payload.full_arguments.get("candidate") != candidate):
+            return None
+        run = engine.tools.run_directory
+        expected = result.get("delivery_artifact_sha256", {})
+        names = {"inputs.json", "delivery_selection.json", "delivery.json", "delivery.html",
+                 f"{candidate}/source_model.json", f"{candidate}/viewer.html"}
+        if set(expected) != names:
+            return None
+        contents = {name: (run / name).read_bytes() for name in names}
+        if any(hashlib.sha256(contents[name]).hexdigest() != expected[name] for name in names):
+            return None
+        selection = json.loads(contents["delivery_selection.json"])
+        delivery = json.loads(contents["delivery.json"])
+        source = json.loads(contents[f"{candidate}/source_model.json"])
+        source_hash = _digest({k: v for k, v in source.items() if k != "source_model_sha256"})
+        if (source.get("schema_version") not in {"source_bim_v2", "source_bim_v3"}
+                or any(row.get("source_model_sha256") != source_hash for row in (source, selection, delivery, result))
+                or any(row.get("candidate") != candidate for row in (selection, delivery))
+                or delivery.get("selection_origin") != "agent_selected"
+                or delivery.get("floor_completeness", {}).get("complete_building") is not True
+                or delivery.get("source_validation", {}).get("status") != "pass"
+                or delivery.get("viewer") != f"{candidate}/viewer.html"
+                or delivery.get("source_model") != f"{candidate}/source_model.json"
+                or not delivery.get("viewer_exists")):
+            return None
+        return {"origin": "domain_tool", "tool_name": "finish_bim", "event_id": event.event_id,
+                "candidate": candidate, "source_model_sha256": source_hash,
+                "artifact_sha256": expected}
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 def finalize_building(run: Path, *, reason: str, elapsed_seconds: float) -> dict:
@@ -45,5 +110,17 @@ def finalize_building(run: Path, *, reason: str, elapsed_seconds: float) -> dict
 def finalize_runtime_building(engine, reason: str) -> dict:
     if engine.role.read_only:
         return {"status": "readonly_no_building_delivery", "delivery": None}
+    completion = getattr(engine, "completion", None)
+    if completion is not None or getattr(engine, "domain_completion", None) is completed_building_handoff:
+        verified = completed_building_handoff(engine)
+        if completion is not None and verified != completion:
+            return {"status": "delivery_failed", "delivery": None, "completion_valid": False,
+                    "error": "The completed handoff artifacts changed; no fallback replaced the selection."}
+        if verified is not None:
+            # A later read in the same batch may time out. Preserve the explicit
+            # selection without claiming that the unfinished batch completed.
+            return {"status": "delivered", "reused_handoff": True, "completion_valid": True, "delivery": {
+                "candidate": verified["candidate"], "selection_origin": "agent_selected",
+                "complete_building": True, "report": "bim/delivery.json", "viewer": "bim/delivery.html"}}
     return finalize_building(engine.tools.run_directory, reason=reason,
         elapsed_seconds=engine.limits.seconds - engine._remaining())

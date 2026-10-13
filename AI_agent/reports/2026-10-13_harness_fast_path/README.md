@@ -13,6 +13,8 @@
 
 ## 当前实施状态
 
+目前三次真实冷启动均未达到严格600秒。最新v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；v71针对确定性收尾、错误反馈及重复复制完成实现与独立审阅，无遗留P1/P2，待登记后的正式节点验证。具体时序、质量差异与新验证边界见后文，尚未宣称稳定达标或更新桌面。
+
 首版 runtime v11 / domain v69、实现 `4cbc3edb` 的Sol与Astra两次冷启动均在约6分钟装配整楼，但分别650.23／680.97秒超时兜底，未达到10分钟自主交付。两轮暴露的重复备注、记账浪费和10cm策略接线缺口现已修复，定向验证与独立审阅通过；后续版本 runtime v12 / domain v70、实现 `79d95dd7` 已登记校验，实际本地MCP节点10项通过（53.94秒），证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v70/cb1493736f74/results.xml`。模型目录包含 gpt-6.1-sol 与 gpt-6-astra，不作为推理或建模成功证据。
 
 本轮真实配置见 [run_sol61.json](run_sol61.json)：sm25原六图，single_model，ChatGPT subscription，gpt-6.1-sol/high；每次48请求/240工具/600秒，无总token上限，64候选上限（避免沿用分工较小上限）；首轮通过后同一冻结版本再做两次冷启动。配置检查已通过，未提供GT、旧稿或答案。
@@ -83,8 +85,48 @@
 
 审阅与小证据：`note-independent-review.json`、`note-fix.xml`、`note-feedback.xml`在本报告cache根；`D:/Sim-BIM-Agent/cache/accounting-local-body-20261013.xml`和`accounting-local-body-equivalence-20261013.json`记录记账检查。Sol第9请求携带28张图；输入增长是观察到的负担，尚不能单凭一次超时证明因果，未据此新增上下文硬限或删除图像。
 
-## 下一轮配置
+## 第三轮配置（已执行）
 
 上述修复、定向验证与独立审阅已完成。Lite最终独审与源码hash见`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/lite-independent-review.json`，旧稿重放见同目录`lite-real-draft-replay.json`。
 
 统一登记并冻结新版本后，使用 [run_fast_v70.json](run_fast_v70.json) 的Astra/high单模型路径，原六图、预算和质量标准不变。先独立冷启动一轮；只有主动完整交付、外部墙钟≤600秒且独立质量达标，才进行同配置两次重复。旧Sol/Astra结果和配置保留，不重写失败记录；桌面尚未更新。
+
+## 第三轮真实冷启动：Astra/high（v12/v70）
+
+冻结 `533e09f5`，运行 `D:/Sim-BIM-Agent/runs/sm25-fast-astra-v70-20261013-1`，外部启动2026-10-13 12:11:05.235951 UTC。六图、配置、HEAD及14项冻结程序文件不变；中途无人工提示、改稿或预算调整。原配置后两次重复尚未启动。
+
+| 项目 | 外部启动后时间／结果 |
+|---|---|
+| 两层首次试建 | 225秒起；均被原始隔墙悬空端点检查拒绝，尚未进入网格变换 |
+| 两层局部修订成功 | 273.655／282.785秒，candidate_01／02 |
+| 整楼装配成功 | 325.640秒，candidate_03 |
+| 用途及备注更新 | candidate_04／05均成功；重复备注缺口未复现 |
+| 正式交付请求／成功回执 | 597.016／604.223秒，candidate_05，原回执agent_selected |
+| 交付JSON／HTML首次创建 | 600.699／602.022秒（Windows创建时间）；均超600秒 |
+| CLI退出 | 625.644秒，exit1，time_budget_exhausted |
+| 调用与用量 | 13请求／12完整响应，35工具，无重试；已知1,127,989 tokens，缓存0，最后一次用量未知 |
+| runtime组成 | 611.671秒；模型479.000、工具75.489、其他57.182秒 |
+
+本轮确有模型主动选择并完成finish_bim，不能抹去该事实；但真实正式交付已超过600秒，仍未通过目标。finish之后runtime继续第13次请求，超时后finalizer又把同一candidate_05的磁盘交付标记覆盖成`latest_complete_fallback_not_agent_selected`。原始成功回执在event-000222；覆盖后的JSON/HTML与终态也保留，不能混为同一交付来源。
+
+独立评价：29/29空间、61/61开口位置及宿主、30/30门连接均匹配，无漏、多、错连；34/34外部高度≤5cm；实际源3144个坐标全部满足0.1m网格。房间边界≤5／5–10／10–30／>30cm为14／6／9／0，开口沿墙31／30／0／0。29/29空间用途为inferred且有依据。**原评价器overall=severe，31项墙线变化，没有命中旧规整惯例例外；不能只引用摘要substantive_findings为空就宣称质量通过。** 最近网格量化与原有跨层对齐的可追溯性质正在单列核对，不改旧评分、不临时放宽阈值。
+
+高度证据绑定仍0/34：10条dimension_chain观测全部漏direction，其中6条另漏origin_m，schema拒绝正确。模型读取首条错误后保留未完成说明，没有完成绑定；不能以高度数值符合GT代替证据闭环。室内开口高度、开口状态及竖向交通仍未评。实际交付页和候选查看器已在浏览器打开，F2筛选及渲染已验证，临时页与服务已关闭。
+
+独立观察与时间证据：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/sm25-fast-astra-v70-1/`下`terminal.json`、`independent-observer-audit.json`、`claim-interface-diagnosis.json`、`browser-check.json`。独立质量报告、平面与回叠在同级`sm25-fast-astra-v70-1-evaluation/`；评价8.38秒，模型调用0，1995项run文件及GT哈希未变。
+
+后续只修已确认的负担：成功交付后的多余模型调用与来源覆盖；按claim既有type分派校验，移除无关union分支报错且继续严格拒绝缺字段。装配26.53秒与交付7.21秒的本地成本先用原稿确定性重放定位，不据事件间隔臆测函数耗时。实现与独立审阅完成后才冻结下一轮，仍不以本轮近达标代替稳定达标。
+
+## v71：移除已定位的额外工作
+
+- 单模型在完整工具批次结束后，由domain核验成功finish的候选、源模型及六份交付文件的哈希；完整交付直接结束runtime，不再多请求模型或重新生成并覆盖选择来源。保留通用runtime与BIM判断的边界；部分交付、后续写入、文件变化与失败均不能触发完成。工具完成和模型最终文本回答分别记录。恢复及最后收尾仍复核绑定证据。
+- Claim按既有`type`辨别值类型。必需字段与严格拒绝不变；真实10条错误请求仍全部拒绝，聚合回复由无关union错误分页变为7,769bytes，模型可直接看到缺失字段。claims及事务39项通过，35.20秒，独立反例复核通过。
+- 装配内部预检不再反复复制随后丢弃的规整审计；公开编译仍默认返回完整、独立的metadata。对同一原稿唯一非profile重放，`regularize_plan_stack`从14.808降到5.845秒（60.53%）；完整result、report、两份plan及两份proposal的canonical SHA逐项一致。原1995项运行文件与输入未变，119项定向通过，5.07秒，独立审阅无P1/P2。这只证明内核等价与性能改善，不代表整案600秒或质量通过。
+
+收尾通用runtime10项通过（2.23秒），报告消费者15项通过（0.59秒）。独立审阅发现最终复验失效后仍可能报completed的问题，已改为`completion_state_changed`，不再标记任务完成；同批次finish后的只读调用超时会保留有效选择，但不冒充整批完成。独立复审完成后统一登记，并原样运行带版本指纹检查的本地MCP节点17项。实现阶段曾用cache测试入口以release lookup代替release verify验证当前源码，30项通过（R3 15项、报告15项）；该结果明确不算正式冻结节点，正式节点必须在登记后重新验证。
+
+下一轮配置为[run_fast_v71.json](run_fast_v71.json)，仍是Astra/high、原六图、48请求/240工具/600秒，无总token上限、无人工介入。先一轮，严格通过后才同配置再两轮。质量保留原始严格评分，同时独立核对有依据的10cm变换；不将所有墙线差异一概归为允许规整。桌面尚未更新。
+
+小证据：cache根的`claims-discriminator.xml`、`geometry-audit-copy-targeted.xml`；v70运行cache下`claims-discriminator-independent-review.json`及`assembly-profile/optimized.json`、`assembly-profile/independent-review.json`。
+
+收尾最终独审：`sm25-fast-astra-v70-1/completion-final-independent-review.json`，明确最后P2已修、无剩余P1/P2，源码SHA已记录，允许进入统一提交、登记与原样正式R3节点；真实模型调用0。

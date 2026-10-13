@@ -42,8 +42,8 @@ class PlanRegularizationError(ValueError):
 
 
 def _plan_digest(plan: dict) -> str:
-    payload = copy.deepcopy(plan)
-    payload.pop("regularization", None)
+    # Serialization is read-only; do not copy the large audit only to omit it.
+    payload = {key: value for key, value in plan.items() if key != "regularization"}
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
@@ -1676,7 +1676,8 @@ def enforce_regularized_plan(plan: dict, *, image_size: tuple[int, int], image_n
 def _compile(plan: dict, image_size: tuple[int, int], image_name: str) -> tuple[dict | None, str | None]:
     from src.agent.geometry.plan_partition import compile_plan_partition
     try:
-        proposal, _ = compile_plan_partition(plan, image_size=image_size, image_name=image_name)
+        proposal, _ = compile_plan_partition(plan, image_size=image_size, image_name=image_name,
+                                             include_audit_metadata=False)
         return proposal, None
     except Exception as exc:
         return None, str(exc)

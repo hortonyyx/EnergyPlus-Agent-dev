@@ -235,6 +235,8 @@ def render_delivery_html(result: dict, source: dict) -> str:
     run_status = result["generation_status"]
     run_note = {"completed":"本次模型调用正常结束。", "in_progress":"模型调用尚未结束。",
                 "interrupted":"本次模型调用未正常完成，以下保留已生成候选。"}[run_status["state"]]
+    if run_status.get("handoff_saved"):
+        run_note = "已选定并保存 BIM，未完成事项见下方。"
     if deterministic_replay:
         run_note = "本次由代码应用已保存的局部观察，未调用模型生成整案；不代表自主冷启动完成。"
     if run_status.get("error"):

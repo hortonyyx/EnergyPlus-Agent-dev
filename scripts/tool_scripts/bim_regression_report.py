@@ -51,7 +51,8 @@ def read_run(root, entry):
     if summary is None:
         row["status"] = "unfinished_or_missing_summary"
         return row
-    row["status"] = "completed" if summary.get("agent_response_completed") is True else "interrupted"
+    row["status"] = "completed" if (summary.get("agent_response_completed") is True
+        or summary.get("task_completed") is True) else "interrupted"
     row["invocations"] = summary.get("subscription_invocations")
     row["elapsed_seconds"] = summary.get("elapsed_seconds")
     row["estimated_usd_not_bill"] = summary.get("estimated_cost_usd")

@@ -80,6 +80,43 @@ def _signed_area(ring: list[list[float]]) -> float:
     ) / 2
 
 
+def test_internal_preflight_omits_only_inert_audit_and_preserves_public_save_isolation():
+    plan = _plan()
+    plan['partitions'][0]['pixels'] = plan['partitions'][0].pop('points')
+    evidence = [{'source_refs': ['synthetic original'], 'original_m': i / 1000}
+                for i in range(2000)]
+    plan['regularization_inputs'] = {'evidence': evidence}
+    plan['regularization'] = {'items': copy.deepcopy(evidence)}
+    before = copy.deepcopy(plan)
+    proposal, complete = compile_plan_partition(plan, image_size=(100, 100), image_name='plan')
+    preflight, metadata = compile_plan_partition(
+        plan, image_size=(100, 100), image_name='plan', include_audit_metadata=False)
+    assert preflight == proposal
+    assert metadata == {key: value for key, value in complete.items()
+                        if key not in {'regularization', 'regularization_inputs'}}
+    assert complete['regularization_inputs'] == before['regularization_inputs']
+    assert complete['regularization'] == before['regularization']
+    complete['regularization_inputs']['evidence'][0]['original_m'] = -100
+    complete['regularization']['items'][0]['source_refs'].append('changed output only')
+    assert plan == before
+
+
+@pytest.mark.parametrize('invalid', ['unknown_field', 'dangling_partition'])
+def test_internal_preflight_keeps_unknown_fields_and_geometry_rejections(invalid):
+    plan = _plan()
+    if invalid == 'unknown_field':
+        plan['not_a_plan_field'] = True
+    else:
+        plan['partitions'][0]['points'][-1][1] = 80
+    failures = []
+    for include_audit in (True, False):
+        with pytest.raises(ValueError) as error:
+            compile_plan_partition(plan, image_size=(100, 100), image_name='plan',
+                                   include_audit_metadata=include_audit)
+        failures.append(str(error.value))
+    assert failures[0] == failures[1]
+
+
 def test_t_partition_keeps_all_spaces_and_resolves_openings_without_resizing():
     proposal, metadata = compile_plan_partition(
         _plan(), image_size=(100, 100), image_name="plan.png",

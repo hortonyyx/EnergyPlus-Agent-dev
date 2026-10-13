@@ -96,22 +96,25 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
             row = next(self.responses)
             clock[0] = row.get("now", clock[0])
             clients[0].before_tool_time = row.get("at_tool")
-            if row.get("tool"):
-                arguments = dict(row.get("arguments", {}))
-                if row["tool"] == "assemble_plan_bim":
+            commands = row.get("tools", [row] if row.get("tool") else [])
+            calls = []
+            for index, command in enumerate(commands):
+                arguments = dict(command.get("arguments", {}))
+                if command["tool"] == "assemble_plan_bim":
                     toolkit = runner.Toolkit(out / "bim")
                     arguments["floors_json"] = json.dumps([
                         dict(draft_id=f"draft_{i:03d}",
                             expected_plan_sha256=toolkit.inspect_plan(f"draft_{i:03d}")["plan_sha256"],
                             floor_id=f"F{i}", z_floor=3*(i-1), evidence="synthetic floor scope")
                         for i in (1, 2)])
-                message = {"role": "assistant", "content": None, "tool_calls": [{
-                    "id": f"call_{len(requests)}", "type": "function", "function": {
-                        "name": row["tool"], "arguments": json.dumps(arguments)}}]}
+                calls.append({"id": f"call_{len(requests)}_{index}", "type": "function", "function": {
+                    "name": command["tool"], "arguments": json.dumps(arguments)}})
+            if calls:
+                message = {"role": "assistant", "content": None, "tool_calls": calls}
             else:
                 message = {"role": "assistant", "content": "Saved results; no further action."}
             return {"id": f"offline_{len(requests)}", "model": "scripted-model",
-                "choices": [{"message": message, "finish_reason": "tool_calls" if row.get("tool") else "stop"}],
+                "choices": [{"message": message, "finish_reason": "tool_calls" if calls else "stop"}],
                 "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20}}
 
     monkeypatch.setattr(runtime_entry, "frozen_bim_client", client)
@@ -224,6 +227,129 @@ def test_non_timeout_preserves_model_selection(tmp_path, monkeypatch):
     assert delivery["floor_completeness"]["complete_building"] is False
     assert receipt["status"] == "completed"
     _evidence("explicit_selection", receipt["finalization"])
+
+
+@pytest.mark.parametrize("project_reply", [False, True])
+def test_finish_complete_stops_without_extra_request_or_rewriting_handoff(tmp_path, monkeypatch, project_reply):
+    from src.agent.runtime_delivery import completed_building_handoff
+    from scripts.tool_scripts import bim_agent_replies
+    delivered, original = [], runner.Toolkit.delivery
+
+    def delivery(toolkit, *args, **kwargs):
+        result = original(toolkit, *args, **kwargs)
+        delivered.append(result)
+        return result
+
+    monkeypatch.setattr(runner.Toolkit, "delivery", delivery)
+    if project_reply:
+        original_reply = bim_agent_replies.compact_reply
+
+        def projected_reply(run, tool, result, **kwargs):
+            value = original_reply(run, tool, result, **kwargs)
+            if tool == "finish_bim":
+                # Exercise the same immutable reference used when a full reply
+                # does not fit; completion cannot depend on visible JSON size.
+                return {k: value[k] for k in ("details_file", "details_sha256", "details_read")}
+            return value
+
+        monkeypatch.setattr(bim_agent_replies, "compact_reply", projected_reply)
+    actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+               {"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}}]
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+    assert receipt["status"] == "completed" and receipt["answer"] is None
+    assert len(requests) == receipt["model_calls"] == 4
+    assert receipt["completion"]["tool_name"] == "finish_bim"
+    assert len(delivered) == 1 and receipt["finalization"]["reused_handoff"] is True
+    assert receipt["finalization"]["delivery"]["selection_origin"] == "agent_selected"
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["task_completed"] is True and summary["agent_response_completed"] is False
+    assert summary["completion_origin"] == "domain_tool"
+    handoff = json.loads((out / "bim/delivery.json").read_bytes())
+    assert handoff["generation_status"]["agent_response_completed"] is False
+    assert "已选定并保存 BIM，未完成事项见下方。" in (out / "bim/delivery.html").read_text(encoding="utf-8")
+    assert "模型调用尚未结束。" not in (out / "bim/delivery.html").read_text(encoding="utf-8")
+    assert "Single-model runtime completion" in (out / "guide.txt").read_text(encoding="utf-8")
+    # A former successful handoff cannot attest changed files, even if the
+    # candidate name and self-declared source digest have not changed.
+    with EventStore(out, run_id=out.name, task_id="coordinator",
+                    budget_limit=RunLimits.model_validate(receipt["limits"]).ledger_limit()) as store:
+        engine = SimpleNamespace(store=store, role=SimpleNamespace(read_only=False),
+                                 tools=SimpleNamespace(run_directory=out / "bim"))
+        assert completed_building_handoff(engine) == receipt["completion"]
+        for name, sha in receipt["completion"]["artifact_sha256"].items():
+            path = out / "bim" / name
+            before = path.read_bytes()
+            assert hashlib.sha256(before).hexdigest() == sha
+            path.write_bytes(before + b" ")
+            assert completed_building_handoff(engine) is None
+            path.write_bytes(before)
+        assert completed_building_handoff(engine) == receipt["completion"]
+
+
+def test_successful_finish_at_deadline_needs_no_next_request(tmp_path, monkeypatch):
+    original = LocalClient.call_tool
+
+    async def after_deadline(client, name, arguments):
+        result = await original(client, name, arguments)
+        if name == "finish_bim":
+            client.clock[0] = 7001.0
+        return result
+
+    monkeypatch.setattr(LocalClient, "call_tool", after_deadline)
+    actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+               {"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}, "now": 6999}]
+    _, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+    assert receipt["status"] == "completed" and len(requests) == 4
+    assert receipt["elapsed_seconds"] > 6000  # Completion is not a latency pass.
+    assert receipt["finalization"]["delivery"]["selection_origin"] == "agent_selected"
+
+
+def test_handoff_changed_after_attestation_fails_without_fallback(tmp_path, monkeypatch):
+    original = runtime_entry.finalize_runtime_building
+
+    def mutate_before_finalization(engine, reason):
+        assert engine.completion and reason == "completed"
+        path = engine.tools.run_directory / "delivery.html"
+        path.write_bytes(b"changed after attestation")
+        return original(engine, reason)
+
+    monkeypatch.setattr(runtime_entry, "finalize_runtime_building", mutate_before_finalization)
+    actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+               {"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}}]
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+    assert receipt["status"] == "completion_state_changed" and len(requests) == 4
+    assert receipt["finalization"]["completion_valid"] is False
+    assert receipt["finalization"]["delivery"] is None
+    assert (out / "bim/delivery.html").read_bytes() == b"changed after attestation"
+    assert json.loads((out / "bim/delivery.json").read_bytes())["selection_origin"] == "agent_selected"
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["task_completed"] is False and summary["completion_origin"] is None
+
+
+def test_read_timeout_after_finish_preserves_selection_without_task_completion(tmp_path, monkeypatch):
+    original = LocalClient.call_tool
+
+    async def timeout_after_finish(client, name, arguments):
+        if name == "inputs":
+            client.clock[0] = 7001.0
+            raise TimeoutError("synthetic read timeout after finish")
+        return await original(client, name, arguments)
+
+    monkeypatch.setattr(LocalClient, "call_tool", timeout_after_finish)
+    actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+               {"tools": [{"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}},
+                          {"tool": "inputs"}]}]
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
+    assert receipt["status"] == "time_budget_exhausted" and len(requests) == 4
+    assert "completion" not in receipt and receipt["answer"] is None
+    assert receipt["finalization"]["reused_handoff"] is True
+    assert receipt["finalization"]["delivery"]["selection_origin"] == "agent_selected"
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["task_completed"] is False and summary["agent_response_completed"] is False
+    assert summary["completion_origin"] is None
+    saved = json.loads(next((out / "bim/tool_reports").glob("finish_bim_*.json")).read_bytes())
+    assert all(hashlib.sha256((out / "bim" / name).read_bytes()).hexdigest() == sha
+               for name, sha in saved["delivery_artifact_sha256"].items())
 
 
 def test_external_coordinator_also_finalizes_saved_work(tmp_path, monkeypatch):

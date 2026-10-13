@@ -146,6 +146,9 @@ class Runtime:
     # Resume still restores the original persisted start; it never buys time.
     start_epoch: float | None = None
     finalize_run: object | None = None
+    # Optional domain attestation, checked only between complete tool batches.
+    # A tool-completed task has no fabricated assistant final answer.
+    domain_completion: object | None = None
     tool_budget_update: object | None = None
     # Parallel roles reserve a bounded slice per in-flight request so the first
     # reader cannot hold the entire shared time budget. None preserves the
@@ -178,6 +181,7 @@ class Runtime:
         self.pending_response_id = None
         self.pending_pictures, self.pending_picture_events = [], []
         self.answer = None
+        self.completion = None
         self.stage = "initialization"
         self.terminal_reason = None
         self.retry_of = None
@@ -257,6 +261,17 @@ class Runtime:
                 self.context.retrieve_image(view_id, digest)
                 self._checkpoint()
             while True:
+                if self.completion is not None and self.terminal_reason == "completed":
+                    return self._stop("completed")
+                if not self.pending_response_id and not self.terminal_reason and self.domain_completion:
+                    completion = self.domain_completion(self)
+                    if completion is not None:
+                        if not isinstance(completion, dict) or not completion:
+                            raise ValueError("domain completion must be a nonempty evidence record")
+                        self.completion = completion
+                        self.terminal_reason = "completed"
+                        self._checkpoint()
+                        return self._stop("completed")
                 # A complete tool interaction stays intact. Operator messages
                 # enter immediately before the next model request, never
                 # between an assistant tool call and its tool result.
@@ -389,6 +404,7 @@ class Runtime:
             **({"route_dispatch": asdict(route_policies()[self.versions.remote_model.route_id])}
                if self.versions.remote_model.route_id in route_policies() else {}),
             "tool_budget_update_enabled": self.tool_budget_update is not None,
+            **({"domain_completion_enabled": True} if self.domain_completion else {}),
             "answer_validation_enabled": self.answer_validator is not None,
             "max_answer_repairs": self.max_answer_repairs,
             "low_output_limit_reason": self.low_output_limit_reason,
@@ -1402,6 +1418,7 @@ class Runtime:
             "context": self.context.dump() if self.context else None,
             "image_originals": {k: v.model_dump(mode="json") for k, v in self.originals.items()},
             "counts": self.counts, "used_ids": sorted(self.used_ids), "answer": self.answer,
+            "completion": self.completion,
             "pending_response_id": self.pending_response_id,
             "pending_pictures": self.store.capture(self.pending_pictures).model_dump(mode="json"),
             "pending_picture_events": self.pending_picture_events,
@@ -1437,6 +1454,10 @@ class Runtime:
         suffix = [e for e in self.store.events if e.sequence > sequence]
         if any(e.payload.event_type == "run_lifecycle" and e.payload.reason == "completed" for e in suffix):
             if (self.store.task_directory / "receipt.json").exists():
+                receipt = json.loads((self.store.task_directory / "receipt.json").read_bytes())
+                completed = receipt.get("completion")
+                if completed and (not self.domain_completion or self.domain_completion(self) != completed):
+                    return "resume_state_changed"
                 return "already_completed"
         if saved.get("context"):
             from .context import ContextManager
@@ -1448,6 +1469,7 @@ class Runtime:
         self.originals = {k: HashedBlobRef.model_validate_json(json.dumps(v)) for k, v in saved["image_originals"].items()}
         self.used_ids = set(saved["used_ids"])
         self.answer, self.terminal_reason = saved.get("answer"), saved.get("terminal_reason")
+        self.completion = saved.get("completion")
         self.pending_response_id = saved.get("pending_response_id")
         pictures = saved.get("pending_pictures")
         if pictures and pictures.get("kind") == "sha256":  # historical checkpoint
@@ -1592,6 +1614,8 @@ class Runtime:
         if not safe:
             return "resume_state_changed"
         self._tool_state = copy.deepcopy(observed_state)
+        if self.completion and (not self.domain_completion or self.domain_completion(self) != self.completion):
+            return "resume_state_changed"
         failures = {e.payload.model_failure.request_event_id: e.payload.model_failure
                     for e in self.store.events if e.payload.event_type == "run_lifecycle" and e.payload.model_failure}
         responded = {e.payload.request_event_id for e in self.store.events if e.payload.event_type == "model_response"
@@ -1984,6 +2008,11 @@ class Runtime:
         # their hashes and the final receipt are recorded. No new model request.
         finalization = (self.finalize_run(self, reason) if self.finalize_run
                         and not reason.startswith("resume_") else None)
+        if (self.completion is not None and isinstance(finalization, dict)
+                and finalization.get("completion_valid") is False):
+            # A domain may detect stale completion evidence during its last
+            # handoff check. Retain that evidence, but never report success.
+            reason = "completion_state_changed"
         artifacts, paths = [], []
         for path in self.tools.artifacts():
             if path.is_file():
@@ -2004,6 +2033,7 @@ class Runtime:
             status=reason, pending_queue=getattr(self, "_queue_interruption", None))
         from .versions import version_labels
         receipt = {"status": reason, "answer": self.answer,
+            **({"completion": self.completion} if self.completion is not None else {}),
             **version_labels(self.versions),
             **({"finalization": finalization} if finalization is not None else {}),
             "started_epoch": self.started_epoch,

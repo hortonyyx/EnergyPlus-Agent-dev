@@ -16,9 +16,14 @@ DEFAULT_GRID_STEP_M = DEFAULT_LITE_GRID_M
 
 
 def _geometry_digest(plan):
-    value = copy.deepcopy(plan)
-    value.pop("regularization", None)
-    value.get("regularization_inputs", {}).get("reading_alignment", {}).pop("lite_bim", None)
+    value = {key: item for key, item in plan.items() if key != "regularization"}
+    # Only these containers change in the digest projection. All evidence stays
+    # in the plan, and JSON encoding never mutates the referenced field values.
+    if "regularization_inputs" in value:
+        inputs = value["regularization_inputs"] = dict(value["regularization_inputs"])
+        if "reading_alignment" in inputs:
+            inputs["reading_alignment"] = {
+                key: item for key, item in inputs["reading_alignment"].items() if key != "lite_bim"}
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
@@ -99,7 +104,8 @@ Q1 this path never resolves a narrow strip by deleting/merging a source room.
         raise PlanRegularizationError(message, report=report)
 
     try:
-        before, _ = compile_plan_partition(result, image_size=image_size, image_name=image_name)
+        before, _ = compile_plan_partition(result, image_size=image_size, image_name=image_name,
+                                           include_audit_metadata=False)
     except (ValueError, TypeError, KeyError) as error:
         reject(str(error), stage="before_grid_compile")
     calibration = _calibration(result, image_size)
@@ -141,7 +147,8 @@ Q1 this path never resolves a narrow strip by deleting/merging a source room.
         reference["value_m"] = quantize_m(original, grid_step_m)
         record(f"coordinate_references[{i}]", original, reference["value_m"])
     try:
-        after, _ = compile_plan_partition(result, image_size=image_size, image_name=image_name)
+        after, _ = compile_plan_partition(result, image_size=image_size, image_name=image_name,
+                                          include_audit_metadata=False)
     except (ValueError, TypeError, KeyError) as error:
         reject(str(error), stage="after_grid_compile")
     named = {s["id"] for s in result.get("space_seeds", [])}

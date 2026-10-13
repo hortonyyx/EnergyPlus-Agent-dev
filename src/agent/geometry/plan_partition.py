@@ -204,6 +204,7 @@ def compile_plan_partition(
     *,
     image_size: tuple[int, int],
     image_name: str,
+    include_audit_metadata: bool = True,
 ) -> tuple[dict, dict]:
     """Return an executable geometry-v2 proposal and pixel/world mapping metadata.
 
@@ -213,8 +214,17 @@ def compile_plan_partition(
     pixels and never uses ground truth.  A partition residual, overlap,
     unsupported footprint, or ambiguous opening host raises instead of
     dropping or modifying the declared evidence.
+
+    Internal geometric preflights can omit inert audit metadata they discard.
+    Public saves retain the default complete, independently copied metadata.
     """
     from src.agent.geometry.plan_input import normalize_plan_fields
+    if not include_audit_metadata and isinstance(plan, dict):
+        # These two fields only enter the returned metadata below. Exclude them
+        # before alias normalization copies the plan; retain all other keys so
+        # unknown-field checks and every geometric check still run unchanged.
+        plan = {key: value for key, value in plan.items()
+                if key not in {"regularization", "regularization_inputs"}}
     plan, field_aliases = normalize_plan_fields(plan)
     plan = _fields(
         plan, path="plan", allowed=_PLAN_FIELDS, required=_REQUIRED_PLAN_FIELDS,

@@ -92,6 +92,23 @@ def test_trusted_stack_grid_applies_to_unmarked_plans_without_mutating_inputs():
         assert report["floor_reports"][item["floor_id"]]["method"]["grid_step_m"] == .1
 
 
+def test_digest_projections_preserve_full_evidence_hashes_and_input():
+    import hashlib
+    import json
+    from src.agent.geometry.lite_bim_regularization import _geometry_digest
+    from src.agent.geometry.plan_regularization import _plan_digest
+    effective, _ = regularize_lite_plan(plan(), image_size=SIZE)
+    before = copy.deepcopy(effective)
+    expected = copy.deepcopy(effective)
+    expected.pop('regularization', None)
+    digest = lambda value, **kwargs: hashlib.sha256(json.dumps(
+        value, sort_keys=True, separators=(',', ':'), **kwargs).encode()).hexdigest()
+    assert _plan_digest(effective) == digest(expected, ensure_ascii=False)
+    expected['regularization_inputs']['reading_alignment'].pop('lite_bim', None)
+    assert _geometry_digest(effective) == digest(expected)
+    assert effective == before
+
+
 def test_local_chain_uses_first_tick_calibration_and_small_tail_is_code_managed():
     value = plan()
     value["dimension_chains"] = [chain(segments_mm=[3940], tick_pixels=[494, 888], total_mm=3960)]

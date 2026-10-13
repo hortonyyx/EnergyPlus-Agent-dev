@@ -2834,14 +2834,23 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             Unreviewed/pending scopes remain explicit. This does not certify image
             fidelity or prevent further work; call again to choose another candidate.
             """
-            result = toolkit.delivery(candidate, selection_origin="agent_selected")
+            result = toolkit.delivery(candidate, selection_origin="agent_selected",
+                generation_status={"state": "in_progress", "handoff_saved": True,
+                                   "agent_response_completed": False})
             dump(run / "delivery_selection.json", {
                 "candidate": candidate, "source_model_sha256": result["source_model_sha256"]})
             toolkit.log("finish_bim", result)
+            # Bind the successful handoff to the files actually saved. A runtime
+            # may attest completion from this small record without re-rendering
+            # or mistaking a later selection/source/viewer for the delivered one.
+            artifacts = {name: digest(run / name) for name in (
+                "inputs.json", "delivery_selection.json", "delivery.json", "delivery.html",
+                f"{candidate}/source_model.json", f"{candidate}/viewer.html")}
             from scripts.tool_scripts.bim_agent_replies import compact_reply
             return compact_reply(run, "finish_bim", {
-                **delivery_tool_reply(result), "remaining_seconds": toolkit.remaining_seconds()},
-                full_result=result)
+                **delivery_tool_reply(result), "delivery_artifact_sha256": artifacts,
+                "remaining_seconds": toolkit.remaining_seconds()},
+                full_result={**result, "delivery_artifact_sha256": artifacts})
 
         @server.tool()
         def overlay_candidate(candidate: str, image: ImageFilename, floor_id: str,

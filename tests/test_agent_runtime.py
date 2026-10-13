@@ -528,6 +528,93 @@ def test_resume_completed_run_does_not_append_duplicate_stop_or_usage(tmp_path):
         assert resumed.store.path.read_bytes() == before
 
 
+@pytest.mark.parametrize("crash_at", [None, "after_execution", "accepted_tool", "finished_batch", "completion"])
+def test_domain_completion_stops_without_final_model_request_and_resumes_once(tmp_path, crash_at):
+    class Crash(BaseException):
+        pass
+
+    def completed(engine):
+        path = engine.tools.directory / "saved.json"
+        if path.is_file() and json.loads(path.read_bytes()) == {"value": 8}:
+            return {"origin": "domain_tool", "artifact_sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        return None
+
+    def interrupt(name, engine):
+        if ((crash_at == "after_execution" and name == "after_execution")
+                or (name == "after_checkpoint" and engine.used_ids and (
+                    (crash_at == "accepted_tool" and engine.pending_response_id)
+                    or (crash_at == "finished_batch" and not engine.pending_response_id and not engine.completion)
+                    or (crash_at == "completion" and engine.completion)))):
+            raise Crash()
+
+    engine = runtime(tmp_path, [response(("w", "save", {"value": 8}))])
+    engine.domain_completion, engine.fault_hook = completed, interrupt
+    with engine.store:
+        if crash_at:
+            with pytest.raises(Crash):
+                asyncio.run(engine.run(MESSAGES))
+        else:
+            result = asyncio.run(engine.run(MESSAGES))
+    if crash_at:
+        resumed = runtime(tmp_path, [], tools=engine.tools)
+        resumed.domain_completion = completed
+        with resumed.store:
+            result = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert resumed.adapter.requests == []
+    assert result["status"] == "completed" and result["answer"] is None
+    assert result["completion"]["origin"] == "domain_tool"
+    assert result["model_calls"] == result["tool_calls"] == 1
+    assert len(engine.tools.calls) == 1
+    resumed = runtime(tmp_path, [], tools=engine.tools)
+    resumed.domain_completion = completed
+    with resumed.store:
+        before = resumed.store.path.read_bytes()
+        assert asyncio.run(resumed.run(MESSAGES, resume=True))["resume_status"] == "already_completed"
+        assert resumed.store.path.read_bytes() == before
+    (engine.tools.directory / "saved.json").write_text('{"value":9}')
+    stale = runtime(tmp_path, [], tools=engine.tools)
+    stale.domain_completion = completed
+    with stale.store:
+        assert asyncio.run(stale.run(MESSAGES, resume=True))["status"] == "resume_state_changed"
+        assert stale.adapter.requests == []
+
+
+def test_domain_completion_waits_for_whole_tool_batch(tmp_path):
+    observed = []
+
+    def completed(engine):
+        if engine.tools.calls:
+            observed.append(list(engine.tools.calls))
+            if json.loads((engine.tools.directory / "saved.json").read_bytes()) == {"value": 8}:
+                return {"origin": "domain_tool"}
+        return None
+
+    engine = runtime(tmp_path, [response(("a", "save", {"value": 8}), ("b", "save", {"value": 9})),
+                                response(text="Later edit is still pending review.")])
+    engine.domain_completion = completed
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+    assert result["model_calls"] == 2 and "completion" not in result
+    assert observed and all(len(batch) == 2 for batch in observed)
+
+
+def test_invalidated_completion_at_finalization_is_not_success(tmp_path):
+    def completion(engine):
+        if engine.tools.calls:
+            return {"origin": "domain_tool", "artifact": "saved.json"}
+        return None
+
+    engine = runtime(tmp_path, [response(("w", "save", {"value": 8}))])
+    engine.domain_completion = completion
+    engine.finalize_run = lambda engine, reason: {"completion_valid": False,
+        "status": "handoff_changed", "delivery": None}
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+    assert result["status"] == "completion_state_changed" and result["answer"] is None
+    assert result["completion"]["origin"] == "domain_tool"  # Preserve the prior attestation.
+    assert result["model_calls"] == result["tool_calls"] == 1
+
+
 def test_resume_rejects_changed_model_profile(tmp_path, monkeypatch):
     engine = runtime(tmp_path, [response(text="Done")])
     with engine.store:

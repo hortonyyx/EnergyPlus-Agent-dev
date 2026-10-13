@@ -10,7 +10,7 @@ import copy
 import hashlib
 import json
 import re
-from typing import Literal
+from typing import Annotated, Literal
 
 from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
@@ -77,7 +77,7 @@ class Claim(StrictModel):
     basis: Literal["annotation_and_pixels", "pixels", "visual_estimate", "inference", "declared"]
     reason: str = Field(min_length=1)
     sources: list[ImageRef | ViewedImageRef]
-    values: dict[str, LiteralValue | AxisValue | ChainValue]
+    values: dict[str, Annotated[LiteralValue | AxisValue | ChainValue, Field(discriminator="type")]]
     # Omitted preserves the legacy all-values/all-objects contract. An explicit
     # empty list marks supporting evidence, never an applicable parameter.
     value_targets: dict[str, list[ObjectRef]] | None = None

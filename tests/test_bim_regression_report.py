@@ -57,6 +57,14 @@ def test_unfinished_and_interrupted_runs_are_not_dropped(tmp_path):
     assert data["groups"][0]["position_count_range"] is None
 
 
+def test_tool_completed_task_is_not_mislabeled_as_interrupted(tmp_path):
+    entry = run_fixture(tmp_path, "tool-finished", completed=False)
+    save(tmp_path / entry["run"] / "summary.json", {
+        "task_completed": True, "agent_response_completed": False,
+        "completion_origin": "domain_tool", "runtime_status": "completed"})
+    assert report(tmp_path, {"runs": [entry]})["runs"][0]["status"] == "completed"
+
+
 def test_unexercised_feature_is_distinct_from_output_quality(tmp_path):
     entry = run_fixture(tmp_path, "a")
     entry["feature_count"] = {"name": "new reply", "file": "postrun_audit.json",

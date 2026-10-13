@@ -22,7 +22,7 @@ from src.agent.runtime_tools import (
     write_frozen_materials, write_frozen_tool_catalog,
 )
 from src.agent.runtime_context import update_building_context
-from src.agent.runtime_delivery import finalize_runtime_building
+from src.agent.runtime_delivery import completed_building_handoff, finalize_runtime_building
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.accounting import require_cny_price_schedule
@@ -64,6 +64,11 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
         started_epoch=started_epoch, seconds=seconds)
     inventory = manifest["images"]
     guide = build_guide(images=image_kind if inventory else None, mesh=bool(mesh))
+    guide += ("\nSingle-model runtime completion: finish_bim selects your final handoff. "
+        "After the current tool batch completes, a successful finish of a complete building "
+        "with matching saved source and viewer ends this run without another model request. "
+        "Complete intended edits and checks before finish_bim; partial or failed handoffs "
+        "do not end the run. Tool completion is distinct from a final text answer.\n")
     task = scope
     (output / "guide.txt").write_text(guide, encoding="utf-8")
     (output / "task.txt").write_text(task, encoding="utf-8")
@@ -206,6 +211,7 @@ async def execute(args) -> dict:
                     retrieve_images=tuple(tuple(pair) for pair in args.retrieve_image),
                     start_epoch=started_epoch,
                     finalize_run=finalize_runtime_building,
+                    domain_completion=completed_building_handoff if not role.read_only else None,
                     tool_budget_update=publish_tool_budget,
                     strict_model_profile=strict_model_profile)
                 engine.low_output_limit_reason = args.low_output_limit_reason
@@ -217,7 +223,10 @@ async def execute(args) -> dict:
         dump(run / "summary.json", {
             "input_mode": manifest.get("input_mode"), "source_input_mode": manifest.get("source_input_mode"),
             "input_contents": manifest.get("input_contents"),
-            "agent_response_completed": result["status"] == "completed",
+            "agent_response_completed": result["status"] == "completed" and not result.get("completion"),
+            "task_completed": result["status"] == "completed",
+            "completion_origin": ("domain_tool" if result.get("completion") else "model_response")
+                if result["status"] == "completed" else None,
             "runtime_status": result["status"], "elapsed_seconds": result.get("elapsed_seconds"),
             "delivery": ({**delivery, "report": "delivery.json", "viewer": "delivery.html"}
                          if delivery else None),
