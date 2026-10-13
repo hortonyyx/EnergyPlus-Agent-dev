@@ -317,7 +317,7 @@ Domain后段检查不能整体删除：v75的27个空间关系样本与墙线检
 
 编译器不再自动把自身方法与校准未独验的说明追加进作者assumptions/unresolved；事实保留在metadata和geometry.notes，经装配/source generation继续保存。作者文本不自动清理，旧运行不改。收尾指引改为围绕scope/current candidate/具体剩余问题，明确可用信息不足与尚未完成工作的区别，以及finish可能直接结束运行。3项编译/导出/两层路径有效通过（旧测试关于机器说明位于unresolved末尾的断言已按新职责更新），6项guidance接线通过；独审`v76-finishing-compiler-independent-review.json`。这不提高独立保真等级。
 
-当前候选摘要已实现：显式`inspect_candidate(include_geometry=false)`按需返回整候选当前/过期开口回查、楼层覆盖、空间关系、立面计数、claim与高度状态以及作者未决项，复用既有投影；默认几何查看不自动触发。完整详情单一hash绑定、摘要仍在24KB内；不重跑像素/precision生成器、不产生质量通过门槛。有效声明的未决项可见，已撤回内容及已成功修复的失败历史不升为当前待办。未生成source的候选同样有可读详情。7项有效检查通过，含真实stdio交付回归和缺source详情跟读；最后窄修复独审进行中。v75原candidate04纯投影2.881秒，5138原文件不变，保留34当前高度和6项窗宽提示，并未把提示升级成独立质量失败。证据`v76-current-checks-final-files.json`及`v76-current-checks-v75-readonly-replay.json`。
+当前候选摘要已实现：显式`inspect_candidate(include_geometry=false)`按需返回整候选当前/过期开口回查、楼层覆盖、空间关系、立面计数、claim与高度状态以及作者未决项，复用既有投影；默认几何查看不自动触发。完整详情单一hash绑定、摘要仍在24KB内；不重跑像素/precision生成器、不产生质量通过门槛。有效声明的未决项可见，已撤回内容及已成功修复的失败历史不升为当前待办。未生成source的候选同样有可读详情。7项有效检查通过，含真实stdio交付回归和缺source详情跟读；独审通过，无剩余P1/P2；审阅记录`v76-current-checks-independent-review.json`。v75原candidate04纯投影2.881秒，5138原文件不变，保留34当前高度和6项窗宽提示，并未把提示升级成独立质量失败。证据`v76-current-checks-final-files.json`及`v76-current-checks-v75-readonly-replay.json`。
 
 下一轮配置已准备并通过配置检查：[run_harness_v76.json](run_harness_v76.json)。
 
@@ -330,3 +330,5 @@ Domain后段检查不能整体删除：v75的27个空间关系样本与墙线检
 | 验收 | 完整自主交付、CLI干净退出、独立物理/宿主/连通质量分别检查；合格后同冻结配置再两次冷启动，有限样本如实报告 |
 
 尚未启动v76真实模型，未证明可重复稳定；桌面未更新。
+
+实现`3f224ab1`已登记runtime v16/domain v76，registry verify通过。两个正式冻结入口节点（图片目录工具版本/完成后恢复、全部MCP角色catalog）通过15.87秒，证据`v76-registered-preflight.xml`。实测前完成配置、474源码/registry/config及原输入冻结，运行期间不改程序、配置或候选。
