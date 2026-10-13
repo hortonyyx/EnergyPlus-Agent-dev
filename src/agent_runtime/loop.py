@@ -40,6 +40,9 @@ from .output_limits import validate_output_limit
 from .store import EventStore
 
 
+NO_DEADLINE_IO_TIMEOUT_SECONDS = 300.0
+
+
 class _BudgetCapacitySignal:
     """Event-loop local notification for released shared root reservations."""
 
@@ -65,7 +68,7 @@ class _BudgetCapacitySignal:
         if self.revision != observed_revision and not waiter.done():
             waiter.set_result(None)
 
-    async def wait_for_change(self, revision: int, *, timeout: float) -> bool:
+    async def wait_for_change(self, revision: int, *, timeout: float | None) -> bool:
         if self.revision != revision and not self.waiters:
             return True
         waiter = asyncio.get_running_loop().create_future()
@@ -99,7 +102,7 @@ def _shared_budget_capacity_signal(store: EventStore) -> _BudgetCapacitySignal:
 class RunLimits(ContractModel):
     model_calls: int = Field(ge=1)
     tool_calls: int = Field(ge=0)
-    seconds: float = Field(gt=0)
+    seconds: float | None = Field(gt=0)
     tokens: int | None = Field(ge=1)
     money_usd: Decimal | None = Field(default=None, ge=0)
     money_cny: Decimal | None = Field(default=None, ge=0)
@@ -115,7 +118,8 @@ class RunLimits(ContractModel):
 
     def ledger_limit(self):
         return BudgetAmounts(tokens=self.tokens, calls=self.model_calls,
-            seconds=Decimal(str(self.seconds)), money_usd=self.money_usd, money_cny=self.money_cny)
+            seconds=Decimal(str(self.seconds)) if self.seconds is not None else None,
+            money_usd=self.money_usd, money_cny=self.money_cny)
 
 
 @dataclass
@@ -410,6 +414,8 @@ class Runtime:
             "low_output_limit_reason": self.low_output_limit_reason,
             "required_context_tags": list(self.required_context_tags),
             "required_view_ids": list(self.required_view_ids),
+            **({"model_io_idle_timeout_seconds": NO_DEADLINE_IO_TIMEOUT_SECONDS}
+               if self.limits.seconds is None else {}),
             **({"request_timeout_seconds": self.request_timeout_seconds}
                if self.request_timeout_seconds is not None else {})}
 
@@ -461,7 +467,8 @@ class Runtime:
                 continue
             remaining = min(value for _, value in caps)
             if name == "seconds":
-                remaining = min(remaining, Decimal(str(self._remaining())))
+                if self.limits.seconds is not None:
+                    remaining = min(remaining, Decimal(str(self._remaining())))
                 caps = [(limit, min(value, remaining)) for limit, value in caps]
             dimensions[name] = {"remaining": str(max(0, remaining)),
                 "remaining_fraction": float(min(
@@ -614,16 +621,18 @@ class Runtime:
                 if remaining <= 0:
                     return None, self._scoped_budget_reason("time", task=True)
                 # Wall-clock deadline covers tools, summaries, retries, and restart downtime.
-                seconds = min(
-                    Decimal(str(remaining)),
+                finite_seconds = [value for value in (
+                    self._wall_remaining_amount(),
                     self.budget.available.seconds,
                     self.task_budget.available.seconds,
-                )
-                if self.request_timeout_seconds is not None:
+                ) if value is not None]
+                seconds = min(finite_seconds) if finite_seconds else None
+                if seconds is not None and self.request_timeout_seconds is not None:
                     seconds = min(seconds, Decimal(str(self.request_timeout_seconds)))
-                if seconds <= 0:
+                if seconds is not None and seconds <= 0:
                     reason = self._scoped_budget_reason(
-                        "time", task=self.task_budget.available.seconds <= 0
+                        "time", task=(self.task_budget.available.seconds is not None
+                                      and self.task_budget.available.seconds <= 0)
                     )
                     reason = await self._wait_for_transient_root_time_reservation(
                         reason, revision=budget_revision, lease=lease
@@ -725,11 +734,19 @@ class Runtime:
                 self._refresh_counts()
                 self._fault("after_request")
                 sent_at = time.monotonic()
-                request_timeout = min(self._remaining(), float(seconds))
+                deadlines = [value for value in (
+                    self._wall_timeout(), float(seconds) if seconds is not None else None,
+                    self.request_timeout_seconds) if value is not None]
+                request_timeout = min(deadlines) if deadlines else None
+                # Without a run deadline, protect individual network I/O waits,
+                # not the total duration of an actively streaming response.
+                io_timeout = (request_timeout if self.limits.seconds is not None
+                              else min(NO_DEADLINE_IO_TIMEOUT_SECONDS, request_timeout)
+                              if request_timeout is not None else NO_DEADLINE_IO_TIMEOUT_SECONDS)
                 self._budget_capacity.start(reservation.reservation_id)
                 try:
                     raw = await asyncio.wait_for(
-                        self.adapter.send(prepared, timeout=request_timeout),
+                        self.adapter.send(prepared, timeout=io_timeout),
                         timeout=request_timeout,
                     )
                     adapter_elapsed = time.monotonic() - sent_at
@@ -983,7 +1000,8 @@ class Runtime:
                 actual=actual, usage=usage, **image_charge)
         if decision.action == "stop":
             if "seconds" in decision.exceeded_dimensions:
-                task_limited = self.task_budget.available.seconds <= self.budget.available.seconds
+                task_seconds, root_seconds = self.task_budget.available.seconds, self.budget.available.seconds
+                task_limited = task_seconds is not None and (root_seconds is None or task_seconds <= root_seconds)
                 stop_reason = self._scoped_budget_reason("time", task=task_limited)
             else:
                 stop_reason = "token_reservation_exceeded" if "tokens" in decision.exceeded_dimensions else decision.reason
@@ -1274,7 +1292,7 @@ class Runtime:
             tool_started = time.monotonic()
             tool_epoch = time.time()
             try:
-                raw = await asyncio.wait_for(self.tools.call_tool(call.tool_name, call.full_arguments), timeout=self._remaining())
+                raw = await asyncio.wait_for(self.tools.call_tool(call.tool_name, call.full_arguments), timeout=self._wall_timeout())
             except (Exception, asyncio.CancelledError) as exc:
                 failed = self._unknown_execution(intent, elapsed=time.monotonic() - tool_started,
                                                  started_epoch=tool_epoch, exception=exc)
@@ -1430,7 +1448,7 @@ class Runtime:
             "answer_repair_error": self.answer_repair_error,
             "last_summary_at": self.last_summary_at,
             "control_applied": sorted(self._control_applied), "control_paused": self._control_paused,
-            "elapsed_seconds": self.limits.seconds - self._remaining(), "started_epoch": self.started_epoch,
+            "elapsed_seconds": self.elapsed_seconds(), "started_epoch": self.started_epoch,
             "tool_state": self._tool_state, "config": self._config(),
             "versions": self.versions.model_dump(mode="json"), "last_event_id": self.store.events[-1].event_id}
         ref = self.store.put_json_tree(snapshot)
@@ -1731,7 +1749,19 @@ class Runtime:
         self.last_summary_at = self.counts["tool_calls"]
 
     def _remaining(self):
-        return max(0.0, self.limits.seconds - self.elapsed_before - (time.monotonic() - self.started))
+        # Infinity is only an internal comparison identity, never a wire value.
+        return (float("inf") if self.limits.seconds is None
+                else max(0.0, self.limits.seconds - self.elapsed_seconds()))
+
+    def elapsed_seconds(self):
+        return self.elapsed_before + max(0.0, time.monotonic() - self.started)
+
+    def _wall_timeout(self):
+        return None if self.limits.seconds is None else self._remaining()
+
+    def _wall_remaining_amount(self):
+        remaining = self._wall_timeout()
+        return Decimal(str(remaining)) if remaining is not None else None
 
     def _budget_stop(self):
         self._load_budget()
@@ -1751,7 +1781,7 @@ class Runtime:
             return self._scoped_budget_reason("money", task=True)
         if self.task_budget.available.money_cny is not None and self.task_budget.available.money_cny <= 0:
             return self._scoped_budget_reason("money", task=True)
-        if self.task_budget.available.seconds <= 0:
+        if self.task_budget.available.seconds is not None and self.task_budget.available.seconds <= 0:
             return self._scoped_budget_reason("time", task=True)
         if self.budget.available.calls <= 0:
             return self._scoped_budget_reason("model")
@@ -1761,7 +1791,7 @@ class Runtime:
             return self._scoped_budget_reason("money")
         if self.budget.available.money_cny is not None and self.budget.available.money_cny <= 0:
             return self._scoped_budget_reason("money")
-        if self.budget.available.seconds <= 0:
+        if self.budget.available.seconds is not None and self.budget.available.seconds <= 0:
             return self._scoped_budget_reason("time")
         return None
 
@@ -1771,10 +1801,10 @@ class Runtime:
         root_reason = self._scoped_budget_reason("time")
         if reason != root_reason or self._remaining() <= 0:
             return False
-        if self.task_budget.available.seconds <= 0:
+        if self.task_budget.available.seconds is not None and self.task_budget.available.seconds <= 0:
             return False
         ledger = self.budget.ledger
-        if ledger.available.seconds > 0:
+        if ledger.available.seconds is None or ledger.available.seconds > 0:
             return False
         limit = ledger.total_limit.seconds
         charged = ledger.charged.seconds or Decimal(0)
@@ -1812,11 +1842,11 @@ class Runtime:
             active_hold_ids=self._active_root_time_hold_ids(),
             root_available=self.budget.available,
             task_available=self.task_budget.available,
-            wall_remaining_seconds=Decimal(str(max(0.0, self._remaining()))),
+            wall_remaining_seconds=self._wall_remaining_amount(),
         ))
         try:
             changed = await self._budget_capacity.wait_for_change(
-                revision, timeout=self._remaining()
+                revision, timeout=self._wall_timeout()
             )
         except asyncio.CancelledError:
             self._load_budget()
@@ -1825,7 +1855,7 @@ class Runtime:
                 active_hold_ids=self._active_root_time_hold_ids(),
                 root_available=self.budget.available,
                 task_available=self.task_budget.available,
-                wall_remaining_seconds=Decimal(str(max(0.0, self._remaining()))),
+                wall_remaining_seconds=self._wall_remaining_amount(),
                 elapsed_seconds=Decimal(str(max(0.0, time.monotonic() - started))),
                 outcome="cancelled",
             ))
@@ -1836,7 +1866,7 @@ class Runtime:
             active_hold_ids=self._active_root_time_hold_ids(),
             root_available=self.budget.available,
             task_available=self.task_budget.available,
-            wall_remaining_seconds=Decimal(str(max(0.0, self._remaining()))),
+            wall_remaining_seconds=self._wall_remaining_amount(),
             elapsed_seconds=Decimal(str(max(0.0, time.monotonic() - started))),
             outcome="capacity_changed" if changed else "wall_deadline_exhausted",
         ))
@@ -1912,7 +1942,7 @@ class Runtime:
         started, epoch = time.monotonic(), time.time()
         previous = self._queue_interruption or {}
         try:
-            lease = await gate.acquire(timeout=self._remaining(), redispatch_of=self.redispatch_of)
+            lease = await gate.acquire(timeout=self._wall_timeout(), redispatch_of=self.redispatch_of)
         except (TimeoutError, asyncio.CancelledError):
             self._queue_interruption = {"route_id": gate.route_id,
                 "started_epoch": previous.get("started_epoch", epoch),
@@ -1989,7 +2019,9 @@ class Runtime:
     def _exception_reason(self, exc):
         timeout = isinstance(exc, (TimeoutError, asyncio.TimeoutError))
         cancel = isinstance(exc, asyncio.CancelledError)
-        reason = self._scoped_budget_reason("time", task=True) if timeout else "cancelled" if cancel else "failed"
+        reason = ((self._scoped_budget_reason("time", task=True)
+                   if self.limits.seconds is not None else "operation_timeout")
+                  if timeout else "cancelled" if cancel else "failed")
         action = "timeout" if timeout else "cancel" if cancel else "failure"
         fields = {"failure_stage": self.stage} if action == "failure" else {}
         self.store.append(RunLifecyclePayload(action=action,
@@ -2027,7 +2059,7 @@ class Runtime:
         from .timing import summarize_timing
         # A timeout/cleanup may finish beyond the deadline; timing must retain
         # the observed wall duration instead of clipping it to the time limit.
-        elapsed = self.elapsed_before + max(0.0, time.monotonic() - self.started)
+        elapsed = self.elapsed_seconds()
         timing = summarize_timing(self.store, current_task=self.store.task_id,
             started_epoch=self.started_epoch, ended_epoch=self.started_epoch + elapsed,
             status=reason, pending_queue=getattr(self, "_queue_interruption", None))
@@ -2037,7 +2069,7 @@ class Runtime:
             **version_labels(self.versions),
             **({"finalization": finalization} if finalization is not None else {}),
             "started_epoch": self.started_epoch,
-            "deadline_epoch": self.started_epoch + self.limits.seconds,
+            "deadline_epoch": (self.started_epoch + self.limits.seconds if self.limits.seconds is not None else None),
             "agent_version": self.versions.agent_version.identifier if self.versions.agent_version else None,
             "output_limit_policy": validate_output_limit(self.model,
                 self.parameters.get("max_tokens", self.parameters.get("max_completion_tokens")),

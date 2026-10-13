@@ -303,6 +303,7 @@ class BudgetLedger(ContractModel):
                 f"settlement exceeds reservation: {item.reservation_id}",
                 allow_token_overrun=bool(item.token_overrun),
                 allow_cny_overrun=bool(item.money_cny_overrun),
+                allow_unbounded_seconds=self.total_limit.seconds is None,
             )
             if item.cost.kind == "unavailable":
                 if reservation.amounts.money_usd is not None:
@@ -416,10 +417,13 @@ def _ensure_within_reservation(
     *,
     allow_token_overrun: bool = False,
     allow_cny_overrun: bool = False,
+    allow_unbounded_seconds: bool = False,
 ) -> None:
     for name in ("tokens", "money_usd", "money_cny", "seconds", "calls"):
         value = getattr(actual, name)
         ceiling = getattr(limit, name)
+        if name == "seconds" and ceiling is None and allow_unbounded_seconds:
+            continue
         if name == "tokens" and allow_token_overrun and ceiling is not None:
             continue
         if name == "money_cny" and allow_cny_overrun and ceiling is not None:

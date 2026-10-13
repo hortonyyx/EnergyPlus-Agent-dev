@@ -68,7 +68,7 @@ class LocalClient:
             "isError": False, **({"structuredContent": structured} if structured is not None else {})}
 
 
-async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparation_seconds=0):
+async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparation_seconds=0, seconds=6000):
     images = tmp_path / "images"
     images.mkdir()
     for name in ("plan.png", "upstairs.png"):
@@ -122,15 +122,17 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
     script = tmp_path / "actions.json"
     script.write_text(json.dumps(actions))
     args = runtime_entry.parser().parse_args(["--out", str(out), "--run-root", str(tmp_path), "--images", str(images),
-        "--provider", "scripted", "--script", str(script), "--seconds", "6000",
+        "--provider", "scripted", "--script", str(script),
+        *(["--no-time-limit"] if seconds is None else ["--seconds", str(seconds)]),
         "--model-calls", str(model_calls), "--tool-calls", "20", "--tokens", "20000000",
         "--max-candidates", "8", "--floor-plan-image", "plan.png",
         "--floor-plan-image", "upstairs.png", "--no-context"])
     receipt = await runtime_entry.execute(args)
     events = [json.loads(line) for line in (out / "events.jsonl").read_text().splitlines()]
     manifest = json.loads((out / "bim/inputs.json").read_bytes())
-    assert manifest["started_epoch"] == 1000 and manifest["deadline_epoch"] == 7000
-    assert manifest["time_budget_seconds"] == 6000
+    assert manifest["started_epoch"] == 1000
+    assert manifest["deadline_epoch"] == (1000 + seconds if seconds is not None else None)
+    assert manifest["time_budget_seconds"] == seconds
     assert receipt["started_epoch"] == manifest["started_epoch"]
     assert receipt["deadline_epoch"] == manifest["deadline_epoch"]
     assert receipt["agent_version"] == load_agent_registry(ROOT)["current_version"]
@@ -302,6 +304,24 @@ def test_successful_finish_at_deadline_needs_no_next_request(tmp_path, monkeypat
     assert receipt["status"] == "completed" and len(requests) == 4
     assert receipt["elapsed_seconds"] > 6000  # Completion is not a latency pass.
     assert receipt["finalization"]["delivery"]["selection_origin"] == "agent_selected"
+
+
+def test_no_time_limit_finish_bim_after_ten_minutes_is_agent_selected_completion(tmp_path, monkeypatch):
+    actions = [_build(), {**_build("upstairs.png"), "now": 1701}, {"tool": "assemble_plan_bim"},
+               {"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}, "now": 1901}]
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions, seconds=None))
+    assert receipt["status"] == "completed" and len(requests) == receipt["model_calls"] == 4
+    assert receipt["elapsed_seconds"] >= 901 and receipt["deadline_epoch"] is None
+    assert receipt["completion"]["tool_name"] == "finish_bim" and receipt["answer"] is None
+    assert receipt["finalization"]["reused_handoff"] is True
+    assert receipt["finalization"]["delivery"]["selection_origin"] == "agent_selected"
+    shown = "\n".join(m["content"] for request in requests for m in request["messages"] if m["role"] == "tool")
+    assert "整案不设时间上限" in shown and "时间上限已到" not in shown
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["task_completed"] is True and summary["agent_response_completed"] is False
+    _evidence("no_time_limit_finish", {"model_requests": 0, "scripted_responses": len(requests),
+        "status": receipt["status"], "elapsed_seconds": receipt["elapsed_seconds"],
+        "deadline_epoch": None, "selection_origin": "agent_selected"})
 
 
 def test_handoff_changed_after_attestation_fails_without_fallback(tmp_path, monkeypatch):

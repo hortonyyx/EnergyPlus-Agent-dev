@@ -55,8 +55,8 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
                    seconds: float | None = None) -> tuple[Path, str, str]:
     """Freeze originals through the same admission function as Claude Code."""
     from src.agent.bim_inputs import prepare_bim_inputs
-    if (started_epoch is None) != (seconds is None):
-        raise ValueError("started_epoch and seconds must be supplied together")
+    if started_epoch is None and seconds is not None:
+        raise ValueError("seconds requires started_epoch")
     run = output / "bim"
     manifest = prepare_bim_inputs(run, images_path=images, mesh_path=mesh,
         building_input_path=building_input, scope=scope, image_kind=image_kind,
@@ -262,7 +262,10 @@ def parser():
                    help="independent ChatGPT subscription login directory; defaults to the app's private user directory")
     p.add_argument("--model-calls", type=int, default=6)
     p.add_argument("--tool-calls", type=int, default=12)
-    p.add_argument("--seconds", type=float, default=180.0)
+    time_limit = p.add_mutually_exclusive_group()
+    time_limit.add_argument("--seconds", type=float, default=180.0)
+    time_limit.add_argument("--no-time-limit", dest="seconds", action="store_const", const=None,
+                            help="disable the overall deadline; retain finite network I/O waits and other budgets")
     token_limit = p.add_mutually_exclusive_group()
     token_limit.add_argument("--tokens", type=int, default=5_000_000)
     token_limit.add_argument("--no-token-limit", dest="tokens", action="store_const", const=None,

@@ -123,4 +123,4 @@ def finalize_runtime_building(engine, reason: str) -> dict:
                 "candidate": verified["candidate"], "selection_origin": "agent_selected",
                 "complete_building": True, "report": "bim/delivery.json", "viewer": "bim/delivery.html"}}
     return finalize_building(engine.tools.run_directory, reason=reason,
-        elapsed_seconds=engine.limits.seconds - engine._remaining())
+        elapsed_seconds=engine.elapsed_seconds())

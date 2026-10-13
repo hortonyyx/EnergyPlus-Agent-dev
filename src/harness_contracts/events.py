@@ -502,7 +502,7 @@ class BudgetWaitPayload(ContractModel):
     active_hold_ids: tuple[NonEmptyStr, ...]
     root_available: BudgetAmounts
     task_available: BudgetAmounts
-    wall_remaining_seconds: Decimal = Field(ge=0)
+    wall_remaining_seconds: Decimal | None = Field(ge=0)
     elapsed_seconds: Decimal | None = Field(default=None, ge=0)
     outcome: Literal["capacity_changed", "wall_deadline_exhausted", "cancelled"] | None = None
 

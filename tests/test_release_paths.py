@@ -209,6 +209,46 @@ def test_both_modes_route_external_inputs_and_shared_run_root(tmp_path, monkeypa
     assert configuration.load_configuration(path)["cases"][0]["input_root"] == str(inputs / "one")
 
 
+def test_explicit_null_time_configuration_and_cli_are_single_model_only(tmp_path, monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from src.agent import runtime_configuration as configuration, runtime_entry
+    from src.agent.runtime_roles import entry as role_entry
+
+    root, _ = _release(tmp_path)
+    monkeypatch.setattr(configuration, "ROOT", root)
+    inputs = tmp_path / "inputs"
+    (inputs / "one").mkdir(parents=True)
+    Image.new("RGB", (2, 2), "white").save(inputs / "one/1f.png")
+    data = _configuration(inputs, tmp_path / "runs")
+    data["maximum_seconds_per_case"] = None
+    data["cases"][0]["limits"]["seconds"] = None
+    path = tmp_path / "config.json"
+    _write_json(path, data)
+    cases = configuration.load_configuration(path)["cases"]
+    argv = configuration.argv_for(cases[0])
+    assert "--no-time-limit" in argv and "--seconds" not in argv
+    args = runtime_entry.parser().parse_args(argv[3:])
+    assert args.seconds is None
+    assert "--seconds" in configuration.argv_for(cases[1])
+    with pytest.raises(ValueError, match="single_model only"):
+        asyncio.run(role_entry.execute(SimpleNamespace(seconds=None)))
+    data["cases"][1]["limits"]["seconds"] = None
+    _write_json(path, data)
+    with pytest.raises(ValueError, match="single_model only"):
+        configuration.load_configuration(path)
+    data["cases"] = data["cases"][:1]
+    data["maximum_seconds_per_case"] = 600
+    _write_json(path, data)
+    with pytest.raises(ValueError, match="exceeds.*time ceiling"):
+        configuration.load_configuration(path)
+    data["maximum_seconds_per_case"] = None
+    del data["cases"][0]["limits"]["seconds"]
+    _write_json(path, data)
+    with pytest.raises(ValueError, match="set seconds explicitly"):
+        configuration.load_configuration(path)
+
+
 def test_input_root_escape_and_linked_images_are_refused(tmp_path):
     from src.agent.runtime_configuration import resolve_case_input
 

@@ -67,6 +67,26 @@ def event(sequence, payload, *, task_id="root-task"):
     )
 
 
+@pytest.mark.parametrize("total,hold,allowed", [(None, None, True), (None, "2", False), ("10", "2", False)])
+def test_only_unbounded_time_without_a_hold_accepts_actual_elapsed(total, hold, allowed):
+    budget = RuntimeBudget(BudgetAmounts(tokens=1000, calls=2,
+        seconds=Decimal(total) if total is not None else None))
+    request = estimate().model_copy(update={"seconds": Decimal(hold) if hold is not None else None})
+    assert budget.reserve("first", request).action == "allow"
+    result = budget.settle("first", actual=BudgetAmounts(tokens=30, calls=1, seconds=Decimal("301")),
+        usage=UsageReported(raw_usage={"total_tokens": 30}))
+    assert (result.action == "allow") is allowed
+    if allowed:
+        assert budget.ledger.charged.seconds == 301 and budget.available.seconds is None
+        saved = BudgetLedger.model_validate_json(budget.ledger.model_dump_json())
+        assert saved.charged.seconds == 301
+        with pytest.raises(ValidationError, match="settlement exceeds reservation.*seconds"):
+            BudgetLedger.model_validate({**saved.model_dump(), "total_limit":
+                BudgetAmounts(tokens=1000, calls=2, seconds=Decimal("1000"))})
+    else:
+        assert result.exceeded_dimensions == ("seconds",)
+
+
 def test_settlement_releases_surplus_before_the_next_reservation():
     budget = RuntimeBudget(
         BudgetAmounts(

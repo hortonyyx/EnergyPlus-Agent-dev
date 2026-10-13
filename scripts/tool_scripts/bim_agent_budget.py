@@ -95,7 +95,8 @@ def time_status(toolkit, *, now=None):
     manifest = toolkit.manifest
     start, deadline = manifest.get("started_epoch"), manifest.get("deadline_epoch")
     now = time.time() if now is None else now
-    elapsed, remaining = None, float("inf")
+    elapsed = max(0, now - start) if start is not None else None
+    remaining = None
     dimensions = {}
     status_path = toolkit.run / ".harness_tmp" / "budget_status.json"
     if status_path.is_file():
@@ -112,8 +113,12 @@ def time_status(toolkit, *, now=None):
         remaining = min(remaining, float(old.get("remaining", remaining)))
         dimensions["seconds"] = dict(remaining=remaining, remaining_fraction=min(
             remaining / total if total > 0 else 0, old.get("remaining_fraction", 1)))
+    timing_line = ((f"已用 {elapsed / 60:.1f} 分钟" +
+                    ("；整案不设时间上限" if "seconds" not in dimensions else ""))
+                   if elapsed is not None and deadline is None else "")
     if not dimensions:
-        return dict(active=False, line="已用／剩余分钟：未启用计时。", reminders=[])
+        return dict(active=elapsed is not None, elapsed_seconds=elapsed, remaining_seconds=remaining,
+            line=(timing_line + "。" if timing_line else "已用／剩余分钟：未启用计时。"), reminders=[])
     if "seconds" in dimensions:
         remaining = float(dimensions["seconds"]["remaining"])
     tightest = min(dimensions, key=lambda name: dimensions[name]["remaining_fraction"])
@@ -126,7 +131,7 @@ def time_status(toolkit, *, now=None):
     if fraction < .15:
         reminders.append("剩余不足15%，停止新范围探索，仅有界复核已列严重问题，来不及就交付并列未决" if not toolkit.readonly else
                          "剩余不足15%，停止新范围探索，返回已有观察与未核项")
-    if remaining <= 0:
+    if remaining is not None and remaining <= 0:
         reminders.append("时间上限已到，停止执行，交最近完整全楼稿，无完整稿则交最近保存稿并标明不完整")
     labels = {"seconds": "时间", "tokens": "token", "money_usd": "金额估计USD",
               "money_cny": "金额估计CNY", "calls": "模型调用", "tool_calls": "工具调用"}
@@ -139,6 +144,8 @@ def time_status(toolkit, *, now=None):
                    f"{value:.4f}" if name.startswith("money_") else f"{int(value):,}")
         amounts.append(f"{labels[name]} {display}")
     line = "保守剩余（本运行）：" + "，".join(amounts) + f"（最紧 {labels[tightest]} {fraction:.1%}）"
+    if timing_line:
+        line = timing_line + "；" + line
     return dict(active=True, elapsed_seconds=elapsed, remaining_seconds=remaining,
         line="；".join([line, *reminders]) + "。", reminders=reminders, floors=floor_status,
         dimensions=dimensions, tightest_dimension=tightest)

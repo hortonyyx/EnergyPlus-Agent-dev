@@ -56,6 +56,21 @@ def test_identical_shared_function_options_write_identical_manifest_bytes(tmp_pa
     assert (tmp_path/'a/inputs.json').read_bytes() == (tmp_path/'b/inputs.json').read_bytes()
 
 
+def test_unlimited_runtime_inputs_preserve_clock_without_a_deadline(tmp_path):
+    images = tmp_path / 'images'
+    images.mkdir()
+    image = images / '1f.png'
+    Image.new('RGB', (2, 2)).save(image)
+    original = image.read_bytes()
+    run, _, _ = runtime_entry.prepare_inputs(tmp_path / 'runtime', images=images, mesh=None,
+        building_input=None, scope='unlimited offline input', image_kind='drawings', max_candidates=2,
+        started_epoch=1000.0, seconds=None)
+    manifest = json.loads((run / 'inputs.json').read_bytes())
+    assert manifest['started_epoch'] == 1000.0
+    assert manifest['time_budget_seconds'] is None and manifest['deadline_epoch'] is None
+    assert (run / 'images/1f.png').read_bytes() == image.read_bytes() == original
+
+
 @pytest.mark.parametrize('image_kind', ['drawings', 'photos', 'unknown'])
 def test_only_new_drawing_manifests_select_lite_grid_independently_of_scope(tmp_path, image_kind):
     images = tmp_path / 'images'

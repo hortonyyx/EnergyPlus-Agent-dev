@@ -132,6 +132,154 @@ def test_single_role_keeps_complete_request_result_images_errors_and_public_thin
         assert len([e for e in log.events if e.payload.event_type == "tool_presentation"]) == 3
 
 
+@pytest.mark.parametrize("interrupt", [False, True])
+def test_no_time_limit_keeps_long_requests_elapsed_and_completion_on_resume(tmp_path, monkeypatch, interrupt):
+    from types import SimpleNamespace
+    from src.agent_runtime import loop
+
+    clock, io_timeouts, wait_timeouts = [1000.0], [], []
+    monkeypatch.setattr(loop, "time", SimpleNamespace(time=lambda: clock[0], monotonic=lambda: clock[0]))
+    real_wait_for = asyncio.wait_for
+
+    async def observed_wait_for(awaitable, timeout):
+        wait_timeouts.append(timeout)
+        return await real_wait_for(awaitable, timeout=timeout)
+
+    monkeypatch.setattr(asyncio, "wait_for", observed_wait_for)
+
+    class LongResponseAdapter(ScriptedAdapter):
+        async def send(self, prepared, *, timeout):
+            io_timeouts.append(timeout)
+            # Simulate a response with ongoing I/O lasting beyond the idle cap.
+            clock[0] += 350
+            await asyncio.sleep(0)
+            return await super().send(prepared, timeout=timeout)
+
+    class Crash(BaseException):
+        pass
+
+    def completed(engine):
+        if (engine.tools.directory / "saved.json").is_file():
+            return {"origin": "domain_tool"}
+
+    def fault(name, engine):
+        if (interrupt and name == "after_checkpoint" and len(engine.used_ids) == 2
+                and not engine.pending_response_id and not engine.completion):
+            raise Crash()
+
+    limits = RunLimits(model_calls=3, tool_calls=2, seconds=None, tokens=100_000)
+    engine = runtime(tmp_path, [], limits=limits)
+    engine.adapter = LongResponseAdapter([response(("v", "view", {})), response(("w", "save", {"value": 8}))])
+    engine.domain_completion, engine.fault_hook = completed, fault
+    with engine.store:
+        if interrupt:
+            with pytest.raises(Crash):
+                asyncio.run(engine.run(MESSAGES))
+        else:
+            result = asyncio.run(engine.run(MESSAGES))
+    if interrupt:
+        clock[0] += 400  # Resume keeps downtime in elapsed; it buys no new finite budget.
+        engine = runtime(tmp_path, [], limits=limits, tools=engine.tools)
+        engine.domain_completion = completed
+        with engine.store:
+            result = asyncio.run(engine.run(MESSAGES, resume=True))
+        assert engine.adapter.requests == []
+    assert result["status"] == "completed" and result["completion"]["origin"] == "domain_tool"
+    assert result["answer"] is None and result["model_calls"] == result["tool_calls"] == 2
+    assert result["elapsed_seconds"] == (1100 if interrupt else 700)
+    assert result["deadline_epoch"] is None and result["limits"]["seconds"] is None
+    assert io_timeouts == [300.0, 300.0] and set(wait_timeouts) == {None}
+    assert all(row["amounts"]["seconds"] is None for row in result["budget"]["reservations"])
+    assert [Decimal(row["actual"]["seconds"]) for row in result["budget"]["settlements"]] == [350, 350]
+    json.dumps(result, allow_nan=False)
+    with engine.store:
+        engine.store.validate()
+    with pytest.raises(ValueError, match="limits/identity cannot change on resume"):
+        runtime(tmp_path, [], tools=engine.tools, limits=limits.model_copy(update={"seconds": 1200.0}))
+
+
+def test_no_time_limit_idle_network_failure_retries_without_time_budget_failure(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from src.agent_runtime import loop
+
+    clock, timeouts = [1000.0], []
+    monkeypatch.setattr(loop, "time", SimpleNamespace(time=lambda: clock[0], monotonic=lambda: clock[0]))
+
+    class IdleThenSuccess(ScriptedAdapter):
+        async def send(self, prepared, *, timeout):
+            timeouts.append(timeout)
+            clock[0] += 301
+            if len(timeouts) == 1:
+                raise httpx.ReadTimeout("synthetic idle timeout")
+            return await super().send(prepared, timeout=timeout)
+
+    limits = RunLimits(model_calls=3, tool_calls=0, seconds=None, tokens=100_000,
+                       retry_backoff_seconds=0)
+    engine = runtime(tmp_path, [], limits=limits)
+    engine.adapter = IdleThenSuccess([response(text="Done after transport retry")])
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        failures = [event.payload for event in engine.store.events
+                    if event.payload.event_type == "run_lifecycle" and event.payload.action == "failure"]
+        assert len(failures) == 1 and failures[0].failure_stage == "model_request"
+        assert failures[0].model_failure.category == "timeout"
+        engine.store.validate()
+    assert result["status"] == "completed" and result["retries"] == 1
+    assert timeouts == [300.0, 300.0] and result["elapsed_seconds"] == 602
+    assert [Decimal(row["actual"]["seconds"]) for row in result["budget"]["settlements"]] == [301, 301]
+
+
+@pytest.mark.parametrize("dimension,limit,status", [
+    ("model_calls", 1, "model_budget_exhausted"),
+    ("tool_calls", 0, "tool_budget_exhausted"),
+    ("tokens", 1, "token_budget_exhausted"),
+])
+def test_no_time_limit_preserves_other_budget_stops(tmp_path, dimension, limit, status):
+    limits = RunLimits(model_calls=2, tool_calls=1, seconds=None, tokens=100_000).model_copy(update={dimension: limit})
+    engine = runtime(tmp_path, [response(("v", "view", {}))], limits=limits)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        engine.store.validate()
+    assert result["status"] == status
+
+
+@pytest.mark.parametrize("root_seconds,child_seconds", [(None, 5.0), (5.0, None)])
+def test_optional_time_limit_preserves_finite_root_or_child_allowance(tmp_path, root_seconds, child_seconds):
+    class Capture(ScriptedAdapter):
+        async def send(self, prepared, *, timeout):
+            assert 0 < timeout <= 5
+            return await super().send(prepared, timeout=timeout)
+
+    async def scenario():
+        root_limits = RunLimits(model_calls=2, tool_calls=0, seconds=root_seconds, tokens=100_000)
+        child_limits = RunLimits(model_calls=1, tool_calls=0, seconds=child_seconds, tokens=100_000)
+        with EventStore(tmp_path / "run", run_id="optional-time", task_id="parent",
+                        budget_limit=root_limits.ledger_limit()) as store:
+            engine = Runtime(store=store.for_task("child", "parent"), adapter=Capture([response(text="Done")]),
+                tools=Tools(tmp_path / "tools"), role=role(child_limits), model="test",
+                parameters={"max_tokens": 256}, versions=versions(), limits=child_limits)
+            result = await engine.run(MESSAGES)
+            assert result["status"] == "completed"
+            assert 0 < Decimal(result["task_budget"]["reservations"][0]["amounts"]["seconds"]) <= 5
+            store.validate()
+    asyncio.run(scenario())
+
+
+def test_no_time_limit_tool_timeout_is_not_a_nonexistent_budget_deadline(tmp_path):
+    class TimedOutTools(Tools):
+        async def call_tool(self, name, arguments):
+            raise TimeoutError("tool-owned timeout")
+
+    limits = RunLimits(model_calls=2, tool_calls=1, seconds=None, tokens=100_000)
+    engine = runtime(tmp_path, [response(("v", "view", {}))], limits=limits,
+                     tools=TimedOutTools(tmp_path / "tools"))
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        engine.store.validate()
+    assert result["status"] == "operation_timeout"
+    assert result["deadline_epoch"] is None
+
+
 @pytest.mark.parametrize("lim,responses,status", [
     (RunLimits(model_calls=1, tool_calls=2, seconds=10.0, tokens=100_000),
      [response(("v", "view", {}))], "model_budget_exhausted"),
@@ -238,7 +386,8 @@ def test_unknown_write_diagnostic_survives_broken_exception_string(tmp_path):
         assert execution.failure.diagnostic == "exception message unavailable because __str__ failed"
 
 
-def test_inflight_root_time_hold_waits_and_gives_older_sibling_first_turn(tmp_path):
+@pytest.mark.parametrize("child_seconds", [30.0, None])
+def test_inflight_root_time_hold_waits_and_gives_older_sibling_first_turn(tmp_path, child_seconds):
     class OrderedAdapter:
         def __init__(self, label, replies, order, *, started=None, release=None):
             self.label, self.replies, self.order = label, list(replies), order
@@ -255,7 +404,7 @@ def test_inflight_root_time_hold_waits_and_gives_older_sibling_first_turn(tmp_pa
 
     async def scenario():
         root_limits = RunLimits(model_calls=4, tool_calls=0, seconds=5, tokens=100_000)
-        child_limits = RunLimits(model_calls=3, tool_calls=0, seconds=30, tokens=100_000)
+        child_limits = RunLimits(model_calls=3, tool_calls=0, seconds=child_seconds, tokens=100_000)
         started, release, order = asyncio.Event(), asyncio.Event(), []
         truncated = response(text="discarded partial answer")
         truncated["choices"][0]["finish_reason"] = "length"
@@ -290,6 +439,8 @@ def test_inflight_root_time_hold_waits_and_gives_older_sibling_first_turn(tmp_pa
             assert waits[0].active_hold_ids == ("first:request-1",)
             assert waits[1].outcome == "capacity_changed"
             assert waits[1].elapsed_seconds is not None
+            assert (waits[0].wall_remaining_seconds is None) is (child_seconds is None)
+            assert (waits[1].wall_remaining_seconds is None) is (child_seconds is None)
             root.validate()
 
     asyncio.run(scenario())

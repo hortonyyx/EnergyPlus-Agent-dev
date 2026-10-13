@@ -90,8 +90,8 @@ def prepare_bim_inputs(run: Path, *, images_path: Path | None, mesh_path: Path |
                        seed_path: Path | None = None, resume_plan_path: Path | None = None,
                        plan_image: str | None = None) -> dict:
     """Prepare one BIM workspace; provider changes routing only, never input scope."""
-    if started_epoch is not None and seconds is None:
-        raise ValueError("started_epoch requires seconds")
+    if seconds is not None and started_epoch is None:
+        raise ValueError("seconds requires started_epoch")
     if seed_path and resume_plan_path:
         raise ValueError("--resume-plan and --resume-candidate are mutually exclusive")
     if resume_plan_path:
@@ -159,7 +159,8 @@ def prepare_bim_inputs(run: Path, *, images_path: Path | None, mesh_path: Path |
                                  "saved_generated_proposal": {"included": bool(seed_path)},
                                  "ground_truth_or_evaluation": {"included": False},
                              },
-                             "deadline_epoch": (started_epoch + seconds if started_epoch is not None else None),
+                             "deadline_epoch": (started_epoch + seconds
+                                                if started_epoch is not None and seconds is not None else None),
                              "implementation_sha256": {name: digest(ROOT / name) for name in IMPLEMENTATION_FILES},
                              "only_input": (
                                  "authorized original PNG images, user scope, explicitly supplied building "

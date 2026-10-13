@@ -41,6 +41,8 @@ def parser():
 
 
 async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_hook=None):
+    if args.seconds is None:
+        raise ValueError("--no-time-limit currently supports single_model only; role_division requires --seconds")
     if args.mesh or args.image_kind != "drawings":
         raise ValueError("role_division v1 accepts drawing images only")
     routes = load_roles(json.loads(args.roles_json), allow_scripted=args.provider == "scripted" and args.script is not None)

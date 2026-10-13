@@ -50,7 +50,7 @@ class RequestEstimate(ContractModel):
     additional_image_tokens_estimate: int = Field(default=0, ge=0)
     output_token_limit: int = Field(ge=1)
     reasoning_token_allowance: int = Field(default=0, ge=0)
-    seconds: Decimal = Field(gt=0)
+    seconds: Decimal | None = Field(gt=0)
     calls: int = Field(default=1, ge=1)
     money_usd_upper_bound: Decimal | None = Field(default=None, ge=0)
     money_cny_upper_bound: Decimal | None = Field(default=None, ge=0)
@@ -77,7 +77,7 @@ class RequestEstimate(ContractModel):
         additional_image_tokens_estimate: int = 0,
         output_token_limit: int,
         reasoning_token_allowance: int = 0,
-        seconds: Decimal,
+        seconds: Decimal | None,
         estimate_source: str,
         pricing: PriceSchedule | None = None,
         cny_pricing: CnyPriceSchedule | None = None,
@@ -331,7 +331,9 @@ class RuntimeBudget:
             )
         })
         exceeded = tuple(name for name in _exceeded_reservation(effective_actual, reservation.amounts)
-                         if name not in {"tokens", "money_cny"})
+                         if name not in {"tokens", "money_cny"}
+                         and not (name == "seconds" and self.total_limit.seconds is None
+                                  and reservation.amounts.seconds is None))
         if exceeded:
             self._fatal_reason = "actual_usage_exceeds_reservation"
             return self._stop(

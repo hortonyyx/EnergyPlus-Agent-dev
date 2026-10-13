@@ -161,10 +161,20 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
                                  + ", ".join(mismatched))
         if "deepseek" in model.casefold():
             raise ValueError("DeepSeek is outside this approved batch")
-        seconds = case.get("limits", {}).get("seconds")
-        if type(seconds) not in {int, float} or seconds <= 0:
-            raise ValueError("each case needs a positive time ceiling")
-        if seconds > value["maximum_seconds_per_case"]:
+        if "seconds" not in case.get("limits", {}):
+            raise ValueError("set seconds explicitly; null disables the single_model overall deadline")
+        seconds = case["limits"]["seconds"]
+        maximum_seconds = value["maximum_seconds_per_case"]
+        if maximum_seconds is not None and (type(maximum_seconds) not in {int, float} or maximum_seconds <= 0):
+            raise ValueError("maximum_seconds_per_case must be positive or null")
+        if seconds is None:
+            if mode != "single_model":
+                raise ValueError("null seconds currently supports single_model only")
+            if maximum_seconds is not None:
+                raise ValueError("unlimited case exceeds the configuration's time ceiling")
+        elif type(seconds) not in {int, float} or seconds <= 0:
+            raise ValueError("each case needs positive seconds or explicit null")
+        elif maximum_seconds is not None and seconds > maximum_seconds:
             raise ValueError("case exceeds the configuration's time ceiling")
         validate_budget(case)
         target = resolve_case_input(case)
@@ -193,6 +203,10 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
 
 def validate_budget(case: dict) -> RunLimits:
     limits = case["limits"]
+    if "seconds" not in limits:
+        raise ValueError("set seconds explicitly; null disables the single_model overall deadline")
+    if limits["seconds"] is None and case.get("mode") != "single_model":
+        raise ValueError("null seconds currently supports single_model only")
     if "tokens" not in limits and limits.get("money_cny") is None:
         raise ValueError("set tokens explicitly (null disables it), or supply a CNY ceiling")
     parsed = RunLimits.model_validate_json(json.dumps({
@@ -226,8 +240,8 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
     argv += ["--scope", case["scope"], "--image-kind", case["image_kind"],
             "--model-calls", str(limits["model_calls"]),
             "--tool-calls", str(limits["tool_calls"]),
-            "--seconds", str(limits["seconds"]),
             "--output-tokens", str(case["output_tokens"])]
+    argv += ["--no-time-limit"] if budget.seconds is None else ["--seconds", str(limits["seconds"])]
     if case.get("chatgpt_auth_dir"):
         argv += ["--chatgpt-auth-dir", str(Path(case["chatgpt_auth_dir"]).expanduser().resolve())]
     if case.get("run_root") is not None:

@@ -20,6 +20,33 @@ def _clocked_run(tmp_path):
     return run
 
 
+def test_unlimited_manifest_reports_elapsed_and_allows_tools_after_ten_minutes(tmp_path, monkeypatch):
+    async def scenario():
+        run = _clocked_run(tmp_path)
+        manifest = json.loads((run / "inputs.json").read_bytes())
+        runner.dump(run / "inputs.json", dict(manifest, deadline_epoch=None, time_budget_seconds=None))
+        monkeypatch.setattr("scripts.tool_scripts.bim_agent_budget.time.time", lambda: 1701)
+        toolkit = runner.Toolkit(run)
+        status = time_status(toolkit)
+        assert status["active"] and status["elapsed_seconds"] == 701 and status["remaining_seconds"] is None
+        assert "整案不设时间上限" in status["line"] and "未启用计时" not in status["line"]
+        directory = run / ".harness_tmp"
+        directory.mkdir(exist_ok=True)
+        runner.dump(directory / "budget_status.json", {
+            "schema_version": 1, "run_directory": str(run.resolve()), "started_epoch": 1000,
+            "dimensions": {"calls": {"remaining": "3", "remaining_fraction": .5}}})
+        status = time_status(toolkit)
+        assert status["remaining_seconds"] is None and status["tightest_dimension"] == "calls"
+        json.dumps(status, allow_nan=False)
+        servers = []
+        with patch.object(FastMCP, "run", lambda server: servers.append(server)):
+            runner.serve(run)
+        result = await servers[0].call_tool("inputs", {})
+        content = result.content if hasattr(result, "content") else result[0] if isinstance(result, tuple) else result
+        assert not getattr(result, "isError", False) and "整案不设时间上限" in content[-1].text
+    asyncio.run(scenario())
+
+
 def test_scripted_tool_returns_at_half_near_and_hard_deadline(tmp_path, monkeypatch):
     async def scenario():
         run = _clocked_run(tmp_path)

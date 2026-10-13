@@ -215,7 +215,7 @@ class FeedbackMCP(FastMCP):
         try:
             from scripts.tool_scripts.bim_agent_budget import time_status
             before = time_status(self.toolkit)
-            if before["active"] and before["remaining_seconds"] <= 0:
+            if before.get("remaining_seconds") is not None and before["remaining_seconds"] <= 0:
                 raise ValueError("Run deadline reached; no further tool actions. Saved output will be handed off.")
             normalized, notes = normalize_images(self.toolkit, name, arguments)
             result = await super().call_tool(name, normalized)
