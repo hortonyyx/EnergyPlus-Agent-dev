@@ -224,3 +224,5 @@ seed接线已完成：可直接在`space_seeds[].role_evidence`声明role/basis/
 可选时间接线已完成并停编：RunLimits与请求时间预留支持明确null，账本仍保存实际seconds，checkpoint/receipt/finalizer独立记录真实elapsed；JSON中没有Infinity或伪造大时限。`--no-time-limit`只开放给单模型，CLI默认及有限配置保持。无期限工具自身TimeoutError改为operation_timeout，避免误判整案耗尽。新配置check与command通过，确实生成`--no-time-limit`。
 
 有效离线去重37项通过：新增15项覆盖超过600秒继续完成、跨恢复累计elapsed、JSON null、网络idle失败重试、其他预算仍生效；有限旧预算及无期限child等待有限root22项通过。初批3项失败是测试夹具预期错误（恢复更早被身份/limits校验拒绝、FastMCP返回list的适配），只修断言后3项通过，无放宽产品检查。XML为cache根`v74-no-time-limit-new-20261013.xml`、`v74-no-time-limit-fixtures-final-20261013.xml`、`v74-time-limit-existing-regression-20261013.xml`。新增真实MCP R3以模拟时钟901秒完成finish，待登记后原样执行；不需要真实等待901秒，也未调用模型。
+
+实现`74515a62`登记为runtime v14 / domain v74并verify。总独审无剩余P1/P2，11生产/6测试SHA及37项证据在cache根`v74-no-time-limit-independent-review.json`。登记后的原样完整R3与frozen-tools节点共27项通过，90.74秒，包含模拟901秒后成功finish、保留agent_selected且无多余请求。没有release绕过或真实work model调用。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v74/ccb1214701ed/results.xml`。可冻结按新目标实测，尚未更新桌面。
