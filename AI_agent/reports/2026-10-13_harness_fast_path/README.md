@@ -263,3 +263,7 @@ seed接线已完成：可直接在`space_seeds[].role_evidence`声明role/basis/
 仅note/use事务且完整物理内容、父候选、原图bytes和标定一致时，旧开口观察可以由kernel在新source上重验，产生新报告与旧报告哈希引用。不是继承旧pass；几何变化、改回原位或异常旧报告不会被当成已验证。v74的4份观察在独立cache重放中1.733秒完成，61个标记无需模型重录，新报告的kernel结果与真实后续重录全等。此耗时是确定性重放，不能等同下一轮模型节省时间。
 
 定向离线当前有效去重：图片20项、开口重验48项、配置/CLI 8项。图片最初夹具存在索引/排序/批次边界错误，校正后复验通过；开口测试首次标定夹具越界已校正。独审另找到旧报告observations/location_check非对象时的异常路径，已补显式拒绝。新测试模块纳入node清单；登记后还需原样验证Runtime入口的真实MCP工具目录、版本哈希及完成后恢复。此处尚未报告任何v75真实模型结果。
+
+独审最终无剩余P1/P2，记录为cache根`v75-image-projection-independent-review.json`（SHA55247476f5c3a7509614d318000c4d8b6977f37c7020d061f17f5b9befc66d9e）及`v75-opening-revalidation-independent-review.json`（SHAd3bbc99b0531388b51bcdb7f797485036824b40f229872e9b3a1a35eb788c8b7）。真实v74末次请求event545的只读投影66图/55SHA→4图/4SHA；62个旧图块变精确引用，文本/tool协议和完整history哈希不变，904个实际读取文件不变。未读取GT或调用模型，不能据此推算整案耗时。
+
+实现`73362479`已登记runtime v15/domain v75（20261014）并verify，所有旧registry版本记录语义保持不变。登记后原样执行11个正式本地节点全部通过，37.47秒：frozen catalogs/role边界、notes→use→move→restore→notes、Runtime opt-in工具版本哈希、完整交付与完成后恢复。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v75/945b04447368/results.xml`。正式节点与既有定向结果有交集，不相加充数；无真实模型调用。接下来冻结源码/配置/HEAD后启动v75首轮。
