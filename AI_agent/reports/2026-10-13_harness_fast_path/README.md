@@ -210,3 +210,5 @@ v70补充质量归因：把hash绑定的规整前原稿（模型已修正悬空�
 seed接线已完成：可直接在`space_seeds[].role_evidence`声明role/basis/source_refs/assumptions，外层role可省略；重复声明时须目录归一后一致。复用现有校验，inferred必须有假设、unknown配对，裸role仍unrecorded；首次source和两层assembly都保留依据，拓扑全等。guidance替换强制后置录入语句，没有新tool或状态机。用途范围去重66项通过（45基础、21工具/guide；首次黑盒测试误取不存在draft_id，已修正该断言并复验），独审无P1/P2。证据`D:/Sim-BIM-Agent/cache/seed-role-evidence-review-20261013.json`及其两份XML。v71尾部29条set_space_role共5360bytes，位于一个含其他检查的70.305秒请求；这不是可直接承诺节省的耗时。
 
 局部哈希复用完成。原34事务一次未插桩对照wall30.532→19.210秒、CPU30.219→19.125秒，减少11.322秒（37.1%，非统计稳定性承诺）；34confirmed、height绑定0→34，完整transaction返回相等，103个claim审计文件逐字节相等、103条逐项工具结果相等（日志时间不比较），height报告逐字节相等。原candidate proposal/source与run1942文件不变，模型/GT读取0。3项性质检查通过：同candidate各自expected hash仍逐条比较、跨调用篡改能检出、候选来回切换恢复后输出一致。证据cache根`v73-local-hash-replay-summary.json`及`D:/Sim-BIM-Agent/cache/v73-project-local-hash-20261013.xml`。
+
+实现`ca81fdd8`已登记为runtime v13 / domain v73并verify。原样正式本地节点15项通过，58.61秒：frozen tools、成功finish含恢复、原图来源与重校正、编译失败保留原稿、首build用途到两层装配、claim事务MCP与只读边界。没有lookup替代、release校验绕过或work model调用。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v73/75ac9dd6b531/results.xml`。五份当前定向XML合并去重76项有效通过，与正式节点存在交集，不相加充数。
