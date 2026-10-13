@@ -37,20 +37,21 @@ def example():
     return json.JSONDecoder().raw_decode(reference[reference.index("{"):])[0]
 
 
-def test_missing_opening_refs_bind_input_without_claiming_height_or_editing_geometry(tmp_path):
-    from src.agent.geometry.plan_input import bind_missing_opening_sources
+@pytest.mark.parametrize('collection,index', [('partitions', 0), ('openings', 1)])
+def test_missing_pixel_refs_bind_input_without_claiming_height_or_editing_geometry(tmp_path, collection, index):
+    from src.agent.geometry.plan_input import bind_missing_plan_sources
     from src.agent.execution.bim_height_coverage import height_coverage
     from scripts.tool_scripts.bim_agent_replies import compact_reply
     run = _run_with_one_image(tmp_path)
     plan = example()
     plan['openings'][0]['source_refs'] = ['Keep this explicit observation verbatim.']
-    del plan['openings'][1]['source_refs']
+    del plan[collection][index]['source_refs']
     before = copy.deepcopy(plan)
     image_before = (run / 'images/plan.png').read_bytes()
     image_sha = hashlib.sha256(image_before).hexdigest()
-    normalized, bindings = bind_missing_opening_sources(plan, image='plan.png', image_sha256=image_sha)
+    normalized, bindings = bind_missing_plan_sources(plan, image='plan.png', image_sha256=image_sha)
     assert plan == before and len(bindings) == 1
-    generated = normalized['openings'][1].pop('source_refs')
+    generated = normalized[collection][index].pop('source_refs')
     assert normalized == plan  # Every geometric value and explicit note is identical.
     assert image_sha in generated[0] and 'height evidence unverified' in generated[0]
     raw = json.dumps(plan, ensure_ascii=False, indent=3) + '\n'
@@ -62,7 +63,7 @@ def test_missing_opening_refs_bind_input_without_claiming_height_or_editing_geom
     assert record['submitted_plan_sha256'] == hashlib.sha256(raw.encode()).hexdigest()
     saved = json.loads((run / record['plan_file']).read_bytes())
     assert saved['openings'][0]['source_refs'] == plan['openings'][0]['source_refs']
-    assert saved['openings'][1]['source_refs'] == generated
+    assert saved[collection][index]['source_refs'] == generated
     association = record['source_ref_bindings']
     association_bytes = (run / association['file']).read_bytes()
     assert hashlib.sha256(association_bytes).hexdigest() == association['sha256']
@@ -81,16 +82,31 @@ def test_missing_opening_refs_bind_input_without_claiming_height_or_editing_geom
 
 
 @pytest.mark.parametrize('explicit_refs', [None, [], [''], 'not a list'])
-def test_invalid_explicit_opening_refs_are_never_replaced(tmp_path, explicit_refs):
+@pytest.mark.parametrize('collection,index', [('partitions', 0), ('openings', 1)])
+def test_invalid_explicit_pixel_refs_are_never_replaced(tmp_path, explicit_refs, collection, index):
     run = _run_with_one_image(tmp_path)
     plan = example()
-    plan['openings'][1]['source_refs'] = explicit_refs
+    plan[collection][index]['source_refs'] = explicit_refs
     result = Toolkit(run).build_plan('plan.png', json.dumps(plan))
     assert result['source_geometry_ready'] is False and 'source_refs' in result['error']
     assert not list(run.glob('candidate_*'))
     saved = json.loads((run / result['plan_input']['plan_file']).read_bytes())
-    assert saved['openings'][1]['source_refs'] == explicit_refs
+    assert saved[collection][index]['source_refs'] == explicit_refs
     assert 'source_ref_bindings' not in result['plan_input']
+
+
+def test_pixel_association_never_fills_optional_or_structured_evidence():
+    from src.agent.geometry.plan_input import bind_missing_plan_sources
+    plan = example()
+    for row in plan.get('space_seeds', []):
+        row.pop('source_refs', None)
+    plan['regularization_inputs'] = {
+        'line_references': [{'partition_id': 'wall-A', 'basis': 'dimension'}],
+        'coordinate_references': [{'axis': 'x', 'basis': 'dimension', 'value_m': 6}],
+    }
+    original = copy.deepcopy(plan)
+    normalized, bindings = bind_missing_plan_sources(plan, image='plan.png', image_sha256='verified')
+    assert normalized == original and plan == original and bindings == []
 
 
 def test_independent_regularization_and_compile_errors_share_one_reply(tmp_path):
@@ -279,3 +295,59 @@ def test_plan_compile_failures_preserve_raw_input_without_candidate(tmp_path):
     assert not list(run.glob("candidate_*"))
     assert len(list((run / "plan_drafts").glob("draft_*"))) == 3
     assert len((run / "tools.jsonl").read_text().splitlines()) == 3
+
+
+def test_seed_use_evidence_reaches_first_source_and_two_floor_assembly(tmp_path):
+    from tests.test_bim_agent_tools import _add_image
+    from src.agent.roles import room_use_review
+
+    run = _run_with_one_image(tmp_path)
+    _add_image(run, "upstairs.png")
+    manifest = json.loads((run / "inputs.json").read_bytes())
+    manifest["lite_bim_grid_step_m"] = .1
+    (run / "inputs.json").write_text(json.dumps(manifest), encoding="utf-8")
+    images_before = {p.name: p.read_bytes() for p in (run / "images").iterdir()}
+    toolkit = Toolkit(run)
+    placements, expected, protected = [], {}, {}
+    for floor, image, basis in (("F1", "plan.png", "observed"), ("F2", "upstairs.png", "inferred")):
+        plan = example()
+        plan["floor_id"] = floor
+        evidence = {"role": "office", "basis": basis,
+                    "source_refs": [f"{image}: original pixels [2,2,5,5], use label or furniture"],
+                    "assumptions": ["Furniture suggests office"] if basis == "inferred" else []}
+        plan["space_seeds"] = [{"id": "left", "point": [3, 4], "role_evidence": evidence},
+                               {"id": "right", "point": [9, 4], "role": "office",
+                                "source_refs": [f"{image}: unclassified use basis"]}]
+        raw = json.dumps(plan, ensure_ascii=False, indent=2) + "\n"
+        result = toolkit.build_plan(image, raw)
+        assert result["source_geometry_ready"], result
+        source_path = run / result["candidate"] / "source_model.json"
+        protected[source_path] = source_path.read_bytes()
+        source = json.loads(protected[source_path])
+        spaces = {row["id"]: row for row in source["spaces"]}
+        assert spaces["left"]["role"] == "office" and spaces["left"]["role_evidence"] == evidence
+        assert spaces["right"]["role"] == "office" and spaces["right"].get("role_evidence") is None
+        assert room_use_review(source)["summary"]["recorded_count"] == 1
+        record = result["plan_input"]
+        submitted = run / record["submitted_plan_file"]
+        protected[submitted] = submitted.read_bytes()
+        assert protected[submitted] == raw.encode()
+        assert json.loads((run / record["plan_file"]).read_bytes())["space_seeds"] == plan["space_seeds"]
+        placements.append({"draft_id": (run / record["plan_file"]).parent.name,
+                           "expected_plan_sha256": record["plan_sha256"],
+                           "floor_id": floor, "z_floor": 0 if floor == "F1" else 3,
+                           "evidence": "Synthetic two-storey placement"})
+        expected[f"{floor}:left"] = evidence
+    result = toolkit.assemble_plans(json.dumps(placements))
+    assert result["source_geometry_ready"], result
+    source = json.loads((run / result["candidate"] / "source_model.json").read_bytes())
+    spaces = {row["id"]: row for row in source["spaces"]}
+    assert len(spaces) == 4 and len(source["connections"]) == 2
+    for identity, evidence in expected.items():
+        assert spaces[identity]["role_evidence"] == evidence
+    assert all(spaces[f"{floor}:right"].get("role_evidence") is None for floor in ("F1", "F2"))
+    summary = room_use_review(source)["summary"]
+    assert summary["recorded_count"] == 2 and summary["unrecorded_count"] == 2
+    assert summary["observed_count"] == summary["inferred_count"] == 1
+    assert all(path.read_bytes() == content for path, content in protected.items())
+    assert {p.name: p.read_bytes() for p in (run / "images").iterdir()} == images_before

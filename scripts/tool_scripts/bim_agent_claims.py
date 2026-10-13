@@ -206,6 +206,16 @@ def claim_transaction(toolkit, candidate, entries):
             resolved, evidence = store.resolve_operations(current, operations)
             if not evidence["bindings"] or set(evidence["claims"]) != {identity}:
                 raise ValueError("each entry must bind its own claim; use $claim for a newly recorded claim")
+            # The entry already supplies the reason for these claim-bound intents.
+            # Keep explicit values and unrelated edits subject to ordinary validation.
+            for operation_index in sorted({b["operation_index"] for b in evidence["bindings"]}):
+                operation = operations[operation_index]
+                if "reason" not in operation:
+                    operation["reason"] = reason
+                    audit.setdefault("operation_reason_inheritance", []).append({
+                        "path": f"operations[{operation_index}].reason",
+                        "from": "entry.reason" if "reason" in entry else f"claim:{identity}.reason",
+                    })
             audit["targets"] = [dict(value=b["value_field"], parameter=b["parameter"], targets=b["targets"])
                                 for b in evidence["bindings"]]
             if evidence.get("inheritance"):

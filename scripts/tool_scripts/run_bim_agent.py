@@ -989,7 +989,7 @@ class Toolkit:
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
         from src.agent.geometry.plan_input import (
-            bind_missing_opening_sources, normalize_plan_fields, plan_error_hint,
+            bind_missing_plan_sources, normalize_plan_fields, plan_error_hint,
         )
         from scripts.tool_scripts.bim_agent_regularization import (
             LEGACY_RULE, compact_plan_input, save_report, selected_rule, selected_grid_step,
@@ -1026,7 +1026,7 @@ class Toolkit:
             plan, bindings = resolve_plan_pixels(plan, image=image,
                 image_sha256=record["image_sha256"], load_profile=self.load_pixel_profile)
             input_stage = "input_provenance"
-            plan, source_bindings = bind_missing_opening_sources(plan, image=image_path.name,
+            plan, source_bindings = bind_missing_plan_sources(plan, image=image_path.name,
                 image_sha256=record["image_sha256"])
             if source_bindings:
                 source_binding_path = draft / "source_ref_bindings.json"

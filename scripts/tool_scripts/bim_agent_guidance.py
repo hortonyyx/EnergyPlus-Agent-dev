@@ -25,8 +25,9 @@ inputs. You choose observations, tools and revisions; no tool sequence is fixed.
 
 What matters, in order: the actual physical spaces and the partitions between
 them; each floor's shape and level; every door and window with its position,
-width and height on its real wall; and door connectivity. Room uses come after
-the geometry. No EnergyPlus objects or materials.
+width and height on its real wall; and door connectivity. Room-use precision has
+lower priority; declare a known or plausible use with its basis while describing
+the room, without using that use to invent a partition. No EnergyPlus objects or materials.
 - Preserve evidence of physical partitions; furniture or use alone does not
   establish a wall. Missing interiors may be explicitly inferred at the requested
   simplification. Keep each real space whole: never split it into boxes or add false walls
@@ -225,7 +226,9 @@ indeterminate evidence and time exhausted."""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
 DELIVERY = "Delivery. " + FINISHING + """
-Assign room uses after the geometry, in revise_bim:
+For plan builds, save already identified uses and their basis in
+space_seeds[].role_evidence (see plan_partition); do not re-enter saved use evidence.
+Use revise_bim to fill missing uses or correct a prior assignment:
 {"op":"set_space_role","space_id":"<source space ID>","role":"<code from
 get_bim_reference('room_types')>","basis":"inferred","assumptions":["why this
 use"],"reason":"...","source_refs":["image: evidence"]}. basis is observed only
@@ -365,7 +368,9 @@ This synthetic example is unrelated to the supplied drawing:
 "z":[0,2.1],"source_refs":["plan.png: observed door; height assumed"]},
 {"id":"W1","kind":"window","p1":[1,2],"p2":[1,3],
 "z":[1,2],"source_refs":["plan.png: observed exterior window; heights assumed"]}],
-"space_seeds":[{"id":"left","point":[3,4],"role":"office"}],
+"space_seeds":[{"id":"left","point":[3,4],"role_evidence":{"role":"office",
+"basis":"inferred","source_refs":["plan.png: synthetic desk symbols in left room"],
+"assumptions":["Synthetic furniture suggests office; no printed use label"]}}],
 "assumptions":["Synthetic dimensions/heights only"],"unresolved":[]}
 All plan points use ORIGINAL image pixels. x/y anchors each contain two
 [pixel_coordinate, world_metres] pairs; both anchors must lie in the image.
@@ -393,9 +398,9 @@ representative plane: the perimeter may use observed outer faces while internal
 dividers use measured midplanes. Document that choice; do not confuse a face
 dimension with a centreline dimension or apply an unobserved half-thickness.
 World z is absolute. basis explains observed dimensions and reference planes.
-For openings only, an omitted source_refs is linked by the tool to the bound
-original image as caller-declaration provenance; this does not verify the opening
-or its height. Explicit source_refs are preserved and must be valid. Supply any
+For partitions and openings, an omitted source_refs is linked by the tool to the
+bound original image as pixel-declaration provenance; this does not verify the
+feature or its height. Explicit source_refs are preserved and must be valid. Supply any
 specific observations and height assumptions; input association does not create
 or confirm height claims. Independent validation_errors may need one combined repair.
 Current scope: ONE floor, simple orthogonal outer footprint without holes,
@@ -438,6 +443,14 @@ space and its actual opening hosts; do not manually recreate every room polygon.
 Optional space_seeds assign IDs/roles to containing faces; every unseeded face is
 retained with a stable derived ID and unknown role. Seeds are points INSIDE rooms,
 not wall points. Two seeds in one face fail rather than inventing a divider.
+To save use and evidence together on the first build, include role_evidence with
+role from room_types, basis, nonempty source_refs and assumptions. Use observed
+for explicit input labels/declarations; inferred requires a stated assumption;
+unknown basis requires role=unknown. role may be declared only inside role_evidence;
+if the seed also has role, they must agree. A bare seed role remains supported but
+does not create use evidence. This declaration is retained through assembly; it
+never establishes a physical partition or changes topology. Fill missing uses or
+revise an interpretation later with set_space_role; no separate use pass is required.
 The whole opening segment must belong to exactly one exterior host or two
 interior hosts. A door spanning a wall junction fails; no width is clipped.
 kind is window, door or open. Only exterior facade windows are supported here;
@@ -942,7 +955,9 @@ and audit_file. Do not blindly retry a partly completed transaction.
 - action=record records/adopts only; action=decide changes an existing decision.
   disposition is adopted (default), deferred or retracted; confirm/apply require adopted.
   An already retracted claim cannot be automatically revived by confirm/apply.
-reason explains YOUR evidence-based decision; if omitted it uses the claim's reason.
+Entry reason explains YOUR evidence-based decision; if omitted it uses the claim's reason.
+In confirm/apply, a claim-bound operation with omitted reason inherits that entry
+reason. Explicit operation reasons remain unchanged; unrelated edits need their own reason.
 No decision, applied value or confirmation certifies drawing truth.
 
 Example entries_json (synthetic numbers, NOT a case answer):

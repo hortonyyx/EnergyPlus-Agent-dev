@@ -108,9 +108,14 @@ def project(store, candidate):
     history = store.status()
     confirmations = [json.loads(p.read_text()) for p in sorted(store.folder.glob('confirmation_*.json'))]
     states, other = [], []
+    # Ancestry is one read-only snapshot for this projection. Reuse its computed
+    # hashes locally, still comparing every claim/application's expected value.
+    proposal_hashes, source_hashes = {}, {}
     for row in history['claims']:
         origin = row['claim']['candidate']
-        if origin not in ancestry or sha(ancestry[origin][0]) != row['parent_proposal_sha256']:
+        if origin in ancestry and origin not in proposal_hashes:
+            proposal_hashes[origin] = sha(ancestry[origin][0])
+        if origin not in ancestry or proposal_hashes[origin] != row['parent_proposal_sha256']:
             other.append(row['id'])
             continue
         disposition = (row['decision'] or {}).get('disposition', 'undecided')
@@ -118,10 +123,15 @@ def project(store, candidate):
         applicable += [c for c in confirmations if c['candidate'] in ancestry and row['id'] in c['claim_ids']]
         retained, stale = [], []
         for application in applicable:
-            saved, saved_source = ancestry[application['candidate']]
+            saved_candidate = application['candidate']
+            saved, saved_source = ancestry[saved_candidate]
             expected_hash = application.get('source_model_sha256')
-            if expected_hash and _digest({k: v for k, v in saved_source.items() if k != 'source_model_sha256'}) != expected_hash:
-                raise ValueError('applied source changed; cannot project claim state')
+            if expected_hash:
+                if saved_candidate not in source_hashes:
+                    source_hashes[saved_candidate] = _digest(
+                        {k: v for k, v in saved_source.items() if k != 'source_model_sha256'})
+                if source_hashes[saved_candidate] != expected_hash:
+                    raise ValueError('applied source changed; cannot project claim state')
             for binding in application['evidence']['bindings']:
                 if binding['claim_id'] != row['id']:
                     continue

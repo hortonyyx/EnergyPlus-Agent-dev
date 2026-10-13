@@ -23,6 +23,67 @@ def states(toolkit, candidate):
     return {r['id']: r for r in project(toolkit.claims(), candidate)['claims']}
 
 
+def test_projection_compares_each_expected_hash_for_the_same_candidate(tmp_path):
+    run, toolkit = setup_run(tmp_path)
+    first, second = window_claim(toolkit), window_claim(toolkit)
+    toolkit.confirm_claims('seed', json.dumps([window_check(first['id'])]))
+    confirmation = toolkit.confirm_claims('seed', json.dumps([window_check(second['id'])]))
+    original_files = {name: (run / 'seed' / name).read_bytes()
+                      for name in ('proposal.json', 'source_model.json')}
+    baseline = project(toolkit.claims(), 'seed')
+    assert len(baseline['claims']) == 2
+    # A good first comparison must not bless a different expected hash later.
+    claim_path = run / 'claims' / f"{second['id']}.json"
+    original_claim = claim_path.read_bytes()
+    changed = json.loads(original_claim)
+    changed['parent_proposal_sha256'] = '0' * 64
+    claim_path.write_text(json.dumps(changed))
+    current = project(toolkit.claims(), 'seed')
+    assert current['other_branch_claim_ids'] == [second['id']]
+    assert [row['id'] for row in current['claims']] == [first['id']]
+    claim_path.write_bytes(original_claim)
+    confirmation_path = run / 'claims' / f"{confirmation['id']}.json"
+    original_confirmation = confirmation_path.read_bytes()
+    changed = json.loads(original_confirmation)
+    changed['source_model_sha256'] = '0' * 64
+    confirmation_path.write_text(json.dumps(changed))
+    with pytest.raises(ValueError, match='applied source changed'):
+        project(toolkit.claims(), 'seed')
+    confirmation_path.write_bytes(original_confirmation)
+    assert project(toolkit.claims(), 'seed') == baseline
+    assert all((run / 'seed' / name).read_bytes() == raw for name, raw in original_files.items())
+
+
+@pytest.mark.parametrize('tampered_file', ['proposal.json', 'source_model.json'])
+def test_projection_hashes_refresh_between_calls_and_candidate_switches(tmp_path, tampered_file):
+    run, toolkit = setup_run(tmp_path)
+    row = window_claim(toolkit)
+    toolkit.confirm_claims('seed', json.dumps([window_check(row['id'])]))
+    baseline = project(toolkit.claims(), 'seed')
+    descendant = toolkit.revise('seed', json.dumps([dict(op='set_notes',
+        assumptions=['Notes do not change physical geometry'], unresolved=[])]))['candidate']
+    projected = project(toolkit.claims(), descendant)
+    assert projected['claims'][0]['state'] == 'confirmed_unchanged'
+    path = run / 'seed' / tampered_file
+    original = path.read_bytes()
+    changed = json.loads(original)
+    if tampered_file == 'proposal.json':
+        changed['unresolved'].append('Changed after the previous projection')
+    else:
+        changed['spaces'][0]['height'] += .1
+    path.write_text(json.dumps(changed))
+    with pytest.raises(ValueError, match='ancestry changed|applied source changed'):
+        project(toolkit.claims(), descendant)
+    if tampered_file == 'proposal.json':
+        assert project(toolkit.claims(), 'seed')['other_branch_claim_ids'] == [row['id']]
+    else:
+        with pytest.raises(ValueError, match='applied source changed'):
+            project(toolkit.claims(), 'seed')
+    path.write_bytes(original)
+    assert project(toolkit.claims(), descendant) == projected
+    assert project(toolkit.claims(), 'seed') == baseline
+
+
 def test_confirmation_has_no_mutation_and_follows_only_unchanged_descendants(tmp_path):
     run, toolkit = setup_run(tmp_path)
     initial = (run/'seed/proposal.json').read_bytes()

@@ -343,3 +343,52 @@ def test_compiled_proposal_exports_as_ready_source_bim(tmp_path):
     }
     assert source["opening_hosts"]["D_internal"]
     assert source["generation"]["unresolved"][-1].endswith("independently verified.")
+
+
+@pytest.mark.parametrize("basis", ["observed", "inferred", "unknown"])
+def test_seed_use_evidence_is_validated_without_changing_geometry(basis):
+    from src.agent.runtime_roles.plan_format import plan_format_errors
+
+    plan = _plan()
+    seed = plan["space_seeds"][0]
+    seed["role"] = "unknown" if basis == "unknown" else "office"
+    bare, metadata = compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
+    assert not any("role_evidence" in cell for cell in bare["geometry"]["floors"][0]["cells"])
+    seed["role_evidence"] = {
+        "role": seed["role"], "basis": basis,
+        "source_refs": ["plan.png: original room label or explicit interpretation"],
+        "assumptions": ["Furniture suggests office"] if basis == "inferred" else [],
+    }
+    seed.pop("role")  # The evidence already declares the role; no duplicate field is needed.
+    before = copy.deepcopy(plan)
+    assert plan_format_errors(plan) == []
+    proposal, after_metadata = compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
+    assert plan == before and after_metadata == metadata
+    cell = next(row for row in proposal["geometry"]["floors"][0]["cells"] if row["id"] == seed["id"])
+    assert cell.pop("role_evidence") == seed["role_evidence"]
+    assert proposal == bare  # All coordinates, partitions, openings and host IDs are identical.
+
+
+@pytest.mark.parametrize("evidence", [
+    None,
+    {"role": "invented_room"},
+    {"basis": "assumed"},
+    {"source_refs": []},
+    {"source_refs": [" "]},
+    {"assumptions": []},
+    {"role": "unknown"},
+    {"basis": "unknown"},
+    {"role": "corridor"},
+])
+def test_invalid_seed_use_evidence_is_never_inferred_or_silently_dropped(evidence):
+    from src.agent.runtime_roles.plan_format import plan_format_errors
+
+    plan = _plan()
+    valid = {"role": "office", "basis": "inferred", "source_refs": ["plan: desks"],
+             "assumptions": ["Furniture-based use"]}
+    plan["space_seeds"][0]["role_evidence"] = None if evidence is None else {**valid, **evidence}
+    before = copy.deepcopy(plan)
+    assert plan_format_errors(plan)
+    with pytest.raises(ValueError):
+        compile_plan_partition(plan, image_size=(100, 100), image_name="plan.png")
+    assert plan == before

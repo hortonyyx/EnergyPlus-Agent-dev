@@ -33,7 +33,7 @@ _PARTITION_FIELDS = frozenset({"id", "points", "source_refs"})
 _OPENING_FIELDS = frozenset({
     "id", "kind", "p1", "p2", "z", "source_refs", "state", "assumptions",
 })
-_SEED_FIELDS = frozenset({"id", "point", "role", "source_refs"})
+_SEED_FIELDS = frozenset({"id", "point", "role", "source_refs", "role_evidence"})
 _AUTO_METHOD = (
     "Plan spaces were compiled deterministically from the declared footprint "
     "and physical partition segments; no snapping, extension, clipping, or "
@@ -93,6 +93,22 @@ def _strings(value: object, *, path: str, require_one: bool = False) -> list[str
     if any(not isinstance(item, str) or not item.strip() for item in value):
         raise ValueError(f"{path} entries must be nonempty strings")
     return list(value)
+
+
+def _seed_role(item: dict, *, seed_id: str) -> tuple[str, dict | None]:
+    """Validate optional use evidence without inferring it from a bare label."""
+    from src.agent.correction.schema import RoomRoleEvidence
+    from src.agent.roles import require_role
+
+    evidence = (RoomRoleEvidence.model_validate(item["role_evidence"]).model_dump(mode="json")
+                if "role_evidence" in item else None)
+    role = _text(item.get("role", evidence["role"] if evidence else "unknown"),
+                 path=f"space seed {seed_id}.role")
+    if evidence is not None:
+        if require_role(role) != evidence["role"]:
+            raise ValueError(f"space seed {seed_id}.role does not match role_evidence.role")
+        role = evidence["role"]
+    return role, evidence
 
 
 def _point(value: object, *, path: str, width: int, height: int) -> tuple[float, float]:
@@ -391,11 +407,11 @@ def compile_plan_partition(
             raise ValueError(
                 f"space seeds {seed_by_polygon[polygon_index]['id']} and {seed_id} occupy the same space"
             )
-        role = item.get("role", "unknown")
-        role = _text(role, path=f"space seed {seed_id}.role")
+        role, role_evidence = _seed_role(item, seed_id=seed_id)
         refs = _strings(item.get("source_refs", []), path=f"space seed {seed_id}.source_refs")
         seed_by_polygon[polygon_index] = {
             "id": seed_id, "point": point, "role": role, "source_refs": refs,
+            "role_evidence": role_evidence,
         }
 
     cells = []
@@ -429,6 +445,8 @@ def compile_plan_partition(
             "polygon": ring,
             "source_refs": refs,
         }
+        if seed and seed["role_evidence"] is not None:
+            cell["role_evidence"] = copy.deepcopy(seed["role_evidence"])
         cells.append(cell)
         polygons_by_id[space_id] = pixel_polygon
         space_mapping.append({

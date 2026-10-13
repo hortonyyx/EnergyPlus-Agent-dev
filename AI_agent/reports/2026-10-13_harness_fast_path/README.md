@@ -13,7 +13,7 @@
 
 ## 当前实施状态
 
-目前四次真实冷启动均未达到严格600秒。v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；后续runtime v13 / domain v71修复确定性收尾、错误反馈及重复复制并通过独审和正式节点26项，但真实冷启动因重复来源补填与分轮几何返工，634.17秒超时兜底，未finish。具体时序、质量差异与新验证边界见后文，尚未宣称稳定达标或更新桌面。
+目前五次真实冷启动均未达到严格600秒。v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；v71修复后634.17秒超时兜底；v72又减少来源补填并在335.83秒装配整楼，却因34条高度确认的重复reason契约被拒，627.04秒兜底，未finish。具体时序、质量差异与验证边界见后文，尚未宣称稳定达标或更新桌面。
 
 首版 runtime v11 / domain v69、实现 `4cbc3edb` 的Sol与Astra两次冷启动均在约6分钟装配整楼，但分别650.23／680.97秒超时兜底，未达到10分钟自主交付。两轮暴露的重复备注、记账浪费和10cm策略接线缺口现已修复，定向验证与独立审阅通过；后续版本 runtime v12 / domain v70、实现 `79d95dd7` 已登记校验，实际本地MCP节点10项通过（53.94秒），证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v70/cb1493736f74/results.xml`。模型目录包含 gpt-6.1-sol 与 gpt-6-astra，不作为推理或建模成功证据。
 
@@ -172,3 +172,41 @@ v70补充质量归因：把hash绑定的规整前原稿（模型已修正悬空�
 下一轮为[run_fast_v72.json](run_fast_v72.json)，只更改运行身份，Astra/high、六图、预算与任务范围相同；登记并验证后冷启动一轮，目标通过才同版本再两轮。不会把离线预计省掉102秒直接当真实提速。
 
 实现`c537f29f`已登记并verify为runtime v13 / domain v72。原样正式本地节点13项通过（68.97秒）：frozen tools 9项、成功finish 2参数、plan原图来源/重校正和编译失败保留原稿2项。无release校验绕过或work model调用，复用v71其余完整R3证据。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v72/69b3eb46ac03/results.xml`。当前可冻结进行真实冷启动；桌面未更新。
+
+## 第五轮真实冷启动：Astra/high（v13/v72）
+
+冻结`010be1a3`，外部启动2026-10-13 13:34:04.647329 UTC，运行`D:/Sim-BIM-Agent/runs/sm25-fast-astra-v72-20261013-1`。474项源码/registry/config、六图及HEAD全部未变，原run1942项文件在观察/评价期间未变。无人工介入，后两次原配置重复未启动。
+
+| 项目 | 外部启动后时间／结果 |
+|---|---|
+| 首次模型请求 | 19.291秒 |
+| 首次F1构建 | 159.878秒，13个partition缺source_refs；31opening已由tool关联 |
+| 次个响应 | 同时补13个partition.refs并首次生成F2；95.486秒请求不能全算补字段成本 |
+| 两层源BIM | 292.048／300.855秒，均先经过端点脱接修复 |
+| 整楼候选 | 335.828秒，candidate_03；装配工具计时12.453秒 |
+| 高度确认 | 530.737秒返回34条confirm；该请求136.586秒，事务约542.95秒业务失败 |
+| 正式交付／终态 | 无finish；627.036秒CLI退出，time_budget_exhausted，candidate_03系统兜底 |
+
+10请求/9响应、32工具、0重试；已知552,101 tokens（缓存6,528），末次usage未知。runtime609.399秒=模型521.219+工具47.079+其他41.101；最长MCP文本21,836bytes。本轮budget_violations为空，最后耗时66.016秒不超过预留66.022814秒，不能套用上一轮seconds超额。CLI exit0不是目标通过，新completion成功路径仍未真实触发。
+
+事务首因：34条claim全部有理由、已记录/采纳/解析，31个window和3个door目标存在，声明z与当前proposal逐值一致；但各自operation未重复写reason，统一被update_window/update_opening校验拒绝。15,165bytes可见回复完整保留34条错误，未分页遗漏。模型已收到8,753bytes claims参考；正文“省略reason使用claim.reason”没区分entry与operation，示例含operation.reason。下一步修缺省理由继承，不要求模型重抄34遍，也不放宽确认值必须等于几何的门槛。诊断与原请求位于cache根`v72-claim-transaction-diagnosis.json`、`v72-claim-transaction-original-entries.json`。
+
+独立评价认为已核物理几何可接受：29房间、47对共享墙邻接、61开口位置/宿主、30门连通匹配；两层外轮廓近乎精确、z/层高/层顶无偏差。526项最近网格采用值逐项吻合（最大4.9654cm），另4次跨层对齐各10cm、影响13空间且关系不变，全部3144源坐标在0.1m网格。旧strict31 severe原样保留；原稿17房间+2层severe中，5个约12cm项位于既有半墙规则段，应用旧规则后的残差2.20–4.04cm，其余12项2.13–3.69cm，没有据标签臆称错分空间。
+
+≤5／5–10／10–30／>30cm分档：房间17／4／8／0（max12.649cm）；开口沿墙36／25／0／0（max8.106cm），法向20／7／34／0，后34项为代表面差；外部高度34／0／0／0。**用途29项均unknown，高度绑定0/34**，不能沿用v71用途完成结论；内门高度、开关状态、未画出的垂直交通和空洞未独评。此次未重复浏览器验收。
+
+证据：`sm25-fast-astra-v72-1/independent-terminal-detail.json`、`root-freeze-check.json`，`sm25-fast-astra-v72-1-evaluation/independent-quality-audit.json`及case下`boundary-attribution/`。
+
+## v73后续范围
+
+原六图、Astra/high、600秒配置保留，准备[run_fast_v73.json](run_fast_v73.json)。仅修claim-bound操作理由的可靠缺省继承，并将已有原图像素来源关联统一应用到必填的partition与opening；不自动补结构化尺寸、标注、height claims或修订判断。原稿/显式值/审计保留，独立revise_bim理由门槛不改；先验证原事务与几何不变，再独审、登记及正式节点，才启动下轮。不会直接换配置碰运气。
+
+原34条entries原样离线重放已全部confirmed，外部门窗高度绑定0→34；声明与当前值一致，proposal、source及物理几何SHA不变，新candidate为0，只有cache副本的height_coverage审计更新。每条原请求保留，理由继承单独记路径；显式空/null仍拒绝、无claim绑定的编辑和独立revise不自动补理由。原F1请求首轮关联13partition+31opening，seeds不变，直接暴露与原稿相同的两个6px端点问题。原run1942文件hash全等，模型/GT读取0，回执分别9502/13601bytes。证据：cache根`v73-redundant-fields-replay.json`。
+
+定向18项有效通过：初批17pass、1项测试错误地期待返回值而实际应抛ValueError，修正仅该断言后单项通过；没有生产失败。XML为`D:/Sim-BIM-Agent/cache/v73-redundant-fields-targeted-20261013.xml`与`v73-reason-scope-final-20261013.xml`。完整确认本地wall30.532秒、CPU30.219秒，功能通过不代表提速充分；先定位重复计算，再决定进入实测。
+
+同原34条请求的一次cache cProfile定位：插桩wall40.177秒（不能当未插桩耗时），35次located_heights累计28.514秒，内含project22.263秒；同一candidate源哈希与proposal哈希在每条历史记录中重复序列化。优化范围限单次project调用的惰性哈希复用，跨调用仍重新读盘验证，不省略每项确认/报告与部分提交记录。另一个只读确认的接口缺口是space_seeds已有role、却不接受role_evidence，导致单模型需要尾部逐间重复set_space_role；将复用已有RoomRoleEvidence规则打通可选seed依据到源BIM，裸role不自动获证据、不推断房间用途或改变空间拓扑。这两项完成定向验证和独审后再冻结。
+
+seed接线已完成：可直接在`space_seeds[].role_evidence`声明role/basis/source_refs/assumptions，外层role可省略；重复声明时须目录归一后一致。复用现有校验，inferred必须有假设、unknown配对，裸role仍unrecorded；首次source和两层assembly都保留依据，拓扑全等。guidance替换强制后置录入语句，没有新tool或状态机。用途范围去重66项通过（45基础、21工具/guide；首次黑盒测试误取不存在draft_id，已修正该断言并复验），独审无P1/P2。证据`D:/Sim-BIM-Agent/cache/seed-role-evidence-review-20261013.json`及其两份XML。v71尾部29条set_space_role共5360bytes，位于一个含其他检查的70.305秒请求；这不是可直接承诺节省的耗时。
+
+局部哈希复用完成。原34事务一次未插桩对照wall30.532→19.210秒、CPU30.219→19.125秒，减少11.322秒（37.1%，非统计稳定性承诺）；34confirmed、height绑定0→34，完整transaction返回相等，103个claim审计文件逐字节相等、103条逐项工具结果相等（日志时间不比较），height报告逐字节相等。原candidate proposal/source与run1942文件不变，模型/GT读取0。3项性质检查通过：同candidate各自expected hash仍逐条比较、跨调用篡改能检出、候选来回切换恢复后输出一致。证据cache根`v73-local-hash-replay-summary.json`及`D:/Sim-BIM-Agent/cache/v73-project-local-hash-20261013.xml`。

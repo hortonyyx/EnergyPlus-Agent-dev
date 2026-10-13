@@ -10,8 +10,9 @@ from collections.abc import Mapping
 from jsonschema import Draft202012Validator, validators
 
 from scripts.tool_scripts.bim_agent_guidance import REFERENCES
+from src.agent.correction.schema import RoomRoleEvidence
 from src.agent.geometry.plan_partition import (
-    _OPENING_FIELDS, _PARTITION_FIELDS, _PLAN_FIELDS, _REQUIRED_PLAN_FIELDS, _SEED_FIELDS,
+    _OPENING_FIELDS, _PARTITION_FIELDS, _PLAN_FIELDS, _REQUIRED_PLAN_FIELDS, _SEED_FIELDS, _seed_role,
 )
 from src.agent.roles import ROOM_TYPES, normalize
 
@@ -71,7 +72,8 @@ POINT = _array(PIXEL, 2, 2)
 ANCHOR = {"type": "array", "prefixItems": [PIXEL, LENGTH], "items": False,
           "minItems": 2, "maxItems": 2}
 PARTITION = _object({"id": TEXT, "points": _array(POINT, 2), "source_refs": REFS}, _PARTITION_FIELDS)
-SEED = _object({"id": TEXT, "point": POINT, "role": TEXT, "source_refs": STRINGS}, {"id", "point"})
+SEED = _object({"id": TEXT, "point": POINT, "role": TEXT, "source_refs": STRINGS,
+                "role_evidence": RoomRoleEvidence.model_json_schema()}, {"id", "point"})
 OPENING = _object({"id": TEXT, "kind": {"enum": ["window", "door", "open"]},
                    "p1": POINT, "p2": POINT, "z": _array(LENGTH, 2, 2), "source_refs": REFS,
                    "state": {"enum": [None, "unknown", "open", "closed"]}, "assumptions": STRINGS},
@@ -162,6 +164,12 @@ def plan_format_errors(plan):
                     errors.append({"path": f"plan.space_seeds[{index}].role",
                                    "message": f"{role!r} is not a room_types code; choose from the full shared table "
                                               "in the reader guide or get_bim_reference('room_types')"})
+                if collection == "space_seeds" and "role_evidence" in row:
+                    try:
+                        _seed_role(row, seed_id=identity)
+                    except (TypeError, ValueError) as error:
+                        errors.append({"path": f"plan.space_seeds[{index}].role_evidence",
+                                       "message": str(error)})
         errors.extend(_points_outside_footprint(value))
     return errors
 

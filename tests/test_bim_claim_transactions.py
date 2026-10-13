@@ -33,11 +33,76 @@ def test_record_adopt_confirm_in_one_call_preserves_original_and_audit(tmp_path)
     assert result["status"] == "completed"
     entry = result["entries"][0]
     assert entry["status"] == "confirmed_unchanged" and entry["decision_id"] and entry["confirmation_id"]
+    assert "operation_reason_inheritance" not in entry  # Explicit operation reason is retained.
     assert (run / "seed/proposal.json").read_bytes() == before
     assert not list(run.glob("candidate_*"))
     journal = json.loads((run / result["audit_file"]).read_text())
     assert journal["entries"][0]["request"]["reason"] == "Matches this opening"
     assert project(toolkit.claims(), "seed")["claims"][0]["state"] == "confirmed_unchanged"
+
+
+@pytest.mark.parametrize('action', ['confirm', 'apply'])
+def test_claim_bound_operations_inherit_only_missing_reason(tmp_path, action):
+    run, toolkit = setup_run(tmp_path)
+    before = (run / 'seed/proposal.json').read_bytes()
+    z = [1, 2] if action == 'confirm' else [1, 2.2]
+    data = claim(objects=[dict(kind='window', id='window')],
+                 values={'height': dict(type='literal', value=z, unit='m')})
+    operation = window_check('$claim')
+    del operation['reason']
+    request = dict(claim=data, action=action, operations=[operation])
+    if action == 'confirm':
+        request['reason'] = 'Explicit entry decision reason'
+    original = copy.deepcopy(request)
+    result = transaction(toolkit, 'seed', [request])
+    assert result['status'] == 'completed', result
+    entry = result['entries'][0]
+    expected = request.get('reason', data['reason'])
+    assert entry['operation_reason_inheritance'] == [{
+        'path': 'operations[0].reason',
+        'from': 'entry.reason' if action == 'confirm' else f"claim:{entry['claim_id']}.reason",
+    }]
+    artifact_id = entry['confirmation_id' if action == 'confirm' else 'application_id']
+    artifact = json.loads((run / 'claims' / f'{artifact_id}.json').read_bytes())
+    assert artifact['resolved_operations'][0]['reason'] == expected
+    journal = json.loads((run / result['audit_file']).read_bytes())
+    assert journal['entries'][0]['request'] == original and request == original
+    assert (run / 'seed/proposal.json').read_bytes() == before
+    if action == 'confirm':
+        assert not list(run.glob('candidate_*'))
+
+
+@pytest.mark.parametrize('failure', ['different_value', 'blank_reason', 'null_reason'])
+def test_inherited_reason_never_relaxes_confirmation_or_explicit_reason(tmp_path, failure):
+    run, toolkit = setup_run(tmp_path)
+    data = claim(objects=[dict(kind='window', id='window')], values={
+        'height': dict(type='literal', value=[1, 2.2] if failure == 'different_value' else [1, 2], unit='m')})
+    operation = window_check('$claim')
+    del operation['reason']
+    if failure != 'different_value':
+        operation['reason'] = '' if failure == 'blank_reason' else None
+    result = transaction(toolkit, 'seed', [dict(claim=data, action='confirm', operations=[operation])])
+    assert result['status'] == 'failed'
+    entry = result['entries'][0]
+    assert ('differs from current geometry' if failure == 'different_value' else 'reason must') in entry['error']
+    assert ('operation_reason_inheritance' in entry) == (failure == 'different_value')
+    assert not list((run / 'claims').glob('confirmation_*.json'))
+    assert not list(run.glob('candidate_*'))
+
+
+def test_reason_inheritance_does_not_cover_unbound_edits_or_standalone_revision(tmp_path):
+    run, toolkit = setup_run(tmp_path)
+    data = claim(objects=[dict(kind='window', id='window')],
+                 values={'height': dict(type='literal', value=[1, 2], unit='m')})
+    bound = window_check('$claim')
+    del bound['reason']
+    unbound = dict(op='update_opening', id='door', changes={'z': [.3, 2.1]}, source_refs=['explicit'])
+    result = transaction(toolkit, 'seed', [dict(claim=data, action='apply', operations=[bound, unbound])])
+    assert result['status'] == 'failed' and 'reason must' in result['entries'][0]['error']
+    assert result['entries'][0]['operation_reason_inheritance'][0]['path'] == 'operations[0].reason'
+    with pytest.raises(ValueError, match='reason must'):
+        toolkit.revise('seed', json.dumps([unbound]))
+    assert not list(run.glob('candidate_*'))
 
 
 def test_record_adopt_apply_in_one_call_and_reload(tmp_path):

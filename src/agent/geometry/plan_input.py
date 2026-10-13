@@ -32,28 +32,32 @@ def normalize_plan_fields(plan):
     return result, notes
 
 
-def bind_missing_opening_sources(plan, *, image, image_sha256):
-    """Fill absent opening provenance from the tool's verified input binding.
+def bind_missing_plan_sources(plan, *, image, image_sha256):
+    """Associate required pixel declarations with the tool's verified input.
 
     This associates a caller declaration with its input, not with an observed
     feature or measured height. Explicit values (including invalid ones) remain
-    untouched for ordinary compiler validation. No other collection inherits it.
+    untouched for ordinary compiler validation. Optional seed references and
+    structured measurement/height evidence are not created here.
     """
-    if not isinstance(plan, dict) or not isinstance(plan.get('openings'), list):
+    if not isinstance(plan, dict):
         return plan, []
-    missing = [index for index, row in enumerate(plan['openings'])
+    missing = [(collection, index) for collection in ('partitions', 'openings')
+               if isinstance(plan.get(collection), list)
+               for index, row in enumerate(plan[collection])
                if isinstance(row, dict) and 'source_refs' not in row]
     if not missing:
         return plan, []
     result = copy.deepcopy(plan)
     bindings = []
-    for index in missing:
-        row = result['openings'][index]
-        ref = (f'harness-input:{image}#sha256={image_sha256}; plan.openings[{index}]; '
-               'caller declaration provenance only; opening observation and height evidence unverified')
+    for collection, index in missing:
+        row = result[collection][index]
+        path = f'plan.{collection}[{index}]'
+        ref = (f'harness-input:{image}#sha256={image_sha256}; {path}; '
+               'caller pixel declaration provenance only; feature observation and height evidence unverified')
         row['source_refs'] = [ref]
-        bindings.append({'path': f'plan.openings[{index}].source_refs',
-                         'opening_id': row.get('id'), 'source_refs': [ref]})
+        bindings.append({'path': f'{path}.source_refs', 'collection': collection,
+                         'object_id': row.get('id'), 'source_refs': [ref]})
     return result, bindings
 
 
