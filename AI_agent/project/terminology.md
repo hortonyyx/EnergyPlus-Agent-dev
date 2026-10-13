@@ -77,7 +77,7 @@ work model、dev model 见第二节。
 | 中文 | English | 指什么 | 不再用 |
 |---|---|---|---|
 | 用户 | user | 定产品目标、验收结果、批准实测 | |
-| 模型档 | model tier | 五档仅作通用能力粗略交流，不替代建筑任务评价；国模优先，当前不强求固定档位、参数规模或型号 | 主力档、Flash 档、工作档 |
+| 模型档 | model tier | 五档仅作通用能力粗略交流，不替代建筑任务评价；当前不设国别、固定档位、参数规模或型号上限 | 主力档、Flash 档、工作档 |
 | 模型服务 | model service | 提供模型的一方：Paratera（按量）、GLM 订阅、Claude 订阅、ChatGPT 订阅、DeepSeek（每次须用户同意） | |
 | 线路 | route | 一个模型服务的具体接口与计费方式，如 GLM 订阅的智谱 Anthropic 兼容线路、Paratera 按量线路；代码 `route_id` | 接入方式、调用通道（“通道”在 BIM 里指无门洞口） |
 | 客户端 | client | 承载一次模型会话的程序：Claude Code、Codex、新底座 | |

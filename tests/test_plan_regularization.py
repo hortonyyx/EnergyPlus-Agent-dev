@@ -13,11 +13,13 @@ from src.agent.geometry.plan_regularization import (
     _complete_open_passage_boundaries,
     _plan_digest,
     _segments,
+    _stack_offset_pairs,
     enforce_regularized_plan,
     prepare_plan_junctions,
     regularize_plan,
     regularize_plan_stack,
     validate_regularized_plan,
+    validate_regularized_plan_stack,
 )
 
 
@@ -1548,6 +1550,209 @@ def test_cross_storey_footprint_setback_at_exact_threshold_is_preserved():
 
     assert regularized[1]["plan"]["footprint_pixels"] == upper["footprint_pixels"]
     assert not any(row["type"] == "move_footprint_edge" for row in report["changes"])
+
+
+def _mixed_boundary_stack(offset=2):
+    # The same continuous physical wall is exterior below the notch on L1,
+    # but interior below it on L2.  Neither same-type segment pair overlaps.
+    lower = _plan([("lower-extension", [[40, 0], [40, 50]])], footprint=[
+        [0, 0], [100, 0], [100, 100], [40, 100], [40, 50], [0, 50]])
+    x = 40 + offset
+    upper = _plan([("upper-extension", [[x, 50], [x, 100]])], footprint=[
+        [x, 0], [100, 0], [100, 100], [0, 100], [0, 50], [x, 50]],
+        openings=[_door("chain-door", x), {
+            "id": "exterior-window", "kind": "window",
+            "p1": [x, 20], "p2": [x, 30], "z": [1.0, 2.0],
+            "source_refs": ["drawing:exterior-window"],
+        }])
+    return _stack_items(lower, upper)
+
+
+def _stack_source_precision(items):
+    from src.agent.correction.schema import CorrectedGeometry, FootprintRing
+    from src.agent.geometry.building_precision import precision_report
+    from src.agent.geometry.plan_assembly import assemble_plan_proposals
+    from src.agent.geometry.source_bim import build_source_bim
+
+    compiled = []
+    for item in items:
+        proposal, _ = compile_plan_partition(
+            item["plan"], image_size=tuple(item["image_size"]), image_name=item["image_name"])
+        compiled.append({"proposal": proposal, "floor_id": item["floor_id"],
+                         "z_floor": item["z_floor"], "source_ref": item["source_ref"]})
+    proposal = assemble_plan_proposals(compiled)
+    geometry = CorrectedGeometry.model_validate(proposal["geometry"])
+    for floor in geometry.floors:
+        if isinstance(floor.footprint, dict):
+            floor.footprint = FootprintRing.model_validate(floor.footprint)
+    return precision_report(build_source_bim(geometry, capability_profile="orthogonal_polygon"))
+
+
+def test_mixed_exterior_interior_chain_is_checked_aligned_and_accepted_by_source_gate():
+    items = _mixed_boundary_stack()
+    original = copy.deepcopy(items)
+    initial_hard = validate_regularized_plan_stack(items)
+    assert len([row for row in initial_hard["violations"]
+                if row["type"] == "storey_wall_offset_under_0_30m"]) == 2
+    assert _stack_source_precision(items)["counts"]["storey_wall_offset"]
+
+    result, report = regularize_plan_stack(items)
+
+    assert items == original
+    assert report["hard_constraints"]["status"] == "pass"
+    assert result[0]["plan"]["footprint_pixels"] == items[0]["plan"]["footprint_pixels"]
+    upper = result[1]["plan"]
+    assert upper["partitions"][0]["points"] == [[40.0, 50], [40.0, 100]]
+    assert all(opening["p1"][0] == opening["p2"][0] == 40 for opening in upper["openings"])
+    move = next(row for row in report["changes"] if row["type"] == "move_footprint_edge")
+    assert move["matched_boundaries"]
+    assert _stack_source_precision(result)["status"] == "pass"
+
+
+def test_mixed_boundary_dimension_on_connected_partition_controls_outline_direction():
+    items = _mixed_boundary_stack()
+    items[1]["plan"]["regularization_inputs"] = {
+        "line_references": [{"partition_id": "upper-extension", "basis": "dimension",
+                             "source_refs": ["drawing:upper-extension-dimension"]}],
+        "coordinate_references": [],
+    }
+
+    result, report = regularize_plan_stack(items)
+
+    assert result[1]["plan"]["footprint_pixels"] == items[1]["plan"]["footprint_pixels"]
+    assert result[0]["plan"]["partitions"][0]["points"] == [[42.0, 0], [42.0, 50]]
+    assert report["hard_constraints"]["status"] == "pass"
+    assert _stack_source_precision(result)["status"] == "pass"
+
+
+def _three_storey_mixed_boundary_stack():
+    pair = _mixed_boundary_stack(0)
+    top = copy.deepcopy(pair[0]["plan"])
+    for point in top["footprint_pixels"]:
+        if point[0] == 40:
+            point[0] = 42
+    for partition in top["partitions"]:
+        for point in partition["points"]:
+            if point[0] == 40:
+                point[0] = 42
+    top["regularization_inputs"] = {
+        "line_references": [{"partition_id": "lower-extension", "basis": "dimension",
+                             "source_refs": ["drawing:top-dimension"]}],
+        "coordinate_references": [],
+    }
+    return [*pair, {**pair[0], "plan": top, "floor_id": "L3", "z_floor": 6.0,
+                    "image_name": "top.png", "source_ref": "drawing:top"}]
+
+
+def test_mixed_boundary_upper_dimension_propagates_through_three_storeys():
+    items = _three_storey_mixed_boundary_stack()
+
+    result, report = regularize_plan_stack(items)
+
+    assert [row["plan"]["partitions"][0]["points"][0][0] for row in result] == [42.0] * 3
+    assert any(row["floor_id"] == "L1" and row["basis"] == "upper_dimension_reference_propagated"
+               for row in report["changes"])
+    assert report["hard_constraints"]["status"] == "pass"
+    assert _stack_source_precision(result)["status"] == "pass"
+
+
+def test_mixed_boundary_dimension_propagation_rejects_a_lower_floor_conflict():
+    items = _three_storey_mixed_boundary_stack()
+    items[0]["plan"]["partitions"].append({
+        "id": "other-wall", "points": [[46, 0], [46, 100]], "source_refs": ["drawing:other-wall"]})
+    before = copy.deepcopy(items)
+
+    with pytest.raises(PlanRegularizationError) as caught:
+        regularize_plan_stack(items)
+
+    assert items == before
+    rejection = next(row for row in caught.value.report["rejections"]
+                     if row["type"] == "cross_storey_footprint_alignment_rejected")
+    assert rejection["floor_id"] == "L1"
+    assert any(row["type"] == "space_width_under_0_60m" for row in rejection["hard_violations"])
+    assert not caught.value.report["changes"]
+
+
+@pytest.mark.parametrize("offset", [3, 8])
+def test_mixed_boundary_real_setback_is_preserved(offset):
+    items = _mixed_boundary_stack(offset)
+    result, report = regularize_plan_stack(items)
+
+    for original, changed in zip(items, result):
+        assert changed["plan"]["footprint_pixels"] == original["plan"]["footprint_pixels"]
+        assert changed["plan"]["partitions"] == original["plan"]["partitions"]
+    assert not report["changes"]
+    assert _stack_source_precision(result)["status"] == "pass"
+
+
+def test_mixed_boundary_ordinary_wall_moves_to_fixed_exterior():
+    lower = _plan([("interior", [[40, 0], [40, 100]])])
+    upper = _plan([], footprint=[[42, 0], [100, 0], [100, 100], [42, 100]])
+    result, report = regularize_plan_stack(_stack_items(lower, upper))
+
+    assert result[0]["plan"]["partitions"][0]["points"] == [[42.0, 0], [42.0, 100]]
+    assert result[1]["plan"]["footprint_pixels"] == upper["footprint_pixels"]
+    assert report["hard_constraints"]["status"] == "pass"
+    assert _stack_source_precision(result)["status"] == "pass"
+
+
+def test_mixed_boundary_dimension_conflict_rejects_without_moving_outline():
+    lower = _plan([("interior", [[40, 0], [40, 100]])])
+    lower["regularization_inputs"] = {
+        "line_references": [], "coordinate_references": [{
+            "axis": "x", "value_m": 4.0, "basis": "dimension", "chain_id": "lower-x",
+            "tick_index": 0, "source_refs": ["drawing:lower-dimension"]}]}
+    upper = _plan([], footprint=[[42, 0], [100, 0], [100, 100], [42, 100]])
+    items = _stack_items(lower, upper)
+    before = copy.deepcopy(items)
+
+    with pytest.raises(PlanRegularizationError) as caught:
+        regularize_plan_stack(items)
+
+    assert items == before
+    violation = next(row for row in caught.value.report["rejections"]
+                     if row["type"] == "storey_wall_offset_under_0_30m")
+    assert {obj["partition_id"] for obj in violation["objects"]} == {"interior", "footprint[3]"}
+    assert not caught.value.report["changes"]
+
+
+def test_mixed_boundary_move_rolls_back_if_it_narrows_a_room():
+    lower = _plan([("interior", [[40, 0], [40, 100]]), ("other", [[46, 0], [46, 100]])])
+    upper = _plan([], footprint=[[42, 0], [100, 0], [100, 100], [42, 100]])
+    items = _stack_items(lower, upper)
+    before = copy.deepcopy(items)
+
+    with pytest.raises(PlanRegularizationError) as caught:
+        regularize_plan_stack(items)
+
+    assert items == before
+    rejection = next(row for row in caught.value.report["rejections"]
+                     if row["type"] == "cross_storey_alignment_rejected")
+    assert any(row["type"] == "space_width_under_0_60m" for row in rejection["hard_violations"])
+    assert not caught.value.report["changes"]
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_cross_type_closer_matching_segments_defeat_false_pairing_symmetrically(reverse):
+    # Pair selection also runs before the floor hard check.  The fragments
+    # exercise a closer physical wall represented by multiple draft segments.
+    first = _plan([("matched", [[40, 0], [40, 100]])])
+    second = _plan([("closer-a", [[40, 0], [40, 50]]), ("closer-b", [[40, 50], [40, 100]])],
+                   footprint=[[42, 0], [100, 0], [100, 100], [42, 100]])
+    items = _stack_items(second, first) if reverse else _stack_items(first, second)
+
+    assert not _stack_offset_pairs(*items)
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_closer_segments_on_different_coordinates_do_not_invent_one_matching_wall(reverse):
+    first = _plan([("matched", [[40, 0], [40, 100]])])
+    second = _plan([("closer-a", [[40, 0], [40, 50]]), ("closer-b", [[41, 50], [41, 100]])],
+                   footprint=[[42, 0], [100, 0], [100, 100], [42, 100]])
+    items = _stack_items(second, first) if reverse else _stack_items(first, second)
+
+    assert any({a["partition_id"], b["partition_id"]} == {"matched", "footprint[3]"}
+               for a, b in _stack_offset_pairs(*items))
 
 
 def test_cross_storey_policy_does_not_change_same_floor_fixed_outline():

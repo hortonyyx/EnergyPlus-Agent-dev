@@ -117,7 +117,10 @@ def test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts(tmp_pa
             assert compiled_plan.pop("regularization")["status"] == "pass"
             assert compiled_plan == example()
             saved = _json_result(await session.call_tool("inspect_plan_draft", dict(draft_id="draft_001")))
-            assert saved["declaration"] == json.loads((run / record["plan_file"]).read_text())
+            assert saved["plan_sha256"] == digest(run / record["plan_file"])
+            opening = _json_result(await session.call_tool("inspect_plan_draft", dict(
+                draft_id="draft_001", field="openings", object_id="D1")))
+            assert opening["value"] == json.loads((run / record["plan_file"]).read_text())["openings"][0]
             audit = record["measurement_bindings"]
             assert digest(run / audit["file"]) == audit["sha256"] and audit["count"] == 4
             assert {b["resolved_pixel"] for b in json.loads((run / audit["file"]).read_text())["bindings"]} == {6}
@@ -134,7 +137,9 @@ def test_mcp_measured_wall_door_revision_and_assembly_keep_numeric_drafts(tmp_pa
             assert changed["source_geometry_ready"]
             assert changed["plan_revision"]["unchanged_ids"]["openings"] == ["W1"]
             second = _json_result(await session.call_tool("inspect_plan_draft", dict(draft_id="draft_002")))
-            assert second["declaration"]["openings"][0]["p1"] == [6, 3]
+            point = _json_result(await session.call_tool("inspect_plan_draft", dict(
+                draft_id="draft_002", field="plan:/openings/0/p1")))
+            assert point["value"] == [6, 3]
             floors = [dict(draft_id=draft, expected_plan_sha256=saved_plan["plan_sha256"],
                            floor_id=floor, z_floor=z, evidence="synthetic assembly")
                       for draft, saved_plan, floor, z in [("draft_001", saved, "F1", 0), ("draft_002", second, "F2", 3)]]

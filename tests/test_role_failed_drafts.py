@@ -162,6 +162,48 @@ def test_reader_has_read_only_draft_inspection_without_compilation():
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("tamper", ["disk", "memory"])
+def test_inherited_failed_report_is_bounded_stable_and_tamper_checked(tmp_path, tamper):
+    async def scenario():
+        image_sha = workspace(tmp_path)
+        prior = PlanTrial(Tools(), image_name="plan.png", workspace=tmp_path,
+                          receipt_directory=tmp_path / "trial_receipts")
+        failed = await prior.run(unhosted_plan())
+        failed["building_precision"] = {"status": "fail", "items": [
+            {"id": f"issue-{i}", "details": "located geometry evidence " * 500} for i in range(24)]}
+        receipt_path = tmp_path / failed["receipt_file"]
+        receipt_path.write_text(json.dumps(failed), encoding="utf-8")
+        original = receipt_path.read_bytes()
+        current = PlanTrial(Tools(), image_name="plan.png")
+        current.inherit_failed_reference(prior, image_sha, receipt_file=failed["receipt_file"],
+                                         plan_sha256=failed["plan_sha256"])
+        first = current.read_draft(field="report:/building_precision/items")
+        assert first["inherited"] and first["trial_status"] == "failed"
+        assert first["next"]["trial_id"] == "reference"
+        assert len(json.dumps(first).encode()) < 16_000
+
+        # A new local trial uses the same trial_001 label; inherited references
+        # must keep pointing to the admitted original report and declaration.
+        changed = unhosted_plan()
+        changed["basis"] = "new observation in this reader"
+        await current.run(changed)
+        page = current.read_draft(**first["next"])
+        assert page["entries"][0]["key"] == 8
+        assert page["reference"]["read"]["arguments"]["trial_id"] == "reference"
+        assert current.read_draft(trial_id="reference", field="plan")["plan"] == unhosted_plan()
+        assert current.read_draft(field="basis")["value"] == changed["basis"]
+        assert receipt_path.read_bytes() == original
+        if tamper == "disk":
+            saved = json.loads(original)
+            saved["building_precision"]["status"] = "pass"
+            receipt_path.write_text(json.dumps(saved), encoding="utf-8")
+        else:
+            prior.receipts[0]["building_precision"]["status"] = "pass"
+        with pytest.raises(ValueError, match="changed since"):
+            current.read_draft(trial_id="reference", field="report:/building_precision")
+    asyncio.run(scenario())
+
+
 def test_previous_task_inherits_precompiler_draft_and_enforces_scope(environment, monkeypatch):
     store, make = environment
     session = make()

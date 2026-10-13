@@ -42,7 +42,7 @@ def test_alias_error_and_image_results_survive_real_stdio(tmp_path):
             assert not result.isError and any(c.type == "image" for c in result.content)
             assert "actual filename 'plan.png'" in "\n".join(c.text for c in result.content if c.type == "text")
             bad = await session.call_tool("pixel_profile", dict(name="p1", box=[0, 0, 4, 4], axis="x", rgb=[255, 255, 255]))
-            assert bad.isError and "Available filenames: [\"plan.png\"]" in bad.content[0].text
+            assert bad.isError and "Available filenames: [\"plan.png\"]" in bad.structuredContent['error']
             assert len((await session.list_tools()).tools) == 43
     asyncio.run(scenario())
 
@@ -61,7 +61,7 @@ def test_plan_format_failure_supplies_correct_minimum_without_edit(tmp_path):
         with patch.object(Toolkit, "revise_plan", lambda *_: apply_plan_revision({}, json.loads(args["operations_json"]))):
             result = await server.call_tool("revise_plan_bim", args)
         assert result.isError
-        text = result.content[0].text
-        assert "missing changes, reason, source_refs" in text and '"changes": {"points"' in text
+        assert "missing changes, reason, source_refs" in result.structuredContent['error']
+        assert '"changes": {"points"' in result.structuredContent['repair_hint']
         assert not list(run.glob("candidate_*"))
     asyncio.run(scenario())

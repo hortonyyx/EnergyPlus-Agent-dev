@@ -183,7 +183,8 @@ already give. Image names are the exact names listed by inputs.
 - Build: build_plan_bim per floor (plan_partition), assemble_plan_bim for
   several floors (plan_assembly; floors_json is a JSON list), build_bim for a
   full proposal (geometry), build_parametric_bim (parametric).
-- Revise: inspect_plan_draft (also every drawing_differences item of a draft)
+- Revise: inspect_plan_draft returns the saved draft identity and a bounded
+  field/object summary; follow its read/next arguments for geometry or reports,
   and revise_plan_bim for a pixel draft; revise_bim for a saved candidate (edits
   for operations not given below; wall_dimensions for wall faces). Local edits
   keep untouched declarations exact.
@@ -436,7 +437,12 @@ Empty openings or incomplete observed coverage is allowed ONLY as an explicit
 partial draft: record unexamined views and omissions in unresolved. A partial
 draft does not establish room completeness or drawing fidelity.
 The raw declaration and deterministic mapping are retained in plan_drafts.
-Local revision: inspect_plan_draft('draft_NNN') returns declaration and plan_sha256;
+Local revision: inspect_plan_draft('draft_NNN') returns plan_sha256 and a bounded
+field/object summary. Read field='openings', object_id='<stable ID>' for one object,
+field='plan:/partitions/0' for a declaration JSON pointer, or field='plan' to browse
+the declaration. field='report:/drawing_differences' browses the saved report.
+Follow returned read/next arguments and object_id='page:8' for later pages;
+complete geometry and audit remain saved externally without rebuilding.
 use 'resume' for an explicitly supplied saved pixel plan. Pass that hash as
 expected_plan_sha256 to revise_plan_bim(draft_id, expected_plan_sha256,
 operations_json). operations_json is a list of 1-100 operations. Each needs

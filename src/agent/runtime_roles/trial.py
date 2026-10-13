@@ -366,13 +366,13 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
         )
     # A compiled candidate can fail a later check while still carrying the same
     # enormous precision ledger as a passed trial. Preserve its failure actions.
-    from .trial_feedback import reference, report_summary
+    from .trial_feedback import bound_receipt_projection, reference, report_summary
     for field in ("building_precision", "drawing_differences", "corridor_review"):
         if field in receipt and len(_plan_bytes({"value": receipt[field]})) > 8000:
             visible[field] = report_summary(receipt, field)
             visible.setdefault("audit_refs", {})[field] = reference(receipt, "/" + field, receipt[field])
     visible["receipt_audit"] = reference(receipt, "", receipt)
-    return visible
+    return bound_receipt_projection(receipt, visible)
 
 
 def _inside(base: Path, relative: str) -> Path:
@@ -854,7 +854,7 @@ class PlanTrial:
                 return read_report(receipt, field.removeprefix("report:"), page=object_id)
             plan = self.load_plan(receipt)
             identity = {key: receipt.get(key) for key in ("trial_id", "plan_sha256", "status", "receipt_file", "input_plan_file")}
-        elif trial_id in (None, "latest") and self.reference_plan is not None:
+        elif trial_id in (None, "latest", "reference") and self.reference_plan is not None:
             if isinstance(field, str) and field.startswith("report:"):
                 if self._reference_report is None:
                     raise ValueError("inherited draft has no bound full trial report")
@@ -869,7 +869,7 @@ class PlanTrial:
                     raise ValueError("inherited trial receipt changed since execution")
                 from .trial_feedback import read_report
                 return {**read_report(inherited, field.removeprefix("report:"), page=object_id,
-                                      read_trial_id="latest"), "inherited": True}
+                                      read_trial_id="reference"), "inherited": True}
             plan = copy.deepcopy(self.reference_plan)
             identity = {**(self.reference_receipt or {}), "inherited": True}
         else:
@@ -881,27 +881,9 @@ class PlanTrial:
                   "last_passed_plan_sha256": passed["plan_sha256"] if passed else
                       (self.reference_receipt or {}).get("plan_sha256") if self.reference_validation_passed else None,
                   "submission_requires_passed_trial": True}
-        if field is None:
-            result["fields"] = sorted(plan)
-            result["object_ids"] = {key: [row.get("id") for row in value if isinstance(row, dict)]
-                                    for key, value in plan.items()
-                                    if key in {"partitions", "openings", "space_seeds"} and isinstance(value, list)}
-        elif field == "plan":
-            if object_id is not None:
-                raise ValueError("object_id requires an object collection")
-            result["plan"] = plan
-        elif field not in plan:
-            raise ValueError(f"Saved declaration has no field {field!r}")
-        elif object_id is None:
-            result["value"] = copy.deepcopy(plan[field])
-        else:
-            if field not in {"partitions", "openings", "space_seeds"} or not isinstance(plan[field], list):
-                raise ValueError("object_id requires an object collection")
-            matches = [row for row in plan[field] if isinstance(row, dict) and row.get("id") == object_id]
-            if len(matches) != 1:
-                raise ValueError("object_id must identify exactly one saved object")
-            result["value"] = copy.deepcopy(matches[0])
-        return result
+        from .trial_feedback import read_plan
+        return {**result, **read_plan(plan, identity, field=field, object_id=object_id,
+                                    read_trial_id="reference" if identity.get("inherited") else None)}
 
     def _verified_original_image(self, expected_sha256: str) -> None:
         if self.workspace is None or not isinstance(expected_sha256, str) or not expected_sha256:
@@ -1007,12 +989,17 @@ class PlanTrial:
             compiled_numeric_plan_sha256=compiled_numeric_plan_sha256,
         )
         plan, receipt = selected
+        original = next(row for row in prior.receipts if row.get("receipt_file") == receipt_file
+                        and row.get("plan_sha256") == plan_sha256)
+        self._reference_report = (prior, receipt_file, hashlib.sha256(_plan_bytes(original)).hexdigest())
         self.reference_plan = copy.deepcopy(plan)
         self.reference_validation_passed = False
         self.reference_receipt = {
             "status": "failed", "validation_passed": False,
+            "trial_id": receipt["trial_id"],
             "plan_sha256": receipt["plan_sha256"],
             "receipt_file": receipt["receipt_file"],
+            "input_plan_file": receipt.get("input_plan_file"),
             "compiled_numeric_plan_sha256": receipt.get("compiled_numeric_plan_sha256"),
         }
         self.allowed_rework_targets = normalize_rework_targets(allowed_targets) if allowed_targets else None
@@ -1043,7 +1030,9 @@ class PlanTrial:
         self.reference_validation_passed = True
         self.reference_receipt = {
             "status": "passed", "validation_passed": True,
+            "trial_id": receipt["trial_id"],
             "plan_sha256": receipt["plan_sha256"],
+            "input_plan_file": receipt.get("input_plan_file"),
         }
         if isinstance(receipt.get("receipt_file"), str):
             self.reference_receipt["receipt_file"] = receipt["receipt_file"]

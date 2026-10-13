@@ -474,12 +474,14 @@ class ReaderTools:
             tools.append({"name": "read_plan_draft", "description": (
                 "Read a saved declaration without rebuilding it, including failed drafts and inherited drafts. "
                 "No arguments returns fields, object IDs, editability, operations base and last passed hash. "
-                "Use field plus optional object_id for a small local read; field='plan' explicitly reads the full declaration. "
+                "Use field plus optional object_id for a local read; all reads are bounded. "
+                "field='plan' browses the declaration; field='plan:/partitions/0' follows a saved JSON pointer. "
                 "Use field='report:/building_precision' (JSON pointer) to browse the verified trial receipt; "
                 "large fields return child references, and object_id='page:8' requests the next small page. "
-                "trial_id defaults to latest; an editable draft is not necessarily submit-ready."),
+                "trial_id defaults to latest; reference selects the inherited draft even after a new trial. "
+                "Follow returned read/next arguments for more data. An editable draft is not necessarily submit-ready."),
                 "inputSchema": {"type": "object", "properties": {
-                    "trial_id": {"type": "string", "pattern": "^(latest|trial_[0-9]{3,})$"},
+                    "trial_id": {"type": "string", "pattern": "^(latest|reference|trial_[0-9]{3,})$"},
                     "field": {"type": "string"}, "object_id": {"type": "string"}},
                     "additionalProperties": False}})
             tools.append({

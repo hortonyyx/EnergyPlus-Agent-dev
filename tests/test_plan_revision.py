@@ -93,8 +93,11 @@ def test_revision_mcp_source_feedback_and_bound_preservation(tmp_path):
             revision = result["plan_input"]["revision"]
             assert digest(run / revision["file"]) == revision["sha256"]
             assert result["plan_revision"]["unchanged_ids"]["openings"] == ["W1"]
-            report = saved.pop("drawing_differences")
+            report = saved["drawing_differences"]["value"]
             assert report == json.loads((run / "plan_drafts/draft_001/drawing_differences.json").read_text())
             assert report["plan_sha256"] == saved["plan_sha256"]
-            assert Toolkit(run).inspect_plan("draft_001") == saved
+            assert saved["object_ids"]["openings"] == ["D1", "W1"]
+            queried = _json_result(await session.call_tool("inspect_plan_draft", {
+                "draft_id": "draft_001", "field": "openings", "object_id": "W1"}))
+            assert queried["value"] == Toolkit(run).inspect_plan("draft_001")["declaration"]["openings"][1]
     asyncio.run(scenario())

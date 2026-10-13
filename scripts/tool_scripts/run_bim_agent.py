@@ -2456,10 +2456,13 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
     @server.tool()
     def read_candidate_items(candidate: str, collection: Literal["cells", "windows", "openings", "unsupported", "report"], floor_id: str | None = None,
-                             offset: int = 0, limit: int | None = None, report_file: str = "") -> dict:
+                             offset: int = 0, limit: int | None = None, report_file: str = "",
+                             json_pointer: str | None = None) -> dict:
         """Read exact saved proposal cells, windows, openings or unsupported records.
         collection=report reads a returned details_file via report_file, with
         candidate="" and offset/limit in characters (limit up to 12000).
+        Optional json_pointer browses that exact report as bounded JSON; offset
+        then counts container children or text characters. Follow returned next.
         Each cell includes floor_id. Read next_offset for more; page_is_partial
         means this is not a complete build_bim input. Prefer revise_bim to keep
         unexamined objects. This reads the proposal, not mesh/GT observations.
@@ -2468,7 +2471,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             limit = 8000 if collection == 'report' else 20
         if collection == 'report':
             from scripts.tool_scripts.bim_agent_replies import read_report
-            return read_report(toolkit.run, report_file, offset, limit)
+            return read_report(toolkit.run, report_file, offset, limit, json_pointer=json_pointer)
+        if json_pointer is not None:
+            raise ValueError('json_pointer requires collection=report and its saved report_file')
         if collection not in {'cells','windows','openings','unsupported'}:
             raise ValueError('collection must be cells, windows, openings or unsupported')
         if not 1 <= limit <= 50 or offset < 0:
@@ -2504,18 +2509,55 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
 
     if not readonly:
         @server.tool()
-        def inspect_plan_draft(draft_id: str) -> dict:
-            """Read a saved draft_NNN or resume declaration, its immutable hash and every
-            drawing_differences item recorded for that draft. Use the returned hash with
-            revise_plan_bim for local edits.
+        def inspect_plan_draft(draft_id: str, field: str | None = None,
+                               object_id: str | None = None) -> dict:
+            """Inspect a saved draft_NNN or resume, retaining its immutable revision hash.
+            Default returns field/object summaries. Read field='plan', a field name
+            with optional stable object_id, or field='plan:/openings/0' for JSON pointers.
+            field='report:/drawing_differences' browses that draft's findings.
+            Large values return references/entries; follow next, or object_id='page:8'.
+            Use plan_sha256 with revise_plan_bim; never resend generated audit records.
             """
+            from src.agent.runtime_roles.trial_feedback import (
+                _bytes, _page_offset, bounded_json_view, read_plan,
+            )
             saved = toolkit.inspect_plan(draft_id)
             report = toolkit.run / "plan_drafts" / str(draft_id) / "drawing_differences.json"
             if draft_id != "resume" and report.is_file():
+                receipt = report.with_name('result.json')
+                binding = (json.loads(receipt.read_bytes()).get('drawing_differences', {})
+                           if receipt.is_file() else {})
+                if (binding.get('file') != report.relative_to(toolkit.run).as_posix()
+                        or binding.get('sha256') != digest(report)):
+                    raise ValueError('saved drawing differences report changed or has no bound hash')
                 data = json.loads(report.read_bytes())
-                if data.get("plan_sha256") == saved["plan_sha256"]:
-                    saved["drawing_differences"] = data
-            return saved
+                if data.get("plan_sha256") != saved["plan_sha256"]:
+                    raise ValueError('saved drawing differences report names a different plan')
+                saved["drawing_differences"] = data
+            identity = {key: saved[key] for key in ('draft_id', 'plan_sha256', 'image')}
+
+            def report_reference(pointer, value):
+                raw = _bytes(value)
+                return {**identity, 'json_pointer': pointer,
+                    'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw),
+                    'read': {'tool': 'inspect_plan_draft', 'arguments': {
+                        'draft_id': draft_id, 'field': 'report:' + pointer}}}
+
+            if field is not None and field.startswith('report:'):
+                pointer = field.removeprefix('report:')
+                result = {**identity, **bounded_json_view(saved, pointer=pointer,
+                    offset=_page_offset(object_id), reference_for=report_reference)}
+                if 'next_offset' in result:
+                    result['next'] = {'draft_id': draft_id, 'field': field,
+                                      'object_id': f"page:{result.pop('next_offset')}"}
+                return result
+            result = {**identity, **read_plan(saved['declaration'], identity, field=field,
+                object_id=object_id, read_tool='inspect_plan_draft',
+                read_arguments={'draft_id': draft_id})}
+            if field is None and 'drawing_differences' in saved:
+                result['drawing_differences'] = bounded_json_view(saved,
+                    pointer='/drawing_differences', reference_for=report_reference)
+            return result
 
         @server.tool()
         def revise_plan_bim(draft_id: str, expected_plan_sha256: str, operations_json: str) -> CallToolResult:

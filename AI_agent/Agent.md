@@ -13,7 +13,7 @@
 - BIM Agent = work model + harness；harness = runtime + domain。runtime 与建筑无关；domain 含 BIM rules、kernel、tools、methods、roles、guidance。
 - 统一产出源 BIM；还原、部分推理、完全推理按信息充分程度区分，不拆成三套产品。
 - 当前 domain 按可复用能力组织，入口见 [domain 导航](../src/agent/README.md)；旧阶段管线与资源在 legacy，不作为新任务的步骤或 skills。
-- Work model 以国模为主、允许组合，先稳定交付和可控时间，再优化成本与本地部署，不强求固定型号或档位。照片转 mesh 与细度政策见 [讨论记录](project/model_and_input_strategy.md)，仍待定案。
+- Work model 不设国别、规模或型号上限，允许 Astra、6.1 Sol 等；先验证 10 分钟内稳定整楼交付，再优化成本与本地部署。先复用单模型路径，分工按实际收益启用。照片转 mesh 与细度政策见 [讨论记录](project/model_and_input_strategy.md)，仍待定案。
 - 优先保证建筑空间划分与关系：漏墙、多墙、错拆错并、假楼板、门窗挂错与连通改变属于实质错误。
 - 规整首先减轻模型负担。明确标注或实际几何中的细数值也允许规整到10 cm，保留原读数与采用值依据。整图标注自动选步长仍待设计。
 - 信息不足可以明确推断、假设和简化；不能把推断说成实测。GT留在评价侧。

@@ -11,6 +11,7 @@ from collections import defaultdict
 import hashlib
 import json
 from pathlib import Path
+import re
 
 COMPACT_TOOLS = frozenset({'build_bim', 'build_plan_bim', 'revise_bim', 'revise_plan_bim',
                           'build_parametric_bim', 'assemble_plan_bim', 'check_openings', 'finish_bim',
@@ -225,25 +226,71 @@ def summarize_reply(result):
     return reply
 
 
-def compact_reply(run: Path, tool: str, result: dict, *, full_result: dict | None = None) -> dict:
-    if tool not in COMPACT_TOOLS:
+def _reply_bytes(value):
+    return len(json.dumps(value, ensure_ascii=False).encode('utf-8'))
+
+
+def compact_reply(run: Path, tool: str, result: dict, *, full_result: dict | None = None,
+                  force: bool = False) -> dict:
+    if tool not in COMPACT_TOOLS and not force:
         return result
     reply = profile_summary(result) if tool == 'view_pixel_profile' else summarize_reply(result)
-    if reply == result and full_result is None:
+    large = _reply_bytes(reply) > 24000
+    if reply == result and full_result is None and not large and not force:
         return result
     raw = (json.dumps(result if full_result is None else full_result, ensure_ascii=False, indent=2) + '\n').encode()
     sha = hashlib.sha256(raw).hexdigest()
-    relative = f'tool_reports/{tool}_{sha}.json'
+    label = re.sub(r'[^A-Za-z0-9_-]', '_', tool)[:80] or 'tool'
+    relative = f'tool_reports/{label}_{sha}.json'
     path = run / relative
     path.parent.mkdir(exist_ok=True)
     if not path.exists():
         path.write_bytes(raw)
+    if large:
+        from src.agent.runtime_roles.trial_feedback import bounded_json_view
+
+        document = result if full_result is None else full_result
+        for key, value in list(reply.items()):
+            if key in document and _reply_bytes(value) > 3000:
+                pointer = '/' + key.replace('~', '~0').replace('/', '~1')
+                reply[key] = bounded_json_view(document, pointer=pointer,
+                    reference_for=lambda at, item: report_reference(relative, sha, at, item))
     reply.update(details_file=relative, details_sha256=sha,
         details_read='read_candidate_items(candidate="", collection="report", report_file=details_file); offset/limit page by characters.')
+    if _reply_bytes(reply) > 24000:
+        from src.agent.runtime_roles.trial_feedback import bounded_json_view
+        document = result if full_result is None else full_result
+        bounded = {key: reply[key] for key in ('details_file', 'details_sha256', 'details_read')}
+        bounded['report_view'] = bounded_json_view(document,
+            reference_for=lambda at, item: report_reference(relative, sha, at, item))
+        if _reply_bytes(bounded) > 22000:
+            bounded['report_view'] = {'reference': report_reference(relative, sha, '', document)}
+        # Verdicts, repair locations and saved identities remain immediately useful;
+        # every other field is available in the bound report, including its keys.
+        for key in ('status', 'source_geometry_ready', 'candidate', 'saved_candidate', 'save_effects',
+                    'error', 'error_stage', 'error_type', 'tool_name', 'repair_hint', 'remaining_seconds',
+                    'plan_input', 'plan_revision', 'drawing_differences', 'building_precision', 'counts'):
+            if key in reply and _reply_bytes({**bounded, key: reply[key]}) <= 24000:
+                bounded[key] = reply[key]
+        reply = bounded
     return reply
 
 
-def read_report(run: Path, report_file: str, offset: int, limit: int) -> dict:
+def report_reference(report_file: str, sha256: str, pointer: str, value) -> dict:
+    """Bind a JSON value to the exact immutable tool reply that owns it."""
+    from src.agent.runtime_roles.trial_feedback import _bytes
+    raw = _bytes(value)
+    result = {'report_file': report_file, 'report_sha256': sha256, 'json_pointer': pointer,
+              'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw),
+              'read': {'tool': 'read_candidate_items', 'arguments': {
+                  'candidate': '', 'collection': 'report', 'report_file': report_file,
+                  'json_pointer': pointer}}}
+    if isinstance(value, (list, dict)):
+        result['item_count'] = len(value)
+    return result
+
+
+def read_report(run: Path, report_file: str, offset: int, limit: int, *, json_pointer: str | None = None) -> dict:
     """Read only an immutable tool reply; cannot reach arbitrary run/private files."""
     path = (run / report_file).resolve()
     folder = (run / 'tool_reports').resolve()
@@ -255,6 +302,15 @@ def read_report(run: Path, report_file: str, offset: int, limit: int) -> dict:
     sha = hashlib.sha256(raw).hexdigest()
     if not path.stem.endswith('_' + sha):
         raise ValueError('saved tool report hash mismatch')
+    if json_pointer is not None:
+        from src.agent.runtime_roles.trial_feedback import bounded_json_view
+        result = {'report_file': report_file, 'sha256': sha,
+                  **bounded_json_view(json.loads(raw), pointer=json_pointer, offset=offset,
+                      reference_for=lambda at, item: report_reference(report_file, sha, at, item))}
+        if 'next_offset' in result:
+            result['next'] = {'candidate': '', 'collection': 'report', 'report_file': report_file,
+                              'json_pointer': json_pointer, 'offset': result['next_offset']}
+        return result
     text = raw.decode()
     page = text[offset:offset + limit]
     return dict(report_file=report_file, sha256=sha, text=page, offset=offset,

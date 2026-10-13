@@ -2390,13 +2390,66 @@ def _stack_footprint_segments(item: dict) -> list[dict]:
              "calibration": calibration} for row in _footprint_segments(item["plan"], calibration)]
 
 
+def _stack_boundary_segments(item: dict) -> list[dict]:
+    """Use the same physical boundary domain as the final source-BIM gate."""
+    return [*_stack_wall_segments(item), *_stack_footprint_segments(item)]
+
+
+def _stack_offset_pairs(lower: dict, upper: dict) -> list[tuple[dict, dict]]:
+    lower_lines, upper_lines = _stack_boundary_segments(lower), _stack_boundary_segments(upper)
+
+    def closer_match(line: dict, alternatives: list[dict], distance: float,
+                     shared_start: float, shared_end: float) -> bool:
+        # A compiled physical wall may consist of several declaration segments.
+        # Only exactly collinear fragments form one matching span.  Combining
+        # closer fragments on different coordinates would invent a wall that
+        # the source gate does not have and hide a real unresolved offset.
+        by_coordinate = {}
+        for other in alternatives:
+            if (other["axis"] == line["axis"]
+                    and abs(other["coordinate_m"] - line["coordinate_m"])
+                    < distance - NUMERIC_EQUALITY_TOLERANCE_M):
+                by_coordinate.setdefault(other["coordinate_m"], []).append((
+                    max(shared_start, other["span_m"][0]),
+                    min(shared_end, other["span_m"][1])))
+        for intervals in by_coordinate.values():
+            covered = shared_start
+            for start, end in sorted(intervals):
+                if start > covered + NUMERIC_EQUALITY_TOLERANCE_M:
+                    break
+                covered = max(covered, end)
+                if covered >= shared_end - NUMERIC_EQUALITY_TOLERANCE_M:
+                    return True
+        return False
+
+    pairs = []
+    for first in lower_lines:
+        for second in upper_lines:
+            if first["axis"] != second["axis"]:
+                continue
+            distance = abs(first["coordinate_m"] - second["coordinate_m"])
+            if not _strictly_under(distance, ALIGNMENT_THRESHOLD_M) or _overlap(first, second) <= _EPS:
+                continue
+            start = max(first["span_m"][0], second["span_m"][0])
+            end = min(first["span_m"][1], second["span_m"][1])
+            if (closer_match(first, upper_lines, distance, start, end)
+                    or closer_match(second, lower_lines, distance, start, end)):
+                continue
+            pairs.append((first, second))
+    return pairs
+
+
 def _connected_footprint_edge(item: dict, segment: dict) -> dict | None:
     candidates = [
         edge for edge in _stack_footprint_segments(item)
         if (edge["axis"] == segment["axis"]
             and math.isclose(
                 edge["coordinate_m"], segment["coordinate_m"], abs_tol=1e-7)
-            and _span_gap(edge, segment) <= _EPS)
+            and (_span_gap(edge, segment) <= _EPS or any(
+                member["partition_id"] == segment["partition_id"]
+                and member["segment_index"] == segment["segment_index"]
+                for member in _connected_collinear_wall_chain(
+                    item["plan"], edge, edge["calibration"]))))
     ]
     if not candidates:
         return None
@@ -2406,9 +2459,13 @@ def _connected_footprint_edge(item: dict, segment: dict) -> dict | None:
 
 def _footprint_edge_has_dimension_evidence(item: dict, edge: dict) -> bool:
     line_refs, coordinate_refs = _regularization_inputs(item["plan"])
+    line_ids = {edge["partition_id"]}
+    if edge.get("fixed_exterior"):
+        line_ids.update(member["partition_id"] for member in _connected_collinear_wall_chain(
+            item["plan"], edge, edge["calibration"]))
     return (
         any(row.get("basis") == "dimension"
-            for row in line_refs.get(edge["partition_id"], []))
+            for identity in line_ids for row in line_refs.get(identity, []))
         or any(
             row["basis"] == "dimension"
             and row["axis"] == edge["axis"]
@@ -2624,33 +2681,16 @@ def validate_regularized_plan_stack(items: list[dict], *, rule_version: str = RU
                 "distance_m": round(abs(separation), 9), "signed_gap_m": round(separation, 9),
                 "fix": "Use the elevation-backed level, or separate the floor and ceiling by at least 0.30 m.",
             })
-        lower_segments, upper_segments = _stack_wall_segments(lower), _stack_wall_segments(upper)
-        for first in lower_segments:
-            for second in upper_segments:
-                if first["axis"] != second["axis"]:
-                    continue
-                distance = abs(first["coordinate_m"] - second["coordinate_m"])
-                overlap = _overlap(first, second)
-                if _strictly_under(distance, ALIGNMENT_THRESHOLD_M) and overlap > _EPS:
-                    violations.append({
-                        "type": "storey_wall_offset_under_0_30m",
-                        "objects": [_line_public(first), _line_public(second)],
-                        "distance_m": round(distance, 9), "overlap_m": round(overlap, 9),
-                        "fix": "Align one affected plan draft to the higher-priority existing wall line, then recompile it.",
-                    })
-        for first in _stack_footprint_segments(lower):
-            for second in _stack_footprint_segments(upper):
-                if first["axis"] != second["axis"]:
-                    continue
-                distance = abs(first["coordinate_m"] - second["coordinate_m"])
-                overlap = _overlap(first, second)
-                if _strictly_under(distance, ALIGNMENT_THRESHOLD_M) and overlap > _EPS:
-                    violations.append({
-                        "type": "fixed_footprint_storey_offset_under_0_30m",
-                        "objects": [_line_public(first), _line_public(second)],
-                        "distance_m": round(distance, 9), "overlap_m": round(overlap, 9),
-                        "fix": "Align the upper footprint edge to the lower edge, unless only the upper edge has dimension evidence; then align the lower edge upward. Recompile the changed draft.",
-                    })
+        for first, second in _stack_offset_pairs(lower, upper):
+            both_exterior = first.get("fixed_exterior") and second.get("fixed_exterior")
+            violations.append({
+                "type": ("fixed_footprint_storey_offset_under_0_30m" if both_exterior
+                         else "storey_wall_offset_under_0_30m"),
+                "objects": [_line_public(first), _line_public(second)],
+                "distance_m": round(abs(first["coordinate_m"] - second["coordinate_m"]), 9),
+                "overlap_m": round(_overlap(first, second), 9),
+                "fix": "Align the affected physical boundary to an existing evidence-backed line, including its connected footprint/partition chain; recompile and preserve rooms, opening hosts and connections.",
+            })
     return {"schema": "plan_stack_hard_constraints_v1", "rule_version": rule_version,
             "status": "pass" if not violations else "rejected",
             "thresholds": {"alignment_strictly_less_than_m": ALIGNMENT_THRESHOLD_M,
@@ -2824,6 +2864,45 @@ def regularize_plan_stack(
         return True
 
     propagated_footprint_dimensions: set[tuple[str, str, float]] = set()
+
+    def footprint_dimension(item: dict, edge: dict) -> bool:
+        return (_footprint_edge_has_dimension_evidence(item, edge)
+                or (edge["floor_id"], edge["axis"], round(edge["coordinate_m"], 9))
+                in propagated_footprint_dimensions)
+
+    def propagate_footprint_dimension(source: dict) -> None:
+        """Carry a trusted coordinate down already visited boundary chains once."""
+        anchor = next((row for row in _stack_footprint_segments(source["item"])
+                       if row["segment_index"] == source["segment_index"]), None)
+        lower_index = next(index for index, item in enumerate(ordered)
+                           if item["floor_id"] == source["floor_id"])
+        for candidate_item in reversed(ordered[:lower_index]):
+            if anchor is None:
+                break
+            candidates = []
+            for first, second in _stack_offset_pairs(candidate_item, anchor["item"]):
+                target_edge = _connected_footprint_edge(anchor["item"], second)
+                source_edge = _connected_footprint_edge(candidate_item, first)
+                if (source_edge is not None and target_edge is not None
+                        and target_edge["segment_index"] == anchor["segment_index"]):
+                    candidates.append((abs(first["coordinate_m"] - second["coordinate_m"]),
+                                       -_overlap(first, second), source_edge))
+            if not candidates:
+                break
+            candidate = min(candidates, key=lambda row: (
+                row[0], row[1], row[2]["segment_index"]))[2]
+            # A conflicting lower dimension remains for the structured final
+            # rejection.  Never oscillate or silently overwrite its evidence.
+            if footprint_dimension(candidate_item, candidate):
+                break
+            if not attempt_footprint_alignment(
+                    candidate, anchor, basis="upper_dimension_reference_propagated"):
+                break
+            propagated_footprint_dimensions.add((
+                candidate["floor_id"], candidate["axis"], round(anchor["coordinate_m"], 9)))
+            anchor = next((row for row in _stack_footprint_segments(candidate_item)
+                           if row["segment_index"] == candidate["segment_index"]), None)
+
     for lower, upper in zip(ordered, ordered[1:]):
         lower_height = float(lower.get("height", lower["plan"]["ceiling_height"]))
         separation = float(upper["z_floor"]) - (float(lower["z_floor"]) + lower_height)
@@ -2860,24 +2939,18 @@ def regularize_plan_stack(
         blocked_footprint_pairs: set[tuple] = set()
         while True:
             footprint_candidates = []
-            for lower_edge in _stack_footprint_segments(lower):
-                for upper_edge in _stack_footprint_segments(upper):
-                    if lower_edge["axis"] != upper_edge["axis"]:
-                        continue
-                    pair_key = (
-                        lower_edge["floor_id"], lower_edge["segment_index"],
-                        upper_edge["floor_id"], upper_edge["segment_index"],
-                    )
-                    if pair_key in blocked_footprint_pairs:
-                        continue
-                    distance = abs(
-                        lower_edge["coordinate_m"] - upper_edge["coordinate_m"])
-                    overlap = _overlap(lower_edge, upper_edge)
-                    if (_EPS < distance
-                            and _strictly_under(distance, ALIGNMENT_THRESHOLD_M)
-                            and overlap > _EPS):
-                        footprint_candidates.append(
-                            (distance, -overlap, pair_key, lower_edge, upper_edge))
+            for lower_edge, upper_edge in _stack_offset_pairs(lower, upper):
+                if not (lower_edge.get("fixed_exterior") and upper_edge.get("fixed_exterior")):
+                    continue
+                pair_key = (
+                    lower_edge["floor_id"], lower_edge["segment_index"],
+                    upper_edge["floor_id"], upper_edge["segment_index"],
+                )
+                if pair_key in blocked_footprint_pairs:
+                    continue
+                distance = abs(lower_edge["coordinate_m"] - upper_edge["coordinate_m"])
+                footprint_candidates.append(
+                    (distance, -_overlap(lower_edge, upper_edge), pair_key, lower_edge, upper_edge))
             if not footprint_candidates:
                 break
             distance, neg_overlap, pair_key, lower_edge, upper_edge = min(
@@ -2885,18 +2958,8 @@ def regularize_plan_stack(
                 key=lambda row: (
                     row[0], row[1], row[3]["segment_index"], row[4]["segment_index"]),
             )
-            lower_dimension = (
-                _footprint_edge_has_dimension_evidence(lower, lower_edge)
-                or (lower_edge["floor_id"], lower_edge["axis"],
-                    round(lower_edge["coordinate_m"], 9))
-                in propagated_footprint_dimensions
-            )
-            upper_dimension = (
-                _footprint_edge_has_dimension_evidence(upper, upper_edge)
-                or (upper_edge["floor_id"], upper_edge["axis"],
-                    round(upper_edge["coordinate_m"], 9))
-                in propagated_footprint_dimensions
-            )
+            lower_dimension = footprint_dimension(lower, lower_edge)
+            upper_dimension = footprint_dimension(upper, upper_edge)
             if upper_dimension and not lower_dimension:
                 source, target = lower_edge, upper_edge
                 basis = "upper_only_dimension_reference"
@@ -2927,45 +2990,7 @@ def regularize_plan_stack(
             # the number of lower storeys and every move retains the same
             # compile, semantic and hard-rule transaction as the direct move.
             if (target_dimension and source is lower_edge and target is upper_edge):
-                anchor = next((
-                    row for row in _stack_footprint_segments(lower)
-                    if row["segment_index"] == source["segment_index"]
-                ), None)
-                lower_index = next(
-                    index for index, item in enumerate(ordered)
-                    if item["floor_id"] == lower["floor_id"])
-                for candidate_item in reversed(ordered[:lower_index]):
-                    if anchor is None:
-                        break
-                    candidates = [
-                        row for row in _stack_footprint_segments(candidate_item)
-                        if (row["axis"] == anchor["axis"]
-                            and _overlap(row, anchor) > _EPS
-                            and _EPS < abs(row["coordinate_m"] - anchor["coordinate_m"])
-                            and _strictly_under(
-                                abs(row["coordinate_m"] - anchor["coordinate_m"]),
-                                ALIGNMENT_THRESHOLD_M))
-                    ]
-                    if not candidates:
-                        break
-                    candidate = min(candidates, key=lambda row: (
-                        abs(row["coordinate_m"] - anchor["coordinate_m"]),
-                        -_overlap(row, anchor), row["segment_index"],
-                    ))
-                    if _footprint_edge_has_dimension_evidence(candidate_item, candidate):
-                        break
-                    if not attempt_footprint_alignment(
-                            candidate, anchor,
-                            basis="upper_dimension_reference_propagated"):
-                        break
-                    propagated_footprint_dimensions.add((
-                        candidate["floor_id"], candidate["axis"],
-                        round(anchor["coordinate_m"], 9),
-                    ))
-                    anchor = next((
-                        row for row in _stack_footprint_segments(candidate_item)
-                        if row["segment_index"] == candidate["segment_index"]
-                    ), None)
+                propagate_footprint_dimension(source)
 
         # Recompute candidates after every accepted edit.  Each tentative move
         # gets finite endpoint settling plus an immediate strict compile and
@@ -2973,21 +2998,14 @@ def regularize_plan_stack(
         moved_sources, blocked = set(), set()
         while True:
             candidates = []
-            for first in _stack_wall_segments(lower):
-                for second in _stack_wall_segments(upper):
-                    if first["axis"] != second["axis"]:
-                        continue
-                    keys = ((first["floor_id"], first["partition_id"], first["segment_index"]),
-                            (second["floor_id"], second["partition_id"], second["segment_index"]))
-                    pair_key = tuple(sorted(keys))
-                    if pair_key in blocked:
-                        continue
-                    distance = abs(first["coordinate_m"] - second["coordinate_m"])
-                    overlap = _overlap(first, second)
-                    if (_EPS < distance
-                            and _strictly_under(distance, ALIGNMENT_THRESHOLD_M)
-                            and overlap > _EPS):
-                        candidates.append((distance, -overlap, pair_key, first, second))
+            for first, second in _stack_offset_pairs(lower, upper):
+                keys = ((first["floor_id"], first["partition_id"], first["segment_index"]),
+                        (second["floor_id"], second["partition_id"], second["segment_index"]))
+                pair_key = tuple(sorted(keys))
+                if pair_key in blocked:
+                    continue
+                distance = abs(first["coordinate_m"] - second["coordinate_m"])
+                candidates.append((distance, -_overlap(first, second), pair_key, first, second))
             if not candidates:
                 break
             distance, neg_overlap, pair_key, first, second = min(
@@ -3017,16 +3035,14 @@ def regularize_plan_stack(
             first_exterior = _connected_footprint_edge(first["item"], first)
             second_exterior = _connected_footprint_edge(second["item"], second)
             if second_exterior is not None and first_exterior is not None:
-                # A footprint edge may only move toward the corresponding
-                # overlapping footprint edge on the adjacent storey.  Wall
-                # chains can extend beyond a local notch, so merely finding a
-                # wall on the other floor is not enough to move the outline.
-                if _overlap(first_exterior, second_exterior) <= _EPS:
-                    blocked.add(pair_key)
-                    continue
-                upper_dimension = _footprint_edge_has_dimension_evidence(
+                # The physical boundary may change from exterior to interior
+                # between storeys.  An overlapping, connected collinear chain
+                # establishes correspondence even if its exterior pieces alone
+                # do not overlap.  The transaction below still recompiles the
+                # entire changed outline and preserves rooms/hosts/connections.
+                upper_dimension = footprint_dimension(
                     second["item"], second_exterior)
-                lower_dimension = _footprint_edge_has_dimension_evidence(
+                lower_dimension = footprint_dimension(
                     first["item"], first_exterior)
                 if upper_dimension and not lower_dimension:
                     target, source = second, first
@@ -3072,9 +3088,7 @@ def regularize_plan_stack(
                 _connected_footprint_edge(target["item"], target)
                 if source_exterior is not None else None
             )
-            if (source_exterior is not None
-                    and (target_exterior is None
-                         or _overlap(source_exterior, target_exterior) <= _EPS)):
+            if source_exterior is not None and target_exterior is None:
                 blocked.add(pair_key)
                 continue
             plan_before = copy.deepcopy(affected["plan"])
@@ -3092,6 +3106,8 @@ def regularize_plan_stack(
                     reason="cross-storey alignment to an existing higher-priority wall line",
                     changes=stack_changes,
                 )
+            stack_changes[-1]["matched_boundaries"] = [
+                _line_public(source), _line_public(target)]
             stack_changes[-1]["source_coordinate_support"] = {
                 "floors": source_support[0], "collinear_wall_segments": source_support[1]
             }
@@ -3179,6 +3195,11 @@ def regularize_plan_stack(
             if source_exterior is not None:
                 footprint_locked_coordinates.add((
                     source["floor_id"], source["axis"], target["coordinate_m"]))
+                if footprint_dimension(target["item"], target_exterior):
+                    propagated_footprint_dimensions.add((
+                        source["floor_id"], source["axis"], round(target["coordinate_m"], 9)))
+                    if source is first:
+                        propagate_footprint_dimension(source_exterior)
 
     # Recompile changed plan drafts and refuse any opening/connection change.
     for item in result:

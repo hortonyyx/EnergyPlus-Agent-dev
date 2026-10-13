@@ -47,8 +47,10 @@ windows are supported. Label assumed heights. Never remove an observed object or
 room topology merely to make a trial pass.
 Failed geometry remains a saved declaration, not a passed BIM. Use read_plan_draft()
 to see editability, the current operations base and the last passed plan separately.
-Read field plus optional object_id for one object; field="plan" reads the complete
-declaration. A format failure with ambiguous IDs needs a complete replacement;
+Read field plus optional object_id for one object; field="plan" browses the saved
+declaration in bounded pages. Follow returned read/next arguments; plan:/ JSON pointers
+address nested values, object_id="page:8" continues a page, and trial_id="reference"
+keeps an inherited draft selected after new trials. A format failure with ambiguous IDs needs a complete replacement;
 its original declaration remains readable by trial_id. For corrections use operations
 against the latest editable declaration, including failed revisions, to keep earlier fixes.
 Each needs reason, source_refs, original-pixel bbox and:

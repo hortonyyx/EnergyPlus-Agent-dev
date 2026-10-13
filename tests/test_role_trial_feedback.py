@@ -393,7 +393,7 @@ def test_megabyte_success_continues_through_runtime_adapter_to_explicit_submissi
     inherited.inherit_reference(trial, receipt["plan_sha256"], ["plan.openings"])
     assert "building_precision" not in inherited.read_draft()
     inherited_report = inherited.read_draft(field="report:/building_precision/regularization/reports/0/changes")
-    assert inherited_report["inherited"] and inherited_report["next"]["trial_id"] == "latest"
+    assert inherited_report["inherited"] and inherited_report["next"]["trial_id"] == "reference"
     assert inherited.read_draft(**inherited_report["next"])["entries"][0]["key"] == 8
     assert inherited.read_draft(field="report:/topology_issues")["value"] == receipt["topology_issues"]
     receipt_path = workspace / receipt["receipt_file"]
@@ -447,3 +447,136 @@ def test_bounded_json_browser_preserves_escaped_keys_and_long_text_pages():
         bounded_json_view(document, pointer="/a~1b~0c/rows", offset=20, reference_for=ref)
     with pytest.raises(ValueError, match="beyond"):
         bounded_json_view(document, pointer="/a~1b~0c/text", offset=len(text), reference_for=ref)
+
+
+def test_all_draft_read_paths_are_bounded_and_reference_exact_saved_values(tmp_path):
+    from src.agent.runtime_roles.trial import canonical_plan_sha256
+    from tests.test_role_trial import example
+
+    document = example()
+    document["regularization"] = _large_precision()
+    document["regularization_inputs"] = {"a/b~c": {"text": "中文 evidence " * 1200}}
+    document["openings"] = [{**document["openings"][0], "id": f"door-{i}",
+                             "source_refs": ["located evidence " * 800]}
+                            for i in range(47)]
+    raw = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"),
+                     allow_nan=False).encode()
+    assert len(raw) > 1_000_000
+    receipt = {"trial_id": "trial_001", "status": "failed", "receipt_file": "receipt.json",
+               "input_plan_file": "plan.json", "plan_sha256": canonical_plan_sha256(document)}
+    trial = PlanTrial(None, image_name="plan.png", workspace=tmp_path)
+    trial.receipts = [receipt]
+    (tmp_path / "plan.json").write_bytes(raw)
+    (tmp_path / "receipt.json").write_text(json.dumps(receipt), encoding="utf-8")
+
+    for arguments in ({}, {"field": "plan"}, {"field": "regularization"},
+                      {"field": "regularization_inputs"}, {"field": "openings"},
+                      {"field": "openings", "object_id": "door-46"},
+                      {"field": "plan:/regularization_inputs/a~1b~0c"}):
+        page = trial.read_draft(**arguments)
+        assert len(json.dumps(page, ensure_ascii=False).encode()) < 16_000
+        assert page["reference"]["plan_sha256"] == receipt["plan_sha256"]
+        assert page["reference"]["read"]["arguments"]["trial_id"] == "trial_001"
+    summary = trial.read_draft()
+    assert summary["object_counts"]["openings"] == 47
+    assert len(summary["object_ids"]["openings"]) == 12
+    assert summary["reference"]["sha256"] == receipt["plan_sha256"]
+
+    indexes, args = [], {"field": "openings"}
+    while args:
+        page = trial.read_draft(**args)
+        indexes.extend(row["key"] for row in page["entries"])
+        assert len(json.dumps(page, ensure_ascii=False).encode()) < 16_000
+        args = page.get("next")
+    assert indexes == list(range(47))
+    object_page = trial.read_draft(field="openings", object_id="door-46")
+    assert object_page["reference"]["json_pointer"] == "/openings/46"
+    leaf = trial.read_draft(field="plan:/openings/46/id")
+    assert leaf["value"] == "door-46"
+    parts, args = [], {"field": "plan:/regularization_inputs/a~1b~0c/text"}
+    while args:
+        page = trial.read_draft(**args)
+        parts.append(page["text"])
+        args = page.get("next")
+    assert "".join(parts) == document["regularization_inputs"]["a/b~c"]["text"]
+    assert (tmp_path / "plan.json").read_bytes() == raw
+
+    for arguments in ({"field": "plan:/../../outside.json"},
+                      {"field": "plan:/openings/01"},
+                      {"field": "plan:/regularization_inputs/a~2b"},
+                      {"field": "regularization", "object_id": "page:-1"},
+                      {"field": "openings", "object_id": "missing"}):
+        with pytest.raises(ValueError):
+            trial.read_draft(**arguments)
+    (tmp_path / "plan.json").write_bytes(raw + b" ")
+    with pytest.raises(ValueError, match="hash mismatch"):
+        trial.read_draft(field="plan:/openings/46/id")
+
+
+def test_draft_reference_keeps_custom_tool_and_exact_draft_identity():
+    from src.agent.runtime_roles.trial_feedback import read_plan
+
+    plan = {"openings": [{"id": f"D{i}", "source_refs": ["original" * 200]} for i in range(20)]}
+    page = read_plan(plan, {"plan_sha256": "verified-plan"}, field="openings",
+                     read_tool="inspect_plan_draft", read_arguments={"draft_id": "draft_001"})
+    assert page["next"] == {"draft_id": "draft_001", "field": "plan:/openings", "object_id": "page:8"}
+    assert page["reference"]["read"] == {"tool": "inspect_plan_draft", "arguments": {
+        "draft_id": "draft_001", "field": "plan:/openings"}}
+
+
+def test_giant_single_regularization_rejection_keeps_location_and_verified_full_receipt(tmp_path):
+    complete, image, receipt_path, _ = _receipt(tmp_path, passed=False)
+    complete["trial_id"] = "trial_001"
+    repeated = [{"space_id": f"S{i}", "geometry_audit": "before and after " * 120} for i in range(150)]
+    complete["regularization_failure"] = {"status": "rejected", "rejections": [{
+        "type": "cross_storey_relationship_changed", "path": "plan.partitions:W1",
+        "objects": [{"floor_id": "F1", "partition_id": "W1"}],
+        "before": repeated, "after": repeated, "attempted_changes": repeated,
+    }]}
+    receipt_path.write_text(json.dumps(complete), encoding="utf-8")
+    original = receipt_path.read_bytes()
+    assert len(original) > 500_000
+    trial = InjectedTrial(complete, [image])
+    trial.workspace, trial.receipts = tmp_path, [complete]
+    visible = asyncio.run(trial.call({}))["structuredContent"]
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24_000
+    assert visible["status"] == "failed"
+    assert visible["next_action"]["objects"] == ["plan.openings[0]"]
+    rejection = visible["regularization_failure"]["summary"]["rejections"]["items"][0]
+    assert rejection["summary"]["path"] == "plan.partitions:W1"
+    assert rejection["summary"]["type"] == "cross_storey_relationship_changed"
+    reference = rejection["full_record"]
+    assert reference["json_pointer"] == "/regularization_failure/rejections/0"
+    located = trial.read_draft(field="report:" + reference["json_pointer"] + "/objects")
+    assert located["value"] == complete["regularization_failure"]["rejections"][0]["objects"]
+    assert receipt_path.read_bytes() == original
+
+
+@pytest.mark.parametrize("passed", [False, True])
+def test_receipt_total_budget_covers_many_small_fields_and_new_large_fields(tmp_path, passed):
+    complete, image, receipt_path, _ = _receipt(tmp_path, passed=passed)
+    complete["trial_id"] = "trial_001"
+    complete.update({f"future_audit_{i}": {"status": "reported", "detail": "x" * 1400}
+                     for i in range(80)})
+    complete["future_large_audit"] = [{"path": f"plan.openings:{i}", "detail": "y" * 4000}
+                                       for i in range(80)]
+    complete["format_errors"] = [{"path": f"plan.partitions[{i}]", "message": "z" * 4000}
+                                 for i in range(80)]
+    receipt_path.write_text(json.dumps(complete), encoding="utf-8")
+    original = receipt_path.read_bytes()
+    trial = InjectedTrial(complete, [image])
+    trial.workspace, trial.receipts = tmp_path, [complete]
+    visible = asyncio.run(trial.call({}))["structuredContent"]
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24_000
+    assert visible["status"] == complete["status"]
+    assert visible["omitted_field_count"] > 0
+    assert visible["receipt_audit"]["read"]["arguments"] == {"trial_id": "trial_001", "field": "report:"}
+    if passed:
+        assert visible["submission"]["status"] == "not_submitted"
+        assert visible["next_action"]["tool"] == "submit_plan_reading"
+    else:
+        assert visible["next_action"]["objects"][0] == "plan.openings[0]"
+    assert trial.read_draft(field="report:/future_audit_79")["value"] == complete["future_audit_79"]
+    tail = trial.read_draft(field="report:/future_large_audit/79/path")
+    assert tail["value"] == "plan.openings:79"
+    assert receipt_path.read_bytes() == original

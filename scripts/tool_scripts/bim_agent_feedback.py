@@ -227,7 +227,12 @@ class FeedbackMCP(FastMCP):
                 hint = repair_hint(self.toolkit, name, arguments, message)
             except Exception:
                 hint = ""
-            result = CallToolResult(isError=True, content=[TextContent(type="text", text=message + ("\n" + hint if hint else ""))])
+            from scripts.tool_scripts.bim_agent_replies import compact_reply
+            failure = compact_reply(self.toolkit.run, name, {
+                'status': 'error', 'tool_name': name, 'error_type': type(error).__name__,
+                'error': message, 'repair_hint': hint}, force=True)
+            result = CallToolResult(isError=True, content=[TextContent(type="text",
+                text=json.dumps(failure, ensure_ascii=False))], structuredContent=failure)
         notes.append(time_status(self.toolkit)["line"])
         if notes:
             extra = [TextContent(type="text", text="\n".join(notes))]
