@@ -368,3 +368,5 @@ Domain后段检查不能整体删除：v75的27个空间关系样本与墙线检
 32项定向检查通过20.26秒，包括真实MCP成功/失败装配回执跟读、SHA篡改拒绝及总回执压缩后的跟读；原六次失败观测原样离线重放0.024秒，与其后真实成功的kernel字段相等。原日志未改，无GT或模型调用。证据：cache根`v77-feedback-targeted.xml`、`v77-feedback-implementation-audit.json`、`v77-facade-anchor-replay.json`。独审无剩余P1/P2，7文件及原事件/重放SHA独立吻合，未重复测试；审计`v77-feedback-independent-review.json`（SHA cc384c6fb1713539b5708b4ea0359f8c04bdd7ab4922879c5b2b0f6c0035b7bd）。下一步登记并检查正式冻结入口。
 
 [run_harness_v77.json](run_harness_v77.json)配置检查通过。相对v76只变批次/运行身份与图片1→3，Astra/high、自动文本、预算和原六图均保持；不启用先前搁置的Sol/128k组合。先冻结并完成首轮独立交付/质量验收，再按同版本配置重复冷启动，分别报告可重复性和时间。尚未启动v77，未更新桌面。
+
+实现`779622c454aaffae23a98274e399b6bb08cf9353`已登记runtime v16/domain v77并verify。变更只涉及domain，本次登记后的真实冻结MCP目录/角色/材料节点1项通过6.89秒，XML为cache根`v77-registered-preflight.xml`；复用v76未改runtime/完成恢复的已有通过证据，不重复全量，也没有模型调用。
