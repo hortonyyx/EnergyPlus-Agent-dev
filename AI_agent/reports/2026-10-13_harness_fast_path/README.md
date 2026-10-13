@@ -170,3 +170,5 @@ v70补充质量归因：把hash绑定的规整前原稿（模型已修正悬空�
 定向验证去重10项通过：首次6项4.27秒，最终6项3.24秒（交集2项添加compact回执断言后复验，不能直接相加12）。包含遗漏refs继承、四种显式无效refs继续拒绝、双错误反馈、失败稿/内部错误保护及24KB边界；没有release校验绕过、MCP或模型调用。XML为`D:/Sim-BIM-Agent/cache/opening-provenance-feedback-20261013.xml`与`opening-provenance-feedback-final-20261013.xml`。独立审阅通过，无剩余P1/P2；确认可信来源在原图manifest SHA验证之后绑定、height coverage没有虚增。独审源码SHA与证据位于`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/v72-provenance-independent-review.json`。
 
 下一轮为[run_fast_v72.json](run_fast_v72.json)，只更改运行身份，Astra/high、六图、预算与任务范围相同；登记并验证后冷启动一轮，目标通过才同版本再两轮。不会把离线预计省掉102秒直接当真实提速。
+
+实现`c537f29f`已登记并verify为runtime v13 / domain v72。原样正式本地节点13项通过（68.97秒）：frozen tools 9项、成功finish 2参数、plan原图来源/重校正和编译失败保留原稿2项。无release校验绕过或work model调用，复用v71其余完整R3证据。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v72/69b3eb46ac03/results.xml`。当前可冻结进行真实冷启动；桌面未更新。
