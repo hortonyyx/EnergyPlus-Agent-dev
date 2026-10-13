@@ -13,7 +13,7 @@
 
 ## 当前实施状态
 
-实施与独立审阅已完成，正在统一登记与本地MCP节点复验，尚未运行本轮真实模型案例。模型目录读取已确认当前订阅包含 gpt-6.1-sol 与 gpt-6-astra，这不是推理或建模成功证据。
+实施与独立审阅已完成，已登记 runtime v11 / domain v69，源码实现提交 `4cbc3edb`。本地MCP节点10项通过（49.76秒），包含先前被旧版本指纹阻断的试建；注册校验通过。即将运行首轮真实模型案例。模型目录读取已确认当前订阅包含 gpt-6.1-sol 与 gpt-6-astra，这不是推理或建模成功证据。
 
 本轮真实配置见 [run_sol61.json](run_sol61.json)：sm25原六图，single_model，ChatGPT subscription，gpt-6.1-sol/high；每次48请求/240工具/600秒，无总token上限，64候选上限（避免沿用分工较小上限）；首轮通过后同一冻结版本再做两次冷启动。配置检查已通过，未提供GT、旧稿或答案。
 
@@ -24,8 +24,9 @@
 | 几何、Lite、最终精度、装配 | 122通过，17.23秒 | `D:/Sim-BIM-Agent/cache/geometry-contract-reviewed-final.xml` |
 | 单模型读取、异常及相邻接口 | 36通过，33.38秒 | `D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/single-bounded-final-v2.xml` |
 | 角色回执最终边界 | 12通过，42.50秒 | `D:/Sim-BIM-Agent/cache/bounded-receipts-20261013-3.xml` |
-| 角色失败继承/相邻试建 | 首批18通过、相邻23通过；1个本地MCP检查待登记后复验 | `bounded-drafts-20261013-1.xml`、`bounded-drafts-20261013-2.xml` |
+| 角色失败继承/相邻试建 | 首批18通过、相邻23通过；旧指纹阻断项已在节点复验通过 | `bounded-drafts-20261013-1.xml`、`bounded-drafts-20261013-2.xml` |
 | 几何独立反例复验 | 5通过，2.89秒 | `D:/Sim-BIM-Agent/cache/geometry-independent-review-20261013.xml` |
+| 注册后真实本地MCP、目录与试建 | 10通过，49.76秒 | `D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight/6208e4dcbec4/results.xml` |
 
 旧稿确定性重放：读取上轮assembly_003的原submitted_plans，新代码2.96秒规整通过，最终source precision亦通过、counts为空；原文件hash不变。只证明同一已读草稿的装配缺口修闭，不证明自主冷启动或图纸质量，未读GT。摘要：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/old-assembly-replay.json`。
 
