@@ -26,7 +26,7 @@ from src.agent.runtime_delivery import completed_building_handoff, finalize_runt
 from src.agent_runtime.adapter import HttpChatAdapter, ScriptedAdapter
 from src.agent_runtime.budget import PriceSchedule
 from src.agent_runtime.accounting import require_cny_price_schedule
-from src.agent_runtime.context import ContextPolicy
+from src.agent_runtime.context import ContextPolicy, context_image_tool_spec
 from src.agent_runtime.estimation import get_model_profile
 from src.agent_runtime.output_limits import default_output_tokens, validate_output_limit
 from src.agent_runtime.providers import (CHATGPT_SUBSCRIPTION, SUBSCRIPTION_PROVIDERS, LIVE_PROVIDERS,
@@ -88,6 +88,8 @@ def publish_tool_budget(engine):
 
 
 async def execute(args) -> dict:
+    if getattr(args, "image_history_batches", None) is not None and not args.context:
+        raise ValueError("--image-history-batches requires --context")
     output = resolve_run_output(args.out, repository_root=ROOT,
                                 run_root=getattr(args, "run_root", None))
     strict_model_profile = args.provider in LIVE_PROVIDERS
@@ -113,6 +115,7 @@ async def execute(args) -> dict:
     context_values = {"active_window_messages": args.context_window,
         "compact_at_tokens": args.compact_at_tokens,
         "large_result_bytes": args.large_result_bytes, "max_images": args.max_images,
+        "image_history_batches": getattr(args, "image_history_batches", None),
         "max_image_bytes": args.max_image_bytes}
     context_policy = ContextPolicy(**{key: value for key, value in context_values.items()
         if value is not None}, pinned_tags=tuple(args.pin_tag)) if args.context else None
@@ -169,8 +172,11 @@ async def execute(args) -> dict:
                 route["context"] = ({"context_tokens": limits.context_tokens,
                     **context_policy.model_dump(mode="json")} if context_policy is not None
                     else {"enabled": False, "context_tokens": limits.context_tokens})
+                version_catalog = list(catalog)
+                if context_policy is not None and context_policy.image_history_batches is not None:
+                    version_catalog.append(context_image_tool_spec())
                 specs = [{"type": "function", "function": {"name": t["name"],
-                    "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in catalog]
+                    "description": t.get("description", ""), "parameters": t["inputSchema"]}} for t in version_catalog]
                 versions = make_versions(store, root=ROOT, prompt=guide, tools=specs,
                     parameters=parameters, route=route, code_paths=("src/agent/runtime_entry.py",
                         "src/agent/runtime_delivery.py", "src/agent/bim_inputs.py",
@@ -289,6 +295,8 @@ def parser():
                    help="optional explicit compaction threshold; omit for adaptive model-window pressure management")
     p.add_argument("--large-result-bytes", type=int)
     p.add_argument("--max-images", type=int, help="optional image count target at compaction; unset by default")
+    p.add_argument("--image-history-batches", type=int,
+                   help="retain recent tool-image batches and exact references to older images; initial and undelivered images stay visible")
     p.add_argument("--max-image-bytes", type=int)
     p.add_argument("--pin-tag", action="append", default=[])
     p.add_argument("--keep-view-id", action="append", default=[])

@@ -68,7 +68,8 @@ class LocalClient:
             "isError": False, **({"structuredContent": structured} if structured is not None else {})}
 
 
-async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparation_seconds=0, seconds=6000):
+async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparation_seconds=0,
+                    seconds=6000, image_history_batches=None, resume_completed=False):
     images = tmp_path / "images"
     images.mkdir()
     for name in ("plan.png", "upstairs.png"):
@@ -126,8 +127,18 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
         *(["--no-time-limit"] if seconds is None else ["--seconds", str(seconds)]),
         "--model-calls", str(model_calls), "--tool-calls", "20", "--tokens", "20000000",
         "--max-candidates", "8", "--floor-plan-image", "plan.png",
-        "--floor-plan-image", "upstairs.png", "--no-context"])
+        "--floor-plan-image", "upstairs.png",
+        *(["--no-context"] if image_history_batches is None else
+          ["--image-history-batches", str(image_history_batches)])])
     receipt = await runtime_entry.execute(args)
+    if resume_completed:
+        assert receipt["status"] == "completed"
+        completion = receipt["completion"]
+        args.resume = True
+        receipt = await runtime_entry.execute(args)
+        assert receipt["completion"] == completion
+        for name, sha in completion["artifact_sha256"].items():
+            assert hashlib.sha256((out / "bim" / name).read_bytes()).hexdigest() == sha
     events = [json.loads(line) for line in (out / "events.jsonl").read_text().splitlines()]
     manifest = json.loads((out / "bim/inputs.json").read_bytes())
     assert manifest["started_epoch"] == 1000
@@ -322,6 +333,24 @@ def test_no_time_limit_finish_bim_after_ten_minutes_is_agent_selected_completion
     _evidence("no_time_limit_finish", {"model_requests": 0, "scripted_responses": len(requests),
         "status": receipt["status"], "elapsed_seconds": receipt["elapsed_seconds"],
         "deadline_epoch": None, "selection_origin": "agent_selected"})
+
+
+def test_image_history_entry_tool_versions_and_completed_resume(tmp_path, monkeypatch):
+    from src.agent_runtime.store import json_bytes
+
+    actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+               {"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}}]
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions,
+        seconds=None, image_history_batches=1, resume_completed=True))
+    assert receipt["status"] == "completed" and receipt["model_calls"] == len(requests) == 4
+    assert receipt["finalization"]["delivery"]["selection_origin"] == "agent_selected"
+    versions = json.loads((out / "versions.json").read_bytes())
+    for request in requests:
+        assert sum(t["function"]["name"] == "read_context_image" for t in request["tools"]) == 1
+        assert hashlib.sha256(json_bytes(request["tools"])).hexdigest() == versions["tool_definitions"]["identifier"]
+    _evidence("image_history_entry", {"model_requests": 0, "scripted_responses": len(requests),
+        "status": receipt["status"], "image_history_batches": 1,
+        "completed_resume_artifacts_unchanged": True})
 
 
 def test_handoff_changed_after_attestation_fails_without_fallback(tmp_path, monkeypatch):

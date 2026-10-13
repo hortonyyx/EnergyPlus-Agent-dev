@@ -1404,6 +1404,14 @@ class Toolkit:
                                        metadata=report, **calibration)
             for registered in assembly_calibrations or []:
                 self._save_calibration(candidate=candidate, metadata=report, **registered)
+            if parent and operations and all(operation.get("op") in {
+                    "replace_note", "set_notes", "set_space_role"} for operation in operations):
+                refreshed = self.revalidate_opening_reviews(parent, candidate, source)
+                result["opening_review_revalidation"] = refreshed
+                if refreshed["reports"]:
+                    result["opening_review"] = (
+                        "saved observations rechecked on this source; inspect opening_review_revalidation "
+                        "for scopes and findings; drawing fidelity remains not_evaluated")
             from scripts.tool_scripts.bim_agent_precision import building_precision
             result["building_precision"] = building_precision(self, candidate, source)
             projections, errors = self.project_registered_calibrations(candidate, action)
@@ -1420,6 +1428,59 @@ class Toolkit:
                         "floor_id": floor["id"], "error": str(error)})
         saved_source_result(self.run, result, parent=parent)
         self.log(action, result)
+        return result
+
+    def revalidate_opening_reviews(self, parent, candidate, source):
+        """Save fresh kernel reports, leaving the parent observations untouched."""
+        from src.agent.geometry.opening_review import revalidate_saved_review
+        parent_source = json.loads((self.candidate_path(parent) / "source_model.json").read_bytes())
+        calibrations = {(row["image"], row["floor_id"]): (path, row)
+                        for path, row in self.registered_calibrations()}
+        folder = self.run / "opening_reviews"
+        paths = sorted(folder.glob("review_*.json"))
+        result = {"reports": [], "skipped": [], "drawing_fidelity": "not_evaluated",
+                  "note": "Only saved observations are reused; each verdict is recomputed for the current source."}
+        for path in paths:
+            original = path.read_bytes()
+            reference = path.relative_to(self.run).as_posix()
+            try:
+                saved = json.loads(original)
+                if not isinstance(saved, dict):
+                    raise ValueError("saved opening review must be an object")
+            except ValueError as error:
+                result["skipped"].append({"review_file": reference, "reason": str(error)})
+                continue
+            if (saved.get("candidate") != parent
+                    or saved.get("source_model_sha256") != parent_source.get("source_model_sha256")):
+                continue
+            try:
+                observations = saved.get("observations", {})
+                if not isinstance(observations, dict):
+                    raise ValueError("saved opening review has no original observations object")
+                self.image_path(observations.get("image"))  # Verify actual admitted bytes, not just metadata.
+                calibration_entry = calibrations.get((observations.get("image"), observations.get("floor_id")))
+                calibration = calibration_entry[1] if calibration_entry else None
+                report = revalidate_saved_review(parent_source, source, saved, self.manifest["images"],
+                                                plan_calibration=calibration)
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                result["skipped"].append({"review_file": reference, "reason": str(error)})
+                continue
+            index = max((int(p.stem.removeprefix("review_")) for p in folder.glob("review_*.json")), default=0) + 1
+            target = folder / f"review_{index:03d}.json"
+            current = {"candidate": candidate, "review_file": target.relative_to(self.run).as_posix(),
+                       **report, "observations": observations,
+                       "revalidated_calibration": ({"file": calibration_entry[0].relative_to(self.run).as_posix(),
+                           "sha256": digest(calibration_entry[0])} if calibration_entry else None),
+                       "revalidated_from": {"review_file": reference,
+                           "review_sha256": hashlib.sha256(original).hexdigest(),
+                           "candidate": parent, "source_model_sha256": saved["source_model_sha256"],
+                           "image": saved["image"], "location_check": saved["location_check"]}}
+            # Exclusive creation prevents replacement of any earlier evidence.
+            with target.open("x", encoding="utf-8", newline="\n") as stream:
+                stream.write(json.dumps(current, ensure_ascii=False, sort_keys=True, indent=2) + "\n")
+            result["reports"].append({"review_file": current["review_file"], "sha256": digest(target),
+                "review_scope": report["review_scope"], "conclusion": report["conclusion"],
+                "finding_codes": sorted({row["code"] for row in report["findings"]})})
         return result
 
     def plan_view(self, candidate, floor_id):

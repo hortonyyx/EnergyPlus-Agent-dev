@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import copy
 import json
 import time
@@ -221,6 +222,16 @@ class Runtime:
         self._load_budget()
         self._refresh_counts()
         specs = await self.tools.list_tools()
+        if self.context and self.context.policy.image_history_batches is not None:
+            from .context import context_image_tool_spec
+            from src.harness_contracts import ToolGrant
+            spec = context_image_tool_spec()
+            if any(row["name"] == spec["name"] for row in specs):
+                raise ValueError("tool catalog collides with runtime context image reader")
+            specs = [*specs, spec]
+            if not any(grant.tool_name == spec["name"] for grant in self.role.tool_whitelist):
+                self.role = self.role.model_copy(update={"tool_whitelist": (*self.role.tool_whitelist,
+                    ToolGrant(tool_name=spec["name"], access="read"))})
         self.specs = [{"type": "function", "function": {
             "name": t["name"], "description": t.get("description", ""),
             "parameters": t["inputSchema"]}} for t in specs]
@@ -243,7 +254,8 @@ class Runtime:
                 kind="user" if m.get("role") == "user" else "runtime")
                 for i, m in enumerate(messages)])
             for message, source in zip(messages, sources, strict=True):
-                self._append_message(message, source)
+                self._append_message(message, source, tags=("runtime-initial-input",)
+                    if self.context and self.context.policy.image_history_batches is not None else ())
             if self.context:
                 from .context import StateEntry
                 for i, (message, source) in enumerate(zip(messages, sources, strict=True)):
@@ -494,10 +506,63 @@ class Runtime:
             required_view_ids=self.required_view_ids, consume_retrievals=False,
             request_token_estimator=self._estimate_context_tokens,
             pressure_tokens=pressure, target_tokens=target if target_tokens is None else target_tokens,
-            force_compact=force_compact)
+            force_compact=force_compact,
+            undelivered_image_event_ids=self._undelivered_image_events())
         last = p.decision_event_ids[-1] if p.decision_event_ids else next((
             e.event_id for e in reversed(self.store.events) if e.payload.event_type == "context"), None)
         return list(p.messages), list(p.sources), last
+
+    def _undelivered_image_events(self):
+        if self.context.policy.image_history_batches is None:
+            return ()
+        def image_hashes(capture):
+            if capture.kind == "missing":
+                return ()
+            if hasattr(capture, "images"):
+                return tuple(sorted(ref.image.sha256 for ref in capture.images
+                                    if ref.location.startswith("/image_blocks/")))
+            from .adapter import decode_image_url
+            import hashlib
+            value = self.store.resolve(capture)
+            return tuple(sorted(hashlib.sha256(decode_image_url(block["image_url"]["url"])[0]).hexdigest()
+                for block in value.get("image_blocks", []) if block.get("type") == "image_url"))
+
+        presentations = {}
+        for event in self.store.events:
+            if event.payload.event_type == "tool_presentation":
+                presentations.setdefault(event.payload.tool_execution_event_id, []).append(event.payload.shown_result)
+        return tuple(event.event_id for event in self.store.events
+            if event.payload.event_type == "tool_execution" and event.payload.outcome != "unknown"
+            and (expected := image_hashes(event.payload.shown_result))
+            and not any(image_hashes(shown) == expected for shown in presentations.get(event.event_id, ())))
+
+    def _is_context_image_tool(self, name):
+        return (name == "read_context_image" and self.context is not None
+                and self.context.policy.image_history_batches is not None)
+
+    def _tool_repeatability(self, name):
+        return "read_only" if self._is_context_image_tool(name) else self.tools.repeatability(name)
+
+    async def _call_tool(self, name, arguments):
+        if not self._is_context_image_tool(name):
+            return await self.tools.call_tool(name, arguments)
+        try:
+            if (set(arguments) != {"view_id", "sha256"}
+                    or not all(isinstance(value, str) for value in arguments.values())):
+                raise ValueError("read_context_image needs exactly view_id and sha256 strings")
+            view_id, sha256 = arguments["view_id"], arguments["sha256"]
+            raw = self.context.retrieve_image(view_id, sha256, append_to_history=False)
+            image = next(row for row in self.context.images if row.key == self.context.image_key(view_id, sha256))
+            metadata = {"view_id": view_id, "sha256": sha256,
+                "registered_source": image.source.model_dump(mode="json"),
+                "note": "Exact previously registered bytes; reopening does not create or validate a new observation."}
+            return {"content": [{"type": "text", "text": json.dumps(metadata, ensure_ascii=False)},
+                {"type": "image", "mimeType": image.image.media_type,
+                 "data": base64.b64encode(raw).decode("ascii")}], "structuredContent": metadata, "isError": False}
+        except (KeyError, ValueError, TypeError):
+            return {"content": [{"type": "text", "text":
+                "Exact image lookup failed: use the view_id and sha256 from this task's archived_image reference."}],
+                "isError": True}
 
     def _refresh_context_calibration(self):
         if self.versions.remote_model.route_id != "chatgpt-subscription":
@@ -1175,7 +1240,7 @@ class Runtime:
             for call in calls:
                 if call.call_id in self.used_ids or call.tool_name not in self.spec_by_name:
                     raise ValueError("unknown tool or reused call identity")
-                repeatability = self.tools.repeatability(call.tool_name)
+                repeatability = self._tool_repeatability(call.tool_name)
                 authorize_tool_call(self.role, call.tool_name, "read" if repeatability == "read_only" else "write")
         except ValueError:
             self.terminal_reason = "tool_authorization_failed"
@@ -1264,7 +1329,7 @@ class Runtime:
                 return self._scoped_budget_reason("tool")
             self.stage = f"tool:{call.tool_name}"
             self._fault("before_tool")
-            repeatability = self.tools.repeatability(call.tool_name)
+            repeatability = self._tool_repeatability(call.tool_name)
             unknown = self._unresolved_tool_calls().get(call.call_id)
             retry_event = None
             if unknown is not None:
@@ -1292,7 +1357,7 @@ class Runtime:
             tool_started = time.monotonic()
             tool_epoch = time.time()
             try:
-                raw = await asyncio.wait_for(self.tools.call_tool(call.tool_name, call.full_arguments), timeout=self._wall_timeout())
+                raw = await asyncio.wait_for(self._call_tool(call.tool_name, call.full_arguments), timeout=self._wall_timeout())
             except (Exception, asyncio.CancelledError) as exc:
                 failed = self._unknown_execution(intent, elapsed=time.monotonic() - tool_started,
                                                  started_epoch=tool_epoch, exception=exc)
@@ -1351,7 +1416,13 @@ class Runtime:
         self.pending_pictures.extend(shown["image_blocks"])
         if shown["image_blocks"]:
             self.pending_picture_events.append(event.event_id)
-        origins = getattr(self.tools, "image_origins", lambda _: {})(raw)
+        context_read = self._is_context_image_tool(p.tool_name)
+        origins = {} if context_read else getattr(self.tools, "image_origins", lambda _: {})(raw)
+        if context_read and p.outcome == "succeeded":
+            # Replay must restore the exact pin even if the process stopped
+            # after durable execution but before the context checkpoint.
+            self.context.retrieve_image(p.full_arguments["view_id"], p.full_arguments["sha256"],
+                                        append_to_history=False)
         image_refs = shown.get("images")
         if image_refs is None:  # Saved pre-C1 presentations remain resumable.
             image_refs = json.loads(shown["tool_message"]["content"]).get("images", [])
@@ -1359,13 +1430,15 @@ class Runtime:
             ref = HashedBlobRef.model_validate_json(json.dumps(ref_dict))
             origin = origins.get(ref.sha256, {})
             path = origin.get("original_path") if isinstance(origin, dict) else origin
-            self.originals[ref.sha256] = self.store.put_bytes(Path(path).read_bytes(), ref.media_type) if path else ref
+            if not context_read or ref.sha256 not in self.originals:
+                self.originals[ref.sha256] = self.store.put_bytes(Path(path).read_bytes(), ref.media_type) if path else ref
             if self.context:
-                view_id = origin.get("view_id") if isinstance(origin, dict) else None
+                view_id = (p.full_arguments["view_id"] if context_read
+                           else origin.get("view_id") if isinstance(origin, dict) else None)
                 self.context.register_image(view_id or f"{p.call_id}:{ref.sha256}", ref,
                     source=self._event_source(event), tags=tuple(origin.get("tags", ())) if isinstance(origin, dict) else ())
         self.used_ids.add(p.call_id)
-        if self.context_update and self.context:
+        if self.context_update and self.context and not context_read:
             self.context_update(self, event, raw)
 
     def _finish_tool_batch(self):
@@ -1378,11 +1451,11 @@ class Runtime:
         self.pending_pictures, self.pending_picture_events = [], []
         self.pending_response_id = None
 
-    def _append_message(self, message, source, *, kind="message"):
+    def _append_message(self, message, source, *, kind="message", tags=()):
         self.messages.append(message)
         self.sources.append(source)
         if self.context:
-            self.context.append(message, source, kind=kind)
+            self.context.append(message, source, kind=kind, tags=tags)
 
     def _unknown_execution(self, invocation, *, elapsed=None, started_epoch=None,
                            exception: BaseException | None = None):
@@ -1410,10 +1483,12 @@ class Runtime:
             target_event_id=event_id, persisted_state=state, conclusion="inconclusive"))
 
     def _tool_recovery_policy(self, name):
+        if self._is_context_image_tool(name):
+            return "retry_read"
         policy = getattr(self.tools, "recovery_policy", lambda _: "manual")(name)
         if policy not in {"retry_read", "resume_task", "manual"}:
             raise ValueError("unsupported tool recovery policy")
-        if policy == "retry_read" and self.tools.repeatability(name) != "read_only":
+        if policy == "retry_read" and self._tool_repeatability(name) != "read_only":
             raise ValueError("repeatable-read recovery cannot authorize a write")
         return policy
 

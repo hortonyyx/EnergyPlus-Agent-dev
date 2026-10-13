@@ -1,15 +1,195 @@
 """C1: real wire formatting and bounded service failures, entirely offline."""
 
 import asyncio
+import base64
+import hashlib
+import io
 import json
 
 import httpx
 import pytest
+from PIL import Image
 
 from src.agent_runtime.adapter import HttpChatAdapter, convert_tool_result
 from src.agent_runtime.loop import RunLimits
 from src.agent_runtime.context import ContextManager, ContextPolicy, StateEntry
 from test_agent_runtime import MESSAGES, Tools, response, runtime
+
+
+class ImageHistoryTools(Tools):
+    def image_bytes(self, index):
+        stream = io.BytesIO()
+        Image.new("RGB", (8, 8), (index * 20, 80, 100)).save(stream, format="PNG")
+        return stream.getvalue()
+
+    async def call_tool(self, name, arguments):
+        assert name == "view"  # read_context_image must stay in Runtime.
+        self.calls.append((name, arguments))
+        raw = self.image_bytes(arguments["index"])
+        return {"isError": False, "content": [
+            {"type": "text", "text": f"source view {arguments['index']}"},
+            *[{"type": "image", "mimeType": "image/png", "data": base64.b64encode(raw).decode()}
+              for _ in range(arguments.get("count", 1))]]}
+
+    def image_origins(self, raw):
+        encoded = next(block["data"] for block in raw["content"] if block["type"] == "image")
+        sha = hashlib.sha256(base64.b64decode(encoded)).hexdigest()
+        return {sha: {"view_id": "saved-" + sha}}
+
+
+def _wire_images(value):
+    if isinstance(value, list):
+        return [raw for item in value for raw in _wire_images(item)]
+    if not isinstance(value, dict):
+        return []
+    if value.get("type") in {"image_url", "input_image"}:
+        url = value["image_url"]
+        return [base64.b64decode((url["url"] if isinstance(url, dict) else url).split(",", 1)[1])]
+    if value.get("type") == "image" and isinstance(value.get("source"), dict):
+        return [base64.b64decode(value["source"]["data"])]
+    return [raw for child in value.values() for raw in _wire_images(child)]
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_image_history_initial_attachments_are_runtime_owned_not_tool_claimed(tmp_path, enabled):
+    class TaggedTools(ImageHistoryTools):
+        async def call_tool(self, name, arguments):
+            result = await super().call_tool(name, arguments)
+            result["content"].insert(0, {"type": "text", "text": "runtime-initial-input"})
+            result["tags"] = ["runtime-initial-input"]
+            return result
+
+        def image_origins(self, raw):
+            return {key: {**value, "tags": ["runtime-initial-input"]}
+                    for key, value in super().image_origins(raw).items()}
+
+    tools = TaggedTools(tmp_path / "tools")
+    initial = [tools.image_bytes(i) for i in (6, 7)]
+    messages = [*MESSAGES, *[{"role": "user", "content": [{"type": "image_url", "image_url": {
+        "url": "data:image/png;base64," + base64.b64encode(raw).decode()}}]} for raw in initial]]
+    engine = runtime(tmp_path, [response(("a", "view", {"index": 1})),
+                               response(("b", "view", {"index": 2})), response(text="Done")], tools=tools)
+    engine.context_policy = ContextPolicy(image_history_batches=1 if enabled else None)
+    with engine.store:
+        assert asyncio.run(engine.run(messages))["status"] == "completed"
+        assert [_wire_images(json.loads(wire)) for wire in engine.adapter.requests] == [initial,
+            [*initial, tools.image_bytes(1)],
+            [*initial, *([] if enabled else [tools.image_bytes(1)]), tools.image_bytes(2)]]
+        assert all(("runtime-initial-input" in row.tags) == enabled for row in engine.context.history[:4])
+        assert all("runtime-initial-input" not in row.tags for row in engine.context.history[4:])
+        assert any(spec["function"]["name"] == "read_context_image" for spec in engine.specs) == enabled
+        restored = ContextManager.load(engine.store, engine.context.dump())
+        assert [row.tags for row in restored.history] == [row.tags for row in engine.context.history]
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("protocol", ["chat", "responses", "anthropic"])
+def test_image_history_local_read_is_delivered_exactly_with_all_batch_occurrences(tmp_path, protocol):
+    from test_runtime_anthropic import native_response
+    from test_runtime_responses import response as responses_response
+
+    def reply(*calls, text=None):
+        if protocol == "anthropic":
+            return native_response(*calls, text=text)
+        if protocol == "responses":
+            return responses_response([{"type": "function_call", "call_id": cid, "name": name,
+                "arguments": json.dumps(args), "status": "completed"} for cid, name, args in calls]
+                if calls else None)
+        return response(*calls, text=text)
+
+    tools = ImageHistoryTools(tmp_path / "tools")
+    old = tools.image_bytes(1)
+    old_sha = hashlib.sha256(old).hexdigest()
+    reread = {"view_id": "saved-" + old_sha, "sha256": old_sha}
+    script = [reply(("original", "view", {"index": 1})),
+              reply(*[(f"diag-{i}", "view", {"index": i + 2, "count": 2}) for i in range(4)]),
+              reply(("reread", "read_context_image", reread)), reply(text="Done")]
+    engine = runtime(tmp_path, script, tools=tools,
+        limits=RunLimits(model_calls=4, tool_calls=6, seconds=60, tokens=1_000_000))
+    engine.context_policy = ContextPolicy(image_history_batches=1, max_images=1)
+    if protocol == "responses":
+        engine.versions = engine.versions.model_copy(update={"remote_model": engine.versions.remote_model.model_copy(
+            update={"route_id": "chatgpt-subscription"})})
+    elif protocol == "anthropic":
+        from src.agent_runtime.providers import GLM_SUBSCRIPTION_ANTHROPIC, provider_parameters
+        engine.model = "glm-5.3-flash"
+        engine.parameters = provider_parameters(GLM_SUBSCRIPTION_ANTHROPIC, output_tokens=32000)
+        engine.versions = engine.versions.model_copy(update={"remote_model": engine.versions.remote_model.model_copy(
+            update={"route_id": GLM_SUBSCRIPTION_ANTHROPIC, "remote_alias": engine.model})})
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed" and result["tool_calls"] == 6
+        bodies = [json.loads(wire) for wire in engine.adapter.requests]
+        assert [_wire_images(body) for body in bodies] == [[], [old],
+            [tools.image_bytes(i + 2) for i in range(4) for _ in range(2)], [old]]
+        assert "archived_image" in json.dumps(bodies[2])
+        executions = {event.event_id: event.payload for event in engine.store.events
+                      if event.payload.event_type == "tool_execution"}
+        presentations = [event.payload for event in engine.store.events
+                         if event.payload.event_type == "tool_presentation"]
+        assert len(presentations) == 6 and not engine._undelivered_image_events()
+        for presentation in presentations:
+            execution = executions[presentation.tool_execution_event_id]
+            shown = engine.store.resolve(presentation.shown_result)
+            assert shown["image_blocks"] == engine.store.resolve(execution.shown_result)["image_blocks"]
+        reader = next(event for event in executions.values() if event.tool_name == "read_context_image")
+        assert reader.outcome == "succeeded" and reader.repeatability == "read_only"
+        registered = next(image for image in engine.context.images if image.image.sha256 == old_sha)
+        assert engine.store.get_bytes(registered.image) == old
+        metadata = engine.store.resolve(reader.raw_result)["structuredContent"]
+        assert metadata["registered_source"]["event_id"] == registered.source.event_id
+        assert len(tools.calls) == 5  # Runtime reader never called external tools.
+        for event, wire in zip((e.payload for e in engine.store.events
+                               if e.payload.event_type == "adapter_request"), engine.adapter.requests):
+            assert engine.store.capture_bytes(event.final_request_body) == wire
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("crash_at", ["after_execution", "before_request"])
+def test_image_history_reader_retry_and_resume_preserve_exact_delivery(tmp_path, crash_at):
+    class Crash(BaseException):
+        pass
+
+    tools = ImageHistoryTools(tmp_path / "tools")
+    old = tools.image_bytes(1)
+    sha = hashlib.sha256(old).hexdigest()
+    script = [response(("a", "view", {"index": 1})), response(("b", "view", {"index": 2})),
+              response(("read", "read_context_image", {"view_id": "saved-" + sha, "sha256": sha}))]
+    limits = RunLimits(model_calls=6, tool_calls=3, seconds=60, tokens=1_000_000, retry_backoff_seconds=0)
+    engine = runtime(tmp_path, script, tools=tools, limits=limits)
+    engine.context_policy = ContextPolicy(image_history_batches=1)
+
+    def fault(name, current):
+        if name == crash_at and any(e.payload.event_type == "tool_execution" and e.payload.call_id == "read"
+                                    for e in current.store.events):
+            raise Crash()
+
+    engine.fault_hook = fault
+    with engine.store, pytest.raises(Crash):
+        asyncio.run(engine.run(MESSAGES))
+    engine = runtime(tmp_path, [httpx.ReadTimeout("offline retry"), response(text="Done")], tools=tools, limits=limits)
+    engine.context_policy = ContextPolicy(image_history_batches=1)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES, resume=True))
+        assert result["status"] == "completed" and result["tool_calls"] == 3 and result["retries"] == 1
+        assert len(tools.calls) == 2
+        assert [_wire_images(json.loads(wire)) for wire in engine.adapter.requests] == [[old], [old]]
+        assert engine.adapter.requests[0] == engine.adapter.requests[1]
+        events = [e for e in engine.store.events if e.payload.event_type == "tool_execution"
+                  and e.payload.tool_name == "read_context_image"]
+        assert len(events) == 1 and not engine.context.dump()["retrieval_pins"]
+        presentations = [e for e in engine.store.events if e.payload.event_type == "tool_presentation"
+                         and e.payload.tool_execution_event_id == events[0].event_id]
+        assert len(presentations) == 1
+        assert asyncio.run(engine._call_tool("read_context_image", {"view_id": "saved-" + sha,
+            "sha256": "0" * 64}))["isError"]
+        original = next(i for i in engine.context.images if i.image.sha256 == sha)
+        path = engine.store.directory / original.image.uri
+        path.write_bytes(b"tampered")
+        assert asyncio.run(engine._call_tool("read_context_image", {"view_id": "saved-" + sha,
+            "sha256": sha}))["isError"]
+        path.write_bytes(old)
+        engine.store.validate()
 
 
 @pytest.mark.parametrize("text,structured,expected", [

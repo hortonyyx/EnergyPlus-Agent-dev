@@ -249,6 +249,44 @@ def test_explicit_null_time_configuration_and_cli_are_single_model_only(tmp_path
         configuration.load_configuration(path)
 
 
+def test_single_model_image_history_configuration_reaches_cli(tmp_path, monkeypatch):
+    import asyncio
+    from types import SimpleNamespace
+    from src.agent import runtime_configuration as configuration, runtime_entry
+
+    root, _ = _release(tmp_path)
+    monkeypatch.setattr(configuration, "ROOT", root)
+    inputs = tmp_path / "inputs"
+    (inputs / "one").mkdir(parents=True)
+    Image.new("RGB", (2, 2), "white").save(inputs / "one/1f.png")
+    data = _configuration(inputs, tmp_path / "runs")
+    data["cases"][0]["image_history_batches"] = 1
+    path = tmp_path / "config.json"
+    _write_json(path, data)
+    cases = configuration.load_configuration(path)["cases"]
+    argv = configuration.argv_for(cases[0])
+    args = runtime_entry.parser().parse_args(argv[3:])
+    assert args.image_history_batches == 1 and args.context
+    assert "--image-history-batches" not in configuration.argv_for(cases[1])
+    with pytest.raises(ValueError, match="requires --context"):
+        asyncio.run(runtime_entry.execute(SimpleNamespace(image_history_batches=1, context=False)))
+    data["cases"][1]["image_history_batches"] = 1
+    _write_json(path, data)
+    with pytest.raises(ValueError, match="single_model only"):
+        configuration.load_configuration(path)
+    with pytest.raises(ValueError, match="single_model only"):
+        configuration.argv_for(data["cases"][1])
+
+
+@pytest.mark.parametrize("value", [0, -1, True, 1.5, "1"])
+def test_image_history_configuration_refuses_invalid_batch_count(value):
+    from src.agent.runtime_configuration import context_arguments
+
+    with pytest.raises(ValueError, match="positive integer"):
+        context_arguments({"mode": "single_model", "image_history_batches": value})
+    assert context_arguments({"mode": "single_model", "image_history_batches": None}) == []
+
+
 def test_input_root_escape_and_linked_images_are_refused(tmp_path):
     from src.agent.runtime_configuration import resolve_case_input
 

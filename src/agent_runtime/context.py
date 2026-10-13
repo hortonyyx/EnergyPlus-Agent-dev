@@ -77,6 +77,10 @@ class ContextPolicy(ContractModel):
     pinned_tags: tuple[NonEmptyStr, ...] = ()
     preserve_initial_messages: int = Field(default=2, ge=0)
     max_images: int | None = Field(default=None, ge=1)
+    # Opt-in image-only projection. Initial inputs, undelivered tool results
+    # and exact retrievals are always retained, even beyond this batch target.
+    image_history_batches: int | None = Field(default=None, ge=1,
+        exclude_if=lambda value: value is None)
     # In token mode this is a post-compaction retention target, not permission
     # to rewrite previously sent images on every request below the threshold.
     max_image_bytes: int | None = Field(default=32_000_000, ge=1)
@@ -93,6 +97,24 @@ class ContextPolicy(ContractModel):
         if len(value) != len(set(value)):
             raise ValueError("pinned context tags must be unique")
         return value
+
+    @model_validator(mode="after")
+    def image_history_uses_token_projection(self):
+        if self.image_history_batches is not None and self.active_window_messages is not None:
+            raise ValueError("image_history_batches requires token context projection")
+        return self
+
+
+def context_image_tool_spec() -> dict:
+    """One local read operation; no filesystem paths or cross-task lookup."""
+    return {"name": "read_context_image", "description": (
+        "Reopen an exact image previously registered in this task by view_id and SHA-256. "
+        "Use the read arguments shown in an archived image reference. Returns the original "
+        "saved bytes and provenance; a diagnostic stays a diagnostic, not new source evidence."),
+        "inputSchema": {"type": "object", "properties": {
+            "view_id": {"type": "string", "minLength": 1},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+            "required": ["view_id", "sha256"], "additionalProperties": False}}
 
 
 class StateEntry(ContractModel):
@@ -386,7 +408,7 @@ class ContextManager:
             raise ValueError("image identity needs a view_id and SHA-256")
         return f"{view_id}@sha256:{sha256}"
 
-    def retrieve_image(self, view_id: str, sha256: str) -> bytes:
+    def retrieve_image(self, view_id: str, sha256: str, *, append_to_history: bool = True) -> bytes:
         key = self.image_key(view_id, sha256)
         try:
             record = self._images[key]
@@ -428,7 +450,7 @@ class ContextManager:
         # An explicit retrieval is a one-request exact pin.  It survives a
         # checkpoint and is consumed only after a valid projection is built.
         self._retrieval_pins.add(key)
-        if self.policy.active_window_messages is None:
+        if self.policy.active_window_messages is None and append_to_history:
             # Explicit retrieval appends bytes at the end; it never reinserts
             # an old tool interaction ahead of the cached conversation prefix.
             self.append({"role": "user", "content": [
@@ -662,12 +684,14 @@ class ContextManager:
         pressure_tokens: int | None = None,
         target_tokens: int | None = None,
         force_compact: bool = False,
+        undelivered_image_event_ids: tuple[str, ...] = (),
     ) -> ContextProjection:
         if self.policy.active_window_messages is None:
             return self._project_by_tokens(required_tags=required_tags,
                 required_view_ids=required_view_ids, consume_retrievals=consume_retrievals,
                 token_estimator=token_estimator, request_token_estimator=request_token_estimator,
-                pressure_tokens=pressure_tokens, target_tokens=target_tokens, force_compact=force_compact)
+                pressure_tokens=pressure_tokens, target_tokens=target_tokens, force_compact=force_compact,
+                undelivered_image_event_ids=undelivered_image_event_ids)
         required = set(required_tags) | set(self.policy.pinned_tags)
         exact_retrievals = set(self._retrieval_pins)
         selected, omitted = self._select_history(
@@ -827,7 +851,7 @@ class ContextManager:
 
     def _project_by_tokens(self, *, required_tags, required_view_ids, consume_retrievals, token_estimator,
                            request_token_estimator=None, pressure_tokens=None, target_tokens=None,
-                           force_compact=False):
+                           force_compact=False, undelivered_image_event_ids=()):
         from .estimation import approximate_text_tokens, _text_payload
 
         def estimate(messages, sources):
@@ -844,13 +868,16 @@ class ContextManager:
         required = set(required_tags) | set(self.policy.pinned_tags)
         views = set(required_view_ids)
         selected = [r for r in self._history if r.history_id not in self._archived_history_ids]
+        image_history_ids = (self._retained_image_history(selected, required, views,
+            set(undelivered_image_event_ids)) if self.policy.image_history_batches is not None else None)
         state = self.model_state()
         state_message = ({"role": "user", "content":
             "Current runtime state (machine generated; epistemic status is authoritative): "
             + json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))} if state else None)
 
         def assemble(records, notice):
-            messages = [copy.deepcopy(r.message) for r in records]
+            messages = [(self._project_image_history_message(r, r.history_id in image_history_ids)
+                         if image_history_ids is not None else copy.deepcopy(r.message)) for r in records]
             sources = [r.source for r in records]
             if notice:
                 # Keep initial guidance/user input, then a stable compacted
@@ -872,17 +899,21 @@ class ContextManager:
             protected.update(r.history_id for r in selected if required & set(r.tags) or any(
                 key in self._retrieval_pins or self._images[key].view_id in views
                 or required & set(self._images[key].tags) for key in r.image_keys))
+            if image_history_ids is not None:
+                protected.update(image_history_ids)
             groups = _interaction_groups(selected)
             if groups:
                 protected.update(r.history_id for r in groups[-1])
             target = (target_tokens if target_tokens is not None else
                       int((threshold or estimate(messages, sources)) * self.policy.compact_to_ratio))
-            image_bytes = {r.history_id: sum(len(self.store.get_bytes(self._images[k].image))
-                for k in r.image_keys) for r in selected}
+            image_bytes = {r.history_id: (sum(len(self.store.get_bytes(self._images[k].image))
+                for k in r.image_keys) if image_history_ids is None or r.history_id in image_history_ids else 0)
+                for r in selected}
 
             def fits(records):
                 projected, projected_sources = assemble(records, self._last_compaction)
-                image_keys = {key for r in records for key in r.image_keys}
+                image_keys = {key for r in records for key in r.image_keys
+                    if image_history_ids is None or r.history_id in image_history_ids}
                 return (estimate(projected, projected_sources) <= target
                     and (self.policy.max_image_bytes is None
                          or sum(image_bytes[r.history_id] for r in records) <= self.policy.max_image_bytes)
@@ -907,9 +938,16 @@ class ContextManager:
             # Preserve it; the actual request's model/context budget is enforced
             # by Runtime before send, never silently omit required input.
 
-        selected_keys = {k for r in selected for k in r.image_keys}
+        if image_history_ids is not None:
+            omitted_images = [r for r in selected if r.image_keys and r.history_id not in image_history_ids]
+            if omitted_images:
+                events.append(self._record_image_history_projection(omitted_images).event_id)
+        selected_keys = {k for r in selected for k in r.image_keys
+            if image_history_ids is None or r.history_id in image_history_ids}
         events.extend(self._record_image_decisions({key: (key in selected_keys,
-            "retained history" if key in selected_keys else "token-threshold compaction")
+            ("retained image history" if key in selected_keys else "image history projection")
+            if image_history_ids is not None else
+            ("retained history" if key in selected_keys else "token-threshold compaction"))
             for key in self._images}))
         _validate_projected_tool_protocol(tuple(messages))
         if consume_retrievals:
@@ -918,6 +956,75 @@ class ContextManager:
             decision_event_ids=tuple(events), included_history_ids=tuple(r.history_id for r in selected),
             omitted_history_ids=tuple(r.history_id for r in self._history
                                       if r.history_id in self._archived_history_ids))
+
+    def _retained_image_history(self, selected, required_tags, required_views, undelivered_events):
+        keep = {r.history_id for r in self._history[:self.policy.preserve_initial_messages]}
+        # Runtime, not model text or tool metadata, sets this history tag at
+        # initial ingestion. It covers initial attachments after the first N.
+        keep.update(r.history_id for r in selected if "runtime-initial-input" in r.tags)
+        groups = _interaction_groups(selected)
+        image_batches = [group for group in groups if any(r.image_keys for r in group)
+                         and any(r.message.get("role") == "tool" for r in group)]
+        keep.update(r.history_id for group in image_batches[-self.policy.image_history_batches:]
+                    for r in group if r.image_keys)
+        # Preserve exact occurrence identities, not every historical copy of
+        # matching bytes. A repeated original in an old diagnostic is archived.
+        for record in selected:
+            if (required_tags & set(record.tags) or any(
+                    self._images[key].view_id in required_views
+                    or required_tags & set(self._images[key].tags) for key in record.image_keys)):
+                keep.add(record.history_id)
+            if record.source.source_id == "tool-images":
+                origins = json.loads(self.store.get_bytes(record.source.blob))["origin_events"]
+                if undelivered_events & set(origins):
+                    keep.add(record.history_id)
+        # A retrieval keeps its newest occurrence only; it must not rehydrate
+        # every earlier occurrence of the same image throughout the transcript.
+        for key in self._retrieval_pins:
+            latest = next((r for r in reversed(selected) if key in r.image_keys), None)
+            if latest is not None:
+                keep.add(latest.history_id)
+        return keep
+
+    def _project_image_history_message(self, record, retain):
+        result = copy.deepcopy(record.message)
+        if retain or not record.image_keys or not isinstance(result.get("content"), list):
+            return result
+        blocks = []
+        for block in result["content"]:
+            sha = _image_block_hash(block)
+            if sha is None:
+                blocks.append(block)
+                continue
+            images = [self._images[key] for key in record.image_keys if self._images[key].image.sha256 == sha]
+            if not images:
+                raise ValueError("history image has no registered exact identity")
+            chosen = images[0]
+            blocks.append({"type": "text", "text": json.dumps({"archived_image": {
+                "view_id": chosen.view_id, "sha256": sha,
+                "history_id": record.history_id, "history_source_event_id": record.source.event_id,
+                "registered_source_event_id": chosen.source.event_id,
+                "read": {"tool": "read_context_image", "arguments": {
+                    "view_id": chosen.view_id, "sha256": sha}},
+                "note": "Exact saved image bytes are omitted here; source and diagnostic status are unchanged."}},
+                ensure_ascii=False, separators=(",", ":"))})
+        result["content"] = blocks
+        return result
+
+    def _record_image_history_projection(self, records):
+        details = self.store.put_json({"kind": "image_history_projection",
+            "records": [{"history_id": r.history_id, "message_blob": r.message_blob.model_dump(mode="json"),
+                         "image_keys": r.image_keys} for r in records],
+            "strategy": "preserve text and current image occurrences; exact older images remain retrievable"})
+        existing = next((event for event in reversed(self.store.events)
+            if event.payload.event_type == "context" and event.payload.action == "compact"
+            and event.payload.details == details), None)
+        if existing is not None:
+            return existing
+        return self.store.append(self._context_payload(action="compact", summary=details,
+            replaced_event_ids=self._event_ids(records), before=self._projection_snapshot(), after=details,
+            details=details, reason="older image blocks replaced by exact retrievable references"),
+            source_refs=tuple(r.source for r in records))
 
     def acknowledge_projection(self) -> tuple[str, ...]:
         """Consume exact-retrieval pins after the primary response is accepted."""

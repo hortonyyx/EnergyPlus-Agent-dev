@@ -49,6 +49,116 @@ def _image_message(data: bytes) -> dict:
     }
 
 
+def _append_image_batch(manager, store, index, images):
+    source = _event_source(store, f"tool-batch-{index}")
+    call_id = f"call-{index}"
+    manager.append({"role": "assistant", "content": None, "tool_calls": [{
+        "id": call_id, "type": "function", "function": {"name": "view", "arguments": "{}"}}]}, source)
+    manager.append({"role": "tool", "tool_call_id": call_id, "content": f"unchanged result {index}"}, source)
+    keys, blocks = [], []
+    for view, data in images:
+        keys.append(manager.register_image(view, store.put_bytes(data, "image/png"), source=source))
+        blocks.extend(_image_message(data)["content"])
+    manager.append({"role": "user", "content": blocks}, SourceRef(source_id="tool-images", source_kind="tool",
+        locator=source.event_id, event_id=source.event_id,
+        blob=store.put_json({"origin_events": [source.event_id]})), image_keys=tuple(keys))
+    return source.event_id
+
+
+def _projected_images(projection):
+    return [base64.b64decode(block["image_url"]["url"].split(",", 1)[1])
+            for message in projection.messages if isinstance(message.get("content"), list)
+            for block in message["content"] if block.get("type") == "image_url"]
+
+
+def test_image_history_projects_occurrences_without_losing_text_originals_or_audit(tmp_path):
+    assert "image_history_batches" not in ContextPolicy().model_dump(mode="json")
+    with _store(tmp_path) as store:
+        manager = ContextManager(store, policy=ContextPolicy(image_history_batches=1))
+        source = _event_source(store, "initial")
+        initial = [f"original-{i}".encode() for i in range(6)]
+        manager.append({"role": "system", "content": "guidance"}, source)
+        manager.append({"role": "user", "content": [block for raw in initial
+            for block in _image_message(raw)["content"]]}, source)
+        for index in range(8):
+            # Repeated original bytes in old tool positions must not stay merely
+            # because the initial input's hash is still resident.
+            _append_image_batch(manager, store, index, [("original-tool", initial[0]),
+                (f"diagnostic-{index}", f"diagnostic-{index}".encode())])
+            before = manager.full_history()
+            projection = manager.project(token_estimator=lambda _: 1, consume_retrievals=False)
+            assert _projected_images(projection) == [*initial, initial[0], f"diagnostic-{index}".encode()]
+            assert manager.full_history() == before and not projection.omitted_history_ids
+            assert sum(message.get("role") == "tool" for message in projection.messages) == index + 1
+        texts = [block["text"] for message in projection.messages if isinstance(message.get("content"), list)
+                 for block in message["content"] if block.get("type") == "text" and "archived_image" in block["text"]]
+        assert len(texts) == 14
+        archived = json.loads(texts[0])["archived_image"]
+        reference = archived["read"]
+        history = next(row for row in manager.history if row.history_id == archived["history_id"])
+        registered = next(row for row in manager.images if row.key == manager.image_key(
+            archived["view_id"], archived["sha256"]))
+        assert archived["history_source_event_id"] == history.source.event_id
+        assert archived["registered_source_event_id"] == registered.source.event_id
+        assert "source_event_id" not in archived
+        assert reference["tool"] == "read_context_image"
+        assert manager.retrieve_image(**reference["arguments"]) == initial[0]
+        restored = ContextManager.load(store, manager.dump())
+        assert restored.full_history() == manager.full_history()
+        assert restored.full_history()[0][:-1] == before[0]
+        assert _projected_images(restored.project(token_estimator=lambda _: 1))[-1] == initial[0]
+        store.validate()
+
+
+def test_image_history_retains_unpresented_batch_and_never_clips_new_images(tmp_path):
+    with _store(tmp_path) as store:
+        manager = ContextManager(store, policy=ContextPolicy(image_history_batches=1,
+            max_images=1, max_image_bytes=1))
+        source = _event_source(store, "initial")
+        for message in [{"role": "system", "content": "guide"}, {"role": "user", "content": "task"}]:
+            manager.append(message, source)
+        pending = _append_image_batch(manager, store, 1, [("pending", b"undelivered")])
+        _append_image_batch(manager, store, 2, [(f"fresh-{i}", bytes([i]) * 20) for i in range(8)])
+        projection = manager.project(token_estimator=lambda _: 100, target_tokens=1,
+            force_compact=True, undelivered_image_event_ids=(pending,))
+        assert _projected_images(projection) == [b"undelivered", *[bytes([i]) * 20 for i in range(8)]]
+        assert not projection.omitted_history_ids  # Protected indivisible batches exceed the soft target.
+        store.validate()
+
+
+def test_image_history_exact_old_versions_are_checkpointed_and_cross_task_lookup_fails(tmp_path):
+    with _store(tmp_path) as store:
+        manager = ContextManager(store, policy=ContextPolicy(image_history_batches=1))
+        source = _event_source(store, "initial")
+        for message in [{"role": "system", "content": "guide"}, {"role": "user", "content": "task"}]:
+            manager.append(message, source)
+        for index in range(3):
+            _append_image_batch(manager, store, index, [("same-view", f"version-{index}".encode())])
+        manager.project(token_estimator=lambda _: 1)
+        versions = sorted(manager.images, key=lambda image: image.registration_index)
+        for image in versions[:2]:
+            assert manager.retrieve_image(image.view_id, image.image.sha256) == store.get_bytes(image.image)
+        restored = ContextManager.load(store, manager.dump())
+        for _ in range(2):
+            assert _projected_images(restored.project(token_estimator=lambda _: 1, consume_retrievals=False)) == [
+                b"version-2", b"version-0", b"version-1"]
+        assert len(restored.acknowledge_projection()) == 2
+        # A subsequent image batch retires the previous batch, including the
+        # explicit reads whose one-response pins have now been consumed.
+        _append_image_batch(restored, store, 3, [("same-view", b"version-2")])
+        assert _projected_images(restored.project(token_estimator=lambda _: 1)) == [b"version-2"]
+        with pytest.raises(KeyError):
+            restored.retrieve_image("same-view", "0" * 64)
+        foreign = ContextManager(store.for_task("other", "task-context"), policy=manager.policy)
+        with pytest.raises(KeyError):
+            foreign.retrieve_image(versions[0].view_id, versions[0].image.sha256)
+        # Integrity is checked by EventStore on every exact retrieval (covered
+        # independently by the store corruption tests); no arbitrary URI is accepted.
+        with pytest.raises(KeyError):
+            restored.retrieve_image("../../other-task/private.png", versions[0].image.sha256)
+        store.validate()
+
+
 def _state(source: SourceRef, **updates) -> StateEntry:
     fields = {
         "key": "requirement.keep_rooms",

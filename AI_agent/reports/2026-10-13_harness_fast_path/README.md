@@ -226,3 +226,40 @@ seed接线已完成：可直接在`space_seeds[].role_evidence`声明role/basis/
 有效离线去重37项通过：新增15项覆盖超过600秒继续完成、跨恢复累计elapsed、JSON null、网络idle失败重试、其他预算仍生效；有限旧预算及无期限child等待有限root22项通过。初批3项失败是测试夹具预期错误（恢复更早被身份/limits校验拒绝、FastMCP返回list的适配），只修断言后3项通过，无放宽产品检查。XML为cache根`v74-no-time-limit-new-20261013.xml`、`v74-no-time-limit-fixtures-final-20261013.xml`、`v74-time-limit-existing-regression-20261013.xml`。新增真实MCP R3以模拟时钟901秒完成finish，待登记后原样执行；不需要真实等待901秒，也未调用模型。
 
 实现`74515a62`登记为runtime v14 / domain v74并verify。总独审无剩余P1/P2，11生产/6测试SHA及37项证据在cache根`v74-no-time-limit-independent-review.json`。登记后的原样完整R3与frozen-tools节点共27项通过，90.74秒，包含模拟901秒后成功finish、保留agent_selected且无多余请求。没有release绕过或真实work model调用。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v74/ccb1214701ed/results.xml`。可冻结按新目标实测，尚未更新桌面。
+
+## 第六轮真实冷启动：无整案时限，完整交付通过，速度仍待优化
+
+冻结`3d9c6bdd`，runtime v14/domain v74，原六图、Astra/high单模型。2026-10-13 14:56:43.557747 UTC外部启动，运行`D:/Sim-BIM-Agent/runs/sm25-fast-astra-v74-20261013-1`；474源码/registry/config、HEAD及六图全程不变。开发者没有补稿、派工、提示或中途改预算。
+
+| 项目 | 外部启动后时间／结果 |
+|---|---|
+| 首次模型请求 | 27.211秒 |
+| 两层源BIM | 299.291／441.760秒，首次构建均通过 |
+| 首次整楼 | 493.504秒，candidate03，装配工具15.218秒 |
+| 七处开口修订后整楼 | 1060.969秒，candidate06，第二次装配工具5.860秒 |
+| 高度与用途 | 34外开口全部located_confirmed；29用途均inferred并有依据/假设 |
+| 正式交付 | 2396.363秒，finish_bim成功，agent_selected candidate07 |
+| 完整退出 | 2433.734秒（40分34秒），completed，复用handoff；finish后0请求、0工具 |
+
+单轮自主完整交付通过；10分钟优化目标未达，尚不能声称重复稳定。runtime2385.073秒＝模型2083.140＋工具142.201＋其他159.732；外部另含48.661秒。24请求/22完整响应/98工具；一次流中断、一次connect失败均按既定策略恢复，共2次重试。已知4,772,714 tokens只是小计（input4,731,594/output41,120/cache46,080），另2失败请求usage未知。无预算违例，没有时间耗尽。
+
+独立质量在现行Lite已核范围内通过：29空间、47物理共享墙邻接、61开口位置/宿主、30门连接匹配；两层外轮廓、标高/层高/顶高无实质偏差，3144坐标全在10cm格。七处开口修订仅各改变端点10cm，全部沿墙误差下降；03→06其余物理数组全等，06→07全部物理数组全等。原strict的29房界＋2内墙汇总severe原样保留；原准备稿经预先登记的半墙参考面规则诊断，29房界残差均≤4.253cm。最近网格最大变换4.989cm，另两次跨层10cm对齐影响5空间，拓扑/宿主/连通未变。
+
+≤5／5–10／10–30／>30cm分档：房间17／4／8／0（max12.649cm）；开口沿墙37／24／0／0（max7.838cm），法向20／7／34／0（后34项为代表面差）；外部高度34／0／0／0。用途GT语义、未画出的竖向交通/空洞、内门高度及开关状态未独评，保留模型假设。六张回叠人工检查未发现新增实体错误。浏览器实测交付页、整楼渲染及F2切换成功；观察到一条未归因MutationObserver错误，页面自身无此符号，不能宣称console全净。临时浏览器与本地服务均已关闭。
+
+原run4280文件和GT在独立评价前后全等。证据：case目录`independent-observer-audit.json`、`independent-lifecycle-and-context-audit.json`，评价目录`sm25-fast-astra-v74-1-evaluation/independent-quality-audit.json`（SHA83cd69d3c231e1ca21d638e5c5eb55374e70dc4b3df33a167107cab40be9131f）。完整handoff六文件hash、最后tool批次及零多余请求均经独立复验。
+
+### 本轮发现的两处可避免负担
+
+1. 图片历史每轮完整重发：24请求累计986张引用，实际55种不同SHA，931次为首次后的重复；最终请求66图、448,736实际input tokens。累计base64图片payload约162MB不是vision计费token。默认token投影未接通已有图片归档机制，不能只调低max_images淘汰整个tool interaction。
+2. 仅说明文字变化使已完成开口回查变stale：06→07几何/宿主/图纸均不变，完整source hash变化后4份报告失效，回执要求not_reviewed。模型又录入同样61marks；box、opening_ids、space_ids、basis等观察字段全等。对应请求123.480秒、426,478input/4,027output。应由现有kernel在当前source/同图/标定上重新验证原观察并保存新报告，不能盲继承旧pass。证据`independent-notes-only-review-attribution.json`。
+
+据此调整下一步：先做这两项定向减负，离线性质验证、独审、登记冻结后再冷启动。v74后两轮未启动，避免重复两次已有明确负担的40分钟路径；这不构成稳定性通过。图片策略只归档模型可见图片，完整历史不删，初始实际附图/最近工具批次/未送达图/精确重读图保留，旧图有按SHA回读入口。原六图通过工具提供，并非初始附图，不宣称始终常驻。当前批次内SHA去重暂不做，防止伪造多来源送达状态。另发现claim_status等小型回执超过24KB，最大46,475bytes；本次只记录，不扩大同轮修改面。
+
+## v75：图片历史与开口观察的定向减负
+
+下一轮配置为[run_fast_v75.json](run_fast_v75.json)：Astra/high、single_model、原六图、48请求/240工具/64候选、无总token和整案时间上限；10分钟仍仅为优化指标。新增`image_history_batches=1`，默认未启用的其他路径保持原行为。旧图替换为view ID、SHA及本任务内只读回读参数；运行初始实际附图、最近图片工具批次、未成功送达图片及精确回读受到保护。完整历史和证据未删除，保留图片超过目标时不静默截断；重试与恢复沿用同一送达记录。
+
+仅note/use事务且完整物理内容、父候选、原图bytes和标定一致时，旧开口观察可以由kernel在新source上重验，产生新报告与旧报告哈希引用。不是继承旧pass；几何变化、改回原位或异常旧报告不会被当成已验证。v74的4份观察在独立cache重放中1.733秒完成，61个标记无需模型重录，新报告的kernel结果与真实后续重录全等。此耗时是确定性重放，不能等同下一轮模型节省时间。
+
+定向离线当前有效去重：图片20项、开口重验48项、配置/CLI 8项。图片最初夹具存在索引/排序/批次边界错误，校正后复验通过；开口测试首次标定夹具越界已校正。独审另找到旧报告observations/location_check非对象时的异常路径，已补显式拒绝。新测试模块纳入node清单；登记后还需原样验证Runtime入口的真实MCP工具目录、版本哈希及完成后恢复。此处尚未报告任何v75真实模型结果。

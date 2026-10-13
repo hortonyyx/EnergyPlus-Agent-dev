@@ -42,6 +42,13 @@ def context_arguments(case: dict) -> list[str]:
         if type(value) is not int or value <= 0:
             raise ValueError(f"{name} must be a positive integer or null for automatic context management")
         result += ["--" + name.replace("_", "-"), str(value)]
+    image_batches = case.get("image_history_batches")
+    if image_batches is not None:
+        if type(image_batches) is not int or image_batches <= 0:
+            raise ValueError("image_history_batches must be a positive integer or null")
+        if case.get("mode") != "single_model":
+            raise ValueError("image_history_batches currently supports single_model only")
+        result += ["--image-history-batches", str(image_batches)]
     return result
 
 
@@ -227,6 +234,7 @@ def selected_case(configuration: dict, case_id: str) -> dict:
 
 
 def argv_for(case: dict, *, resume: bool = False) -> list[str]:
+    context_args = context_arguments(case)
     budget = validate_budget(case)
     validate_output_limit(case["model"], case.get("output_tokens"), reason=case.get("low_output_limit_reason"))
     limits = case["limits"]
@@ -265,7 +273,7 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                  "--max-candidates", str(case["max_candidates"]),
                  "--model-retries", str(limits.get("model_retries", 2)),
                  "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
-        argv += context_arguments(case)
+        argv += context_args
         for name in ("temperature", "reasoning_effort"):
             if case.get(name) is not None:
                 argv += ["--" + name.replace("_", "-"), str(case[name])]
@@ -285,7 +293,7 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                  "--max-candidates", str(case["max_candidates"]),
                  "--model-retries", str(limits.get("model_retries", 2)),
                  "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
-        argv += context_arguments(case)
+        argv += context_args
         if case.get("continuation") is not None:
             argv += ["--continue-from", case["continuation"]["source_run"],
                      "--source-events-sha256", case["continuation"]["source_events_sha256"]]

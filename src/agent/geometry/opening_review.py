@@ -49,6 +49,47 @@ def _source_hash(source: dict) -> str:
     return digest
 
 
+def revalidate_saved_review(parent: dict, source: dict, saved: dict, images: dict,
+                            *, plan_calibration: dict | None = None) -> dict:
+    """Recompute saved observations after a physically unchanged note/use edit.
+
+    The old verdict is never reused. Unknown source fields remain in the equality
+    check; only explicit note/provenance and room-use fields are excluded.
+    """
+    parent_hash = _source_hash(parent)
+    _source_hash(source)
+    if saved.get("source_model_sha256") != parent_hash:
+        raise ValueError("saved opening review does not belong to the parent source")
+
+    def physical(value):
+        ignored = {"source_model_sha256", "source_geometry_sha256", "generation",
+                   "assumptions", "corrections", "public_names"}
+        result = {k: v for k, v in value.items() if k not in ignored}
+        result["spaces"] = [{k: v for k, v in row.items() if k not in {"role", "role_evidence"}}
+                            for row in value.get("spaces", [])]
+        return result
+
+    if physical(parent) != physical(source):
+        raise ValueError("opening review revalidation requires unchanged physical source and hosts")
+    observations = saved.get("observations")
+    if not isinstance(observations, dict):
+        raise ValueError("saved opening review has no original observations")
+    name = observations.get("image")
+    image = images.get(name, {})
+    if saved.get("image") != {"name": name, "sha256": image.get("sha256"), "size": image.get("size")}:
+        raise ValueError("saved opening review original image identity changed")
+    report = review_openings(source, observations, images, plan_calibration=plan_calibration)
+    # A new calibration is a new observation context, even if it happens to pass.
+    # Record IDs may change while identical anchors retain the same meaning.
+    fields = ("status", "reason", "x_anchors", "y_anchors")
+    before, after = saved.get("location_check", {}), report["location_check"]
+    if not isinstance(before, dict):
+        raise ValueError("saved opening review has invalid calibration evidence")
+    if any(before.get(k) != after.get(k) for k in fields):
+        raise ValueError("saved opening review calibration changed")
+    return report
+
+
 def _source_index(source: dict) -> tuple[str, dict, dict, dict]:
     """Return immutable-source indexes needed by both public functions."""
     source_hash = _source_hash(source)
