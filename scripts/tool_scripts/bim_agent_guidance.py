@@ -41,8 +41,8 @@ the room, without using that use to invent a partition. No EnergyPlus objects or
   Unknown door state stays unknown.
 - Keep observed, inferred and assumed content distinct. What you have not yet
   viewed, or viewed but not yet made out, is unresolved, not missing: a draft
-  may carry it with a labelled provisional value. Recheck within the finishing
-  budget below. Only information the inputs lack, or that stays undeterminable
+  may carry it with a labelled provisional value. Follow the finishing rules
+  below. Only information the inputs lack, or that stays undeterminable
   after a reasonable look, becomes an explicit assumption with its reason.
   Centring, equal spacing, symmetry or copying never count as observation.
 - Valid geometry, tool acceptance, your own confirmations and returned images do
@@ -210,19 +210,27 @@ already give. Image names are the exact names listed by inputs.
   input_view_status (which originals you have viewed; viewing is not review).
 """
 
-# 09-30. Failure targeted: run94 listed "2F needs a magnified check" as unresolved and
-# delivered with 1,824 s left; run93 did the same with door estimates. Shared with
-# continuation turns so both use one finishing rule. T1 replaces the open-ended
-# look-again instruction: GLM sm25 reached the cap with only one saved floor.
-# C2: stopping all image reading also barred necessary checks of listed serious
-# errors. Replace it with bounded review, without extending the hard deadline.
-FINISHING = """Resolve saved unresolved items and drawing differences while time permits.
-Tools report conservative remaining time, tokens, money and calls where limited;
-use the tightest limit: after halfway, save missing floor drafts before refining;
-below 15%, stop exploring new scope; only make bounded necessary
-checks of already-listed serious issues. Deliver within the limit and retain
-anything unfinished as unresolved, distinguishing missing information,
-indeterminate evidence and time exhausted."""
+# v75 exposed an open-ended review tail and differing finish semantics. Existing
+# checks must guide specific judgments; tool availability is not a checklist.
+FINISHING = """Finish against the requested scope and the current saved candidate.
+Once all required floors are assembled, compare the saved spaces, wall/opening
+positions, hosts, connections and levels with the relevant inputs. Reuse current
+saved checks; inspect_candidate(include_geometry=false) summarizes current review
+state and points to details. A source projection or passing check alone does not
+certify fidelity, and an old candidate's review is not a current review.
+Resolve known physical/host/connectivity errors, conflicting evidence and adopted
+changes not yet applied. Use a targeted view or diagnostic for a concrete remaining
+question; you do not need to run every diagnostic or repeat unchanged observations.
+Unexamined evidence that may change the main geometry still needs a reasonable
+look. If the inputs lack an answer or remain indeterminate after that look, retain
+the explicit unknown/assumption and its reason; do not invent certainty or continue
+checking without a specific question. Correct obsolete authored notes, then select
+the candidate when the requested scope is met or its remaining gaps are honestly
+recorded. Unfinished work is distinct from information the inputs do not provide.
+Respect any configured time, token, money and call limits; reserve enough to save
+the whole building and handoff. Without a time limit, elapsed time alone is neither
+a stop condition nor a reason to add checks. A partial or unresolved handoff must
+not be described as complete, verified reconstruction."""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
 DELIVERY = "Delivery. " + FINISHING + """
@@ -237,8 +245,11 @@ Replace each saved note your revisions made obsolete, in revise_bim:
 {"op":"replace_note","field":"assumptions" or "unresolved","old":"<exact note>",
 "replacement":["<new text>"] or [],"reason":"...","source_refs":["..."]}; an
 explanation in your final answer does not change the saved BIM. Finish with
-finish_bim(candidate), then state the selected candidate and what was observed,
-assumed and left unexamined. Do not ask the user for routine geometry choices.
+finish_bim(candidate) after intended edits and checks. The runtime may end the run
+after this successful handoff without another model turn; save all material
+assumptions and unresolved gaps before calling it. If a final text turn is available,
+state the selected candidate and what was observed, assumed and left unexamined.
+Do not ask the user for routine geometry choices.
 """
 
 
@@ -736,6 +747,7 @@ check_openings review_json example (unrelated to supplied drawings):
  "marks":[{"mark_id":"door-mark-1","box":[10,20,40,60],
  "opening_ids":["D1"],"space_ids":["room","hall"],"basis":"visible",
  "note":"one leaf and arc in a wall gap"}]}.
+note is optional supplementary text; omitting it is equivalent to an empty string.
 Use original-image pixels for box and enclose the entire observed aperture,
 not only its label/arc. For registered plan images, both actual source endpoints
 must fit the mark box; a mismatch is reported even if ID/kind/room all agree.

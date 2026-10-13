@@ -64,6 +64,121 @@ def test_saved_claims_domain_outcomes_and_unanswered_calls_are_not_conflated(tmp
     assert "调用报错 | 领域未成功 | 可用源稿" in (out/"timeline.md").read_text()
 
 
+def _projected_transaction_archive(tmp_path, *, root_projection=False):
+    from scripts.tool_scripts.bim_agent_replies import compact_reply
+
+    run = tmp_path / "run"
+    (run / "claims").mkdir(parents=True)
+    entries = [
+        {"status": "confirmed", "recorded": True, "claim_id": "claim_0001"},
+        {"status": "applied", "recorded": True, "claim_id": "claim_0002", "result_candidate": "candidate_02"},
+        {"status": "failed", "recorded": False, "error": "invalid height evidence"},
+    ]
+    for entry in entries:
+        entry["diagnostic"] = "retained full evidence " * 600
+    full = {"id": "transaction_001", "status": "partial", "candidate": "candidate_01",
+        "saved_candidate": "candidate_02", "save_effects": {"created_candidates": ["candidate_02"],
+            "geometry_applied": True, "audit_written": True}, "entries": entries}
+    for i in (1, 2):
+        claim = {"id": f"claim_{i:04d}", "claim": {"candidate": "candidate_01",
+            "objects": [{"id": f"W{i}"}], "values": {"z": [1, 2]}, "reason": "visible height"},
+            "sources": [{"image": "North.png"}], "resolved_values": {"z": [1, 2]}}
+        (run / "claims" / f"claim_{i:04d}.json").write_text(json.dumps(claim), encoding="utf8")
+    visible = compact_reply(run, "claim_transaction", full)
+    assert isinstance(visible["entries"], dict)
+    if root_projection:
+        visible = {key: visible[key] for key in ("status", "candidate", "saved_candidate", "save_effects",
+                                                "details_file", "details_sha256", "details_read")}
+        visible["report_view"] = {"reference": {"report_file": visible["details_file"],
+            "report_sha256": visible["details_sha256"], "json_pointer": ""}}
+    archive = tmp_path / "record.json.gz"
+    def save():
+        record = {"run": "fixture", "receipt": {}, "invocations": [{"invocation": 1,
+            "stream": "archive", "steps": [{"index": 1, "t_call": 7, "tool": "claim_transaction",
+                "arguments": {}, "result_text": json.dumps(visible), "is_error": False,
+                "model_text_before": "", "thinking_tokens_before": 0}]}]}
+        with gzip.open(archive, "wt", encoding="utf8") as stream:
+            json.dump(record, stream)
+    save()
+    return run, archive, visible, full, save
+
+
+@pytest.mark.parametrize("root_projection", [False, True])
+def test_projected_transaction_entries_report_preserves_partial_commits(tmp_path, root_projection):
+    run, archive, visible, full, _ = _projected_transaction_archive(tmp_path, root_projection=root_projection)
+    record = load_behaviour(archive, source_root=run)
+    summary = record["summary"]
+    assert summary["tool_calls"] == 1
+    assert summary["claim_transactions"] == {"calls": 1, "entries": 3,
+        "status_counts": {"confirmed": 1, "applied": 1, "failed": 1}, "recorded_claims": 2, "applied_entries": 1}
+    assert (summary["call_errors"], summary["domain_failures"], summary["usable_source_drafts"]) == (0, 1, 1)
+    assert summary["claims_from_saved_files"] == 2 and summary["candidate_revisions"] == 1
+    step = record["invocations"][0]["steps"][0]
+    assert step["result_data"] == visible
+    assert step["transaction_entries_source"] == {"file": visible["details_file"], "sha256": visible["details_sha256"]}
+    out = tmp_path / "report"
+    write_behaviour_report(archive, out, source_root=run)
+    assert (out / "timeline.md").is_file()
+    assert json.loads((run / visible["details_file"]).read_bytes()) == full
+
+
+@pytest.mark.parametrize("damage,match", [
+    ("hash", "hash mismatch"), ("escape", "tool_reports directory"),
+    ("missing_reference", "lack a saved report reference"), ("status", "differs from returned status"),
+    ("malformed_entries", "complete entries list"),
+])
+def test_projected_transaction_entries_refuse_unbound_or_changed_evidence(tmp_path, damage, match):
+    import hashlib
+
+    run, archive, visible, full, save = _projected_transaction_archive(tmp_path)
+    path = run / visible["details_file"]
+    if damage == "hash":
+        path.write_bytes(path.read_bytes() + b" ")
+    elif damage == "escape":
+        outside = run.parent / path.name
+        outside.write_bytes(path.read_bytes())
+        visible["details_file"] = "../" + outside.name
+    elif damage == "missing_reference":
+        visible.pop("details_sha256")
+    elif damage == "status":
+        visible["status"] = "completed"
+    else:
+        full["entries"] = {"count": 3}
+        raw = json.dumps(full).encode()
+        digest = hashlib.sha256(raw).hexdigest()
+        target = path.with_name("claim_transaction_" + digest + ".json")
+        target.write_bytes(raw)
+        visible.update(details_file=target.relative_to(run).as_posix(), details_sha256=digest)
+    save()
+    with pytest.raises(ValueError, match=match):
+        load_behaviour(archive, source_root=run)
+
+
+def test_projected_failed_transaction_without_entries_keeps_its_error(tmp_path):
+    import hashlib
+    from src.agent.runtime_behaviour import summarise
+
+    run = tmp_path / "run"
+    folder = run / "tool_reports"
+    folder.mkdir(parents=True)
+    full = {"status": "error", "error": "claim parsing failed before a transaction result"}
+    raw = json.dumps(full).encode()
+    digest = hashlib.sha256(raw).hexdigest()
+    path = folder / ("claim_transaction_" + digest + ".json")
+    path.write_bytes(raw)
+    data = {"status": "error", "report_view": {"reference": {}},
+        "details_file": path.relative_to(run).as_posix(), "details_sha256": digest}
+    step = {"index": 1, "tool": "claim_transaction", "t_call": 1, "is_error": True,
+        "result_data": data, "arguments": {}, "delivered_to_model": True}
+    record = {"run": "fixture", "source_format": "event_envelope_jsonl", "gaps": [],
+        "_source_root": str(run), "invocations": [{"steps": [step]}]}
+    summary = summarise(record)
+    assert summary["call_errors"] == 1 and summary["domain_failures"] == 0
+    assert summary["claim_transactions"]["entries"] == 0
+    assert step["result_data"] == data and step["call_error"]
+    assert step["transaction_entries_source"]["sha256"] == digest
+
+
 @pytest.fixture
 def responses_run(tmp_path):
     from test_agent_runtime import MESSAGES

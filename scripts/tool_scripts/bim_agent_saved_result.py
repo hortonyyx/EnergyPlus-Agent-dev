@@ -7,11 +7,156 @@ geometry application and retain every committed candidate of a partial batch.
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 
 SAVE_TOOLS = frozenset({"build_bim", "build_plan_bim", "assemble_plan_bim",
     "build_parametric_bim", "revise_bim", "revise_plan_bim", "finish_bim", "claim_transaction"})
+
+
+def opening_delivery_summary(toolkit, source):
+    """Use the same current/stale review projection for inspection and handoff."""
+    from src.agent.geometry.bim_delivery import summarize_delivery
+
+    reviews = [json.loads(p.read_bytes()) for p in
+               sorted((toolkit.run / "opening_reviews").glob("review_*.json"))]
+    calibrations = {(row["image"], row["floor_id"]): row
+                    for _, row in toolkit.registered_calibrations()}
+    for review in reviews:
+        image = review.get("image", {})
+        try:
+            toolkit.image_path(image.get("name"))
+            if image.get("sha256") != toolkit.manifest["images"][image["name"]]["sha256"]:
+                raise ValueError("review original image changed")
+        except (OSError, ValueError, KeyError, TypeError):
+            review["stale_reason"] = "review_original_image_changed"
+        location = review.get("location_check", {})
+        if location.get("status") != "checked_against_supplied_plan_boxes":
+            continue
+        current = calibrations.get((review.get("image", {}).get("name"),
+                                    review.get("review_scope", {}).get("floor_id")), {})
+        if (any(location.get(key) != current.get(key) for key in ("x_anchors", "y_anchors"))
+                or review.get("image", {}).get("sha256") != current.get("image_sha256")):
+            review["stale_reason"] = "plan_calibration_changed"
+    return summarize_delivery(source, reviews)
+
+
+def candidate_review(toolkit, candidate, source, report):
+    """Read current evidence on demand, without selecting or changing a candidate.
+
+    This reuses existing domain projections, not a second acceptance policy.
+    Expensive drawing/precision generators are not run. Height location and
+    claims share one current claim projection; no historical pass is promoted.
+    """
+    from scripts.tool_scripts.bim_agent_budget import saved_floor_status
+    from scripts.tool_scripts.bim_agent_facade_checks import located_height_report
+    from src.agent.execution.bim_claim_state import project
+    from src.agent.geometry.source_model import _digest
+
+    source_hash = source.get("source_model_sha256")
+    source_current = source_hash == _digest({k: v for k, v in source.items()
+                                           if k != "source_model_sha256"})
+    result = {"candidate": candidate, "source_model_sha256": source_hash,
+              "drawing_fidelity": "not_evaluated", "calibration_independently_verified": False,
+              "scope": "Whole-candidate current domain projections and evidence limits, not a delivery gate or drawing verdict. "
+                       "Pixel/drawing diagnostics and precision generators are not rerun; this is not all tool history."}
+
+    def collect(name, function):
+        try:
+            result[name] = function()
+        except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+            result[name] = {"status": "unavailable", "reason": str(error)}
+
+    result["source"] = {"status": "current" if source_current else "source_hash_mismatch",
+        "validation": source.get("validation"),
+        "source_geometry_ready": report.get("source_geometry_ready") if
+            report.get("source_model_sha256") == source_hash and source_current else None,
+        "unbuilt_openings": source.get("unbuilt_openings", []),
+        "unsupported": source.get("unsupported", []), "conflicts": source.get("conflicts", [])}
+    result["notes"] = {"assumptions": source.get("assumptions", []),
+                       "unresolved": source.get("generation", {}).get("unresolved", [])}
+    if not source_current:
+        result["evidence"] = {"status": "not_projected", "reason": "source_hash_mismatch"}
+        return result
+
+    collect("floors", lambda: saved_floor_status(toolkit, candidate))
+
+    def openings():
+        summary = opening_delivery_summary(toolkit, source)
+        return {key: summary[key] for key in
+                ("opening_review_scopes", "current_reviews", "stale_reviews")}
+    collect("opening_review", openings)
+    collect("space_relations", lambda: toolkit.space_relation_status(source))
+    collect("facade_counts", lambda: toolkit.facade_counts(candidate))
+
+    # One projection validates ancestry/actual targets before computing height
+    # location. Neither the cached height table nor old applications suffice.
+    try:
+        current = project(toolkit.claims(), candidate)
+        result["claims"] = {"status": "projected_current",
+            "state_counts": dict(Counter(row["state"] for row in current["claims"])),
+            "adopted_unapplied_count": sum(row["state"] in
+                {"pending_application", "partially_satisfied", "changed_since_check"} for row in current["claims"]),
+            "claims_with_unresolved_count": sum(bool(row.get("unresolved")) and row["state"] != "retracted"
+                                                for row in current["claims"]),
+            "claims_with_failed_history_count": sum(bool(row.get("failed_attempts")) for row in current["claims"]),
+            "issues": [{key: row[key] for key in
+                ("id", "state", "objects", "missing_bindings", "failed_attempts", "unresolved") if key in row}
+                for row in current["claims"] if row["state"] != "retracted" and
+                (row["state"] not in {"applied_current", "confirmed_unchanged"} or row.get("unresolved"))],
+            "retracted_claims": [{key: row[key] for key in ("id", "state", "unresolved") if key in row}
+                                 for row in current["claims"] if row["state"] == "retracted"],
+            "failed_attempt_history": [{key: row[key] for key in ("id", "state", "failed_attempts")}
+                for row in current["claims"] if row.get("failed_attempts")],
+            "history_meaning": "Failed attempts are history, not a current failure or required follow-up.",
+            "other_branch_count": len(current["other_branch_claim_ids"]),
+            "inherited_observations": current["inherited_observations"]}
+        collect("height_coverage", lambda: located_height_report(toolkit, candidate, current))
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+        result["claims"] = {"status": "unavailable", "reason": str(error)}
+        result["height_coverage"] = {"status": "not_projected", "reason": "current_claim_projection_unavailable"}
+    return result
+
+
+def candidate_review_summary(review):
+    """Small status/counts only; complete issue objects remain in the bound reply."""
+    summary = {key: review[key] for key in
+               ("candidate", "source_model_sha256", "drawing_fidelity", "calibration_independently_verified", "scope")}
+    for name, section in review.items():
+        if not isinstance(section, dict):
+            continue
+        row = {key: section[key] for key in
+               ("status", "complete_building", "source_geometry_ready", "state_counts",
+                "sample_count", "conflict_count", "unassessed_count", "stale_review_count",
+                "adopted_unapplied_count", "claims_with_unresolved_count", "claims_with_failed_history_count") if key in section}
+        if "reason" in section:
+            row["reason"] = str(section["reason"])[:240]
+        if name == "source":
+            row["validation_status"] = (section.get("validation") or {}).get("status")
+        if "summary" in section:
+            row["summary"] = section["summary"]
+        for key, value in section.items():
+            if isinstance(value, list):
+                row[key + "_count"] = len(value)
+        if name == "opening_review":
+            scopes = section.get("opening_review_scopes", [])
+            row["scope_status_counts"] = dict(Counter(s["review_status"] for s in scopes))
+            row["scopes_with_openings_status_counts"] = dict(Counter(
+                s["review_status"] for s in scopes if s["built_count"] > 0))
+            row["follow_up_scope_count"] = sum(s["review_status"] == "observations_require_follow_up" for s in scopes)
+        if name == "height_coverage":
+            rows = section.get("openings", [])
+            row["openings_with_issues_count"] = sum(bool(r.get("issues")) for r in rows)
+            row["issue_code_counts"] = dict(Counter(code for r in rows for code in r.get("issues", [])))
+            row["issue_opening_ids_sample"] = [str(r["opening_id"])[:120] for r in rows
+                                               if r.get("issues")][:3]
+        if name == "claims":
+            row["issue_claim_ids_sample"] = [str(r["id"])[:120] for r in section.get("issues", [])][:3]
+            if "history_meaning" in section:
+                row["history_meaning"] = section["history_meaning"]
+        summary[name] = row
+    return summary
 
 
 def saved_result(result, *, candidate=None, created=(), geometry_applied=False, audit_written=False):

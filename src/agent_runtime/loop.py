@@ -547,9 +547,17 @@ class Runtime:
         if not self._is_context_image_tool(name):
             return await self.tools.call_tool(name, arguments)
         try:
-            if (set(arguments) != {"view_id", "sha256"}
-                    or not all(isinstance(value, str) for value in arguments.values())):
-                raise ValueError("read_context_image needs exactly view_id and sha256 strings")
+            action = arguments.get("action", "read")
+            if action == "list":
+                if set(arguments) - {"action", "limit", "source_tool", "through_index", "before_index"}:
+                    raise ValueError("list accepts only limit, source_tool, through_index and before_index")
+                metadata = self.context.list_images(**{key: value for key, value in arguments.items()
+                                                       if key != "action"})
+                return {"content": [{"type": "text", "text": json.dumps(metadata, ensure_ascii=False)}],
+                    "structuredContent": metadata, "isError": False}
+            if (action != "read" or set(arguments) - {"action", "view_id", "sha256"}
+                    or not all(isinstance(arguments.get(key), str) for key in ("view_id", "sha256"))):
+                raise ValueError("read requires view_id and sha256 strings, with no list arguments")
             view_id, sha256 = arguments["view_id"], arguments["sha256"]
             raw = self.context.retrieve_image(view_id, sha256, append_to_history=False)
             image = next(row for row in self.context.images if row.key == self.context.image_key(view_id, sha256))
@@ -559,9 +567,11 @@ class Runtime:
             return {"content": [{"type": "text", "text": json.dumps(metadata, ensure_ascii=False)},
                 {"type": "image", "mimeType": image.image.media_type,
                  "data": base64.b64encode(raw).decode("ascii")}], "structuredContent": metadata, "isError": False}
-        except (KeyError, ValueError, TypeError):
+        except (KeyError, ValueError, TypeError) as error:
             return {"content": [{"type": "text", "text":
-                "Exact image lookup failed: use the view_id and sha256 from this task's archived_image reference."}],
+                ("Image directory request failed: " + str(error) if arguments.get("action") == "list" else
+                 "Exact image lookup failed: use view_id and sha256 from this task's archived_image reference "
+                 "or discover saved identities with read_context_image(action='list').")}],
                 "isError": True}
 
     def _refresh_context_calibration(self):
@@ -1418,7 +1428,7 @@ class Runtime:
             self.pending_picture_events.append(event.event_id)
         context_read = self._is_context_image_tool(p.tool_name)
         origins = {} if context_read else getattr(self.tools, "image_origins", lambda _: {})(raw)
-        if context_read and p.outcome == "succeeded":
+        if context_read and p.outcome == "succeeded" and p.full_arguments.get("action", "read") == "read":
             # Replay must restore the exact pin even if the process stopped
             # after durable execution but before the context checkpoint.
             self.context.retrieve_image(p.full_arguments["view_id"], p.full_arguments["sha256"],

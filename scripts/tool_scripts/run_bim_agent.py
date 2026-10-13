@@ -848,26 +848,14 @@ class Toolkit:
 
     def delivery(self, candidate, *, selection_origin, generation_status=None):
         """Build the handoff from saved source/check records, never model prose."""
-        from src.agent.geometry.bim_delivery import summarize_delivery
+        from scripts.tool_scripts.bim_agent_saved_result import opening_delivery_summary
         path = self.candidate_path(candidate)
         source = json.loads((path / "source_model.json").read_bytes())
-        reviews = [json.loads(p.read_bytes()) for p in
-                   sorted((self.run / "opening_reviews").glob("review_*.json"))]
-        calibrations = {(row["image"], row["floor_id"]): row for _, row in self.registered_calibrations()}
-        for review in reviews:
-            location = review.get("location_check", {})
-            if location.get("status") != "checked_against_supplied_plan_boxes":
-                continue
-            current = calibrations.get((review.get("image", {}).get("name"),
-                                        review.get("review_scope", {}).get("floor_id")), {})
-            if (any(location.get(key) != current.get(key) for key in ("x_anchors", "y_anchors"))
-                    or review.get("image", {}).get("sha256") != current.get("image_sha256")):
-                review["stale_reason"] = "plan_calibration_changed"
         result = {"candidate": candidate, "selection_origin": selection_origin,
                   "viewer": f"{candidate}/viewer.html", "source_model": f"{candidate}/source_model.json",
                   "viewer_exists": (path / "viewer.html").is_file(),
                   "generation_status": generation_status or {"state":"in_progress"},
-                  **summarize_delivery(source, reviews)}
+                  **opening_delivery_summary(self, source)}
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
         result["space_relation_review"] = self.space_relation_status(source)
         result["input_view_status"] = self.input_view_status()
@@ -1284,7 +1272,7 @@ class Toolkit:
                 result = {"status": "error", "error": str(error), "error_stage": "regularization",
                           "source_geometry_ready": False, "remaining_seconds": self.remaining_seconds()}
                 if isinstance(rejected, dict):
-                    result["regularization"] = save_report(audit_folder, rejected, self.run)
+                    result["regularization"] = save_report(audit_folder, rejected, self.run, tool_report=True)
                 dump(path, {"floors": bindings, "status": "rejected", "error": str(error),
                             "regularization": rejected})
                 from scripts.tool_scripts.bim_agent_saved_result import saved_result
@@ -2602,7 +2590,8 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             """Inspect a saved draft_NNN or resume, retaining its immutable revision hash.
             Default returns field/object summaries. Read field='plan', a field name
             with optional stable object_id, or field='plan:/openings/0' for JSON pointers.
-            field='report:/drawing_differences' browses that draft's findings.
+            field='report:/drawing_differences' or 'report:/regularization' browses
+            that draft's bound findings, including rejected drafts.
             Large values return references/entries; follow next, or object_id='page:8'.
             Use plan_sha256 with revise_plan_bim; never resend generated audit records.
             """
@@ -2610,6 +2599,16 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 _bytes, _page_offset, bounded_json_view, read_plan,
             )
             saved = toolkit.inspect_plan(draft_id)
+            if field == 'report:/regularization' or (field or '').startswith('report:/regularization/'):
+                report = toolkit.run / "plan_drafts" / str(draft_id) / "regularization.json"
+                record = json.loads(report.with_name('input.json').read_bytes())
+                binding = record.get('regularization_report')
+                raw = report.read_bytes()
+                if (not isinstance(binding, dict)
+                        or binding.get('file') != report.relative_to(toolkit.run).as_posix()
+                        or binding.get('sha256') != hashlib.sha256(raw).hexdigest()):
+                    raise ValueError('saved regularization report changed or has no bound hash')
+                saved['regularization'] = json.loads(raw)
             report = toolkit.run / "plan_drafts" / str(draft_id) / "drawing_differences.json"
             if draft_id != "resume" and report.is_file():
                 receipt = report.with_name('result.json')
@@ -2797,6 +2796,10 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             """Read a saved candidate's proposal and production geometry checks.
             include_geometry=False returns notes/frame and a floor summary without
             the expanded rooms/apertures; useful for registration of large candidates.
+            It also returns bounded current_checks from existing domain projections,
+            with immutable report reads for issue IDs and scopes. Unknown, stale and
+            unexamined scopes stay distinct; this is not a quality gate or checklist.
+            current_checks always covers the whole candidate, even with floor_id.
             floor_id selects one floor. If geometry is still too large, the response
             keeps only the summary; read_candidate_items pages cells/windows/openings.
             A selected page is NOT a whole replacement proposal.
@@ -2805,6 +2808,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             for several floors); this is a source projection, not original evidence.
             """
             path = toolkit.candidate_path(candidate)
+            review_requested = include_geometry is False
             proposal = json.loads((path/"proposal.json").read_bytes())
             original_geometry = proposal['geometry']
             floors = [{'id': f['name'], 'z_floor': f['z_floor'], 'height': f['ceiling_height'],
@@ -2840,6 +2844,29 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
                 from scripts.tool_scripts.bim_agent_precision import annotated_wall_placement
                 result['wall_placement'] = annotated_wall_placement(toolkit, json.loads(source_path.read_bytes()),
                     proposal.get('wall_references', []), proposal.get('wall_dimensions', []))
+            if review_requested:
+                from scripts.tool_scripts.bim_agent_saved_result import candidate_review, candidate_review_summary
+                from scripts.tool_scripts.bim_agent_replies import compact_reply, report_reference
+                review = (candidate_review(toolkit, candidate, json.loads(source_path.read_bytes()), report)
+                          if source_path.exists() else {"candidate": candidate, "status": "source_not_available"})
+                full = {**result, "current_checks": review}
+                # Bind every detail read to this immutable inspection, not to a
+                # mutable candidate-side cache or whichever draft becomes latest.
+                raw = (json.dumps(full, ensure_ascii=False, indent=2) + '\n').encode()
+                sha = hashlib.sha256(raw).hexdigest()
+                relative = f'tool_reports/inspect_candidate_{sha}.json'
+                small = candidate_review_summary(review) if source_path.exists() else dict(review)
+                small['details'] = report_reference(relative, sha, '/current_checks', review)
+                result = compact_reply(run, 'inspect_candidate', {**result, 'current_checks': small},
+                                       full_result=full, force=True)
+                # Generic field compaction can replace a summary with a view of
+                # the full report. Retain these exact totals even when other
+                # fields (e.g. author notes) force the whole reply to be bounded.
+                result['current_checks'] = small
+                if len(json.dumps(result, ensure_ascii=False).encode()) > 24000:
+                    result = {key: result[key] for key in ('candidate', 'geometry_included',
+                        'floor_filter', 'current_checks', 'details_file', 'details_sha256', 'details_read')
+                        if key in result}
             toolkit.log("inspect_candidate", {"candidate": candidate, 'include_geometry': include_geometry})
             if include_plan:
                 if floor_id is None and len(floors) != 1:
@@ -2917,7 +2944,9 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
         def finish_bim(candidate: str) -> dict:
             """Select a saved BIM and persist a handoff based on actual checks.
             Unreviewed/pending scopes remain explicit. This does not certify image
-            fidelity or prevent further work; call again to choose another candidate.
+            fidelity. Whether it ends work is determined by the running entrypoint:
+            the single-model runtime ends after a successful complete handoff;
+            other MCP clients may continue and select another candidate.
             """
             result = toolkit.delivery(candidate, selection_origin="agent_selected",
                 generation_status={"state": "in_progress", "handoff_saved": True,

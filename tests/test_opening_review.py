@@ -294,6 +294,58 @@ def test_invalid_pixels_or_schema_are_rejected_and_source_is_unchanged(mutate):
     assert source == before
 
 
+@pytest.mark.parametrize("pending", [False, True])
+def test_optional_note_preserves_observations_and_all_review_findings(pending):
+    source = _source()
+    review = _review()
+    if pending:
+        review["marks"][0].update(basis="uncertain", space_ids=["A"])
+    expected = review_openings(source, review, _images())
+    for mark in review["marks"]:
+        mark.pop("note")
+    before_source, before_review = copy.deepcopy(source), copy.deepcopy(review)
+    assert review_openings(source, review, _images()) == expected
+    assert source == before_source and review == before_review
+    with_empty_notes = copy.deepcopy(review)
+    for mark in with_empty_notes["marks"]:
+        mark["note"] = ""
+    assert review_openings(source, with_empty_notes, _images()) == expected
+    if pending:
+        assert {row["code"] for row in expected["findings"]} >= {
+            "mark_space_ids_mismatch", "observation_pending", "unaccounted_model_opening"}
+
+
+@pytest.mark.parametrize("note", [None, 7, []])
+def test_explicit_non_string_note_is_rejected_without_changing_observations(note):
+    review = _review()
+    review["marks"][1]["note"] = note
+    before = copy.deepcopy(review)
+    with pytest.raises(ValueError, match=r"marks\[1\].*mark_id='m2'.*note must be a string"):
+        review_openings(_source(), review, _images())
+    assert review == before
+
+
+@pytest.mark.parametrize("missing,extra", [(["basis"], []), ([], ["evidence"]),
+                                           (["mark_id", "space_ids"], ["notes"])])
+def test_mark_field_error_locates_exact_missing_and_extra_keys(missing, extra):
+    from scripts.tool_scripts.bim_agent_feedback import repair_hint
+
+    review = _review()
+    mark = review["marks"][1]
+    for key in missing:
+        mark.pop(key)
+    for key in extra:
+        mark[key] = "unsupported"
+    with pytest.raises(ValueError) as rejected:
+        review_openings(_source(), review, _images())
+    error = str(rejected.value)
+    assert f"marks[1] (mark_id={mark.get('mark_id')!r})" in error
+    assert f"missing fields {missing}" in error
+    assert f"unsupported fields {extra}" in error
+    hint = repair_hint(None, "check_openings", {}, error)
+    assert 'topic="opening_review"' in hint and "plan_partition" not in hint
+
+
 def test_duplicate_box_and_unknown_floor_are_findings_not_rejections():
     duplicate = _review()
     duplicate["marks"][1]["box"] = [1, 2, 10, 12]

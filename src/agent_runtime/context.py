@@ -106,15 +106,22 @@ class ContextPolicy(ContractModel):
 
 
 def context_image_tool_spec() -> dict:
-    """One local read operation; no filesystem paths or cross-task lookup."""
+    """One local image registry reader; no paths or cross-task lookup."""
     return {"name": "read_context_image", "description": (
-        "Reopen an exact image previously registered in this task by view_id and SHA-256. "
-        "Use the read arguments shown in an archived image reference. Returns the original "
-        "saved bytes and provenance; a diagnostic stays a diagnostic, not new source evidence."),
+        "List saved images with action='list' to discover exact versions and their producer tools/arguments, "
+        "including images from compacted history. Follow next_arguments for stable bounded pages; "
+        "source_tool optionally filters by exact producer tool name. Reopen one image using its returned "
+        "read arguments (view_id and sha256; action defaults to 'read'). Listing returns metadata only. "
+        "Saved provenance does not assert current artifact validity or create new source evidence."),
         "inputSchema": {"type": "object", "properties": {
+            "action": {"type": "string", "enum": ["read", "list"]},
             "view_id": {"type": "string", "minLength": 1},
-            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
-            "required": ["view_id", "sha256"], "additionalProperties": False}}
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 16},
+            "source_tool": {"type": "string", "minLength": 1, "maxLength": 128},
+            "through_index": {"type": "integer", "minimum": 0},
+            "before_index": {"type": "integer", "minimum": 0}},
+            "additionalProperties": False}}
 
 
 class StateEntry(ContractModel):
@@ -407,6 +414,81 @@ class ContextManager:
         if not view_id.strip() or len(sha256) != 64:
             raise ValueError("image identity needs a view_id and SHA-256")
         return f"{view_id}@sha256:{sha256}"
+
+    def list_images(self, *, limit: int = 8, source_tool: str | None = None,
+                    through_index: int | None = None, before_index: int | None = None) -> dict:
+        """A bounded metadata view of the sole registry, without retrieval/presentation effects.
+
+        The registration watermark freezes a page sequence while new images are
+        appended. Each returned identity keeps its own original producer, even
+        if another identity has identical image bytes. No validity is inferred.
+        """
+        if type(limit) is not int or not 1 <= limit <= 16:
+            raise ValueError("limit must be an integer from 1 to 16")
+        if source_tool is not None and (not isinstance(source_tool, str)
+                or not source_tool.strip() or len(source_tool) > 128):
+            raise ValueError("source_tool must be a nonempty exact tool name")
+        for name, value in (("through_index", through_index), ("before_index", before_index)):
+            if value is not None and (type(value) is not int or value < 0):
+                raise ValueError(f"{name} must be a nonnegative registration index")
+        maximum = max((image.registration_index for image in self._images.values()), default=-1)
+        if through_index is not None and through_index > maximum:
+            raise ValueError("through_index exceeds the registered image watermark")
+        if before_index is not None and (through_index is None or before_index > through_index):
+            raise ValueError("before_index needs the through_index from the same page sequence")
+        watermark = maximum if through_index is None else through_index
+        events = {event.event_id: event for event in self.store.events}
+
+        def producer(image):
+            event = events.get(image.source.event_id)
+            return event.payload if event is not None and event.payload.event_type == "tool_execution" else None
+
+        eligible = sorted((image for image in self._images.values()
+            if image.registration_index <= watermark and (source_tool is None or (
+                (payload := producer(image)) is not None and payload.tool_name == source_tool))),
+            key=lambda image: image.registration_index, reverse=True)
+        remaining = [image for image in eligible
+                     if before_index is None or image.registration_index < before_index]
+        result = {"action": "list", "through_index": watermark if watermark >= 0 else None,
+            "source_tool": source_tool, "total_matching": len(eligible), "images": [],
+            "next_arguments": None,
+            "note": "Metadata only; no image has been reopened or presented by this list. "
+                    "Producer arguments describe the saved version, not current validity. "
+                    "Arguments previews omit large values; registered_source identifies the full saved evidence."}
+        for image in remaining[:limit]:
+            payload = producer(image)
+            row = {"registration_index": image.registration_index,
+                "view_id": image.view_id, "sha256": image.image.sha256,
+                "media_type": image.image.media_type,
+                "registered_source": image.source.model_dump(mode="json"),
+                "producer": None,
+                "read": {"tool": "read_context_image", "arguments": {
+                    "view_id": image.view_id, "sha256": image.image.sha256}}}
+            if payload is not None:
+                # Whole small values only: never turn a truncated string/box
+                # into apparently exact provenance. Audit arguments stay intact.
+                preview = {}
+                for key, value in sorted(payload.full_arguments.items()):
+                    if len(json_bytes({key: value})) <= 512 and len(json_bytes({**preview, key: value})) <= 1024:
+                        preview[key] = copy.deepcopy(value)
+                row["producer"] = {"event_id": image.source.event_id, "tool_name": payload.tool_name,
+                    "call_id": payload.call_id, "arguments_preview": preview,
+                    "arguments_complete": len(preview) == len(payload.full_arguments),
+                    "omitted_argument_count": len(payload.full_arguments) - len(preview),
+                    "arguments_sha256": hashlib.sha256(json_bytes(payload.full_arguments)).hexdigest()}
+            # Keep the page itself bounded as well as the argument previews.
+            # Exact identities are never shortened to manufacture a valid row.
+            result["images"].append(row)
+            if len(json_bytes(result)) > 22_000:
+                result["images"].pop()
+                if not result["images"]:
+                    raise ValueError("saved image identity/provenance exceeds the directory page size bound")
+                break
+        if len(result["images"]) < len(remaining):
+            result["next_arguments"] = {"action": "list", "limit": limit,
+                "through_index": watermark, "before_index": result["images"][-1]["registration_index"],
+                **({"source_tool": source_tool} if source_tool is not None else {})}
+        return result
 
     def retrieve_image(self, view_id: str, sha256: str, *, append_to_history: bool = True) -> bytes:
         key = self.image_key(view_id, sha256)
@@ -844,10 +926,14 @@ class ContextManager:
             else:
                 ranges.append([number])
         turns = ", ".join(str(r[0]) if len(r) == 1 else f"{r[0]}–{r[-1]}" for r in ranges)
+        image_directory = (" Discover saved originals and diagnostics, including removed interactions, with "
+            "read_context_image(action='list'); follow next_arguments, then a row's exact read arguments. "
+            "The directory identifies saved versions and does not assert current validity."
+            if self.policy.image_history_batches is not None else "")
         return (f"Deterministic context compaction: earlier interaction groups {turns} "
                 f"({len(identities)} messages) moved out of this request; original images can be "
                 "viewed again using the input names and image-viewing tools, and saved work/evidence "
-                "can be inspected through the retrieval entries in the current runtime state.")
+                "can be inspected through the retrieval entries in the current runtime state." + image_directory)
 
     def _project_by_tokens(self, *, required_tags, required_view_ids, consume_retrievals, token_estimator,
                            request_token_estimator=None, pressure_tokens=None, target_tokens=None,

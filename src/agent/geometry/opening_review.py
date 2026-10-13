@@ -489,9 +489,15 @@ def _validate_review(review: dict, images: dict) -> tuple[int, int, str]:
         _reject("facade must be North, South, East, or West when supplied")
     width, height, image_hash = _image_info(images, review["image"])
     mark_ids: set[str] = set()
-    for mark in review["marks"]:
-        if not isinstance(mark, dict) or set(mark) != _MARK_FIELDS:
-            _reject("mark has unsupported or missing fields")
+    for index, mark in enumerate(review["marks"]):
+        location = f"marks[{index}]"
+        if not isinstance(mark, dict):
+            _reject(f"{location} must be an object")
+        missing = sorted((_MARK_FIELDS - {"note"}) - set(mark))
+        extra = sorted(set(mark) - _MARK_FIELDS)
+        if missing or extra:
+            _reject(f"{location} (mark_id={mark.get('mark_id')!r}) has "
+                    f"missing fields {missing} and unsupported fields {extra}")
         mark_id = mark["mark_id"]
         if not isinstance(mark_id, str) or not mark_id or mark_id in mark_ids:
             _reject("mark_id must be nonempty and unique")
@@ -508,8 +514,10 @@ def _validate_review(review: dict, images: dict) -> tuple[int, int, str]:
         if (not isinstance(mark["space_ids"], list) or not mark["space_ids"] or
                 not all(isinstance(value, str) and value for value in mark["space_ids"])):
             _reject(f"mark {mark_id} space_ids must be a nonempty list of strings")
-        if mark["basis"] not in {"visible", "inferred", "uncertain"} or not isinstance(mark["note"], str):
-            _reject(f"mark {mark_id} basis or note is invalid")
+        if mark["basis"] not in {"visible", "inferred", "uncertain"}:
+            _reject(f"mark {mark_id} basis is invalid")
+        if not isinstance(mark.get("note", ""), str):
+            _reject(f"{location} (mark_id={mark_id!r}) note must be a string when supplied")
     return width, height, image_hash
 
 

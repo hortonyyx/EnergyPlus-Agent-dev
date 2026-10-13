@@ -287,12 +287,23 @@ def summary(report):
     }
 
 
-def save_report(folder, report, run):
+def save_report(folder, report, run, *, tool_report=False):
     path = folder / "regularization.json"
     payload = (json.dumps(report, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     path.write_bytes(payload)
-    return {"file": path.relative_to(run).as_posix(),
-            "sha256": hashlib.sha256(payload).hexdigest(), **summary(report)}
+    result = {"file": path.relative_to(run).as_posix(),
+              "sha256": hashlib.sha256(payload).hexdigest(), **summary(report)}
+    if folder.parent == run / "plan_drafts":
+        # Failed raw drafts need not contain an adopted regularization field.
+        # The existing report reader verifies the sidecar's saved binding.
+        result["read"] = {"tool": "inspect_plan_draft", "arguments": {
+            "draft_id": folder.name, "field": "report:/regularization"}}
+    elif tool_report:
+        from scripts.tool_scripts.bim_agent_replies import compact_reply, report_reference
+        saved = compact_reply(run, "regularization_report", report, force=True)
+        reference = report_reference(saved['details_file'], saved['details_sha256'], '', report)
+        result.update({key: reference[key] for key in ('report_file', 'report_sha256', 'read')})
+    return result
 
 
 def compact_plan_input(record):

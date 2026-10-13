@@ -34,15 +34,6 @@ _OPENING_FIELDS = frozenset({
     "id", "kind", "p1", "p2", "z", "source_refs", "state", "assumptions",
 })
 _SEED_FIELDS = frozenset({"id", "point", "role", "source_refs", "role_evidence"})
-_AUTO_METHOD = (
-    "Plan spaces were compiled deterministically from the declared footprint "
-    "and physical partition segments; no snapping, extension, clipping, or "
-    "inferred partition was applied."
-)
-_AUTO_CALIBRATION = (
-    "Pixel-to-world calibration was supplied by the caller and was not "
-    "independently verified."
-)
 
 
 class OpeningHostError(ValueError):
@@ -209,10 +200,6 @@ def _describe_residual(kind: str, geometry: Any, partitions: list[dict], footpri
                 nearest_point_pixel=[projected.x, projected.y]))
     return (f"polygonize produced {kind}: {details}; nearest disconnected endpoints: {nearest}; "
             "coordinates unchanged; no automatic snapping")
-
-
-def _append_once(items: list[str], value: str) -> list[str]:
-    return items if value in items else [*items, value]
 
 
 def compile_plan_partition(
@@ -583,8 +570,8 @@ def compile_plan_partition(
 
     world_footprint = Polygon(world_footprint_ring)
     min_x, min_y, max_x, max_y = world_footprint.bounds
-    assumptions = _append_once(assumptions, _AUTO_METHOD)
-    unresolved = _append_once(unresolved, _AUTO_CALIBRATION)
+    # Machine method/calibration facts live in metadata and geometry.notes.
+    # They are not authored building assumptions or tasks for the model to erase.
     proposal = {
         "geometry": {
             "schema_version": "2",
@@ -598,7 +585,7 @@ def compile_plan_partition(
             "openings": wall_openings,
             "notes": (
                 "Deterministic plan partition compilation from explicit original-image pixels. "
-                "Calibration and drawing fidelity remain unverified."
+                "Caller-supplied calibration and drawing fidelity remain independently unverified."
             ),
         },
         "assumptions": assumptions,

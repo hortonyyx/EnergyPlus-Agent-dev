@@ -20,6 +20,13 @@ def server(run, **kwargs):
     return servers[0]
 
 
+def response_body(reply):
+    assert not getattr(reply, 'isError', False)
+    if getattr(reply, 'structuredContent', None) is not None:
+        return reply.structuredContent
+    return json.loads(getattr(reply, 'content', reply)[0].text)
+
+
 def test_default_readonly_and_coordinator_hide_replay_handlers(tmp_path):
     run = _run_with_one_image(tmp_path)
     for readonly in (False, True):
@@ -120,6 +127,142 @@ def test_row_order_is_stable_across_rounding_boundaries_and_input_order():
     assert s == before
     s['spaces'].reverse()
     assert build_public_names(s) == result
+
+
+def test_summary_inspection_is_opt_in_and_never_selects_or_changes_source(tmp_path):
+    from scripts.tool_scripts import bim_agent_saved_result as saved
+    run = _run_with_one_image(tmp_path)
+    toolkit = Toolkit(run)
+    candidate = toolkit.build(json.loads(_two_room_proposal()))['candidate']
+    api = server(run, enabled_only=True)
+    source = run/candidate/'source_model.json'
+    original = source.read_bytes()
+    with patch.object(saved, 'candidate_review', side_effect=AssertionError('not requested')):
+        default = asyncio.run(api.call_tool('inspect_candidate', {'candidate':candidate}))
+        assert 'current_checks' not in response_body(default)
+    with patch.object(Toolkit, 'delivery', side_effect=AssertionError('inspection must not deliver')):
+        reply = asyncio.run(api.call_tool('inspect_candidate', {'candidate':candidate, 'include_geometry':False}))
+    checks = response_body(reply)['current_checks']
+    assert checks['source']['status'] == 'current'
+    assert checks['source']['validation_status'] == 'pass'
+    assert checks['floors']['complete_building'] is None
+    assert checks['opening_review']['scope_status_counts']['not_reviewed'] > 0
+    assert checks['height_coverage']['summary']['exterior_count'] == 0
+    assert checks['claims']['status'] == 'projected_current'
+    assert checks['drawing_fidelity'] == 'not_evaluated'
+    assert checks['calibration_independently_verified'] is False
+    assert source.read_bytes() == original
+    assert not (run/'delivery_selection.json').exists()
+    assert not (run/'delivery.json').exists()
+
+
+def test_summary_inspection_preserves_stale_calibration_and_original_evidence(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    toolkit = Toolkit(run)
+    candidate = toolkit.build(json.loads(_two_room_proposal()))['candidate']
+    source = json.loads((run/candidate/'source_model.json').read_bytes())
+    image = next(iter(toolkit.manifest['images']))
+    anchors = [[0,0],[10,10]]
+    toolkit._save_calibration(candidate=candidate, image=image, floor_id='F1',
+        x_anchors=anchors, y_anchors=anchors, basis='synthetic observed axes',
+        metadata={'source_model_sha256':source['source_model_sha256']})
+    folder = run/'opening_reviews'; folder.mkdir()
+    path = folder/'review_001.json'
+    path.write_text(json.dumps({'source_model_sha256':source['source_model_sha256'],
+        'review_file':'opening_reviews/review_001.json',
+        'review_scope':{'floor_id':'F1','kind':'window','coverage':'complete'},
+        'image':{'name':image,'sha256':toolkit.manifest['images'][image]['sha256']},
+        'location_check':{'status':'checked_against_supplied_plan_boxes',
+                          'x_anchors':anchors,'y_anchors':anchors},
+        'conclusion':'consistent_with_supplied_observations','findings':[]}), encoding='utf-8')
+    original = path.read_bytes()
+    api = server(run, enabled_only=True)
+    args = {'candidate':candidate, 'include_geometry':False}
+    first = response_body(asyncio.run(api.call_tool('inspect_candidate',args)))['current_checks']
+    assert first['opening_review']['current_reviews_count'] == 1
+    toolkit._save_calibration(candidate=candidate, image=image, floor_id='F1',
+        x_anchors=[[0,0],[10,11]], y_anchors=anchors, basis='corrected synthetic axes',
+        metadata={'source_model_sha256':source['source_model_sha256']})
+    second = response_body(asyncio.run(api.call_tool('inspect_candidate',args)))['current_checks']
+    assert second['opening_review']['current_reviews_count'] == 0
+    assert second['opening_review']['stale_reviews_count'] == 1
+    assert path.read_bytes() == original
+    # The previous inspection remains an immutable, readable account of its time.
+    read = first['details']['read']
+    page = asyncio.run(api.call_tool(read['tool'],read['arguments']))
+    assert response_body(page)['sha256'] == first['details']['report_sha256']
+
+
+def test_summary_inspection_bounds_large_notes_and_keeps_exact_totals_and_reads(tmp_path):
+    import hashlib
+    from scripts.tool_scripts.bim_agent_replies import read_report
+    run = _run_with_one_image(tmp_path)
+    toolkit = Toolkit(run)
+    proposal = json.loads(_two_room_proposal())
+    proposal['unresolved'] = [f'question-{i}: ' + 'uncertain evidence ' * 100 for i in range(250)]
+    candidate = toolkit.build(proposal)['candidate']
+    api = server(run, enabled_only=True)
+    reply = asyncio.run(api.call_tool('inspect_candidate', {'candidate':candidate, 'include_geometry':False}))
+    body = response_body(reply)
+    assert len(json.dumps(body,ensure_ascii=False).encode()) <= 24000
+    raw = (run/body['details_file']).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == body['details_sha256']
+    full = json.loads(raw)
+    assert len(full['current_checks']['notes']['unresolved']) == 250
+    assert body['current_checks']['notes']['unresolved_count'] == 250
+    # Reading details follows the existing bounded/hash-checked MCP contract.
+    read = read_report(run, body['details_file'],0,10,json_pointer='/current_checks/notes/unresolved')
+    assert read['sha256'] == body['details_sha256']
+    original = raw
+    toolkit.revise(candidate,json.dumps([{'op':'set_notes','assumptions':[],'unresolved':[]}]))
+    assert (run/body['details_file']).read_bytes() == original
+
+
+def test_summary_inspection_reprojects_claim_decisions_without_height_cache_reuse(tmp_path):
+    from tests.test_bim_claim_state import window_claim, window_check
+    from tests.test_bim_claims import setup_run
+    from src.agent.execution import bim_claim_state
+    run, toolkit = setup_run(tmp_path)
+    row = window_claim(toolkit)
+    api = server(run, enabled_only=True)
+    args = {'candidate':'seed','include_geometry':False}
+    with patch.object(bim_claim_state, 'project', wraps=bim_claim_state.project) as projected:
+        first = response_body(asyncio.run(api.call_tool('inspect_candidate',args)))['current_checks']
+        assert projected.call_count == 1
+    assert first['claims']['state_counts']['pending_application'] == 1
+    assert first['height_coverage']['openings_with_issues_count'] > 0
+    toolkit.confirm_claims('seed', json.dumps([window_check(row['id'])]))
+    confirmed = response_body(asyncio.run(api.call_tool('inspect_candidate',args)))['current_checks']
+    assert confirmed['claims']['state_counts']['confirmed_unchanged'] == 1
+    assert confirmed['claims']['adopted_unapplied_count'] == 0
+    assert confirmed['claims']['claims_with_unresolved_count'] == 1
+    assert confirmed['claims']['issues_count'] == 1
+    height_cache = (run/'seed/height_coverage.json').read_bytes()
+    toolkit.decide_claim(row['id'],'retracted','source interpretation withdrawn')
+    retracted = response_body(asyncio.run(api.call_tool('inspect_candidate',args)))['current_checks']
+    assert retracted['claims']['state_counts']['retracted'] == 1
+    assert retracted['claims']['claims_with_unresolved_count'] == 0
+    assert retracted['claims']['issues_count'] == 0
+    assert retracted['claims']['retracted_claims_count'] == 1
+    # The on-demand inspection did not overwrite/reuse the older height table.
+    assert (run/'seed/height_coverage.json').read_bytes() == height_cache
+    assert retracted['drawing_fidelity'] == 'not_evaluated'
+    assert not (run/'delivery_selection.json').exists()
+
+
+def test_summary_inspection_without_source_still_has_exact_readable_snapshot(tmp_path):
+    run = _run_with_one_image(tmp_path)
+    candidate = Toolkit(run).build(json.loads(_two_room_proposal()))['candidate']
+    (run/candidate/'source_model.json').unlink()
+    api = server(run, enabled_only=True)
+    reply = response_body(asyncio.run(api.call_tool('inspect_candidate',
+        {'candidate':candidate,'include_geometry':False})))
+    checks = reply['current_checks']
+    assert checks['status'] == 'source_not_available'
+    assert checks['details']['report_sha256'] == reply['details_sha256']
+    read = checks['details']['read']
+    page = response_body(asyncio.run(api.call_tool(read['tool'],read['arguments'])))
+    assert page['sha256'] == reply['details_sha256']
 
 
 def test_centroid_rows_do_not_chain_across_more_than_tolerance():

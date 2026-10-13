@@ -80,6 +80,25 @@ def _signed_area(ring: list[list[float]]) -> float:
     ) / 2
 
 
+def test_compiler_facts_do_not_create_authored_tasks_and_survive_export(tmp_path):
+    plan = _plan()
+    before = copy.deepcopy(plan)
+    proposal, metadata = compile_plan_partition(plan, image_size=(100, 100), image_name='plan')
+    assert proposal['assumptions'] == plan['assumptions']
+    assert proposal['unresolved'] == plan['unresolved']
+    assert metadata['calibration']['status'] == 'caller_supplied_not_independently_verified'
+    assert metadata['method']['snap'] is False
+    target = tmp_path / 'source'
+    result = export_source_proposal(proposal, target, provenance={'plan_metadata': metadata})
+    assert result['source_geometry_ready']
+    source = json.loads((target / 'source_model.json').read_bytes())
+    assert source['generation']['unresolved'] == plan['unresolved']
+    assert source['generation']['provenance']['plan_metadata'] == metadata
+    assert 'calibration' in source['generation']['notes']
+    assert 'unverified' in source['generation']['notes']
+    assert plan == before
+
+
 def test_internal_preflight_omits_only_inert_audit_and_preserves_public_save_isolation():
     plan = _plan()
     plan['partitions'][0]['pixels'] = plan['partitions'][0].pop('points')
@@ -342,7 +361,9 @@ def test_compiled_proposal_exports_as_ready_source_bim(tmp_path):
         "W_north", "D_internal", "D_south",
     }
     assert source["opening_hosts"]["D_internal"]
-    assert source["generation"]["unresolved"][-1].endswith("independently verified.")
+    assert source["generation"]["unresolved"] == plan["unresolved"]
+    assert source["generation"]["provenance"]["partition_metadata"]["calibration"]["status"] == (
+        "caller_supplied_not_independently_verified")
 
 
 @pytest.mark.parametrize("basis", ["observed", "inferred", "unknown"])

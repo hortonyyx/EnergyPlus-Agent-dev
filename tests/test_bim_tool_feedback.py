@@ -7,7 +7,7 @@ import pytest
 from mcp.server.fastmcp import FastMCP
 from scripts.tool_scripts.bim_agent_feedback import resolve_image_name
 from scripts.tool_scripts.run_bim_agent import Toolkit, serve
-from tests.test_bim_agent_tools import _run_with_one_image, _add_image, _server_session
+from tests.test_bim_agent_tools import _run_with_one_image, _add_image, _server_session, _two_room_proposal, _json_result
 
 
 def test_unique_image_aliases_and_ambiguous_names():
@@ -64,4 +64,38 @@ def test_plan_format_failure_supplies_correct_minimum_without_edit(tmp_path):
         assert "missing changes, reason, source_refs" in result.structuredContent['error']
         assert '"changes": {"points"' in result.structuredContent['repair_hint']
         assert not list(run.glob("candidate_*"))
+    asyncio.run(scenario())
+
+
+def test_wall_position_failure_points_to_exact_field_and_correct_reference(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        built = Toolkit(run).build(json.loads(_two_room_proposal()))
+        assert built['source_geometry_ready']
+        path = run / built['candidate'] / 'source_model.json'
+        original = path.read_bytes()
+        source = json.loads(original)
+        wall = next(row for row in source['boundaries'] if row['geometry_type'] == 'wall'
+                    and len({v[0] for v in row['vertices']}) == 1)
+        position = dict(id='wall-check', boundary_id=wall['id'], axis='x', lengths=[1], unit='m',
+                        origin_m=wall['vertices'][0][0], direction=1, node=0,
+                        basis='explicit representative plane', source_refs=['plan.png: datum'])
+        async with _server_session(run, readonly=False) as session:
+            result = await session.call_tool('check_wall_dimensions', {
+                'candidate': built['candidate'], 'positions_json': json.dumps([position])})
+            assert result.isError
+            error = result.structuredContent
+            assert "positions[0] (id='wall-check'): missing fields: offset_m" in error['error']
+            assert 'get_bim_reference(topic="wall_dimensions")' in error['repair_hint']
+            assert 'plan_partition' not in error['repair_hint']
+            saved = json.loads((run / error['details_file']).read_bytes())
+            assert saved['error'] == error['error']
+            assert path.read_bytes() == original
+            # An explicit zero is accepted; the tool did not guess it on failure.
+            checked = _json_result(await session.call_tool('check_wall_dimensions', {
+                'candidate': built['candidate'], 'positions_json': json.dumps([{**position, 'offset_m': 0}])}))
+            assert checked['wall_placement']['checked_positions'] == 1
+            assert checked['wall_placement']['geometry_changed'] is False
+        assert path.read_bytes() == original
+        assert len(list(run.glob('candidate_*'))) == 1
     asyncio.run(scenario())

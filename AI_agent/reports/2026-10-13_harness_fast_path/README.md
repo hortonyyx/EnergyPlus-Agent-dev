@@ -1,6 +1,6 @@
-# 强模型与10分钟交付路径
+# Harness 充分性、必要性与强模型自主交付
 
-用户在当前会话明确取消模型国别/规模上限，允许 Astra、6.1 Sol 等 work model，并授权“按这个目标做”。最新澄清：**10分钟是优化目标，不是硬截止；先不强制限制整案时间。** 该授权覆盖本轮实施、必要验证与目标案例冷启动，不扩展到收费API回退、DeepSeek或其他输入路线。
+用户在当前会话明确取消模型国别/规模上限，允许 Astra、6.1 Sol 等 work model，并授权“按这个目标做”。最新明确：**提速不是主要目的，先让 harness 充分且必要，使高智力模型能快速稳定交付。10分钟是优化目标，不是硬截止；不强制限制整案时间。** 该授权覆盖本轮实施、必要验证与目标案例冷启动，不扩展到收费API回退、DeepSeek或其他输入路线。
 
 ## 方案与验收
 
@@ -267,3 +267,66 @@ seed接线已完成：可直接在`space_seeds[].role_evidence`声明role/basis/
 独审最终无剩余P1/P2，记录为cache根`v75-image-projection-independent-review.json`（SHA55247476f5c3a7509614d318000c4d8b6977f37c7020d061f17f5b9befc66d9e）及`v75-opening-revalidation-independent-review.json`（SHAd3bbc99b0531388b51bcdb7f797485036824b40f229872e9b3a1a35eb788c8b7）。真实v74末次请求event545的只读投影66图/55SHA→4图/4SHA；62个旧图块变精确引用，文本/tool协议和完整history哈希不变，904个实际读取文件不变。未读取GT或调用模型，不能据此推算整案耗时。
 
 实现`73362479`已登记runtime v15/domain v75（20261014）并verify，所有旧registry版本记录语义保持不变。登记后原样执行11个正式本地节点全部通过，37.47秒：frozen catalogs/role边界、notes→use→move→restore→notes、Runtime opt-in工具版本哈希、完整交付与完成后恢复。XML：`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v75/945b04447368/results.xml`。正式节点与既有定向结果有交集，不相加充数；无真实模型调用。接下来冻结源码/配置/HEAD后启动v75首轮。
+
+## 第七轮真实冷启动：v75有效交付，CLI后置报告异常
+
+冻结`38cf36cd974b7a7ed537f9636491a449bb6025b4`，runtime v15/domain v75、Astra/high、图片最近1批、无整案硬时限。2026-10-13 16:13:47.723095 UTC启动；run为`D:/Sim-BIM-Agent/runs/sm25-fast-astra-v75-20261014-1`。474源码/registry/config、HEAD及六图全程不变；没有开发者建模干预。
+
+| 项目 | 结果 |
+|---|---|
+| 首次两层源BIM | 464.568／473.722秒；首build各遇端点dangle后自主修订 |
+| 首次整楼 | 535.289秒（8分55秒），candidate03 |
+| 高度证据 | 1074.528秒时34/34 located_confirmed |
+| 正式交付 | 1823.003秒，finish_bim主动选择candidate04；完成后0请求、0工具 |
+| 完整进程耗时 | 1852.046秒（30分52秒），比v74少23.9%；10分钟目标未达 |
+| 运行与进程边界 | receipt completed、delivery有效、六handoff hash匹配；CLI exit1，后置行为报告崩溃 |
+| 请求与工具 | 28请求／27完整响应／125工具，1次响应流错误按原策略恢复 |
+| 已知用量小计 | input4,024,554、output43,272、合计4,067,826，cache27,136；1失败请求usage未知，订阅费用未知 |
+
+runtime1812.914秒＝model1487.813＋tool182.123＋other142.978。CLI的异常发生在`write_behaviour_report→summarise`：合法有界`claim_transaction.entries`回执是引用字典，统计器仍当list迭代字符串并调用`.get`。交付文件没有因此失效，但不能称端到端干净退出，也不能以此轮宣称稳定。
+
+图片策略真实wire累计134图（55种SHA），累计1291个`archived_image`是文本引用，不能混算图片。22次本地回读返回注册原字节，70个带图执行均有精确送达记录。只保留1批也促成重复回读：固定行为对照前19次回读，保留2批可同时看12张，3批可看19张；累计引用/单请求峰值从1批60/7变2批116/13、3批168/17。此为可见性反事实，不是速度保证。图片减少后，末wire仍有约863,773B工具回执、157,409B调用声明、116,316字符加密推理；没有`previous_response_id`隐式历史。文本历史仍是明确负担。
+
+物理质量在现行Lite已核范围通过：29空间、61开口与宿主、30门连接匹配，47邻接在原稿→grid→装配→交付全等；3144源坐标在10cm格。房界≤5／5–10／10–30／>30cm为17／4／8／0；开口沿墙38／23／0／0；外部高度34／0／0／0。raw strict原31severe完整保留；原稿按既有参考面规则最大残差0.4002mm，网格最大坐标变换F1 4.377cm/F2 5cm，另1处F1 Ediv2从y16.0→16.1作跨层10cm规整。03→04全部物理数组全等，仅4条notes。29用途均inferred且有依据/假设，内门高度/开关状态等未独评。六张叠图已目视核验；浏览器实际渲染与F2切换成功，本次捕获warn/error为空，临时页面及本地服务已关闭。
+
+独评前后原run5138文件与GT未变。质量审计`sm25-fast-astra-v75-1-evaluation/independent-quality-audit.json`（SHA6f2c5f23c259298c2445c975705af9c1bbec7319521b23843a5c599e2e32114f）；生命周期、图片和CLI边界在case目录独立审计中。
+
+本轮新增明确减负项：首次4份开口回查的61marks中53项只缺可空`note`键，原位置信息、ID、空间关联、basis齐全；补note后的所有其他观察字段全等，却增加2个模型请求、124.943秒生成。v74也有同样问题（49/61缺note）。将note设为可省补充文本、改善精确字段错误与reference路由，不改物理检查。尺寸链direction则必须明确，因为+1/-1改变真实高度；不以默认值伪造依据。另修行为统计的有界报告解析。v75其余两例未运行。曾准备下一轮6.1 Sol/high、图片3批与文本软压缩组合；用户进一步明确目标后，该候选已搁置，未启动。
+
+## 2026-10-14：以充分且必要重新核对路径
+
+用户明确“提速不是主要目的”，先让 harness 充分且必要，使高智力模型能够快速稳定交付。按信息是否可用、模型要求是否服务实际判断、修复及完成条件是否清楚检查现有路径，不把缩小上下文、切模型或减少检查本身当作进展。10分钟保留为软优化指标；没有整案硬截止。
+
+已准备但未执行的速度候选配置保存在`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/v76-speed-candidate-not-launched.json`，从repo移除时已核副本SHA一致。下一次实测配置待下列完整路径检查后确定；本节不构成该候选已启用或已验证的声明。
+
+已完成并独审的修复：
+
+| 项目 | 可观察结果 | 验证边界 |
+|---|---|---|
+| 开口回查可省note、精确字段错误、正确reference | v75原四份请求61 marks不补写即可通过，完整报告与后来的真实成功报告相等 | 12项定向通过；cache重放0.743秒，原5138文件不变；无模型调用 |
+| 行为报告读取有界entries引用 | 同run/hash绑定的完整报告供统计，模型实际回执不被改写；缺失或篡改仍拒绝 | 30项有效检查；v75日志重放50.656秒，4事务56项与34条已记录claim恢复，原文件不变；原CLI exit1保留 |
+| 图片与文本投影组合 | 保留工具配对、当前状态、未送达保护和精确回读/恢复 | 1项组合检查通过；只证明程序性质，未证明模型能自主找到被压缩的证据 |
+
+相关cache证据：`v76-opening-review-replay-summary.json`、`v76-opening-review-independent-review.json`、`v76-behaviour-replay-summary.json`、`v76-behaviour-independent-review.json`、`v76-combined-context-test-evidence.json`。
+
+只读审计发现旧图片“仍在磁盘”不足以保证可用：真实v75检查点有60个图片身份/55种字节，组合压缩后46个身份的所有出现都退出模型请求。现已通过`read_context_image(action="list")`增加有界目录，复用原登记表和精确读取；明确旧候选来源，目录列出不算图片已送达。15项定向通过7.13秒，真实检查点8页列全60身份（最大页9046B），此前丢失的46身份全部可发现，4张旧检查图从目录精确读回，原读取596文件和完整历史hash不变。独审通过；`v76-image-directory-replay-summary.json`与`v76-image-directory-independent-review.json`留证。
+
+Domain后段检查不能整体删除：v75的27个空间关系样本与墙线检查有具体图纸判断，后者还报告了跨层规整偏差。应补足当前候选的只读状态摘要，按已知问题和未决判断选择检查，澄清finish的终止语义；不要求遍历全部工具，不把状态摘要当独立保真证明。与此同时补齐regularization回执的现有读取参数、墙面检查精确缺字段与reference反馈，保留会改变几何含义的direction/offset显式要求。
+
+工具反馈补全已独审：成功/失败草稿回执提供既有`inspect_plan_draft(report:/regularization)`及hash绑定；失败装配完整报告通过既有immutable `tool_reports`按需读，不只给侧车文件名；墙位置错误精确报告对象与缺字段，并指向`wall_dimensions`，offset仍必填。21项定向通过（首20项11.80秒、新增失败装配1项6.50秒，未重跑旧项），含真实stdio读取、原对象不变与篡改拒绝。证据`v76-feedback-discovery-implementation-audit.json`、`v76-feedback-independent-review.json`、`v76-failed-assembly-independent-review.json`。
+
+编译器不再自动把自身方法与校准未独验的说明追加进作者assumptions/unresolved；事实保留在metadata和geometry.notes，经装配/source generation继续保存。作者文本不自动清理，旧运行不改。收尾指引改为围绕scope/current candidate/具体剩余问题，明确可用信息不足与尚未完成工作的区别，以及finish可能直接结束运行。3项编译/导出/两层路径有效通过（旧测试关于机器说明位于unresolved末尾的断言已按新职责更新），6项guidance接线通过；独审`v76-finishing-compiler-independent-review.json`。这不提高独立保真等级。
+
+当前候选摘要已实现：显式`inspect_candidate(include_geometry=false)`按需返回整候选当前/过期开口回查、楼层覆盖、空间关系、立面计数、claim与高度状态以及作者未决项，复用既有投影；默认几何查看不自动触发。完整详情单一hash绑定、摘要仍在24KB内；不重跑像素/precision生成器、不产生质量通过门槛。有效声明的未决项可见，已撤回内容及已成功修复的失败历史不升为当前待办。未生成source的候选同样有可读详情。7项有效检查通过，含真实stdio交付回归和缺source详情跟读；最后窄修复独审进行中。v75原candidate04纯投影2.881秒，5138原文件不变，保留34当前高度和6项窗宽提示，并未把提示升级成独立质量失败。证据`v76-current-checks-final-files.json`及`v76-current-checks-v75-readonly-replay.json`。
+
+下一轮配置已准备并通过配置检查：[run_harness_v76.json](run_harness_v76.json)。
+
+| 配置项 | 安排 |
+|---|---|
+| 模型/模式 | Astra/high，single_model，ChatGPT订阅；保持v75模型 |
+| 输入 | sm25原六PNG，两层平面与四立面；不提供旧稿或GT |
+| 上下文 | 保持v75图片1批和自动文本压力策略；本轮不启用搁置的128k/3批/Sol组合 |
+| 资源 | 48模型请求、240工具、64候选；无总token与整案时间硬限；600秒仅外部指标 |
+| 验收 | 完整自主交付、CLI干净退出、独立物理/宿主/连通质量分别检查；合格后同冻结配置再两次冷启动，有限样本如实报告 |
+
+尚未启动v76真实模型，未证明可重复稳定；桌面未更新。

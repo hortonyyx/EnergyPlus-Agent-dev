@@ -748,6 +748,38 @@ def _claim_detail(step: dict[str, Any], run: Path, saved: dict[str, dict]) -> di
             "saved_sha256": saved_row.get("_saved_sha256") if saved_row else None}
 
 
+def _transaction_result(step: dict[str, Any], run: Path) -> dict[str, Any]:
+    """Read full entries for analysis without rewriting the model-visible reply."""
+    data = step.get("result_data") or {}
+    entries = data.get("entries")
+    if isinstance(entries, list) and all(isinstance(row, dict) and "status" in row for row in entries):
+        return data
+    if "entries" not in data and not data.get("report_view"):
+        return data
+    relative, expected = data.get("details_file"), data.get("details_sha256")
+    if not isinstance(relative, str) or not isinstance(expected, str):
+        raise ValueError("claim_transaction projected entries lack a saved report reference")
+    root = run.resolve()
+    folder, path = (root / "tool_reports").resolve(), (root / relative).resolve()
+    if not folder.is_relative_to(root) or path.parent != folder or path.suffix != ".json":
+        raise ValueError("claim_transaction report must remain in the run's tool_reports directory")
+    raw = path.read_bytes()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != expected or not path.stem.endswith("_" + actual):
+        raise ValueError("claim_transaction saved report hash mismatch")
+    result = json.loads(raw)
+    entries = result.get("entries") if isinstance(result, dict) else None
+    failed_without_entries = isinstance(result, dict) and "entries" not in result and step.get("is_error")
+    if not failed_without_entries and (not isinstance(entries, list) or not all(
+            isinstance(row, dict) and "status" in row for row in entries)):
+        raise ValueError("claim_transaction saved report needs a complete entries list")
+    for key in ("id", "status", "candidate", "saved_candidate"):
+        if key in data and data[key] != result.get(key):
+            raise ValueError(f"claim_transaction saved report differs from returned {key}")
+    step["transaction_entries_source"] = {"file": path.relative_to(root).as_posix(), "sha256": actual}
+    return result
+
+
 def summarise(record: dict[str, Any]) -> dict[str, Any]:
     steps = [step for invocation in record["invocations"] for step in invocation["steps"]]
     tools = Counter(step["tool"] for step in steps)
@@ -761,10 +793,10 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
         saved[row["id"]] = dict(row, _saved_file=path.relative_to(run).as_posix(),
                                _saved_sha256=hashlib.sha256(raw).hexdigest())
     transactions = [step for step in steps if step["tool"] == "claim_transaction"]
-    transaction_entries = [entry for step in transactions
-                           for entry in (step.get("result_data") or {}).get("entries", [])]
+    transaction_results = {id(step): _transaction_result(step, run) for step in transactions}
+    transaction_entries = [entry for data in transaction_results.values() for entry in data.get("entries", [])]
     for step in steps:
-        data = step.get("result_data") or {}
+        data = transaction_results.get(id(step), step.get("result_data") or {})
         saved_bim = read_saved_result(data, tool=step["tool"], run=run)
         ready = saved_bim.get("source_geometry_ready", data.get("source_geometry_ready"))
         call_error = bool(step.get("is_error"))
@@ -798,7 +830,7 @@ def summarise(record: dict[str, Any]) -> dict[str, Any]:
     for step in transactions:
         if step.get("is_error") or not step.get("delivered_to_model", True):
             continue
-        for entry in (step.get("result_data") or {}).get("entries", []):
+        for entry in transaction_results[id(step)].get("entries", []):
             if entry.get("recorded") and entry.get("claim_id") in saved:
                 claims.append(_claim_detail({**step, "arguments": {},
                     "result_data": {"id": entry["claim_id"]}}, run, saved))

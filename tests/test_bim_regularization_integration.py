@@ -1,5 +1,6 @@
 """Q1 entry points preserve inputs, reject unsafe saves and expose their audit."""
 import copy
+import asyncio
 import hashlib
 import json
 import pytest
@@ -13,8 +14,93 @@ from scripts.tool_scripts.bim_agent_regularization import (
 )
 from scripts.tool_scripts.bim_agent_delivery_display import render_regularization_html
 from src.agent.geometry.plan_partition import compile_plan_partition
-from tests.test_bim_agent_tools import _run_with_one_image, _two_room_proposal
+from tests.test_bim_agent_tools import _run_with_one_image, _two_room_proposal, _server_session, _json_result
 from tests.test_bim_agent_plan_partition import example
+
+
+@pytest.mark.parametrize('rejected', [False, True])
+def test_draft_regularization_reference_reads_exact_bound_report(tmp_path, rejected):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        plan = example()
+        if rejected:
+            plan['partitions'][0]['points'][-1] = [6, 6]
+        built = Toolkit(run).build_plan('plan.png', json.dumps(plan))
+        assert built['source_geometry_ready'] is not rejected
+        reference = built['regularization']
+        target = run / reference['file']
+        original = target.read_bytes()
+        full = json.loads(original)
+        plan_path = run / built['plan_input']['plan_file']
+        original_plan = plan_path.read_bytes()
+        read = reference['read']
+        assert read == {'tool': 'inspect_plan_draft', 'arguments': {
+            'draft_id': plan_path.parent.name, 'field': 'report:/regularization'}}
+        async with _server_session(run, readonly=False) as session:
+            response = _json_result(await session.call_tool(read['tool'], read['arguments']))
+            canonical = json.dumps(full, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()
+            assert response['reference']['sha256'] == hashlib.sha256(canonical).hexdigest()
+            assert response['reference']['read'] == read
+            status = _json_result(await session.call_tool(read['tool'], {
+                **read['arguments'], 'field': 'report:/regularization/status'}))
+            assert status['value'] == full['status']
+            assert len(json.dumps(response).encode()) < 24000
+            assert target.read_bytes() == original and plan_path.read_bytes() == original_plan
+            # The report file is not authorized merely by its directory/name.
+            target.write_bytes(original + b' ')
+            changed = await session.call_tool(read['tool'], read['arguments'])
+            assert changed.isError and 'regularization report changed' in changed.structuredContent['error']
+            target.write_bytes(original)
+            record_path = target.with_name('input.json')
+            record = json.loads(record_path.read_bytes())
+            record['regularization_report']['file'] = '../regularization.json'
+            record_path.write_text(json.dumps(record), encoding='utf-8')
+            wrong_path = await session.call_tool(read['tool'], read['arguments'])
+            assert wrong_path.isError and 'no bound hash' in wrong_path.structuredContent['error']
+        assert plan_path.read_bytes() == original_plan
+    asyncio.run(scenario())
+
+
+def test_failed_assembly_regularization_reference_reads_full_immutable_report(tmp_path):
+    async def scenario():
+        run = _run_with_one_image(tmp_path)
+        toolkit = Toolkit(run)
+        floors = []
+        for index, coordinates in enumerate(((6.4,), (6.0, 7.2))):
+            plan = example()
+            plan['partitions'] = [{'id': f'wall-{i}', 'points': [[x, 1], [x, 7]],
+                                   'source_refs': ['plan.png: synthetic wall']}
+                                  for i, x in enumerate(coordinates)]
+            plan['openings'][0]['p1'][0] = coordinates[0]
+            plan['openings'][0]['p2'][0] = coordinates[0]
+            built = toolkit.build_plan('plan.png', json.dumps(plan))
+            assert built['source_geometry_ready']
+            record = built['plan_input']
+            floors.append(dict(draft_id=record['plan_file'].split('/')[1],
+                               expected_plan_sha256=record['plan_sha256'], floor_id=f'L{index + 1}',
+                               z_floor=index * 3, evidence='synthetic cross-storey constraint'))
+        sources = {path: path.read_bytes() for path in run.glob('candidate_*/source_model.json')}
+        async with _server_session(run, readonly=False) as session:
+            result = _json_result(await session.call_tool('assemble_plan_bim', {
+                'floors_json': json.dumps(floors)}))
+            assert result['source_geometry_ready'] is False and result['saved_candidate'] is None
+            reference = result['regularization']
+            raw = (run / reference['file']).read_bytes()
+            assert reference['report_file'].startswith('tool_reports/')
+            assert (run / reference['report_file']).read_bytes() == raw
+            assert reference['sha256'] == reference['report_sha256'] == hashlib.sha256(raw).hexdigest()
+            read = reference['read']
+            reply = _json_result(await session.call_tool(read['tool'], read['arguments']))
+            canonical = json.dumps(json.loads(raw), sort_keys=True, ensure_ascii=False,
+                                   separators=(',', ':')).encode()
+            assert reply['reference']['sha256'] == hashlib.sha256(canonical).hexdigest()
+            status = _json_result(await session.call_tool(read['tool'], {
+                **read['arguments'], 'json_pointer': '/status'}))
+            assert status['value'] == 'rejected'
+            assert len(json.dumps(reply).encode()) < 24000
+        assert len(list(run.glob('candidate_*'))) == 2
+        assert all(path.read_bytes() == original for path, original in sources.items())
+    asyncio.run(scenario())
 
 
 def test_new_plan_retains_raw_input_and_full_audit_with_compact_reply(tmp_path):

@@ -65,10 +65,19 @@ def wall_placement_report(source, references, dimensions, *, positions=None,
     if positions is not None and not isinstance(positions, list):
         raise ValueError('positions must be a list')
     seen = set()
-    for position in positions or []:
+    for index, position in enumerate(positions or []):
         fields = {'id','boundary_id','axis','lengths','unit','origin_m','direction','node','offset_m','basis','source_refs'}
-        if not isinstance(position, dict) or set(position) != fields:
-            raise ValueError('position requires ' + ', '.join(sorted(fields)))
+        path = f'positions[{index}]'
+        if not isinstance(position, dict):
+            raise ValueError(f'{path} must be an object')
+        if set(position) != fields:
+            missing, extra = sorted(fields - position.keys()), sorted(position.keys() - fields)
+            details = []
+            if missing:
+                details.append('missing fields: ' + ', '.join(missing))
+            if extra:
+                details.append('extra fields: ' + ', '.join(extra))
+            raise ValueError(f'{path} (id={position.get("id")!r}): ' + '; '.join(details))
         if not isinstance(position['id'], str) or not position['id'].strip() or position['id'] in seen:
             raise ValueError('position id must be nonempty and unique')
         seen.add(position['id'])

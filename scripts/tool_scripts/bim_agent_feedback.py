@@ -135,6 +135,10 @@ def repair_hint(toolkit, tool, arguments, message):
         return "Next: get_bim_reference(topic=\"room_types\") and choose a listed role; inferred uses also need assumptions."
     if "expected exactly one existing id" in message:
         return "Next: inspect_candidate(candidate) for exact IDs; update_window edits windows and update_opening edits doors/passages."
+    if tool == "check_openings":
+        return 'Next: read get_bim_reference(topic="opening_review") for the review format.'
+    if tool == "check_wall_dimensions":
+        return 'Next: read get_bim_reference(topic="wall_dimensions") for the explicit wall reference and position format.'
     return "Next: read get_bim_reference(topic=" + json.dumps(
         "claims" if "claim" in tool else "edits" if "revise" in tool else "plan_partition") + ") for the operation format."
 

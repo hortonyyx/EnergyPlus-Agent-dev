@@ -1,5 +1,6 @@
 """Explicit dimensions check saved positions, without treating missing data as pass."""
 import copy
+import json
 
 import pytest
 
@@ -99,6 +100,32 @@ def test_explicit_chain_node_checks_partial_shared_wall_and_does_not_guess_faces
         wall_placement_report(source, [], [], positions=[{**position, 'offset_m': None}])
     with pytest.raises(ValueError, match='node'):
         wall_placement_report(source, [], [], positions=[{**position, 'node': 3}])
+
+
+@pytest.mark.parametrize('missing,extra', [(True, False), (False, True), (True, True)])
+def test_position_field_error_names_exact_row_and_fields_without_defaulting(missing, extra):
+    source, _, _ = fixture()
+    valid = dict(id='first', boundary_id='b1', axis='x', lengths=[4000], unit='mm',
+                 origin_m=0, direction=1, node=1, offset_m=0,
+                 basis='explicit representative plane', source_refs=['plan.png: 4000'])
+    row = {**valid, 'id': 'second'}
+    if missing:
+        row.pop('offset_m')
+    if extra:
+        row['offset'] = 0
+    before = json.dumps([source, row], sort_keys=True)
+    with pytest.raises(ValueError) as error:
+        wall_placement_report(source, [], [], positions=[valid, row])
+    expected = [text for flag, text in [(missing, 'missing fields: offset_m'),
+                                      (extra, 'extra fields: offset')] if flag]
+    assert str(error.value) == "positions[1] (id='second'): " + '; '.join(expected)
+    assert json.dumps([source, row], sort_keys=True) == before
+
+
+@pytest.mark.parametrize('row', [None, []])
+def test_position_type_error_names_row(row):
+    with pytest.raises(ValueError, match=r'positions\[0\] must be an object'):
+        wall_placement_report(fixture()[0], [], [], positions=[row])
 
 
 @pytest.mark.parametrize('tolerance', [0, -1, float('inf'), float('nan'), True])
