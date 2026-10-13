@@ -50,7 +50,11 @@ def test_example_configuration_has_explicit_external_storage(tmp_path):
     command = argv_for(case)
     assert command[command.index("--images") + 1] == str(inputs / "my-building")
     assert command[command.index("--run-root") + 1] == str(tmp_path / "runs")
-    assert "src.agent.runtime_roles.entry" in command
+    assert "src.agent.runtime_entry" in command
+    assert "--no-time-limit" in command and "--seconds" not in command
+    assert "--no-token-limit" in command
+    assert "--context-tokens" not in command and "--compact-at-tokens" not in command
+    assert command[command.index("--image-history-batches") + 1] == "3"
 
 
 @pytest.mark.parametrize("input_case,expected", [

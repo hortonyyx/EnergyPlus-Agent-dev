@@ -2,32 +2,28 @@
   "schema_version": 1,
   "batch_id": "my-building",
   "approval_required_before_launch": true,
-  "maximum_seconds_per_case": 7200,
+  "maximum_seconds_per_case": null,
   "input_root": "D:/Sim-BIM-Agent/user-inputs",
   "run_root": "D:/Sim-BIM-Agent/runs",
   "cases": [
     {
       "case_id": "my-building",
-      "mode": "role_division",
+      "mode": "single_model",
       "input": "my-building",
       "output": "my-building-001",
       "input_kind": "images",
       "image_kind": "drawings",
-      "scope": "Build a lightweight BIM of this building. Preserve physical spaces, partitions and opening relationships; use 0.1 m regularisation.",
+      "scope": "Build and deliver the complete lightweight source BIM and its viewer from the supplied drawings. Preserve physical rooms, partitions, every opening's host and connectivity. Use one shared building origin and the current 0.1 m regularization policy, retaining original observations, evidence and explicit assumptions. Work with the whole drawing set in this single context. Complete the necessary comparisons, repairs and delivery for this scope; choose diagnostics for specific questions and preserve genuine evidence limits. Do not describe unresolved required work as complete. There is no run-level time deadline.",
       "provider": "chatgpt-subscription",
-      "model": "gpt-6.1-sol",
+      "model": "gpt-6-astra",
+      "reasoning_history": "all",
       "reasoning_effort": "high",
       "output_tokens": 32000,
-      "roles": {
-        "coordinator": {"provider": "chatgpt-subscription", "model": "gpt-6.1-sol", "reasoning_effort": "high", "output_tokens": 32000},
-        "plan_reader": {"provider": "chatgpt-subscription", "model": "gpt-6.1-sol", "reasoning_effort": "high", "output_tokens": 32000},
-        "elevation_reader": {"provider": "chatgpt-subscription", "model": "gpt-6.1-sol", "reasoning_effort": "high", "output_tokens": 32000}
-      },
-      "max_concurrent_readers": 4,
-      "max_candidates": 24,
-      "context_tokens": 200000,
-      "compact_at_tokens": 150000,
-      "limits": {"model_calls": 150, "tool_calls": 500, "seconds": 7200, "tokens": null, "model_retries": 2, "retry_backoff_seconds": 2}
+      "max_candidates": 64,
+      "context_tokens": null,
+      "compact_at_tokens": null,
+      "image_history_batches": 3,
+      "limits": {"model_calls": 48, "tool_calls": 240, "seconds": null, "tokens": null, "model_retries": 1, "retry_backoff_seconds": 2}
     }
   ]
 }
