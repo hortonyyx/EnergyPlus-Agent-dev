@@ -13,7 +13,7 @@
 
 ## 当前实施状态
 
-首版已登记 runtime v11 / domain v69，源码实现提交 `4cbc3edb`，本地MCP节点10项通过（49.76秒）。Sol与Astra两次冷启动均在约6分钟装配整楼，但分别650.23／680.97秒超时兜底，未达到10分钟自主交付。两轮暴露的重复备注、记账浪费和10cm策略接线缺口现已修复，定向验证与独立审阅通过，正在登记冻结后续版本。模型目录包含 gpt-6.1-sol 与 gpt-6-astra，不作为推理或建模成功证据。
+首版 runtime v11 / domain v69、实现 `4cbc3edb` 的Sol与Astra两次冷启动均在约6分钟装配整楼，但分别650.23／680.97秒超时兜底，未达到10分钟自主交付。两轮暴露的重复备注、记账浪费和10cm策略接线缺口现已修复，定向验证与独立审阅通过；后续版本 runtime v12 / domain v70、实现 `79d95dd7` 已登记校验，实际本地MCP节点10项通过（53.94秒），证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v70/cb1493736f74/results.xml`。模型目录包含 gpt-6.1-sol 与 gpt-6-astra，不作为推理或建模成功证据。
 
 本轮真实配置见 [run_sol61.json](run_sol61.json)：sm25原六图，single_model，ChatGPT subscription，gpt-6.1-sol/high；每次48请求/240工具/600秒，无总token上限，64候选上限（避免沿用分工较小上限）；首轮通过后同一冻结版本再做两次冷启动。配置检查已通过，未提供GT、旧稿或答案。
 
