@@ -988,7 +988,9 @@ class Toolkit:
         from src.agent.geometry.plan_draft_view import render_opening_host_failure, render_plan_draft
         from src.agent.geometry.profile_observation_binding import resolve_plan_pixels
         from src.agent.geometry.plan_feedback import resolve_plan_lengths, plan_geometry_feedback, compact_plan_feedback
-        from src.agent.geometry.plan_input import normalize_plan_fields, plan_error_hint
+        from src.agent.geometry.plan_input import (
+            bind_missing_opening_sources, normalize_plan_fields, plan_error_hint,
+        )
         from scripts.tool_scripts.bim_agent_regularization import (
             LEGACY_RULE, compact_plan_input, save_report, selected_rule, selected_grid_step,
         )
@@ -1011,6 +1013,7 @@ class Toolkit:
         diagnostic_plan = None
         regularization = None
         regularization_error = None
+        source_bindings = []
         try:
             plan = json.loads(plan_json)
             input_stage = "field_aliases"
@@ -1022,6 +1025,18 @@ class Toolkit:
             input_stage = "measurement_binding"
             plan, bindings = resolve_plan_pixels(plan, image=image,
                 image_sha256=record["image_sha256"], load_profile=self.load_pixel_profile)
+            input_stage = "input_provenance"
+            plan, source_bindings = bind_missing_opening_sources(plan, image=image_path.name,
+                image_sha256=record["image_sha256"])
+            if source_bindings:
+                source_binding_path = draft / "source_ref_bindings.json"
+                dump(source_binding_path, {"image": image_path.name, "image_sha256": record["image_sha256"],
+                    "scope": "input_provenance_only", "bindings": source_bindings,
+                    "observation_verified": False, "height_evidence_verified": False})
+                record["source_ref_bindings"] = {
+                    "file": source_binding_path.relative_to(self.run).as_posix(),
+                    "sha256": digest(source_binding_path), "count": len(source_bindings),
+                    "scope": "input_provenance_only"}
             diagnostic_plan = copy.deepcopy(plan)
             input_stage = "regularization"
             if selected_rule(self.manifest) != LEGACY_RULE:
@@ -1059,7 +1074,7 @@ class Toolkit:
                 self.log("build_plan_bim", result)
                 return result
 
-        if bindings or length_bindings or aliases or (regularization is not None and regularization_error is None):
+        if source_bindings or bindings or length_bindings or aliases or (regularization is not None and regularization_error is None):
             submitted = draft / "submitted_plan.json"
             submitted.write_bytes(raw_path.read_bytes())
             dump(raw_path, plan)
@@ -1175,6 +1190,15 @@ class Toolkit:
                       "repair_hint": plan_error_hint(diagnostic_plan or plan, remaining_error),
                       "plan_input": compact_plan_input(record), "remaining_seconds": self.remaining_seconds(),
                       "source_geometry_ready": False}
+            if str(error) != remaining_error:
+                # Both checks already ran. Preserve their distinct diagnostics
+                # instead of making the model discover the second on a retry.
+                result["validation_errors"] = [
+                    {"stage": "regularization", "error": remaining_error,
+                     "repair_hint": result["repair_hint"]},
+                    {"stage": "compilation", "error": str(error),
+                     "repair_hint": plan_error_hint(diagnostic_plan or plan, str(error))},
+                ]
             if preparation.get("status") == "rolled_back":
                 result["junction_preparation_note"] = (
                     "All tentative junction repairs were rolled back; the saved draft is the original. "

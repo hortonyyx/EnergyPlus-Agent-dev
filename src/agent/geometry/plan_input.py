@@ -32,6 +32,31 @@ def normalize_plan_fields(plan):
     return result, notes
 
 
+def bind_missing_opening_sources(plan, *, image, image_sha256):
+    """Fill absent opening provenance from the tool's verified input binding.
+
+    This associates a caller declaration with its input, not with an observed
+    feature or measured height. Explicit values (including invalid ones) remain
+    untouched for ordinary compiler validation. No other collection inherits it.
+    """
+    if not isinstance(plan, dict) or not isinstance(plan.get('openings'), list):
+        return plan, []
+    missing = [index for index, row in enumerate(plan['openings'])
+               if isinstance(row, dict) and 'source_refs' not in row]
+    if not missing:
+        return plan, []
+    result = copy.deepcopy(plan)
+    bindings = []
+    for index in missing:
+        row = result['openings'][index]
+        ref = (f'harness-input:{image}#sha256={image_sha256}; plan.openings[{index}]; '
+               'caller declaration provenance only; opening observation and height evidence unverified')
+        row['source_refs'] = [ref]
+        bindings.append({'path': f'plan.openings[{index}].source_refs',
+                         'opening_id': row.get('id'), 'source_refs': [ref]})
+    return result, bindings
+
+
 def _identified_row(plan, collection, identity):
     rows = plan.get(collection, []) if isinstance(plan, dict) else []
     for index, row in enumerate(rows if isinstance(rows, list) else []):

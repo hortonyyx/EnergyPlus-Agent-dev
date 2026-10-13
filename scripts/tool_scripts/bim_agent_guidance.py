@@ -393,6 +393,11 @@ representative plane: the perimeter may use observed outer faces while internal
 dividers use measured midplanes. Document that choice; do not confuse a face
 dimension with a centreline dimension or apply an unobserved half-thickness.
 World z is absolute. basis explains observed dimensions and reference planes.
+For openings only, an omitted source_refs is linked by the tool to the bound
+original image as caller-declaration provenance; this does not verify the opening
+or its height. Explicit source_refs are preserved and must be valid. Supply any
+specific observations and height assumptions; input association does not create
+or confirm height claims. Independent validation_errors may need one combined repair.
 Current scope: ONE floor, simple orthogonal outer footprint without holes,
 orthogonal partitions; footprint and rooms may be nonrectangular. Trace every
 outer turn, including recesses; never fill the bounding rectangle or add walls

@@ -1,6 +1,7 @@
 """The pixel compiler is a source-producing MCP tool, with immutable input evidence."""
 import asyncio
 import base64
+import copy
 import hashlib
 import io
 import json
@@ -34,6 +35,85 @@ def test_internal_compiler_fault_is_not_reported_as_repairable_declaration(tmp_p
 def example():
     reference = REFERENCES["plan_partition"]
     return json.JSONDecoder().raw_decode(reference[reference.index("{"):])[0]
+
+
+def test_missing_opening_refs_bind_input_without_claiming_height_or_editing_geometry(tmp_path):
+    from src.agent.geometry.plan_input import bind_missing_opening_sources
+    from src.agent.execution.bim_height_coverage import height_coverage
+    from scripts.tool_scripts.bim_agent_replies import compact_reply
+    run = _run_with_one_image(tmp_path)
+    plan = example()
+    plan['openings'][0]['source_refs'] = ['Keep this explicit observation verbatim.']
+    del plan['openings'][1]['source_refs']
+    before = copy.deepcopy(plan)
+    image_before = (run / 'images/plan.png').read_bytes()
+    image_sha = hashlib.sha256(image_before).hexdigest()
+    normalized, bindings = bind_missing_opening_sources(plan, image='plan.png', image_sha256=image_sha)
+    assert plan == before and len(bindings) == 1
+    generated = normalized['openings'][1].pop('source_refs')
+    assert normalized == plan  # Every geometric value and explicit note is identical.
+    assert image_sha in generated[0] and 'height evidence unverified' in generated[0]
+    raw = json.dumps(plan, ensure_ascii=False, indent=3) + '\n'
+    toolkit = Toolkit(run)
+    result = toolkit.build_plan('plan.png', raw)
+    assert result['source_geometry_ready'], result
+    record = result['plan_input']
+    assert (run / record['submitted_plan_file']).read_bytes() == raw.encode()
+    assert record['submitted_plan_sha256'] == hashlib.sha256(raw.encode()).hexdigest()
+    saved = json.loads((run / record['plan_file']).read_bytes())
+    assert saved['openings'][0]['source_refs'] == plan['openings'][0]['source_refs']
+    assert saved['openings'][1]['source_refs'] == generated
+    association = record['source_ref_bindings']
+    association_bytes = (run / association['file']).read_bytes()
+    assert hashlib.sha256(association_bytes).hexdigest() == association['sha256']
+    assert association['count'] == 1 and association['scope'] == 'input_provenance_only'
+    audit = json.loads(association_bytes)
+    assert audit['bindings'] == bindings
+    assert audit['observation_verified'] is audit['height_evidence_verified'] is False
+    visible = compact_reply(run, 'build_bim', result)
+    assert visible['plan_input']['source_ref_bindings'] == association
+    assert 'bindings' not in visible['plan_input']['source_ref_bindings']
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24000
+    heights = height_coverage(toolkit.claims(), result['candidate'])
+    assert heights['summary']['image_linked_count'] == 0
+    assert {row['coverage_state'] for row in heights['openings']} == {'unchecked'}
+    assert (run / 'images/plan.png').read_bytes() == image_before
+
+
+@pytest.mark.parametrize('explicit_refs', [None, [], [''], 'not a list'])
+def test_invalid_explicit_opening_refs_are_never_replaced(tmp_path, explicit_refs):
+    run = _run_with_one_image(tmp_path)
+    plan = example()
+    plan['openings'][1]['source_refs'] = explicit_refs
+    result = Toolkit(run).build_plan('plan.png', json.dumps(plan))
+    assert result['source_geometry_ready'] is False and 'source_refs' in result['error']
+    assert not list(run.glob('candidate_*'))
+    saved = json.loads((run / result['plan_input']['plan_file']).read_bytes())
+    assert saved['openings'][1]['source_refs'] == explicit_refs
+    assert 'source_ref_bindings' not in result['plan_input']
+
+
+def test_independent_regularization_and_compile_errors_share_one_reply(tmp_path):
+    from scripts.tool_scripts.bim_agent_replies import compact_reply
+    run = _run_with_one_image(tmp_path)
+    plan = example()
+    # Malformed explicit opening data still rejects. The wall failure is already
+    # available from strict compilation; do not hide it behind that first error.
+    del plan['openings'][0]['z']
+    plan['partitions'][0]['points'][-1] = [6, 6]
+    raw = json.dumps(plan)
+    result = Toolkit(run).build_plan('plan.png', raw)
+    errors = result['validation_errors']
+    assert len(errors) == 2 and [row['stage'] for row in errors] == ['regularization', 'compilation']
+    assert 'missing z' in errors[0]['error']
+    assert errors[0]['repair_hint']['path'] == 'plan.openings[0]'
+    assert 'dangles' in errors[1]['error']
+    assert errors[1]['repair_hint']['path'].startswith('plan.partitions[0]')
+    assert result['source_geometry_ready'] is False and not list(run.glob('candidate_*'))
+    assert (run / result['plan_input']['plan_file']).read_text() == raw
+    visible = compact_reply(run, 'build_bim', result)
+    assert visible['validation_errors'] == errors
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24000
 
 
 def test_concave_plan_tool_keeps_recess_and_returns_actual_source_feedback(tmp_path):

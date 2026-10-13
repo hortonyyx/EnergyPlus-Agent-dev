@@ -13,7 +13,7 @@
 
 ## 当前实施状态
 
-目前三次真实冷启动均未达到严格600秒。最新v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；后续runtime v13 / domain v71针对确定性收尾、错误反馈及重复复制完成实现与独立审阅，无遗留P1/P2，登记后的正式节点26项通过。具体时序、质量差异与新验证边界见后文，尚未宣称稳定达标或更新桌面。
+目前四次真实冷启动均未达到严格600秒。v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；后续runtime v13 / domain v71修复确定性收尾、错误反馈及重复复制并通过独审和正式节点26项，但真实冷启动因重复来源补填与分轮几何返工，634.17秒超时兜底，未finish。具体时序、质量差异与新验证边界见后文，尚未宣称稳定达标或更新桌面。
 
 首版 runtime v11 / domain v69、实现 `4cbc3edb` 的Sol与Astra两次冷启动均在约6分钟装配整楼，但分别650.23／680.97秒超时兜底，未达到10分钟自主交付。两轮暴露的重复备注、记账浪费和10cm策略接线缺口现已修复，定向验证与独立审阅通过；后续版本 runtime v12 / domain v70、实现 `79d95dd7` 已登记校验，实际本地MCP节点10项通过（53.94秒），证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v70/cb1493736f74/results.xml`。模型目录包含 gpt-6.1-sol 与 gpt-6-astra，不作为推理或建模成功证据。
 
@@ -134,3 +134,39 @@
 实现提交`ea3b866a`已登记为runtime v13 / domain v71，verify通过。正式本地MCP节点原样执行`tests/test_runtime_r3.py`与`tests/test_runtime_frozen_tools.py`：26项通过，96.88秒（含新增收尾R3 17项），未使用lookup替代或调用真实work model。证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v71/aec7dad3324c/results.xml`。
 
 v70补充质量归因：把hash绑定的规整前原稿（模型已修正悬空端点）交给同一个原评价器、reference和conventions，仍为severe；29房间中3项命中原约定、14项minor、12项边界severe，另两层internal boundary仍severe。原稿、评价政策与reference未改。该证据排除了“31项都由10cm造成”的说法；边界位置与真实结构含义另行核对，不把标签直接解释为31处漏墙。证据`sm25-fast-astra-v70-1/boundary-attribution/pre-grid-conventions-summary.json`。
+
+后续逐条独审已完成：12项中8项原稿最大偏差为2.3–4.3cm，属既有≤5cm“好”分档；4项源于西侧两条物理隔墙的约半墙厚参考面偏移，各影响两侧房间。240mm墙厚与旧模型政策允许的参考面转换有原图和先前冻结观察支持；现convention ledger只列东侧相同类型，缺西侧条目，原strict仍保留severe。原稿与参考47对同层共享墙邻接全等，源模型规整前后拓扑/宿主不变，两层外轮廓误差<1.4cm，标高/层顶/层高无偏差。独审结论是v70已核源BIM几何符合当前Lite产品要求，不能把旧strict标签单独当物理错误，也不能用对象数量单独宣称质量。高度绑定0/34、用途推断、内门高度假设及未画竖向交通仍为交付披露边界。完整31项映射、原原则与证据hash：`sm25-fast-astra-v70-1/boundary-attribution/strict-findings-with-original-conventions.json`。
+
+## 第四轮真实冷启动：Astra/high（v13/v71）
+
+冻结`747f283b`，外部启动2026-10-13 13:01:35.661759 UTC，运行`D:/Sim-BIM-Agent/runs/sm25-fast-astra-v71-20261013-1`。全部472项登记源码及registry/config共474项、六图、HEAD保持不变，无人工介入。外部634.170秒，runtime607.397秒，`time_budget_exhausted`；CLI exit0只表示保存兜底产物，不是目标通过。
+
+| 项目 | 外部启动后时间／结果 |
+|---|---|
+| 首次模型请求 | 29.538秒，外部计时包含准备阶段 |
+| 首次两层build | 267.388／267.942秒；61个开口均缺source_refs，未生成source |
+| 补来源后再次修订 | 372.776／373.370秒；两层均因5.5–6px隔墙端点脱接拒绝 |
+| 两层源BIM | 411.678／420.980秒 |
+| 整楼装配 | 456.716秒；调用到回执11.761秒，不能与上轮当严格A/B |
+| 最后完整候选 | candidate_04于580.505秒保存，之后仍审计和检查 |
+| 正式交付／终态 | 无finish；12请求/11响应、42工具、0重试，系统fallback选candidate_04 |
+
+已知用量918,179 tokens，末次usage未知；runtime模型510.655、工具47.578、其他49.164秒，外部另含26.773秒。装配实际工具计时11.234秒，与调用/回执事件窗口11.761秒分别报告。末次预算超额仅seconds：预留8.055686、实际8.078秒，超0.022314秒，不是token超额。
+
+新成功收尾路径本轮未触发，不能宣称真实覆盖。原配置不重复。只读诊断确认61项开口update仅增加source_refs、几何0变化，共11,566bytes操作；对应请求到响应102.422秒（包括服务等待，不等于纯生成）。更早的build同次已有几何compile错误，但回复用`regularization_error or error`覆盖成来源字段错误，迫使顺序返工。下一版只处理可靠的工具绑定来源继承和两个已知错误同时反馈，不降低几何检查或伪造高度证据。
+
+独立质量评价完成；原run2060项文件前后hash全等。原稿依原评价器/conventions为minor，6房间及两层汇总命中8项既有约定；最终旧严格评分仍31项severe，未改分。原稿/参考/最终三者47对共享墙邻接全同，29房间、61开口位置/宿主、30门连接匹配；最终外轮廓与参考近乎精确一致，标高/层高/层顶无偏差。全部3144源坐标在0.1m网格内，526原读数→采用值逐项吻合且为最近网格，最大变换4.9564cm；另两次跨层对齐各10cm、影响4个空间，关系不变。candidate03→04无物理几何变更。独审认为当前Lite已核几何可接受；运行和主动交付仍明确失败。
+
+≤5／5–10／10–30／>30cm分档：房间16／5／8／0（最大12.649cm）；开口沿墙37／24／0／0（最大8.106cm）；法向20／7／34／0（34项为外墙代表面差、宿主匹配）；外部高度34／0／0／0。29用途均明确inferred：office19、corridor2、meeting7、lounge1；语义正确性不因此被证明。正式height bindings仍0/34，内门高度假设、运行状态、未画出的垂直交通/空洞/假楼板及浏览器交互未独评。
+
+证据：`sm25-fast-astra-v71-1-evaluation/independent-quality-audit.json`及`sm25-fast-astra-v71-1/boundary-attribution/strict-findings-with-original-conventions.json`；原有严格评分与测量值全部保留，没有以修改阈值制造通过。
+
+## v72：来源关联由工具承担，同次检查错误并列返回
+
+仅当开口`source_refs`缺失时，工具依据已经校验的原图名称与SHA建立caller declaration输入关联；明确标记观察和高度证据未验证。显式refs保持原值，无效refs继续拒绝；不扩展其他对象，不修改compiler、Lite规整或高度绑定逻辑。原始请求存入submitted_plan，采用plan与独立source_ref_bindings审计分别保存，模型只收到数量、file/hash/scope。已有regularization与compile两个独立错误同时返回各自repair hint，避免后者被`or`隐藏。
+
+用v71首次两个原始build参数原样离线重放，31+30开口只增加可信输入关联；除新增refs外，整个plan（含所有几何/显式字段）的canonical SHA与原稿相同。首轮就返回原draft003/004相同端点脱接错误，没有生成候选，几何门槛未降低；可见回执13,389／13,525bytes。2060项原run文件及原请求字节均不变，模型与GT读取0。小证据：`D:/Sim-BIM-Agent/cache/v71-opening-provenance-replay-20261013.json`。
+
+定向验证去重10项通过：首次6项4.27秒，最终6项3.24秒（交集2项添加compact回执断言后复验，不能直接相加12）。包含遗漏refs继承、四种显式无效refs继续拒绝、双错误反馈、失败稿/内部错误保护及24KB边界；没有release校验绕过、MCP或模型调用。XML为`D:/Sim-BIM-Agent/cache/opening-provenance-feedback-20261013.xml`与`opening-provenance-feedback-final-20261013.xml`。独立审阅通过，无剩余P1/P2；确认可信来源在原图manifest SHA验证之后绑定、height coverage没有虚增。独审源码SHA与证据位于`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/v72-provenance-independent-review.json`。
+
+下一轮为[run_fast_v72.json](run_fast_v72.json)，只更改运行身份，Astra/high、六图、预算与任务范围相同；登记并验证后冷启动一轮，目标通过才同版本再两轮。不会把离线预计省掉102秒直接当真实提速。
