@@ -72,7 +72,11 @@ v77领域改动32项定向通过20.26秒，独审无P1/P2；登记后既有真�
 
 第三轮部分质量审计为`sm25-harness-astra-v77-3-evaluation/quality_partial-audit.json`，SHA`7e46ab6ac997a84db47e18db51a36aee04d4a2b296daf23df66a73068d37c655`，明确标记NOT_autonomous_delivery。
 
-发布同步状态另补于本节末。后续应先处理已重复出现的空间关系状态负担，再在服务可用时补足同版/新版本的完成性证据并扩展案例；不自动追加模型运行，不把本轮两次成功推广为普遍稳定。
+桌面固定目录`C:/Users/Horton/Desktop/Sim BIM Agent`已原位更新至发布提交`14acc405cdb416390a7e05f22e26e037f3cdcff8`，runtime v16/domain v77；安装后503份清单文件逐项SHA复核一致。安装环境离线验收通过，37.094秒、0真实模型调用，覆盖doctor、合成BIM/查看器、真实stdio MCP及脚本化中断/恢复/已完成状态；不算新一轮图纸建模验证。安装审计为`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/v77-product-install-audit.json`，发布清单同目录`v77-product-release-manifest.json`。后续仅补本文档，不重打产品包。
+
+上一版仅保留`D:/Sim-BIM-Agent/archive/product-backup/previous.zip`（4,100,153字节）及状态记录，更新工作副本已由更新器清理。本轮两份临时发布包`D:/Sim-BIM-Agent/releases/runtime16-domain77-20261014`与`D:/Sim-BIM-Agent/releases/runtime16-domain77-20261014-product`仍保留：自动审批拒绝删除命令，返回`blocked by policy`，未提供具体原因；没有执行删除或改道重试。记录为上述审计目录的`v77-release-cleanup.json`。
+
+后续应先处理已重复出现的空间关系状态负担，再在服务可用时补足同版/新版本的完成性证据并扩展案例；不自动追加模型运行，不把本轮两次成功推广为普遍稳定。
 
 ## 早期实施与试验记录（历史）
 
