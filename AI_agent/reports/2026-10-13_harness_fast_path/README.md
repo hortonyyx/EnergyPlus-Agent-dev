@@ -13,7 +13,7 @@
 
 ## 当前实施状态
 
-目前三次真实冷启动均未达到严格600秒。最新v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；v71针对确定性收尾、错误反馈及重复复制完成实现与独立审阅，无遗留P1/P2，待登记后的正式节点验证。具体时序、质量差异与新验证边界见后文，尚未宣称稳定达标或更新桌面。
+目前三次真实冷启动均未达到严格600秒。最新v70已在604.22秒由模型主动交付，但最终收尾仍超时并错误覆盖选择来源；后续runtime v13 / domain v71针对确定性收尾、错误反馈及重复复制完成实现与独立审阅，无遗留P1/P2，登记后的正式节点26项通过。具体时序、质量差异与新验证边界见后文，尚未宣称稳定达标或更新桌面。
 
 首版 runtime v11 / domain v69、实现 `4cbc3edb` 的Sol与Astra两次冷启动均在约6分钟装配整楼，但分别650.23／680.97秒超时兜底，未达到10分钟自主交付。两轮暴露的重复备注、记账浪费和10cm策略接线缺口现已修复，定向验证与独立审阅通过；后续版本 runtime v12 / domain v70、实现 `79d95dd7` 已登记校验，实际本地MCP节点10项通过（53.94秒），证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v70/cb1493736f74/results.xml`。模型目录包含 gpt-6.1-sol 与 gpt-6-astra，不作为推理或建模成功证据。
 
@@ -130,3 +130,7 @@
 小证据：cache根的`claims-discriminator.xml`、`geometry-audit-copy-targeted.xml`；v70运行cache下`claims-discriminator-independent-review.json`及`assembly-profile/optimized.json`、`assembly-profile/independent-review.json`。
 
 收尾最终独审：`sm25-fast-astra-v70-1/completion-final-independent-review.json`，明确最后P2已修、无剩余P1/P2，源码SHA已记录，允许进入统一提交、登记与原样正式R3节点；真实模型调用0。
+
+实现提交`ea3b866a`已登记为runtime v13 / domain v71，verify通过。正式本地MCP节点原样执行`tests/test_runtime_r3.py`与`tests/test_runtime_frozen_tools.py`：26项通过，96.88秒（含新增收尾R3 17项），未使用lookup替代或调用真实work model。证据`D:/Sim-BIM-Agent/cache/harness-fast-path-20261013/preflight-v71/aec7dad3324c/results.xml`。
+
+v70补充质量归因：把hash绑定的规整前原稿（模型已修正悬空端点）交给同一个原评价器、reference和conventions，仍为severe；29房间中3项命中原约定、14项minor、12项边界severe，另两层internal boundary仍severe。原稿、评价政策与reference未改。该证据排除了“31项都由10cm造成”的说法；边界位置与真实结构含义另行核对，不把标签直接解释为31处漏墙。证据`sm25-fast-astra-v70-1/boundary-attribution/pre-grid-conventions-summary.json`。
