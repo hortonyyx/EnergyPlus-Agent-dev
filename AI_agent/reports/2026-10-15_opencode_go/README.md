@@ -1,5 +1,7 @@
 # OpenCode Go 独立订阅 provider 接线
 
+主线程后续已完成合入与小范围复验，版本换行封印问题及最新发布状态见[合入报告](../2026-10-15_opencode_go_integration.md)。下文保留本分支开发交接时的历史范围与结果。
+
 用户提供Go订阅凭据，指定Go与Paratera承担后续work model消耗，并明确要求完成接线。本轮从主库`0c30d691`（runtime16/domain78）在独立工作树实施，未接续主线程的harness优化任务，未修改原案例/run/GT、默认6 Sol配置、Paratera凭据或桌面安装。
 
 **开发完成，READY_FOR_MAIN_REVIEW。** 实现和正式登记已提交到`codex/opencode-go`，主线文档提交`4f86191f`已合入此分支以保留最新用户取舍；主库本身未由本侧合并。工作树保留供主线程按既定流程审阅、合入及小范围验收。机器可读完成标记见 [handoff.json](handoff.json)。
