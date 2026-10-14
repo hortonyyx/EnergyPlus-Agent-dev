@@ -77,6 +77,7 @@
 | 空间关系重验、证据拒绝、真实stdio读取、既有开口重验相邻接口 | 首批31通过 | 25.54秒 | 0 |
 | 父源/校准异常补充及修复复验 | 有效去重合计36通过；中间2失败已闭合 | 补充8.62秒、修复后14.56秒 | 0 |
 | 产品6 Sol配置、角色路由、并发上限、共享请求预算 | 4通过 | 8.55秒 | 0 |
+| 登记后真实冻结MCP工具目录与材料 | 1通过 | 7.28秒 | 0 |
 | 两例真实旧稿notes-only重放 | 27/15条观察全部复用重算，判定保持 | 2.594/0.090秒 | 0 |
 | 后续6 Sol配置检查 | ready | 配置预检 | 0 |
 | 照片原型文件核验 | 65项SHA一致 | 只读核验 | 0 |
@@ -84,5 +85,7 @@
 旧稿重放仅复制17/18个必要文件到cache，不重跑整案；首次导入成本不同，重验耗时不是端到端提速证据。原件SHA前后相同，新报告能通过实际模型可见引用按需读取。证据：[空间关系定向XML](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/space-relations-targeted.xml)、[并发/配置XML](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/config-concurrency.xml)、[旧稿重放](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/space-relations-real-replay.json)。
 
 独审完成，无剩余P1/P2；实现者与审阅者复核的最终四文件SHA一致。补充批最初2例实际备注调用失败，暴露了后续精度检查仍读取损坏校准的问题；窄修后真实MCP调用通过，旧报告/校准/父源字节不变，产物写失败传播也有专门验证。原失败记录未删除。[最终实现审计与逐节点结果](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/space-relations-final-implementation-audit.json)、[独立审阅与反例闭合](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/space-relations-independent-final-review.json)。
+
+实现提交`26714335`，登记为runtime v16/domain v78（429个domain文件、43个runtime文件）；只domain变化，registry verify通过。首次冻结校验由主代理在登记进程尚未结束时过早启动，因读取旧v77指纹失败（1.66秒），不是新实现缺陷；等待登记成功后同一节点7.28秒通过。两份XML均保留：[过早执行记录](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/frozen-mcp.xml)、[登记后有效结果](D:/Sim-BIM-Agent/cache/harness-refinement-20261014/frozen-mcp-registered.xml)。有效去重离线合计41项通过，失败修复及执行顺序问题如上单列。
 
 本轮真实work model调用为0；已有Astra首末候选的离线分析与新代码性质检查分别记录。修复后的真实耗时、6 Sol完整交付和跨案例稳定性尚未验证。下一次运行仍需按公开配置记录独立冷启动、无中途干预、质量和全过程耗时，不把单个样本或离线通过推广为普遍稳定。
