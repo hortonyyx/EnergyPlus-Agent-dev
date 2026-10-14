@@ -36,9 +36,10 @@ def test_cli_help_does_not_import_old_pipeline_or_need_git():
     assert probe.returncode == 0, probe.stderr
 
 
-def test_example_configuration_has_explicit_external_storage(tmp_path):
+@pytest.mark.parametrize('example', ['config.example.json', 'config.opencode-go.example.json'])
+def test_example_configuration_has_explicit_external_storage(tmp_path, example):
     from src.agent.runtime_configuration import load_configuration, argv_for
-    value = json.loads((ROOT / "product/config.example.json").read_bytes())
+    value = json.loads((ROOT / "product" / example).read_bytes())
     inputs = tmp_path / "input"
     (inputs / "my-building").mkdir(parents=True)
     Image.new("RGB", (2, 2), "white").save(inputs / "my-building/plan.png")
@@ -55,6 +56,8 @@ def test_example_configuration_has_explicit_external_storage(tmp_path):
     assert "--no-token-limit" in command
     assert "--context-tokens" not in command and "--compact-at-tokens" not in command
     assert command[command.index("--image-history-batches") + 1] == "3"
+    assert command[command.index("--provider") + 1] == case["provider"]
+    assert command[command.index("--model") + 1] == case["model"]
 
 
 @pytest.mark.parametrize("input_case,expected", [

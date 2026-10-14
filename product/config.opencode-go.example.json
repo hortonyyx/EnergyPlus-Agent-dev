@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "batch_id": "my-building-opencode-go",
+  "approval_required_before_launch": true,
+  "maximum_seconds_per_case": null,
+  "input_root": "D:/Sim-BIM-Agent/user-inputs",
+  "run_root": "D:/Sim-BIM-Agent/runs",
+  "cases": [
+    {
+      "case_id": "my-building-opencode-go",
+      "mode": "single_model",
+      "input": "my-building",
+      "output": "my-building-opencode-go-001",
+      "input_kind": "images",
+      "image_kind": "drawings",
+      "scope": "Build and deliver the complete lightweight source BIM and viewer from the supplied drawings. Preserve physical rooms, openings, hosts and connections. Record observations, inference and unresolved evidence honestly. Use targeted checks for actual uncertainties and reuse current saved observations. There is no run-level time deadline.",
+      "provider": "opencode-go",
+      "model": "kimi-k3",
+      "credentials_file": "D:/Sim-BIM-Agent/local-connections/opencode-go/credentials.env",
+      "reasoning_history": "all",
+      "output_tokens": 32000,
+      "max_candidates": 64,
+      "context_tokens": null,
+      "compact_at_tokens": null,
+      "image_history_batches": 3,
+      "limits": {"model_calls": 48, "tool_calls": 240, "seconds": null, "tokens": null, "model_retries": 1, "retry_backoff_seconds": 2}
+    }
+  ]
+}

@@ -10,8 +10,9 @@ GLM_SUBSCRIPTION_ANTHROPIC = "glm-subscription-anthropic"
 GLM_ANTHROPIC_BASE_URL = "https://open.bigmodel.cn/api/anthropic"
 CHATGPT_SUBSCRIPTION = "chatgpt-subscription"
 CHATGPT_BASE_URL = "https://api.openai.com/v1"
+OPENCODE_GO = "opencode-go"
 GLM_SUBSCRIPTION_PROVIDERS = (GLM_SUBSCRIPTION, GLM_SUBSCRIPTION_ANTHROPIC)
-SUBSCRIPTION_PROVIDERS = (*GLM_SUBSCRIPTION_PROVIDERS, CHATGPT_SUBSCRIPTION)
+SUBSCRIPTION_PROVIDERS = (*GLM_SUBSCRIPTION_PROVIDERS, CHATGPT_SUBSCRIPTION, OPENCODE_GO)
 LIVE_PROVIDERS = ("paratera", *SUBSCRIPTION_PROVIDERS)
 # Verified 10-03 on the Coding Plan endpoint: omitted behaves like the top level, low/medium cut
 # thinking 2-4x (migration_comparison/subscription_effort_calibration.json). Claude Code sends
@@ -20,6 +21,9 @@ SUBSCRIPTION_REASONING_EFFORTS = ("low", "medium", "high", "max")
 
 
 def validate_provider_model(provider: str, model: str) -> None:
+    if provider == OPENCODE_GO:
+        from .opencode_go import model_contract
+        model_contract(model)
     if provider in GLM_SUBSCRIPTION_PROVIDERS and model != GLM_SUBSCRIPTION_MODEL:
         raise ValueError(f"{provider} requires model glm-5.3-flash")
     if provider == CHATGPT_SUBSCRIPTION and (not isinstance(model, str) or not model.strip()):
@@ -49,7 +53,12 @@ def subscription_credentials(path: Path | None = None, *, provider=GLM_SUBSCRIPT
 
 def provider_parameters(provider: str, *, output_tokens: int,
                         temperature: float | None = None,
-                        thinking: bool = True, reasoning_effort: str | None = None) -> dict:
+                        thinking: bool = True, reasoning_effort: str | None = None,
+                        model: str | None = None) -> dict:
+    if provider == OPENCODE_GO:
+        from .opencode_go import parameters
+        return parameters(model, output_tokens=output_tokens, temperature=temperature,
+                          thinking=thinking, reasoning_effort=reasoning_effort)
     parameters = {"max_tokens": output_tokens}
     if provider == CHATGPT_SUBSCRIPTION:
         if temperature is not None or thinking is not True:

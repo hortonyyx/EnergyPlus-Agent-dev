@@ -108,6 +108,14 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
                     model_profile: ModelProfile | None = None,
                     strict_model_profile: bool = False,
                     reasoning_history: str = "all"):
+    if versions.remote_model.route_id == "opencode-go":
+        from .opencode_go import model_contract, model_profile as go_profile, prepare_request as prepare_go
+        if model_contract(model)[0] != "openai_chat_completions":
+            return prepare_go(store=store, model=model, messages=messages, message_sources=message_sources,
+                tools=tools, tool_source=tool_source, parameters=parameters, versions=versions,
+                image_originals=image_originals, strict_model_profile=strict_model_profile,
+                reasoning_history=reasoning_history)
+        model_profile = go_profile(model)
     if versions.remote_model.route_id == "chatgpt-subscription":
         from .responses import prepare_responses_request
         return prepare_responses_request(store=store, model=model, messages=messages,
@@ -135,7 +143,7 @@ def prepare_request(*, store: EventStore, model: str, messages: list[dict],
     messages = selected
     body = {"model": model, "messages": copy.deepcopy(messages),
             "stream": False, "n": 1, **copy.deepcopy(parameters)}
-    if versions.remote_model.route_id == "glm-subscription":
+    if versions.remote_model.route_id in {"glm-subscription", "opencode-go"}:
         # No unverified sampling count on the Coding Plan endpoint. Capture the
         # resulting body below so the journal remains identical to wire bytes.
         body.pop("n")

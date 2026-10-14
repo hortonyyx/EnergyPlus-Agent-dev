@@ -74,6 +74,7 @@ class RoleConfiguration(BaseModel):
         get_model_profile(self.model, strict=True)
         provider_parameters(
             self.provider,
+            model=self.model,
             output_tokens=self.output_tokens,
             reasoning_effort=self.reasoning_effort,
             temperature=self.temperature,

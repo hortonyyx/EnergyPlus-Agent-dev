@@ -97,9 +97,14 @@ async def execute(args) -> dict:
     runtime_model_profile(args.provider, args.model)
     effective_model = args.model if strict_model_profile else "scripted-model"
     args.output_tokens = args.output_tokens if args.output_tokens is not None else default_output_tokens(effective_model)
+    if args.provider == "opencode-go":
+        from src.agent_runtime.opencode_go import model_contract
+        if model_contract(args.model)[0] == "openai_responses" and args.reasoning_history != "all":
+            raise ValueError("OpenCode Go Responses requires reasoning_history=all")
     validate_output_limit(effective_model, args.output_tokens, reason=args.low_output_limit_reason)
     parameters = provider_parameters(args.provider, output_tokens=args.output_tokens,
-        temperature=args.temperature, thinking=args.thinking, reasoning_effort=args.reasoning_effort)
+        temperature=args.temperature, thinking=args.thinking, reasoning_effort=args.reasoning_effort,
+        model=args.model)
     if args.provider in SUBSCRIPTION_PROVIDERS and (args.price_schedule or args.money_usd is not None or args.money_cny is not None):
         raise ValueError("subscription route has no usage-based money estimate; use token/time budgets")
     if args.money_cny is not None:
@@ -165,8 +170,12 @@ async def execute(args) -> dict:
                     route = {"route_id": "offline-scripted", "model": "scripted-model",
                         "fixture_sha256": hashlib.sha256(fixture).hexdigest()}
                 else:
-                    connection = connection or resolve_connection(args.provider, args.credentials_file)
-                    adapter = connection.create_adapter()
+                    connection = connection or resolve_connection(args.provider, args.credentials_file, model=args.model)
+                    if args.provider == "opencode-go":
+                        from src.agent_runtime.opencode_go import conversation_id
+                        adapter = connection.create_adapter(session_id=conversation_id(output, args.role))
+                    else:
+                        adapter = connection.create_adapter()
                     route = connection.descriptor.model_route(args.model)
                 route["reasoning_history"] = args.reasoning_history
                 route["context"] = ({"context_tokens": limits.context_tokens,

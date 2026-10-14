@@ -165,6 +165,12 @@ class Runtime:
 
     async def run(self, messages: list[dict], *, message_sources=None,
                   image_originals=None, resume=False) -> dict:
+        if self.versions.remote_model.route_id == "opencode-go":
+            from .opencode_go import model_contract
+            if model_contract(self.model)[0] == "openai_responses" and self.reasoning_history != "all":
+                raise ValueError("OpenCode Go Responses requires reasoning_history=all")
+            if self.pricing is not None or self.limits.money_usd is not None or self.limits.money_cny is not None:
+                raise ValueError("OpenCode Go subscription does not use a metered API money budget")
         if self.versions.remote_model.route_id == "chatgpt-subscription":
             if self.reasoning_history != "all":
                 raise ValueError("ChatGPT subscription requires reasoning_history=all")
@@ -401,8 +407,7 @@ class Runtime:
             await asyncio.sleep(min(0.1, remaining))
 
     def _config(self):
-        model_profile = asdict(get_model_profile(
-            self.model, strict=self.strict_model_profile))
+        model_profile = asdict(self._effective_model_profile())
         # The persisted JSON decodes tuples as lists. Normalize here so resume
         # compares the live profile with the same shape that was saved.
         model_profile["aliases"] = list(model_profile["aliases"])
@@ -575,7 +580,9 @@ class Runtime:
                 "isError": True}
 
     def _refresh_context_calibration(self):
-        if self.versions.remote_model.route_id != "chatgpt-subscription":
+        route = self.versions.remote_model.route_id
+        from .opencode_go import model_contract
+        if route != "chatgpt-subscription" and not (route == "opencode-go" and model_contract(self.model)[0] == "openai_responses"):
             return None
         if self._context_calibration is None:
             from .responses import ResponsesUsageCalibration
@@ -596,8 +603,14 @@ class Runtime:
             self._context_calibration_cursor = event.sequence
         return self._context_calibration
 
+    def _effective_model_profile(self):
+        if self.versions.remote_model.route_id == "opencode-go":
+            from .opencode_go import model_profile
+            return model_profile(self.model)
+        return get_model_profile(self.model, strict=self.strict_model_profile)
+
     def _context_pressure(self):
-        profile = get_model_profile(self.model, strict=self.strict_model_profile)
+        profile = self._effective_model_profile()
         windows = [n for n in (profile.context_window_tokens, self.limits.context_tokens) if n is not None]
         window = min(windows) if windows else None
         explicit = self.context.policy.compact_at_tokens
@@ -622,6 +635,16 @@ class Runtime:
             prepared.body, prepared.token_estimate, strict=self.strict_model_profile))
 
     def _estimate_context_tokens(self, messages, sources):
+        if self.versions.remote_model.route_id == "opencode-go":
+            from .opencode_go import estimate_messages, responses_body
+            estimate = estimate_messages(model=self.model, messages=messages,
+                tools=self.specs, parameters=self.parameters)
+            calibration = self._refresh_context_calibration()
+            if calibration is not None:
+                body = responses_body(model=self.model, messages=messages,
+                    tools=self.specs, parameters=self.parameters)
+                estimate = calibration.estimate(body, estimate, strict=self.strict_model_profile)
+            return estimate.reservation_tokens
         if self.versions.remote_model.route_id == "chatgpt-subscription":
             from .responses import build_responses_body, estimate_responses_request
             body = build_responses_body(model=self.model, messages=messages,
@@ -1192,7 +1215,7 @@ class Runtime:
             source_refs=(self.store.source("request-usage-accounting", accounting.receipt_dict()),))
 
     def _present_tools(self, body, sources, request, response, context_event_id):
-        if self.versions.remote_model.route_id == "chatgpt-subscription":
+        if request.payload.adapter == "openai-responses-http-v1":
             from .responses import present_tools
             return present_tools(self.store, body, request, response, context_event_id)
         if request.payload.adapter == "anthropic-messages-http-v1":

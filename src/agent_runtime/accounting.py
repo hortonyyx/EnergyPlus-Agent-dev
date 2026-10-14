@@ -378,8 +378,8 @@ def request_accounting_from_store(
     )
     accounting = account_request_usage(
         usage, image_tokens_estimate=image_tokens, pricing=pricing,
-        billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic", "chatgpt-subscription"} else "metered_or_unknown",
-        input_includes_images=identity.route_id == "chatgpt-subscription")
+        billing_mode="subscription" if identity.route_id in {"glm-subscription", "glm-subscription-anthropic", "chatgpt-subscription", "opencode-go"} else "metered_or_unknown",
+        input_includes_images=identity.route_id in {"chatgpt-subscription", "opencode-go"})
     if reconciliation is not None:
         receipt = reconciliation.payload.reconciliation
         settled = receipt.settlement

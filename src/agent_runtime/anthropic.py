@@ -77,13 +77,13 @@ def native_blocks(content):
     return blocks
 
 
-def convert_messages(messages, message_sources):
+def convert_messages(messages, message_sources, *, native_system_only=False):
     if len(messages) != len(message_sources):
         raise ValueError("every request message needs a recorded source")
     system, system_sources, converted, sources = [], [], [], []
     for message, source in zip(messages, message_sources, strict=True):
         role = message["role"]
-        if role == "system" and not converted:
+        if role == "system" and (not converted or native_system_only):
             blocks = native_blocks(message["content"])
             system.extend(blocks)
             system_sources.extend([source] * len(blocks))
@@ -131,11 +131,12 @@ def convert_messages(messages, message_sources):
 
 def prepare_anthropic_request(*, store, model, messages, message_sources, tools,
         tool_source, parameters, versions, image_originals=None, model_profile=None,
-        strict_model_profile=False):
+        strict_model_profile=False, native_system_only=False):
     unsupported = set(parameters) - {"max_tokens", "thinking", "output_config", "context_management"}
     if unsupported:
         raise ValueError("unreviewed Anthropic parameters: " + ", ".join(sorted(unsupported)))
-    system, system_sources, native, sources = convert_messages(messages, message_sources)
+    system, system_sources, native, sources = convert_messages(messages, message_sources,
+                                                               native_system_only=native_system_only)
     body = {"model": model, "system": system, "messages": native, "stream": False,
             **copy.deepcopy(parameters)}
     injections = []

@@ -102,14 +102,18 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
         raise ValueError("scripted role runs require an explicit response fixture")
     guide = get_role_guide("coordinator")
     connections = {}
+    def connection_key(provider, model):
+        return (provider, model if provider == "opencode-go" else None)
     if args.provider != "scripted":
-        connections = {provider: resolve_connection(provider, args.credentials_file,
-                           **({"chatgpt_auth_dir": getattr(args, "chatgpt_auth_dir", None)}
-                              if provider == CHATGPT_SUBSCRIPTION else {}))
-                       for provider in {role.provider for role in routes.values()}}
         for role in routes.values():
-            await validate_connection_model(connections[role.provider], role.model)
-    connection_routes = {name: (connections[role.provider].descriptor.model_dump(mode="json")
+            key = connection_key(role.provider, role.model)
+            if key not in connections:
+                connections[key] = resolve_connection(role.provider, args.credentials_file, model=role.model,
+                    **({"chatgpt_auth_dir": getattr(args, "chatgpt_auth_dir", None)}
+                       if role.provider == CHATGPT_SUBSCRIPTION else {}))
+        for role in routes.values():
+            await validate_connection_model(connections[connection_key(role.provider, role.model)], role.model)
+    connection_routes = {name: (connections[connection_key(role.provider, role.model)].descriptor.model_dump(mode="json")
         if role.provider != "scripted" else {"route_id": "scripted", "billing_mode": "offline",
                                              "adapter_kind": "scripted"})
         for name, role in routes.items()}
@@ -146,7 +150,11 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
             responses = scripted["coordinator"] if task_id == "coordinator" else scripted["tasks"][task_id]
             offset = sum(event.payload.event_type == "adapter_request" for event in store.events)
             return ScriptedAdapter(responses[offset:])
-        return connections[config["provider"]].create_adapter()
+        connection = connections[connection_key(config["provider"], config["model"])]
+        if config["provider"] == "opencode-go":
+            from src.agent_runtime.opencode_go import conversation_id
+            return connection.create_adapter(session_id=conversation_id(output, task_id))
+        return connection.create_adapter()
 
     with EventStore(output, run_id=output.name, task_id="coordinator", budget_limit=limits.ledger_limit(),
                     recover_tail=args.repair_tail) as store:

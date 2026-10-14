@@ -46,7 +46,7 @@ def role_parameters(config):
     if config["provider"] == "scripted":
         return {"max_tokens": config["output_tokens"], **{k: config[k] for k in
             ("reasoning_effort", "temperature", "enable_thinking") if config.get(k) is not None}}
-    return provider_parameters(config["provider"], output_tokens=config["output_tokens"],
+    return provider_parameters(config["provider"], model=config["model"], output_tokens=config["output_tokens"],
         reasoning_effort=config.get("reasoning_effort"), temperature=config.get("temperature"),
         thinking=True if config.get("enable_thinking") is None else config["enable_thinking"])
 

@@ -142,11 +142,17 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
             raise ValueError("live configuration requires a reviewed provider")
         if mode == "external_coordinator_mcp" and case["provider"] == CHATGPT_SUBSCRIPTION:
             raise ValueError("ChatGPT subscription supports single_model and role_division; external_coordinator_mcp is not supported")
+        if mode == "external_coordinator_mcp" and case["provider"] == "opencode-go":
+            raise ValueError("OpenCode Go supports single_model and role_division only")
         if case["provider"] == CHATGPT_SUBSCRIPTION and case.get("reasoning_history", "all") != "all":
             raise ValueError("ChatGPT subscription requires reasoning_history=all")
         model = case.get("model")
         validate_provider_model(case["provider"], model)
-        provider_parameters(case["provider"], output_tokens=case.get("output_tokens"),
+        if case["provider"] == "opencode-go":
+            from src.agent_runtime.opencode_go import model_contract
+            if model_contract(model)[0] == "openai_responses" and case.get("reasoning_history", "all") != "all":
+                raise ValueError("OpenCode Go Responses requires reasoning_history=all")
+        provider_parameters(case["provider"], model=model, output_tokens=case.get("output_tokens"),
             temperature=case.get("temperature"), thinking=case.get("thinking", True),
             reasoning_effort=case.get("reasoning_effort"))
         get_model_profile(model, strict=True)

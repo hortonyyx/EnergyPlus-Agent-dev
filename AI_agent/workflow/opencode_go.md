@@ -1,0 +1,39 @@
+# OpenCode Go 订阅接入
+
+2026-10-15：用户指定 OpenCode Go 与 Paratera 承担后续 work model 消耗，并授权环境准备、接口测试与接线。Go 是独立的 `opencode-go` provider，不借用 `paratera` 名称或人民币价格表；客户端不切到其他服务或按量端点。
+
+## 凭据与配置
+
+本机私有文件为 `D:/Sim-BIM-Agent/local-connections/opencode-go/credentials.env`，只读两个变量：`OPENCODE_GO_BASE_URL`（固定为`https://opencode.ai/inference/go/v1`）和`OPENCODE_GO_API_KEY`。不读取环境变量作回退，不展开env插值，不把key写到配置、journal或发布包。
+
+可复制 [Go配置示例](../../product/config.opencode-go.example.json)，修改实际输入和输出目录，再执行产品`check/run`。原 [默认配置](../../product/config.example.json)仍是6 Sol，两个示例不互相改写历史结果。Go的Kimi K3默认省略思考档和采样参数，按服务默认运行；当前只接纳明确的`max`思考档，不能把6 Sol的`high`原样套过去。
+
+## 已接入型号与协议
+
+| 精确model ID | API |
+|---|---|
+| `glm-5.3-flash`、`kimi-k3` | `/chat/completions` |
+| `minimax-m3`、`qwen3.8-max`、`claude-haiku-5-5` | `/messages` |
+| `gpt-6-luna` | `/responses` |
+
+这六个ID有明确协议、参数和预算profile；Go目录暴露40个型号不代表40个都已接线。其他ID在模型请求前拒绝，不猜协议或接受未知实验型号。Google原生协议及DeepSeek调用不在本轮范围。GPT-6 Sol不在本次Go目录中。
+
+运行请求携带自身`User-Agent: Sim-BIM-Agent/work-model`及`x-opencode-session`。会话ID由运行目录与任务ID派生为UUID，同一任务恢复时稳定，不同并发reader各有自己的ID；不发送本机原始路径。没有伪装成OpenCode或Claude客户端。
+
+Go Responses采用标准非流式请求，实际传送`max_output_tokens`，保留无状态的原生输出/加密推理历史；不沿用ChatGPT订阅预览“只本地预留、不能传输出cap”的规则。Messages沿用现有逻辑消息/图片转换及原生工具回执，使用标准版本头，不带GLM专用beta。Chat路由不发送Paratera的`enable_thinking`扩展或多采样`n`。
+
+## 并发、预算与用量
+
+单模型和图纸`role_division`都可选Go。角色分别解析其`provider+model`连接，允许同一Go订阅的不同角色使用不同协议；不会因同一provider名称把全部角色送到一个协议。并发上限、根预算、任务恢复和交付逻辑沿用现有实现。
+
+分工入口仍需有限的`limits.seconds`，单模型支持null。若Go与Paratera混合，现有`credentials_file`可包含两组变量，分别只读取自己的变量；不得在role配置内写key。顶层路由须与coordinator一致。
+
+Go按订阅记账，保留供应商实报tokens，不套Paratera单价、不生成伪人民币费用或零费用结论。供应商input/prompt tokens已含图像，不额外叠加本地估算图像tokens。预算与图片预留仍为本地估算；新模型图片公式是明确标注的proxy，Go部署cap也未做满容量测试，不能称供应商计费公式已校准。
+
+## 验证范围
+
+第一轮环境检查：40模型目录HTTP200，GLM工具调用和续接、Kimi合成小图通过；3模型请求，751实报tokens，0整案。该记录位于`D:/Sim-BIM-Agent/local-connections/opencode-go/verification.json`。
+
+本轮接线验证记录见 [接线报告](../reports/2026-10-15_opencode_go/README.md)。协议闭环、CLI配置、订阅记账和并发配置分别验证；整楼图纸保真、模型比较和其他目录型号的可用性不由接口检查替代。
+
+官方依据：[Go端点、会话和模型说明](https://opencode.ai/v2/docs/console/go/)、[OpenCode模型元数据](https://models.dev/api.json)、[标准Responses工具循环](https://developers.openai.com/api/docs/guides/function-calling)、[无状态推理历史](https://developers.openai.com/api/docs/guides/reasoning)。

@@ -283,7 +283,9 @@ def openai_image_tokens(width: int, height: int, profile: ModelProfile,
 
 def _image_detail(body: Mapping[str, Any], reference: str) -> str:
     value = body
-    for part in reference.rsplit("/url", 1)[0].strip("/").split("/"):
+    block_reference = (reference.removesuffix("/source/data")
+                       if reference.endswith("/source/data") else reference.rsplit("/url", 1)[0])
+    for part in block_reference.strip("/").split("/"):
         value = value[int(part)] if isinstance(value, list) else value[part]
     return value.get("detail", "auto")
 
