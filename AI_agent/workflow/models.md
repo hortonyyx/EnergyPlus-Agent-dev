@@ -1,10 +1,10 @@
 # 开发与产品运行的模型约定
 
-当前策略以 [2026-10-13 讨论结论](../project/model_and_input_strategy.md) 为准。本页只保留有效规则；逐次用量、旧型号限制和历史分工保存在 [归档索引](../reports/archive-index.md) 所列快照和原实验中。
+当前策略以 [模型与输入策略](../project/model_and_input_strategy.md) 为准。本页只保留有效规则；逐次用量、旧型号限制和历史分工保存在 [归档索引](../reports/archive-index.md) 所列快照和原实验中。
 
 ## Work model 选择
 
-Work model 不设国别、规模或型号上限，允许 Astra、6.1 Sol 等强模型。先验证 10 分钟内稳定完整交付，再优化成本与本地部署。优先现有单模型路径，分工按实测收益启用。五档是粗略交流标签，不是建筑任务排名、准入名单或智力上限；旧国模优先和固定 Sonnet 上限不作为当前限制。
+Work model 不设国别、规模或型号上限。用户当前指定后续使用 GPT-6 Sol（`gpt-6-sol`），保留 high 思考档，不以6.1 Sol替代。先验证稳定完整交付，10分钟只是优化目标，再优化成本与本地部署。优先现有单模型路径，同时保留分工并发、共享预算和恢复。五档是粗略交流标签，不是建筑任务排名、准入名单或智力上限；旧国模优先和固定 Sonnet 上限不作为当前限制。
 
 通过调研和任务实测更新选型，比较空间/几何质量、有效交付时间、总 token/费用、失败和返工、工具使用及适配负担。不适合任务的模型可以替换，不为冻结版本持续增加特殊规则。27B 的局部良好表现是候选依据，不等同整案稳定。
 
@@ -14,7 +14,7 @@ Work model 不设国别、规模或型号上限，允许 Astra、6.1 Sol 等强�
 
 配置见 [model_configuration](../design/model_configuration.md)。同一型号在不同服务上的模态、工具协议、限流、思考与计费可能不同；以明确 profile 和真实回执为准。历史价格、余额与目录不作为当前事实。
 
-用户已完成 Sim BIM Agent 独立 ChatGPT 授权，开发与桌面产品已读取模型目录。当时本地严格 profile 支持 `gpt-6-astra`、`gpt-6.1-sol`；目录中的 `gpt-6-sol` 仍需接入及调用验证，不能以 6.1 Sol 替代用户要求的 6 Sol。此次授权核验不覆盖真实推理或 BIM 整案。见 [授权记录](../reports/2026-10-11_repository_subscription_auth.md) 与 [接入说明](chatgpt_subscription_runtime.md)。
+用户已完成 Sim BIM Agent 独立 ChatGPT 授权，开发与桌面产品已读取模型目录；本地严格 profile 已包含 `gpt-6-astra`、`gpt-6.1-sol`、`gpt-6-sol`。当前改为6 Sol配置不代表本轮已完成其真实整案验收，账号当前可用性以实际服务回执为准。历史授权核验见 [授权记录](../reports/2026-10-11_repository_subscription_auth.md) 与 [接入说明](chatgpt_subscription_runtime.md)。
 
 ## 调用权限与费用
 

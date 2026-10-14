@@ -5,10 +5,59 @@ interprets pixels nor treats an opening between spaces as a merged space.
 """
 from __future__ import annotations
 
+from copy import deepcopy
+
 from shapely.geometry import Point, Polygon
 
 from src.agent.geometry.source_floor_selection import select_source_floor, select_source_floor_openings
 from src.agent.geometry.source_image_overlay import _axis_anchors, _number, _source_hash
+
+
+def revalidate_saved_relation_review(parent, source, saved, images, *, calibration):
+    """Recompute the same sampled observations after a notes-only source edit.
+
+    Saved verdicts and derived point ownership are never adopted. Older reports
+    retain the exact input pixel/expectation/evidence fields within their rows;
+    these can be recovered without inventing another image observation.
+    """
+    parent_hash = _source_hash(parent)
+    _source_hash(source)
+    if saved.get('source_model_sha256') != parent_hash:
+        raise ValueError('saved space relation review does not belong to the parent source')
+    ignored = {'source_model_sha256', 'source_geometry_sha256', 'generation',
+               'assumptions', 'corrections'}
+    if ({k: v for k, v in parent.items() if k not in ignored}
+            != {k: v for k, v in source.items() if k not in ignored}):
+        raise ValueError('space relation revalidation requires unchanged physical source')
+    image = images.get(saved.get('image'), {})
+    if (not image or saved.get('image_sha256') != image.get('sha256')
+            or saved.get('image_size', image.get('size')) != image.get('size')):
+        raise ValueError('saved space relation original image identity changed')
+    if (not isinstance(calibration, dict)
+            or calibration.get('image') != saved.get('image')
+            or calibration.get('floor_id') != saved.get('floor_id')
+            or calibration.get('image_sha256') != image['sha256']):
+        raise ValueError('saved space relation calibration identity changed')
+    normalized = {f'{axis}_anchors': _axis_anchors(calibration.get(f'{axis}_anchors'),
+        axis=axis, size=image['size'][index])[2] for index, axis in enumerate(('x', 'y'))}
+    if saved.get('calibration') != normalized:
+        raise ValueError('saved space relation calibration changed')
+    try:
+        recovered = [{'id': row['id'], 'expected': row['expected'], 'evidence': row['evidence'],
+                      'points': [point['pixel'] for point in row['points']]}
+                     for row in saved['observations']]
+    except (KeyError, TypeError) as error:
+        raise ValueError('saved space relation has no original sampled observations') from error
+    submitted = saved.get('submitted_observations', recovered)
+    if not isinstance(submitted, list) or len(submitted) != len(recovered):
+        raise ValueError('saved space relation submitted observations changed')
+    if any(not isinstance(row, dict) or any(row.get(key) != original[key] for key in original)
+           for row, original in zip(submitted, recovered)):
+        raise ValueError('saved space relation submitted observations changed')
+    observations = deepcopy(submitted)
+    report = review_space_relations(source, floor_id=saved['floor_id'],
+        image_size=image['size'], observations=observations, **normalized)
+    return {**report, 'submitted_observations': observations}
 
 
 def review_space_relations(source, *, floor_id, image_size, x_anchors, y_anchors,

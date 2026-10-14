@@ -57,7 +57,15 @@ def building_precision(toolkit, candidate, source=None):
     proposal = json.loads((path/'proposal.json').read_bytes())
     floors = {f['id']: f for f in source['floors']}
     evidence, errors = {}, []
-    for _, calibration in toolkit.registered_calibrations():
+    try:
+        calibrations = toolkit.registered_calibrations()
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        # This evidence is optional after a successful save. Do not catch later
+        # computation or artifact writes, or leave a partial precision report.
+        return {'status': 'unavailable', 'source_model_sha256': source['source_model_sha256'],
+                'reason': f'Could not load registered calibrations: {error}',
+                'drawing_fidelity': 'not_evaluated'}
+    for _, calibration in calibrations:
         fid = calibration['floor_id']
         if fid not in floors:
             continue

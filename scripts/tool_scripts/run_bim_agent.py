@@ -1400,6 +1400,10 @@ class Toolkit:
                     result["opening_review"] = (
                         "saved observations rechecked on this source; inspect opening_review_revalidation "
                         "for scopes and findings; drawing fidelity remains not_evaluated")
+            if parent and operations and all(operation.get("op") in {
+                    "replace_note", "set_notes"} for operation in operations):
+                result["space_relation_revalidation"] = self.revalidate_space_relations(
+                    parent, candidate, source)
             from scripts.tool_scripts.bim_agent_precision import building_precision
             result["building_precision"] = building_precision(self, candidate, source)
             projections, errors = self.project_registered_calibrations(candidate, action)
@@ -1421,13 +1425,21 @@ class Toolkit:
     def revalidate_opening_reviews(self, parent, candidate, source):
         """Save fresh kernel reports, leaving the parent observations untouched."""
         from src.agent.geometry.opening_review import revalidate_saved_review
-        parent_source = json.loads((self.candidate_path(parent) / "source_model.json").read_bytes())
-        calibrations = {(row["image"], row["floor_id"]): (path, row)
-                        for path, row in self.registered_calibrations()}
         folder = self.run / "opening_reviews"
         paths = sorted(folder.glob("review_*.json"))
         result = {"reports": [], "skipped": [], "drawing_fidelity": "not_evaluated",
                   "note": "Only saved observations are reused; each verdict is recomputed for the current source."}
+        if not paths:
+            return result
+        try:
+            parent_source = json.loads((self.candidate_path(parent) / "source_model.json").read_bytes())
+            if not isinstance(parent_source, dict):
+                raise ValueError('parent source must be an object')
+            calibrations = {(row["image"], row["floor_id"]): (path, row)
+                            for path, row in self.registered_calibrations()}
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            return {**result, 'status': 'unavailable',
+                    'reason': f'Could not load opening review revalidation context: {error}'}
         for path in paths:
             original = path.read_bytes()
             reference = path.relative_to(self.run).as_posix()
@@ -1591,21 +1603,110 @@ class Toolkit:
         if calibration['image_sha256'] != self.manifest['images'][image]['sha256']:
             raise ValueError('calibration original image changed')
         source = json.loads((self.candidate_path(candidate) / 'source_model.json').read_bytes())
+        observations = json.loads(observations_json)
         report = review_space_relations(source, floor_id=floor_id,
             image_size=self.manifest['images'][image]['size'],
             x_anchors=calibration['x_anchors'], y_anchors=calibration['y_anchors'],
-            observations=json.loads(observations_json))
+            observations=observations)
+        return self._save_space_relation_review(candidate, image, path,
+            {**report, 'submitted_observations': observations})
+
+    def _save_space_relation_review(self, candidate, image, calibration_path, report, *, inherited=None):
         folder = self.run / 'space_relation_reviews'
         folder.mkdir(exist_ok=True)
-        target = folder / f'review_{len(list(folder.glob("review_*.json"))) + 1:03d}.json'
+        index = max((int(p.stem.removeprefix('review_')) for p in folder.glob('review_*.json')), default=0) + 1
+        target = folder / f'review_{index:03d}.json'
         result = {**report, 'candidate': candidate, 'image': image,
                   'image_sha256': self.manifest['images'][image]['sha256'],
-                  'calibration_file': path.relative_to(self.run).as_posix(),
-                  'calibration_sha256': digest(path),
+                  'image_size': self.manifest['images'][image]['size'],
+                  'calibration_file': calibration_path.relative_to(self.run).as_posix(),
+                  'calibration_sha256': digest(calibration_path),
                   'review_file': target.relative_to(self.run).as_posix(),
                   'remaining_seconds': self.remaining_seconds()}
-        dump(target, result)
-        self.log('check_source_space_relation', result)
+        if inherited is not None:
+            result['revalidated_from'] = inherited
+        with target.open('x', encoding='utf-8', newline='\n') as stream:
+            stream.write(json.dumps(result, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n')
+        self.log('revalidate_source_space_relation' if inherited else 'check_source_space_relation', result)
+        return result
+
+    def revalidate_space_relations(self, parent, candidate, source):
+        from src.agent.geometry.source_space_relations import revalidate_saved_relation_review
+        from scripts.tool_scripts.bim_agent_replies import compact_reply, report_reference
+        result = {'reports': [], 'skipped': [], 'drawing_fidelity': 'not_evaluated',
+                  'note': 'Saved pixel observations are rechecked on this source; conflicts and uncertainty remain visible.'}
+        paths = sorted((self.run / 'space_relation_reviews').glob('review_*.json'))
+        if not paths:
+            return result
+        try:
+            parent_source = json.loads((self.candidate_path(parent) / 'source_model.json').read_bytes())
+            if not isinstance(parent_source, dict):
+                raise ValueError('parent source must be an object')
+            calibrations = {(row['image'], row['floor_id']): (path, row)
+                            for path, row in self.registered_calibrations()}
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            return {**result, 'status': 'unavailable',
+                    'reason': f'Could not load space relation revalidation context: {error}'}
+        # The existing append-only tool log retains the original report, including
+        # legacy pixel observations. Do not adopt a subsequently edited report file.
+        recorded = {}
+        log = self.run / 'tools.jsonl'
+        log_error = None
+        try:
+            if log.exists():
+                with log.open(encoding='utf-8') as stream:
+                    for line in stream:
+                        row = json.loads(line)
+                        if not isinstance(row, dict):
+                            raise ValueError('tool log row must be an object')
+                        if row.get('action') in {'check_source_space_relation', 'revalidate_source_space_relation'}:
+                            data = row.get('data')
+                            if not isinstance(data, dict) or not isinstance(data.get('review_file'), str):
+                                raise ValueError('tool log relation record has no report identity')
+                            recorded[data['review_file']] = data
+        except (OSError, ValueError, TypeError) as error:
+            log_error = f'Original space relation tool record unavailable: {error}'
+        for path in paths:
+            reference = path.relative_to(self.run).as_posix()
+            try:
+                original = path.read_bytes()
+                saved = json.loads(original)
+                if not isinstance(saved, dict):
+                    raise ValueError('saved space relation review must be an object')
+                if saved.get('candidate') != parent:
+                    continue
+                if log_error:
+                    raise ValueError(log_error)
+                if saved != recorded.get(reference):
+                    raise ValueError('saved space relation review differs from its original tool record')
+                image = saved['image']
+                with PILImage.open(self.image_path(image)) as pixels:
+                    if list(pixels.size) != self.manifest['images'][image]['size']:
+                        raise ValueError('original image dimensions changed')
+                old_calibration = (self.run / saved['calibration_file']).resolve()
+                if (old_calibration.parent != (self.run / 'overlay_calibrations').resolve()
+                        or not re.fullmatch(r'calibration_\d{3,}\.json', old_calibration.name)
+                        or digest(old_calibration) != saved['calibration_sha256']):
+                    raise ValueError('saved space relation calibration file changed')
+                calibration_path, calibration = calibrations[(image, saved['floor_id'])]
+                report = revalidate_saved_relation_review(parent_source, source, saved,
+                    self.manifest['images'], calibration=calibration)
+                fresh = self._save_space_relation_review(candidate, image, calibration_path, report,
+                    inherited={'review_file': reference, 'review_sha256': hashlib.sha256(original).hexdigest(),
+                        'candidate': parent, 'source_model_sha256': saved['source_model_sha256'],
+                        'calibration_file': saved['calibration_file'],
+                        'calibration_sha256': saved['calibration_sha256']})
+                entry = {'review_file': fresh['review_file'],
+                    'sha256': digest(self.run / fresh['review_file']), 'floor_id': fresh['floor_id'],
+                    'sample_count': len(fresh['observations']), 'conflict_count': fresh['conflict_count'],
+                    'unassessed_count': fresh['unassessed_count']}
+                readable = compact_reply(self.run, 'space_relation_revalidation', entry,
+                    full_result=fresh, force=True)
+                entry['details'] = report_reference(readable['details_file'],
+                    readable['details_sha256'], '', fresh)
+                result['reports'].append(entry)
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                result['skipped'].append({'review_file': reference, 'reason': str(error)})
         return result
 
     def space_relation_status(self, source):
