@@ -92,4 +92,8 @@
 
 后续优先核实早期公共层高/坐标为何没有落实、局部判断为何没有随动作保存，以及平面漏窗/错拆；不以新增机械检查表掩盖这些行为。墙带规整、同墙识别、增大容差及Haiku调度27B继续留待讨论。没有追加模型调用授权；后半段真实整案完成性与速度仍待下一次明确批准的实跑。
 
-固定桌面发布与最终版本记录将在原位离线验收后补齐。历史比较详见[基线诊断](2026-10-15_haiku_baseline_comparison.md)。
+运行后修复提交`4b89ab1c`，登记提交`dd4cf995`，当前runtime v19/domain v85。版本verify通过；运行后的v85尚无真实模型整案，唯一实跑仍属于v84。再次核对与`8b712683`的差异，`src/agent/geometry`和runtime代码均无变化，registry只追加登记。
+
+固定桌面`C:/Users/Horton/Desktop/Sim BIM Agent`已从`d274b124`原位更新至`dd4cf995`；依赖未变。安装隔离验收37.968秒通过，0真实请求；509个文件SHA全部匹配。轻量上一版`previous.zip`约4.34MiB，ZIP条目和各文件哈希与旧manifest一致，更新缓存为空。本轮临时v85发布包的删除被自动审批拒绝（只返回blocked by policy）；包保留在`D:/Sim-BIM-Agent/releases/baseline-opt-v85-20261016`，未改用其他方式删除。先前v81/v82包也未重试清理。未创建新工作树，既有opencode-go树保留。运行和大评价证据在本机D盘，短报告与代码正常提交推送；没有声称这些大证据已上传远端。
+
+检查明细及六张回叠：[本次评价页](D:/Sim-BIM-Agent/cache/haiku-baseline-opt-quality-20261015/evaluation-01/review.html)；[发布核验](D:/Sim-BIM-Agent/cache/haiku-baseline-opt-quality-20261015/release-audit.json)。历史比较详见[基线诊断](2026-10-15_haiku_baseline_comparison.md)。
