@@ -52,4 +52,6 @@
 
 ## 产品配置与发布
 
-新增`product/config.opencode-go-haiku.example.json`，采用成功轮的medium/64k及相同预算，scope改为可配置楼层的通用模板。默认`config.example.json`的6 Sol/high及原Go Kimi示例保持。真实成功来自上述冻结运行；产品示例已复用现有产品配置检查，并核对实际CLI生成的provider/model/effort/output上限，检查通过、0模型请求。版本指纹verify通过。固定桌面发布和安装验收结果完成后补充。
+新增`product/config.opencode-go-haiku.example.json`，采用成功轮的medium/64k及相同预算，scope改为可配置楼层的通用模板。默认`config.example.json`的6 Sol/high及原Go Kimi示例保持。真实成功来自上述冻结运行；产品示例已复用现有产品配置检查，并核对实际CLI生成的provider/model/effort/output上限，检查通过、0模型请求。版本指纹verify通过。
+
+发布`2d55b764c0b30c5605ae427066431288753a6f5e`已原位更新`C:/Users/Horton/Desktop/Sim BIM Agent`，runtime v19/domain v80。安装自身环境的离线验收44.812秒通过、0真实模型请求；507个文件SHA与发布包全部一致。保留上一版`previous.zip`（4,462,706字节）且SHA核验通过，更新临时目录已清空。审计为`D:/Sim-BIM-Agent/cache/haiku-complete-20261015/product-install-audit.json`。开发库正常提交/推送；原侧栏开发检出和运行证据保留。收尾C盘剩余47.63 GiB、D盘139.30 GiB。
