@@ -18,7 +18,9 @@ Original-image coordinates are [left, top, right, bottom] pixels."""
 
 _PLAN_CORE = """Preserve every actual room, wall, opening and connection. Keep stable IDs and label
 assumptions. task.coordinate_contract fixes floor/origin; world x East, y North, z Up and
-absolute. Plan points and first anchor values are ORIGINAL pixels. Second anchor values,
+absolute. A shared bounding-box origin may lie outside an L-shaped footprint: never replace
+it with a physical wall corner or a local crop/step origin. Keep the assigned datum stable.
+Plan points and first anchor values are ORIGINAL pixels. Second anchor values,
 z_floor, ceiling_height and opening z are metres. Passing checks never proves fidelity."""
 
 _PLAN_FIRST_DRAFT = """Start from the whole drawing and the batched enlarged blocks. In the same pass, inventory
@@ -163,7 +165,11 @@ ELEVATION_READER_GUIDANCE = "\n\n".join((
 
 
 COORDINATOR_GUIDANCE = """Inventory inputs; delegate_readers for plans AND elevations together with a common
-origin. Targets: floor ID or North/South/East/West[/F1,F2]. First dispatch fills missing
+origin. Define the datum unambiguously in task.origin: use a visible common survey datum,
+or the west/south extents of the WHOLE building envelope, including setbacks and projections.
+The bounding-box southwest point may be outside an L-shaped footprint; do not call it a
+physical corner or let each floor choose its own extents. Preserve explicit per-view offsets.
+Targets: floor ID or North/South/East/West[/F1,F2]. First dispatch fills missing
 readers and waits for all. Instructions contain drawing facts/questions only.
 Read results with role_state and read_role_artifact. The reader owns local drawing fidelity:
 its delivery includes numeric data, rendered views, a checked original overlay and unresolved
