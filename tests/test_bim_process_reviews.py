@@ -362,6 +362,26 @@ def test_carried_reviews_bind_explicit_prior_candidate_and_do_not_approve_new_re
     assert status["plan:F1.png:F1"] == "consistent" and status["plan:F2.png:F2"] == "stale"
 
 
+def test_empty_carried_reviews_allow_normal_action_without_approving_result(case):
+    toolkit, candidate = case
+
+    async def scenario():
+        async with _server_session(toolkit.run, readonly=False) as session:
+            result = _json_result(await session.call_tool("revise_bim", {
+                "candidate": candidate, "reviews_json": "[]",
+                "operations_json": json.dumps([{
+                    "op": "update_window", "id": "F2:W", "changes": {"span": [2.2, 4.2]},
+                    "reason": "Synthetic changed plan evidence.", "source_refs": ["Synthetic drawing."]}])}))
+            assert result["source_geometry_ready"]
+            assert not list((toolkit.run / "process_reviews").glob("review_*.json"))
+            assert not process_status(toolkit, result["candidate"])["ready"]
+            finish = await session.call_tool("finish_bim", {
+                "candidate": result["candidate"], "reviews_json": "[]"})
+            assert "finish_bim" in _error_text(finish)
+            assert not (toolkit.run / "delivery_selection.json").exists()
+    asyncio.run(scenario())
+
+
 def test_building_projection_difference_is_visible_without_moving_or_classifying_walls(case):
     toolkit, candidate = case
     source = _source(toolkit, candidate)

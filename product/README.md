@@ -29,7 +29,7 @@
 
 OpenCode Go订阅使用独立的`provider: "opencode-go"`，示例为`config.opencode-go.example.json`。支持GLM-5.3-Flash、Kimi K3、MiniMax M3、Qwen3.8 Max、Claude Haiku 5.5及GPT-6 Luna，按型号选择协议；目录中的其他型号尚未接纳。凭据由显式`credentials_file`提供`OPENCODE_GO_BASE_URL`和`OPENCODE_GO_API_KEY`，服务端点固定为`https://opencode.ai/inference/go/v1`。单模型和图纸分工都可使用Go，订阅用量与Paratera按量用量分别记录。接口可用不代表整楼图纸质量已验收。
 
-Haiku可复制`config.opencode-go-haiku.example.json`：单模型`claude-haiku-5-5/medium`、64,000输出tokens。使用时修改输入、输出及范围，并用`floor_plan_images`列出实际平面PNG文件名。新流程已在一个两层案例中自主交付BIM和查看器：61个开口及宿主匹配，34个外开口高度在5cm内；耗时28分54秒，部分平面位置仍有10–30cm偏差。此前流程优先运行耗时8分39秒，但漏一窗且多数窗高有偏差，两次自检范围不同。原`high/32,000`设置出现连续截断。以上是单案例证据，不表示稳定质量或速度达标；默认6 Sol配置保持。
+Haiku可复制`config.opencode-go-haiku.example.json`：单模型`claude-haiku-5-5/medium`、64,000输出tokens。使用时修改输入、输出及范围，并用`floor_plan_images`列出实际平面PNG文件名。当前为恢复基线后的精简检查流程，离线验证通过；唯一真实整案在13分44秒因Go HTTP 429 / GoUsageLimitError中断，没有finish，自动保留的候选不能算正式交付。中间结果30空间、54/61开口，仍有错拆和漏窗，后半流程与速度尚待完整实跑验证。历史8分39秒基线漏一窗且多数窗高有偏差；历史28分54秒版本完成61个开口及34个外开口高度，但有平面偏差，两者自检范围不同。原`high/32,000`设置出现连续截断。以上不表示稳定质量或速度达标；默认6 Sol配置保持。
 
 三个图纸示例均启用`process_reviews: true`：先确认整套图纸的公共坐标和层高，读图期间完成平面实际源回叠和立面采用值回叠，装配时处理平立面冲突，再对整楼进行建筑合理性判断。检查结论随下一次正常操作提交，修改后复用未变范围，只返工具体问题。交付报告保留各范围的当前检查状态、假设和未解决项；检查由工作模型自报，不等于独立图纸质量认证。此选项只适用于单模型图纸；并发入口保留。
 

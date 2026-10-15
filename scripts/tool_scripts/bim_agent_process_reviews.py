@@ -183,8 +183,10 @@ def carry_reviews(toolkit, reviews_json, candidate=""):
 def record_reviews(toolkit, candidate, reviews_json, *, project_result=True):
     """Save one batch after the model has inspected the returned actual-result views."""
     entries = json.loads(reviews_json)
-    if not isinstance(entries, list) or not 1 <= len(entries) <= 32:
-        raise ValueError("reviews_json needs 1-32 review objects")
+    if not isinstance(entries, list) or len(entries) > 32:
+        raise ValueError("reviews_json needs 0-32 review objects")
+    if not entries:
+        return {"saved_reviews": [], "drawing_fidelity": "not_evaluated"}
     prepared = []
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) - {
