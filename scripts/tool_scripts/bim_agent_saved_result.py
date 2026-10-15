@@ -236,6 +236,25 @@ def result_metadata(raw):
     return {}
 
 
+def full_result_metadata(raw, run):
+    """Read the hash-bound full result for program consumers, not prompt expansion."""
+    import hashlib
+    meta = {**result_metadata(raw), **(raw.get("structuredContent") or {})}
+    if not meta.get("details_file"):
+        return meta
+    root = Path(run).resolve()
+    path = (root / meta["details_file"]).resolve()
+    if path.parent != (root / "tool_reports").resolve() or not path.is_file():
+        raise ValueError("full tool result is missing or outside tool_reports")
+    contents = path.read_bytes()
+    if hashlib.sha256(contents).hexdigest() != meta.get("details_sha256"):
+        raise ValueError("full tool result hash mismatch")
+    saved = json.loads(contents)
+    if not isinstance(saved, dict):
+        raise ValueError("full tool result must be an object")
+    return {**meta, **saved}
+
+
 def read_saved_result(data, *, tool=None, run=None):
     """Read live results directly; one conservative adapter for older archives.
 

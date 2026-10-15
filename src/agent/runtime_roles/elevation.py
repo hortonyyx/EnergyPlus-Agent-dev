@@ -236,12 +236,12 @@ def elevation_submission_tool():
         {"required": ["opening_bbox"]},
         {"required": ["x_px", "width_m", "sill_m", "head_m", "bbox"]},
     ]
-    return {"name": "submit_elevation_reading", "description":
-        "Submit the assigned facade in one batch: horizontal and vertical calibration, all located levels, and a rough opening_bbox for each opening; "
+    return {"name": "trial_elevation_reading", "description":
+        "Prepare the assigned facade in one batch: horizontal and vertical calibration, all located levels, and a rough opening_bbox for each opening; "
         "Only pixels evidence allows unique-ink corrections; other evidence needs explicit x_px/width_m/sill_m/head_m, which are retained and checked. "
         "The accepted artifact adopts absolute levels and opening width/sill/head on the 0.1 m Lite grid while retaining every original reading and shift. "
         "Direction/axis come from task.target. "
-        "Counts, locations and the immutable submission are checked.", "inputSchema": schema}
+        "Returns adopted-value elevation and original-overlay images for local review; it does not deliver yet.", "inputSchema": schema}
 
 
 def expand_elevation_submission(arguments, target):
@@ -315,9 +315,15 @@ class ElevationReaderSubmission(ReaderSubmission):
         path, digest = self._verified_image()
         if path is None or digest != validation.get("image_sha256"):
             raise ValueError("saved elevation ink alignment image changed")
+        if validation.get("trial_id"):
+            from .elevation_trial import load_trial
+            trial = load_trial(self, validation["trial_id"])
+            if (trial["record_sha256"] != validation["trial_record_sha256"]
+                    or trial["value"]["artifact"] != value["artifact"]):
+                raise ValueError("accepted elevation differs from its reviewed trial")
         return value
 
-    def _submit(self, arguments):
+    def prepare(self, arguments):
         from .height_evidence import derive_z_calibration
         from .elevation_ink import align_elevation_artifact
         from .plan_review import box
@@ -349,6 +355,10 @@ class ElevationReaderSubmission(ReaderSubmission):
                 artifact, image_name=self.image_name, apply_regularization=False
             )
 
+        from .elevation_views import _check_image_coordinates
+        if artifact.get("z_calibration") is None:
+            raise ValueError("z_calibration or two consistent located horizontal levels are required for the overlay")
+        _check_image_coordinates(artifact, self.image_size)
         image_path, image_sha256 = self._verified_image()
         validation = {
             "validation_passed": True,
@@ -380,6 +390,12 @@ class ElevationReaderSubmission(ReaderSubmission):
             "artifact_sha256": hashlib.sha256(_bytes(artifact)).hexdigest(),
             "validation": validation,
         }
+        value["submitted"] = copy.deepcopy(arguments)
+        return value
+
+    def _submit(self, arguments):
+        from .elevation_trial import reviewed_value
+        value = reviewed_value(self, arguments)
         previous = self.read()
         if previous is not None and previous != value:
             raise ValueError("this task already has an accepted submission; rework uses a new task_id")
@@ -393,8 +409,8 @@ class ElevationReaderSubmission(ReaderSubmission):
             "status": "accepted",
             "artifact_sha256": value["artifact_sha256"],
             "plan_sha256": None,
-            "unresolved": artifact["unresolved"],
-            "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact.",
+            "unresolved": value["artifact"]["unresolved"],
+            "next_action": "Reviewed submission saved; reader task complete.",
         }
 
 
@@ -411,9 +427,10 @@ class ElevationReaderTools(ReaderTools):
         target=None,
         previous_artifact=None,
         rework_targets=None,
+        store=None,
     ):
         super().__init__(
-            frozen, role_id=role_id, image_name=image_name, trial=trial, target=target
+            frozen, role_id=role_id, image_name=image_name, trial=trial, target=target, store=store
         )
         self.submission = ElevationReaderSubmission(
             role_id=role_id,
@@ -427,30 +444,74 @@ class ElevationReaderTools(ReaderTools):
         )
 
     async def list_tools(self):
+        from .elevation_trial import DELIVERY_TOOL
         tools = await super().list_tools()
-        tools = [elevation_submission_tool() if tool["name"] == "submit_elevation_reading" else tool
+        tools = [copy.deepcopy(DELIVERY_TOOL) if tool["name"] == "submit_elevation_reading" else tool
                  for tool in tools]
+        tools.append(elevation_submission_tool())
         self._catalog = {tool["name"]: tool for tool in tools}
         return tools
 
+    def repeatability(self, name):
+        if name == "trial_elevation_reading":
+            return "non_idempotent_write"
+        return super().repeatability(name)
+
+    def artifacts(self):
+        paths = super().artifacts()
+        paths.extend((self._scope_directory / "elevation_trials").glob("*"))
+        latest = self._scope_directory / "elevation_latest.json"
+        if latest.is_file():
+            paths.append(latest)
+        return sorted(set(paths))
+
+    def snapshot_state(self):
+        state = super().snapshot_state()
+        state["elevation_trials"] = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in self.artifacts() if path.parent.name == "elevation_trials"
+            or path.name == "elevation_latest.json"}
+        return state
+
+    def can_resume_reads(self, expected, observed, names):
+        return (expected.get("elevation_trials") == observed.get("elevation_trials")
+                and super().can_resume_reads(expected, observed, names))
+
+    def image_origins(self, raw_result):
+        origins = super().image_origins(raw_result)
+        metadata = raw_result.get("structuredContent") or {}
+        for view in metadata.get("views", []):
+            origins[view["sha256"]] = {"sent_sha256": view["sha256"],
+                "original_path": str(self._scope_directory / "images" / self.image_name),
+                "original_sha256": self._image_sha256, "source_image_name": self.image_name,
+                "transport": "adopted elevation reading " + view["kind"],
+                "origin_status": "verified single-image reader trial"}
+        return origins
+
     async def call_tool(self, name, arguments):
-        if name != "submit_elevation_reading":
+        if name not in {"trial_elevation_reading", "submit_elevation_reading"}:
             return await super().call_tool(name, arguments)
         from .parameters import normalize_stringified_parameters
         from .session import envelope
+        from .elevation_trial import DELIVERY_TOOL, prepare_trial
         import jsonschema
         try:
-            arguments = normalize_stringified_parameters(arguments, elevation_submission_tool()["inputSchema"])
+            spec = elevation_submission_tool() if name == "trial_elevation_reading" else DELIVERY_TOOL
+            arguments = normalize_stringified_parameters(arguments, spec["inputSchema"])
+            jsonschema.validate(arguments, spec["inputSchema"])
+            self._enforce_single_image(arguments)
+            if name == "submit_elevation_reading":
+                from .elevation_trial import load_trial
+                from .reader_delivery import require_observed_trial
+                trial = load_trial(self.submission, arguments["trial_id"])
+                require_observed_trial(self.store, "trial_elevation_reading", "trial_id",
+                    trial["trial_id"], [row["sha256"] for row in trial["views"]])
+                return envelope(self.submission.submit(arguments))
             expanded = expand_elevation_submission(arguments, self.submission.target)
-            result = await super().call_tool(name, expanded)
-            if not result.get("isError"):
-                return result
-            reason = result["structuredContent"]["reason"].split(". Minimum correct example:", 1)[0]
-        except (ValueError, KeyError, TypeError, jsonschema.ValidationError) as error:
+            return prepare_trial(self.submission, expanded)
+        except (ValueError, KeyError, TypeError, OSError, jsonschema.ValidationError) as error:
             reason = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
-        from .guidance import COMPACT_ELEVATION_EXAMPLE
-        return envelope({"status": "rejected", "reason": reason,
-                         "example": COMPACT_ELEVATION_EXAMPLE}, error=True)
+            return envelope({"status": "rejected", "reason": reason,
+                "next_action": "Correct the named field. Prepare and inspect a trial before submitting its ID and local_review.summary."}, error=True)
 
 
 def _canonical_hash(value: Any) -> str:

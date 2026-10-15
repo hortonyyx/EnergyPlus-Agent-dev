@@ -1188,6 +1188,9 @@ class PlanTrial:
         )
         try:
             result = _payload(raw)
+            if self.workspace is not None and result.get("details_file"):
+                from scripts.tool_scripts.bim_agent_saved_result import full_result_metadata
+                result = full_result_metadata(raw, self.workspace)
         except ValueError as error:
             result = {"source_geometry_ready": False, "error": str(error)}
         ready = result.get("source_geometry_ready") is True

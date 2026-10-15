@@ -13,8 +13,8 @@ from scripts.tool_scripts.run_bim_agent import Toolkit
 def completed_building_handoff(engine) -> dict | None:
     """Attest the last explicit finish against the exact files it handed off.
 
-    This hook belongs only to the single-model entrypoint. Other MCP clients
-    may keep working after finish_bim. A later write, failed/unknown finish,
+    The single-model and role coordinator entrypoints opt into this hook.
+    Other MCP clients may keep working after finish_bim. A later write, failed/unknown finish,
     incomplete building, or changed artifact never becomes task completion.
     """
     if engine.role.read_only:

@@ -9,6 +9,7 @@ import time
 from contextlib import AsyncExitStack
 from pathlib import Path
 
+from src.agent.runtime_delivery import completed_building_handoff
 from src.agent.runtime_entry import ROOT, parser as single_parser, prepare_inputs, publish_tool_budget
 from src.agent.runtime_tools import FrozenBimTools, coordinator_role, frozen_bim_client, write_frozen_materials, write_frozen_tool_catalog
 from src.agent_runtime.adapter import ScriptedAdapter
@@ -37,10 +38,19 @@ def parser():
                         help="explicit new-run continuation from a terminal run; source remains read-only")
     result.add_argument("--source-events-sha256",
                         help="approved SHA-256 of the continuation source events.jsonl")
+    result.add_argument("--reader-task-json",
+                        help="run exactly this one reader task through the same role runtime, without a coordinator or assembly")
     return result
 
 
 async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_hook=None):
+    unit = json.loads(args.reader_task_json) if getattr(args, "reader_task_json", None) else None
+    if unit is not None:
+        import jsonschema
+        from .session import TASK_SCHEMA
+        jsonschema.validate(unit, TASK_SCHEMA)
+        if getattr(args, "continue_from", None):
+            raise ValueError("reader unit runs cannot import a whole-run continuation")
     if args.seconds is None:
         raise ValueError("--no-time-limit currently supports single_model only; role_division requires --seconds")
     if args.mesh or args.image_kind != "drawings":
@@ -123,6 +133,8 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                                            for key, value in role_contexts.items()},
                      "connections": connection_routes,
                      "max_concurrent_readers": args.max_concurrent_readers}
+    if unit is not None:
+        configuration["reader_unit"] = unit
     if source is not None and source.read_json("role_configuration.json").get("connections") != connection_routes:
         raise ValueError("continuation must preserve the original provider routes")
     if args.resume:
@@ -210,6 +222,31 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 store.write_json("versions.json", versions.model_dump(mode="json"))
                 write_frozen_materials(output / "frozen", repository_root=ROOT)
                 write_frozen_tool_catalog(output / "frozen", await client.list_tools(), readonly=False)
+            if unit is not None:
+                if args.resume and json.loads((output / "versions.json").read_bytes()) != versions.model_dump(mode="json"):
+                    raise ValueError("reader unit implementation changed; refusing recovery")
+                # No delegate_many: its whole-case auto-fill must never turn a
+                # selected unit experiment into a six-image run.
+                admitted = tools._task(unit)
+                record = await tools.run_reader(admitted)
+                accounting = role_accounting(store, tools.registry)
+                child = tools.registry.child(unit["task_id"])
+                child_receipt = child.task_directory / "receipt.json"
+                runtime = json.loads(child_receipt.read_bytes()) if child_receipt.is_file() else {}
+                failed_status = runtime.get("status", "failed")
+                result = {"status": "completed" if record["status"] == "completed" else
+                          (failed_status if failed_status != "completed" else "reader_completion_unmet"),
+                    "execution_scope": "reader_unit", "whole_building_delivered": False,
+                    "reader": record, "elapsed_seconds": time.time() - manifest["started_epoch"],
+                    "role_accounting": accounting}
+                store.write_json("role_accounting.json", accounting)
+                store.write_json("role_state.json", tools.state())
+                store.write_json("receipt.json", result)
+                store.write_json("bim/summary.json", {
+                    "runtime_mode": "role_division", "execution_scope": "reader_unit",
+                    "runtime_status": result["status"], "delivery": None,
+                    "reader_task_id": unit["task_id"], "receipt": "../receipt.json"})
+                return result
             adapter = factory("coordinator", primary, store)
             if hasattr(adapter, "close"):
                 stack.push_async_callback(adapter.close)
@@ -218,6 +255,7 @@ async def execute(args, *, adapter_factory=None, fault_hook=None, reader_fault_h
                 context_policy=context_policy_from_effective("coordinator", coordinator_context),
                 context_update=update_role_context, root_tool_calls=limits.tool_calls,
                 start_epoch=manifest["started_epoch"], finalize_run=finalize_role_building,
+                domain_completion=completed_building_handoff,
                 tool_budget_update=publish_tool_budget, strict_model_profile=primary["provider"] in LIVE_PROVIDERS,
                 low_output_limit_reason=primary.get("low_output_limit_reason"), fault_hook=fault_hook)
             if args.resume:

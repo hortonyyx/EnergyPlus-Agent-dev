@@ -1409,7 +1409,10 @@ class Runtime:
                     reason="explicit repeatable-read recovery; original outcome remains unknown",
                     retry_of_event_id=unknown.event_id, attempt=attempts + 1))
             write = repeatability != "read_only"
-            key = f"{self.store.run_id}:{call.call_id}" if write else None
+            # Provider call IDs are scoped to a conversation. Concurrent readers
+            # may return the same ID; their writes must not collide in the root journal.
+            key = json.dumps([self.store.run_id, self.store.task_id, call.call_id],
+                             separators=(",", ":")) if write else None
             self._tool_state = copy.deepcopy(self.tools.snapshot_state())
             before = self.store.put_json(self._tool_state)
             intent = self.store.append(ToolInvocationPayload(call_id=call.call_id,

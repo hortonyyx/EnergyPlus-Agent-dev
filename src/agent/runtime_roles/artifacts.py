@@ -117,6 +117,10 @@ class ArtifactRegistry:
                                  {"orientation": artifact.get("orientation"), "counts": artifact.get("counts"),
                                   "openings": len(artifact.get("openings", []))})
             record["summary"]["unresolved"] = artifact.get("unresolved", [])
+            review = (validation or {}).get("local_review")
+            if review:
+                record["summary"]["local_review"] = {key: review[key] for key in
+                    ("status", "summary", "independently_verified")}
         record["record_blob"] = child.put_json(record).model_dump(mode="json")
         child.write_json("reader_record.json", record)
         self.records[task["task_id"]] = record

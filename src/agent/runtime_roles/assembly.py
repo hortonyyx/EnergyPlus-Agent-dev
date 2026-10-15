@@ -192,6 +192,8 @@ async def assemble_from_readers(session, *, task_ids=None, level_overrides=()):
         state["complete"] = status != "assembly_review_required" and candidate is not None
         state["candidate"] = candidate
         if candidate:
+            from scripts.tool_scripts.bim_agent_process_reviews import building_facts
+            response["architectural_facts"] = building_facts(session._source(candidate))
             state["position_revision"] = session.positions.revision()
             session.positions.bind(candidate, references, assembly_id=identity,
                 position_revision=state["position_revision"] if state["complete"] else None)

@@ -983,9 +983,16 @@ def finalize_role_building(engine, reason):
                             "assembly_review": report}
                 return {"status": "assembly_delivery_blocked", "delivery": None,
                         "assembly_review": report, "reason": str(error)}
+            from .building_review import verify_review
+            try:
+                architectural_review = verify_review(engine.tools, chosen)
+            except ValueError as error:
+                return {"status": "architectural_review_required", "delivery": None, "reason": str(error)}
     except (ValueError, OSError, KeyError) as error:
         return {"status": "assembly_review_failed", "delivery": None, "reason": str(error)}
     result = finalize_runtime_building(engine, reason)
     if chosen and result.get("status") == "delivered":
         engine.tools.positions.write_delivery(chosen)
+        from .building_review import attach_review
+        attach_review(engine.tools, architectural_review)
     return result

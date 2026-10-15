@@ -1,5 +1,7 @@
 """Rework preserves verified drafts, scoped permissions and required review."""
 
+from reader_delivery_fixtures import REVIEW, compact_elevation, accept_elevation
+
 import asyncio
 import base64
 import copy
@@ -205,9 +207,9 @@ def test_passed_unsubmitted_rework_reads_retrials_and_explicitly_submits(environ
     trial_arguments = ({"operations": [_operation(z=[0, 2.2])]} if local_edit else {"plan": original})
     adapter = ScriptedAdapter([
         response(("read", "read_plan_draft", {"field": "plan"})),
-        response(("premature", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("premature", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
         response(("trial", "trial_plan_bim", trial_arguments)),
-        response(("submit", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("submit", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
         response(text="Submission acknowledged."),
     ])
     session.adapter_factory = lambda *args: adapter
@@ -231,7 +233,7 @@ def test_passed_unsubmitted_rework_reads_retrials_and_explicitly_submits(environ
     assert result["validation"]["validation_passed"]
     assert (next_child.task_directory / "bim/reader_submission.json").is_file()
     assert prior.load_plan(prior.receipts[-1]) == original
-    assert len(adapter.requests) == 5
+    assert len(adapter.requests) == 4
 
 
 def test_passed_rework_rejects_out_of_scope_ops_then_preserves_unchanged_submit(environment, monkeypatch):
@@ -245,7 +247,7 @@ def test_passed_rework_rejects_out_of_scope_ops_then_preserves_unchanged_submit(
             _operation("partitions", original["partitions"][0]["id"], points=[[1, 1], [2, 2]])]})),
         response(("read", "read_plan_draft", {"field": "plan"})),
         response(("trial", "trial_plan_bim", {"plan": original})),
-        response(("submit", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("submit", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
         response(text="Submission acknowledged."),
     ])
     session.adapter_factory = lambda *args: adapter
@@ -348,8 +350,8 @@ def test_inherited_validation_is_readable_and_still_requires_current_submission_
     adapter = ScriptedAdapter([
         response(("review", "read_plan_draft", {"field": "report:/topology_issues"})),
         response(("trial", "trial_plan_bim", {"plan": original})),
-        response(("missing-review", "submit_plan_reading", {"trial_id": "latest"})),
-        response(("submit", "submit_plan_reading", {"trial_id": "latest", "topology_decisions": [decision]})),
+        response(("missing-review", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
+        response(("submit", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest", "topology_decisions": [decision]})),
         response(text="Submission acknowledged."),
     ])
     session.adapter_factory = lambda *args: adapter

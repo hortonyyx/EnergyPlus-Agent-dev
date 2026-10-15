@@ -1,5 +1,7 @@
 """Explicit new-run evidence imports keep identity, scope and submission gates."""
 
+from reader_delivery_fixtures import REVIEW, compact_elevation, accept_elevation
+
 import asyncio
 import copy
 import hashlib
@@ -123,9 +125,9 @@ def test_imported_draft_reads_retrials_and_explicitly_submits(continuation, monk
     args = {"operations": [_operation(z=[0, 2.2])]} if local_edit else {"plan": c.facts["original"]}
     adapter = ScriptedAdapter([
         response(("read", "read_plan_draft", {"field": "plan"})),
-        response(("premature", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("premature", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
         response(("trial", "trial_plan_bim", args)),
-        response(("submit", "submit_plan_reading", {"trial_id": "latest"})),
+        response(("submit", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
         response(text="Submission acknowledged."),
     ])
     c.target.adapter_factory = lambda *args: adapter
@@ -327,7 +329,7 @@ def test_second_continuation_preserves_deliveries_and_prefers_native_plan_submis
         _isolated_recovery_trials(monkeypatch, {})
         adapter = ScriptedAdapter([
             response(("trial", "trial_plan_bim", {"plan": c.facts["original"]})),
-            response(("submit", "submit_plan_reading", {"trial_id": "latest"})),
+            response(("submit", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"})),
             response(text="Submission acknowledged."),
         ])
         c.target.adapter_factory = lambda *args: adapter

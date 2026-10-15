@@ -253,7 +253,12 @@ class RoleSession:
 
     async def list_tools(self):
         ordinary = await self.frozen.list_tools()
-        ordinary = [tool for tool in ordinary if tool["name"] in COORDINATOR_ORDINARY_TOOLS]
+        ordinary = [copy.deepcopy(tool) for tool in ordinary if tool["name"] in COORDINATOR_ORDINARY_TOOLS]
+        from .reader_delivery import LOCAL_REVIEW_SCHEMA
+        for tool in ordinary:
+            if tool["name"] == "finish_bim":
+                tool["inputSchema"]["properties"]["architectural_review"] = LOCAL_REVIEW_SCHEMA
+                tool["description"] += " Include architectural_review.summary: judge assembled storeys, floor differences, layout/connectivity and openings; reuse the readers' local overlay checks."
         self.ordinary_schemas = {tool["name"]: tool["inputSchema"] for tool in ordinary}
         return [*ordinary, *EXTRA_TOOLS]
 
@@ -519,6 +524,9 @@ class RoleSession:
                         self.assembly.check(candidate, require_all=True)
                         self.assembly.guard()
                         self.positions.guard(candidate)
+                    from .building_review import prepare_review
+                    judgment = prepare_review(self, candidate, arguments.get("architectural_review"))
+                    arguments = {key: value for key, value in arguments.items() if key != "architectural_review"}
                 if name == "check_openings":
                     from .opening_checks import check_openings
                     result = await check_openings(self, arguments)
@@ -526,6 +534,16 @@ class RoleSession:
                     result = await self.frozen.call_tool(name, arguments)
                 if name == "finish_bim" and not result.get("isError"):
                     self.positions.write_delivery(arguments["candidate"])
+                    from .building_review import attach_review
+                    attach_review(self, judgment)
+                    # Role attachments change delivery.json/html after the frozen
+                    # finish. Attest their final bytes before domain completion.
+                    from scripts.tool_scripts.bim_agent_saved_result import full_result_metadata
+                    final = full_result_metadata(result, self.run_directory)
+                    final["delivery_artifact_sha256"] = {file: hashlib.sha256(
+                        (self.run_directory / file).read_bytes()).hexdigest()
+                        for file in final.get("delivery_artifact_sha256", {})}
+                    result = envelope(final)
                 from scripts.tool_scripts.bim_agent_saved_result import result_metadata
                 meta = {**result_metadata(result), **(result.get("structuredContent") or {})}
                 candidate = meta.get("candidate")
@@ -1099,7 +1117,7 @@ class RoleSession:
             from .elevation import ElevationReaderTools, ELEVATION_COORDINATES
             tool_class = ElevationReaderTools if task["role_id"] == "elevation_reader" else ReaderTools
             tool_kwargs = {"role_id": task["role_id"], "image_name": task["image"],
-                           "trial": trial, "target": task["target"]}
+                           "trial": trial, "target": task["target"], "store": child}
             if task["role_id"] == "elevation_reader":
                 tool_kwargs.update(previous_artifact=previous,
                                    rework_targets=task.get("rework_targets"))
@@ -1125,20 +1143,15 @@ class RoleSession:
                        "coordinates": ELEVATION_COORDINATES if task["role_id"] == "elevation_reader"
                        else READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
                        {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(raw_image).decode()}}]
-            def validate(text):
-                submitted = tools.submission.read()
-                if submitted is None:
-                    name = "submit_plan_reading" if trial is not None else "submit_elevation_reading"
-                    raise ValueError(f"No accepted submission. Call {name}; free text is not the reading artifact.")
-                return submitted["artifact"]
             adapter = self.adapter_factory(task["task_id"], config, child)
             if hasattr(adapter, "close"):
                 stack.push_async_callback(adapter.close)
+            from .reader_delivery import completed_reader_handoff
             engine = Runtime(store=child, adapter=adapter, tools=tools, role=role,
                 model=config["model"], parameters=parameters, versions=versions, limits=limits,
                 strict_model_profile=config["provider"] in LIVE_PROVIDERS,
                 root_tool_calls=self.limits.tool_calls, start_epoch=timing["started_epoch"],
-                answer_validator=validate, max_answer_repairs=1,
+                domain_completion=completed_reader_handoff,
                 low_output_limit_reason=config.get("low_output_limit_reason"),
                 context_policy=context_policy_from_effective(task["role_id"], effective_context),
                 request_timeout_seconds=self.limits.seconds / (self.max_concurrent_readers + 1),
@@ -1150,10 +1163,16 @@ class RoleSession:
                 runtime["plan_reader_progress"] = tools.progress(started_epoch=runtime.get("started_epoch"))
                 child.write_json("receipt.json", runtime)
             submitted = tools.submission.read()
-            artifact = submitted["artifact"] if submitted is not None else None
-            status = "completed" if artifact is not None else "failed"
+            completion = runtime.get("completion") or {}
+            accepted = (runtime["status"] == "completed" and submitted is not None
+                        and completion.get("artifact_sha256") == submitted["artifact_sha256"]
+                        and completion.get("receipt_sha256") == tools.submission.snapshot()["receipt_sha256"])
+            # A disk write without a committed tool execution is diagnostic
+            # material, not an accepted reading. Recovery must settle it first.
+            artifact = submitted["artifact"] if accepted else None
+            status = "completed" if accepted else "failed"
             return self.registry.save(task, status=status, artifact=artifact, runtime=runtime,
-                                      validation=submitted["validation"] if submitted is not None else None,
+                                      validation=submitted["validation"] if accepted else None,
                                       reason=runtime["status"] if artifact is None else None)
 
     async def _once(self, operation_id, name, arguments, *, reference):
@@ -1171,9 +1190,8 @@ class RoleSession:
         result = await self.frozen.call_tool(name, arguments)
         # Preserve the actual expanded tool arguments as an audited blob without retransmitting a full plan.
         result = dict(result)
-        metadata = dict(result.get("structuredContent") or {})
-        from scripts.tool_scripts.bim_agent_saved_result import result_metadata
-        metadata = {**result_metadata(result), **metadata,
+        from scripts.tool_scripts.bim_agent_saved_result import full_result_metadata
+        metadata = {**full_result_metadata(result, self.run_directory),
                     "role_application": {"reference": reference, "expanded_parameters": self.store.put_json(saved).model_dump(mode="json")}}
         result["structuredContent"] = metadata
         result["content"] = [block for block in result.get("content", []) if block.get("type") != "text"]

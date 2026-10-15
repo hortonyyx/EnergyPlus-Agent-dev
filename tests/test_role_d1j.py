@@ -1,5 +1,7 @@
 """Behavior at D1j's role-only boundaries; local geometry, no model services."""
 
+from reader_delivery_fixtures import REVIEW
+
 import asyncio
 import copy
 import hashlib
@@ -36,10 +38,14 @@ def test_reader_task_supplies_direction_and_partial_chain_origin(tmp_path, facad
         args = copy.deepcopy(COMPACT_ELEVATION_EXAMPLE)
         args["x_calibration"].update(distance_start_m=.54, distance_end_m=5.34, facade_length_m=10)
         args["counts"][0]["window_count"] = 2
-        failed = await tools.call_tool("submit_elevation_reading", args)
+        failed = await tools.call_tool("trial_elevation_reading", args)
         assert failed["isError"] and tools.submission.read() is None
         args["counts"][0]["window_count"] = 1
-        accepted = await tools.call_tool("submit_elevation_reading", args)
+        prepared = await tools.call_tool("trial_elevation_reading", args)
+        assert not prepared["isError"], prepared
+        assert tools.submission.read() is None
+        review_args = {"trial_id": prepared["structuredContent"]["trial_id"], "local_review": REVIEW}
+        accepted = await tools.call_tool("submit_elevation_reading", review_args)
         assert not accepted["isError"], accepted
         saved = tools.submission.read()["artifact"]
         assert (saved["orientation"], saved["view_direction"]) == (facade, view)
@@ -47,7 +53,7 @@ def test_reader_task_supplies_direction_and_partial_chain_origin(tmp_path, facad
         assert c["world_axis"] == axis
         assert [c["world_start_m"], c["world_end_m"]] == pytest.approx(world)
         assert validate_elevation_artifact(saved) == saved
-        assert (await tools.call_tool("submit_elevation_reading", args)) == accepted
+        assert (await tools.call_tool("submit_elevation_reading", review_args)) == accepted
         args["x_calibration"]["facade_length_m"] = 4
         assert (await tools.call_tool("submit_elevation_reading", args))["isError"]
         assert tools.submission.read()["artifact"] == saved

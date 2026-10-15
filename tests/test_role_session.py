@@ -1,5 +1,7 @@
 """Shared accounting, immutable references and recovery guards for D1."""
 
+from reader_delivery_fixtures import compact_elevation, accept_elevation, elevation_responses
+
 import asyncio
 import hashlib
 import json
@@ -65,11 +67,11 @@ def dispatch(identity="north", **extra):
 
 
 def submit_elevation(call_id="submit"):
-    return response((call_id, "submit_elevation_reading", elevation()))
+    return response((call_id, "trial_elevation_reading", compact_elevation(elevation())))
 
 
 def delivered_adapter():
-    return ScriptedAdapter([submit_elevation(), response(text="Submission acknowledged.")])
+    return ScriptedAdapter([submit_elevation(), accept_elevation])
 
 
 class Frozen:
@@ -191,7 +193,7 @@ def test_artifact_file_tampering_is_rejected_on_reopen(environment):
         ArtifactRegistry(store)
 
 
-def test_submit_tool_then_ack_is_audited_in_same_role_and_root_budget(environment):
+def test_prepare_review_submit_ends_without_ack_in_same_role_and_root_budget(environment):
     store, make = environment
     session = make(lambda *args: delivered_adapter())
     row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
@@ -205,16 +207,17 @@ def test_submit_tool_then_ack_is_audited_in_same_role_and_root_budget(environmen
     assert role["request_seconds"] >= 0
 
 
-def test_answer_text_without_submit_stops_after_one_bounded_repair(environment):
+def test_answer_text_without_submit_stops_after_bounded_domain_continuations(environment):
     store, make = environment
     session = make(lambda *args: ScriptedAdapter([
-        response(text=json.dumps(elevation())), response(text=json.dumps(elevation())),
+        response(text=json.dumps(elevation())), response(text=json.dumps(elevation())), response(text=json.dumps(elevation())),
     ]))
     row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
     assert row["status"] == "failed" and row["artifact"] is None
-    assert session.state()["usage"]["requests"] == 2
+    assert session.state()["usage"]["requests"] == 3
+    assert row["runtime_status"] == "domain_completion_unmet"
     role = session.state()["usage"]["by_role"]["elevation_reader"]
-    assert role["format_errors"] == 2 and role["repair_failures"] == 1
+    assert role["format_errors"] == role["repair_failures"] == 0
     assert role["repair_incomplete"] == 0 and role["delivery_failures"]
     assert role["task_elapsed_seconds_sum"] > 0 and role["task_wall_span_seconds"] > 0
 
@@ -224,7 +227,7 @@ def test_rejected_submit_tool_can_be_fixed_and_resubmitted_without_answer_repair
     session = make(lambda *args: ScriptedAdapter([
         response(("bad-submit", "submit_elevation_reading", {})),
         submit_elevation("good-submit"),
-        response(text="Submission acknowledged."),
+        accept_elevation,
     ]))
     row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
     assert row["status"] == "completed", row
@@ -243,15 +246,15 @@ def test_rejected_submit_tool_can_be_fixed_and_resubmitted_without_answer_repair
     assert session.registry.read("north")["orientation"] == "North"
 
 
-@pytest.mark.parametrize("environment", [1], indirect=True)
+@pytest.mark.parametrize("environment", [2], indirect=True)
 def test_submit_on_last_model_request_is_still_a_completed_delivery(environment):
     store, make = environment
-    session = make(lambda *args: ScriptedAdapter([submit_elevation()]))
+    session = make(lambda *args: ScriptedAdapter([submit_elevation(), accept_elevation]))
     row = asyncio.run(session.delegate_many([dispatch()]))["results"][0]
     assert row["status"] == "completed", row
-    assert row["runtime_status"].endswith("model_budget_exhausted")
+    assert row["runtime_status"] == "completed"
     assert session.registry.read("north")["orientation"] == "North"
-    assert sum(event.payload.event_type == "adapter_request" for event in store.all_events) == 1
+    assert sum(event.payload.event_type == "adapter_request" for event in store.all_events) == 2
 
 
 def test_single_image_is_validated_for_entire_batch_before_any_model_call(environment):
@@ -293,8 +296,8 @@ def test_elevation_rework_preserves_prior_originals_and_only_updates_target(envi
 
     def factory(task_id, *_):
         adapter = ScriptedAdapter([
-            response((f"submit-{task_id}", "submit_elevation_reading", submissions[task_id])),
-            response(text="Submission acknowledged."),
+            response((f"submit-{task_id}", "trial_elevation_reading", compact_elevation(submissions[task_id]))),
+            accept_elevation,
         ])
         adapters[task_id] = adapter
         return adapter
@@ -500,7 +503,8 @@ def test_shared_request_limit_counts_all_concurrent_tasks(environment):
     session.adapter_factory = lambda *args: Slow([submit_elevation()])
     rows = asyncio.run(session.delegate_many([dispatch(f"reader-{i}") for i in range(4)]))["results"]
     assert maximum == 2
-    assert sum(row["status"] == "completed" for row in rows) == 2, rows
+    assert sum(row["status"] == "completed" for row in rows) == 0, rows
+    # The two prepare calls exhaust the shared budget before either review; no false delivery.
     assert session.state()["usage"]["requests"] == 2
 
 
@@ -519,7 +523,7 @@ def test_readers_are_bounded_by_configured_concurrency(environment):
             finally:
                 concurrent -= 1
     session = make(lambda *args: Slow([
-        submit_elevation(), response(text="Submission acknowledged."),
+        submit_elevation(), accept_elevation,
     ]), max_concurrent_readers=1)
     rows = asyncio.run(session.delegate_many([dispatch(f"reader-{i}") for i in range(3)]))["results"]
     assert maximum == 1 and all(row["status"] == "completed" for row in rows)

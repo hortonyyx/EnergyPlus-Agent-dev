@@ -70,7 +70,7 @@ inkless gap, decide whether both ends belong to one physical wall. If not, remov
 artificial separator AND opening together, plus any redundant seed, preserving actual
 wall portions. Implement the decision; unresolved text cannot waive it. No warning: omit."""
 
-_ARTIFACT_SCHEMA = """6. submit_plan_reading({"trial_id":"latest"}) or latest passed trial_id/plan_sha256.
+_ARTIFACT_SCHEMA = """6. Inspect the saved plan and original overlay, then submit_plan_reading with trial_id="latest" and local_review.summary or latest passed trial_id/plan_sha256.
 Never resend plan/evidence: generated boxes locate declarations, not prove observation;
 anchor bands do not locate dimensions. Optional notes={item,kind,basis}, kind=
 assumption/inferred/unresolved. item may be the exact plan path or an unambiguous declared
@@ -82,9 +82,10 @@ basis; optional matching dimension_basis and annotation bbox. For axis_orientati
 at image_bottom or East at image_left, north_arrow needs original arrow bbox, drawing
 basis and matching world_north_toward/world_east_toward; overlays/instructions cannot prove
 it. Normal orientation needs none. Reject failed/stale trials; retry changed plans before
-submission. Correct named rejections, then acknowledge briefly."""
+submission. Correct named rejections; acceptance ends the task automatically."""
 
 PLAN_READER_GUIDANCE = "\n\n".join((
+    "Delivery requires local_review.summary describing the actual saved plan/overlay check. Use submit_plan_reading only after this check; acceptance ends the reader task automatically. Keep unresolved evidence explicitly. Do not invent separators to make room labels or use zones convenient.",
     _SHARED_READER_SCOPE,
     _PLAN_CORE,
     _PLAN_FIRST_DRAFT,
@@ -130,8 +131,8 @@ COMPACT_ELEVATION_EXAMPLE["openings"] = [
      "evidence_type": "pixels"}]
 
 _ELEVATION_SCHEMA = """Read the whole facade first: batch its absolute level marks, overall horizontal dimension
-and every opening in image order. Then submit one rough box per opening and two independent
-image calibrations:
+and every opening in image order. Call trial_elevation_reading with one rough box per opening
+and two independent image calibrations:
 {example}
 Replace the example with original observations. x_calibration distances increase from the
 image-left building edge; retain any partial-chain offset and give total facade_length_m.
@@ -149,7 +150,7 @@ absolute level Z values and opening width/sill/head values on the configured Lit
 Do not hand-round values or repeatedly measure four profiles to remove finer tails.
 Keep openings in image order within each floor and count every window/door. Keep unclear
 marks and mirrored/nonstandard views in unresolved; never borrow plan positions.
-Correct a named rejection and resubmit. After acceptance, acknowledge without copying readings.""".format(
+Correct a named rejection and resubmit. After reviewing the returned adopted elevation and original overlay, call submit_elevation_reading with that trial_id and local_review.summary. A trial alone is not a delivery. Correct substantive errors with another trial; retain uncertain evidence in unresolved. Accepted submission ends the task automatically; do not spend another request acknowledging.""".format(
     example=json.dumps(COMPACT_ELEVATION_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
 
 ELEVATION_READER_GUIDANCE = "\n\n".join((
@@ -164,11 +165,17 @@ ELEVATION_READER_GUIDANCE = "\n\n".join((
 COORDINATOR_GUIDANCE = """Inventory inputs; delegate_readers for plans AND elevations together with a common
 origin. Targets: floor ID or North/South/East/West[/F1,F2]. First dispatch fills missing
 readers and waits for all. Instructions contain drawing facts/questions only.
-Read results with role_state and read_role_artifact.
+Read results with role_state and read_role_artifact. The reader owns local drawing fidelity:
+its delivery includes numeric data, rendered views, a checked original overlay and unresolved
+items. Reuse these checks; do not remeasure every original feature. You own shared axes/origin,
+floor IDs, absolute Z, cross-drawing conflicts and architectural reasonableness. Do not move
+walls merely to match another floor; wall-band matching remains outside this iteration.
 
 assemble_from_readers builds accepted floors, resolves levels, carries uses and located
-safe heights. Audited regularization needs no confirmation. Check openings/result, then
-finish_bim. Reassemble new reader deliveries; unchanged inputs reuse receipts.
+safe heights. Audited regularization needs no confirmation. Inspect the assembled building:
+storeys, adjacent-floor footprints, room layout, corridors/stairs/voids, opening hosts and
+vertical plausibility. Explain actual conflicts; rework only their affected reader/object.
+Check openings/result, then finish_bim with architectural_review.summary. This records your building judgment and ends the run; no extra acknowledgement is required. Reassemble new reader deliveries; unchanged inputs reuse receipts.
 level_overrides cite {task_id,elevation_id}: absolute z_floor or ceiling_height=top Z-floor Z.
 
 Target <10cm. Compare independent opening endpoints/width after identity matching.

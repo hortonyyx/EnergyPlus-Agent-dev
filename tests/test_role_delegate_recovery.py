@@ -1,6 +1,8 @@
 """Expanded reader batches survive crashes without spending sibling work twice."""
 from __future__ import annotations
 
+from reader_delivery_fixtures import elevation_responses
+
 import asyncio
 import hashlib
 import json
@@ -35,8 +37,7 @@ def setup_batch(environment, *, recovery_retries=1):
         if task_id != "north":
             reading.update(orientation="South", view_direction="North")
             reading["x_calibration"].update(world_start_m=0, world_end_m=10)
-        adapter = ScriptedAdapter([response(("submit-" + task_id, "submit_elevation_reading", reading)),
-                                   response(text="Submission acknowledged.")])
+        adapter = ScriptedAdapter(elevation_responses(reading, "prepare-" + task_id))
         original = adapter.send
 
         async def send(request, *, timeout):

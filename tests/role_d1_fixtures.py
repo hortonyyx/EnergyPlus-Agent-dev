@@ -7,6 +7,8 @@ tools; they are not evidence of autonomous model reading quality.
 
 from __future__ import annotations
 
+from reader_delivery_fixtures import REVIEW, compact_elevation, accept_elevation
+
 import json
 import hashlib
 from dataclasses import dataclass
@@ -82,7 +84,7 @@ def plan_submission(artifact: dict[str, Any]) -> dict[str, Any]:
     """Tool arguments for the immutable successful trial represented by artifact."""
     evidence_box = artifact["evidence"][0]["bbox"]
     return {
-        "trial_id": "latest",
+        "trial_id": "latest", "local_review": REVIEW,
         "wall_reference": {
             category: {
                 "convention": "explicit_face", "dimension_basis": "explicit_face",
@@ -230,11 +232,11 @@ class D1Fixture:
                     response(
                         (
                             f"{task_id}-submit",
-                            "submit_elevation_reading",
-                            elevation_submission(self.elevation_artifacts[orientation]),
+                            "trial_elevation_reading",
+                            compact_elevation(elevation_submission(self.elevation_artifacts[orientation])),
                         )
                     ),
-                    response(text="Elevation reading submitted."),
+                    accept_elevation,
                 ]
             offset = sum(
                 event.payload.event_type == "adapter_request" for event in store.events
@@ -326,7 +328,7 @@ class D1Fixture:
                     (
                         "finish-final-candidate",
                         "finish_bim",
-                        {"candidate": _latest_candidate(run)},
+                        {"candidate": _latest_candidate(run), "architectural_review": REVIEW},
                     )
                 ),
                 lambda: response(

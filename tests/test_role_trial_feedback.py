@@ -1,3 +1,5 @@
+from reader_delivery_fixtures import REVIEW, compact_elevation, accept_elevation
+
 import asyncio
 import base64
 import hashlib
@@ -356,7 +358,7 @@ def test_megabyte_success_continues_through_runtime_adapter_to_explicit_submissi
         assert visible["submission"]["status"] == "not_submitted"
         assert any(m["role"] == "user" and isinstance(m["content"], list) for m in body["messages"])
         assert len(json.dumps(body).encode()) < 40_000
-        return response(("submit", "submit_plan_reading", {"trial_id": "latest"}))
+        return response(("submit", "submit_plan_reading", {"local_review": REVIEW, "trial_id": "latest"}))
 
     limits = RunLimits(model_calls=3, tool_calls=2, seconds=60, tokens=200_000, context_tokens=40_000)
     reader_role = role(limits).model_copy(update={"tool_whitelist": tuple(

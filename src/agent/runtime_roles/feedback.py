@@ -82,6 +82,8 @@ def reader_batch_reply(value, first_submissions):
                "first_submission_passed": first_submissions.get(record["task_id"])}
         if record.get("reused_saved_result"):
             row["reused_saved_result"] = True
+        if summary.get("local_review"):
+            row["local_review"] = summary["local_review"]
         results.append(row)
     reply = {"status": value["status"], "results": results,
              "details": "read_role_artifact(task_id) reads verified data; large fields provide JSON pointer references "

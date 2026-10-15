@@ -120,6 +120,12 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         if case.get("process_reviews") and (mode != "single_model" or case.get("image_kind") != "drawings"):
             raise ValueError("process_reviews currently requires single_model drawings")
         continuation = case.get("continuation")
+        if case.get("reader_task") is not None:
+            if mode != "role_division" or continuation is not None:
+                raise ValueError("reader_task requires role_division without whole-run continuation")
+            import jsonschema
+            from src.agent.runtime_roles.session import TASK_SCHEMA
+            jsonschema.validate(case["reader_task"], TASK_SCHEMA)
         if continuation is not None:
             import re
             if (mode != "role_division" or not isinstance(continuation, dict)
@@ -306,6 +312,8 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
                  "--model-retries", str(limits.get("model_retries", 2)),
                  "--retry-backoff-seconds", str(limits.get("retry_backoff_seconds", 1.0))]
         argv += context_args
+        if case.get("reader_task") is not None:
+            argv += ["--reader-task-json", json.dumps(case["reader_task"], ensure_ascii=False)]
         if case.get("continuation") is not None:
             argv += ["--continue-from", case["continuation"]["source_run"],
                      "--source-events-sha256", case["continuation"]["source_events_sha256"]]

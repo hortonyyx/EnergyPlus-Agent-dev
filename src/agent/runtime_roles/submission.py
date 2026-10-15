@@ -10,6 +10,7 @@ from pathlib import Path
 import jsonschema
 from PIL import Image
 
+from .reader_delivery import LOCAL_REVIEW_SCHEMA, local_review, verify_views
 from .plan_review import box, opening_hosts, topology_issues, validate_topology, validate_wall_reference
 
 
@@ -44,6 +45,7 @@ OPERATION_SCHEMA = {"oneOf": [
     }.items()
 ]}
 PLAN_SCHEMA = obj({
+    "local_review": LOCAL_REVIEW_SCHEMA,
     "trial_id": {"type": "string", "pattern": "^(latest|trial_[0-9]{3,})$"},
     "plan_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "notes": {"type": "array", "items": obj({"item": TEXT,
@@ -58,6 +60,7 @@ PLAN_SCHEMA = obj({
         "decision": {"enum": ["retain_opening", "continuous_space"]}, "basis": TEXT, "bbox": BOX},
         ("issue_id", "decision", "basis", "bbox"))},
 })
+PLAN_SCHEMA["required"] = ["local_review"]
 PLAN_SCHEMA["anyOf"] = [{"required": ["trial_id"]}, {"required": ["plan_sha256"]}]
 
 ELEVATION_SCHEMA = obj({
@@ -82,7 +85,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "Submit the latest passed trial: trial_id=latest (or its ID/hash). Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; exact plan paths and unambiguous object aliases are accepted, while unknown or ambiguous items are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
+        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; exact plan paths and unambiguous object aliases are accepted, while unknown or ambiguous items are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this facade's batched readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute value_m/sill_m/head_m use metres. The tool checks fields, counts, ordering and evidence, adopts levels and opening width/sill/head on the 0.1 m Lite grid, and retains original readings in regularization metadata; fix pointed errors and resubmit.",
@@ -240,6 +243,13 @@ class ReaderSubmission:
             if (compiled_plan != value["artifact"]["plan"]
                     or receipt["candidate_source_sha256"] != value["validation"]["candidate_source_sha256"]):
                 raise ValueError("reader submission does not match its immutable successful trial")
+        review = value["validation"].get("local_review")
+        if review is not None:
+            if review["artifact_sha256"] != value["artifact_sha256"]:
+                raise ValueError("local review no longer matches the reader artifact")
+            workspace = getattr(self.trial, "workspace", None)
+            if workspace is not None:
+                verify_views(workspace, review["views"])
         return value
 
     def submit(self, arguments):
@@ -250,7 +260,7 @@ class ReaderSubmission:
                 raise ValueError(str(error)) from error
             from .guidance import ELEVATION_EXAMPLE
             example = ELEVATION_EXAMPLE if self.role_id == "elevation_reader" else {
-                "trial_id": "latest"}
+                "trial_id": "latest", "local_review": {"summary": "Checked the actual plan/overlay; uncertain items are retained in unresolved."}}
             suffix = (" Include a decision for each reported topology issue; mirrored axes need north_arrow."
                       if self.role_id == "plan_reader" else "")
             raise ValueError(f"{SUBMISSION_TOOLS[self.role_id]['name']}: {error}. Minimum correct example: "
@@ -271,7 +281,7 @@ class ReaderSubmission:
         except jsonschema.ValidationError as error:
             path = ".".join(str(part) for part in error.absolute_path) or "arguments"
             example = ELEVATION_EXAMPLE if self.role_id == "elevation_reader" else {
-                "trial_id": "latest"}
+                "trial_id": "latest", "local_review": {"summary": "Checked the actual plan/overlay; uncertain items are retained in unresolved."}}
             raise ValueError(f"{tool['name']}.{path}: {error.message}. Minimum correct example: "
                              + json.dumps(example, separators=(",", ":"))) from error
         if self.role_id == "plan_reader":
@@ -330,6 +340,13 @@ class ReaderSubmission:
                                                image_size=self.image_size)
             if north_arrow is not None:
                 validation["north_arrow"] = north_arrow
+            views = validation.get("returned_images", [])
+            workspace = getattr(self.trial, "workspace", None)
+            if workspace is not None:
+                verify_views(workspace, views)
+            validation["local_review"] = local_review(arguments["local_review"],
+                artifact_sha256=hashlib.sha256(_bytes(artifact)).hexdigest(), views=views,
+                image_sha256=(views[0].get("origin", {}).get("original_sha256") if views else None))
             boxes = [row["bbox"] for row in artifact["evidence"]]
         else:
             try:
@@ -360,7 +377,7 @@ class ReaderSubmission:
         self.value = value
         return {"status": "accepted", "artifact_sha256": value["artifact_sha256"],
                 "plan_sha256": validation.get("plan_sha256"), "unresolved": artifact["unresolved"],
-                "next_action": "Submission saved. End your turn with a short acknowledgement; do not repeat the artifact."}
+                "next_action": "Reviewed submission saved; reader task complete."}
 
     def snapshot(self):
         value = self.read()

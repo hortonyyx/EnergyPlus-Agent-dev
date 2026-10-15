@@ -33,7 +33,7 @@ PLAN_READER_TOOL_NAMES = (
 )
 ELEVATION_READER_TOOL_NAMES = tuple(
     name for name in PLAN_READER_TOOL_NAMES if name not in {"view_plan_blocks", "trial_plan_bim", "read_plan_draft", "submit_plan_reading"}
-) + ("submit_elevation_reading",)
+) + ("trial_elevation_reading", "submit_elevation_reading",)
 READER_TOOL_NAMES = {
     "plan_reader": PLAN_READER_TOOL_NAMES,
     "elevation_reader": ELEVATION_READER_TOOL_NAMES,
@@ -354,7 +354,7 @@ def _structured(result: object) -> object:
 class ReaderTools:
     """Expose one reader's frozen read tools and a plan-only isolated trial."""
 
-    def __init__(self, frozen, *, role_id: str, image_name: str, trial=None, target=None):
+    def __init__(self, frozen, *, role_id: str, image_name: str, trial=None, target=None, store=None):
         if role_id not in READER_TOOL_NAMES:
             raise ValueError(f"reader role must be one of {sorted(READER_TOOL_NAMES)}")
         if role_id == "plan_reader" and trial is None:
@@ -362,6 +362,7 @@ class ReaderTools:
         if role_id == "elevation_reader" and trial is not None:
             raise ValueError("elevation_reader cannot receive a plan trial")
         self.frozen = frozen
+        self.store = store
         self.role_id = role_id
         self.image_name = _nonempty_text(image_name, "image_name", "plan.png")
         self.trial = trial
@@ -463,7 +464,7 @@ class ReaderTools:
                 schema["properties"].pop("include_image", None)
             by_name["pixel_profile"] = alias
         from .submission import SUBMISSION_TOOLS, OPERATION_SCHEMA
-        local = {"view_plan_blocks", "trial_plan_bim", "read_plan_draft", "submit_plan_reading", "submit_elevation_reading"}
+        local = {"view_plan_blocks", "trial_plan_bim", "read_plan_draft", "submit_plan_reading", "submit_elevation_reading", "trial_elevation_reading"}
         missing = [name for name in wanted if name not in local and name not in by_name]
         if missing:
             raise ValueError(f"frozen reader catalog missing tools: {missing}")
@@ -611,6 +612,13 @@ class ReaderTools:
                     "structuredContent": result, "isError": error}
         if name in {"submit_plan_reading", "submit_elevation_reading"}:
             try:
+                if name == "submit_plan_reading":
+                    passed = [row for row in self.trial.receipts if row.get("status") == "passed"]
+                    if passed:
+                        from .reader_delivery import require_observed_trial
+                        receipt = passed[-1]
+                        require_observed_trial(self.store, "trial_plan_bim", "plan_sha256",
+                            receipt["plan_sha256"], [row["sha256"] for row in receipt.get("returned_images", [])])
                 result = self.submission.submit(dict(arguments))
                 return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
                         "structuredContent": result, "isError": False}

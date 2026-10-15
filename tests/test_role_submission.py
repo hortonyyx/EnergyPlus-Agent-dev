@@ -1,3 +1,5 @@
+from reader_delivery_fixtures import REVIEW, compact_elevation, accept_elevation
+
 import asyncio
 import copy
 import hashlib
@@ -35,7 +37,8 @@ class PassedTrial:
     def __init__(self):
         self.plan = plan()
         self.receipt = {"status": "passed", "plan_sha256": canonical_plan_sha256(self.plan),
-                        "candidate_source_sha256": "a" * 64, "validation_passed": True}
+                        "candidate_source_sha256": "a" * 64, "validation_passed": True,
+                        "returned_images": [{"sha256": "b" * 64, "file": "mock-overlay.png"}]}
         self.receipts = [self.receipt]
 
     def verified_plan(self, digest):
@@ -48,7 +51,7 @@ class PassedTrial:
 
 
 def arguments(trial):
-    return {"plan_sha256": trial.receipt["plan_sha256"], "evidence": artifact()["evidence"],
+    return {"local_review": REVIEW, "plan_sha256": trial.receipt["plan_sha256"], "evidence": artifact()["evidence"],
             "unresolved": ["additional review note"], "wall_reference": WALL_REFERENCE,
             "topology_decisions": []}
 

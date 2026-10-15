@@ -1,5 +1,7 @@
 """Reference-only plan submission and full/operation rework share the same safeguards."""
 
+from reader_delivery_fixtures import REVIEW, compact_elevation, accept_elevation
+
 import asyncio
 import copy
 import hashlib
@@ -23,7 +25,7 @@ def test_automatic_boxes_use_resolved_pixels_keep_inferences_and_allow_wall_over
     trial.receipt["plan_sha256"] = canonical_plan_sha256(trial.plan)
     trial.numeric_plan = lambda receipt: copy.deepcopy(numeric)
     submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
-    result = submission.submit({"trial_id": "latest", "notes": [
+    result = submission.submit({"local_review": REVIEW, "trial_id": "latest", "notes": [
         {"item": "left", "kind": "inferred", "basis": "use from furniture"},
         {"item": "openings.W1", "kind": "unresolved", "basis": "verify height"}],
         "wall_reference": {"partitions": {"convention": "inner_face", "basis": "dimension converted to inner face"}}})
@@ -82,10 +84,10 @@ def test_latest_reference_survives_resume_and_rejects_stale_or_tampered_plan(tmp
     submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=resumed,
                                   directory=tmp_path / "submission", target="F1")
     for params in ({"trial_id": first["trial_id"]}, {"plan_sha256": first["plan_sha256"]},
-                   {"trial_id": "latest", "plan_sha256": "0" * 64}):
+                   {"local_review": REVIEW, "trial_id": "latest", "plan_sha256": "0" * 64}):
         with pytest.raises(ValueError):
             submission.submit(params)
-    assert submission.submit({"trial_id": second["trial_id"]})["status"] == "accepted"
+    assert submission.submit({"trial_id": second["trial_id"], "local_review": REVIEW})["status"] == "accepted"
     restored = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=make_trial(),
                                  directory=tmp_path / "submission", target="F1")
     assert restored.read() == submission.read()

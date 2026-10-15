@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from reader_delivery_fixtures import REVIEW
+
 import asyncio
 import copy
 import hashlib
@@ -167,7 +169,11 @@ def test_reader_submission_binds_image_alignment_and_reloads_immutably(tmp_path)
             image_name="North.png",
             target="North/F1",
         )
-        accepted = await tools.call_tool("submit_elevation_reading", arguments)
+        prepared = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not prepared["isError"], prepared
+        assert tools.submission.read() is None
+        review_args = {"trial_id": prepared["structuredContent"]["trial_id"], "local_review": REVIEW}
+        accepted = await tools.call_tool("submit_elevation_reading", review_args)
         assert not accepted["isError"], accepted
         saved = tools.submission.read()
         artifact = saved["artifact"]
@@ -181,7 +187,7 @@ def test_reader_submission_binds_image_alignment_and_reloads_immutably(tmp_path)
         )
         assert saved["validation"]["image_sha256"] == digest
         assert saved["validation"]["ink_alignment_sha256"]
-        assert (await tools.call_tool("submit_elevation_reading", arguments)) == accepted
+        assert (await tools.call_tool("submit_elevation_reading", review_args)) == accepted
 
         resumed = ElevationReaderTools(
             Frozen(tmp_path),

@@ -202,7 +202,7 @@ def _assert_complete_pipeline(fixture, result, *, two_floors):
     accounting = result["role_accounting"]
     assert accounting["requests"] > 0
     assert accounting["by_role"]["coordinator"]["requests"] > 0
-    assert accounting["by_role"]["plan_reader"]["requests"] == len(plan_records) * 3
+    assert accounting["by_role"]["plan_reader"]["requests"] == len(plan_records) * 2
     assert accounting["by_role"]["elevation_reader"]["requests"] == 8
     progress = accounting["by_role"]["plan_reader"]["before_first_trial"]
     assert {row["task_id"] for row in progress} == {row["task_id"] for row in plan_records}
@@ -274,7 +274,7 @@ def test_resume_reader_after_trial_checkpoint_does_not_repeat_trial(tmp_path):
         for row in _reader_events(fixture, plan_task["task_id"])
         if row.get("event_type") == "adapter_request"
     ]
-    assert len(plan_events) == 3
+    assert len(plan_events) == 2
 
 
 def test_resume_after_all_readers_preserves_reader_records(tmp_path):
