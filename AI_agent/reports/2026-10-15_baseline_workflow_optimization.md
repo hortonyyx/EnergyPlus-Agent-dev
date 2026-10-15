@@ -16,7 +16,7 @@
 
 普通测试均启用no-billed gate。首批119项中113通过，5项旧claims测试因Windows默认GBK读取UTF-8失败，1项旧测试仍调用已移除的登记工具；修正后该两模块35项通过。流程/立面/反馈后续52项中51通过，新增reference测试的view返回值解包写错；修正并加入方向纠正两种顺序后，专项3项通过。版本冻结前的3项runtime完成测试被v83封印正确拒绝，待新版本登记后复验，不绕过哈希。
 
-独立审阅者`review_baseline_workflow`未参与实现，实际复现状态缺陷后复核修闭。最终测试、冻结版本和审阅结论在整案前补齐。
+独立审阅者`review_baseline_workflow`未参与实现，实际复现状态缺陷后复核修闭，无剩余整案阻断项；证据在`D:/Sim-BIM-Agent/cache/workflow-review-fix-q7j6_5kd`。最终针对流程及runtime完成的26项在40.81秒全部通过；本轮有效去重128项通过，0真实模型调用。`9e5d17a9`实施，登记domain v84/runtime v19并verify通过。恢复版本v83的429个domain文件哈希及工具目录均与原基线v80一致；新版本几何内核和runtime代码无差异。
 
 ## 唯一整案及对照口径
 
