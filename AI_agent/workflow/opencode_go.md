@@ -8,6 +8,8 @@
 
 可复制 [Go配置示例](../../product/config.opencode-go.example.json)，修改实际输入和输出目录，再执行产品`check/run`。原 [默认配置](../../product/config.example.json)仍是6 Sol，两个示例不互相改写历史结果。Go的Kimi K3默认省略思考档和采样参数，按服务默认运行；当前只接纳明确的`max`思考档，不能把6 Sol的`high`原样套过去。
 
+Haiku整案采用独立的 [流程贯通配置](../../product/config.opencode-go-haiku.example.json)：`claude-haiku-5-5/medium`、64,000输出tokens、48请求/240工具、无整案时间硬截止。输入和楼层范围应按实际案例填写。runtime v19/domain v80已修复签名历史前缀、状态快照移动和无正式交付却报完成的问题；sm25原六图单次冷启动在8分39秒自主完成两层BIM及查看器。相同代码的`high/32,000`仍连续截断，不能沿用旧参数宣称已经跑通；质量和跨次稳定性未评，详见 [Haiku整案修复记录](../reports/2026-10-15_haiku_whole_case_repair.md)。
+
 ## 已接入型号与协议
 
 | 精确model ID | API |

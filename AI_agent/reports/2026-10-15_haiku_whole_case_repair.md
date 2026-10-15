@@ -31,6 +31,25 @@
 
 ## 真实整案配置与验收记录
 
-准备运行 `haiku55-sm25-20261015-complete-01`：Go订阅、claude-haiku-5-5/high、single_model、32,000输出tokens、48请求/240工具、无整案时间或tokens硬截止、图片历史3批、64候选。仍用原六PNG与两层范围，冷启动，不提供GT、旧候选或开发者几何提示。
+代码修复为`c1342bc2`，冻结登记为`8b7126839cf198752376bf1a1e116db063f82154`，runtime v19/domain v80。两轮均使用Go订阅、`claude-haiku-5-5`、single_model、48请求/240工具、无整案时间或tokens硬截止、图片历史3批、64候选，原六PNG与两层范围冷启动，不提供GT、旧候选或开发者几何提示。任务scope依用户新指令优先完成流程、保存可编译草稿并标明暂定假设，独立质量延后；不是原侧栏提示词的严格模型对照。第二轮仅将第一轮的high/32k改为medium/64k。
 
-任务scope依用户新指令明确优先完成流程、保存可编译草稿并标明暂定假设，独立质量延后；因此不是原提示词的严格模型对照。代码、版本、配置、六图在启动时封存，结束后核验。真实结果与固定桌面发布在验证后补充。
+| 运行 | 思考/输出上限 | 终态 | 请求/响应/工具 | runtime / 含启动收尾 | 供应商实报tokens |
+|---|---|---|---|---|---:|
+| `haiku55-sm25-20261015-complete-01` | high / 32,000 | incomplete_response，未交付；3次连续输出截断 | 7 / 7（其中3次截断） / 11 | 594.716秒 / 602.016秒 | 461,844 |
+| `haiku55-sm25-20261015-complete-02` | medium / 64,000 | completed，task_completed=true，completion_valid=true | 17 / 17 / 20 | 507.494秒 / 518.860秒 | 1,300,297 |
+
+第一轮0 HTTP错误、0重试、0候选。状态快照和签名历史已稳定，但32k输出中思考消耗很大：实报输出122,506，其中thinking 120,797。恢复两次后按既有截断保护停止，没有再把文本收尾标成完成。
+
+第二轮自主执行输入读取、两层试建和返工、整楼装配、立面对照、修订重装配和`finish_bim`。17个响应均正常tool_use，0截断、0 HTTP错误、0重试；5次业务校验拒绝（2次空间种子、3次高度边界）均由模型自行处理。工具调用为inputs 1、view_image 5、get_bim_reference 1、build_plan_bim 2、revise_plan_bim 7、assemble_plan_bim 2、view_elevation_candidate 1、finish_bim 1。最终由模型主动选定`candidate_06`：2层、29空间、190边界、60开口、30连接，源几何检查pass。
+
+第二轮输出72,882，其中供应商thinking 52,914；两轮合计24次真实请求、31次工具、1,762,141实报tokens。均有完整usage；订阅实际费用未知，不等于免费。未切账号、未回退付费provider、未调用DeepSeek。
+
+两个运行结束时，冻结源码、版本登记、配置、原件及输入副本SHA均不变，没有开发者中途提示、改稿或补步骤。独立只读审阅确认第二轮receipt、summary、completion一致，`inputs.json`、`delivery_selection.json`、`delivery.json`、`delivery.html`、`candidate_06/source_model.json`、`candidate_06/viewer.html`六个交付文件SHA全部吻合。原始证据分别位于两个外部run目录下的`run.json`、`preflight.json`、`launch-result.json`、`result-audit.json`及`cold1/receipt.json`、`cold1/events.jsonl`；不将大日志复制入Git。
+
+浏览器实开第二轮交付页和独立查看器，整楼模型及2层/29空间/60开口已显示。控制台捕获一条无来源URL的MutationObserver错误，当前查看器源码未找到此API调用，归因未确认；没有阻止模型渲染，不将本次观察写成控制台零错误。
+
+质量边界：输入共六图，实际直接view_image覆盖1F、2F和North，East/South/West没有直接看图事件；不可写成六图均目视核验。交付保留5个未解决项和暂定开口高度。GT未读，几何保真、5/10/30cm分档、空间用途、遗漏开口和跨次稳定性未评。一次成功交付仅证明这次自主流程跑通。
+
+## 产品配置与发布
+
+新增`product/config.opencode-go-haiku.example.json`，采用成功轮的medium/64k及相同预算，scope改为可配置楼层的通用模板。默认`config.example.json`的6 Sol/high及原Go Kimi示例保持。真实成功来自上述冻结运行；产品示例已复用现有产品配置检查，并核对实际CLI生成的provider/model/effort/output上限，检查通过、0模型请求。版本指纹verify通过。固定桌面发布和安装验收结果完成后补充。
