@@ -84,7 +84,7 @@ def test_real_parameter_application_and_candidate_provenance_survive_reload(tmp_
     assert app["status"] == "applied" and app["outside_declared_scope"] == []
     assert app["parameters_without_claims"] == []
     assert app["resolved_operations"][0]["changes"]["z"] == [.3, 2.1]
-    source = json.loads((run / result["candidate"] / "source_model.json").read_text())
+    source = json.loads((run / result["candidate"] / "source_model.json").read_text(encoding="utf-8"))
     door = next(row for row in source["openings"] if row["id"] == "door")
     assert sorted({v[2] for v in door["vertices"]}) == [.3, 2.1]
     assert source["generation"]["provenance"]["claim_application"]["claims"][row["id"]]["record"] == row
@@ -107,7 +107,7 @@ def test_aperture_removal_scope_matches_the_actual_proposal_collection(tmp_path,
     assert app["scope_check"] == "checked" and app["outside_declared_scope"] == []
     assert [(row["kind"], row["id"], row["after"]) for row in app["changes"]] == [
         (kind, identity, None)]
-    proposal = json.loads((run / result["candidate"] / "proposal.json").read_text())
+    proposal = json.loads((run / result["candidate"] / "proposal.json").read_text(encoding="utf-8"))
     assert proposal["geometry"]["corrections"][-1]["target_collection"] == kind + "s"
 
 
@@ -138,7 +138,7 @@ def test_saved_profile_values_are_used_and_mutated_profiles_rejected(tmp_path):
         for y in (2, 6):
             picture.putpixel((x, y), (0, 255, 255))
     picture.save(path)
-    manifest = json.loads((run / "inputs.json").read_text())
+    manifest = json.loads((run / "inputs.json").read_text(encoding="utf-8"))
     manifest["images"]["plan.png"]["sha256"] = digest(path)
     (run / "inputs.json").write_text(json.dumps(manifest))
     toolkit = Toolkit(run)
@@ -152,7 +152,7 @@ def test_saved_profile_values_are_used_and_mutated_profiles_rejected(tmp_path):
     result = toolkit.revise("seed", json.dumps([edit(row["id"])]))
     assert result["claim_application"]["resolved_operations"][0]["changes"]["z"] == [.75, 2.25]
     profile = run / "pixel_profiles/profile_001.json"
-    record = json.loads(profile.read_text())
+    record = json.loads(profile.read_text(encoding="utf-8"))
     record["rgb"] = [0, 254, 255]
     profile.write_text(json.dumps(record))
     with pytest.raises(ValueError, match="evidence changed"):
@@ -191,6 +191,40 @@ def test_valid_claim_with_impossible_geometry_is_not_reported_applied(tmp_path):
     assert delivered["claim_applications"][0]["status"] == "failed"
 
 
+def test_failed_revision_in_partial_transaction_preserves_last_commit_and_diagnostics(tmp_path):
+    run, toolkit = setup_run(tmp_path)
+    before = (run / "seed/source_model.json").read_bytes()
+    impossible = claim(objects=[{"kind": "window", "id": "window"}], basis="inference", sources=[],
+        values={"height": {"type": "literal", "value": [1, 9], "unit": "m"}})
+    impossible.pop("candidate")  # Bind this independent entry to the preceding successful source.
+    result = toolkit.claim_transaction("seed", json.dumps([
+        {"claim": claim(), "action": "apply", "operations": [edit("$claim")]},
+        {"claim": impossible, "action": "apply", "operations": [{
+            "op": "update_window", "id": "window", "changes": {"z": {"claim": "$claim", "value": "height"}},
+            "reason": "Synthetic impossible height to exercise source-host validation."}]},
+    ]))
+    assert result["status"] == "partial"
+    assert result["saved_candidate"] == result["result_candidate"] == "candidate_01"
+    assert result["save_effects"]["created_candidates"] == ["candidate_01"]
+    assert result["save_effects"]["geometry_applied"] is True
+    applied, failed = result["entries"]
+    assert applied["status"] == "applied" and failed["status"] == "failed"
+    assert failed["candidate"] == "candidate_01" and failed["attempted_candidate"] == "candidate_02"
+    assert "window" in failed["error"] and "host" in failed["error"]
+    assert any(row.get("opening_id") == "window" for row in failed["source_validation"]["findings"])
+    journal = json.loads((run / result["audit_file"]).read_bytes())
+    assert journal["entries"][1]["source_validation"] == failed["source_validation"]
+    assert journal["entries"][1]["attempted_candidate"] == "candidate_02"
+    assert journal["entries"][1]["error"] == failed["error"]
+    assert result["failure_summary"]["entries"][0]["attempted_candidate"] == "candidate_02"
+    attempted = json.loads((run / "candidate_02/report.json").read_bytes())
+    assert attempted["source_geometry_ready"] is False
+    actual = json.loads((run / "candidate_01/proposal.json").read_bytes())
+    assert actual["geometry"]["openings"][0]["z"] == [.3, 2.1]
+    assert actual["geometry"]["windows"][0]["z"] == [1, 2]
+    assert (run / "seed/source_model.json").read_bytes() == before
+
+
 def test_shared_wall_move_records_legitimate_hosted_door_and_preserves_other_floor(tmp_path):
     _, toolkit = setup_run(tmp_path, _rectangular_wall_proposal())
     row = adopt(toolkit, claim(objects=[{"kind": "space", "id": x} for x in ("left", "right")],
@@ -206,7 +240,7 @@ def test_shared_wall_move_records_legitimate_hosted_door_and_preserves_other_flo
 @pytest.mark.parametrize("kind", ["wall", "floor"])
 def test_component_thickness_persists_without_changing_geometry(tmp_path, kind):
     run, toolkit = setup_run(tmp_path)
-    source = json.loads((run / "seed/source_model.json").read_text())
+    source = json.loads((run / "seed/source_model.json").read_text(encoding="utf-8"))
     boundary = next(b for b in source["boundaries"] if b["geometry_type"] == kind and
                     (b["counterpart_ids"] if kind == "wall" else True))
     row = adopt(toolkit, claim(objects=[{"kind": "boundary", "id": boundary["id"]}],
@@ -217,7 +251,7 @@ def test_component_thickness_persists_without_changing_geometry(tmp_path, kind):
     app = result["claim_application"]
     assert app["status"] == "applied" and not app["changes"]
     assert app["geometry_before_sha256"] == app["geometry_after_sha256"]
-    new = json.loads((run / result["candidate"] / "source_model.json").read_text())
+    new = json.loads((run / result["candidate"] / "source_model.json").read_text(encoding="utf-8"))
     assert len(new["component_attributes"]) == 1
     assert new["component_attributes"][0]["thickness_m"] == .2
     assert len(new["component_attributes"][0]["boundary_ids"]) == (2 if kind == "wall" else 1)
@@ -247,7 +281,7 @@ def test_stdio_claim_returns_exact_bounded_crops_and_can_view_remaining_source(t
         original = Image.new("RGB", (12, 8))
         original.putdata([(x * 20, y * 30, 100) for y in range(8) for x in range(12)])
         original.save(run / "images/plan.png")
-        manifest = json.loads((run / "inputs.json").read_text())
+        manifest = json.loads((run / "inputs.json").read_text(encoding="utf-8"))
         manifest["images"]["plan.png"]["sha256"] = digest(run / "images/plan.png")
         (run / "inputs.json").write_text(json.dumps(manifest))
         refs = [{"image": "plan.png", "box": box} for box in
@@ -272,7 +306,7 @@ def test_stdio_claim_returns_exact_bounded_crops_and_can_view_remaining_source(t
             actual = Image.open(io.BytesIO(base64.b64decode(more.content[0].data))).convert("RGB")
             expected = original.crop(refs[3]["box"]).resize((12, 8), Image.Resampling.NEAREST)
             assert actual.tobytes() == expected.tobytes()
-            saved = json.loads((run / "claims" / (row["id"] + ".json")).read_text())
+            saved = json.loads((run / "claims" / (row["id"] + ".json")).read_text(encoding="utf-8"))
             assert "evidence_previews" not in saved and saved["claim"]["sources"] == refs
             assert saved["verification"] == "not_independently_verified"
     asyncio.run(scenario())

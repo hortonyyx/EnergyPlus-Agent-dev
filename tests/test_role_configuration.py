@@ -316,3 +316,15 @@ def test_single_model_ignores_role_only_comparison_metadata(tmp_path):
     with_metadata = copy.deepcopy(selected)
     with_metadata["max_concurrent_readers"] = 4
     assert argv_for(load(tmp_path, with_metadata)["cases"][0]) == baseline
+
+
+def test_local_drawing_process_routes_only_to_single_model_drawings(tmp_path):
+    from src.agent.runtime_entry import parser
+    selected = case("single_model")
+    selected["process_reviews"] = True
+    loaded = load(tmp_path, selected)["cases"][0]
+    assert parser().parse_args(argv_for(loaded)[3:]).process_reviews is True
+    for changes in ({"mode": "role_division", "roles": roles()},
+                    {"image_kind": "photos"}, {"process_reviews": "true"}):
+        with pytest.raises(ValueError):
+            load(tmp_path, {**selected, **changes})

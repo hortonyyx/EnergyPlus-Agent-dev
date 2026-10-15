@@ -234,6 +234,20 @@ def claim_transaction(toolkit, candidate, entries):
                     save_feedback = result
                     audit["result_candidate"] = current
                     audit["save_effects"] = result["save_effects"]
+                else:
+                    # A rejected export may still have an auditable candidate
+                    # and detailed validation, with no top-level error string.
+                    # Keep that attempt separate from the last usable source.
+                    audit["attempted_candidate"] = result.get("candidate") or app.get("candidate")
+                    for key in ("source_validation", "error_stage", "repair_hint", "regularization"):
+                        value = result.get(key) or app.get(key)
+                        if value is not None:
+                            audit[key] = copy.deepcopy(value)
+                    findings = (audit.get("source_validation") or {}).get("findings", [])
+                    audit["error"] = (result.get("error") or app.get("error") or
+                        ("Source validation rejected the attempted revision: " +
+                         json.dumps(findings, ensure_ascii=False, separators=(",", ":")) if findings else
+                         "Revision did not produce a usable source; inspect this entry's saved diagnostics."))
         except (OSError, ValueError, KeyError, TypeError) as error:
             audit.update(status="failed", error=str(error))
             if isinstance(error, ClaimBindingError):
@@ -243,6 +257,16 @@ def claim_transaction(toolkit, candidate, entries):
     failed = sum(row["status"] == "failed" for row in transaction["entries"])
     transaction.update(status="failed" if failed == len(entries) else "partial" if failed else "completed",
                        result_candidate=current)
+    if failed:
+        failures = [row for row in transaction["entries"] if row["status"] == "failed"]
+        transaction["failure_summary"] = {
+            "failed_entry_count": failed,
+            "entries": [{"index": row["index"], "attempted_candidate": row.get("attempted_candidate"),
+                         "error": str(row["error"])[:400]} for row in failures[:2]],
+            "omitted_entry_count": max(0, failed - 2),
+            "next_action": "Read entries[index] in details_file for full source_validation and repair diagnostics. "
+                           "Correct the evidence or geometry on result_candidate before applying again.",
+        }
     saved_result(transaction, candidate=current if committed else None, created=committed,
                  geometry_applied=geometry_applied, audit_written=True)
     dump(path, transaction)

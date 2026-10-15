@@ -243,7 +243,11 @@ def run_guide(run: Path) -> str:
     manifest = json.loads((run / "inputs.json").read_bytes())
     mesh = bool(manifest.get("mesh_input"))
     kind = manifest.get("image_kind") or (("unknown" if mesh else "drawings") if manifest.get("images") else None)
-    return build_guide(images=kind, mesh=mesh, **tool_capabilities(manifest))
+    guide = build_guide(images=kind, mesh=mesh, **tool_capabilities(manifest))
+    if manifest.get("drawing_review_policy"):
+        from scripts.tool_scripts.bim_agent_guidance import DRAWING_PROCESS
+        guide += "\n" + DRAWING_PROCESS
+    return guide
 
 
 MAIN_MODELS = ("claude-sonnet-5", "claude-sonnet-5-5")
@@ -859,6 +863,9 @@ class Toolkit:
         result["source_image_feedback"] = self._delivery_projection_status(candidate, source)
         result["space_relation_review"] = self.space_relation_status(source)
         result["input_view_status"] = self.input_view_status()
+        if self.manifest.get("drawing_review_policy"):
+            from scripts.tool_scripts.bim_agent_process_reviews import process_status
+            result["process_review"] = process_status(self, candidate)
         from src.agent.roles import room_use_review
         result["room_use_review"] = room_use_review(source)
         claim_state = self.claims().status()
@@ -2749,12 +2756,17 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return result
 
         @server.tool()
-        def revise_plan_bim(draft_id: str, expected_plan_sha256: str, operations_json: str) -> CallToolResult:
+        def revise_plan_bim(draft_id: str, expected_plan_sha256: str, operations_json: str,
+                            reviews_json: str = "") -> CallToolResult:
             """Locally edit saved pixel wall/opening/seed declarations by ID.
             Read plan_partition reference for operations. Untouched declarations
             stay exact; compiler and source/overlay feedback run normally. This
             rebuilds ONE floor and may change room topology, never auto-fixes it.
+            Optional reviews_json carries judgments of prior returned views; each
+            plan/building entry names its candidate. See drawing_process.
             """
+            from scripts.tool_scripts.bim_agent_process_reviews import carry_reviews
+            carry_reviews(toolkit, reviews_json)
             return candidate_result(toolkit.revise_plan(draft_id, expected_plan_sha256, operations_json))
 
         @server.tool()
@@ -3043,13 +3055,18 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return record(toolkit, candidate, decision, reason, next_action)
 
         @server.tool()
-        def finish_bim(candidate: str) -> dict:
+        def finish_bim(candidate: str, reviews_json: str = "") -> dict:
             """Select a saved BIM and persist a handoff based on actual checks.
             Unreviewed/pending scopes remain explicit. This does not certify image
             fidelity. Whether it ends work is determined by the running entrypoint:
             the single-model runtime ends after a successful complete handoff;
             other MCP clients may continue and select another candidate.
+            Carry the final architectural judgment in reviews_json after inspecting
+            this saved candidate. Complete intended edits before this call.
             """
+            from scripts.tool_scripts.bim_agent_process_reviews import carry_reviews, require_process_reviews
+            carry_reviews(toolkit, reviews_json, candidate)
+            require_process_reviews(toolkit, candidate)
             result = toolkit.delivery(candidate, selection_origin="agent_selected",
                 generation_status={"state": "in_progress", "handoff_saved": True,
                                    "agent_response_completed": False})
@@ -3107,13 +3124,17 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return [image_content, json.dumps(metadata)]
 
         @server.tool()
-        def revise_bim(candidate: str, operations_json: str) -> CallToolResult:
+        def revise_bim(candidate: str, operations_json: str, reviews_json: str = "") -> CallToolResult:
             """Apply local edits/reflection with code and save a new checked BIM.
             See get_bim_reference("edits") for operations whose format the system prompt
             does not give. Prior candidates stay unchanged.
             Opening changes/removals and shared-wall moves require a reason and source_refs.
             set_space_role assigns catalog use and its evidence, preserving geometry.
+            Optional reviews_json describes already inspected views of candidate,
+            not this action's new result. See drawing_process.
             """
+            from scripts.tool_scripts.bim_agent_process_reviews import carry_reviews
+            carry_reviews(toolkit, reviews_json, candidate)
             return candidate_result(toolkit.revise(candidate, operations_json))
 
         @server.tool()
@@ -3133,7 +3154,7 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             return response
 
         @server.tool()
-        def build_plan_bim(image: ImageFilename, plan_json: str) -> CallToolResult:
+        def build_plan_bim(image: ImageFilename, plan_json: str, reviews_json: str = "") -> CallToolResult:
             """Build one floor from observed original-pixel walls, openings and calibration.
             Read plan_partition for JSON. Orthogonal, possibly concave outer footprint
             without holes. New drawing runs apply their manifest's 0.1 m Lite BIM grid
@@ -3142,11 +3163,15 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             Returns actual source/overlay images, drawing_differences, IDs/heights and
             details_file (read_candidate_items collection=report). Declare omissions in
             unresolved. Each export consumes the shared candidate budget.
+            Optional reviews_json carries judgments of prior results; plan/building
+            entries must name their candidate. See drawing_process.
             """
+            from scripts.tool_scripts.bim_agent_process_reviews import carry_reviews
+            carry_reviews(toolkit, reviews_json)
             return candidate_result(toolkit.build_plan(image, plan_json))
 
         @server.tool()
-        def assemble_plan_bim(floors_json: str) -> CallToolResult:
+        def assemble_plan_bim(floors_json: str, reviews_json: str = "") -> CallToolResult:
             """Assemble 2–32 saved pixel plans without rewriting their rooms or openings.
             Read get_bim_reference('plan_assembly'). floors_json is a JSON list; each item contains draft_id,
             expected_plan_sha256, floor_id, z_floor and evidence. Recompiles bound drafts,
@@ -3156,7 +3181,11 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             No height scaling, floor copying or inferred vertical connection.
             For layer height or aperture changes first revise that draft explicitly.
             Returns actual source views/overlays for every included floor.
+            Carry local judgments of the saved floor candidates in reviews_json;
+            each plan entry names its candidate. See drawing_process.
             """
+            from scripts.tool_scripts.bim_agent_process_reviews import carry_reviews
+            carry_reviews(toolkit, reviews_json)
             return candidate_result(toolkit.assemble_plans(floors_json))
 
         @server.tool()
@@ -3205,6 +3234,51 @@ def serve(run: Path, readonly=False, *, enabled_only=False):
             reported by inputs.candidate_budget, including floor builds and revisions.
             """
             return candidate_result(toolkit.build(json.loads(proposal_json)))
+
+        @server.tool()
+        def prepare_elevation_reading(image: ImageFilename, facade: Literal["North", "South", "East", "West"],
+                                      reading_json: str, reviews_json: str = "", replaces_reading_id: str = "") -> CallToolResult:
+            """Save an independent facade reading and return its adopted-value overlay.
+            Read get_bim_reference('drawing_process') for the compact schema. Supply
+            original-pixel calibration, located levels and every opening; counts
+            can be derived. Equivalent anchor pairs/list order are normalized.
+            Compare the returned original/overlay, revise by preparing a new reading,
+            then carry its judgment on the next normal action's reviews_json.
+            reviews_json here refers to prior results only. No BIM is changed.
+            If correcting the assigned facade of a previous reading on this same
+            image, name replaces_reading_id; other facades on a shared sheet remain.
+            """
+            from scripts.tool_scripts.bim_agent_process_reviews import carry_reviews
+            carry_reviews(toolkit, reviews_json)
+            from scripts.tool_scripts.bim_agent_drawing_readings import prepare_elevation_reading as prepare
+            pictures, metadata = prepare(toolkit, image, facade, reading_json,
+                                         replaces_reading_id=replaces_reading_id)
+            contents = []
+            for picture in pictures:
+                original_size = list(picture.size)
+                picture = picture.copy()
+                picture.thumbnail((1600, 1600))
+                metadata.update(original_size=original_size, returned_size=list(picture.size),
+                    original_pixels_per_returned_pixel=[original_size[0] / picture.width, original_size[1] / picture.height])
+                stream = io.BytesIO()
+                picture.save(stream, "PNG")
+                contents.append(Image(data=stream.getvalue(), format="png").to_image_content())
+            return CallToolResult(content=[*contents, TextContent(type="text", text=json.dumps(metadata, ensure_ascii=False))],
+                                  structuredContent=metadata)
+
+        @server.tool()
+        def apply_elevation_readings(candidate: str, reading_ids: list[str], reviews_json: str = "") -> CallToolResult:
+            """Match locally reviewed elevation readings and apply safe heights in one batch.
+            Reuses the existing conservative matcher and claim_transaction. Does not
+            change floor heights, positions, hosts or counts. Resolve floor levels in
+            the plan first. Missing/extra/ambiguous objects remain located conflicts;
+            inspect_candidate(include_geometry=false) reports their current state.
+            Carry the inspected reading judgments in reviews_json in this same
+            call; they bind reading_id. No separate review/count/claim call needed.
+            """
+            from scripts.tool_scripts.bim_agent_process_reviews import apply_readings, carry_reviews
+            carry_reviews(toolkit, reviews_json, candidate)
+            return candidate_result(apply_readings(toolkit, candidate, reading_ids))
 
         @server.tool()
         def view_elevation_candidate(candidate: str, facade: Literal["North", "South", "East", "West"], image: ImageFilename = "",

@@ -233,6 +233,101 @@ a stop condition nor a reason to add checks. A partial or unresolved handoff mus
 not be described as complete, verified reconstruction."""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
+DRAWING_PROCESS = """Drawing delivery policy local_drawing_reviews_v2 (single model).
+First view the whole supplied drawing set. Establish one origin/direction, major
+dimensions and supported storey levels/heights before detailed floor work. Use
+original-image coordinates; resized views carry their pixel conversion. Do not
+substitute a provisional storey height when elevations already give its value.
+Then draft each floor early, using the final floor IDs. Inspect its returned actual
+source overlay for perimeter, partitions, openings/hosts and connections; correct
+located errors. Extra crops/diagnostics should answer a specific question. A zero
+drawing_differences count covers only selected interior ink, not overall fidelity.
+
+Complete independent facade readings with prepare_elevation_reading and inspect
+their adopted-value overlays. Read get_bim_reference('drawing_process') once for
+the schema. The code sorts equivalent anchor/opening order and derives optional
+counts; it does not infer ambiguous direction or silently accept contradictions.
+Local comparisons are the main drawing-correctness check. Carry each judgment in
+reviews_json on the NEXT normal build/revise/prepare/assemble/apply/finish action,
+after seeing its actual result. Include candidate in plan/building entries if it
+differs from that action's candidate. An issued image is not an approved review.
+Do not add a tool call just to record a judgment or repeat unchanged local checks.
+
+Assemble checked floors at their observed levels. Apply reviewed elevations
+together with apply_elevation_readings, carrying their judgments in that same call.
+This reuses matching, counts and height evidence; do not separately re-enter facade
+counts or per-opening claims. Fix located missing/extra/mismatched openings or
+height conflicts. Preserve current geometry policy and explicit reference choices.
+Unchanged plan XY reviews survive height edits and ID namespacing; changed scopes
+need a new look at their returned overlays.
+
+Finally inspect_candidate(include_geometry=false) and judge the assembled building:
+volume/storeys, floor projection differences, internal walls, rooms/circulation,
+hosts/connections and heights. Explain supported setbacks/reference differences;
+never assume different floors must be identical. This is architectural reasoning,
+not an exhaustive second drawing audit or a building-code compliance assessment.
+Return to a particular drawing only for a concrete conflict or changed scope.
+Save any intended corrections/notes first; then carry the building judgment with
+finish_bim(candidate=<intended final saved candidate>,reviews_json=...). Do not batch
+a candidate-changing edit with finish of its old source. needs_revision requires a
+fix. uncertain means located evidence limits after a reasonable look, also retained
+in source assumptions/unresolved, not uncompleted work. Finish requires current
+local coverage, reading/source consistency and building judgment; model-reported
+review and deterministic consistency do not certify independent drawing quality.
+"""
+
+DRAWING_PROCESS_REFERENCE = """Single-model local drawing delivery.
+prepare_elevation_reading(image,facade,reading_json,reviews_json='') uses the building
+face North/South/East/West, viewed from outside. Pixels are ORIGINAL. Horizontal
+distances grow from the image-left building edge; provide facade_length_m and any
+dimension-chain offset. Z calibration maps original pixels to ABSOLUTE building Z.
+Example (synthetic):
+{"x_calibration":{"pixel_start":100,"pixel_end":900,"distance_start_m":0,
+"distance_end_m":10,"facade_length_m":10},"z_calibration":{"pixel_start":300,
+"pixel_end":700,"world_start_m":3,"world_end_m":0},"elevations":[{"id":"F1",
+"floor_id":"F1","kind":"floor","value_m":0,"evidence_type":"annotation",
+"bbox":[80,690,180,720]}],"openings":[{"id":"W1","floor_id":"F1","kind":"window",
+"opening_bbox":[200,380,300,567],"evidence_type":"pixels"}],"unresolved":[]}
+For annotation or mixed evidence supply x_px=[left,right], width_m,sill_m,head_m,
+evidence_type=annotation/annotation_and_pixels and bbox locating its evidence.
+opening_bbox is the aperture, bbox is an evidence crop. Code retains submitted
+readings before ink/grid adoption. Do not replace clear annotations with rough
+pixels. Levels use kind=ground/floor/eave/roof/other; floor needs floor_id. Include
+supported floor and roof levels. Counts are optional and derived from openings
+and declared floor levels; explicit counts are checked, never overwritten. On a
+blank facade declare floors and openings=[] to establish zero counts. Reversed
+anchor PAIRS and opening list order are normalized; conflicting axes still fail.
+Reprepare only a facade whose observations changed; originals remain immutable.
+To correct its assigned facade, pass replaces_reading_id naming the prior reading
+on that same image. This explicitly supersedes that old judgment; other facades
+on a shared sheet remain. The replacement still needs its own local comparison.
+
+reviews_json is an optional JSON list on build_plan_bim, revise_plan_bim, revise_bim,
+assemble_plan_bim, prepare_elevation_reading, apply_elevation_readings and finish_bim.
+For example, after inspecting a plan result, carry on the next normal action:
+[{"kind":"plan","candidate":"candidate_01","image":"floor.png","floor_id":"F1",
+"outcome":"consistent","summary":"<actual findings from overlay>","issues":[]}].
+Plan entries need a full actual-source overlay for that candidate/image/floor.
+Elevation entries use kind=elevation,reading_id; building entries use kind=building.
+For tools with candidate, that is the default reviewed candidate; otherwise specify
+it in each plan/building entry. Outcomes: consistent has no issues; uncertain has
+located evidence limits; needs_revision has located errors. summary explains the
+actual comparison/judgment. All entries validate before any review is written.
+Reviews describe results already seen, never the new result of the carrying action.
+An auxiliary detail sheet contributing no plan/elevation geometry may use
+kind=reference,image,view_id with its limited relevance explained. Never substitute
+reference for a contributing plan/elevation. Inspect_candidate reports missing or
+stale scopes; unchanged physical scopes are reused automatically.
+
+apply_elevation_readings(candidate,reading_ids,reviews_json='') matches reviewed
+readings in a batch and applies safe opening heights only. Use observed floor
+levels/heights before it. Missing/extra/ambiguous openings stay located conflicts;
+host-height conflicts return opening, floor and bounds with a direct repair route.
+Inspect current comparison details for any remaining discrepancy. No separate
+count/claim bookkeeping is required for these readings. finish_bim saves the source,
+views, local judgments, building judgment and recorded uncertainty together.
+"""
+
 DELIVERY = "Delivery. " + FINISHING + """
 For plan builds, save already identified uses and their basis in
 space_seeds[].role_evidence (see plan_partition); do not re-enter saved use evidence.
@@ -308,6 +403,7 @@ def build_guide(*, images=None, mesh=False, review_detail=False, continuation=Fa
 MESH_GUIDE = build_guide(mesh=True, review_detail=True, continuation=True)
 
 REFERENCES = {
+    'drawing_process': DRAWING_PROCESS_REFERENCE,
     'facade_correspondence': """Observe one facade's full opening list independently
 in the original plan and original elevation. Include doors and windows; retain
 uncertain marks explicitly. Do not copy one view's intervals into the other.
