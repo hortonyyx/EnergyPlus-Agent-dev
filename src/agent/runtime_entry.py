@@ -52,7 +52,7 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
                    building_input: Path | None, scope: str, image_kind: str,
                    max_candidates: int, floor_plan_images: list[str] | None = None,
                    started_epoch: float | None = None,
-                   seconds: float | None = None) -> tuple[Path, str, str]:
+                   seconds: float | None = None, process_reviews: bool = False) -> tuple[Path, str, str]:
     """Freeze originals through the same admission function as Claude Code."""
     from src.agent.bim_inputs import prepare_bim_inputs
     if started_epoch is None and seconds is not None:
@@ -63,12 +63,21 @@ def prepare_inputs(output: Path, *, images: Path | None, mesh: Path | None,
         max_candidates=max_candidates, floor_images=floor_plan_images,
         started_epoch=started_epoch, seconds=seconds)
     inventory = manifest["images"]
+    if process_reviews:
+        if image_kind != "drawings" or mesh or not inventory:
+            raise ValueError("process reviews require drawing images")
+        from scripts.tool_scripts.bim_agent_process_reviews import POLICY
+        manifest["drawing_review_policy"] = POLICY
+        (run / "inputs.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     guide = build_guide(images=image_kind if inventory else None, mesh=bool(mesh))
     guide += ("\nSingle-model runtime completion: finish_bim selects your final handoff. "
         "After the current tool batch completes, a successful finish of a complete building "
         "with matching saved source and viewer ends this run without another model request. "
         "Complete intended edits and checks before finish_bim; partial or failed handoffs "
         "do not end the run. Tool completion is distinct from a final text answer.\n")
+    if process_reviews:
+        from scripts.tool_scripts.bim_agent_guidance import DRAWING_PROCESS
+        guide += "\n" + DRAWING_PROCESS
     task = scope
     (output / "guide.txt").write_text(guide, encoding="utf-8")
     (output / "task.txt").write_text(task, encoding="utf-8")
@@ -149,7 +158,8 @@ async def execute(args) -> dict:
         run, guide, task = prepare_inputs(output, images=args.images, mesh=args.mesh,
             building_input=args.building_input, scope=args.scope, image_kind=args.image_kind,
             max_candidates=args.max_candidates, floor_plan_images=args.floor_plan_images,
-            started_epoch=started_epoch, seconds=limits.seconds)
+            started_epoch=started_epoch, seconds=limits.seconds,
+            process_reviews=getattr(args, "process_reviews", False))
     manifest = json.loads((run / "inputs.json").read_bytes())
     started_epoch = manifest.get("started_epoch")
     role = (local_observer_role if args.role == "local_observer" else coordinator_role)(limits.ledger_limit())
@@ -269,6 +279,8 @@ def parser():
     p.add_argument("--mesh", type=Path)
     p.add_argument("--building-input", type=Path)
     p.add_argument("--image-kind", choices=("drawings", "mesh_views", "photos", "unknown"), default="drawings")
+    p.add_argument("--process-reviews", action="store_true",
+                   help="require local drawing reviews and a separate architectural judgment before complete delivery")
     p.add_argument("--scope", default="Build the supplied building at the requested detail; inspect saved results and report limitations.")
     p.add_argument("--role", choices=("coordinator", "local_observer"), default="coordinator")
     p.add_argument("--provider", choices=("scripted", *LIVE_PROVIDERS), required=True)

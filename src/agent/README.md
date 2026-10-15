@@ -15,6 +15,7 @@ EnergyPlus graph. The product model is `work model + runtime + domain`.
 | Runtime integration and configuration | [runtime_entry.py](runtime_entry.py), [runtime_configuration.py](runtime_configuration.py) |
 | Viewing and delivery | [bim_delivery.py](geometry/bim_delivery.py), [viewer](../../scripts/tool_scripts/render_geometry_viewer.py) |
 | Independent evaluation | [judge](judge/__init__.py); never supplied as work-model answers |
+| Local drawing deliveries and architectural review | [drawing readings](../../scripts/tool_scripts/bim_agent_drawing_readings.py), [process reviews](../../scripts/tool_scripts/bim_agent_process_reviews.py); single-model opt-in |
 
 These are responsibilities, not a required sequence or six new wrapper packages.
 Methods may compose shared tools; roles are chosen for tasks, not for the three

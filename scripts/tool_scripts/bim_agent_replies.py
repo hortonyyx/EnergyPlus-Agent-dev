@@ -268,6 +268,9 @@ def compact_reply(run: Path, tool: str, result: dict, *, full_result: dict | Non
         # Verdicts, repair locations and saved identities remain immediately useful;
         # every other field is available in the bound report, including its keys.
         for key in ('status', 'source_geometry_ready', 'candidate', 'saved_candidate', 'save_effects',
+                    'reading_id', 'image', 'facade', 'artifact_sha256',
+                    'matched_openings', 'all_readings_consistent', 'comparison_summary',
+                    'saved_reviews', 'process_review',
                     'error', 'error_stage', 'error_type', 'tool_name', 'repair_hint', 'remaining_seconds',
                     'plan_input', 'plan_revision', 'drawing_differences', 'building_precision', 'counts'):
             if key in reply and _reply_bytes({**bounded, key: reply[key]}) <= 24000:
