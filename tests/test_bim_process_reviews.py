@@ -313,6 +313,52 @@ def test_unknown_unreviewed_and_superseded_readings_are_refused_before_source_ed
     assert not list((toolkit.run / "claims").glob("application_*.json"))
 
 
+def test_mcp_failed_height_batch_exposes_attempt_and_host_diagnostics_without_selecting_it(case):
+    toolkit, candidate = case
+    before = (toolkit.candidate_path(candidate) / "source_model.json").read_bytes()
+    reading = _reading()
+    reading["openings"][1].update(evidence_type="annotation", x_px=[120, 160],
+                                  width_m=2, sill_m=4, head_m=6.4)
+
+    async def scenario():
+        async with _server_session(toolkit.run, readonly=False) as session:
+            prepared = _json_result(await session.call_tool("prepare_elevation_reading", {
+                "image": "North.png", "facade": "North", "reading_json": json.dumps(reading)}))
+            assert load_reading(toolkit, prepared["reading_id"])["artifact"]["openings"][1]["head_m"] == 6.4
+            _json_result(await session.call_tool("record_bim_review", {"candidate": candidate,
+                "reviews_json": json.dumps([_review("elevation", reading_id=prepared["reading_id"],
+                    outcome="uncertain", issues=["Synthetic height annotation conflicts with the drawn upper opening."])])}))
+            result = _json_result(await session.call_tool("apply_elevation_readings", {
+                "candidate": candidate, "reading_ids": [prepared["reading_id"]]}))
+            assert result["status"] == "failed"
+            assert result["candidate"] == result["result_candidate"] == candidate
+            assert result["saved_candidate"] is None
+            assert result["save_effects"] == {"created_candidates": [], "geometry_applied": False, "audit_written": True}
+            summary = result["failure_summary"]
+            assert summary["failed_entry_count"] == 1
+            failure = summary["entries"][0]
+            attempted = failure["attempted_candidate"]
+            assert attempted and attempted != candidate
+            assert "F2:W" in failure["error"] and "host" in failure["error"]
+            page = _json_result(await session.call_tool("read_candidate_items", {
+                "candidate": "", "collection": "report", "report_file": result["details_file"],
+                "json_pointer": "/entries/0/source_validation/findings"}))
+            assert page["sha256"] == result["details_sha256"]
+            assert any(row.get("opening_id") == "F2:W" and "host" in row.get("reason", "")
+                       for row in page["value"])
+            full = json.loads((toolkit.run / result["details_file"]).read_bytes())
+            entry = full["entries"][0]
+            assert entry["attempted_candidate"] == attempted and entry["error"]
+            journal = json.loads((toolkit.run / full["audit_file"]).read_bytes())
+            assert journal["entries"][0]["source_validation"] == entry["source_validation"]
+            assert journal["entries"][0]["attempted_candidate"] == attempted
+            assert not json.loads((toolkit.run / attempted / "report.json").read_bytes())["source_geometry_ready"]
+            assert not result["all_readings_consistent"]
+    asyncio.run(scenario())
+    assert (toolkit.candidate_path(candidate) / "source_model.json").read_bytes() == before
+    assert not (toolkit.run / "delivery_selection.json").exists()
+
+
 def test_review_batch_requires_full_current_overlay_and_validates_before_any_save(case):
     toolkit, candidate = case
     # A valid first review must not be written when the second scope is invalid.
