@@ -740,13 +740,101 @@ def test_domain_completion_waits_for_whole_tool_batch(tmp_path):
                 return {"origin": "domain_tool"}
         return None
 
+    limits = RunLimits(model_calls=2, tool_calls=2, seconds=30, tokens=100_000)
     engine = runtime(tmp_path, [response(("a", "save", {"value": 8}), ("b", "save", {"value": 9})),
-                                response(text="Later edit is still pending review.")])
+                                response(text="Later edit is still pending review.")], limits=limits)
     engine.domain_completion = completed
     with engine.store:
         result = asyncio.run(engine.run(MESSAGES))
     assert result["model_calls"] == 2 and "completion" not in result
+    assert result["status"] == "model_budget_exhausted" and result["answer"] is None
     assert observed and all(len(batch) == 2 for batch in observed)
+
+
+@pytest.mark.parametrize("model_calls,expected", [(1, "model_budget_exhausted"),
+    (2, "model_budget_exhausted"), (8, "domain_completion_unmet")])
+def test_domain_text_continuation_is_bounded_by_progress_and_existing_budget(tmp_path, model_calls, expected):
+    limits = RunLimits(model_calls=model_calls, tool_calls=5, seconds=30, tokens=100_000)
+    engine = runtime(tmp_path, [response(text="I have not completed the requested work.")] * 4, limits=limits)
+    engine.domain_completion = lambda current: None
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == expected and result["answer"] is None
+        assert "completion" not in result
+        assert result["model_calls"] == result["consecutive_incomplete_responses"] == min(model_calls, 3)
+        assert result["reported_tokens"] == result["model_calls"] * 30
+        assert result["tool_calls"] == 0
+        assert len(result["task_budget"]["settlements"]) == result["model_calls"]
+        assert len(engine.adapter.requests) == result["model_calls"]
+        engine.store.validate()
+
+
+@pytest.mark.parametrize("context", [False, True])
+@pytest.mark.parametrize("boundary", ["after_response", "after_checkpoint"])
+def test_domain_text_continuation_resumes_once_and_can_complete(tmp_path, context, boundary):
+    from src.agent_runtime.context import ContextPolicy
+
+    class Crash(BaseException):
+        pass
+
+    def completed(current):
+        if (current.tools.directory / "saved.json").is_file():
+            return {"origin": "domain_tool", "artifact": "saved.json"}
+
+    def interrupt(name, current):
+        if name == boundary and current.counts["model_calls"] == 1:
+            raise Crash()
+
+    engine = runtime(tmp_path, [response(text="I still need to do the work.")])
+    engine.domain_completion, engine.fault_hook = completed, interrupt
+    if context:
+        engine.context_policy = ContextPolicy(active_window_messages=8)
+    with engine.store, pytest.raises(Crash):
+        asyncio.run(engine.run(MESSAGES))
+    resumed = runtime(tmp_path, [response(text="Still working."),
+        response(("save-once", "save", {"value": 8}))], tools=engine.tools)
+    resumed.domain_completion, resumed.context_policy = completed, engine.context_policy
+    with resumed.store:
+        result = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert result["status"] == "completed" and result["answer"] is None
+        assert result["model_calls"] == len(result["task_budget"]["settlements"]) == 3
+        assert result["reported_tokens"] == 90 and result["tool_calls"] == 1
+        assert result["consecutive_incomplete_responses"] == 0
+        assert engine.tools.calls == [("save", {"value": 8})]
+        first_request = json.loads(resumed.adapter.requests[0])
+        assert first_request["messages"].count(resumed._domain_continuation_prompt()) == 1
+        resumed.store.validate()
+
+
+def test_domain_tool_turn_resets_text_continuation_limit(tmp_path):
+    limits = RunLimits(model_calls=8, tool_calls=2, seconds=30, tokens=100_000)
+    engine = runtime(tmp_path, [response(text="Pending.")] * 2 + [response(("view", "view", {}))]
+        + [response(text="Pending.")] * 2 + [response(("save", "save", {"value": 8}))], limits=limits)
+    engine.domain_completion = lambda current: ({"origin": "domain_tool"}
+        if (current.tools.directory / "saved.json").is_file() else None)
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed" and result["model_calls"] == 6
+        assert result["tool_calls"] == 2 and result["consecutive_incomplete_responses"] == 0
+
+
+def test_completed_domain_resume_requires_its_completion_record(tmp_path):
+    def completed(current):
+        if (current.tools.directory / "saved.json").is_file():
+            return {"origin": "domain_tool", "artifact": "saved.json"}
+
+    engine = runtime(tmp_path, [response(("saved", "save", {"value": 8}))])
+    engine.domain_completion = completed
+    with engine.store:
+        result = asyncio.run(engine.run(MESSAGES))
+        assert result["status"] == "completed"
+        result.pop("completion")
+        engine.store.write_json("receipt.json", result)
+    resumed = runtime(tmp_path, [], tools=engine.tools)
+    resumed.domain_completion = completed
+    with resumed.store:
+        result = asyncio.run(resumed.run(MESSAGES, resume=True))
+        assert result["status"] == "resume_state_changed" and resumed.adapter.requests == []
 
 
 def test_invalidated_completion_at_finalization_is_not_success(tmp_path):

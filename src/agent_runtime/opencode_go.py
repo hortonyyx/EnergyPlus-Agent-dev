@@ -146,7 +146,8 @@ def prepare_request(**kwargs):
     if protocol == "anthropic_messages":
         from .anthropic import prepare_anthropic_request
         kwargs.pop("reasoning_history", None)
-        prepared = prepare_anthropic_request(**kwargs, native_system_only=True)
+        prepared = prepare_anthropic_request(**kwargs, native_system_only=True,
+            check_thinking_bindings=kwargs["model"] == "claude-haiku-5-5")
         audit = prepared.event_payload.parameters.model_copy(update={"effect": ParametersUnverified(
             reason="OpenCode Go Messages mapping; applied server values are not attested")})
         return replace(prepared, event_payload=prepared.event_payload.model_copy(update={"parameters": audit}))

@@ -42,6 +42,7 @@ from .store import EventStore
 
 
 NO_DEADLINE_IO_TIMEOUT_SECONDS = 300.0
+MAX_DOMAIN_COMPLETION_CONTINUATIONS = 2
 
 
 class _BudgetCapacitySignal:
@@ -151,8 +152,8 @@ class Runtime:
     # Resume still restores the original persisted start; it never buys time.
     start_epoch: float | None = None
     finalize_run: object | None = None
-    # Optional domain attestation, checked only between complete tool batches.
-    # A tool-completed task has no fabricated assistant final answer.
+    # Optional required domain attestation, checked between complete tool batches.
+    # Text alone cannot complete an attested task or replace its completion record.
     domain_completion: object | None = None
     tool_budget_update: object | None = None
     # Parallel roles reserve a bounded slice per in-flight request so the first
@@ -193,6 +194,7 @@ class Runtime:
         self.pending_pictures, self.pending_picture_events = [], []
         self.answer = None
         self.completion = None
+        self.incomplete_response_count = 0
         self.stage = "initialization"
         self.terminal_reason = None
         self.retry_of = None
@@ -425,7 +427,9 @@ class Runtime:
             **({"route_dispatch": asdict(route_policies()[self.versions.remote_model.route_id])}
                if self.versions.remote_model.route_id in route_policies() else {}),
             "tool_budget_update_enabled": self.tool_budget_update is not None,
-            **({"domain_completion_enabled": True} if self.domain_completion else {}),
+            **({"domain_completion_enabled": True,
+                "domain_completion_continuation_limit": MAX_DOMAIN_COMPLETION_CONTINUATIONS}
+               if self.domain_completion else {}),
             "answer_validation_enabled": self.answer_validator is not None,
             "max_answer_repairs": self.max_answer_repairs,
             "low_output_limit_reason": self.low_output_limit_reason,
@@ -942,7 +946,7 @@ class Runtime:
                 if truncation is not None:
                     if truncation.payload.action == "stop":
                         return None, truncation.payload.reason
-                    message = self._truncation_prompt()
+                    message = self._truncation_prompt(purpose=logical_purpose)
                     source = self._event_source(truncation)
                     self.retry_of = None
                     if logical_purpose == "primary_task":
@@ -972,12 +976,17 @@ class Runtime:
                     return None, "time_budget_exhausted"
                 return response, None
 
-    @staticmethod
-    def _truncation_prompt():
+    def _truncation_prompt(self, *, purpose="primary_task"):
+        continuation = (
+            "Continue from the last confirmed state by issuing the next complete tool call. "
+            "The task still requires verified domain completion; a status report does not finish it."
+            if self.domain_completion and purpose == "primary_task" else
+            "Continue the requested task from the last confirmed state in smaller complete steps, "
+            "using tools when needed. Keep the next response within the output limit.")
         return {"role": "user", "content": (
             "The previous response exceeded the output limit and was discarded. "
             "Its thinking was not retained and none of its tool calls ran. "
-            "Please directly issue the next complete tool call or give a brief answer."
+            + continuation
         )}
 
     def _append_truncation_prompt(self, event):
@@ -1245,6 +1254,9 @@ class Runtime:
     def _accept_response(self, event):
         if any(source.event_id == event.event_id for source in self.sources):
             return
+        if self.context:
+            request = next(e for e in self.store.events if e.event_id == event.payload.request_event_id)
+            self.context.commit_request_state(request)
         parsed = parse_response(self.store.resolve(event.payload.raw_response), event.payload.request_event_id,
                                 self.store, echo_fields=self.echo_fields)
         if parsed.protocol_error:
@@ -1282,8 +1294,20 @@ class Runtime:
             self.context.acknowledge_projection()
         self._append_message(parsed.assistant_message, self._event_source(event))
         if calls:
+            self.incomplete_response_count = 0
             self.pending_response_id = event.event_id
         else:
+            if self.domain_completion:
+                # The model's natural-language stopping point is not the domain
+                # completion authority. Preserve it as interim history and make
+                # a bounded, ordinary budgeted attempt to continue the work.
+                self.answer = None
+                self.incomplete_response_count += 1
+                if self.incomplete_response_count > MAX_DOMAIN_COMPLETION_CONTINUATIONS:
+                    self.terminal_reason = "domain_completion_unmet"
+                    return
+                self._append_message(self._domain_continuation_prompt(), self._event_source(event))
+                return
             answer = "\n".join(parsed.event_payload.visible_text)
             if self.answer_validator is None:
                 self.answer = answer
@@ -1299,6 +1323,15 @@ class Runtime:
                 self._record_answer_repair_result(event, answer, accepted=True)
             self.answer = answer
             self.terminal_reason = "completed"
+
+    @staticmethod
+    def _domain_continuation_prompt():
+        return {"role": "user", "content": (
+            "The task's required completion has not been verified. Your previous text is an interim "
+            "status report, not a completed task. Continue with the available tools toward the "
+            "completion requirement in the task guidance, using the existing remaining budget. "
+            "Repeated text-only replies without tool progress will stop this run as incomplete."
+        )}
 
     def _reject_or_request_answer_repair(self, event, answer, error):
         if self.answer_repair_request_id is not None:
@@ -1545,6 +1578,7 @@ class Runtime:
             "image_originals": {k: v.model_dump(mode="json") for k, v in self.originals.items()},
             "counts": self.counts, "used_ids": sorted(self.used_ids), "answer": self.answer,
             "completion": self.completion,
+            "incomplete_response_count": self.incomplete_response_count,
             "pending_response_id": self.pending_response_id,
             "pending_pictures": self.store.capture(self.pending_pictures).model_dump(mode="json"),
             "pending_picture_events": self.pending_picture_events,
@@ -1582,7 +1616,8 @@ class Runtime:
             if (self.store.task_directory / "receipt.json").exists():
                 receipt = json.loads((self.store.task_directory / "receipt.json").read_bytes())
                 completed = receipt.get("completion")
-                if completed and (not self.domain_completion or self.domain_completion(self) != completed):
+                if ((self.domain_completion and not completed)
+                        or (completed and (not self.domain_completion or self.domain_completion(self) != completed))):
                     return "resume_state_changed"
                 return "already_completed"
         if saved.get("context"):
@@ -1596,6 +1631,7 @@ class Runtime:
         self.used_ids = set(saved["used_ids"])
         self.answer, self.terminal_reason = saved.get("answer"), saved.get("terminal_reason")
         self.completion = saved.get("completion")
+        self.incomplete_response_count = saved.get("incomplete_response_count", 0)
         self.pending_response_id = saved.get("pending_response_id")
         pictures = saved.get("pending_pictures")
         if pictures and pictures.get("kind") == "sha256":  # historical checkpoint
@@ -1833,7 +1869,7 @@ class Runtime:
             if e.payload.event_type == "response_truncation" and previous is not None
             and e.payload.response_event_id == previous.event_id), None)
         if recovery is not None and recovery.payload.action == "continue":
-            messages.append(self._truncation_prompt())
+            messages.append(self._truncation_prompt(purpose="context_summary"))
             sources.append(self._event_source(recovery))
         response, reason = await self._model_call(messages, sources,
             purpose="context_summary", tools=[])
@@ -2144,6 +2180,8 @@ class Runtime:
     def _stop(self, reason):
         self._load_budget()
         self._refresh_counts()
+        if reason == "completed" and self.domain_completion and self.completion is None:
+            reason = "domain_completion_unmet"
         # Domain finalization reuses already saved artifacts; it must run before
         # their hashes and the final receipt are recorded. No new model request.
         finalization = (self.finalize_run(self, reason) if self.finalize_run
@@ -2174,6 +2212,8 @@ class Runtime:
         from .versions import version_labels
         receipt = {"status": reason, "answer": self.answer,
             **({"completion": self.completion} if self.completion is not None else {}),
+            **({"consecutive_incomplete_responses": self.incomplete_response_count}
+               if self.domain_completion else {}),
             **version_labels(self.versions),
             **({"finalization": finalization} if finalization is not None else {}),
             "started_epoch": self.started_epoch,

@@ -90,6 +90,10 @@ class ContextPolicy(ContractModel):
     # default so existing checkpoint configuration comparisons stay identical.
     state_item_fields: dict[NonEmptyStr, tuple[NonEmptyStr, ...]] = Field(
         default_factory=dict, exclude_if=lambda value: not value)
+    # Signed native histories bind thinking to its original request prefix.
+    # Commit actually sent state snapshots before their response, then append
+    # only changed state. Ordinary projections and estimators stay read-only.
+    append_state_history: bool = Field(default=False, exclude_if=lambda value: not value)
 
     @field_validator("pinned_tags")
     @classmethod
@@ -102,6 +106,8 @@ class ContextPolicy(ContractModel):
     def image_history_uses_token_projection(self):
         if self.image_history_batches is not None and self.active_window_messages is not None:
             raise ValueError("image_history_batches requires token context projection")
+        if self.append_state_history and self.active_window_messages is not None:
+            raise ValueError("append_state_history requires token context projection")
         return self
 
 
@@ -916,6 +922,47 @@ class ContextManager:
                                **({"revision": entry.revision} if entry.category == "constraint" else {})})
         return result
 
+    def _state_message(self, records):
+        state = self.model_state()
+        prefix = "Current runtime state (machine generated; epistemic status is authoritative): "
+        if not self.policy.append_state_history:
+            return {"role": "user", "content": prefix + json.dumps(
+                state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))} if state else None
+        latest = next((r for r in reversed(records) if "runtime-state-snapshot" in r.tags), None)
+        if not state and latest is None:
+            return None
+        message = {"role": "user", "content": prefix
+            + "Only the latest runtime state snapshot is current; older snapshots describe earlier steps. "
+            + json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))}
+        return None if latest is not None and latest.message == message else message
+
+    def commit_request_state(self, request_event):
+        """Persist the exact state actually sent, once, before its assistant reply.
+
+        The request journal is the authority, including when a durable response
+        is replayed after a crash. Preview/estimation and rejected/truncated
+        requests cannot create phantom history snapshots.
+        """
+        if not self.policy.append_state_history:
+            return
+        request_tag = "runtime-state-request:" + request_event.event_id
+        if any(request_tag in r.tags for r in self._history):
+            return
+        origins = {item.source.blob.sha256: item.source
+            for item in request_event.payload.injected_content
+            if item.source.source_id == "context-current-state" and item.source.blob is not None}
+        if len(origins) > 1:
+            raise ValueError("one request cannot contain multiple current runtime states")
+        for source in origins.values():
+            message = json.loads(self.store.get_bytes(source.blob))
+            if (source.source_kind != "generated" or message.get("role") != "user"
+                    or not isinstance(message.get("content"), str)):
+                raise ValueError("current runtime state has invalid recorded provenance")
+            recorded = source.model_copy(update={
+                "source_id": "context-state-snapshot-" + request_event.event_id,
+                "event_id": request_event.event_id})
+            self.append(message, recorded, tags=("runtime-state-snapshot", request_tag))
+
     def _compaction_notice(self, identities: set[str]) -> str:
         groups = [i + 1 for i, group in enumerate(_interaction_groups(self._history))
                   if any(r.history_id in identities for r in group)]
@@ -956,11 +1003,6 @@ class ContextManager:
         selected = [r for r in self._history if r.history_id not in self._archived_history_ids]
         image_history_ids = (self._retained_image_history(selected, required, views,
             set(undelivered_image_event_ids)) if self.policy.image_history_batches is not None else None)
-        state = self.model_state()
-        state_message = ({"role": "user", "content":
-            "Current runtime state (machine generated; epistemic status is authoritative): "
-            + json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))} if state else None)
-
         def assemble(records, notice):
             messages = [(self._project_image_history_message(r, r.history_id in image_history_ids)
                          if image_history_ids is not None else copy.deepcopy(r.message)) for r in records]
@@ -972,6 +1014,7 @@ class ContextManager:
                 index = sum(r.history_id in initial_ids for r in records)
                 messages.insert(index, notice["message"])
                 sources.insert(index, SourceRef.model_validate_json(json.dumps(notice["source"])))
+            state_message = self._state_message(records)
             if state_message:
                 messages.append(state_message)
                 sources.append(self.store.source("context-current-state", state_message, kind="generated"))

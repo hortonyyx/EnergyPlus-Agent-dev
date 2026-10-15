@@ -131,7 +131,7 @@ def convert_messages(messages, message_sources, *, native_system_only=False):
 
 def prepare_anthropic_request(*, store, model, messages, message_sources, tools,
         tool_source, parameters, versions, image_originals=None, model_profile=None,
-        strict_model_profile=False, native_system_only=False):
+        strict_model_profile=False, native_system_only=False, check_thinking_bindings=False):
     unsupported = set(parameters) - {"max_tokens", "thinking", "output_config", "context_management"}
     if unsupported:
         raise ValueError("unreviewed Anthropic parameters: " + ", ".join(sorted(unsupported)))
@@ -139,6 +139,14 @@ def prepare_anthropic_request(*, store, model, messages, message_sources, tools,
                                                                native_system_only=native_system_only)
     body = {"model": model, "system": system, "messages": native, "stream": False,
             **copy.deepcopy(parameters)}
+    if tools:
+        body["tools"] = [{"name": t["function"]["name"], "description": t["function"].get("description", ""),
+                          "input_schema": copy.deepcopy(t["function"]["parameters"])} for t in tools]
+    binding_audit = None
+    if check_thinking_bindings:
+        from .anthropic_binding import project_bound_thinking
+        sources, binding_audit = project_bound_thinking(store, body, sources)
+        native = body["messages"]
     injections = []
     for i, (block, source) in enumerate(zip(system, system_sources, strict=True)):
         injections.append(InjectedContent(request_location=f"/system/{i}", content=store.capture(block), source=source))
@@ -147,9 +155,9 @@ def prepare_anthropic_request(*, store, model, messages, message_sources, tools,
             injections.append(InjectedContent(request_location=f"/messages/{i}/content/{j}",
                                               content=store.capture(block), source=source))
     if tools:
-        body["tools"] = [{"name": t["function"]["name"], "description": t["function"].get("description", ""),
-                          "input_schema": copy.deepcopy(t["function"]["parameters"])} for t in tools]
         injections.append(InjectedContent(request_location="/tools", content=store.capture(body["tools"]), source=tool_source))
+    if binding_audit is not None:
+        injections.append(InjectedContent(request_location="/messages", content=store.capture(native), source=binding_audit))
     images = []
     def visit(value, pointer):
         if isinstance(value, dict):

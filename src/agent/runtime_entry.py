@@ -118,6 +118,8 @@ async def execute(args) -> dict:
         max_total_truncations=args.max_total_truncations,
         summary_every=args.summary_every)
     context_values = {"active_window_messages": args.context_window,
+        "append_state_history": (args.provider == "opencode-go" and args.model == "claude-haiku-5-5"
+            and args.context_window is None),
         "compact_at_tokens": args.compact_at_tokens,
         "large_result_bytes": args.large_result_bytes, "max_images": args.max_images,
         "image_history_batches": getattr(args, "image_history_batches", None),
@@ -235,13 +237,15 @@ async def execute(args) -> dict:
         # The runtime receipt remains the authority for stop reason and accounting.
         from src.agent.bim_inputs import dump
         delivery = result.get("finalization", {}).get("delivery")
+        task_completed = (result["status"] == "completed" and bool(result.get("completion"))
+            and result.get("finalization", {}).get("completion_valid") is True
+            and isinstance(delivery, dict) and delivery.get("complete_building") is True)
         dump(run / "summary.json", {
             "input_mode": manifest.get("input_mode"), "source_input_mode": manifest.get("source_input_mode"),
             "input_contents": manifest.get("input_contents"),
             "agent_response_completed": result["status"] == "completed" and not result.get("completion"),
-            "task_completed": result["status"] == "completed",
-            "completion_origin": ("domain_tool" if result.get("completion") else "model_response")
-                if result["status"] == "completed" else None,
+            "task_completed": task_completed,
+            "completion_origin": "domain_tool" if task_completed else None,
             "runtime_status": result["status"], "elapsed_seconds": result.get("elapsed_seconds"),
             "delivery": ({**delivery, "report": "delivery.json", "viewer": "delivery.html"}
                          if delivery else None),

@@ -69,7 +69,7 @@ class LocalClient:
 
 
 async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparation_seconds=0,
-                    seconds=6000, image_history_batches=None, resume_completed=False):
+                    seconds=6000, image_history_batches=None, resume_completed=False, role="coordinator"):
     images = tmp_path / "images"
     images.mkdir()
     for name in ("plan.png", "upstairs.png"):
@@ -113,9 +113,9 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
             if calls:
                 message = {"role": "assistant", "content": None, "tool_calls": calls}
             else:
-                message = {"role": "assistant", "content": "Saved results; no further action."}
+                message = {"role": "assistant", "content": row.get("text", "Saved results; no further action.")}
             return {"id": f"offline_{len(requests)}", "model": "scripted-model",
-                "choices": [{"message": message, "finish_reason": "tool_calls" if calls else "stop"}],
+                "choices": [{"message": message, "finish_reason": row.get("finish_reason", "tool_calls" if calls else "stop")}],
                 "usage": {"prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20}}
 
     monkeypatch.setattr(runtime_entry, "frozen_bim_client", client)
@@ -124,6 +124,7 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
     script.write_text(json.dumps(actions))
     args = runtime_entry.parser().parse_args(["--out", str(out), "--run-root", str(tmp_path), "--images", str(images),
         "--provider", "scripted", "--script", str(script),
+        "--role", role,
         *(["--no-time-limit"] if seconds is None else ["--seconds", str(seconds)]),
         "--model-calls", str(model_calls), "--tool-calls", "20", "--tokens", "20000000",
         "--max-candidates", "8", "--floor-plan-image", "plan.png",
@@ -139,7 +140,7 @@ async def _scenario(tmp_path, monkeypatch, actions, *, model_calls=20, preparati
         assert receipt["completion"] == completion
         for name, sha in completion["artifact_sha256"].items():
             assert hashlib.sha256((out / "bim" / name).read_bytes()).hexdigest() == sha
-    events = [json.loads(line) for line in (out / "events.jsonl").read_text().splitlines()]
+    events = [json.loads(line) for line in (out / "events.jsonl").read_text(encoding="utf-8").splitlines()]
     manifest = json.loads((out / "bim/inputs.json").read_bytes())
     assert manifest["started_epoch"] == 1000
     assert manifest["deadline_epoch"] == (1000 + seconds if seconds is not None else None)
@@ -178,7 +179,7 @@ def test_half_near_deadline_and_late_tool_refusal_through_runtime(tmp_path, monk
 
 
 def test_tool_preparation_uses_the_same_start_and_does_not_restart_clock(tmp_path, monkeypatch):
-    _, receipt, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [{}], preparation_seconds=600))
+    _, receipt, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [{}], preparation_seconds=600, model_calls=1))
     assert 600 <= receipt["elapsed_seconds"] < 601
     assert receipt["started_epoch"] == 1000 and receipt["deadline_epoch"] == 7000
 
@@ -201,11 +202,11 @@ def test_stops_deliver_complete_before_newer_partial(tmp_path, monkeypatch, endi
         actions += [{"tool": "finish_bim", "arguments": {"candidate": "candidate_04"}},
             {"tool": "inputs", "now": 6999, "at_tool": 7000}]
     elif ending == "normal":
-        actions += [{}]
+        actions += [{}, {}, {}]
     out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions,
         model_calls=4 if ending == "model_limit" else 20))
     delivery = json.loads((out / "bim/delivery.json").read_bytes())
-    assert receipt["status"] == {"deadline": "time_budget_exhausted", "normal": "completed",
+    assert receipt["status"] == {"deadline": "time_budget_exhausted", "normal": "domain_completion_unmet",
                                  "model_limit": "model_budget_exhausted"}[ending]
     assert delivery["candidate"] == "candidate_03"
     assert delivery["selection_origin"] == "latest_complete_fallback_not_agent_selected"
@@ -233,13 +234,61 @@ def test_only_partial_saved_is_delivered_as_incomplete(tmp_path, monkeypatch):
 
 def test_non_timeout_preserves_model_selection(tmp_path, monkeypatch):
     actions = [_build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
-        {"tool": "finish_bim", "arguments": {"candidate": "candidate_01"}}, {}]
+        {"tool": "finish_bim", "arguments": {"candidate": "candidate_01"}}, {}, {}, {}]
     out, receipt, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, actions))
     delivery = json.loads((out / "bim/delivery.json").read_bytes())
     assert delivery["candidate"] == "candidate_01" and delivery["selection_origin"] == "agent_selected"
     assert delivery["floor_completeness"]["complete_building"] is False
-    assert receipt["status"] == "completed"
+    assert receipt["status"] == "domain_completion_unmet" and "completion" not in receipt
+    assert json.loads((out / "bim/summary.json").read_bytes())["task_completed"] is False
     _evidence("explicit_selection", receipt["finalization"])
+
+
+@pytest.mark.parametrize("initial", ["text", "truncated"])
+def test_incomplete_response_continues_to_actual_two_floor_handoff(tmp_path, monkeypatch, initial):
+    first = {"text": "The building is not modeled yet; I need to continue."}
+    if initial == "truncated":
+        first["finish_reason"] = "length"
+    actions = [first, _build(), _build("upstairs.png"), {"tool": "assemble_plan_bim"},
+        {"tool": "finish_bim", "arguments": {"candidate": "candidate_03"}}]
+    out, receipt, requests, events = asyncio.run(_scenario(tmp_path, monkeypatch, actions, seconds=None))
+    assert receipt["status"] == "completed" and receipt["answer"] is None
+    assert receipt["model_calls"] == len(requests) == 5
+    assert receipt["tool_calls"] == 4 and receipt["truncations"] == int(initial == "truncated")
+    assert len(receipt["task_budget"]["settlements"]) == 5
+    assert receipt["reported_tokens"] == 100
+    assert len([e for e in events if e["payload"]["event_type"] == "tool_execution"]) == 4
+    assert receipt["completion"]["candidate"] == "candidate_03"
+    delivery = json.loads((out / "bim/delivery.json").read_bytes())
+    assert delivery["floor_completeness"]["complete_building"] is True
+    assert delivery["selection_origin"] == "agent_selected"
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["task_completed"] is True and summary["completion_origin"] == "domain_tool"
+    _evidence("continue_to_handoff_" + initial, {"live_model_requests": 0,
+        "scripted_responses": len(requests), "status": receipt["status"],
+        "tool_calls": receipt["tool_calls"], "completion": receipt["completion"],
+        "summary": summary, "drawing_fidelity": "not_evaluated"})
+
+
+@pytest.mark.parametrize("model_calls,expected", [(1, "model_budget_exhausted"), (20, "domain_completion_unmet")])
+def test_text_without_candidate_never_reports_completed_building(tmp_path, monkeypatch, model_calls, expected):
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [{}, {}, {}], model_calls=model_calls))
+    assert receipt["status"] == expected and receipt["finalization"]["delivery"] is None
+    assert receipt["model_calls"] == len(requests) == min(model_calls, 3)
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["task_completed"] is False and summary["agent_response_completed"] is False
+    assert summary["completion_origin"] is None and summary["delivery"] is None
+    assert not list((out / "bim").glob("candidate_*"))
+
+
+def test_readonly_entry_text_still_completes_observation_without_building(tmp_path, monkeypatch):
+    out, receipt, requests, _ = asyncio.run(_scenario(tmp_path, monkeypatch,
+        [{"text": "Read-only inspection is complete."}], role="local_observer"))
+    assert receipt["status"] == "completed" and receipt["answer"] == "Read-only inspection is complete."
+    assert len(requests) == 1 and receipt["finalization"]["delivery"] is None
+    summary = json.loads((out / "bim/summary.json").read_bytes())
+    assert summary["agent_response_completed"] is True and summary["task_completed"] is False
+    assert summary["completion_origin"] is None
 
 
 @pytest.mark.parametrize("project_reply", [False, True])
@@ -405,7 +454,7 @@ def test_external_coordinator_also_finalizes_saved_work(tmp_path, monkeypatch):
     from src.agent.runtime_coordinator import CoordinatorSession
     from src.agent.runtime_tools import coordinator_role
     from src.agent_runtime.agent_registry import agent_version_record
-    out, _, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [_build(), {}]))
+    out, _, _, _ = asyncio.run(_scenario(tmp_path, monkeypatch, [_build(), {}], model_calls=2))
     source = out / "bim/candidate_01/source_model.json"
     before = source.read_bytes()
     limits = RunLimits(model_calls=2, tool_calls=2, tokens=100000, seconds=6000)

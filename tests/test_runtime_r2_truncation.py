@@ -172,20 +172,57 @@ def test_recovery_cannot_bypass_call_budget_or_unknown_usage(tmp_path):
         assert receipt["truncations"] == 1
 
 
+@pytest.mark.parametrize("boundary", [None, "after_response", "after_checkpoint"])
+def test_domain_truncation_continues_tools_and_preserves_settlement_on_resume(tmp_path, boundary):
+    def completed(current):
+        if (current.tools.directory / "saved.json").is_file():
+            return {"origin": "domain_tool", "artifact": "saved.json"}
+
+    responses = [truncated(calls=True), response(("complete-save", "save", {"value": 8}))]
+    engine = runtime(tmp_path, responses)
+    engine.domain_completion = completed
+    if boundary:
+        def crash(name, current):
+            if name == boundary and any(e.payload.event_type == "response_truncation" for e in current.store.events):
+                raise InjectedCrash(name)
+        engine.fault_hook = crash
+        with engine.store, pytest.raises(InjectedCrash):
+            asyncio.run(engine.run(MESSAGES))
+        engine = runtime(tmp_path, responses[1:], tools=engine.tools)
+        engine.domain_completion = completed
+    with engine.store:
+        receipt = asyncio.run(engine.run(MESSAGES, resume=bool(boundary)))
+        assert receipt["status"] == "completed" and receipt["answer"] is None
+        assert receipt["model_calls"] == len(receipt["task_budget"]["settlements"]) == 2
+        assert receipt["tool_calls"] == receipt["truncations"] == 1
+        assert receipt["reported_tokens"] == 60
+        assert engine.tools.calls == [("save", {"value": 8})]
+        sent = json.loads(engine.adapter.requests[-1])
+        assert sent["messages"].count(engine._truncation_prompt()) == 1
+        assert engine._truncation_prompt() != engine._truncation_prompt(purpose="context_summary")
+        assert "whole-but-rejected" not in json.dumps(sent)
+        engine.store.validate()
+
+
 @pytest.mark.parametrize("crash_boundary", [None, "after_response", "after_checkpoint"])
-def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, crash_boundary):
+@pytest.mark.parametrize("domain", [False, True])
+def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, crash_boundary, domain):
     limits = RunLimits(model_calls=5, tool_calls=2, seconds=30, tokens=100_000, summary_every=1)
     policy = ContextPolicy(active_window_messages=16, preserve_initial_messages=2)
 
     def repaired_summary(body):
         assert body.get("tools", []) == []
-        assert body["messages"][-1] == engine._truncation_prompt()
+        assert body["messages"][-1] == engine._truncation_prompt(purpose="context_summary")
         assert "reasoning_content" not in json.dumps(body)
         return _summary_response({**body, "messages": body["messages"][:-1]})
 
+    ending = response(("saved", "save", {"value": 8})) if domain else response(text="Done")
+    completion = (lambda current: {"origin": "domain_tool"}
+        if (current.tools.directory / "saved.json").is_file() else None) if domain else None
     engine = runtime(tmp_path, [response(("once", "view", {})), truncated(),
-        repaired_summary, response(text="Done")], limits=limits)
+        repaired_summary, ending], limits=limits)
     engine.context_policy = policy
+    engine.domain_completion = completion
     if crash_boundary:
         def crash(name, current):
             if name == crash_boundary and any(e.payload.event_type == "response_truncation"
@@ -194,15 +231,16 @@ def test_summary_truncation_recovers_with_its_own_prompt_and_budget(tmp_path, cr
         engine.fault_hook = crash
         with engine.store, pytest.raises(InjectedCrash):
             asyncio.run(engine.run(MESSAGES))
-        engine = runtime(tmp_path, [repaired_summary, response(text="Done")],
+        engine = runtime(tmp_path, [repaired_summary, ending],
             limits=limits, tools=engine.tools)
         engine.context_policy = policy
+        engine.domain_completion = completion
     with engine.store:
         receipt = asyncio.run(engine.run(MESSAGES, resume=bool(crash_boundary)))
         assert receipt["status"] == "completed", receipt
         assert receipt["model_calls"] == 4 and receipt["truncations"] == 1
         assert receipt["reported_tokens"] == 120
-        assert engine.tools.calls == [("view", {})]
+        assert engine.tools.calls == [("view", {})] + ([("save", {"value": 8})] if domain else [])
         assert [e.payload.logical_purpose for e in engine.store.events
                 if e.payload.event_type == "adapter_request"] == [
             "primary_task", "context_summary", "context_summary", "primary_task"]
