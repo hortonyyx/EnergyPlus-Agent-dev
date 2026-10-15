@@ -85,7 +85,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; exact plan paths and unambiguous object aliases are accepted, while unknown or ambiguous items are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
+        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; declared plan fields/collections (for example ceiling_height or openings), exact plan paths and unambiguous object aliases are accepted, while unknown or ambiguous items are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this facade's batched readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute value_m/sill_m/head_m use metres. The tool checks fields, counts, ordering and evidence, adopts levels and opening width/sill/head on the 0.1 m Lite grid, and retains original readings in regularization metadata; fix pointed errors and resubmit.",
@@ -313,7 +313,9 @@ class ReaderSubmission:
                                                "unresolved": numeric["unresolved"]}, image_name=self.image_name)
             notes = _normalize_note_items(arguments.get("notes", []), {
                 row["item"] for row in artifact["evidence"]
-            })
+            } | {f"plan.{field}" for field in numeric})
+            # Field/collection notes stay in validation; an assumed height has
+            # no pixel evidence to manufacture and must not change the trial.
             for note in notes:
                 located = [row for row in artifact["evidence"] if row["item"] == note["item"]]
                 for row in located:

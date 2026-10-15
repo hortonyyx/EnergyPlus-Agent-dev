@@ -59,6 +59,27 @@ def test_note_object_aliases_normalize_only_when_unambiguous():
             [{"item": "W9", "kind": "unresolved", "basis": "unknown mark"}],
             {"plan.openings:W1"},
         )
+    field_note = [{"item": "openings", "kind": "assumption", "basis": "heights await elevations"}]
+    with pytest.raises(ValueError, match="ambiguous"):
+        _normalize_note_items(field_note, {"plan.openings", "plan.partitions:openings"})
+
+
+def test_field_and_collection_notes_preserve_trial_and_do_not_invent_pixel_evidence():
+    trial = PassedTrial()
+    original = copy.deepcopy(trial.plan)
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    result = submission.submit({"local_review": REVIEW, "trial_id": "latest", "notes": [
+        {"item": "ceiling_height", "kind": "assumption", "basis": "No section; assumed height."},
+        {"item": "plan.openings", "kind": "assumption", "basis": "Heights await elevations."},
+        {"item": "z_floor", "kind": "unresolved", "basis": "Confirm shared vertical datum."},
+    ]})
+    assert result["status"] == "accepted"
+    saved = submission.read()
+    assert saved["artifact"]["plan"] == original
+    assert {row["item"] for row in saved["artifact"]["evidence"]} == _evidence_targets(original)
+    assert [row["item"] for row in saved["validation"]["notes"]] == [
+        "plan.ceiling_height", "plan.openings", "plan.z_floor"]
+    assert "plan.z_floor: Confirm shared vertical datum." in saved["artifact"]["unresolved"]
 
 
 def test_latest_reference_survives_resume_and_rejects_stale_or_tampered_plan(tmp_path):
