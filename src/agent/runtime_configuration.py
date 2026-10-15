@@ -115,10 +115,6 @@ def load_configuration(path: Path, *, low_output_limit_reason: str | None = None
         mode = case.get("mode")
         if mode not in ALLOWED_ENTRYPOINTS:
             raise ValueError(f"unsupported run mode {mode!r}")
-        if type(case.get("process_reviews", False)) is not bool:
-            raise ValueError("process_reviews must be a boolean")
-        if case.get("process_reviews") and (mode != "single_model" or case.get("image_kind") != "drawings"):
-            raise ValueError("process_reviews currently requires single_model drawings")
         continuation = case.get("continuation")
         if continuation is not None:
             import re
@@ -260,8 +256,6 @@ def argv_for(case: dict, *, resume: bool = False) -> list[str]:
             "--tool-calls", str(limits["tool_calls"]),
             "--output-tokens", str(case["output_tokens"])]
     argv += ["--no-time-limit"] if budget.seconds is None else ["--seconds", str(limits["seconds"])]
-    if case.get("process_reviews"):
-        argv += ["--process-reviews"]
     if case.get("chatgpt_auth_dir"):
         argv += ["--chatgpt-auth-dir", str(Path(case["chatgpt_auth_dir"]).expanduser().resolve())]
     if case.get("run_root") is not None:

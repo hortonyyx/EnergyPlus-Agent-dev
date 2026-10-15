@@ -234,9 +234,6 @@ def compact_reply(run: Path, tool: str, result: dict, *, full_result: dict | Non
                   force: bool = False) -> dict:
     if tool not in COMPACT_TOOLS and not force:
         return result
-    # Even a small failed transaction must expose its complete diagnostics via
-    # the same hash-bound report reader as a compacted large result.
-    force = force or bool(result.get('failure_summary'))
     reply = profile_summary(result) if tool == 'view_pixel_profile' else summarize_reply(result)
     large = _reply_bytes(reply) > 24000
     if reply == result and full_result is None and not large and not force:
@@ -271,10 +268,6 @@ def compact_reply(run: Path, tool: str, result: dict, *, full_result: dict | Non
         # Verdicts, repair locations and saved identities remain immediately useful;
         # every other field is available in the bound report, including its keys.
         for key in ('status', 'source_geometry_ready', 'candidate', 'saved_candidate', 'save_effects',
-                    'result_candidate', 'failure_summary',
-                    'reading_id', 'image', 'facade', 'artifact_sha256',
-                    'matched_openings', 'all_readings_consistent', 'comparison_summary',
-                    'saved_reviews', 'process_review',
                     'error', 'error_stage', 'error_type', 'tool_name', 'repair_hint', 'remaining_seconds',
                     'plan_input', 'plan_revision', 'drawing_differences', 'building_precision', 'counts'):
             if key in reply and _reply_bytes({**bounded, key: reply[key]}) <= 24000:

@@ -191,40 +191,6 @@ def test_valid_claim_with_impossible_geometry_is_not_reported_applied(tmp_path):
     assert delivered["claim_applications"][0]["status"] == "failed"
 
 
-def test_failed_revision_in_partial_transaction_preserves_last_commit_and_diagnostics(tmp_path):
-    run, toolkit = setup_run(tmp_path)
-    before = (run / "seed/source_model.json").read_bytes()
-    impossible = claim(objects=[{"kind": "window", "id": "window"}], basis="inference", sources=[],
-        values={"height": {"type": "literal", "value": [1, 9], "unit": "m"}})
-    impossible.pop("candidate")  # Bind this independent entry to the preceding successful source.
-    result = toolkit.claim_transaction("seed", json.dumps([
-        {"claim": claim(), "action": "apply", "operations": [edit("$claim")]},
-        {"claim": impossible, "action": "apply", "operations": [{
-            "op": "update_window", "id": "window", "changes": {"z": {"claim": "$claim", "value": "height"}},
-            "reason": "Synthetic impossible height to exercise source-host validation."}]},
-    ]))
-    assert result["status"] == "partial"
-    assert result["saved_candidate"] == result["result_candidate"] == "candidate_01"
-    assert result["save_effects"]["created_candidates"] == ["candidate_01"]
-    assert result["save_effects"]["geometry_applied"] is True
-    applied, failed = result["entries"]
-    assert applied["status"] == "applied" and failed["status"] == "failed"
-    assert failed["candidate"] == "candidate_01" and failed["attempted_candidate"] == "candidate_02"
-    assert "window" in failed["error"] and "host" in failed["error"]
-    assert any(row.get("opening_id") == "window" for row in failed["source_validation"]["findings"])
-    journal = json.loads((run / result["audit_file"]).read_bytes())
-    assert journal["entries"][1]["source_validation"] == failed["source_validation"]
-    assert journal["entries"][1]["attempted_candidate"] == "candidate_02"
-    assert journal["entries"][1]["error"] == failed["error"]
-    assert result["failure_summary"]["entries"][0]["attempted_candidate"] == "candidate_02"
-    attempted = json.loads((run / "candidate_02/report.json").read_bytes())
-    assert attempted["source_geometry_ready"] is False
-    actual = json.loads((run / "candidate_01/proposal.json").read_bytes())
-    assert actual["geometry"]["openings"][0]["z"] == [.3, 2.1]
-    assert actual["geometry"]["windows"][0]["z"] == [1, 2]
-    assert (run / "seed/source_model.json").read_bytes() == before
-
-
 def test_shared_wall_move_records_legitimate_hosted_door_and_preserves_other_floor(tmp_path):
     _, toolkit = setup_run(tmp_path, _rectangular_wall_proposal())
     row = adopt(toolkit, claim(objects=[{"kind": "space", "id": x} for x in ("left", "right")],

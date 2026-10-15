@@ -141,8 +141,6 @@ def repair_hint(toolkit, tool, arguments, message):
         return 'Next: read get_bim_reference(topic="wall_dimensions") for the explicit wall reference and position format.'
     if tool == "compare_facade_spans":
         return 'Next: read get_bim_reference(topic="facade_correspondence") for independently declared axis anchors and opening spans.'
-    if tool in {"prepare_elevation_reading", "record_bim_review", "apply_elevation_readings"}:
-        return 'Next: read get_bim_reference(topic="drawing_process") for the reading, review and application format.'
     return "Next: read get_bim_reference(topic=" + json.dumps(
         "claims" if "claim" in tool else "edits" if "revise" in tool else "plan_partition") + ") for the operation format."
 

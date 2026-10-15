@@ -81,10 +81,6 @@ def candidate_review(toolkit, candidate, source, report):
         return result
 
     collect("floors", lambda: saved_floor_status(toolkit, candidate))
-    if toolkit.manifest.get("drawing_review_policy"):
-        from scripts.tool_scripts.bim_agent_process_reviews import process_status, building_facts
-        collect("process_review", lambda: process_status(toolkit, candidate))
-        collect("building_facts", lambda: building_facts(source))
 
     def openings():
         summary = opening_delivery_summary(toolkit, source)
@@ -136,18 +132,6 @@ def candidate_review_summary(review):
                 "adopted_unapplied_count", "claims_with_unresolved_count", "claims_with_failed_history_count") if key in section}
         if "reason" in section:
             row["reason"] = str(section["reason"])[:240]
-        if name == "process_review":
-            row.update({key: section[key] for key in ("ready", "missing_images", "missing_plan_floors") if key in section})
-            row["pending"] = [{key: item[key] for key in ("scope", "reason") if key in item}
-                              for item in section.get("pending", [])[:16]]
-            row["building_status"] = (section.get("building_review") or {}).get("status", "missing")
-        if name == "building_facts":
-            row["floors"] = section.get("floors", [])[:12]
-            row["door_components"] = [{"space_count": len(item["space_ids"]),
-                "space_ids": item["space_ids"][:12], "has_exterior_door": item["has_exterior_door"]}
-                for item in section.get("door_components", [])[:12]]
-            row["spaces_without_declared_door"] = section.get("spaces_without_declared_door", [])[:24]
-            row["meaning"] = section.get("meaning")
         if name == "source":
             row["validation_status"] = (section.get("validation") or {}).get("status")
         if "summary" in section:

@@ -95,9 +95,9 @@ bare numbers mean metres.
 
 4. DRAFT EVERY FLOOR. Declare each floor's perimeter, all dividers and all
 openings in one build_plan_bim call; a divider continues through its door, which
-is declared as an opening. Record each floor/facade's observed window total, including
-zero, in the saved elevation reading or claim_transaction's facade_count form (claims
-reference). Compare those totals with the saved source. Draft every floor before
+is declared as an opening. Use claim_transaction's facade_count form (claims reference)
+to record each floor/facade's observed window total, including zero; facade_counts
+compares these totals after saves and lists uncounted facades. Draft every floor before
 refining any one floor in detail; local looks needed to declare or compile a
 draft can happen at any time. Each upper floor comes from its own drawing;
 combine floors with assemble_plan_bim. A room count, seed or use never justifies
@@ -213,14 +213,11 @@ already give. Image names are the exact names listed by inputs.
 # v75 exposed an open-ended review tail and differing finish semantics. Existing
 # checks must guide specific judgments; tool availability is not a checklist.
 FINISHING = """Finish against the requested scope and the current saved candidate.
-Check drawing fidelity locally while reading and building: compare the actual
-saved spaces, wall/opening positions, hosts and levels with their relevant inputs.
-Once all required floors are assembled, focus on cross-drawing consistency and
-architectural plausibility: coherent storeys/envelope, usable physical spaces,
-door circulation, opening hosts and plausible vertical relationships. Reuse local
-comparisons whose physical scope is unchanged. inspect_candidate(include_geometry=false)
-summarizes current review state and points to details. A source projection or passing
-check alone does not certify fidelity. Investigate a specific conflict at its source.
+Once all required floors are assembled, compare the saved spaces, wall/opening
+positions, hosts, connections and levels with the relevant inputs. Reuse current
+saved checks; inspect_candidate(include_geometry=false) summarizes current review
+state and points to details. A source projection or passing check alone does not
+certify fidelity, and an old candidate's review is not a current review.
 Resolve known physical/host/connectivity errors, conflicting evidence and adopted
 changes not yet applied. Use a targeted view or diagnostic for a concrete remaining
 question; you do not need to run every diagnostic or repeat unchanged observations.
@@ -234,99 +231,6 @@ Respect any configured time, token, money and call limits; reserve enough to sav
 the whole building and handoff. Without a time limit, elapsed time alone is neither
 a stop condition nor a reason to add checks. A partial or unresolved handoff must
 not be described as complete, verified reconstruction."""
-
-# Single-model process contract: local fidelity before assembly-level judgment.
-# Avoid the v77 repeated whole-set review tail and the workflow-only Haiku run's
-# unexamined elevation heights. The same model performs each role in one context.
-DRAWING_PROCESS = """This run uses local_drawing_reviews_v1. You perform reading,
-assembly and architectural review in this one context. Deliver one coherent building.
-
-Read the whole set and establish a common origin/direction/absolute Z. Build usable
-floor drafts early. Each plan delivery consists of its saved draft/source, original
-calibration, actual-source overlay, local comparison and located uncertainties.
-Inspect the overlay returned by build/revise; fix substantive walls, openings, hosts
-and connectivity locally. Record one plan judgment per image/floor, not per object.
-
-Read every facade independently from the elevations. Use prepare_elevation_reading
-to submit the compact observation format in get_bim_reference('drawing_process').
-It saves levels, complete opening inventory, original/adopted values and an overlay
-of the ACTUAL ADOPTED widths and absolute sill/head Z. Inspect that overlay beside
-the original. Correct specific reading errors by preparing a replacement. Batch
-local judgments with record_bim_review; returned images alone are not a review.
-
-Assemble the locally checked plans, resolve storey levels from the observed levels,
-then apply_elevation_readings with the reviewed reading IDs together. This matches
-facade/floor/kind/order/position and applies safe heights in one transaction.
-It reports missing/extra/ambiguous openings, count and height conflicts. Resolve
-conflicts at the relevant plan or elevation; never average contradictory evidence.
-Saved reading counts and per-opening evidence are reused automatically; do not
-repeat facade_count records or per-opening claim confirmations for those readings.
-Keep the existing 0.1 m adoption policy and reported tolerance. A changed scope
-needs a new local comparison; unchanged scopes remain reusable across candidates.
-
-Finally inspect_candidate(include_geometry=false) and judge architectural plausibility:
-whole-building volume/storeys, rooms and circulation, hosts and connections, floor
-and opening heights, and consistency between plans and elevations. Door-graph
-isolation can be a modelling limit (e.g. undeclared stairs); investigate its actual
-meaning. This is an architectural judgment, not a code-compliance assessment.
-Record one building judgment. Do not redo every local original-image comparison or
-register per-opening passes. Target only reported conflicts, concrete implausibility
-or changed geometry. Correct obsolete notes before recording the final judgment.
-
-finish_bim requires current local coverage and building judgment. needs_revision
-requires correction; uncertain is reserved for evidence that remains indeterminate
-after a reasonable look, with specific issues recorded in the source assumptions
-or unresolved notes. Successful process completion is not independent quality
-certification. Respect the requested scope and budgets; extra inspection needs a
-specific question, not merely remaining time."""
-
-DRAWING_PROCESS_REFERENCE = """Local drawing delivery, single-model format.
-prepare_elevation_reading(image,facade,reading_json) uses facade=North/South/East/West
-(the building face, viewed from outside). All pixels are ORIGINAL, not resized views.
-The x distances grow from the image-left building edge; give total facade_length_m
-and retain any dimension-chain offset. The tool determines world axis/direction.
-z calibration pairs original pixels with ABSOLUTE building Z in metres. Each opening
-belongs to its real floor. Include zero counts and empty openings on blank facades.
-Synthetic format only:
-{"x_calibration":{"pixel_start":100,"pixel_end":900,"distance_start_m":0,
-"distance_end_m":10,"facade_length_m":10},"z_calibration":{"pixel_start":300,
-"pixel_end":700,"world_start_m":3,"world_end_m":0},"elevations":[{"id":"ground",
-"kind":"ground","value_m":0,"evidence_type":"annotation","bbox":[80,690,180,720]}],
-"openings":[{"id":"W1","floor_id":"F1","kind":"window",
-"opening_bbox":[200,380,300,567],"evidence_type":"pixels"}],
-"counts":[{"floor_id":"F1","window_count":1,"door_count":0}],"unresolved":[]}
-For annotation or mixed evidence, provide x_px=[left,right], width_m,sill_m,head_m,
-evidence_type=annotation/annotation_and_pixels and bbox locating the opening and
-its supporting evidence. Those numbers are retained before grid adoption. Pure
-pixels readings derive geometry from opening_bbox; nearby unambiguous ink can
-refine them. Do not replace clear annotations with rough pixel estimates. A separate
-bbox is an evidence crop, not the aperture. Level kind=ground/floor/eave/roof/other;
-floor levels require floor_id. Include supported floor and roof levels in elevations.
-The returned adopted-value overlay and short numeric table show what will be used.
-
-record_bim_review(reviews_json,candidate) accepts a JSON list, for example:
-[{"kind":"plan","image":"floor.png","floor_id":"F1","outcome":"consistent",
-"summary":"Actual-source overlay preserves the observed perimeter, dividers and openings.","issues":[]}]
-Use actual findings, not this sample's assertion. Plan reviews require an existing
-full actual-source overlay of the specified candidate/image/floor. An elevation
-review uses kind=elevation,reading_id instead; candidate can be empty. A building
-review uses kind=building and requires candidate. Batch compatible entries to avoid
-paperwork. Outcomes: consistent (no issues), uncertain (located evidence limits),
-needs_revision (located errors). summary explains what you compared/judged; issues
-is a list of specific questions/limits. Changed evidence gets a new record; no overwrite.
-For an auxiliary detail sheet that contributes no plan/elevation geometry, use
-kind=reference,image,view_id and explain its limited relevance in summary. Never use
-reference for a plan/elevation that contributes building geometry.
-
-apply_elevation_readings(candidate,reading_ids) applies reviewed immutable readings
-together, reusing existing matching and evidence claims. It changes opening heights
-only; use observed floor levels in plan/assembly before applying. Inspect current
-comparisons for missing/extra/ambiguous entries, >0.30 m position conflicts and height
-differences. Unchanged plan XY comparisons remain current after height-only edits.
-inspect_candidate reports process_review and building_facts, with full details in
-its bound report; read_candidate_items can page details. finish_bim saves these
-model-reported judgments together with the source, assumptions and unresolved notes.
-"""
 
 # 09-30. Failure targeted: set_space_role format errors (run94 #67-69).
 DELIVERY = "Delivery. " + FINISHING + """
@@ -404,7 +308,6 @@ def build_guide(*, images=None, mesh=False, review_detail=False, continuation=Fa
 MESH_GUIDE = build_guide(mesh=True, review_detail=True, continuation=True)
 
 REFERENCES = {
-    'drawing_process': DRAWING_PROCESS_REFERENCE,
     'facade_correspondence': """Observe one facade's full opening list independently
 in the original plan and original elevation. Include doors and windows; retain
 uncertain marks explicitly. Do not copy one view's intervals into the other.

@@ -29,9 +29,7 @@
 
 OpenCode Go订阅使用独立的`provider: "opencode-go"`，示例为`config.opencode-go.example.json`。支持GLM-5.3-Flash、Kimi K3、MiniMax M3、Qwen3.8 Max、Claude Haiku 5.5及GPT-6 Luna，按型号选择协议；目录中的其他型号尚未接纳。凭据由显式`credentials_file`提供`OPENCODE_GO_BASE_URL`和`OPENCODE_GO_API_KEY`，服务端点固定为`https://opencode.ai/inference/go/v1`。单模型和图纸分工都可使用Go，订阅用量与Paratera按量用量分别记录。接口可用不代表整楼图纸质量已验收。
 
-Haiku可复制`config.opencode-go-haiku.example.json`：单模型`claude-haiku-5-5/medium`、64,000输出tokens。使用时修改输入、输出及范围，并用`floor_plan_images`列出实际平面PNG文件名。新流程已在一个两层案例中自主交付BIM和查看器：61个开口及宿主匹配，34个外开口高度在5cm内；耗时28分54秒，部分平面位置仍有10–30cm偏差。此前流程优先运行耗时8分39秒，但漏一窗且多数窗高有偏差，两次自检范围不同。原`high/32,000`设置出现连续截断。以上是单案例证据，不表示稳定质量或速度达标；默认6 Sol配置保持。
-
-三个图纸示例均启用`process_reviews: true`：读图期间完成平面实际源回叠和立面采用值回叠，装配时处理平立面冲突，再对整楼进行建筑合理性判断。修改后复用未变范围的检查结果，只返工具体问题。交付报告保留各范围的当前检查状态、假设和未解决项；检查由工作模型自报，不等于独立图纸质量认证。此选项只适用于单模型图纸，既有运行和分工入口保留原政策。
+Haiku流程贯通可复制`config.opencode-go-haiku.example.json`：单模型`claude-haiku-5-5/medium`、64,000输出tokens，优先完成草稿、返工、整楼装配和正式交付，并保留未解决项。使用时修改输入、输出及`scope`中的楼层范围，并用`floor_plan_images`列出实际平面PNG文件名。该设置已在一个两层案例中自主交付BIM和查看器；原`high/32,000`设置仍出现连续截断。当前只验证流程完成，未评价图纸精度或跨次稳定性；默认6 Sol配置保持。
 
 `input_kind: "images"` 要求 `input` 指向至少包含一张可读 PNG 的目录；该目录直接包含的每个 `*.png` 都必须是有效图片文件，不能引用目录外的图片。图片不递归读取，目前不接收 JPEG 或 PDF。`floor_plan_images` 如有填写，必须使用这些 PNG 的准确文件名。单模型的 `input_kind: "mesh"` 要求 `input` 指向现有的 `.glb` 文件；分工模式目前仅接收图纸图片。`check` 只做配置及输入文件预检，不验证图纸识读质量或网格几何是否可用于建模。
 
