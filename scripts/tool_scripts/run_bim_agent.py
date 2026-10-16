@@ -28,7 +28,7 @@ from typing import Literal
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))  # Own checkout must precede any editable install.
 
-from PIL import Image as PILImage, ImageDraw
+from PIL import Image as PILImage, ImageDraw, ImageFont
 from mcp.server.fastmcp import Image
 from mcp.types import CallToolResult, TextContent
 
@@ -172,14 +172,22 @@ def coordinate_grid_view(pic, region):
         return pic, {"shown": False, "reason": "small unscaled detail"}
     pic = pic.copy()
     draw = ImageDraw.Draw(pic)
+    label_size = max(12, min(28, round(max(pic.size) / 80)))
+    try:
+        font = ImageFont.truetype("arial.ttf", label_size)
+    except OSError:
+        font = ImageFont.load_default(size=label_size)
     x0, y0, x1, y1 = region
     sx, sy = pic.width / (x1-x0), pic.height / (y1-y0)
     step = 100 if max(x1-x0, y1-y0) < 800 else 200
     ticks = {"x": [], "y": []}
     def label(point, value):
-        bounds = draw.textbbox(point, value)
+        width = draw.textbbox((0, 0), value, font=font)[2]
+        point = (min(point[0], max(3, pic.width-width-4)),
+                 min(point[1], max(3, pic.height-label_size-4)))
+        bounds = draw.textbbox(point, value, font=font)
         draw.rectangle((bounds[0]-2, bounds[1]-1, bounds[2]+2, bounds[3]+1), fill="black")
-        draw.text(point, value, fill="white")
+        draw.text(point, value, fill="white", font=font)
     for value in range(((x0+step-1)//step)*step, x1, step):
         x = round((value-x0)*sx)
         for y in range(0, pic.height, 16):
@@ -190,9 +198,9 @@ def coordinate_grid_view(pic, region):
         y = round((value-y0)*sy)
         for x in range(0, pic.width, 16):
             draw.line([(x,y),(min(x+4,pic.width-1),y)], fill=(80,160,190))
-        label((3,min(max(y+3,17),pic.height-16)), f"y={value}")
+        label((3,max(y+3,label_size+8)), f"y={value}")
         ticks["y"].append({"original_pixel":value,"display_pixel":y})
-    return pic, {"shown":True,"units":"original image pixels","ticks":ticks,
+    return pic, {"shown":True,"units":"original image pixels","ticks":ticks,"label_font_size_px":label_size,
                  "note":"Blue dotted grid/white labels are viewing aids, not drawing evidence."}
 
 

@@ -358,6 +358,14 @@ def _structured(result: object) -> object:
 class ReaderTools:
     """Expose one reader's frozen read tools and a plan-only isolated trial."""
 
+    @staticmethod
+    def original_image_detail(result):
+        """Keep reader coordinates in the returned pixel frame; bytes stay exact."""
+        return {**result, "content": [
+            {**part, "_meta": {**(part.get("_meta") or {}), "codex/imageDetail": "original"}}
+            if part.get("type") == "image" else part
+            for part in result.get("content", [])]}
+
     def __init__(self, frozen, *, role_id: str, image_name: str, trial=None, target=None, store=None):
         if role_id not in READER_TOOL_NAMES:
             raise ValueError(f"reader role must be one of {sorted(READER_TOOL_NAMES)}")
@@ -685,7 +693,7 @@ class ReaderTools:
             result = dict(result)
             result["content"] = [*result.get("content", []), {"type": "text", "text":
                 f"You have made {count} observation calls without a trial; try the whole floor now, then use trial differences and its overlay for details."}]
-        return result
+        return self.original_image_detail(result)
 
     def progress(self, *, started_epoch=None):
         value = copy.deepcopy(self._progress)

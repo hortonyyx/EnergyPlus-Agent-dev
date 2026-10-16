@@ -1151,7 +1151,8 @@ class RoleSession:
                        "initial_view": initial_view,
                        "coordinates": ELEVATION_COORDINATES if task["role_id"] == "elevation_reader"
                        else READER_COORDINATES[task["role_id"]]}, ensure_ascii=False)},
-                       {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(initial_image).decode()}}]
+                       {"type": "image_url", "image_url": {"url": "data:image/png;base64," + base64.b64encode(initial_image).decode(),
+                                                             "detail": "original"}}]
             adapter = self.adapter_factory(task["task_id"], config, child)
             if hasattr(adapter, "close"):
                 stack.push_async_callback(adapter.close)

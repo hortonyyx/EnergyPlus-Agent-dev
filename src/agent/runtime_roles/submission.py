@@ -314,7 +314,7 @@ class ReaderSubmission:
                                                "unresolved": numeric["unresolved"]}, image_name=self.image_name)
             notes = _normalize_note_items(arguments.get("notes", []), {
                 row["item"] for row in artifact["evidence"]
-            } | {f"plan.{field}" for field in numeric})
+            } | {f"plan.{field}" for field in set(plan) | set(numeric)})
             # Field/collection notes stay in validation; an assumed height has
             # no pixel evidence to manufacture and must not change the trial.
             for note in notes:

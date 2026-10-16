@@ -125,6 +125,67 @@ def test_weak_ink_and_missing_vertical_calibration_leave_values_unchanged():
     assert aligned["aligned_values"]["head_m"] == opening["head_m"]
 
 
+@pytest.mark.parametrize("background,stroke", [
+    ((255, 255, 255, 255), (0, 0, 0, 255)),
+    ((0, 0, 0, 255), (255, 255, 255, 255)),
+    ((0, 0, 0, 255), (255, 0, 0, 255)),
+    ((0, 0, 0, 0), (255, 255, 255, 255)),
+    ((255, 255, 255, 0), (0, 0, 0, 255)),
+])
+def test_real_strokes_align_independently_of_background_polarity_or_transparency(background, stroke):
+    picture = Image.new("RGBA", (140, 120), background)
+    ImageDraw.Draw(picture).rectangle((40, 30, 90, 80), outline=stroke)
+    artifact = _artifact(opening={"id": "W1", "opening_bbox": [37, 33, 93, 77]})
+    result = align_elevation_artifact(picture, artifact, search_distance_m=0.5)
+    assert result["openings"][0]["aligned_bbox_px"] == pytest.approx([40, 30, 90, 80])
+    assert not result["issues"]
+    assert result["source_image"]["confident"]
+
+
+@pytest.mark.parametrize("background", ["black", "white", (0, 0, 0, 0)])
+def test_blank_background_never_confirms_an_opening(background):
+    picture = Image.new("RGBA", (140, 120), background)
+    result = align_elevation_artifact(picture, _artifact(opening={
+        "id": "W1", "opening_bbox": [40, 30, 90, 80]}))
+    assert {edge["status"] for edge in result["openings"][0]["edges"].values()} == {"no_strong_line"}
+    assert result["summary"]["moved_edge_count"] == 0
+    issue, = result["issues"]
+    assert issue["type"] == "opening_geometry_without_image_support"
+    assert issue["opening_id"] == "W1"
+    assert set(issue["near_empty_edges"]) == {"left", "top", "right", "bottom"}
+    assert issue["look_box"] == [37, 27, 94, 84]
+
+
+@pytest.mark.parametrize("case", ["faint", "dashed", "filled", "two_edges", "nonuniform"])
+def test_uncertain_source_ink_is_not_a_hard_geometry_rejection(case):
+    picture = Image.new("RGB", (140, 120), "white")
+    draw = ImageDraw.Draw(picture)
+    if case == "faint":
+        draw.rectangle((40, 30, 90, 80), outline=(235, 235, 235))
+    elif case == "dashed":
+        for x in range(40, 91, 4):
+            draw.point((x, 30), fill="black")
+            draw.point((x, 80), fill="black")
+        for y in range(30, 81, 4):
+            draw.point((40, y), fill="black")
+            draw.point((90, y), fill="black")
+    elif case == "filled":
+        draw.rectangle((35, 25, 95, 85), fill="black")
+    elif case == "two_edges":
+        draw.line((40, 80, 90, 80, 90, 30), fill="black")
+    else:
+        for x in range(140):
+            shade = round(x / 139 * 255)
+            draw.line((x, 0, x, 119), fill=(shade, shade, shade))
+    result = align_elevation_artifact(picture, _artifact(opening={
+        "id": "W1", "opening_bbox": [40, 30, 90, 80]}))
+    assert not result["issues"]
+    if case in {"faint", "dashed", "filled", "nonuniform"}:
+        assert {edge["status"] for edge in result["openings"][0]["edges"].values()} == {"no_strong_line"}
+    if case == "nonuniform":
+        assert not result["source_image"]["confident"]
+
+
 def test_reader_submission_binds_image_alignment_and_reloads_immutably(tmp_path):
     async def scenario():
         image_dir = tmp_path / "images"
@@ -383,11 +444,11 @@ def _node_arguments():
     }
 
 
-def _node_tools(root):
+def _node_tools(root, picture=None):
     image_dir = root / "images"
     image_dir.mkdir()
     image_path = image_dir / "North.png"
-    Image.new("RGB", (140, 120), "white").save(image_path)
+    (picture if picture is not None else Image.new("RGB", (140, 120), "white")).save(image_path)
     (root / "inputs.json").write_text(json.dumps({"images": {"North.png": {
         "sha256": hashlib.sha256(image_path.read_bytes()).hexdigest()}}}), encoding="utf-8")
     return ElevationReaderTools(Frozen(root), role_id="elevation_reader", image_name="North.png", target="North/F1")
@@ -490,6 +551,32 @@ def test_projected_opening_outside_original_is_not_deliverable(tmp_path):
         assert body["blocking_issues"][0]["type"] == "adopted_projection_outside_image"
         rejected = await tools.call_tool("submit_elevation_reading", {"trial_id": body["trial_id"], "local_review": REVIEW})
         assert rejected["isError"]
+    asyncio.run(scenario())
+
+
+def test_wrong_source_pixel_frame_cannot_be_waived_by_local_review(tmp_path):
+    async def scenario():
+        picture = Image.new("RGB", (140, 120), "black")
+        ImageDraw.Draw(picture).rectangle((40, 30, 90, 80), outline="cyan")
+        tools = _node_tools(tmp_path, picture)
+        arguments = _node_arguments()
+        arguments["openings"] = [{"id": "W1", "floor_id": "F1", "kind": "window",
+            "opening_bbox": [10, 12, 25, 25], "evidence_type": "pixels"}]
+        arguments["counts"][0]["window_count"] = 1
+        wrong = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not wrong["isError"], wrong
+        body = wrong["structuredContent"]
+        assert not body["ready_for_delivery"]
+        assert body["blocking_issues"][0]["type"] == "opening_geometry_without_image_support"
+        rejected = await tools.call_tool("submit_elevation_reading", {
+            "trial_id": body["trial_id"], "local_review": REVIEW})
+        assert rejected["isError"] and tools.submission.read() is None
+        arguments["openings"][0]["opening_bbox"] = [40, 30, 90, 80]
+        fixed = await tools.call_tool("trial_elevation_reading", arguments)
+        assert fixed["structuredContent"]["ready_for_delivery"], fixed
+        accepted = await tools.call_tool("submit_elevation_reading", {
+            "trial_id": fixed["structuredContent"]["trial_id"], "local_review": REVIEW})
+        assert not accepted["isError"], accepted
     asyncio.run(scenario())
 
 

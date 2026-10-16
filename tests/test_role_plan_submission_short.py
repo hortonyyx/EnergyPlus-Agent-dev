@@ -118,6 +118,23 @@ def test_latest_reference_survives_resume_and_rejects_stale_or_tampered_plan(tmp
         restored.read()
 
 
+def test_notes_can_reference_dimension_evidence_consumed_by_numeric_resolution():
+    trial = PassedTrial()
+    numeric = copy.deepcopy(trial.plan)
+    trial.plan["dimension_chains"] = [{"id": "observed", "axis": "x",
+        "segments_mm": [5000, 5000], "tick_pixels": [10, 60, 110], "source_refs": ["plan.png"]}]
+    trial.receipt["plan_sha256"] = canonical_plan_sha256(trial.plan)
+    trial.numeric_plan = lambda receipt: copy.deepcopy(numeric)
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    result = submission.submit({"trial_id": "latest", "local_review": REVIEW, "notes": [
+        {"item": "dimension_chains", "kind": "assumption", "basis": "Original dimensions retained in trial audit."}]})
+    assert result["status"] == "accepted"
+    saved = submission.read()
+    assert saved["validation"]["notes"][0]["item"] == "plan.dimension_chains"
+    assert saved["artifact"]["plan"] == numeric
+    assert not any(row["item"] == "plan.dimension_chains" for row in saved["artifact"]["evidence"])
+
+
 def test_full_and_operation_rework_allow_notes_but_preserve_unpointed_geometry():
     async def scenario():
         prior = PlanTrial(Tools(), image_name="plan.png")

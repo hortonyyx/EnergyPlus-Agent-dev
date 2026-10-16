@@ -25,9 +25,11 @@ DELIVERY_TOOL = {
 
 def _local_checks(record):
     issues = [*record["geometry"]["issues"],
-              *record["value"]["validation"].get("local_issues", [])]
+              *record["value"]["validation"].get("local_issues", []),
+              *record["value"]["artifact"].get("ink_alignment", {}).get("issues", [])]
     blocking = [row for row in issues if row["type"] in {
-        "adopted_projection_outside_image", "vertical_calibration_level_conflict"}]
+        "adopted_projection_outside_image", "vertical_calibration_level_conflict",
+        "opening_geometry_without_image_support"}]
     return {"status": "needs_correction" if blocking else "ready_for_visual_review",
             "blocking_issues": blocking, "issues": issues,
             "coverage": record["geometry"].get("coverage", {"facade_outline": "not_provided"})}

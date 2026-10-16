@@ -575,7 +575,9 @@ class Runtime:
                 "note": "Exact previously registered bytes; reopening does not create or validate a new observation."}
             return {"content": [{"type": "text", "text": json.dumps(metadata, ensure_ascii=False)},
                 {"type": "image", "mimeType": image.image.media_type,
-                 "data": base64.b64encode(raw).decode("ascii")}], "structuredContent": metadata, "isError": False}
+                 "data": base64.b64encode(raw).decode("ascii"),
+                 **({"_meta": {"codex/imageDetail": image.detail}} if image.detail is not None else {})}],
+                "structuredContent": metadata, "isError": False}
         except (KeyError, ValueError, TypeError) as error:
             return {"content": [{"type": "text", "text":
                 ("Image directory request failed: " + str(error) if arguments.get("action") == "list" else
@@ -1495,7 +1497,9 @@ class Runtime:
         image_refs = shown.get("images")
         if image_refs is None:  # Saved pre-C1 presentations remain resumable.
             image_refs = json.loads(shown["tool_message"]["content"]).get("images", [])
-        for ref_dict in image_refs:
+        image_details = [block["image_url"].get("detail") for block in shown["image_blocks"]
+                         if block.get("type") == "image_url"]
+        for index, ref_dict in enumerate(image_refs):
             ref = HashedBlobRef.model_validate_json(json.dumps(ref_dict))
             origin = origins.get(ref.sha256, {})
             path = origin.get("original_path") if isinstance(origin, dict) else origin
@@ -1505,7 +1509,8 @@ class Runtime:
                 view_id = (p.full_arguments["view_id"] if context_read
                            else origin.get("view_id") if isinstance(origin, dict) else None)
                 self.context.register_image(view_id or f"{p.call_id}:{ref.sha256}", ref,
-                    source=self._event_source(event), tags=tuple(origin.get("tags", ())) if isinstance(origin, dict) else ())
+                    source=self._event_source(event), tags=tuple(origin.get("tags", ())) if isinstance(origin, dict) else (),
+                    detail=image_details[index] if index < len(image_details) else None)
         self.used_ids.add(p.call_id)
         if self.context_update and self.context and not context_read:
             self.context_update(self, event, raw)

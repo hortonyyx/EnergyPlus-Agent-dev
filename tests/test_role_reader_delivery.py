@@ -6,7 +6,7 @@ import hashlib
 import json
 
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from reader_delivery_fixtures import REVIEW, elevation_responses
 from src.agent.runtime_roles.elevation import ElevationReaderTools
@@ -19,10 +19,16 @@ from tests.test_role_submission import PassedTrial
 from test_agent_runtime import versions
 
 
+def elevation_image():
+    image = Image.new("RGB", (1000, 800), "white")
+    ImageDraw.Draw(image).rectangle((200, 380, 300, 567), outline="black")
+    return image
+
+
 def tools_at(root):
     (root / "images").mkdir(parents=True)
     image = root / "images/North.png"
-    Image.new("RGB", (1000, 800), "white").save(image)
+    elevation_image().save(image)
     (root / "inputs.json").write_text(json.dumps({"images": {"North.png": {
         "sha256": hashlib.sha256(image.read_bytes()).hexdigest()}}}), encoding="utf-8")
     return ElevationReaderTools(Frozen(root), role_id="elevation_reader", image_name="North.png", target="North/F1")
@@ -74,7 +80,8 @@ def test_reader_unit_uses_exact_task_with_no_coordinator_or_auto_filled_siblings
     images = tmp_path / "images"
     images.mkdir()
     for name in ("North.png", "South.png", "1f_view.png"):
-        Image.new("RGB", (1000, 800), "white").save(images / name)
+        (elevation_image() if name == "North.png" else
+         Image.new("RGB", (1000, 800), "white")).save(images / name)
     marker = tmp_path / "script.json"
     marker.write_text("{}", encoding="utf-8")
     routes = {role: {"provider": "scripted", "model": "scripted-model", "output_tokens": 4000}

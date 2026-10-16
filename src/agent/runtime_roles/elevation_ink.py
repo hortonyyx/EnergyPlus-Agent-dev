@@ -32,6 +32,7 @@ DEFAULT_MIN_SUPPORT_RATIO = 0.55
 DEFAULT_MIN_MEAN_INK = 0.30
 
 _EDGES = ("left", "top", "right", "bottom")
+_VISIBLE_CONTRAST = 8 / 255
 
 
 def align_elevation_artifact(
@@ -71,8 +72,8 @@ def align_elevation_artifact(
     if not 0 < min_mean_ink <= 1:
         raise ValueError("min_mean_ink must be in (0, 1]")
 
-    gray = _grayscale(image)
-    height, width = gray.shape
+    ink, background = _background_relative_ink(image)
+    height, width = ink.shape
     x_calibration, x_problem = _calibration(
         artifact.get("x_calibration"), require_descending_world=False
     )
@@ -88,7 +89,7 @@ def align_elevation_artifact(
             raise TypeError(f"openings[{index}] must be a mapping")
         opening_results.append(
             _align_opening(
-                gray,
+                ink,
                 original_opening,
                 index=index,
                 x_calibration=x_calibration,
@@ -100,6 +101,7 @@ def align_elevation_artifact(
                 levels=artifact.get("elevations", ()),
                 min_support_ratio=min_support_ratio,
                 min_mean_ink=min_mean_ink,
+                background=background,
             )
         )
 
@@ -114,6 +116,9 @@ def align_elevation_artifact(
         "image_size_px": [width, height],
         "search_distance_m": float(search_distance_m),
         "search_radius_px": {"x": x_radius, "z": z_radius},
+        "source_image": background,
+        "issues": [row["source_image_issue"] for row in opening_results
+                   if row["source_image_issue"] is not None],
         "calibration": {
             "x": "available" if x_calibration is not None else x_problem,
             "z": "available" if z_calibration is not None else z_problem,
@@ -134,7 +139,7 @@ def align_elevation_artifact(
 
 
 def _align_opening(
-    gray: np.ndarray,
+    ink: np.ndarray,
     opening: Mapping[str, Any],
     *,
     index: int,
@@ -147,6 +152,7 @@ def _align_opening(
     levels: Sequence[Mapping[str, Any]],
     min_support_ratio: float,
     min_mean_ink: float,
+    background: Mapping[str, Any],
 ) -> dict[str, Any]:
     opening_id = str(opening.get("id", f"opening-{index + 1}"))
     submitted = {
@@ -176,7 +182,7 @@ def _align_opening(
     aligned_box = list(original_box)
     evidence_box = _box_or_none(opening.get("bbox"))
     sampling_top, sampling_bottom = _sampling_vertical_span(
-        top, bottom, evidence_box, gray.shape[0]
+        top, bottom, evidence_box, ink.shape[0]
     )
 
     edges: dict[str, dict[str, Any]] = {}
@@ -193,18 +199,18 @@ def _align_opening(
 
         if edge_name in {"left", "right"}:
             span = (sampling_top, sampling_bottom)
-            axis_length = gray.shape[1]
+            axis_length = ink.shape[1]
         else:
             if left is None or right is None:
                 edges[edge_name] = _unmoved_edge(
                     coordinate, "missing_geometry", "horizontal opening span is unavailable"
                 )
                 continue
-            span = _trimmed_span(left, right, gray.shape[1])
-            axis_length = gray.shape[0]
+            span = _trimmed_span(left, right, ink.shape[1])
+            axis_length = ink.shape[0]
 
         candidates = _supported_lines(
-            gray,
+            ink,
             coordinate=coordinate,
             radius=radius,
             span=span,
@@ -212,12 +218,16 @@ def _align_opening(
             min_support_ratio=min_support_ratio,
             min_mean_ink=min_mean_ink,
         )
+        visible_support = _visible_span_support(
+            ink, coordinate=coordinate, radius=radius, span=span,
+            vertical=edge_name in {"left", "right"})
         if len(candidates) != 1:
             edges[edge_name] = _unmoved_edge(
                 coordinate, "ambiguous_lines" if candidates else "no_strong_line",
                 "multiple supported ink strokes" if candidates else "no supported ink line in the calibrated search range"
             )
             edges[edge_name]["candidates"] = candidates
+            edges[edge_name]["max_visible_support_ratio"] = visible_support
             continue
         candidate = candidates[0]
         candidate_px, support_ratio, mean_ink = candidate["pixel"], candidate["support_ratio"], candidate["mean_ink"]
@@ -239,6 +249,7 @@ def _align_opening(
             "mean_ink": mean_ink,
             "search_radius_px": radius,
             "candidates": candidates,
+            "max_visible_support_ratio": visible_support,
         }
         aligned_box[_EDGES.index(edge_name)] = candidate_px
 
@@ -258,6 +269,25 @@ def _align_opening(
     else:
         status = "unchanged"
 
+    # This is a narrow coordinate-evidence check, not an aperture detector.
+    # Multiple strokes, faint/dashed edges and dense/nonuniform backgrounds
+    # remain uncertain. A claimed rectangle with three near-empty search bands
+    # cannot be vouched for by a prose review of the same erroneous overlay.
+    absent = [name for name, edge in edges.items()
+              if edge.get("max_visible_support_ratio") is not None
+              and edge["max_visible_support_ratio"] <= 0.10]
+    issue = None
+    if explicit_box is not None and background["confident"] and len(absent) >= 3:
+        issue = {"type": "opening_geometry_without_image_support", "opening_id": opening_id,
+                 "bbox": list(explicit_box), "near_empty_edges": absent,
+                 "look_box": [max(0, math.floor(explicit_box[0]) - (x_radius or 0)),
+                              max(0, math.floor(explicit_box[1]) - (z_radius or 0)),
+                              min(ink.shape[1], math.ceil(explicit_box[2]) + (x_radius or 0) + 1),
+                              min(ink.shape[0], math.ceil(explicit_box[3]) + (z_radius or 0) + 1)],
+                 "search_radius_px": {"x": x_radius, "z": z_radius},
+                 "max_visible_support_ratio": {name: edges[name]["max_visible_support_ratio"]
+                                               for name in absent},
+                 "reason": "At least three declared aperture edges have at most 10% visible stroke coverage anywhere in their calibrated search bands. Inspect look_box in the ORIGINAL image; check original-pixel coordinates, image-view scaling and x/z calibration, then prepare a corrected trial. No coordinate compensation or replacement geometry was inferred."}
     return {
         "id": opening_id,
         "status": "aligned" if policy["applied_fields"] else "inconsistent" if policy["inconsistencies"]
@@ -268,6 +298,7 @@ def _align_opening(
         "candidate_bbox_px": aligned_box,
         "aligned_bbox_px": policy["effective_bbox_px"],
         "original_values": submitted,
+        "source_image_issue": issue,
         **policy,
         "edges": edges,
     }
@@ -352,30 +383,44 @@ def _apply_evidence_policy(opening, submitted, candidate_box, edges, xcal, zcal,
             "inconsistencies": inconsistencies}
 
 
-def _grayscale(image: str | Path | Image.Image | np.ndarray) -> np.ndarray:
+def _background_relative_ink(image: str | Path | Image.Image | np.ndarray):
+    """Contrast against a sampled drawing background, independent of polarity.
+
+    RGB contrast preserves colored CAD strokes whose luminance is low. When
+    transparent pixels dominate, alpha itself is the stroke evidence, so white
+    strokes on transparency are not erased by a white compositing background.
+    A nonuniform background is recorded as uncertain, never negative evidence.
+    """
     if isinstance(image, np.ndarray):
         array = np.asarray(image)
-        if array.ndim == 2:
-            gray = array
-        elif array.ndim == 3 and array.shape[2] in {3, 4}:
-            pil = Image.fromarray(array.astype(np.uint8, copy=False))
-            gray = np.asarray(_pil_grayscale(pil))
-        else:
+        if not (array.ndim == 2 or array.ndim == 3 and array.shape[2] in {3, 4}):
             raise ValueError("image array must be grayscale, RGB, or RGBA")
+        pil = Image.fromarray(array.astype(np.uint8, copy=False))
     else:
-        pil = image if isinstance(image, Image.Image) else Image.open(image)
-        gray = np.asarray(_pil_grayscale(pil))
-    if gray.ndim != 2 or min(gray.shape) < 2:
+        if isinstance(image, Image.Image):
+            pil = image
+        else:
+            with Image.open(image) as source:
+                pil = source.copy()
+    if min(pil.size) < 2:
         raise ValueError("image must contain at least 2 x 2 pixels")
-    return gray.astype(np.float32, copy=False)
-
-
-def _pil_grayscale(image: Image.Image) -> Image.Image:
-    if image.mode in {"RGBA", "LA"} or "transparency" in image.info:
-        rgba = image.convert("RGBA")
-        white = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
-        image = Image.alpha_composite(white, rgba)
-    return image.convert("L")
+    rgba = np.asarray(pil.convert("RGBA"), dtype=np.float32)
+    alpha = rgba[:, :, 3] / 255
+    stride = max(1, math.ceil(max(pil.size) / 256))
+    transparent_fraction = float(np.mean(alpha[::stride, ::stride] == 0))
+    if transparent_fraction >= 0.80:
+        return alpha, {"method": "transparent_background_alpha", "confident": True,
+                       "background_fraction": transparent_fraction,
+                       "visible_contrast_threshold": _VISIBLE_CONTRAST}
+    rgb = rgba[:, :, :3] * alpha[:, :, None] + 255 * (1 - alpha[:, :, None])
+    sample = rgb[::stride, ::stride]
+    background = np.median(sample, axis=(0, 1))
+    background_fraction = float(np.mean(np.max(abs(sample - background), axis=2) <= 8))
+    ink = np.max(abs(rgb - background), axis=2) / 255
+    return ink, {"method": "background_relative_rgb", "background_rgb": background.tolist(),
+                 "confident": background_fraction >= 0.80,
+                 "background_fraction": background_fraction,
+                 "visible_contrast_threshold": _VISIBLE_CONTRAST}
 
 
 def _calibration(
@@ -479,7 +524,7 @@ def _trimmed_span(start: float, end: float, limit: int) -> tuple[int, int]:
 
 
 def _supported_lines(
-    gray: np.ndarray,
+    ink: np.ndarray,
     *,
     coordinate: float,
     radius: int,
@@ -488,22 +533,22 @@ def _supported_lines(
     min_support_ratio: float,
     min_mean_ink: float,
 ) -> list[dict[str, float]]:
-    axis_length = gray.shape[1] if vertical else gray.shape[0]
+    axis_length = ink.shape[1] if vertical else ink.shape[0]
     lower = max(0, int(math.floor(coordinate)) - radius)
     upper = min(axis_length - 1, int(math.ceil(coordinate)) + radius)
     supported: list[tuple[int, float, float]] = []
     for candidate in range(lower, upper + 1):
         pixels = (
-            gray[span[0] : span[1], candidate]
+            ink[span[0] : span[1], candidate]
             if vertical
-            else gray[candidate, span[0] : span[1]]
+            else ink[candidate, span[0] : span[1]]
         )
         if pixels.size == 0:
             continue
-        ink = 1.0 - np.clip(pixels, 0.0, 255.0) / 255.0
-        support = float(np.mean(ink >= min_mean_ink))
-        mean_ink = float(np.mean(ink))
-        mask = ink >= min_mean_ink
+        pixels = np.clip(pixels, 0.0, 1.0)
+        support = float(np.mean(pixels >= min_mean_ink))
+        mean_ink = float(np.mean(pixels))
+        mask = pixels >= min_mean_ink
         changes = np.diff(np.r_[False, mask, False].astype(np.int8))
         longest = max((np.flatnonzero(changes == -1) - np.flatnonzero(changes == 1)), default=0) / len(mask)
         if support >= min_support_ratio and longest >= min_support_ratio and mean_ink >= min_mean_ink:
@@ -519,12 +564,37 @@ def _supported_lines(
             runs[-1].append(item)
     output = []
     for run in runs:
+        # A flat filled region extending beyond the search band is not a line.
+        # Check both flanks in the source image, including just outside the band.
+        flanks = (run[0][0] - 1, run[-1][0] + 1)
+        if any(0 <= flank < axis_length and float(np.mean((
+                ink[span[0]:span[1], flank] if vertical else ink[flank, span[0]:span[1]])
+                >= min_mean_ink)) >= min_support_ratio for flank in flanks):
+            continue
         weights = np.asarray([item[2] for item in run], dtype=float)
         positions = np.asarray([item[0] for item in run], dtype=float)
         output.append({"pixel": float(np.average(positions, weights=weights)),
                        "support_ratio": max(item[1] for item in run),
                        "mean_ink": max(item[2] for item in run)})
     return output
+
+
+def _visible_span_support(ink, *, coordinate, radius, span, vertical):
+    """Maximum weak-stroke coverage; broken/faint lines count as uncertainty.
+
+    This deliberately does not require a continuous line. It is used only to
+    identify near-empty search bands, not to choose or move an edge.
+    """
+    if span[1] - span[0] < 8:
+        return None
+    limit = ink.shape[1] if vertical else ink.shape[0]
+    lower = max(0, math.floor(coordinate) - radius)
+    upper = min(limit, math.ceil(coordinate) + radius + 1)
+    region = (ink[span[0]:span[1], lower:upper] if vertical
+              else ink[lower:upper, span[0]:span[1]].T)
+    if region.size == 0:
+        return None
+    return float(np.max(np.mean(region >= _VISIBLE_CONTRAST, axis=0)))
 
 
 def _unmoved_edge(coordinate: float | None, status: str, reason: str) -> dict[str, Any]:

@@ -524,7 +524,7 @@ class ElevationReaderTools(ReaderTools):
                     trial["trial_id"], [row["sha256"] for row in trial["views"]])
                 return envelope(self.submission.submit(arguments))
             expanded = expand_elevation_submission(arguments, self.submission.target)
-            return prepare_trial(self.submission, expanded)
+            return self.original_image_detail(prepare_trial(self.submission, expanded))
         except (ValueError, KeyError, TypeError, OSError, jsonschema.ValidationError) as error:
             reason = error.message if isinstance(error, jsonschema.ValidationError) else str(error)
             return envelope({"status": "rejected", "reason": reason,

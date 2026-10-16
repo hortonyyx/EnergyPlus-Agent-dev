@@ -180,6 +180,8 @@ class ImageRecord(ContractModel):
     view_id: NonEmptyStr
     image: HashedBlobRef
     source: SourceRef
+    detail: Literal["auto", "low", "high", "original"] | None = Field(
+        default=None, exclude_if=lambda value: value is None)
     tags: tuple[NonEmptyStr, ...] = ()
     registration_index: int = Field(ge=0)
     active: bool = True
@@ -306,7 +308,13 @@ class ContextManager:
             if key not in self._images:
                 raise ValueError(f"message references an unregistered image: {key}")
         registered_hashes = {self._images[key].image.sha256 for key in resolved_image_keys}
-        for index, (digest, data, media_type) in enumerate(_embedded_images(message)):
+        for index, (digest, data, media_type, detail) in enumerate(_embedded_images(message)):
+            # A tool may register its bytes before appending the presentation.
+            # Fill missing transport detail without changing its provenance.
+            if detail is not None:
+                for key, image in self._images.items():
+                    if image.image.sha256 == digest and image.detail is None:
+                        self._images[key] = image.model_copy(update={"detail": detail})
             if digest in registered_hashes:
                 continue
             existing = [
@@ -320,7 +328,7 @@ class ContextManager:
                 ref = self.store.put_bytes(data, media_type)
                 resolved_image_keys.append(
                     self.register_image(
-                        f"{source.source_id}:image-{index}", ref, source=source
+                        f"{source.source_id}:image-{index}", ref, source=source, detail=detail
                     )
                 )
             registered_hashes.add(digest)
@@ -398,12 +406,13 @@ class ContextManager:
         *,
         source: SourceRef,
         tags: tuple[str, ...] = (),
+        detail: Literal["auto", "low", "high", "original"] | None = None,
     ) -> str:
         # Verifies URI confinement, bytes and digest before accepting identity.
         self.store.get_bytes(image)
         key = self.image_key(view_id, image.sha256)
         candidate = ImageRecord(
-            key=key, view_id=view_id, image=image, source=source, tags=tuple(tags),
+            key=key, view_id=view_id, image=image, source=source, tags=tuple(tags), detail=detail,
             registration_index=len(self._images),
         )
         previous = self._images.get(key)
@@ -411,6 +420,8 @@ class ContextManager:
             # The first registration is the provenance authority.  Replaying a
             # tool result or seeing the same bytes again is idempotent and must
             # not replace its source, tags, or registration order.
+            if previous.detail is None and candidate.detail is not None:
+                self._images[key] = previous.model_copy(update={"detail": candidate.detail})
             return key
         self._images[key] = candidate
         return key
@@ -544,7 +555,8 @@ class ContextManager:
             self.append({"role": "user", "content": [
                 {"type": "text", "text": f"Retrieved original image: {view_id}"},
                 {"type": "image_url", "image_url": {"url":
-                    f"data:{record.image.media_type};base64,{base64.b64encode(data).decode('ascii')}"}},
+                    f"data:{record.image.media_type};base64,{base64.b64encode(data).decode('ascii')}",
+                    **({"detail": record.detail} if record.detail is not None else {})}},
             ]}, record.source, image_keys=(key,))
         return data
 
@@ -1689,7 +1701,7 @@ def _context_actions() -> set[str]:
     return set(getattr(annotation, "__args__", ()))
 
 
-def _embedded_images(message: dict) -> tuple[tuple[str, bytes, str], ...]:
+def _embedded_images(message: dict) -> tuple[tuple[str, bytes, str, str | None], ...]:
     content = message.get("content")
     if not isinstance(content, list):
         return ()
@@ -1706,7 +1718,7 @@ def _image_block_hash(block) -> str | None:
     return parsed[0] if parsed else None
 
 
-def _image_block_data(block) -> tuple[str, bytes, str] | None:
+def _image_block_data(block) -> tuple[str, bytes, str, str | None] | None:
     if not isinstance(block, dict) or block.get("type") != "image_url":
         return None
     image = block.get("image_url")
@@ -1719,7 +1731,10 @@ def _image_block_data(block) -> tuple[str, bytes, str] | None:
     except ValueError as error:
         raise ValueError("invalid image data URL") from error
     media_type = url[5:].split(";", 1)[0]
-    return hashlib.sha256(data).hexdigest(), data, media_type
+    detail = image.get("detail")
+    if "detail" in image and (not isinstance(detail, str) or detail not in {"auto", "low", "high", "original"}):
+        raise ValueError("unsupported context image detail")
+    return hashlib.sha256(data).hexdigest(), data, media_type, detail
 
 
 def _message_content_sha(message: dict) -> str:

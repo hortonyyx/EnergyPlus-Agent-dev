@@ -360,8 +360,14 @@ def convert_tool_result(call_id: str, raw: dict, store: EventStore):
             data = base64.b64decode(part["data"], validate=True)
             ref = store.put_bytes(data, part["mimeType"])
             image_refs.append(ref)
+            image_url = {"url": f"data:{part['mimeType']};base64,{part['data']}"}
+            detail = (part.get("_meta") or {}).get("codex/imageDetail")
+            if detail is not None:
+                if not isinstance(detail, str) or detail not in {"auto", "low", "high", "original"}:
+                    raise ValueError("unsupported MCP image detail")
+                image_url["detail"] = detail
             pictures += [{"type": "text", "text": f"Tool image: tool_call_id={call_id}."},
-                {"type": "image_url", "image_url": {"url": f"data:{part['mimeType']};base64,{part['data']}"}}]
+                {"type": "image_url", "image_url": image_url}]
         else:
             raise ValueError(f"unsupported MCP content type: {part.get('type')}")
     # MCP commonly supplies the same object as both JSON text and structured
