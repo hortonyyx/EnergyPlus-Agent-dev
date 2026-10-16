@@ -58,7 +58,7 @@ def append_wall_metadata_checks(report, original, plan, metadata):
                     start, end = sorted((pixel(p[along], along), pixel(q[along], along)))
                     margin = .1 / along_mpp
                     sample = sample[(sample < start - margin) | (sample > end + margin)]
-            if sample.size * along_mpp < .8:
+            if sample.size < 12 or sample.size * along_mpp < .4:
                 continue
             stripe = (mask[sample, cross_lo:cross_hi + 1] if normal == 0
                       else mask[cross_lo:cross_hi + 1, sample].T)
@@ -97,6 +97,8 @@ def append_wall_metadata_checks(report, original, plan, metadata):
                           "nearby_parallel_ink_px": [round(p, 3) for p in lines],
                           "face_residual_m": None if residual is None else [round(p, 4) for p in residual],
                           "declared_thickness_m": thickness, "ink_spacing_m": round(spacing, 4),
+                          "sampled_length_m": round(sample.size * along_mpp, 4),
+                          "sample_pixels": int(sample.size),
                           "check": "The declared wall reference, faces or width differ from two persistent nearby ink lines. "
                                    "Check the original pair, selected reference side and thickness basis; "
                                    "these strokes may be other drawing features. Do not move walls automatically."})

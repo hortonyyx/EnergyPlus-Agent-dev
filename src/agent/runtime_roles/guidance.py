@@ -103,7 +103,9 @@ opening endpoint still needs correction below 0.30 m; that is not a quantization
 Keep adopted 0.1 m values for finer tails only when the correct physical feature was read;
 the report retains original readings. Revisit the specific inconsistency on the existing
 overlay, without restarting a whole-plan point-by-point measurement loop. Use a targeted
-profile only when a named remaining conflict is unclear there. Each topology_issues row
+profile only when a named remaining conflict is unclear there. Batch independent corrections
+already visible in the same saved views into one trial, including room-use annotations;
+use further rounds for newly exposed conflicts. Each topology_issues row
 needs topology_decisions: issue_id, retain_opening/continuous_space, basis, bbox. For an
 inkless gap, decide whether both ends belong to one physical wall. If not, remove the
 artificial separator AND opening together, plus any redundant seed, preserving actual
