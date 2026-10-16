@@ -190,6 +190,37 @@ def _file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _literal_geometry_diagnostic(plan: Mapping[str, Any], *, image_size: tuple[int, int],
+                                 image_name: str) -> dict[str, Any] | None:
+    """Report independent original-geometry failures without adopting a draft.
+
+    Call only after quantity/profile resolution and a dimension-stage rejection.
+    The literal compiler cannot consume the reader's dimension chains; removing
+    that field is the only input change. No junction preparation, grid, saved
+    candidate, or source BIM is involved.
+    """
+    from src.agent.geometry.plan_partition import compile_plan_partition
+
+    literal = copy.deepcopy(dict(plan))
+    literal.pop("dimension_chains", None)
+    try:
+        compile_plan_partition(literal, image_size=image_size, image_name=image_name,
+                               include_audit_metadata=False)
+    except (ValueError, TypeError, KeyError) as error:
+        result = {
+            "status": "rejected", "reason": str(error),
+            "repair_hint": plan_error_hint(dict(plan), str(error)),
+        }
+        for field, check in (("loose_partition_ends", loose_partition_ends),
+                             ("unhosted_openings", unhosted_openings)):
+            try:
+                result[field] = check(plan)
+            except (ValueError, TypeError, KeyError, IndexError):
+                result[field] = []
+        return result
+    return None
+
+
 def _audit_reference(receipt: Mapping[str, Any], field: str, value: object) -> dict[str, Any]:
     """Point model-visible audit data at the complete durable receipt."""
 
@@ -241,6 +272,10 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
             field: copy.deepcopy(failure[field]) for field in ("status", "grid_step_m", "summary") if field in failure
         }
         visible["regularization_failure"]["rejections"] = copy.deepcopy(failure.get("rejections", [])[:4])
+    diagnostic = receipt.get("literal_geometry_diagnostic")
+    if isinstance(diagnostic, Mapping):
+        visible.setdefault("audit_refs", {})["literal_geometry_diagnostic"] = _audit_reference(
+            receipt, "literal_geometry_diagnostic", diagnostic)
     reason = visible.get("reason")
     if isinstance(reason, str) and len(reason) > 1200:
         visible.setdefault("audit_refs", {})["reason"] = _audit_reference(receipt, "reason", reason)
@@ -313,6 +348,12 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
         hint = visible.get("repair_hint")
         if isinstance(hint, Mapping) and isinstance(hint.get("path"), str):
             paths.append(hint["path"])
+        if isinstance(diagnostic, Mapping) and diagnostic.get("status") == "rejected":
+            literal_hint = diagnostic.get("repair_hint")
+            if isinstance(literal_hint, Mapping):
+                for row in [literal_hint, *literal_hint.get("junction_repairs", [])]:
+                    if isinstance(row, Mapping) and isinstance(row.get("path"), str) and row["path"] not in paths:
+                        paths.append(row["path"])
         for row in visible.get("format_errors", []):
             if isinstance(row, Mapping) and isinstance(row.get("path"), str) and row["path"] not in paths:
                 paths.append(row["path"])
@@ -323,6 +364,12 @@ def _model_visible_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
                 "or operations against an editable draft. Preserve all other observed walls, openings and room topology."
             ),
         }
+        if isinstance(diagnostic, Mapping) and diagnostic.get("status") == "rejected":
+            next_action["instruction"] = (
+                "Resolve the primary dimension error and the independent original-geometry issues in "
+                "literal_geometry_diagnostic together. Use its original-pixel repair_hint and the drawing; "
+                "preserve other observed walls, openings and topology, then retry the plan or operations."
+            )
         if len(paths) > 16:
             next_action["additional_object_count"] = len(paths) - 16
         visible["next_action"] = next_action
@@ -678,6 +725,27 @@ class PlanTrial:
                 field_aliases=aliases, length_bindings=length_bindings,
                 measurement_bindings=measurement_bindings,
             )
+            if error.failure_context.get("failure_stage") == "dimension_alignment" and image_path is not None:
+                # Diagnose only the same resolved original whose bytes/hash were
+                # saved above, never the partly dimension-aligned failure input.
+                # A secondary diagnostic must not replace the primary failure.
+                try:
+                    with Image.open(image_path) as image:
+                        diagnostic = _literal_geometry_diagnostic(
+                            unaligned_numeric, image_size=image.size, image_name=self.image_name)
+                except Exception as diagnostic_error:
+                    diagnostic = {"status": "unavailable", "reason": str(diagnostic_error),
+                                  "error_type": type(diagnostic_error).__name__}
+                if diagnostic is not None:
+                    error.failure_context["literal_geometry_diagnostic"] = {
+                        **diagnostic,
+                        "scope": "Independent literal check of resolved original pixels before dimension alignment; no geometry adopted.",
+                        "input_file": (self._relative_to_workspace(unaligned_numeric_path)
+                                       if unaligned_numeric_path else None),
+                        "input_sha256": unaligned_numeric_sha256,
+                        "image": self.image_name, "image_sha256": image_sha256,
+                        "omitted_reader_fields": ["dimension_chains"],
+                    }
             raise
         numeric_bytes = _canonical_plan_bytes(numeric)
         numeric_sha256 = hashlib.sha256(numeric_bytes).hexdigest()

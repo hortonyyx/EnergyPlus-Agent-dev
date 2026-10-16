@@ -450,6 +450,116 @@ def test_failed_dimensions_preserve_stage_and_original_numeric_input(tmp_path, t
         trial.read_draft(field="report:/alignment")
 
 
+def _dimension_rejection_trial(tmp_path, *, disconnected=False):
+    (tmp_path / "images").mkdir()
+    _drawing().save(tmp_path / "images/plan.png")
+    value = _plan()
+    value["partitions"] = [{"id": "divider", "points": [[110, 32 if disconnected else 22], [110, 158]],
+                            "source_refs": ["drawing: divider"]}]
+    value["openings"] = []
+    value["dimension_chains"] = [{
+        "id": "bad-sum", "axis": "x", "segments_mm": [9000, 9000],
+        "total_mm": 19000, "tick_pixels": [20, 110, 200], "source_refs": ["drawing: chain"],
+    }]
+    return value, PlanTrial(None, image_name="plan.png", workspace=tmp_path,
+                           receipt_directory=tmp_path / "trial_receipts",
+                           profile_directory=tmp_path / "pixel_profiles")
+
+
+@pytest.mark.parametrize("referenced_coordinates", [False, True])
+def test_dimension_failure_also_reports_same_original_literal_topology(tmp_path, referenced_coordinates):
+    value, trial = _dimension_rejection_trial(tmp_path, disconnected=True)
+    if referenced_coordinates:
+        value["x_anchors"][0][1] = {"value": 0, "unit": "mm"}
+        value["x_anchors"][0][0] = {"profile": "profile_001", "candidate": "C01"}
+        trial.profile_directory.mkdir()
+        (trial.profile_directory / "profile_001.json").write_text(json.dumps({
+            "name": "plan.png", "axis": "x",
+            "image_sha256": hashlib.sha256((tmp_path / "images/plan.png").read_bytes()).hexdigest(),
+            "candidates": [{"id": "C01", "pixels": [20, 20], "peak": 20}],
+        }), encoding="utf-8")
+    original = copy.deepcopy(value)
+
+    result = asyncio.run(trial.call(value))
+
+    receipt = trial.receipts[-1]
+    assert result["isError"] and receipt["status"] == "failed"
+    assert receipt["failure_stage"] == "dimension_alignment"
+    assert "segment sum does not close" in receipt["reason"]
+    assert receipt["regularization_failure"]["rejections"][0]["chain_id"] == "bad-sum"
+    assert receipt["candidate"] is None and not receipt["source_geometry_ready"]
+    assert not list(tmp_path.glob("reading_*")) and not list(tmp_path.glob("candidate_*"))
+    diagnostic = receipt["literal_geometry_diagnostic"]
+    assert diagnostic["status"] == "rejected" and "polygonize produced dangles" in diagnostic["reason"]
+    assert diagnostic["input_file"] == receipt["unaligned_numeric_input_file"]
+    assert diagnostic["input_sha256"] == receipt["unaligned_numeric_input_sha256"]
+    assert diagnostic["omitted_reader_fields"] == ["dimension_chains"]
+    raw_numeric = (tmp_path / diagnostic["input_file"]).read_bytes()
+    assert hashlib.sha256(raw_numeric).hexdigest() == diagnostic["input_sha256"]
+    numeric = json.loads(raw_numeric)
+    assert numeric["x_anchors"][0] == [20, 0]
+    assert numeric["partitions"] == original["partitions"]
+    assert value == original
+    assert json.loads((tmp_path / receipt["input_plan_file"]).read_bytes()) == original
+    assert diagnostic["loose_partition_ends"][0]["partition"] == "divider"
+    repair = diagnostic["repair_hint"]["junction_repairs"][0]
+    assert repair["original_endpoint_pixel"] == [110, 32]
+    visible = result["structuredContent"]
+    assert visible["literal_geometry_diagnostic"] == diagnostic
+    assert repair["path"] in visible["next_action"]["objects"]
+    assert "primary dimension error" in visible["next_action"]["instruction"]
+    pointer = visible["audit_refs"]["literal_geometry_diagnostic"]["json_pointer"]
+    recovered = trial.read_draft(field="report:" + pointer + "/repair_hint")
+    assert recovered["value"] == diagnostic["repair_hint"]
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24_000
+
+
+def test_dimension_failure_with_valid_original_has_no_literal_problem(tmp_path):
+    value, trial = _dimension_rejection_trial(tmp_path)
+    receipt = asyncio.run(trial.run(value))
+    assert receipt["status"] == "failed" and receipt["failure_stage"] == "dimension_alignment"
+    assert "literal_geometry_diagnostic" not in receipt
+
+
+def test_dimension_topology_rejection_does_not_blame_valid_original(tmp_path):
+    value, trial = _dimension_rejection_trial(tmp_path)
+    trial.grid_step_m = None
+    value.update(x_anchors=[[0, 0.0], [100, 10.0]], y_anchors=[[0, 12.0], [120, 0.0]],
+                 footprint_pixels=[[0, 0], [94.24, 0], [94.24, 50], [92.86, 50],
+                                   [92.86, 100], [100, 100], [100, 120], [0, 120]],
+                 partitions=[], dimension_chains=[{
+                     "id": "step", "axis": "x", "segments_mm": [9350, 650],
+                     "tick_pixels": [0, 94.3, 100], "source_refs": ["drawing: step"],
+                 }])
+    receipt = asyncio.run(trial.run(value))
+    assert receipt["status"] == "failed" and receipt["failure_stage"] == "dimension_alignment"
+    assert "would shrink footprint edge" in receipt["reason"]
+    assert "literal_geometry_diagnostic" not in receipt
+
+
+def test_secondary_diagnostic_exception_preserves_dimension_failure(tmp_path, monkeypatch):
+    value, trial = _dimension_rejection_trial(tmp_path, disconnected=True)
+    def fail_diagnostic(*args, **kwargs):
+        raise RuntimeError("diagnostic failed independently")
+    monkeypatch.setattr(trial_module, "_literal_geometry_diagnostic", fail_diagnostic)
+    receipt = asyncio.run(trial.run(value))
+    assert receipt["status"] == "failed" and receipt["failure_stage"] == "dimension_alignment"
+    assert "segment sum does not close" in receipt["reason"]
+    assert "diagnostic failed" not in receipt["reason"]
+    assert receipt["literal_geometry_diagnostic"]["status"] == "unavailable"
+    assert receipt["literal_geometry_diagnostic"]["error_type"] == "RuntimeError"
+
+
+def test_unresolved_profile_does_not_run_literal_dimension_diagnostic(tmp_path, monkeypatch):
+    value, trial = _dimension_rejection_trial(tmp_path, disconnected=True)
+    value["x_anchors"][0][0] = {"profile": "profile_001", "candidate": "C01"}
+    monkeypatch.setattr(trial_module, "_literal_geometry_diagnostic",
+                        lambda *args, **kwargs: pytest.fail("original pixels are not resolved"))
+    receipt = asyncio.run(trial.run(value))
+    assert receipt["status"] == "failed" and "existing profile_id" in receipt["reason"]
+    assert "literal_geometry_diagnostic" not in receipt
+
+
 def test_missing_ink_never_moves_geometry_and_is_explicit():
     original = _plan()
     aligned, report = align_plan_to_ink(_drawing(with_ink=False), original)

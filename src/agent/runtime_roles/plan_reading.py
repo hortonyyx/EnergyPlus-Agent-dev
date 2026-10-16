@@ -65,18 +65,90 @@ def _font(size=16):
         return ImageFont.load_default()
 
 
-def _views(plan, metadata, original):
+def _wall_view_geometry(plan, metadata):
+    """Project declared wall faces only; no measurement, snapping or data edits."""
+    from src.agent.geometry.reader_wall_metadata import wall_reading_input
+    reading = wall_reading_input(plan, metadata)
+    calibration = metadata["calibration"]
+    transforms = []
+    for axis in ("x", "y"):
+        (p0, v0), (p1, v1) = calibration[f"{axis}_anchors"]
+        transforms.append((p0, v0, (p1 - p0) / (v1 - v0)))
+
+    def pixel(point):
+        return tuple(p0 + (point[i] - v0) * slope
+                     for i, (p0, v0, slope) in enumerate(transforms))
+
+    bands, lines, known_faces = [], [], 0
+    for wall in reading["walls"]:
+        thickness, side = wall["thickness_m"], wall["reference_side"]
+        offsets = None if thickness is None or side == "unknown" else {
+            "centerline": (-thickness / 2, thickness / 2),
+            "negative_face": (0, thickness), "positive_face": (-thickness, 0),
+        }[side]
+        known_faces += offsets is not None
+        exterior = wall["target"].startswith("footprint:")
+        for a, b in wall["segments_m"]:
+            # wall_reading_input returns exactly orthogonal, ordered segments.
+            normal = 0 if a[0] == b[0] else 1
+            along = 1 - normal
+            position, start, end = a[normal], a[along], b[along]
+            cuts = []
+            for opening in metadata["opening_hosts"]:
+                p, q = opening["p1_world_m"], opening["p2_world_m"]
+                # Exact adopted line identity, never nearby ink or a new tolerance.
+                if opening["exterior"] != exterior or p[normal] != position or q[normal] != position:
+                    continue
+                lo, hi = max(start, min(p[along], q[along])), min(end, max(p[along], q[along]))
+                if lo < hi:
+                    cuts.append((lo, hi))
+            solid, cursor = [], start
+            for lo, hi in sorted(cuts):
+                if cursor < lo:
+                    solid.append((cursor, lo))
+                cursor = max(cursor, hi)
+            if cursor < end:
+                solid.append((cursor, end))
+            for lo, hi in solid:
+                def point(distance, offset=0):
+                    return pixel([position + offset, distance] if normal == 0
+                                 else [distance, position + offset])
+                if offsets is None:
+                    lines.append([point(lo), point(hi)])
+                else:
+                    bands.append([point(lo, offsets[0]), point(hi, offsets[0]),
+                                  point(hi, offsets[1]), point(lo, offsets[1])])
+    return {"bands": bands, "lines": lines, "summary": {
+        "walls_with_known_faces": known_faces,
+        "walls_shown_as_lines": len(reading["walls"]) - known_faces,
+        "solid_band_segments": len(bands),
+        "note": "Bands show declared thickness and reference side, not code-measured wall faces. "
+                "Unknown thickness or side stays a single line; hosted opening spans are left clear.",
+    }}
+
+
+def _views(plan, metadata, original, *, wall_views=None):
     """Render adopted coordinates through the original calibration, without refitting."""
+    wall_views = wall_views if wall_views is not None else _wall_view_geometry(plan, metadata)
     pictures = [original.convert("RGB"), Image.new("RGB", original.size, "white")]
-    ring = plan["footprint_pixels"]
     for index, picture in enumerate(pictures):
+        if index:
+            bands = ImageDraw.Draw(picture)
+            for polygon in wall_views["bands"]:
+                bands.polygon(polygon, fill=(234, 237, 240), outline=(83, 92, 105), width=1)
+        else:
+            layer = Image.new("RGBA", original.size)
+            bands = ImageDraw.Draw(layer)
+            for polygon in wall_views["bands"]:
+                bands.polygon(polygon, fill=(15, 110, 195, 20), outline=(15, 110, 195, 170), width=1)
+            picture = Image.alpha_composite(picture.convert("RGBA"), layer).convert("RGB")
+            pictures[index] = picture
         draw = ImageDraw.Draw(picture)
         wall = (15, 110, 195) if index == 0 else (42, 49, 61)
         def line(points, color, width):
             draw.line([tuple(p) for p in points], fill=color, width=width, joint="curve")
-        line([*ring, ring[0]], wall, 3)
-        for row in plan["partitions"]:
-            line(row["points"], wall, 3)
+        for points in wall_views["lines"]:
+            line(points, wall, 3)
         for row in plan["openings"]:
             color = (10, 167, 151) if row["kind"] == "window" else (214, 83, 32)
             line([row["p1"], row["p2"]], color, 5)
@@ -113,10 +185,13 @@ def build_reading(plan, *, workspace, image_name, number):
     from src.agent.geometry.plan_drawing_differences import drawing_differences
     differences = drawing_differences(original, plan, image_name=image_name,
         image_sha256=hashlib.sha256(raw_image).hexdigest(), plan_sha256=hashlib.sha256(_bytes(plan)).hexdigest())
+    from src.agent.geometry.plan_wall_metadata_checks import append_wall_metadata_checks
+    differences = append_wall_metadata_checks(differences, original, plan, metadata)
     _opening_overlaps(plan)
     walls = validate_wall_metadata(plan)
     supplied_wall_targets = {row["target"] for row in plan.get("wall_metadata", [])}
     known_wall_count = sum(row["thickness_m"] is not None for row in walls)
+    wall_views = _wall_view_geometry(plan, metadata)
     wall_summary = {
         "counts": {"total": len(walls), "supplied": len(supplied_wall_targets),
                    "known": known_wall_count, "unknown": len(walls) - known_wall_count,
@@ -124,6 +199,7 @@ def build_reading(plan, *, workspace, image_name, number):
         "scope": "Wall metadata for this floor; counts do not establish drawing completeness.",
         "note": "Unknown includes omitted readings. Preserve locally readable thickness with its basis even "
                 "when the reference side or other walls are unknown; keep genuinely unreadable values null.",
+        "rendering": wall_views["summary"],
     }
     product = {"schema": "plan_reading_v1", "image": image_name,
                "image_sha256": hashlib.sha256(raw_image).hexdigest(),
@@ -139,7 +215,7 @@ def build_reading(plan, *, workspace, image_name, number):
     plan_path = folder / "plan.json"
     plan_path.write_bytes(_bytes(plan))
     contents, views = [], []
-    for label, picture in zip(("overlay", "plan"), _views(plan, metadata, original)):
+    for label, picture in zip(("overlay", "plan"), _views(plan, metadata, original, wall_views=wall_views)):
         path = folder / f"{label}.png"
         picture.save(path, "PNG")
         raw = path.read_bytes()

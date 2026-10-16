@@ -77,6 +77,10 @@ in the same reading pass; no separate thickness survey is required. Truly unread
 thickness stays null, and omitted walls are recorded as unknown. The trial's
 wall_metadata_summary distinguishes supplied readings from default unknowns; it does not
 certify complete measurement. Metadata never moves a wall or establishes cross-floor identity.
+The saved plan/overlay shows two faces only where thickness and side are known; compare
+that declared band and any local wall-metadata hints with the original paired faces during
+the same local review. Unknowns
+remain single lines, and a band is not a code measurement or an extra inspection pass.
 Failed geometry remains a saved declaration, not an accepted reading. Use read_plan_draft()
 to see editability, the current operations base and the last passed plan separately.
 Read field plus optional object_id for one object; field="plan" browses the saved

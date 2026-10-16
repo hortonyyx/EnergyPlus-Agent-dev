@@ -624,6 +624,38 @@ def test_giant_single_regularization_rejection_keeps_location_and_verified_full_
     assert receipt_path.read_bytes() == original
 
 
+def test_large_parallel_literal_diagnostic_is_bounded_and_full_details_remain_readable(tmp_path):
+    complete, image, receipt_path, _ = _receipt(tmp_path, passed=False)
+    complete["trial_id"] = "trial_001"
+    repairs = [{"path": f"plan.partitions[{i}].points[0]", "partition_id": f"P{i}",
+                "original_endpoint_pixel": [i, 12], "detail": "original geometry evidence " * 200}
+               for i in range(80)]
+    complete["literal_geometry_diagnostic"] = {
+        "status": "rejected", "scope": "Resolved original pixels before dimensions",
+        "input_file": "trial_receipts/trial_001_unaligned_input.json", "input_sha256": "a" * 64,
+        "reason": "polygonize produced dangles: " + "located evidence " * 1000,
+        "repair_hint": {"path": repairs[0]["path"], "junction_repairs": repairs},
+        "loose_partition_ends": [{"partition": f"P{i}", "end": [i, 12], "gap_px": 12} for i in range(80)],
+    }
+    receipt_path.write_text(json.dumps(complete), encoding="utf-8")
+    original = receipt_path.read_bytes()
+    trial = InjectedTrial(complete, [image])
+    trial.workspace, trial.receipts = tmp_path, [complete]
+
+    visible = asyncio.run(trial.call({}))["structuredContent"]
+
+    assert len(json.dumps(visible, ensure_ascii=False).encode()) <= 24_000
+    assert visible["status"] == "failed"
+    diagnostic = visible["literal_geometry_diagnostic"]
+    assert diagnostic["truncated"] and diagnostic["summary"]["status"] == "rejected"
+    assert "repair_hint" in diagnostic["summary"]
+    ref = visible["audit_refs"]["literal_geometry_diagnostic"]
+    assert ref["json_pointer"] == "/literal_geometry_diagnostic"
+    page = trial.read_draft(field="report:" + ref["json_pointer"] + "/repair_hint/junction_repairs/79/original_endpoint_pixel")
+    assert page["value"] == [79, 12]
+    assert receipt_path.read_bytes() == original
+
+
 @pytest.mark.parametrize("passed", [False, True])
 def test_receipt_total_budget_covers_many_small_fields_and_new_large_fields(tmp_path, passed):
     complete, image, receipt_path, _ = _receipt(tmp_path, passed=passed)

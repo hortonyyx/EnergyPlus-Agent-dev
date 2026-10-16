@@ -94,6 +94,7 @@ def bound_receipt_projection(receipt, visible, *, max_bytes=24_000):
         if isinstance(value, Mapping):
             preferred = ("status", "id", "issue_id", "type", "code", "path", "field", "objects",
                          "divider", "opening_id", "bbox", "look_box", "reason", "fix", "instruction",
+                         "repair_hint", "loose_partition_ends", "unhosted_openings",
                          "summary", "total", "counts", "items", "findings", "rejections")
             result["summary"] = {}
             for key in preferred:
@@ -122,7 +123,8 @@ def bound_receipt_projection(receipt, visible, *, max_bytes=24_000):
 
     projected = {}
     for field, value in visible.items():
-        budget = 10_000 if field == "drawing_differences" else 3000
+        budget = (10_000 if field == "drawing_differences" else
+                  6000 if field == "literal_geometry_diagnostic" else 3000)
         if size(value) <= budget:
             projected[field] = value
             continue
@@ -137,6 +139,7 @@ def bound_receipt_projection(receipt, visible, *, max_bytes=24_000):
     priority = ("status", "trial_id", "error_type", "source_geometry_ready", "plan_sha256",
                 "receipt_file", "receipt_audit", "next_action", "submission", "reason", "message",
                 "editable_draft", "repair_hint", "format_errors", "regularization_failure",
+                "literal_geometry_diagnostic",
                 "unhosted_openings", "source_findings", "topology_issues", "building_precision", "wall_metadata_summary",
                 "drawing_differences", "audit_refs", "report_reading")
     result = {"receipt_audit": root, "omitted_field_count": 0}
