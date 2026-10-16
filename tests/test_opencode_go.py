@@ -250,3 +250,100 @@ def test_role_version_records_preserve_non_go_parameters(provider, model, option
     assert mode == 'role_division'
     assert recorded['plan_reader'] == {'route_id': provider, 'model': model,
         'output_tokens': 32000, 'reasoning_effort': options.get('reasoning_effort'), 'parameters': expected}
+
+
+@pytest.fixture
+def reader_request(tmp_path):
+    from src.agent.runtime_roles.readers import ReaderTools
+    from src.agent.runtime_roles.trial import PlanTrial
+    from tests.test_role_readers import Frozen
+    frozen = Frozen()
+    reader = ReaderTools(frozen, role_id='plan_reader', image_name='plan.png',
+                         trial=PlanTrial(frozen, image_name='plan.png'))
+    catalog = asyncio.run(reader.list_tools())
+    tools = [{'type': 'function', 'function': {'name': row['name'],
+              'description': row['description'], 'parameters': copy.deepcopy(row['inputSchema'])}}
+             for row in catalog]
+    engine = runtime(tmp_path, [])
+    with engine.store as store:
+        source = store.source('messages', MESSAGES)
+        yield reader, dict(store=store, model='claude-haiku-5-5', messages=MESSAGES,
+            message_sources=[source] * len(MESSAGES), tools=tools,
+            tool_source=store.source('reader-tools', tools), parameters={'max_tokens': 32000},
+            versions=engine.versions)
+
+
+def test_go_messages_projects_reader_presence_rules_only_on_wire(reader_request, monkeypatch):
+    from src.agent_runtime import opencode_go
+    reader, arguments = reader_request
+    original = copy.deepcopy(arguments['tools'])
+    prepared = opencode_go.prepare_request(**arguments)
+    schemas = {row['name']: row['input_schema'] for row in prepared.body['tools']}
+    assert 'oneOf' not in schemas['trial_plan_bim']
+    assert 'anyOf' not in schemas['submit_plan_reading']
+    assert 'oneOf' in schemas['trial_plan_bim']['properties']['operations']['items']
+    for tool in original:
+        function = tool['function']
+        expected = copy.deepcopy(function['parameters'])
+        if function['name'] == 'trial_plan_bim':
+            expected.pop('oneOf')
+        elif function['name'] == 'submit_plan_reading':
+            expected.pop('anyOf')
+        assert schemas[function['name']] == expected
+    assert arguments['tools'] == original
+    store = arguments['store']
+    assert store.capture_bytes(prepared.event_payload.final_request_body) == prepared.wire_bytes
+    injection = next(row for row in prepared.event_payload.injected_content if row.request_location == '/tools')
+    assert store.resolve(injection.content) == prepared.body['tools']
+    assert json.loads(store.get_bytes(injection.source.blob)) == original
+    estimated = []
+    estimate = opencode_go.estimate_chat_request
+    def capture(body, **kwargs):
+        estimated.append(body)
+        return estimate(body, **kwargs)
+    monkeypatch.setattr(opencode_go, 'estimate_chat_request', capture)
+    opencode_go.estimate_messages(model=arguments['model'], messages=MESSAGES,
+        tools=arguments['tools'], parameters=arguments['parameters'])
+    assert estimated[0]['tools'] == prepared.body['tools']
+    # These remain execution constraints, even when not expressible on the wire.
+    for invalid in ({}, {'plan': {}, 'operations': []}):
+        with pytest.raises(ValueError, match='exactly one'):
+            asyncio.run(reader.trial.run(**invalid))
+    with pytest.raises(ValueError, match='Minimum correct example'):
+        reader.submission.submit({'local_review': {'summary': 'Offline check'}})
+    assert 'oneOf' in reader._catalog['trial_plan_bim']['inputSchema']
+    assert 'anyOf' in reader._catalog['submit_plan_reading']['inputSchema']
+
+
+@pytest.mark.parametrize('route', ['go-chat', 'go-responses', 'non-go-messages'])
+def test_messages_schema_projection_does_not_change_other_routes(reader_request, route):
+    from src.agent_runtime.opencode_go import prepare_request
+    from src.agent_runtime.anthropic import prepare_anthropic_request
+    _, arguments = reader_request
+    original = copy.deepcopy(arguments['tools'])
+    if route == 'non-go-messages':
+        arguments['model'] = 'glm-5.3-flash'
+        prepared = prepare_anthropic_request(**arguments)
+        schemas = {row['name']: row['input_schema'] for row in prepared.body['tools']}
+    else:
+        arguments['model'] = 'glm-5.3-flash' if route == 'go-chat' else 'gpt-6-luna'
+        prepared = prepare_request(**arguments)
+        rows = ([row['function'] for row in prepared.body['tools']]
+                if route == 'go-chat' else prepared.body['tools'])
+        schemas = {row['name']: row['parameters'] for row in rows}
+    assert schemas == {row['function']['name']: row['function']['parameters'] for row in original}
+    assert arguments['tools'] == original
+
+
+@pytest.mark.parametrize('constraint', [
+    {'allOf': [{'required': ['a']}, {'required': ['b']}]},
+    {'oneOf': [{'required': ['a'], 'properties': {'a': {'const': 1}}}, {'required': ['b']}]},
+    {'anyOf': [{'required': ['a']}, {'required': ['missing']}]},
+    {'oneOf': [{'required': ['a']}, {'required': ['a']}]},
+])
+def test_go_messages_leaves_unreviewed_combinations_unchanged(constraint):
+    from src.agent_runtime.opencode_go import _messages_tools
+    tools = [{'type': 'function', 'function': {'name': 'synthetic_tool', 'parameters': {
+        'type': 'object', 'properties': {'a': {'type': 'integer'}, 'b': {'type': 'integer'}},
+        **constraint}}}]
+    assert _messages_tools(tools) == tools

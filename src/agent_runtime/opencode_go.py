@@ -120,6 +120,31 @@ def responses_body(*, model, messages, tools, parameters):
     return body
 
 
+def _messages_tools(tools):
+    """Project two-field root presence alternatives; keep local schemas intact.
+
+    Messages rejects root combinators. This narrow wire projection handles only
+    two distinct, declared properties, each in a required-only branch. Execution
+    still validates the original schema; nested/value constraints are untouched.
+    """
+    projected = copy.deepcopy(tools)
+    for tool in projected:
+        schema = tool["function"]["parameters"]
+        properties = schema.get("properties")
+        if schema.get("type") != "object" or not isinstance(properties, dict):
+            continue
+        for key in ("oneOf", "anyOf"):
+            branches = schema.get(key)
+            if (isinstance(branches, list) and len(branches) == 2
+                    and all(isinstance(branch, dict) and set(branch) == {"required"}
+                            and isinstance(branch["required"], list) and len(branch["required"]) == 1
+                            and isinstance(branch["required"][0], str)
+                            and branch["required"][0] in properties for branch in branches)
+                    and branches[0]["required"] != branches[1]["required"]):
+                del schema[key]
+    return projected
+
+
 def estimate_messages(*, model, messages, tools, parameters):
     protocol = model_contract(model)[0]
     if protocol == "openai_responses":
@@ -134,7 +159,7 @@ def estimate_messages(*, model, messages, tools, parameters):
         if tools:
             body["tools"] = [{"name": tool["function"]["name"],
                 "description": tool["function"].get("description", ""),
-                "input_schema": tool["function"]["parameters"]} for tool in tools]
+                "input_schema": tool["function"]["parameters"]} for tool in _messages_tools(tools)]
         return estimate_chat_request(body, profile=model_profile(model), strict=True)
     return estimate_chat_request({"model": model, "messages": messages,
         "tools": tools, **parameters}, profile=model_profile(model), strict=True)
@@ -146,6 +171,7 @@ def prepare_request(**kwargs):
     if protocol == "anthropic_messages":
         from .anthropic import prepare_anthropic_request
         kwargs.pop("reasoning_history", None)
+        kwargs["tools"] = _messages_tools(kwargs["tools"])
         prepared = prepare_anthropic_request(**kwargs, native_system_only=True,
             check_thinking_bindings=kwargs["model"] == "claude-haiku-5-5")
         audit = prepared.event_payload.parameters.model_copy(update={"effect": ParametersUnverified(
