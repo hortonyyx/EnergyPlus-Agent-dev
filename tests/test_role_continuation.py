@@ -403,3 +403,144 @@ def test_unexecuted_import_is_not_a_durable_parent_run(continuation):
     source = ReadOnlyRun(c.target.store.directory)
     with pytest.raises(ValueError, match="durable root request"):
         domain._manifest(SimpleNamespace(store=source))
+
+
+@pytest.fixture(params=[False, True], ids=["passed-unsubmitted-2d", "completed-2d"])
+def planar_continuation(tmp_path, monkeypatch, request):
+    """Real 2D compilation and submission, with no provider or source-BIM fixture."""
+    from src.agent.runtime_roles.trial import PlanTrial
+    from tests.test_role_rework_handoff import _append_trial
+
+    submitted = request.param
+    monkeypatch.setattr(domain, "verify_domain_compatibility", lambda *args: {
+        "source_domain": "fixture-2d", "destination_domain": "fixture-2d", "changed_files": []})
+    source_path = tmp_path / "source-2d"
+    source_run = _images(source_path)
+    limits = RunLimits(model_calls=30, tool_calls=50, seconds=120, tokens=500_000)
+    with EventStore(source_path, run_id="old-2d", task_id="coordinator",
+                    budget_limit=limits.ledger_limit()) as store:
+        session = _session(store, source_run)
+        task = session._task(dispatch("planar", role_id="plan_reader", target="F1"))
+        child = session.registry.admit(task)
+        workspace = child.task_directory / "bim/trial_workspace"
+        (workspace / "images").mkdir(parents=True)
+        for relative in ("inputs.json", "images/north.png"):
+            (workspace / relative).write_bytes((source_run / relative).read_bytes())
+        plan = {
+            "reading_type": "plan", "floor_id": "F1",
+            "x_anchors": [[0, 0], [99, 9.9]], "y_anchors": [[0, 9.9], [99, 0]],
+            "footprint_pixels": [[10, 10], [90, 10], [90, 90], [10, 90]],
+            "partitions": [{"id": "P1", "points": [[50, 10], [50, 90]]}],
+            "openings": [
+                {"id": "D1", "kind": "door", "p1": [50, 40], "p2": [50, 50]},
+                {"id": "W1", "kind": "window", "p1": [20, 10], "p2": [30, 10]},
+            ],
+            "space_seeds": [{"id": "left", "point": [20, 30]}, {"id": "right", "point": [70, 30]}],
+            "basis": "Offline planar continuation fixture; no independent quality claim.",
+            "assumptions": [], "unresolved": [],
+        }
+        trial = PlanTrial(None, image_name="north.png", workspace=workspace,
+                          receipt_directory=workspace / "trial_receipts")
+        receipt = asyncio.run(trial.run(plan))
+        assert receipt["status"] == "passed", receipt
+        assert receipt["reading_geometry_ready"] and not receipt["source_geometry_ready"]
+        _append_trial(child, receipt)
+        artifact = None
+        if submitted:
+            submission = ReaderSubmission(role_id="plan_reader", image_name="north.png", trial=trial,
+                directory=child.task_directory / "bim", target="F1")
+            arguments = {"trial_id": "latest", "local_review": REVIEW}
+            accepted = submission.submit(arguments)
+            captured = child.capture(envelope(accepted))
+            child.append(ToolExecutionPayload(call_id="submit-planar", tool_name="submit_plan_reading",
+                full_arguments=arguments, raw_result=captured, shown_result=captured,
+                repeatability="non_idempotent_write", operation_key="submit-planar", outcome="succeeded",
+                applied_write_id="submit-planar"))
+            formal = submission.read()
+            artifact = formal["artifact"]
+            session.registry.save(task, status="completed", artifact=artifact, validation=formal["validation"])
+        else:
+            session.registry.save(task, status="failed", reason="offline interrupted before submission")
+        store.write_json("versions.json", {"mode": "role_division"})
+    source = ReadOnlyRun(source_path)
+    target_path = tmp_path / "target-2d"
+    target_run = _images(target_path, source_path)
+    with EventStore(target_path, run_id="new-2d", task_id="coordinator",
+                    budget_limit=limits.ledger_limit()) as store:
+        yield SimpleNamespace(source=source, target=_session(store, target_run), workspace=workspace,
+                              receipt=receipt, submitted=submitted, task=task, artifact=artifact)
+
+
+def test_planar_continuation_copies_verified_reading_product_and_preserves_submission_boundary(planar_continuation):
+    from src.agent.runtime_roles.plan_reading import product_identity
+    from src.agent.runtime_roles.trial import PlanTrial
+
+    c = planar_continuation
+    product_file, product_sha = product_identity(c.receipt)
+    assert product_file.endswith("/reading.json")
+    original_product = (c.workspace / product_file).read_bytes()
+    summary = domain.import_reader_evidence(c.source, c.target)
+    assert summary["completed_ids"] == (["planar"] if c.submitted else [])
+    assert [row["task_id"] for row in summary["editable_drafts"]] == ([] if c.submitted else ["planar"])
+    workspace = c.target.registry.child("planar").task_directory / "bim/trial_workspace"
+    copied = workspace / product_file
+    assert copied.read_bytes() == original_product
+    assert hashlib.sha256(copied.read_bytes()).hexdigest() == product_sha
+    assert not list(c.source.directory.rglob("source_model.json"))
+    assert not list(c.target.store.directory.rglob("source_model.json"))
+    manifest = domain._manifest(c.target)
+    assert manifest["files"][copied.relative_to(c.target.store.directory).as_posix()] == product_sha
+    assert manifest["source_files"][(c.workspace / product_file).relative_to(c.source.directory).as_posix()] == product_sha
+    restored = PlanTrial(None, image_name="north.png", workspace=workspace,
+                         receipt_directory=workspace / "trial_receipts")
+    restored_plan, verified = restored.verified_plan(c.receipt["plan_sha256"])
+    assert product_identity(verified) == (product_file, product_sha)
+    assert restored_plan["reading_type"] == "plan" and "z_floor" not in restored_plan
+    if c.submitted:
+        assert c.target.registry.read("planar") == c.artifact
+        formal = ReaderSubmission(role_id="plan_reader", image_name="north.png", trial=restored,
+            directory=c.target.registry.child("planar").task_directory / "bim", target="F1").read()
+        assert formal["artifact"] == c.artifact
+    else:
+        handoff = c.target._failure_handoff("planar")["editable_draft"]
+        assert handoff["status"] == "passed" and handoff["submission_accepted"] is False
+        assert handoff["reading_product_file"] == product_file
+        assert handoff["reading_product_sha256"] == product_sha
+        assert c.target.registry.records["planar"]["artifact"] is None
+        assert not (workspace.parent / "reader_submission.json").exists()
+    assert summary == domain.import_reader_evidence(c.source, c.target)
+    assert not c.target.store.all_events
+    assert c.source.verify_unchanged()
+
+
+def test_planar_continuation_rejects_changed_product_before_destination_mutation(planar_continuation):
+    from src.agent.runtime_roles.plan_reading import product_identity
+
+    c = planar_continuation
+    product_file, _ = product_identity(c.receipt)
+    path = c.workspace / product_file
+    path.write_bytes(path.read_bytes() + b" ")
+    with pytest.raises(ValueError, match="candidate changed|hash mismatch"):
+        domain.import_reader_evidence(c.source, c.target)
+    assert not c.target.registry.records
+    assert not (c.target.store.directory / domain.MANIFEST).exists()
+    assert not (c.target.store.directory / domain.PENDING).exists()
+
+
+def test_planar_continuation_rejects_changed_imported_product(planar_continuation):
+    from src.agent.runtime_roles.plan_reading import product_identity
+
+    c = planar_continuation
+    domain.import_reader_evidence(c.source, c.target)
+    product_file, _ = product_identity(c.receipt)
+    path = c.target.registry.child("planar").task_directory / "bim/trial_workspace" / product_file
+    path.write_bytes(path.read_bytes() + b" ")
+    with pytest.raises(ValueError, match="imported reader evidence changed"):
+        domain.import_reader_evidence(c.source, c.target)
+
+
+def test_planar_continuation_product_cannot_escape_workspace(tmp_path):
+    prior = SimpleNamespace(workspace=tmp_path / "workspace", image_name="plan.png")
+    with pytest.raises(ValueError, match="escapes its workspace"):
+        domain._draft_files(prior, {"status": "passed", "reading_product_file": "../reading.json",
+                                   "reading_product_sha256": "a" * 64})

@@ -290,11 +290,11 @@ def derive_z_calibration(
     max_residual_m=0.10,
     max_half_band_uncertainty_m=0.35,
 ):
-    """Derive image-Y to absolute-Z from two saved horizontal level bands.
+    """Derive image-Y to absolute-Z from saved level lines or horizontal bands.
 
     This consumes only reader image evidence.  It never fits a candidate BIM,
     GT, or opening heights.  Wide horizontal bands provide their vertical
-    centre; the pair with the greatest absolute Z span wins after requiring a
+    centre only when no explicit line_y_px exists; the greatest Z span wins after requiring a
     negative pixel/Z slope and bounded half-band uncertainty.  Every other
     saved horizontal level remains an independent residual check.
     """
@@ -312,15 +312,20 @@ def derive_z_calibration(
         if not all(math.isfinite(item) for item in (left, top, right, bottom, float(value))):
             continue
         band_height = bottom - top
-        if band_height <= 0 or right - left < 4 * band_height:
+        line_y = row.get("line_y_px")
+        if line_y is not None:
+            if isinstance(line_y, bool) or not isinstance(line_y, (int, float)) or not math.isfinite(line_y):
+                continue
+        if band_height <= 0 or right <= left or (line_y is None and right - left < 4 * band_height):
             continue
         points.append({
             "id": row.get("id"),
             "kind": row.get("kind"),
             "bbox": [left, top, right, bottom],
-            "y_px": (top + bottom) / 2,
+            "y_px": float(line_y) if line_y is not None else (top + bottom) / 2,
             "z_m": float(value),
-            "half_band_px": band_height / 2,
+            "half_band_px": 0.0 if line_y is not None else band_height / 2,
+            "position_source": "line_y_px" if line_y is not None else "horizontal_band_centre",
         })
 
     choices = []
@@ -337,7 +342,7 @@ def derive_z_calibration(
 
     evidence = {
         "status": "missing_two_horizontal_level_bands",
-        "method": "furthest_absolute_Z_pair_using_horizontal_band_centres",
+        "method": "furthest_absolute_Z_pair_using_explicit_lines_or_horizontal_bands",
         "points": points,
         "max_abs_residual_m": None,
     }

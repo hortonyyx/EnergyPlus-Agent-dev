@@ -111,8 +111,10 @@ def _role_task(role):
     # coordinate instructions. The projected previous-artifact context remains
     # symbolic; its production projection implementation is in the domain scope.
     env = {"json": json, "base64": base64, "raw_image": b"<image-bytes>",
+           "initial_image": b"<coordinate-view-bytes>", "size": ["<width>", "<height>"],
+           "initial_view": "<original-pixel-coordinate-view>",
            "task": {"role_id": role, "task_id": "<task>", "image": "<image>",
-                    "target": "<target>", "instructions": "<instructions>"},
+                    "target": "<target>", "instructions": "<instructions>", "input_sha256": "<image-sha256>"},
            "previous_context": "<previous-artifact-context-or-null>",
            "ELEVATION_COORDINATES": ELEVATION_COORDINATES, "READER_COORDINATES": READER_COORDINATES}
     return _evaluate(_assignment(RoleSession.run_reader, "content"), env)

@@ -17,6 +17,7 @@ from src.harness_contracts.events import CapturedValue
 
 from .artifacts import ArtifactRegistry
 from .elevation import validate_elevation_artifact
+from .plan_reading import product_identity
 from .submission import parse_target
 
 
@@ -262,7 +263,8 @@ def _draft_files(prior, receipt):
         if relative is not None:
             paths.append(prior.workspace / relative)
     if receipt.get("status") == "passed":
-        paths.append(prior.workspace / receipt["candidate"] / "source_model.json")
+        product_file, _ = product_identity(receipt)
+        paths.append(prior.workspace / product_file)
     paths.extend(prior.workspace / row["file"] for row in receipt.get("measurement_profiles", []))
     paths.extend(prior.workspace / row["file"] for row in receipt.get("returned_images", []))
     for path in paths:

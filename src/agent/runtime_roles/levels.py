@@ -124,9 +124,10 @@ def apply_resolved_levels(plan, resolution):
     delta = resolution["z_floor"]["value_m"] - updated.get("z_floor", resolution["z_floor"]["value_m"])
     for field in ("z_floor", "ceiling_height"):
         updated[field] = resolution[field]["value_m"]
-    # Preserve the plan's relative provisional opening heights under a base move.
+    # Legacy BIM drafts use provisional relative heights. Explicit Z in a 2D
+    # reading is an absolute observation and must survive floor resolution.
     # Never clip an opening to fit a shorter storey.
-    if delta:
+    if delta and updated.get("reading_type") != "plan":
         for row in updated.get("openings", []):
             if "z" in row:
                 row["z"] = [z + delta for z in row["z"]]

@@ -640,7 +640,12 @@ class ReaderTools:
             try:
                 if "plan" in arguments:
                     plan = dict(arguments["plan"])
-                    plan.setdefault("reading_type", "plan")
+                    baseline = self.trial.baseline()[0] if hasattr(self.trial, "baseline") else None
+                    # Recovery must retain its admitted declaration contract.
+                    # Inserting the new marker into a legacy rework would change
+                    # an immutable field outside its permitted repair targets.
+                    if baseline is None or baseline.get("reading_type") == "plan":
+                        plan.setdefault("reading_type", "plan")
                     # The task fixes the floor ID; operations cannot edit it, so a
                     # different spelling would block delivery (10-07 sm24 run4).
                     if self.submission.target_identity is not None:

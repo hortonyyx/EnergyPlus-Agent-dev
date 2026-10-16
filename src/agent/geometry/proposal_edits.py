@@ -635,6 +635,122 @@ def _update_wall_evidence(proposal: dict, operation: dict) -> dict:
             "before": before, "after": copy.deepcopy(row)}
 
 
+def _reflect_wall_readings(proposal: dict, audit: dict, edit_index: int) -> None:
+    """Rebind thickness through the explicitly requested coordinate transform."""
+    before = copy.deepcopy(proposal.get("wall_readings", []))
+    if not before:
+        return
+    from src.agent.geometry.reader_wall_metadata import _span
+
+    axis = audit["transform"]["axis"]
+    midpoint = audit["transform"]["about_world_coordinate"]
+    normal = 0 if axis == "x" else 1
+    opposite = {"negative_face": "positive_face", "positive_face": "negative_face"}
+    for reading in proposal["wall_readings"]:
+        rows = []
+        for row in reading["walls"]:
+            by_side = {}
+            for segment in row["segments_m"]:
+                side = row["reference_side"]
+                if _span(*segment)[0] == normal:
+                    side = opposite.get(side, side)
+                by_side.setdefault(side, []).append([
+                    _reflect_point(point, axis=axis, midpoint=midpoint) for point in segment
+                ])
+            for index, (side, segments) in enumerate(by_side.items()):
+                rebound = dict(row, reference_side=side, segments_m=segments)
+                if len(by_side) > 1:
+                    # One polyline can have both world normals. Its side cannot
+                    # remain one value when only one normal is reflected.
+                    rebound["target"] = f"{row['target']}:reflect:{edit_index}:{index}"
+                    rebound["source_refs"] = [*row["source_refs"],
+                        f"plan-wall:{reading['floor_id']}/{row['target']}"]
+                rows.append(rebound)
+        reading["walls"] = rows
+    audit["wall_readings"] = {
+        "action": "explicit_coordinate_rebinding", "before": before,
+        "after": copy.deepcopy(proposal["wall_readings"]),
+        "basis": "Thickness is invariant; wall coordinates and world-normal sides follow the recorded reflection. Original observations remain in this audit.",
+    }
+
+
+def _rebind_edited_wall_readings(proposal: dict, audit: dict, edit_index: int) -> None:
+    """Keep evidence on unchanged lines; new or partly unsupported walls are unknown.
+
+    Full source edges can overlap at a T junction. All overlapping edges must
+    share one evidence value, because the source kernel does not split them.
+    This only changes metadata and never moves or identifies geometry.
+    """
+    if not proposal.get("wall_readings"):
+        return
+    from src.agent.geometry.reader_wall_metadata import _span, _covered_length, _EPS
+    from src.agent.geometry.source_model import source_primitives
+
+    changed_ids = set(audit["before"]["cells"])
+    spaces, boundaries, _, _ = source_primitives(ensure_corrected_geometry(proposal["geometry"]))
+    floor_by_space = {space.id: space.floor_id for space in spaces}
+    changed_floors = {floor_by_space[identity] for identity in changed_ids}
+    before, after = [], []
+    for reading in proposal["wall_readings"]:
+        floor_id = reading["floor_id"]
+        if floor_id not in changed_floors:
+            continue
+        before.append(copy.deepcopy(reading))
+        spans = sorted({_span(*sorted({tuple(p[:2]) for p in wall.vertices}))
+                        for wall in boundaries.values() if wall.geometry_type == "wall"
+                        and floor_by_space[wall.space_id] == floor_id})
+        # Merge positive overlaps, but not merely touching edges. This is the
+        # same physical line coverage required by the normal evidence binder.
+        groups = []
+        for axis, coordinate, lo, hi in spans:
+            matches = [group for group in groups if group[0] == axis
+                       and abs(group[1] - coordinate) <= _EPS
+                       and min(group[3], hi) - max(group[2], lo) > _EPS]
+            for group in matches:
+                groups.remove(group)
+                lo, hi = min(lo, group[2]), max(hi, group[3])
+            groups.append((axis, coordinate, lo, hi))
+        parsed = [(row, [_span(*segment) for segment in row["segments_m"]])
+                  for row in reading["walls"]]
+        retained, unknown = {}, []
+        for index, (axis, coordinate, lo, hi) in enumerate(sorted(groups)):
+            covers = []
+            for row, old_spans in parsed:
+                overlaps = [(max(lo, start), min(hi, end))
+                            for normal, position, start, end in old_spans
+                            if normal == axis and abs(position-coordinate) <= _EPS
+                            and min(hi, end) - max(lo, start) > _EPS]
+                if overlaps:
+                    covers.append((row, overlaps))
+            kinds = {(row["thickness_m"], row["reference_side"], row["evidence_status"])
+                     for row, _ in covers}
+            intervals = [span for _, overlaps in covers for span in overlaps]
+            supported = len(kinds) == 1 and abs(_covered_length(intervals) - (hi-lo)) <= _EPS
+            if supported:
+                for row, overlaps in covers:
+                    entry = retained.setdefault(row["target"], dict(row, segments_m=[]))
+                    entry["segments_m"].extend([
+                        [[coordinate, start], [coordinate, end]] if axis == 0
+                        else [[start, coordinate], [end, coordinate]] for start, end in overlaps
+                    ])
+            else:
+                unknown.append({
+                    "target": f"edited-wall:{edit_index}:{index}", "thickness_m": None,
+                    "reference_side": "unknown", "evidence_status": "unknown",
+                    "basis": f"{audit['operation']} changed wall support or combined differing evidence; thickness requires renewed observation. Original evidence is retained in the edit audit.",
+                    "source_refs": [],
+                    "segments_m": [[[coordinate, lo], [coordinate, hi]] if axis == 0
+                                   else [[lo, coordinate], [hi, coordinate]]],
+                })
+        reading["walls"] = [*retained.values(), *unknown]
+        after.append(copy.deepcopy(reading))
+    audit["wall_readings"] = {
+        "action": "preserve_unchanged_lines_invalidate_changed_support",
+        "before": before, "after": after,
+        "basis": "No old observation is moved to a new wall line. Unchanged support retains its thickness and sources; unsupported unsplit walls become unknown.",
+    }
+
+
 def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
     """Return an independently editable legacy proposal after explicit local edits.
 
@@ -704,6 +820,10 @@ def apply_proposal_edits(proposal: dict, operations: list[dict]) -> dict:
                      "after": {field: copy.deepcopy(result[field]) for field in before}}
         else:
             raise ValueError(f"unknown proposal edit operation {name!r}")
+        if name == "reflect":
+            _reflect_wall_readings(result, audit, len(corrections))
+        elif name in {"move_shared_wall", "reshape_spaces", "replace_space_region"}:
+            _rebind_edited_wall_readings(result, audit, len(corrections))
         corrections.append(audit)
         _unique_ids(geometry)
     ensure_corrected_geometry(geometry)

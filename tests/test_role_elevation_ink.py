@@ -518,3 +518,20 @@ def test_level_line_outside_original_is_rejected(tmp_path):
         assert result["isError"]
         assert "line_y_px" in result["structuredContent"]["reason"]
     asyncio.run(scenario())
+
+
+def test_missing_z_frame_uses_located_lines_instead_of_displaced_label_boxes(tmp_path):
+    async def scenario():
+        tools = _node_tools(tmp_path)
+        arguments = _node_arguments()
+        arguments.pop("z_calibration")
+        arguments["elevations"][0]["bbox"] = [0, 15, 40, 25]
+        arguments["elevations"][1]["bbox"] = [0, 95, 40, 105]
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not result["isError"], result
+        assert result["structuredContent"]["ready_for_delivery"], result
+        derived = derive_z_calibration(arguments["elevations"])
+        assert derived["calibration"] == {"pixel_start": 10.0, "pixel_end": 110.0,
+                                           "world_start_m": 10.0, "world_end_m": 0.0}
+        assert all(row["position_source"] == "line_y_px" for row in derived["points"])
+    asyncio.run(scenario())
