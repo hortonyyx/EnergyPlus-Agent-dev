@@ -9,6 +9,8 @@ from __future__ import annotations
 import copy
 import math
 
+from shapely.geometry import Polygon
+
 from src.agent.geometry.component_attributes import thickness_record, validate_component_attributes
 from src.agent.geometry.wall_reference import resolve_wall_references
 
@@ -47,12 +49,15 @@ def _targets(plan):
     return targets, defaults, partitions
 
 
-def validate_wall_metadata(plan: dict) -> list[dict]:
+def validate_wall_metadata(plan: dict, *, resolve_reference_sides: bool = True) -> list[dict]:
     """Validate known readings and explicitly fill unprovided walls as unknown.
 
     ``footprint:0`` is the first authored edge (not a canonical polygon edge).
     ``partition:P01`` covers all segments, while ``partition:P01:0`` covers just
     its first segment. Whole-partition and individual-segment records cannot mix.
+    Raw declaration preflight may defer face conversion while quantities and
+    selected profile pixels are unresolved. Saved products and source bindings
+    use the default strict conversion after the existing numeric resolvers.
     """
     targets, defaults, partitions = _targets(plan)
     records = plan.get("wall_metadata", [])
@@ -78,8 +83,15 @@ def validate_wall_metadata(plan: dict) -> list[dict]:
         elif _number(thickness, "thickness_m") <= 0 or status == "unknown":
             raise ValueError("a known thickness must be positive with observed or inferred evidence_status")
         side = row.get("reference_side", "unknown")
-        if side not in _SIDES:
-            raise ValueError("reference_side must be centerline, negative_face, positive_face or unknown")
+        if side in {"outer_face", "inner_face"}:
+            if not target.startswith("footprint:"):
+                raise ValueError("outer_face and inner_face require a footprint target; "
+                                 "partition walls have no unique building interior side")
+            if resolve_reference_sides:
+                side = _footprint_face_side(plan, target, side)
+        elif side not in _SIDES:
+            raise ValueError("reference_side must be centerline, negative_face, positive_face or unknown; "
+                             "footprint edges also accept outer_face and inner_face")
         basis = row.get("basis", "No wall thickness was supplied for this line.")
         if not isinstance(basis, str) or not basis.strip():
             raise ValueError("wall_metadata basis must be nonempty text")
@@ -122,6 +134,41 @@ def _world_converter(plan, metadata):
     # Match the compiler's serialized micrometre coordinates exactly. This is
     # decimal representation, not a looser matching tolerance or geometry edit.
     return lambda p: [round(transforms[i][0] * p[i] + transforms[i][1], 6) for i in (0, 1)]
+
+
+def _footprint_face_side(plan, target, side):
+    """Translate a perimeter-relative face into the existing world-axis label.
+
+    Interior is on the left of every directed edge of a counterclockwise simple
+    polygon, including concave edges. Determine that orientation in world space
+    so reversed image axes and reversed point order need no special cases. The
+    submitted plan remains the original observation; only returned metadata is
+    canonicalized, beside its saved raw plan/mapping record.
+    """
+    ring = list(plan["footprint_pixels"])
+    if ring and ring[0] == ring[-1]:
+        ring.pop()
+    if len(ring) < 3 or any(not isinstance(p, (list, tuple)) or len(p) != 2 for p in ring):
+        raise ValueError("footprint face aliases require a simple nonzero polygon")
+    world = _world_converter(plan, None)
+    points = [world([_number(value, "footprint coordinate") for value in p]) for p in ring]
+    polygon = Polygon(points)
+    if not polygon.is_valid or polygon.area <= 0:
+        raise ValueError("footprint face aliases require a simple nonzero polygon")
+    index = int(target.split(":")[1])
+    a, b = points[index], points[(index + 1) % len(points)]
+    normal, _, _, _ = _span(a, b)
+    # Translating before the signed-area sum avoids cancellation at large world
+    # origins. This calculation classifies a face; it never moves a coordinate.
+    origin = points[0]
+    signed_area = math.fsum(
+        (a[0] - origin[0]) * (b[1] - origin[1]) - (b[0] - origin[0]) * (a[1] - origin[1])
+        for a, b in zip(points, points[1:] + points[:1]))
+    outward = (b[1] - a[1], a[0] - b[0])
+    direction = outward[normal] * (1 if signed_area > 0 else -1)
+    if side == "inner_face":
+        direction = -direction
+    return "positive_face" if direction > 0 else "negative_face"
 
 
 def _span(a, b):

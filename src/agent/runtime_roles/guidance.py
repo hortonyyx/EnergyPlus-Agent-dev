@@ -30,16 +30,19 @@ size and an ORIGINAL-pixel grid: do not call inputs or reread the whole image by
 _PLAN_FIRST_DRAFT = """Read the supplied whole-image grid. Enlarge only regions whose dimensions or marks are
 unreadable; view_plan_blocks is optional, not a required pass. In the same pass, inventory
 the complete footprint, partitions, rooms, doors/windows, locally readable wall thicknesses,
-and exterior/internal dimension chains. Do not profile each line. As soon as the full structure is
-represented, send one complete plan to trial_plan_bim so code can place it and expose only
+and exterior/internal dimension chains. Trace footprint along the building's outer wall
+faces, including recessed steps; do not substitute an inner face at a recess. Do not profile
+each line. As soon as the full structure is represented, send one complete plan to
+trial_plan_bim so code can place it and expose only
 the remaining local conflicts. This produces a 2D reading, clean plan and original overlay,
 not source BIM. Source BIM is built only after assembly resolves cross-view geometry.
 
 dimension_chains rows use id, axis=x/y, segments_mm, tick_pixels and source_refs. total_mm
 and start_world_m are optional when the drawing does not establish them. Supply printed
-segments and approximate ordered extension-line ticks; code accumulates shared nodes,
-derives a usable local origin from existing calibration, and distributes no rounding work
-to you. Original annotations remain evidence, while the adopted Lite BIM coordinates and
+segments and ordered ticks at their actual dimension extension lines. Keep nearby ticks
+for different wall faces or axes distinct; reuse a pixel only for the same physical reference.
+Code accumulates shared nodes and derives a usable local origin from existing calibration.
+Original annotations remain evidence, while the adopted Lite BIM coordinates and
 dimensions are regularized on the configured grid (currently 0.1 m). Do not hand-round,
 allocate a remainder, or repeat pixel measurements merely to remove a sub-grid tail.
 
@@ -62,10 +65,13 @@ if supplied for an inferred role it must include assumptions. Use unknown for un
 wall_metadata rows: target=footprint:0 (original edge index) or partition:<id>, thickness_m
 (positive metres or null), reference_side=centerline/negative_face/positive_face/unknown,
 evidence_status=observed/inferred/unknown, basis, source_refs. Negative/positive means world
--X/+X for vertical walls, -Y/+Y for horizontal walls, independent of vertex order. Read
+-X/+X for vertical walls, -Y/+Y for horizontal walls, independent of vertex order.
+For footprint edges only, outer_face/inner_face are also accepted; code maps each to
+the appropriate signed face; partitions still use the canonical sides above. Read
 thickness from annotated dimensions or visible paired wall faces and state that local basis.
-Thickness and reference_side are independent: retain a readable thickness even when its
-reference_side is unknown. Do not wait for every wall to be known, spread one label to
+reference_side identifies the chosen line's position within the wall; it cannot establish
+an unknown thickness. Thickness and reference_side are independent: retain a readable
+thickness even when its reference_side is unknown. Do not wait for every wall to be known, spread one label to
 unrelated walls, or discard local readings because other walls are unclear. Record these
 in the same reading pass; no separate thickness survey is required. Truly unreadable
 thickness stays null, and omitted walls are recorded as unknown. The trial's
@@ -87,22 +93,32 @@ Full plans remain accepted. Audit actual changes; cross-task rework preserves un
 objects. Notes may change freely but cannot authorize geometry or room-use changes.""".format(
     example=json.dumps(READER_PLAN_EXAMPLE, ensure_ascii=False, separators=(",", ":")))
 
-_PLAN_REVIEW = """Review only trial drawing_differences, hard-rule failures and the overlay. Rework missing,
-extra or misconnected rooms/walls/openings and deviations over 0.30 m. Keep the adopted
-0.1 m values for finer tails; the report retains their original readings. Use a targeted
-profile only when a named remaining conflict is unclear on the overlay. Each topology_issues row
+_PLAN_REVIEW = """Review only trial drawing_differences, hard-rule failures and the saved overlay. Rework missing,
+extra or misconnected rooms/walls/openings and deviations over 0.30 m. A wrong wall face or
+opening endpoint still needs correction below 0.30 m; that is not a quantization tail.
+Keep adopted 0.1 m values for finer tails only when the correct physical feature was read;
+the report retains original readings. Revisit the specific inconsistency on the existing
+overlay, without restarting a whole-plan point-by-point measurement loop. Use a targeted
+profile only when a named remaining conflict is unclear there. Each topology_issues row
 needs topology_decisions: issue_id, retain_opening/continuous_space, basis, bbox. For an
 inkless gap, decide whether both ends belong to one physical wall. If not, remove the
 artificial separator AND opening together, plus any redundant seed, preserving actual
 wall portions. Implement the decision; unresolved text cannot waive it. No warning: omit."""
 
 _ARTIFACT_SCHEMA = """6. Inspect the saved plan and original overlay, then submit_plan_reading with trial_id="latest" and local_review.summary or latest passed trial_id/plan_sha256.
+Use the actual trial receipt's building_precision.counts and wall_metadata_summary.counts
+for any inventory totals in local_review; do not invent counts or claim unchecked coverage.
+Only a later wall_metadata-only revision may reuse this task's already delivered views
+and submit in the same response, after the tool verifies unchanged geometry, source image
+and actual views. First trials or geometry/source changes still require inspecting their
+returned images. This exception does not require a separate metadata revision pass.
 Never resend plan/evidence: generated boxes locate declarations, not prove observation;
 anchor bands do not locate dimensions. Optional notes={item,kind,basis}, kind=
 assumption/inferred/unresolved. item may be the exact plan path or an unambiguous declared
 object ID/collection alias; ambiguous and unknown items are rejected, never discarded.
-wall_metadata is also addressable when its omitted values became unknown in the 2D product;
-a note does not add a thickness observation or change the passed plan.
+For a verified 2D reading, omitted top-level contract fields such as z_floor, ceiling_height
+or wall_metadata are also addressable. Notes add no values or observations and do not
+change the passed plan; an omitted height or unknown thickness remains unknown.
 unresolved lists delivery questions.
 wall_metadata carries per-wall thickness and reference side. Legacy wall_reference defaults
 (perimeter outer_face, partitions centerline) are broad conventions only, not measured thickness; no geometry move.

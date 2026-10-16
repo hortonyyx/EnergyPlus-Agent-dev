@@ -85,7 +85,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; declared plan fields/collections (for example ceiling_height or openings), exact plan paths and unambiguous object aliases are accepted, while unknown or ambiguous items are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
+        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; declared fields/collections, exact plan paths and unambiguous object aliases are accepted. Verified 2D readings also allow omitted top-level contract fields, such as ceiling_height or z_floor; notes never populate them. Unknown fields or object IDs and ambiguous aliases are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this facade's batched readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute value_m/sill_m/head_m use metres. The tool checks fields, counts, ordering and evidence, adopts levels and opening width/sill/head on the 0.1 m Lite grid, and retains original readings in regularization metadata; fix pointed errors and resubmit.",
@@ -316,9 +316,10 @@ class ReaderSubmission:
                 row["item"] for row in artifact["evidence"]
             } | {f"plan.{field}" for field in set(plan) | set(numeric)}
             if numeric.get("reading_type") == "plan" and validation.get("reading_geometry_ready") is True:
-                # The verified 2D product contains these records even when the
-                # declaration omitted them. Addressing them adds no observation.
-                note_targets.add("plan.wall_metadata")
+                from .plan_format import PLAN_FORMAT
+                # An unknown optional property remains addressable through the
+                # 2D contract, without inserting a value or pixel observation.
+                note_targets.update(f"plan.{field}" for field in PLAN_FORMAT["properties"])
             notes = _normalize_note_items(arguments.get("notes", []), note_targets)
             # Field/collection notes stay in validation; an assumed height has
             # no pixel evidence to manufacture and must not change the trial.

@@ -82,6 +82,16 @@ def test_field_and_collection_notes_preserve_trial_and_do_not_invent_pixel_evide
     assert "plan.z_floor: Confirm shared vertical datum." in saved["artifact"]["unresolved"]
 
 
+def test_omitted_contract_field_notes_remain_rejected_for_legacy_source_bim():
+    trial = PassedTrial()
+    assert "reading_type" not in trial.plan and "dimension_chains" not in trial.plan
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    with pytest.raises(ValueError, match="not a declared plan object"):
+        submission.submit({"local_review": REVIEW, "trial_id": "latest", "notes": [
+            {"item": "dimension_chains", "kind": "unresolved", "basis": "No chain supplied."}]})
+    assert submission.read() is None
+
+
 def test_latest_reference_survives_resume_and_rejects_stale_or_tampered_plan(tmp_path):
     workspace = tmp_path / "trial"
     (workspace / "images").mkdir(parents=True)

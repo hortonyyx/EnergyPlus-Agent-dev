@@ -1,4 +1,5 @@
 """Wall evidence survives 2D/3D assembly without moving or borrowing walls."""
+import asyncio
 import copy
 import hashlib
 import json
@@ -106,6 +107,150 @@ def test_authored_footprint_edge_and_world_side_do_not_follow_ring_orientation(e
     baseline = bind_wall_metadata(source, plan)
     plan["partitions"][0]["points"].reverse()
     assert bind_wall_metadata(source, plan) == baseline
+
+
+@pytest.mark.parametrize("x_sign", [-1, 1])
+@pytest.mark.parametrize("y_sign", [-1, 1])
+@pytest.mark.parametrize("reverse_ring", [False, True])
+@pytest.mark.parametrize("reverse_anchors", [False, True])
+@pytest.mark.parametrize("alias", ["outer_face", "inner_face"])
+def test_perimeter_face_aliases_follow_world_interior_on_concave_edges(
+        x_sign, y_sign, reverse_ring, reverse_anchors, alias):
+    # Expectations are explicit world-space outward normals of an L footprint;
+    # its reentrant vertical face is at x=4, not at the bounding box's max x=7.
+    world_ring = [[1, 1], [7, 1], [7, 3], [4, 3], [4, 6], [1, 6]]
+    outer_sides = ["negative_face", "positive_face", "positive_face",
+                   "positive_face", "positive_face", "negative_face"]
+    expected = {frozenset((tuple(a), tuple(b))): side
+                for a, b, side in zip(world_ring, world_ring[1:] + world_ring[:1], outer_sides)}
+    if reverse_ring:
+        world_ring.reverse()
+    plan = _plan()
+    plan.update(
+        x_anchors=[[50, 0], [50 + x_sign * 40, 8]],
+        y_anchors=[[50, 0], [50 + y_sign * 40, 8]],
+        footprint_pixels=[[50 + x_sign * x * 5, 50 + y_sign * y * 5] for x, y in world_ring],
+        partitions=[], openings=[], space_seeds=[],
+        wall_metadata=[dict(_known(f"footprint:{i}"), reference_side=alias,
+                            evidence_status="inferred") for i in range(len(world_ring))])
+    if reverse_anchors:
+        plan["x_anchors"].reverse()
+        plan["y_anchors"].reverse()
+    before = copy.deepcopy(plan)
+
+    rows = validate_wall_metadata(plan)
+
+    assert plan == before
+    for i, (a, b, row) in enumerate(zip(world_ring, world_ring[1:] + world_ring[:1], rows)):
+        side = expected[frozenset((tuple(a), tuple(b)))]
+        if alias == "inner_face":
+            side = "positive_face" if side == "negative_face" else "negative_face"
+        assert row == {**plan["wall_metadata"][i], "reference_side": side}
+
+
+@pytest.mark.parametrize("target", ["partition:P_vertical", "partition:P_vertical:0"])
+@pytest.mark.parametrize("alias", ["outer_face", "inner_face"])
+def test_partition_face_aliases_are_rejected_without_unique_inside(target, alias):
+    plan = _plan()
+    plan["wall_metadata"] = [dict(_known(target), reference_side=alias)]
+    with pytest.raises(ValueError, match="partition walls have no unique building interior side"):
+        validate_wall_metadata(plan)
+
+
+@pytest.mark.parametrize("ring,target", [
+    ([[10, 10], [90, 90], [10, 90], [90, 10]], "footprint:0"),  # Self intersection.
+    ([[10, 10], [50, 10], [90, 10]], "footprint:0"),  # Zero area.
+    ([[10, 10], [90, 10], [90, 10], [90, 90], [10, 90]], "footprint:1"),  # Zero edge.
+    ([[10, 10], [90, 20], [90, 90], [10, 90]], "footprint:0"),  # Oblique normal.
+])
+def test_ambiguous_or_nonorthogonal_perimeter_aliases_are_not_guessed(ring, target):
+    plan = _plan()
+    plan["footprint_pixels"] = ring
+    plan["wall_metadata"] = [dict(_known(target), reference_side="outer_face")]
+    with pytest.raises(ValueError, match="simple nonzero polygon|nonzero orthogonal segments"):
+        validate_wall_metadata(plan)
+
+
+def test_perimeter_alias_retains_raw_observation_beside_canonical_product_and_source(example, tmp_path):
+    from src.agent.runtime_roles.plan_format import plan_format_errors
+    from src.agent.runtime_roles.plan_reading import build_reading
+    plan, _, _, source = example
+    # The existing fixture has a repeated closing vertex and downward pixel Y.
+    plan["wall_metadata"] = [dict(_known("footprint:0", .3), reference_side="outer_face")]
+    before = copy.deepcopy(plan)
+    assert plan_format_errors(plan) == []
+    (tmp_path / "images").mkdir()
+    Image.new("RGB", (100, 100), "white").save(tmp_path / "images/plan.png")
+
+    result = build_reading(plan, workspace=tmp_path, image_name="plan.png", number=1)
+    saved = json.loads((tmp_path / "reading_001/plan.json").read_text(encoding="utf-8"))
+    product = json.loads((tmp_path / "reading_001/reading.json").read_text(encoding="utf-8"))
+    reading = wall_reading_input(plan, product["mapping"])
+    patch = bind_wall_readings(source, [reading])
+
+    assert result["structuredContent"]["status"] == "passed"
+    assert plan == saved == before
+    assert product["mapping"]["wall_metadata"] == before["wall_metadata"]
+    adopted = next(row for row in product["walls"] if row["target"] == "footprint:0")
+    assert adopted == {**before["wall_metadata"][0], "reference_side": "positive_face"}
+    assert next(row for row in reading["walls"] if row["target"] == "footprint:0")["reference_side"] == "positive_face"
+    known = [row for row in patch["wall_references"] if row["thickness_m"] is not None]
+    assert known and all(row["reference_side"] == "positive_face" for row in known)
+    assert all(row["thickness_m"] == .3 and row["evidence_status"] == "observed" for row in known)
+    assert all(row["reference_basis"] == before["wall_metadata"][0]["basis"] for row in known)
+    assert all(row["source_refs"][:1] == before["wall_metadata"][0]["source_refs"] for row in known)
+
+
+@pytest.mark.parametrize("declaration", ["quantity", "profile", "both"])
+@pytest.mark.parametrize("alias", ["outer_face", "inner_face"])
+def test_face_alias_waits_for_actual_trial_quantity_and_profile_resolution(tmp_path, declaration, alias):
+    from src.agent.runtime_roles.plan_format import READER_PLAN_EXAMPLE, plan_format_errors
+    from src.agent.runtime_roles.trial import PlanTrial
+    plan = copy.deepcopy(READER_PLAN_EXAMPLE)
+    plan["wall_metadata"] = [dict(_known("footprint:0"), reference_side=alias)]
+    numeric = copy.deepcopy(plan)
+    expected_side = next(row["reference_side"] for row in validate_wall_metadata(numeric)
+                         if row["target"] == "footprint:0")
+    (tmp_path / "images").mkdir()
+    image = tmp_path / "images/plan.png"
+    Image.new("RGB", (800, 600), "white").save(image)
+    profiles = tmp_path / "pixel_profiles"
+    profiles.mkdir()
+    if declaration in {"quantity", "both"}:
+        plan["x_anchors"][0][1] = {"value": numeric["x_anchors"][0][1] * 1000, "unit": "mm"}
+    if declaration in {"profile", "both"}:
+        pixels = [numeric["x_anchors"][0][0], numeric["footprint_pixels"][0][0]]
+        profile = {"name": "plan.png", "image_sha256": hashlib.sha256(image.read_bytes()).hexdigest(),
+                   "axis": "x", "candidates": [
+                       {"id": f"C0{i+1}", "pixels": [pixel, pixel], "peak": pixel}
+                       for i, pixel in enumerate(pixels)]}
+        (profiles / "profile_001.json").write_text(json.dumps(profile), encoding="utf-8")
+        plan["x_anchors"][0][0] = {"profile": "profile_001", "candidate": "C01"}
+        plan["footprint_pixels"][0][0] = {"profile": "profile_001", "candidate": "C02"}
+    before = copy.deepcopy(plan)
+    assert plan_format_errors(plan) == []
+    # Deferral is exclusive to declaration preflight; a saved-product caller
+    # cannot silently accept unresolved geometry by using the default API.
+    with pytest.raises(ValueError, match="must be finite"):
+        validate_wall_metadata(plan)
+    trial = PlanTrial(None, image_name="plan.png", workspace=tmp_path,
+                      receipt_directory=tmp_path / "trial_receipts", profile_directory=profiles)
+
+    receipt = asyncio.run(trial.run(plan))
+
+    assert receipt["status"] == "passed", receipt.get("reason")
+    assert plan == before
+    submitted = json.loads((tmp_path / "trial_receipts/trial_001_plan.json").read_bytes())
+    resolved = json.loads((tmp_path / receipt["unaligned_numeric_input_file"]).read_bytes())
+    product = json.loads((tmp_path / receipt["reading_product_file"]).read_bytes())
+    assert submitted == before
+    for field in ("x_anchors", "y_anchors", "footprint_pixels", "wall_metadata"):
+        assert resolved[field] == numeric[field]
+    assert bool(receipt["length_bindings"]) == (declaration in {"quantity", "both"})
+    assert bool(receipt["measurement_bindings"]) == (declaration in {"profile", "both"})
+    assert product["mapping"]["wall_metadata"] == numeric["wall_metadata"]
+    adopted = next(row for row in product["walls"] if row["target"] == "footprint:0")
+    assert adopted == {**numeric["wall_metadata"][0], "reference_side": expected_side}
 
 
 def test_partial_thickness_and_nearby_wall_cannot_be_silently_spread(example):

@@ -631,14 +631,16 @@ class ReaderTools:
                     "structuredContent": result, "isError": error}
         if name in {"submit_plan_reading", "submit_elevation_reading"}:
             try:
+                observation_reuse = None
                 if name == "submit_plan_reading":
                     passed = [row for row in self.trial.receipts if row.get("status") == "passed"]
                     if passed:
-                        from .reader_delivery import require_observed_trial
+                        from .reader_delivery import require_observed_plan_trial
                         receipt = passed[-1]
-                        require_observed_trial(self.store, "trial_plan_bim", "plan_sha256",
-                            receipt["plan_sha256"], [row["sha256"] for row in receipt.get("returned_images", [])])
+                        observation_reuse = require_observed_plan_trial(self.store, self.trial, receipt)
                 result = self.submission.submit(dict(arguments))
+                if observation_reuse is not None:
+                    result["observation_reuse"] = observation_reuse
                 return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
                         "structuredContent": result, "isError": False}
             except (ValueError, KeyError) as error:

@@ -163,7 +163,10 @@ def plan_format_errors(plan):
         if "wall_metadata" in value:
             from src.agent.geometry.reader_wall_metadata import validate_wall_metadata
             try:
-                validate_wall_metadata(value)
+                # Face aliases depend on numeric geometry. Quantities and
+                # selected profile pixels are resolved by the trial before
+                # saved products/source bindings run strict wall validation.
+                validate_wall_metadata(value, resolve_reference_sides=False)
             except (ValueError, TypeError, KeyError) as error:
                 errors.append({"path": "plan.wall_metadata", "message": str(error)})
     if isinstance(value, Mapping):

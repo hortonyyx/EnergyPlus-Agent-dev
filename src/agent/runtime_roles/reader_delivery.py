@@ -1,6 +1,8 @@
 """Local drawing review bound to the exact saved reader result and its views."""
 
+import copy
 import hashlib
+import json
 from pathlib import Path
 
 
@@ -59,6 +61,66 @@ def require_observed_trial(store, tool_name, identity_key, identity, view_hashes
                 if expected <= {image.sent.sha256 for image in event.payload.images}:
                     return
     raise ValueError("The exact trial views have not reached a model request yet. Inspect the returned views before submitting; do not trial and approve in the same response.")
+
+
+def require_observed_plan_trial(store, trial, receipt):
+    """Reuse an observed 2D result only for a verified wall-attribute-only edit.
+
+    Identical pixels alone are insufficient: input, adopted coordinates and the
+    saved product must also be unchanged outside wall metadata. All current and
+    prior files retain their normal integrity checks; the journal must prove the
+    prior views actually reached this reader before they can be reused.
+    """
+    hashes = [row["sha256"] for row in receipt.get("returned_images", [])]
+    try:
+        require_observed_trial(store, "trial_plan_bim", "plan_sha256", receipt["plan_sha256"], hashes)
+        return None
+    except ValueError as unobserved:
+        if trial.workspace is None or not receipt.get("reading_geometry_ready"):
+            raise
+        plan, checked = trial.verified_plan(receipt["plan_sha256"])
+        if plan.get("reading_type") != "plan":
+            raise
+        verify_views(trial.workspace, checked["returned_images"])
+
+        def without_metadata(value):
+            return {key: item for key, item in value.items() if key != "wall_metadata"}
+
+        def adopted_facts(value):
+            value = copy.deepcopy(without_metadata(value))
+            # This digest includes wall attributes. Retain every actual grid
+            # decision and coordinate; only its derived identity may differ.
+            value.get("regularization_inputs", {}).get("reading_alignment", {}).get(
+                "lite_bim", {}).pop("adopted_plan_sha256", None)
+            return value
+
+        def product_facts(row):
+            # verified_plan has already checked the product path and hash.
+            value = json.loads((trial.workspace / row["reading_product_file"]).read_bytes())
+            return {**value, "walls": [], "mapping": adopted_facts(value["mapping"])}
+
+        numeric = adopted_facts(trial.numeric_plan(checked))
+        product = product_facts(checked)
+        for prior in reversed(trial.receipts):
+            if (prior.get("status") != "passed" or not prior.get("reading_geometry_ready")
+                    or prior["plan_sha256"] == checked["plan_sha256"]
+                    or [row["sha256"] for row in prior.get("returned_images", [])] != hashes):
+                continue
+            try:
+                old_plan, old_checked = trial.verified_plan(prior["plan_sha256"])
+                if (without_metadata(old_plan) != without_metadata(plan)
+                        or adopted_facts(trial.numeric_plan(old_checked)) != numeric
+                        or product_facts(old_checked) != product):
+                    continue
+                verify_views(trial.workspace, old_checked["returned_images"])
+                require_observed_trial(store, "trial_plan_bim", "plan_sha256", prior["plan_sha256"], hashes)
+            except (ValueError, KeyError, OSError):
+                continue
+            return {"reason": "wall_metadata_only_with_identical_geometry_and_views",
+                    "plan_sha256": checked["plan_sha256"],
+                    "observed_plan_sha256": old_checked["plan_sha256"],
+                    "view_sha256": hashes}
+        raise unobserved
 
 
 def completed_reader_handoff(engine):

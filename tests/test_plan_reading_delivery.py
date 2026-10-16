@@ -6,7 +6,8 @@ import json
 import pytest
 from PIL import Image
 
-from src.agent.runtime_roles.plan_format import READER_PLAN_EXAMPLE
+from src.agent.runtime_roles.plan_format import PLAN_FORMAT, READER_PLAN_EXAMPLE
+from src.agent.runtime_roles.readers import automatic_plan_evidence, validate_plan_artifact
 from src.agent.runtime_roles.submission import ReaderSubmission
 from src.agent.runtime_roles.trial import PlanTrial
 
@@ -84,6 +85,59 @@ def test_same_trial_reports_wall_coverage_and_accepts_unknown_wall_note_without_
     assert not any(row["item"] == "plan.wall_metadata" for row in saved["artifact"]["evidence"])
 
 
+def test_omitted_2d_contract_fields_accept_notes_without_values_or_product_changes(tmp_path):
+    plan, trial = setup(tmp_path)
+    plan.pop("wall_metadata")
+    original = copy.deepcopy(plan)
+    receipt = asyncio.run(trial.run(plan))
+    assert receipt["status"] == "passed", receipt.get("reason")
+    numeric = trial.numeric_plan(receipt)
+    omitted = sorted(set(PLAN_FORMAT["properties"]) - set(plan) - set(numeric))
+    assert {"z_floor", "ceiling_height", "wall_metadata"} <= set(omitted)
+    evidence = validate_plan_artifact({"plan": numeric, "unresolved": numeric["unresolved"],
+        "evidence": automatic_plan_evidence(numeric, image_name="plan.png", image_size=(800, 600))},
+        image_name="plan.png")["evidence"]
+    files_before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    receipt_before = copy.deepcopy(receipt)
+    notes = [{"item": field if index % 2 else f"plan.{field}", "kind": "unresolved",
+              "basis": "This optional property is not established by this drawing."}
+             for index, field in enumerate(omitted)]
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", directory=tmp_path,
+                                  trial=trial, target=plan["floor_id"])
+    result = submission.submit({"trial_id": "latest", "local_review": {
+        "summary": "Offline fixture views checked; optional missing properties remain unknown."},
+        "notes": notes})
+    assert result["status"] == "accepted" and len(trial.receipts) == 1
+    saved = submission.read()
+    assert [row["item"] for row in saved["validation"]["notes"]] == [f"plan.{field}" for field in omitted]
+    assert saved["artifact"]["plan"] == numeric and plan == original
+    assert not set(omitted).intersection(saved["artifact"]["plan"])
+    assert saved["artifact"]["evidence"] == evidence
+    assert saved["validation"]["plan_sha256"] == receipt_before["plan_sha256"]
+    assert trial.receipts == [receipt_before]
+    assert all(path.read_bytes() == before for path, before in files_before.items())
+
+
+@pytest.mark.parametrize("note", [
+    {"item": "ceiling_heigth", "kind": "unresolved", "basis": "Misspelled property."},
+    {"item": "plan.openings:nonexistent", "kind": "unresolved", "basis": "Fabricated object."},
+    {"item": "ceiling_height", "kind": "unresolved", "basis": "Unknown height.", "value": 3.0},
+])
+def test_2d_optional_notes_reject_unknown_fields_objects_and_value_injection(tmp_path, note):
+    plan, trial = setup(tmp_path)
+    receipt = asyncio.run(trial.run(plan))
+    assert receipt["status"] == "passed", receipt.get("reason")
+    product = tmp_path / receipt["reading_product_file"]
+    before = product.read_bytes()
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", directory=tmp_path,
+                                  trial=trial, target=plan["floor_id"])
+    with pytest.raises(ValueError, match="not a declared plan object|Additional properties"):
+        submission.submit({"trial_id": "latest", "local_review": {
+            "summary": "Offline fixture views checked."}, "notes": [note]})
+    assert submission.read() is None and len(trial.receipts) == 1
+    assert product.read_bytes() == before
+
+
 def test_planar_product_tamper_rejected_and_aperture_overlap_fails(tmp_path):
     plan, trial = setup(tmp_path)
     duplicate = copy.deepcopy(plan["openings"][0])
@@ -99,7 +153,8 @@ def test_planar_product_tamper_rejected_and_aperture_overlap_fails(tmp_path):
         trial.verified_plan(passed["plan_sha256"])
 
 
-def test_reader_unit_accepts_reviewed_planar_delivery_without_bim(tmp_path, monkeypatch):
+@pytest.mark.parametrize("metadata_update", [False, True])
+def test_reader_unit_accepts_reviewed_planar_delivery_without_bim(tmp_path, monkeypatch, metadata_update):
     from src.agent.runtime_roles.entry import execute, parser
     from src.agent_runtime.adapter import ScriptedAdapter
     from test_agent_runtime import versions, response
@@ -119,8 +174,14 @@ def test_reader_unit_accepts_reviewed_planar_delivery_without_bim(tmp_path, monk
         "--tokens", "100000000", "--reader-task-json", json.dumps(task)])
     def accept(request):
         assert "reading_geometry_ready" in json.dumps(request["messages"])
-        return response(("accept", "submit_plan_reading", {"trial_id": "latest", "local_review": {
+        calls = []
+        if metadata_update:
+            changed = copy.deepcopy(READER_PLAN_EXAMPLE)
+            changed["wall_metadata"][0]["thickness_m"] = .2
+            calls.append(("metadata", "trial_plan_bim", {"plan": changed}))
+        calls.append(("accept", "submit_plan_reading", {"trial_id": "latest", "local_review": {
             "summary": "Offline scripted fixture inspects its actual returned 2D views."}}))
+        return response(*calls)
     def factory(task_id, config, store):
         return ScriptedAdapter([response(("trial", "trial_plan_bim", {"plan": READER_PLAN_EXAMPLE})), accept])
     result = asyncio.run(execute(args, adapter_factory=factory))
