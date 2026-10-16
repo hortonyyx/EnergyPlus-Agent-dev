@@ -82,6 +82,77 @@ def test_field_and_collection_notes_preserve_trial_and_do_not_invent_pixel_evide
     assert "plan.z_floor: Confirm shared vertical datum." in saved["artifact"]["unresolved"]
 
 
+def test_current_trial_fields_accept_notes_without_product_or_evidence_changes(tmp_path):
+    from tests.test_plan_reading_delivery import setup
+
+    original, trial = setup(tmp_path)
+    receipt = asyncio.run(trial.run(original))
+    assert receipt["status"] == "passed"
+    baseline = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    baseline.submit({"trial_id": "latest", "local_review": REVIEW})
+    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    receipt_before = copy.deepcopy(receipt)
+    params = {"trial_id": "latest", "local_review": REVIEW, "notes": [
+        {"item": "axis_orientation", "kind": "assumption", "basis": "Absolute north needs confirmation."},
+        {"item": "trial.wall_metadata_summary", "kind": "inferred", "basis": "Coverage is local, not completeness."},
+        {"item": "drawing_differences", "kind": "inferred", "basis": "Only the reported ink scope was checked."},
+    ]}
+    params_before = copy.deepcopy(params)
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", directory=tmp_path, trial=trial)
+    assert submission.submit(params)["status"] == "accepted"
+    saved = submission.read()
+    assert [note["item"] for note in saved["validation"]["notes"]] == [
+        "trial.axis_orientation", "trial.wall_metadata_summary", "trial.drawing_differences"]
+    assert saved["artifact"] == baseline.read()["artifact"]
+    assert saved["artifact_sha256"] == baseline.read()["artifact_sha256"]
+    assert trial.receipts == [receipt_before] and params == params_before
+    assert all(path.read_bytes() == raw for path, raw in before.items())
+
+
+@pytest.mark.parametrize("target", ["axis_orientation", "trial.axis_orientation", "trial.missing_field",
+                                    "trial.ceiling_height", "trial.local_review"])
+def test_notes_cannot_create_missing_trial_fields_or_borrow_them_from_failed_trials(target):
+    trial = PassedTrial()
+    trial.receipts.append({"status": "failed", "axis_orientation": {}, "missing_field": {}})
+    before = copy.deepcopy(trial.receipts)
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    with pytest.raises(ValueError, match="not a declared plan object or verified trial field"):
+        submission.submit({"trial_id": "latest", "local_review": REVIEW, "notes": [
+            {"item": target, "kind": "assumption", "basis": "A note is not a reading."}]})
+    assert submission.read() is None and trial.receipts == before
+
+
+def test_trial_short_names_conflict_with_plan_fields_and_object_aliases():
+    trial = PassedTrial()
+    trial.receipt.update(basis="Report basis", P1={"diagnostic": "reported"})
+    for short in ["basis", "P1"]:
+        submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+        with pytest.raises(ValueError, match="ambiguous"):
+            submission.submit({"trial_id": "latest", "local_review": REVIEW, "notes": [
+                {"item": short, "kind": "assumption", "basis": "Specify the target."}]})
+        assert submission.read() is None
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    targets = ["plan.basis", "trial.basis", "plan.partitions:P1", "trial.P1"]
+    assert submission.submit({"trial_id": "latest", "local_review": REVIEW, "notes": [
+        {"item": target, "kind": "assumption", "basis": "Explicit target."} for target in targets]})["status"] == "accepted"
+    assert [note["item"] for note in submission.read()["validation"]["notes"]] == targets
+    # Explicit namespaces remain canonical even if an object ID has that text.
+    note = {"item": "trial.basis", "kind": "assumption", "basis": "Report only."}
+    assert _normalize_note_items([note], {"trial.basis", "plan.partitions:trial.basis"}) == [note]
+
+
+def test_orientation_note_does_not_replace_required_north_arrow():
+    trial = PassedTrial()
+    trial.plan["x_anchors"] = [[10, 10], [110, 0]]
+    trial.receipt["plan_sha256"] = canonical_plan_sha256(trial.plan)
+    trial.receipt["axis_orientation"] = {"world_east_toward": "image_left", "world_north_toward": "image_top"}
+    submission = ReaderSubmission(role_id="plan_reader", image_name="plan.png", trial=trial)
+    with pytest.raises(ValueError, match="north_arrow"):
+        submission.submit({"trial_id": "latest", "local_review": REVIEW, "notes": [
+            {"item": "axis_orientation", "kind": "assumption", "basis": "A note cannot prove orientation."}]})
+    assert submission.read() is None
+
+
 def test_omitted_contract_field_notes_remain_rejected_for_legacy_source_bim():
     trial = PassedTrial()
     assert "reading_type" not in trial.plan and "dimension_chains" not in trial.plan

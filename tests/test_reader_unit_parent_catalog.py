@@ -210,7 +210,9 @@ def test_reader_unit_completes_with_real_child_mcp_and_preserved_seals_budget_an
             response(("view", "view_image", {"name": "plan.png", "box": [0, 0, 800, 600]})),
             response(("trial", "trial_plan_bim", {"plan": copy.deepcopy(READER_PLAN_EXAMPLE)})),
             response(("submit", "submit_plan_reading", {"trial_id": "latest", "local_review": {
-                "summary": "Offline synthetic fixture checks the actual returned plan and overlay."}})),
+                "summary": "Offline synthetic fixture checks the actual returned plan and overlay."},
+                "notes": [{"item": "axis_orientation", "kind": "assumption",
+                           "basis": "Absolute north is not established by the synthetic input."}]})),
         ])
 
     result = asyncio.run(entry.execute(args, adapter_factory=factory))
@@ -233,6 +235,9 @@ def test_reader_unit_completes_with_real_child_mcp_and_preserved_seals_budget_an
     assert root_inputs["started_epoch"] <= timing["started_epoch"]
     assert timing["deadline_epoch"] <= root_inputs["deadline_epoch"]
     assert not list(out.rglob("source_model.json"))
+    submitted = json.loads((child / "reader_submission.json").read_bytes())
+    assert submitted["validation"]["notes"][0]["item"] == "trial.axis_orientation"
+    assert "axis_orientation" not in submitted["artifact"]["plan"]
     catalog = json.loads((out / "frozen/coordinator_tools.json").read_bytes())
     origin = catalog["definition_source"]
     assert origin["kind"] == "in_process_definition_factory"

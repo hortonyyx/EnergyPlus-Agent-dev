@@ -85,7 +85,7 @@ ELEVATION_SCHEMA = obj({
 
 SUBMISSION_TOOLS = {
     "plan_reader": {"name": "submit_plan_reading",
-        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; declared fields/collections, exact plan paths and unambiguous object aliases are accepted. Verified 2D readings also allow omitted top-level contract fields, such as ceiling_height or z_floor; notes never populate them. Unknown fields or object IDs and ambiguous aliases are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
+        "description": "After inspecting the actual plan and original overlay, submit the latest passed trial with local_review.summary and trial_id=latest (or its ID/hash). This ends the reader task. Pixel evidence is generated automatically. Optional notes identify inferred/assumed/unresolved items; use plan.<field>, exact plan object paths, or trial.<field> for top-level fields actually present in this verified successful trial. Short field/object aliases must be unique across both namespaces. Verified 2D readings also allow omitted top-level plan contract fields, such as ceiling_height or z_floor; notes never populate them. Unknown fields or object IDs and ambiguous aliases are rejected. Wall defaults: perimeter outer_face, partitions centerline; override only differences with a basis. Topology warnings need decisions; mirrored axes still need north_arrow. Omit other empty fields.",
         "inputSchema": PLAN_SCHEMA},
     "elevation_reader": {"name": "submit_elevation_reading",
         "description": "Submit this facade's batched readings. x_px, calibration pixel_start/pixel_end and boxes use original pixels; world calibration, width_m and absolute value_m/sill_m/head_m use metres. The tool checks fields, counts, ordering and evidence, adopts levels and opening width/sill/head on the 0.1 m Lite grid, and retains original readings in regularization metadata; fix pointed errors and resubmit.",
@@ -162,7 +162,7 @@ def _wall_defaults(plan, evidence, overrides, *, image_size=None):
 
 
 def _normalize_note_items(notes, targets):
-    """Resolve common object aliases only when they identify one declared item."""
+    """Keep canonical paths; resolve aliases only when they identify one item."""
 
     aliases = {}
 
@@ -171,6 +171,9 @@ def _normalize_note_items(notes, targets):
 
     for target in sorted(targets):
         add(target, target)
+        if target.startswith("trial."):
+            add(target.removeprefix("trial."), target)
+            continue
         short = target.removeprefix("plan.")
         add(short, target)
         if ":" in short:
@@ -192,7 +195,7 @@ def _normalize_note_items(notes, targets):
     for index, raw in enumerate(notes):
         note = dict(raw)
         supplied = note["item"].strip()
-        matches = aliases.get(supplied, set())
+        matches = {supplied} if supplied in targets else aliases.get(supplied, set())
         if len(matches) == 1:
             note["item"] = next(iter(matches))
         elif len(matches) > 1:
@@ -202,7 +205,7 @@ def _normalize_note_items(notes, targets):
             )
         else:
             raise ValueError(
-                f"notes[{index}].item {supplied!r} is not a declared plan object; "
+                f"notes[{index}].item {supplied!r} is not a declared plan object or verified trial field; "
                 f"use its exact item from {sorted(targets)}"
             )
         result.append(note)
@@ -315,6 +318,9 @@ class ReaderSubmission:
             note_targets = {
                 row["item"] for row in artifact["evidence"]
             } | {f"plan.{field}" for field in set(plan) | set(numeric)}
+            # This is the verified successful trial, before submission adds
+            # notes/review/decisions. Notes cannot create missing report fields.
+            note_targets.update(f"trial.{field}" for field in validation)
             if numeric.get("reading_type") == "plan" and validation.get("reading_geometry_ready") is True:
                 from .plan_format import PLAN_FORMAT
                 # An unknown optional property remains addressable through the

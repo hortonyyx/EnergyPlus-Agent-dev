@@ -119,7 +119,9 @@ returned images. This exception does not require a separate metadata revision pa
 Never resend plan/evidence: generated boxes locate declarations, not prove observation;
 anchor bands do not locate dimensions. Optional notes={item,kind,basis}, kind=
 assumption/inferred/unresolved. item may be the exact plan path or an unambiguous declared
-object ID/collection alias; ambiguous and unknown items are rejected, never discarded.
+object ID/collection alias, or an existing latest trial receipt field as trial.<field>.
+Short names must identify exactly one plan object or trial field; ambiguous and unknown
+items are rejected, never discarded. Trial notes annotate a report, not observed geometry.
 For a verified 2D reading, omitted top-level contract fields such as z_floor, ceiling_height
 or wall_metadata are also addressable. Notes add no values or observations and do not
 change the passed plan; an omitted height or unknown thickness remains unknown.
