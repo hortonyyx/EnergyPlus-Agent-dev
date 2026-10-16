@@ -269,25 +269,34 @@ def _align_opening(
     else:
         status = "unchanged"
 
-    # This is a narrow coordinate-evidence check, not an aperture detector.
-    # Multiple strokes, faint/dashed edges and dense/nonuniform backgrounds
-    # remain uncertain. A claimed rectangle with three near-empty search bands
-    # cannot be vouched for by a prose review of the same erroneous overlay.
+    # A bounding box does not assert four straight aperture edges. Weak linear
+    # coverage is only a prompt to inspect: curved/diagonal strokes may touch a
+    # side at one point. Only complete, untrimmed search bands with no visible
+    # source pixels at all support a hard absence finding.
     absent = [name for name, edge in edges.items()
               if edge.get("max_visible_support_ratio") is not None
               and edge["max_visible_support_ratio"] <= 0.10]
     issue = None
-    if explicit_box is not None and background["confident"] and len(absent) >= 3:
-        issue = {"type": "opening_geometry_without_image_support", "opening_id": opening_id,
+    full_band_pixels = (_full_band_visible_pixels(ink, explicit_box, x_radius, z_radius)
+                        if explicit_box is not None else None)
+    empty_bands = (full_band_pixels is not None
+                   and all(count == 0 for count in full_band_pixels.values()))
+    if explicit_box is not None and background["confident"] and (empty_bands or len(absent) >= 3):
+        issue = {"type": ("opening_geometry_without_image_support" if empty_bands
+                          else "opening_geometry_weak_linear_support"), "opening_id": opening_id,
                  "bbox": list(explicit_box), "near_empty_edges": absent,
                  "look_box": [max(0, math.floor(explicit_box[0]) - (x_radius or 0)),
                               max(0, math.floor(explicit_box[1]) - (z_radius or 0)),
                               min(ink.shape[1], math.ceil(explicit_box[2]) + (x_radius or 0) + 1),
                               min(ink.shape[0], math.ceil(explicit_box[3]) + (z_radius or 0) + 1)],
                  "search_radius_px": {"x": x_radius, "z": z_radius},
+                 "full_band_visible_pixels": full_band_pixels,
                  "max_visible_support_ratio": {name: edges[name]["max_visible_support_ratio"]
                                                for name in absent},
-                 "reason": "At least three declared aperture edges have at most 10% visible stroke coverage anywhere in their calibrated search bands. Inspect look_box in the ORIGINAL image; check original-pixel coordinates, image-view scaling and x/z calibration, then prepare a corrected trial. No coordinate compensation or replacement geometry was inferred."}
+                 "reason": (
+                     "No visible source pixels occur in any complete bounding-box search band, including endpoints. Inspect look_box in the ORIGINAL image; check original-pixel coordinates, image-view scaling and x/z calibration, then prepare a corrected trial. No coordinate compensation or replacement geometry was inferred."
+                     if empty_bands else
+                     "At least three bounding-box sides have weak linear stroke coverage, but visible source pixels remain in the complete search bands. Curved, diagonal, faint or broken aperture boundaries may explain this; inspect the original overlay. This is uncertain evidence, not a blocking shape judgment, and no geometry was inferred.")}
     return {
         "id": opening_id,
         "status": "aligned" if policy["applied_fields"] else "inconsistent" if policy["inconsistencies"]
@@ -583,7 +592,7 @@ def _visible_span_support(ink, *, coordinate, radius, span, vertical):
     """Maximum weak-stroke coverage; broken/faint lines count as uncertainty.
 
     This deliberately does not require a continuous line. It is used only to
-    identify near-empty search bands, not to choose or move an edge.
+    report weak linear coverage, never to reject, choose or move an edge.
     """
     if span[1] - span[0] < 8:
         return None
@@ -595,6 +604,29 @@ def _visible_span_support(ink, *, coordinate, radius, span, vertical):
     if region.size == 0:
         return None
     return float(np.max(np.mean(region >= _VISIBLE_CONTRAST, axis=0)))
+
+
+def _full_band_visible_pixels(ink, box, x_radius, z_radius):
+    """Count any visible stroke in complete bands, preserving bbox extrema."""
+    if x_radius is None or z_radius is None:
+        return None
+    left, top, right, bottom = box
+    x0, x1 = max(0, math.floor(left) - x_radius), min(ink.shape[1], math.ceil(right) + x_radius + 1)
+    y0, y1 = max(0, math.floor(top) - z_radius), min(ink.shape[0], math.ceil(bottom) + z_radius + 1)
+    bands = {
+        "left": (max(0, math.floor(left) - x_radius), y0,
+                 min(ink.shape[1], math.ceil(left) + x_radius + 1), y1),
+        "right": (max(0, math.floor(right) - x_radius), y0,
+                  min(ink.shape[1], math.ceil(right) + x_radius + 1), y1),
+        "top": (x0, max(0, math.floor(top) - z_radius),
+                x1, min(ink.shape[0], math.ceil(top) + z_radius + 1)),
+        "bottom": (x0, max(0, math.floor(bottom) - z_radius),
+                   x1, min(ink.shape[0], math.ceil(bottom) + z_radius + 1)),
+    }
+    if any(x1 <= x0 or y1 <= y0 for x0, y0, x1, y1 in bands.values()):
+        return None
+    return {name: int(np.count_nonzero(ink[y0:y1, x0:x1] >= _VISIBLE_CONTRAST))
+            for name, (x0, y0, x1, y1) in bands.items()}
 
 
 def _unmoved_edge(coordinate: float | None, status: str, reason: str) -> dict[str, Any]:

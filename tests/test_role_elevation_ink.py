@@ -580,6 +580,46 @@ def test_wrong_source_pixel_frame_cannot_be_waived_by_local_review(tmp_path):
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("shape", ["diamond", "circle", "thin_diagonal", "extrema_only"])
+def test_nonrectangular_or_thin_aperture_bbox_can_complete_trial_and_submit(tmp_path, shape):
+    async def scenario():
+        from src.agent.runtime_roles.elevation_trial import load_trial
+        picture = Image.new("RGB", (140, 120), "black")
+        draw = ImageDraw.Draw(picture)
+        if shape == "diamond":
+            draw.line([(65, 30), (90, 55), (65, 80), (40, 55), (65, 30)], fill="cyan", width=1)
+        elif shape == "circle":
+            draw.ellipse((40, 30, 90, 80), outline="cyan", width=1)
+        elif shape == "thin_diagonal":
+            draw.line((40, 30, 90, 80), fill=(16, 16, 16), width=1)
+        else:
+            # The old trimmed bands discarded corner-only evidence entirely.
+            # One visible endpoint must make absence uncertain, not prove shape.
+            draw.point((40, 30), fill="cyan")
+            draw.point((90, 80), fill="cyan")
+        tools = _node_tools(tmp_path, picture)
+        arguments = _node_arguments()
+        arguments["openings"] = [{"id": "W1", "floor_id": "F1", "kind": "window",
+            "opening_bbox": [40, 30, 90, 80], "evidence_type": "pixels"}]
+        arguments["counts"][0]["window_count"] = 1
+        result = await tools.call_tool("trial_elevation_reading", arguments)
+        assert not result["isError"], result
+        body = result["structuredContent"]
+        assert body["ready_for_delivery"] and not body["blocking_issues"], body
+        assert all(row["type"] == "opening_geometry_weak_linear_support" for row in body["issues"])
+        trial = load_trial(tools.submission, body["trial_id"])
+        reading = trial["value"]["artifact"]["ink_alignment"]["openings"][0]
+        assert not reading["applied_fields"]
+        assert reading["effective_bbox_px"] == [40, 30, 90, 80]
+        if reading["source_image_issue"] is not None:
+            assert all(count > 0 for count in reading["source_image_issue"]["full_band_visible_pixels"].values())
+        accepted = await tools.call_tool("submit_elevation_reading", {
+            "trial_id": body["trial_id"], "local_review": REVIEW})
+        assert not accepted["isError"], accepted
+        assert tools.submission.read()["artifact"]["openings"][0]["opening_bbox"] == [40, 30, 90, 80]
+    asyncio.run(scenario())
+
+
 def test_annotation_crop_position_is_not_used_as_a_level_line(tmp_path):
     async def scenario():
         tools = _node_tools(tmp_path)
